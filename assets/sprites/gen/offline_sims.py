@@ -1,6 +1,7 @@
 """Validate offline model renders before appending them to the sprite atlas."""
 
 from dataclasses import dataclass
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -17,6 +18,8 @@ STEMS = {
     "sit": "Sit", "sleep": "Sleep", "exercise": "Exercise",
     "prepare": "Prepare", "cook": "Cook", "wash": "Wash",
     "carry_walk": "CarryWalk", "carry_idle": "CarryIdle",
+    "food_walk": "FoodWalk", "food_idle": "FoodIdle",
+    "seated_eat": "SeatedEat", "cook_v2": "CookV2",
 }
 
 
@@ -27,6 +30,46 @@ class SimExport:
     frames: dict
     variant: str = "green"
     pixel_density: int = 1
+
+
+def trim_clip_envelopes(exports, *, padding=2):
+    """Remove empty clip borders with one registration shared by every palette."""
+    result = deepcopy(exports)
+    actions = set(exports[0].clips)
+    if any(set(export.clips) != actions or export.pixel_density != exports[0].pixel_density
+           for export in exports):
+        raise ValueError('trimmed exports must share clips and pixel density')
+    density = exports[0].pixel_density
+    for action in sorted(actions):
+        records = [(export, sprite) for export in exports for sprite in export.sprites
+                   if export.frames[sprite[0]]['action'] == action]
+        sizes = {sprite[1].size for _, sprite in records}
+        if len(sizes) != 1:
+            raise ValueError('clip envelopes must have matching dimensions')
+        width, height = sizes.pop()
+        boxes = [sprite[1].getchannel('A').getbbox() for _, sprite in records]
+        if any(box is None for box in boxes):
+            raise ValueError('cannot trim an empty frame')
+        left = max(0, (min(box[0] for box in boxes) - padding) // density * density)
+        top = max(0, (min(box[1] for box in boxes) - padding) // density * density)
+        right = min(width, ((max(box[2] for box in boxes) + padding + density - 1) // density) * density)
+        bottom = min(height, ((max(box[3] for box in boxes) + padding + density - 1) // density) * density)
+        shift = [left / density, top / density]
+        for export in result:
+            clip = export.clips[action]
+            clip['width'], clip['height'] = (right-left)//density, (bottom-top)//density
+            for key in ('anchor', 'world_origin'):
+                if key in clip:
+                    clip[key] = [coordinate-offset for coordinate, offset in zip(clip[key], shift)]
+            for row in export.frames.values():
+                if row['action'] == action:
+                    row['content_top'] -= shift[1]
+                    if 'hand_anchor' in row:
+                        row['hand_anchor'] = [coordinate-offset for coordinate, offset in zip(row['hand_anchor'], shift)]
+            export.sprites = [(name, image.crop((left, top, right, bottom)), right-left, bottom-top)
+                              if export.frames[name]['action'] == action else (name, image, w, h)
+                              for name, image, w, h in export.sprites]
+    return result
 
 
 def load_export(manifest_path, *, required_clips=(), existing_names=(), expected_variant="green"):
@@ -148,7 +191,7 @@ def runtime_tables(export, all_sprites):
             [indices[f"{prefix}{STEMS[action]}{facing}{frame}"] for frame in range(clip["frame_count"])]
             for facing in FACINGS
         ]}
-        if action in ("walk", "carry_walk"):
+        if action in ("walk", "carry_walk", "food_walk"):
             distance = clip.get("distance_per_cycle_model_units")
             if type(distance) not in (int, float) or distance <= 0 or not math.isfinite(distance) or abs(1 / distance - round(1 / distance)) > 1e-9:
                 raise ValueError("walk cycle distance must meet at integer tile corners")

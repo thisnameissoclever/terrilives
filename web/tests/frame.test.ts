@@ -1175,12 +1175,13 @@ describe('approved rigged Sim selector', () => {
     ['sleep', 'Sleep', VISUAL_ACTION_SLEEP, SLEEP_FRAME_TICKS, 4],
     ['exercise', 'Exercise', VISUAL_ACTION_EXERCISE, EXERCISE_FRAME_TICKS, 2],
     ['prepare', 'Prepare', 10, 10, 4],
-    ['cook', 'Cook', 11, 10, 4],
+    ['cook_v2', 'CookV2', 11, 10, 8],
     ['wash', 'Wash', 12, 10, 4],
+    ['seated_eat', 'SeatedEat', 13, 16, 8],
   ] as const;
 
-  it('selects every authored sample in all thirteen actions and four actual facings', () => {
-    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...actions.map(([name]) => name), 'carry_walk', 'carry_idle'].sort());
+  it('selects every authored sample in all supported actions and four actual facings', () => {
+    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...actions.map(([name]) => name), 'carry_walk', 'carry_idle', 'food_walk', 'food_idle', 'cook'].sort());
     for (const [name, stem, action, halfCycle, count] of actions) {
       for (const [direction, suffix] of ['SE', 'NW', 'SW', 'NE'].entries()) {
         const facing = direction + 1;
@@ -2697,5 +2698,32 @@ describe('the camera scale in buildInstances', () => {
     const bubble = slot(instances, 1);
     expect(bubble.x).toBe(screenX(3, 2, ORIGIN_X, 2));
     expect(bubble.y).toBe(indicatorY(3, 2, sim.sprite, ORIGIN_Y, 2));
+  });
+});
+
+describe('registered dinner transport and exact cooking source',()=>{
+  it('cycles baked food transport in all facings and keeps food out of work badges',()=>{
+    for(let facing=1;facing<=4;facing++){
+      const frames=RIGGED_SIM_CLIPS.food_walk.frames[facing-1];
+      for(let frame=0;frame<8;frame++){
+        const distance=(facing===2 || facing===4 ? -1:1)*frame/8;
+        expect(simBodySprite(0,VISUAL_ACTION_WALK,facing,0,false,facing<=2?distance:0,facing>=3?distance:0,0xffff_ffff,0,true)).toBe(frames[frame]);
+      }
+    }
+    for(const [activity, action] of [[22,10],[23,11],[17,12],[3,13]]){
+      const src=new FakeEntities(); src.set([[1,1,1,1,KIND_AGENT,3,activity,1,action,4]]);
+      const n=instanceCount(src,null);const data=snapshot(buildInstances(src,1,ORIGIN_X,ORIGIN_Y,GRID),n);
+      expect(Array.from({length:n},(_,i)=>data[i*FLOATS_PER_INSTANCE+OFFSET_SPRITE])).not.toContain(spriteIndex('carried_dinner'));
+    }
+  });
+  it('draws one pot at the exact active source and makes count agree with construction',()=>{
+    const src=new FakeEntities() as FakeEntities & {soundActions():Uint32Array;soundSources():Uint32Array};
+    src.set([[1,0,1,0,1,spriteIndex('offlineStoveSW')],[3,0,3,0,1,spriteIndex('offlineStoveSW')],[1,1,1,1,KIND_AGENT,3,23,1,11,4]]);
+    src.soundActions=()=>new Uint32Array([0,0,2]);src.soundSources=()=>new Uint32Array([0xffff_ffff,0xffff_ffff,100]);
+    const n=instanceCount(src,null); const data=snapshot(buildInstances(src,1,ORIGIN_X,ORIGIN_Y,GRID),n);
+    const drawn=Array.from({length:n},(_,i)=>data[i*FLOATS_PER_INSTANCE+OFFSET_SPRITE]);
+    expect(drawn.filter(s=>s===spriteIndex('cookingPotNE'))).toHaveLength(1);
+    src.soundSources=()=>new Uint32Array([0xffff_ffff,0xffff_ffff,999]);
+    const noPot=instanceCount(src,null); expect(noPot).toBe(n-1);
   });
 });

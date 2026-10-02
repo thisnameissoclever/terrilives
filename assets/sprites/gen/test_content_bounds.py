@@ -69,17 +69,20 @@ class ShippedAtlasTests(unittest.TestCase):
         bounds = {int(index): box for index, box in shipped_table("SPRITE_CONTENT_BOUNDS").items()}
         self.assertGreater(len(bounds), 300)
         bed_layers = {int(index): layers for index, layers in shipped_table("BED_LAYERS").items()}
+        pair_coverage = {int(index) for index in shipped_table("SPRITE_PAIR_COVERAGE")}
+        pairs = {int(index): layers for index, layers in shipped_table("SPRITE_PAIRS").items()}
         wrong = []
         with Image.open(ROOT / "web/public/atlas.png") as atlas:
             for index, box in bounds.items():
                 row = records[index]
                 density = row.get("pixel_density", 1)
                 crop = atlas.crop((row["x"], row["y"], row["x"] + row["w"], row["y"] + row["h"]))
-                if index in bed_layers:
+                if index in bed_layers or index in pair_coverage:
                     # A scene alias reuses furniture texels but draws all visible layers.
                     # Independently union their alpha support rather than inspecting only furniture.
                     alpha = Image.new("L", crop.size)
-                    for layer in bed_layers[index]:
+                    layers = bed_layers[index] if index in bed_layers else [index, *pairs[index].values()]
+                    for layer in layers:
                         if layer < 0:
                             continue
                         term = records[layer]
@@ -99,8 +102,8 @@ class ShippedAtlasTests(unittest.TestCase):
         records = tomllib.loads((ROOT / "assets/sprites/atlas.toml").read_text())["sprite"]
         bounds = {int(index) for index in shipped_table("SPRITE_CONTENT_BOUNDS")}
         sim_bodies = shipped_sim_bodies(records)
-        # 219 legacy figures plus 156 rigged samples in each of three palettes.
-        self.assertEqual(len(sim_bodies), 975)
+        # Preserve the existing figures and include every new dining pose.
+        self.assertEqual(len(sim_bodies), 975 + 336)
         self.assertEqual(sorted(sim_bodies & bounds), [])
 
 

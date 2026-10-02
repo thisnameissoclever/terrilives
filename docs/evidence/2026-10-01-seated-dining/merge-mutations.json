@@ -1,0 +1,36 @@
+[
+  {
+    "mutation": "renderer-mode-collision",
+    "command": [
+      "npm.cmd",
+      "--prefix",
+      "web",
+      "test",
+      "--",
+      "tests/dining-table-support.test.ts",
+      "--maxWorkers=1",
+      "-t",
+      "keeps dining masks distinct"
+    ],
+    "exit_code": 1,
+    "observed_failure": "\n> test\n> vitest run tests/dining-table-support.test.ts --maxWorkers=1 -t keeps dining masks distinct\n\n\n RUN  v4.1.10 D:/VIBES/.worktrees/1dc2/terrilives/web\n\n \u276f tests/dining-table-support.test.ts (8 tests | 1 failed | 7 skipped) 5ms\n   \u00d7 keeps dining masks distinct from modelled door depth in both renderer protocols 4ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 7 skipped (8)\n   Start at  17:04:10\n   Duration  671ms (transform 445ms, setup 0ms, import 526ms, tests 5ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/dining-table-support.test.ts > keeps dining masks distinct from modelled door depth in both renderer protocols\nAssertionError: expected 2 to be 3 // Object.is equality\n\n- Expected\n+ Received\n\n- 3\n+ 2\n\n \u276f tests/dining-table-support.test.ts:19:46\n     17| it('keeps dining masks distinct from modelled door depth in both rende\u2026\n     18|   const modes = { SURFACE_DEPTH_PROJECTION, DINING_BACKGROUND, DINING_\u2026\n     19|   expect(new Set(Object.values(modes)).size).toBe(3);\n       |                                              ^\n     20|   for (const [name, value] of Object.entries(modes)) {\n     21|     const declaration = shader.match(new RegExp(`const ${name}: f32 = \u2026\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
+    "restored_sha256": "bbed389ef0b812b6bf1eb3bb25455fc5c192136ee6a32f3d07c5debd2717ae38"
+  },
+  {
+    "mutation": "missing-carried-food-selection",
+    "command": [
+      "npm.cmd",
+      "--prefix",
+      "web",
+      "test",
+      "--",
+      "tests/input.test.ts",
+      "--maxWorkers=1",
+      "-t",
+      "picks the displayed food transport"
+    ],
+    "exit_code": 1,
+    "observed_failure": "\n> test\n> vitest run tests/input.test.ts --maxWorkers=1 -t picks the displayed food transport\n\n\n RUN  v4.1.10 D:/VIBES/.worktrees/1dc2/terrilives/web\n\n \u276f tests/input.test.ts (87 tests | 1 failed | 86 skipped) 7ms\n     \u00d7 picks the displayed food transport body for idle and walking Sims 6ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 86 skipped (87)\n   Start at  17:04:12\n   Duration  975ms (transform 724ms, setup 0ms, import 821ms, tests 7ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/input.test.ts > pickSprite > picks the displayed food transport body for idle and walking Sims\nAssertionError: expected undefined to be 7 // Object.is equality\n\n- Expected:\n7\n\n+ Received:\nundefined\n\n \u276f tests/input.test.ts:1135:81\n    1133|       // Isolate frame selection even when both animation envelopes ov\u2026\n    1134|       const bounds = { [ordinary]: [0, 0, 0, 0] as const };\n    1135|       expect(pickSprite(rows, x, y, 0, 0, 1, false, undefined, bounds)\u2026\n       |                                                                                 ^\n    1136|       expect(pickSprite({ ...rows, carrying: undefined }, x, y, 0, 0, \u2026\n    1137|     }\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
+    "restored_sha256": "424e6d5db0a3d6201f838b18bb501a174afb4866129068c31ca0d4f080b8a7de"
+  }
+]

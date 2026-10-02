@@ -6,7 +6,7 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - Assign a sleeping place in Sim details under Personality, habits and bed. Each place shows its assignee and current occupant.
 - Two Sims can share a double bed. Cancelling one Sim's orders leaves the other asleep; saves retain both sleepers and their assignments.
 - Tired Sims prefer a reachable assigned sleeping place. Player orders take priority, and new games place the double bed where both sides are accessible.
-- Cook breakfast, lunch or dinner and share extra portions with up to three hungry friends. Everyone gathers at the table to eat; seated dining is still to come.
+- Cook breakfast, lunch or dinner and share extra portions with up to three hungry friends. Everyone gathers to eat, sitting at usable chairs or standing near the table.
 - Housemates prepare snacks at the counter. Cooking, carrying plates and washing dishes have distinct animations.
 - Tidier people are more likely to wash dishes. Mess left by others can sour moods and relationships.
 - See what people are doing with activity bubbles. Mood and life satisfaction stay visible when the Sim panel is collapsed.
@@ -17,6 +17,9 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - Conversations initiated while someone's needs are low or critical can reduce their opinion of the initiator.
 
 ## Improved
+- Average Sims wash their own dishes more often. They can notice their own old mess and remember to clean it after finishing a busy activity. Urgent needs still take priority.
+- Diners use reachable chairs with clean settings. Full or dirty settings make them stand nearby; households without a reachable table eat at a counter.
+- Dirty settings add annoyance when they force someone to stand. An average, rested Sim has a separate 30% chance to clean the blocking dishes after eating; cleanliness and current needs change that chance.
 - Life satisfaction has a centered meter and a description from Very dissatisfied to Fulfilled. Hover or focus it to see the exact score out of 100.
 - New Sims start at 50 before small trait adjustments. Life satisfaction now changes over game months and years; sustained mood still raises or lowers it.
 - Saved scores from 0 to 100 stay unchanged. Earlier scores above 100 become 100.
@@ -48,13 +51,16 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - Meals, leftover portions, dirty dishes and interrupted cooking carry over when you save and load.
 - Sim details start narrower and expand when Personal details need more space. Shyness appears alongside personality information.
 - Privacy detours preserve meal pickup, occupied dining spaces and interrupted cleanup.
+- Seated diners rest on dining chairs without sinking through the seat or showing through the back rails. Their hands and plates remain visible above the table. Clicking exposed chair parts selects the chair.
 - The bar at the bottom always shows what the selected Sim is doing. Critical needs now appear on their own line instead of replacing it.
 
 ## Art
+- Cooking shows a pot on the stove and a stirring utensil. Carrying plates and seated eating use separate animations; the floating cooking plate is gone.
 - Doors have visible thickness, panels and handles on both sides. Lighter frame outlines fit the furniture, and the posts have clean joins.
 - All four double-bed facings show either sleeper or both beneath one duvet. Select each visible Sim separately; furniture colour changes preserve shirt colours. Sleeping poses are static.
 
 ## Sound
+- Finishing a toilet visit plays its flush even when it interrupts cooking or dish cleanup; the suspended work resumes afterward.
 - Doors open silently and close with a softer thud.
 - Running sinks and cooking have their own recorded sounds.
 - Footsteps are quieter.

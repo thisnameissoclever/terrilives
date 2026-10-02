@@ -70,6 +70,40 @@ pub struct SaveSnapshotV5 {
     /// Stable SimId and nondefault shyness. Earlier payloads omit this tail.
     pub shyness: Vec<(u32, u8)>,
     pub boundaries: Vec<SavedBoundaryDecision>,
+    /// Exact dining claims and deferred room cleanup opportunities. Optional tail
+    /// preserves the published domestic record's positional wire layout.
+    pub dining: Option<SavedDining>,
+}
+
+#[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedDining {
+    pub diners: Vec<SavedDiner>,
+    /// Dish identity and exact table setting (0..4).
+    pub settings: Vec<(u32, u8)>,
+    pub opportunities: Vec<SavedCleanupOpportunity>,
+    /// Dirty-setting complaints persist across interruptions, separately from seats.
+    pub complaints: Vec<(u32, Vec<u32>)>,
+    /// Batches whose shared eating interval started without a table.
+    pub tableless: Vec<(u32, u64)>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedDiner {
+    pub person: u32,
+    pub station: u32,
+    pub chair: Option<u32>,
+    pub setting: Option<u8>,
+    pub endpoint: (i32, i32),
+    /// Dishes which prevented a reachable, unoccupied chair being used.
+    pub obstructing: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedCleanupOpportunity {
+    pub person: u32,
+    pub room: u32,
+    pub known: Vec<u32>,
+    pub pending: bool,
 }
 
 #[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
@@ -156,6 +190,7 @@ impl LocalBedSnapshotV5 {
             shyness: self.shyness,
             boundaries: self.boundaries,
             domestic: None,
+            dining: None,
         }
     }
 }

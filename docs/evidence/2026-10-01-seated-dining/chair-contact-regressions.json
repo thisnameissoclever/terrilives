@@ -1,0 +1,134 @@
+{
+  "state": "complete",
+  "model_sha256": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+  "cases": [
+    {
+      "name": "generic-armchair-pose",
+      "caught": true,
+      "error": "Dining body intersects furniture: [{'body': 'Tailored trouser leg', 'furniture': 'Front apron', 'witness': {'kind': 'surface', 'triangle_pairs': 218}}, {'body': 'Tailored trouser leg', 'furniture': 'Front leg right', 'witness': {'kind': 'surface', 'triangle_pairs': 75}}, {'body': 'Tailored trouser leg', 'furniture': 'Seat', 'witness': {'kind': 'surface', 'triangle_pairs': 273}}, {'body': 'Tailored trouser leg', 'furniture': 'Side apron right', 'witness': {'kind': 'surface', 'triangle_pairs': 53}}, {'body': 'Tailored trouser leg.001', 'furniture': 'Front apron', 'witness': {'kind': 'surface', 'triangle_pairs': 218}}, {'body': 'Tailored trouser leg.001', 'furniture': 'Front leg left', 'witness': {'kind': 'surface', 'triangle_pairs': 75}}, {'body': 'Tailored trouser leg.001', 'furniture': 'Seat', 'witness': {'kind': 'surface', 'triangle_pairs': 273}}, {'body': 'Tailored trouser leg.001', 'furniture': 'Side apron left', 'witness': {'kind': 'surface', 'triangle_pairs': 52}}, {'body': 'Trouser hip bridge', 'furniture': 'Seat', 'witness': {'kind': 'surface', 'triangle_pairs': 388}}]"
+    },
+    {
+      "name": "raised-seat",
+      "caught": true,
+      "error": "Dining body intersects furniture: [{'body': 'Tailored trouser leg', 'furniture': 'Seat', 'witness': {'kind': 'surface', 'triangle_pairs': 144}}, {'body': 'Tailored trouser leg.001', 'furniture': 'Seat', 'witness': {'kind': 'surface', 'triangle_pairs': 144}}, {'body': 'Trouser hip bridge', 'furniture': 'Seat', 'witness': {'kind': 'surface', 'triangle_pairs': 203}}]"
+    },
+    {
+      "name": "missing-seat",
+      "caught": true,
+      "error": "Dining furniture inventory changed"
+    }
+  ],
+  "accepted": {
+    "body_inventory": [
+      "Collar stand",
+      "Dark pupil",
+      "Dark pupil.001",
+      "Ear",
+      "Ear.001",
+      "Eye white",
+      "Eye white.001",
+      "Fitted rounded shoe sole",
+      "Fitted rounded shoe sole.001",
+      "Folded fabric collar leaf",
+      "Folded fabric collar leaf.001",
+      "Forearm with elbow and wrist sections",
+      "Forearm with elbow and wrist sections.001",
+      "HAIR_01_TRIPO_CURL",
+      "Hazel iris",
+      "Hazel iris.001",
+      "Inner ear",
+      "Inner ear.001",
+      "Natural neck",
+      "One sewn breast pocket",
+      "Overshirt body",
+      "Pocket top seam",
+      "Quiet closed smile",
+      "Relaxed palm",
+      "Relaxed palm.001",
+      "Relaxed shirt sleeve",
+      "Relaxed shirt sleeve.001",
+      "Resting thumb",
+      "Resting thumb.001",
+      "Sculpted head",
+      "Shaped shoe",
+      "Shaped shoe.001",
+      "Shirt lower hem",
+      "Shirt placket",
+      "Shoe apron stitch",
+      "Shoe apron stitch.001",
+      "Small eye catchlight",
+      "Small eye catchlight.001",
+      "Small horn button",
+      "Small horn button.001",
+      "Small horn button.002",
+      "Small horn button.003",
+      "Small rounded nose",
+      "Soft eyebrow",
+      "Soft eyebrow.001",
+      "Tailored trouser leg",
+      "Tailored trouser leg.001",
+      "Trouser hem",
+      "Trouser hem.001",
+      "Trouser hip bridge",
+      "Turned sleeve cuff",
+      "Turned sleeve cuff.001",
+      "Upper lid outline",
+      "Upper lid outline.001"
+    ],
+    "checked_solids": [
+      "Back rail 0",
+      "Back rail 1",
+      "Back rail 2",
+      "End apron far",
+      "End apron near",
+      "Front apron",
+      "Front leg left",
+      "Front leg right",
+      "Leg left far",
+      "Leg left near",
+      "Leg right far",
+      "Leg right near",
+      "Long apron left",
+      "Long apron right",
+      "Rear apron",
+      "Rear post left",
+      "Rear post right",
+      "Seat",
+      "Side apron left",
+      "Side apron right",
+      "Side stretcher left",
+      "Side stretcher right",
+      "Tabletop"
+    ],
+    "collisions": [],
+    "hip_support": {
+      "min_gap": 0.0004991292953491211,
+      "ray_hits": 907,
+      "contact_count": 34,
+      "coordinates": "seat local",
+      "contact_bounds": [
+        [
+          -0.27960479259490967,
+          -0.09995634853839874,
+          0.04549908638000488
+        ],
+        [
+          -0.193562313914299,
+          0.09995637089014053,
+          0.05277222394943237
+        ]
+      ],
+      "xy_hull_area": 0.014048457154251572
+    },
+    "sole_clearance": {
+      "Fitted rounded shoe sole": 0.01914813742041588,
+      "Fitted rounded shoe sole.001": 0.019148128107190132
+    },
+    "plate_support": {
+      "foot_samples": 128,
+      "max_gap": 1.7881393432617188e-07
+    },
+    "spoon_grip_error": 1.4901161193847656e-08,
+    "spoon_mouth_distance": 0.5572637650525484
+  }
+}

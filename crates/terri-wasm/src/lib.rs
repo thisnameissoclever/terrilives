@@ -268,16 +268,16 @@ fn decode_local_bed_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
 fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 12;
+    const APPENDED_LISTS: usize = 13;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                if snapshot.sleeping_places.is_some() != (pad <= 2) {
+                if snapshot.sleeping_places.is_some() != (pad <= 3) {
                     return None;
                 }
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: boundaries, shyness, sleeping places, domestic,
+                // From the tail: dining, boundaries, shyness, sleeping places, domestic,
                 // chronotypes, instincts, waiting, migration flag, mortality, SimId
                 // ties, legacy ties, floors. Asking every appended field
                 // to be empty at every pad level is how
@@ -299,6 +299,7 @@ fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
                 let invented: usize = [
+                    usize::from(snapshot.dining.is_some()),
                     snapshot.boundaries.len(),
                     snapshot.shyness.len(),
                     usize::from(snapshot.sleeping_places.is_some()),
@@ -1678,6 +1679,11 @@ impl SimHandle {
         self.sim.render_buffer().interaction_targets.as_ptr()
     }
 
+    /// Supporting table for an active seated meal, or u32::MAX; refresh after sync.
+    pub fn meal_tables_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().meal_tables.as_ptr()
+    }
+
     /// Exact bed IDs for running sleep-tagged place ownership, or u32::MAX. Aligned with
     /// sleeping_places_ptr; re-read both after sync, Load or memory growth.
     pub fn sleeping_beds_ptr(&self) -> *const u32 {
@@ -1716,6 +1722,10 @@ impl SimHandle {
 
     pub fn dirty_dishes_ptr(&self) -> *const u32 {
         self.sim.render_buffer().dirty_dishes.as_ptr()
+    }
+
+    pub fn dirty_settings_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().dirty_settings.as_ptr()
     }
 
     pub fn carried_dishes_ptr(&self) -> *const u32 {
@@ -3003,8 +3013,10 @@ mod boundary_tests {
         let mut snapshot = handle.sim.save_snapshot_v5();
         snapshot.shyness.clear();
         let mut previous = postcard::to_allocvec(&snapshot).unwrap();
-        assert_eq!(previous.pop(), Some(0)); // Boundary decisions.
-        assert_eq!(previous.pop(), Some(0)); // Shyness.
+        let suffix = super::save_v3_tests::v5_appended_lengths(&snapshot)[10..]
+            .iter()
+            .sum::<usize>();
+        previous.truncate(previous.len() - suffix);
         let old = decode_v5(&previous).unwrap();
         assert!(old.shyness.is_empty());
         let mut previous_bytes = bytes[..SAVE_HEADER_BYTES].to_vec();
@@ -3012,7 +3024,11 @@ mod boundary_tests {
         assert!(handle.load_bytes(&previous_bytes));
         assert_eq!(handle.shyness_of(entity.index_u32()), initial);
         let before = handle.world_hash();
-        assert!(!handle.load_bytes(&bytes[..bytes.len() - 2]));
+        let suffix = super::save_v3_tests::v5_appended_lengths(&handle.sim.save_snapshot_v5())
+            [11..]
+            .iter()
+            .sum::<usize>();
+        assert!(!handle.load_bytes(&bytes[..bytes.len() - suffix - 1]));
         assert_eq!(handle.world_hash(), before);
         snapshot.shyness = vec![(0, 101)];
         let mut invalid = bytes[..SAVE_HEADER_BYTES].to_vec();
@@ -5047,6 +5063,96 @@ mod boundary_tests {
         assert_eq!(
             targets[row],
             terri_sim::render_buffer::NO_INTERACTION_TARGET
+        );
+    }
+
+    #[test]
+    fn meal_tables_ptr_keeps_support_distinct_from_chair_after_growth_and_cancel() {
+        let mut handle = SimHandle::from_lot();
+        let mut snapshot = handle.sim.save_snapshot_v5();
+        let cook = snapshot
+            .world
+            .entities
+            .iter()
+            .find(|e| e.agent)
+            .unwrap()
+            .index;
+        for person in &mut snapshot.world.entities {
+            if person.agent {
+                person.career = None;
+                person.needs = Some([100.0; 7]);
+                person.personality.as_mut().unwrap().drain = [0.0; 7];
+            }
+        }
+        handle.sim.load_snapshot_v5(snapshot).unwrap();
+        handle
+            .sim
+            .world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObjectFirst {
+                agent: cook,
+                object: 0,
+                interaction: 1,
+            });
+        let mut row = None;
+        for _ in 0..1500 {
+            handle.tick();
+            row = handle
+                .sim
+                .render_buffer()
+                .ids
+                .iter()
+                .position(|id| *id == cook);
+            if row.is_some_and(|r| handle.sim.render_buffer().meal_tables[r] != u32::MAX) {
+                break;
+            }
+        }
+        let row = row.unwrap();
+        let table = handle.sim.render_buffer().meal_tables[row];
+        let chair = handle.sim.render_buffer().interaction_targets[row];
+        assert_ne!(table, u32::MAX, "fixture must reach a running seated meal");
+        assert_ne!(
+            table, chair,
+            "meal support and visible chair are different entities"
+        );
+        for i in 0..48 {
+            handle.spawn_agent(20.0 + i as f32, 20.0, 50.0);
+        }
+        let values = addressed(
+            handle.meal_tables_ptr(),
+            handle.entity_count(),
+            "meal_tables_ptr",
+        );
+        assert_eq!(values, handle.sim.render_buffer().meal_tables);
+        assert_eq!(values[row], table);
+        assert!(values
+            .iter()
+            .enumerate()
+            .all(|(r, id)| r == row || *id == u32::MAX));
+        let saved = handle.sim.save_snapshot_v5();
+        handle.sim.load_snapshot_v5(saved).unwrap();
+        assert_eq!(
+            addressed(
+                handle.meal_tables_ptr(),
+                handle.entity_count(),
+                "meal_tables_ptr"
+            ),
+            values
+        );
+        handle
+            .sim
+            .world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::CancelIntents { agent: cook });
+        handle.sim.flush_commands();
+        handle.sim.sync_render_buffer_after_commands();
+        assert_eq!(
+            addressed(
+                handle.meal_tables_ptr(),
+                handle.entity_count(),
+                "meal_tables_ptr"
+            )[row],
+            u32::MAX
         );
     }
 
@@ -8252,6 +8358,7 @@ mod instinct_boundary_tests {
         snapshot.self_preservation.clear();
         snapshot.chronotype_offsets.clear();
         snapshot.domestic = None;
+        snapshot.dining = None;
         let mut payload = postcard::to_allocvec(&snapshot).unwrap();
         let suffix: usize = super::save_v3_tests::v5_appended_lengths(&snapshot)[6..]
             .iter()
@@ -8272,6 +8379,7 @@ mod instinct_boundary_tests {
         let mut current = source.sim.save_snapshot_v5();
         current.chronotype_offsets.clear();
         current.domestic = None;
+        current.dining = None;
         let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
         truncated.extend(postcard::to_allocvec(&current).unwrap());
         let suffix: usize = super::save_v3_tests::v5_appended_lengths(&current)[7..]
@@ -8281,5 +8389,59 @@ mod instinct_boundary_tests {
         let before = loaded.save_bytes();
         assert!(!loaded.load_bytes(&truncated));
         assert_eq!(before, loaded.save_bytes());
+    }
+    #[test]
+    fn published_domestic_tail_without_dining_loads_and_nested_dining_truncation_rejects() {
+        use terri_core::save::{SavedCleanupOpportunity, SavedDining, SavedDishes, SavedDomestic};
+        let source = SimHandle::from_lot();
+        let mut saved = source.sim.save_snapshot_v5();
+        saved.domestic = Some(SavedDomestic {
+            next_dish: 1,
+            dishes: vec![SavedDishes {
+                id: 0,
+                surface: 1,
+                owner: 0,
+                units: 1,
+            }],
+            ..SavedDomestic::default()
+        });
+        saved.dining = None;
+        let mut old = postcard::to_allocvec(&saved).unwrap();
+        assert_eq!(old.pop(), Some(0));
+        let decoded = decode_v5(&old).unwrap();
+        assert_eq!(decoded.domestic, saved.domestic);
+        assert!(decoded.dining.is_none());
+        let mut bytes = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        bytes.extend(old);
+        let mut loaded = SimHandle::from_lot();
+        assert!(loaded.load_bytes(&bytes));
+        let before = loaded.save_bytes();
+        saved.dining = Some(SavedDining {
+            opportunities: vec![SavedCleanupOpportunity {
+                person: 34,
+                room: 0,
+                known: vec![0],
+                pending: true,
+            }],
+            ..SavedDining::default()
+        });
+        let full = postcard::to_allocvec(&saved).unwrap();
+        for removed in 1..=8 {
+            let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+            truncated.extend(&full[..full.len() - removed]);
+            assert!(
+                !loaded.load_bytes(&truncated),
+                "cut inside dining extension at {removed}"
+            );
+            assert_eq!(before, loaded.save_bytes());
+        }
+        assert_eq!(
+            loaded.dirty_settings_ptr(),
+            loaded.sim.render_buffer().dirty_settings.as_ptr()
+        );
+        assert_eq!(
+            loaded.sim.render_buffer().dirty_settings.len(),
+            loaded.entity_count()
+        );
     }
 }

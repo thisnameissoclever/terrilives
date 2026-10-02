@@ -9,7 +9,7 @@ import unittest
 from PIL import Image
 
 import build
-from offline_sims import load_export, runtime_tables
+from offline_sims import load_export, runtime_tables, trim_clip_envelopes
 
 
 class ExportTests(unittest.TestCase):
@@ -214,6 +214,41 @@ class ExportTests(unittest.TestCase):
     def test_ground_registration_can_be_fractional_and_beyond_crop(self):
         self.manifest["clips"]["walk"].update(width=38, height=88, anchor=[19, 99.25])
         self.assertEqual(self.load().clips["walk"]["anchor"], [19, 99.25])
+
+    def test_clip_trim_preserves_pixels_world_positions_and_registration(self):
+        from copy import deepcopy
+        original = self.load()
+        original.clips['walk']['world_origin'] = [19, 88]
+        original.frames[original.sprites[0][0]]['hand_anchor'] = [19, 44]
+        second = deepcopy(original)
+        second.sprites[0][1].putpixel((23, 41), (10, 20, 30, 255))
+        trimmed = trim_clip_envelopes([original, second])
+        for source, result in zip((original, second), trimmed):
+            shift = [a-b for a, b in zip(source.clips['walk']['anchor'], result.clips['walk']['anchor'])]
+            for old, new in zip(source.sprites, result.sprites):
+                restored = Image.new('RGBA', old[1].size)
+                restored.paste(new[1], tuple(map(int, shift)))
+                self.assertEqual(restored.tobytes(), old[1].tobytes())
+                self.assertEqual(new[0], old[0])
+                old_row, new_row = source.frames[old[0]], result.frames[new[0]]
+                self.assertEqual(old_row['content_top']-source.clips['walk']['anchor'][1],
+                                 new_row['content_top']-result.clips['walk']['anchor'][1])
+                if 'hand_anchor' in old_row:
+                    self.assertEqual([a-b for a, b in zip(old_row['hand_anchor'], source.clips['walk']['anchor'])],
+                                     [a-b for a, b in zip(new_row['hand_anchor'], result.clips['walk']['anchor'])])
+            self.assertEqual(result.clips['walk']['world_origin'], result.clips['walk']['anchor'])
+        self.assertEqual(trimmed[0].sprites[0][1].size, trimmed[1].sprites[0][1].size)
+        self.assertEqual(original.sprites[0][1].size, (38, 88))
+
+    def test_trim_preserves_density_aligned_shared_envelopes(self):
+        export = self.load()
+        export.pixel_density = 2
+        export.sprites = [(name, image.resize((76, 176), Image.Resampling.NEAREST), 76, 176)
+                          for name, image, _, _ in export.sprites]
+        trimmed = trim_clip_envelopes([export])[0]
+        self.assertEqual(trimmed.sprites[0][1].size, (6, 6))
+        self.assertEqual(trimmed.clips['walk']['anchor'], [1, 45])
+        self.assertEqual(trimmed.frames[trimmed.sprites[0][0]]['content_top'], 1)
 
 
 class AtlasAlphaTests(unittest.TestCase):

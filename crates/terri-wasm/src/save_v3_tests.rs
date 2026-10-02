@@ -34,7 +34,7 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
 
 // Serialize each appended field independently so historical-prefix fixtures
 // cannot accidentally cut a newer field that follows the intended boundary.
-pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 12] {
+pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 13] {
     [
         postcard::to_allocvec(&snapshot.floors).unwrap().len(),
         postcard::to_allocvec(&snapshot.family_by_index)
@@ -60,6 +60,7 @@ pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 12] {
             .len(),
         postcard::to_allocvec(&snapshot.shyness).unwrap().len(),
         postcard::to_allocvec(&snapshot.boundaries).unwrap().len(),
+        postcard::to_allocvec(&snapshot.dining).unwrap().len(),
     ]
 }
 
@@ -200,6 +201,7 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         .unwrap();
         snapshot.shyness.clear();
         snapshot.boundaries.clear();
+        snapshot.dining = None;
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend_from_slice(&5u16.to_le_bytes());
         bytes.extend(prefix);
@@ -629,9 +631,9 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert_eq!(&plain[8..10], &[5, 0]);
     assert_eq!(plain, v5_bytes(&source.sim.save_snapshot_v5()));
     assert_eq!(
-        &plain[plain.len() - 5..],
-        &[1, 0, 0, 0, 0],
-        "current saves carry sleeping places, shyness and boundary decisions explicitly"
+        &plain[plain.len() - 6..],
+        &[1, 0, 0, 0, 0, 0],
+        "current saves carry sleeping places, shyness, boundary decisions and dining explicitly"
     );
     let chair = (0..16u32)
         .find(|&index| source.object_colourway(f64::from(index)) == 0)
@@ -1016,8 +1018,9 @@ fn shyness_length_and_record_truncations_cannot_invent_stats() {
     let tail = postcard::to_allocvec(&snapshot.shyness).unwrap();
     assert_eq!(&tail[..2], &[128, 1]);
     let bytes = postcard::to_allocvec(&snapshot).unwrap();
-    let start = bytes.len() - tail.len() - 1;
-    for cut in start + 1..bytes.len() - 1 {
+    let end = bytes.len() - v5_appended_lengths(&snapshot)[11..].iter().sum::<usize>();
+    let start = end - tail.len();
+    for cut in start + 1..end {
         assert!(
             decode_v5(&bytes[..cut]).is_none(),
             "accepted shyness cut {cut}"
@@ -1040,8 +1043,9 @@ fn boundary_length_and_record_truncations_cannot_invent_decisions() {
         .collect();
     let tail = postcard::to_allocvec(&snapshot.boundaries).unwrap();
     let bytes = postcard::to_allocvec(&snapshot).unwrap();
-    let start = bytes.len() - tail.len();
-    for cut in start + 1..bytes.len() {
+    let end = bytes.len() - v5_appended_lengths(&snapshot)[12..].iter().sum::<usize>();
+    let start = end - tail.len();
+    for cut in start + 1..end {
         assert!(
             decode_v5(&bytes[..cut]).is_none(),
             "accepted boundary cut {cut}"
@@ -1257,7 +1261,8 @@ fn optional_group_multibyte_cuts_and_frozen_bed_none_fail_closed() {
         snapshot.sleeping_places = places;
         let mut bytes = postcard::to_allocvec(&snapshot).unwrap();
         let lengths = v5_appended_lengths(&snapshot);
-        let domestic = bytes.len() - lengths[8..].iter().sum::<usize>();
+        bytes.truncate(bytes.len() - lengths[12]); // Frozen local layout has no dining field.
+        let domestic = bytes.len() - lengths[8..12].iter().sum::<usize>();
         assert_eq!(bytes.remove(domestic), 0); // Frozen local layout lacks this public field.
         if snapshot.sleeping_places.is_none() {
             for absent in 0..=2 {

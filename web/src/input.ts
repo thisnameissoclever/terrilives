@@ -31,7 +31,9 @@ import { sampleBedCoverage } from './render/bed-sprites.js';
  * the part that needs a pick: which rows a right click asks for.
  */
 
-import { SPRITES, INTERACTION_SPRITES, BED_CATALOG, BED_COVERAGE, SPRITE_CONTENT_BOUNDS } from './render/atlas.js';
+import { SPRITES, INTERACTION_SPRITES, BED_CATALOG, BED_COVERAGE, SPRITE_CONTENT_BOUNDS,
+  SPRITE_PAIR_COVERAGE, SPRITE_PAIR_MASKS, SPRITE_DINING_SUPPORT } from './render/atlas.js';
+import { sampleDiningSupport } from './render/dining-support.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteWidth, spriteHeight } from './render/sprite-size.js';
@@ -52,6 +54,7 @@ import { ACTIVITY_AT_WORK, KIND_AGENT } from './render/instances.js';
 import {
   LAYER_PROP,
   LAYER_SIM,
+  LAYER_FOREGROUND,
   TILE_HALF_HEIGHT,
   screenToWorld,
   screenX,
@@ -85,10 +88,16 @@ export interface PickSource {
   ids(): Uint32Array;
   /** Persistent household identity used by shirt selection. */
   simIds?(): Uint32Array;
+  carrying?(): Uint32Array;
+  carriedDishes?(): Uint32Array;
+  itemKinds?(): readonly string[];
   /** Exact validated object entity ID, never a proximity match. */
   interactionTargets?(): Uint32Array;
   sleepingBeds?(): Uint32Array;
   sleepingPlaces?(): Uint32Array;
+  mealTables?(): Uint32Array;
+  footprintWidths?(): Uint32Array;
+  footprintDepths?(): Uint32Array;
   /**
    * Atlas sprite index per row, which is what gives each entity its drawn
    * SIZE. Picking needs it because the thing a player aims at is the sprite,
@@ -361,6 +370,18 @@ export function pickSprite(
   const previous = source.prevPositions?.() ?? positions;
   const simulationTick = source.clockTick?.() ?? 0;
   const simIds = source.simIds?.();
+  const carrying = source.carrying?.();
+  const carriedDishes = source.carriedDishes?.();
+  const dinnerKind = source.itemKinds?.().indexOf('dinner') ?? -1;
+  const widths = source.footprintWidths?.(), depths = source.footprintDepths?.();
+  const nearnessAt = (row: number): number => {
+    const x = positions[row * 2], y = positions[row * 2 + 1];
+    const width = widths?.[row] ?? 0, depth = depths?.[row] ?? 0;
+    if (width <= 0 || depth <= 0 || width === depth) return x + y;
+    const span = (width - depth) / 2;
+    const column = (px - screenX(x, y, originX, scale)) / scale / 32;
+    return x + y + Math.sign(span) * Math.max(-Math.abs(span), Math.min(Math.abs(span), column));
+  };
   interactions.updateSource(source, simulationTick, reducedMotion);
 
   let best: Pick | null = null;
@@ -389,7 +410,10 @@ export function pickSprite(
             facings[row],
           )
         : facings?.[row] ?? 0;
-    const displayedSprite = interactions.bodies[row] >= 0 ? interactions.bodies[row] :
+    const pairedOwner = interactions.ownerForTarget(row);
+    const occupiedSprite = pairedOwner >= 0 ? interactions.bodies[pairedOwner] : -1;
+    const displayedSprite = occupiedSprite >= 0 && SPRITE_PAIR_COVERAGE[occupiedSprite]
+      ? occupiedSprite : interactions.bodies[row] >= 0 ? interactions.bodies[row] :
       kinds[row] === KIND_AGENT && visualActions !== null && facings !== null
         ? simBodySprite(
             ids[row],
@@ -400,6 +424,8 @@ export function pickSprite(
             wx,
             wy,
             simIds?.[row],
+            carriedDishes?.[row],
+            carrying?.[row] === dinnerKind && activities[row] <= 2,
           )
         : spriteIndices[row];
     const sprite = SPRITES[displayedSprite];
@@ -437,6 +463,19 @@ export function pickSprite(
     const bed = interactions.bedScenes[row];
     const place = interactions.bedPlaces[row];
     let coverage = -1;
+    const pairCoverage = SPRITE_PAIR_COVERAGE[displayedSprite];
+    if (pairCoverage) {
+      const x = (px - left) / scale * (sprite.pixel_density ?? 1) - 0.5;
+      const y = (py - top) / scale * (sprite.pixel_density ?? 1) - 0.5;
+      const body = sampleBedCoverage(SPRITE_PAIR_MASKS[pairCoverage[0]], x, y);
+      const wood = sampleBedCoverage(SPRITE_PAIR_MASKS[pairCoverage[1]], x, y);
+      const ink = sampleBedCoverage(SPRITE_PAIR_MASKS[pairCoverage[2]], x, y);
+      const bodyInk = sampleBedCoverage(SPRITE_PAIR_MASKS[pairCoverage[3]], x, y);
+      const isBody = kinds[row] === KIND_AGENT;
+      const visibleAlpha = ink + (body + wood) * (1 - ink);
+      const bodyOwns = body + bodyInk >= wood + ink - bodyInk;
+      if (visibleAlpha < 0.5 || isBody !== bodyOwns) continue;
+    }
     if (bed) {
       const x = (px - left) / scale * (sprite.pixel_density ?? 1) - 0.5;
       const y = (py - top) / scale * (sprite.pixel_density ?? 1) - 0.5;
@@ -449,13 +488,19 @@ export function pickSprite(
       }
     }
     const bedTarget = bed ? interactions.targetRows[row] : -1;
-    const nearness = wx + wy;
+    const supportOwner = pairedOwner >= 0 ? pairedOwner : row;
+    const support = SPRITE_DINING_SUPPORT[displayedSprite];
+    const table = interactions.mealRows[supportOwner];
+    const supported = support && table >= 0 && sampleDiningSupport(support, SPRITE_PAIR_MASKS,
+      (px - left) / scale, (py - top) / scale, sprite.pixel_density ?? 1) >= .5;
+    const nearness = nearnessAt(supported ? table : positionRow);
     // The renderer's own layer constants rather than 1 and 0, so that swapping
     // them in `iso.ts` moves the drawn order and the hit order together. Two
     // hand-written numbers here would leave picking silently disagreeing with
     // what is on top.
-    const drawRow = bed ? interactions.bedDrawRows[row] : row;
-    const layer = kinds[drawRow] === KIND_AGENT ? LAYER_SIM : LAYER_PROP;
+    const drawRow = supported ? count + supportOwner : bed ? interactions.bedDrawRows[row]
+      : pairCoverage && pairedOwner >= 0 ? pairedOwner : row;
+    const layer = supported ? LAYER_FOREGROUND : kinds[drawRow] === KIND_AGENT ? LAYER_SIM : LAYER_PROP;
     // Strictly greater on both, so an equal-depth equal-layer tie keeps the
     // EARLIER row - the one that won the pixel.
     if (

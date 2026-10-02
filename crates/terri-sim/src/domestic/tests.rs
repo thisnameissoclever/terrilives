@@ -40,6 +40,117 @@ fn household() -> (Sim, Vec<Entity>, Entity, Entity, Entity) {
 }
 
 #[test]
+fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
+    for cleanup in [false, true] {
+        let (mut sim, people, fridge, counter, _) = household();
+        let actor = people[0];
+        for person in &people {
+            *sim.world_mut().get_mut::<Needs>(*person).unwrap() = Needs::all_at(100.0);
+        }
+        let toilet = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| sim.world().resource::<Content>().0.object(object.0).id == "toilet")
+            .unwrap()
+            .0;
+        if cleanup {
+            add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+            assert!(start_cleanup(sim.world_mut(), actor, vec![0], true));
+        } else {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObject {
+                    agent: actor.index_u32(),
+                    object: fridge.index_u32(),
+                    interaction: 1,
+                });
+        }
+        for _ in 0..10 {
+            sim.tick();
+        }
+        let recipe = sim.world().get::<ChainState>(actor).unwrap().chain;
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObjectFirst {
+                agent: actor.index_u32(),
+                object: toilet.index_u32(),
+                interaction: 0,
+            });
+        let mut restored = None;
+        let mut completions = 0;
+        let mut resumed = false;
+        let mut toilet_finished = false;
+        for _ in 0..1800 {
+            sim.tick();
+            if let Some(loaded) = restored.as_mut() {
+                let loaded: &mut Sim = loaded;
+                loaded.tick();
+                assert_eq!(sim.world_hash(), loaded.world_hash());
+                assert_eq!(sim.completion_sounds(), loaded.completion_sounds());
+            }
+            if restored.is_none()
+                && sim
+                    .world()
+                    .get::<Eating>(actor)
+                    .is_some_and(|e| e.object == terri_data::pack().find("toilet").unwrap())
+            {
+                assert_eq!(sim.world().get::<ChainState>(actor).unwrap().chain, recipe);
+                assert!(sim.world().get::<StepWork>(actor).is_none());
+                let mut loaded = Sim::new_from_shipped_lot();
+                loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+                assert_eq!(loaded.world_hash(), sim.world_hash());
+                restored = Some(loaded);
+            }
+            completions += sim
+                .completion_sounds()
+                .chunks_exact(2)
+                .filter(|pair| pair[1] == toilet.index_u32())
+                .count();
+            if restored.is_some()
+                && !toilet_finished
+                && sim
+                    .world()
+                    .get::<Eating>(actor)
+                    .is_none_or(|e| e.object != terri_data::pack().find("toilet").unwrap())
+            {
+                assert_eq!(completions, 1, "one real toilet completion");
+                toilet_finished = true;
+            }
+            if completions > 0
+                && sim.world().get::<StepWork>(actor).is_some()
+                && sim
+                    .world()
+                    .get::<ChainState>(actor)
+                    .is_some_and(|chain| chain.chain == recipe)
+            {
+                resumed = true;
+            }
+            if resumed
+                && sim
+                    .world()
+                    .get::<ChainState>(actor)
+                    .is_none_or(|chain| chain.chain != recipe)
+            {
+                break;
+            }
+        }
+        assert!(restored.is_some(), "interrupted action must save and load");
+        assert_eq!(completions, 1, "one real toilet completion");
+        assert!(resumed, "the suspended work must resume");
+        assert!(
+            sim.world()
+                .get::<ChainState>(actor)
+                .is_none_or(|chain| chain.chain != recipe),
+            "the resumed work must finish"
+        );
+        if cleanup {
+            assert!(sim.world().resource::<SavedDomestic>().dishes.is_empty());
+        }
+    }
+}
+
+#[test]
 fn needs_override_tidiness_and_slobs_rarely_clean() {
     let full = Needs::all_at(100.0);
     assert!(
@@ -48,7 +159,7 @@ fn needs_override_tidiness_and_slobs_rarely_clean() {
             &full,
             15.0,
             &terri_data::pack().tuning.domestic.unwrap()
-        ) - 0.90)
+        ) - 0.98)
             .abs()
             < 0.00001
     );
@@ -86,6 +197,79 @@ fn needs_override_tidiness_and_slobs_rarely_clean() {
             15.0,
             &terri_data::pack().tuning.domestic.unwrap()
         )
+    );
+}
+
+#[test]
+fn average_cleanliness_has_stronger_own_cleanup_and_thirty_percent_blocker_response() {
+    let tuning = terri_data::pack().tuning.domestic.unwrap();
+    let full = Needs::all_at(100.0);
+    assert!((cleanup_probability(0.5, &full, 15.0, &tuning) - 0.6566667).abs() < 0.00001);
+    assert!((blocked_cleanup_probability(0.5, &full, 15.0, &tuning) - 0.30).abs() < 0.00001);
+    assert!(cleanup_probability(0.08, &full, 15.0, &tuning) < 0.025);
+    assert!(blocked_cleanup_probability(0.9, &full, 15.0, &tuning) > 0.45);
+    let mut exhausted = full;
+    exhausted.set(NeedId::Energy, 5.0);
+    assert!(blocked_cleanup_probability(1.0, &exhausted, 15.0, &tuning) < 0.003);
+}
+
+#[test]
+fn busy_room_entry_defers_one_cleanup_draw_and_own_old_mess_can_trigger_it() {
+    let (mut sim, people, _, counter, _) = household();
+    let observer = people[1];
+    for p in &people {
+        sim.world_mut().entity_mut(*p).insert(ChainState::begin(0));
+        *sim.world_mut().get_mut::<Needs>(*p).unwrap() = Needs::all_at(100.0);
+    }
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() =
+        *sim.world().get::<Position>(counter).unwrap();
+    let owner = sim.world().get::<SimId>(observer).unwrap().0;
+    add_dishes(sim.world_mut(), counter.index_u32(), owner, 1);
+    sim.world_mut().resource_mut::<SavedDomestic>().cleanliness =
+        people.iter().map(|p| (p.index_u32(), 1.0)).collect();
+    let seed = (0..1000)
+        .find(|seed| SimRng::from_seed(*seed).next_f32() < 0.35 * 0.98)
+        .unwrap();
+    let initial = SimRng::from_seed(seed);
+    sim.world_mut().insert_resource(initial.clone());
+    tick(sim.world_mut());
+    assert_eq!(
+        *sim.world().resource::<SimRng>(),
+        initial,
+        "busy entry must not consume a roll"
+    );
+    assert!(sim
+        .world()
+        .resource::<SavedDining>()
+        .opportunities
+        .iter()
+        .any(|o| o.person == observer.index_u32() && o.pending));
+    sim.world_mut().entity_mut(observer).remove::<ChainState>();
+    tick(sim.world_mut());
+    assert!(sim
+        .world()
+        .resource::<SavedDomestic>()
+        .cleanup
+        .iter()
+        .any(|t| t.person == observer.index_u32() && t.dishes == vec![0]));
+    let after = sim.world().resource::<SimRng>().clone();
+    sim.world_mut()
+        .resource_mut::<SavedDomestic>()
+        .cleanup
+        .clear();
+    sim.world_mut().entity_mut(observer).remove::<ChainState>();
+    tick(sim.world_mut());
+    assert_eq!(
+        *sim.world().resource::<SimRng>(),
+        after,
+        "same noticed pile cannot reroll each tick"
+    );
+    add_dishes(sim.world_mut(), counter.index_u32(), owner, 1);
+    tick(sim.world_mut());
+    assert_ne!(
+        *sim.world().resource::<SimRng>(),
+        after,
+        "a genuinely new dish arms a new opportunity"
     );
 }
 
@@ -888,7 +1072,7 @@ fn gathering_yields_to_critical_needs_player_interruptions_and_table_capacity() 
 }
 
 #[test]
-fn a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook() {
+fn guests_stand_to_eat_when_the_table_is_busy_and_the_cook_has_left() {
     let (mut sim, people, table) = plate_with_guests_finishing_their_activity();
     sim.world_mut()
         .resource_mut::<CommandQueue>()
@@ -896,62 +1080,36 @@ fn a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook
             agent: people[0].index_u32(),
         });
     sim.flush_commands();
+    let object = sim.world().get::<SmartObject>(table).unwrap().0;
+    *sim.world_mut().get_mut::<Position>(people[0]).unwrap() = Position { x: 2.0, y: 2.0 };
+    sim.world_mut().entity_mut(people[0]).insert((
+        Target {
+            object: table,
+            interaction: 0,
+        },
+        Eating {
+            object,
+            interaction: 0,
+            remaining_ticks: 190,
+        },
+    ));
     sim.world_mut().entity_mut(table).insert(Reserved);
-    let mut collected = false;
-    for _ in 0..600 {
-        sim.tick();
-        let meal = &sim.world().resource::<SavedDomestic>().meals[0];
-        assert_eq!(
-            meal.table, None,
-            "the reserved table cannot be claimed while collecting"
-        );
-        if meal.collected.len() == 2 {
-            collected = true;
-            break;
-        }
-    }
-    assert!(
-        collected,
-        "both guests must finish collecting within the route/work bound"
-    );
-    // Prove retention after collection, while every table remains unavailable.
+    let mut saw_standing = false;
     for _ in 0..180 {
         sim.tick();
-        let meal = &sim.world().resource::<SavedDomestic>().meals[0];
-        assert_eq!(meal.table, None);
-        assert_eq!(meal.collected.len(), 2);
-        assert!(meal.eaten.is_empty());
+        if let Some(state) = sim.world().get_resource::<SavedDining>() {
+            for diner in &state.diners {
+                if people[1..].iter().any(|p| p.index_u32() == diner.person) {
+                    assert_eq!(diner.chair, None);
+                    saw_standing = true;
+                }
+            }
+        }
     }
-    let state = sim.world().resource::<SavedDomestic>();
-    assert_eq!(state.meals[0].table, None);
-    assert_eq!(
-        state.meals[0].collected.len(),
-        2,
-        "state={state:?}; guests={:?}; waits={:?}",
-        people[1..]
-            .iter()
-            .map(|e| (
-                *e,
-                sim.world().get::<ChainState>(*e),
-                sim.world().get::<Target>(*e),
-                sim.world().get::<terri_core::Path>(*e),
-                sim.world().get::<Position>(*e),
-                sim.world().get::<Needs>(*e),
-                sim.world().get::<terri_core::Socialising>(*e),
-                sim.world().get::<StepWork>(*e),
-                sim.world().get::<terri_core::Blocked>(*e)
-            ))
-            .collect::<Vec<_>>(),
-        sim.privacy_waits()
-    );
-    for guest in &people[1..] {
-        assert_eq!(sim.world().get::<ChainState>(*guest).unwrap().step, 1);
-        assert!(sim.world().get::<terri_core::Carrying>(*guest).is_some());
-    }
+    assert!(saw_standing);
     let mut restored = Sim::new_from_shipped_lot();
     restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
-    sim.world_mut().entity_mut(table).remove::<Reserved>();
     for _ in 0..500 {
         sim.tick();
     }
@@ -1187,7 +1345,7 @@ fn abandoned_shared_plate_becomes_a_counter_dish_and_reservation_has_multiple_ow
 }
 
 #[test]
-fn a_visitor_draws_once_per_entry_at_one_fifth_of_own_willingness() {
+fn a_visitor_draws_once_per_entry_at_the_tuned_fraction_of_own_willingness() {
     let (mut sim, people, _, counter, _) = household();
     let observer = people[1];
     for person in &people {
@@ -1202,6 +1360,9 @@ fn a_visitor_draws_once_per_entry_at_one_fifth_of_own_willingness() {
     let mut decisions = 0;
     for seed in 0..200 {
         sim.world_mut().entity_mut(observer).remove::<ChainState>();
+        if let Some(mut dining) = sim.world_mut().get_resource_mut::<SavedDining>() {
+            dining.opportunities.clear();
+        }
         let state = sim.world_mut().resource_mut::<SavedDomestic>().into_inner();
         state.cleanup.clear();
         state.visits.clear();
@@ -1210,7 +1371,7 @@ fn a_visitor_draws_once_per_entry_at_one_fifth_of_own_willingness() {
             .map(|person| (person.index_u32(), 1.0))
             .collect();
         let mut expected = SimRng::from_seed(seed);
-        let accepted = expected.next_f32() < 0.18;
+        let accepted = expected.next_f32() < 0.35 * 0.98;
         sim.world_mut().insert_resource(SimRng::from_seed(seed));
         tick(sim.world_mut());
         assert_eq!(
@@ -1393,7 +1554,7 @@ fn privacy_station_routes_preserve_owned_counter_and_unique_dining_seats() {
         .iter()
         .position(|chain| chain.id == SHARED)
         .unwrap() as u32;
-    let mut state = SavedDomestic {
+    let state = SavedDomestic {
         meals: vec![SavedMeal {
             cook: 0,
             counter: counter.index_u32(),
@@ -1435,9 +1596,32 @@ fn privacy_station_routes_preserve_owned_counter_and_unique_dining_seats() {
         route(other_counter, 0, &[], &state).is_none(),
         "a different role-compatible owned pickup must fail"
     );
-    let first = route(table, 1, &[], &state).unwrap();
-    let occupied = BoundaryOccupant {
-        actor: people[2],
+    assert!(
+        route(table, 1, &[], &state).is_none(),
+        "dining requires its exact claim"
+    );
+    let endpoint = grid
+        .find_path_adjacent(
+            (
+                sim.world().get::<Position>(people[1]).unwrap().x as i32,
+                sim.world().get::<Position>(people[1]).unwrap().y as i32,
+            ),
+            (
+                sim.world().get::<Position>(table).unwrap().x as i32,
+                sim.world().get::<Position>(table).unwrap().y as i32,
+            ),
+            crate::placed_footprint(
+                pack,
+                sim.world().get::<SmartObject>(table).unwrap().0,
+                sim.world().get::<terri_core::ObjectFacing>(table),
+            ),
+        )
+        .unwrap()
+        .last()
+        .copied()
+        .unwrap();
+    let claimed = BoundaryOccupant {
+        actor: people[1],
         target: Target {
             object: table,
             interaction: crate::systems::chain::CHAIN_STEP,
@@ -1447,13 +1631,40 @@ fn privacy_station_routes_preserve_owned_counter_and_unique_dining_seats() {
             step: 1,
             ..ChainState::begin(shared)
         }),
-        seat: *first.last().unwrap(),
+        seat: endpoint,
+        dining_endpoint: Some(endpoint),
     };
-    let second = route(table, 1, &[occupied], &state).unwrap();
-    assert_ne!(first.last(), second.last());
-    state.meals[0].table = Some(counter.index_u32());
+    assert_eq!(
+        route(table, 1, std::slice::from_ref(&claimed), &state)
+            .unwrap()
+            .last(),
+        Some(&endpoint)
+    );
     assert!(
-        route(table, 1, &[], &state).is_none(),
-        "a newly bound table must be respected"
+        route(other_counter, 1, &[claimed], &state).is_none(),
+        "a detour cannot move the claim to another station"
+    );
+}
+
+#[test]
+fn own_old_dishes_lower_mood_without_self_resentment() {
+    let (mut sim, people, _, counter, _) = household();
+    let observer = people[1];
+    let owner = sim.world().get::<SimId>(observer).unwrap().0;
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() =
+        *sim.world().get::<Position>(counter).unwrap();
+    for person in &people {
+        sim.world_mut()
+            .entity_mut(*person)
+            .insert(ChainState::begin(0));
+    }
+    add_dishes(sim.world_mut(), counter.index_u32(), owner, 3);
+    tick(sim.world_mut());
+    assert!(mood_penalty(sim.world(), observer).unwrap() > 0.0);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(observer)
+            .map_or(0.0, |r| r.feeling(SimId(owner))),
+        0.0
     );
 }

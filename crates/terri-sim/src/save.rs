@@ -2167,7 +2167,7 @@ mod tests {
 
             let mut fresh = Sim::new_from_shipped_lot();
             assert_eq!(
-                fresh.load_snapshot_v2(sim.save_snapshot_v2()),
+                fresh.load_snapshot_v5(sim.save_snapshot_v5()),
                 Ok(()),
                 "the snapshot taken at tick {tick} will not load"
             );

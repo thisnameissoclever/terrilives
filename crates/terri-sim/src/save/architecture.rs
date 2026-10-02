@@ -71,6 +71,7 @@ pub(crate) fn restore_v5(
         sleeping_places,
         shyness,
         boundaries,
+        dining,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -78,7 +79,7 @@ pub(crate) fn restore_v5(
     {
         return Err(SaveError::InvalidValue);
     }
-    let mut candidate = restore_v4(
+    let mut candidate = restore_v4_with_dining(
         SaveSnapshotV4 {
             world,
             layout,
@@ -87,6 +88,7 @@ pub(crate) fn restore_v5(
         },
         content,
         active_portals,
+        dining.as_ref(),
     )?;
     for (index, id) in object_colourways {
         // The first colourway is the art as drawn, which is how an unknown
@@ -151,6 +153,10 @@ pub(crate) fn restore_v5(
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
     super::self_preservation::restore(&mut candidate.world, self_preservation)?;
     super::chronotype::restore(&mut candidate.world, chronotype_offsets)?;
+    // Domestic validation needs exact standing claims for table-free meals.
+    if let Some(state) = &dining {
+        candidate.world.insert_resource(state.clone());
+    }
     crate::domestic::restore(&mut candidate.world, domestic)?;
     match sleeping_places {
         Some(saved) => super::sleeping_places::restore(&mut candidate.world, saved)?,
@@ -158,6 +164,7 @@ pub(crate) fn restore_v5(
     }
     crate::shyness::restore(&mut candidate.world, shyness)?;
     crate::privacy::restore(&mut candidate.world, boundaries)?;
+    crate::dining::restore(&mut candidate.world, dining)?;
     if !death_default_applied {
         candidate
             .world
@@ -180,6 +187,15 @@ pub(crate) fn restore_v4(
     snapshot: SaveSnapshotV4,
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    restore_v4_with_dining(snapshot, content, active_portals, None)
+}
+
+fn restore_v4_with_dining(
+    snapshot: SaveSnapshotV4,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+    dining: Option<&terri_core::save::SavedDining>,
 ) -> Result<Sim, SaveError> {
     super::meal_migration::validate_source(&snapshot.world, content)?;
     let retired = &snapshot.retired_indices;
@@ -216,13 +232,16 @@ pub(crate) fn restore_v4(
             return Err(SaveError::InvalidValue);
         }
     }
-    let candidate = super::restore_with_facings(
+    let mut candidate = super::restore_with_facings(
         snapshot.world,
         content,
         active_portals,
         &facings,
         &snapshot.retired_indices,
     )?;
+    if let Some(state) = dining {
+        candidate.world.insert_resource(state.clone());
+    }
     finish_restore(candidate, snapshot.layout, content)
 }
 
@@ -312,7 +331,9 @@ pub(super) fn validate_edge_world(
                     let at = target_entity.position.ok_or(SaveError::InvalidGrid)?;
                     let footprint = restored_footprint(target_entity, world, content)?;
                     let endpoint = remaining.last().copied().unwrap_or(tile);
-                    if !valid_contact(grid, endpoint, at, footprint) {
+                    if !valid_contact(grid, endpoint, at, footprint)
+                        && !dining_contact(world, entity.index, target.object, endpoint)
+                    {
                         return Err(SaveError::InvalidGrid);
                     }
                 }
@@ -336,12 +357,25 @@ pub(super) fn validate_edge_world(
                 .ok_or(SaveError::InvalidEntityReference)?;
             let at = target.position.ok_or(SaveError::InvalidGrid)?;
             let footprint = restored_footprint(target, world, content)?;
-            if !valid_contact(grid, tile, at, footprint) {
+            if !valid_contact(grid, tile, at, footprint)
+                && !dining_contact(world, entity.index, index, tile)
+            {
                 return Err(SaveError::InvalidGrid);
             }
         }
     }
     Ok(())
+}
+
+fn dining_contact(
+    world: &bevy_ecs::world::World,
+    person: u32,
+    station: u32,
+    endpoint: (i32, i32),
+) -> bool {
+    crate::dining::entity(world, person).is_some_and(|e| crate::dining::terminal(world, e))
+        && crate::dining::claim(world, person)
+            .is_some_and(|d| d.station == station && d.endpoint == endpoint)
 }
 
 fn restored_footprint(

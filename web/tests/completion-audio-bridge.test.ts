@@ -53,6 +53,47 @@ test('release WASM completion exports consume real orders once after memory grow
   } finally { handle.free(); }
 });
 
+test('a toilet interruption emits once after loading and lets cooking resume', () => {
+  const handle = new SimHandle(24, 24);
+  const sim = new SimBridge(handle, memory);
+  const events: GameAudioEvent[] = [];
+  const sink = { emit: (event: GameAudioEvent) => events.push(event) };
+  try {
+    for (const [x, y, id] of [[4, 4, 'fridge'], [9, 4, 'counter'], [14, 4, 'stove'],
+      [4, 9, 'dining_table'], [9, 9, 'kitchen_sink'], [14, 9, 'toilet']] as const) {
+      expect(sim.spawnObject(x, y, id)).toBe(true);
+    }
+    sim.spawnAgent(3, 4, 100);
+    const ids = Array.from(sim.ids());
+    const actor = ids[6], toilet = ids[5];
+    expect(sim.useObject(actor, ids[0], 1)).toBe(true);
+    for (let tick = 0; tick < 10; tick++) sim.tick();
+    const recipe = sim.chainStatusOf(actor);
+    expect(recipe).toMatch(/^Cook /);
+    expect(sim.useObject(actor, toilet, 0)).toBe(true);
+    let loaded = false, resumed = false;
+    for (let tick = 0; tick < 1200; tick++) {
+      sim.tick();
+      if (!loaded && formatActivity(sim.activityOf(actor), null, null) === 'Using the toilet') {
+        const saved = sim.saveBytes(), hash = sim.worldHash();
+        expect(sim.loadBytes(saved)).toBe(true);
+        expect(sim.worldHash()).toBe(hash);
+        expect(sim.chainStatusOf(actor)).toBe(recipe);
+        expect(sim.completionSoundCount).toBe(0);
+        loaded = true;
+      }
+      drainCompletionAudioAfterTick(sim, sink, true);
+      const current = sim.chainStatusOf(actor);
+      if (events.length && current?.startsWith('Cook ') && current !== recipe) resumed = true;
+      if (resumed && !sim.chainStatusOf(actor)?.startsWith('Cook ')) break;
+    }
+    expect(loaded).toBe(true);
+    expect(events).toEqual([{ type: 'object.completed', sourceId: toilet, action: 1 }]);
+    expect(resumed).toBe(true);
+    expect(sim.chainStatusOf(actor)?.startsWith('Cook ')).not.toBe(true);
+  } finally { handle.free(); }
+});
+
 test('paused cancellation and load cannot invent completion, while a loaded live use may finish', () => {
   const { handle, sim, object, actor } = fixture();
   const events: GameAudioEvent[] = [];

@@ -860,11 +860,11 @@ privacy_desperate_need_level = 5.0
 # Meals, cleanliness and household mess. Scores are 0..1; need levels 0..100.
 [domestic]
 own_cleanup_min = 0.01
-own_cleanup_bonus = 0.89
-visitor_cleanup_fraction = 0.20
+own_cleanup_bonus = 0.97
+visitor_cleanup_fraction = 0.35
 critical_cleanup_scale = 0.005
-ready_need_level = 55.0
-other_need_floor = 0.35
+ready_need_level = 45.0
+other_need_floor = 0.65
 other_need_level = 50.0
 invite_hunger_level = 40.0
 accept_hunger_level = 55.0

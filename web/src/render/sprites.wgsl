@@ -36,6 +36,10 @@
 // One atlas serves both layers: opaque sprites first, translucent short
 // walls second. Both draws share a bind group, render pass and submission.
 
+const SURFACE_DEPTH_PROJECTION: f32 = -2.0;
+const DINING_BACKGROUND: f32 = -3.0;
+const DINING_FOREGROUND: f32 = -4.0;
+
 struct Uniforms {
   viewport: vec2<f32>,
   // Where a sprite's bottom centre sits relative to the entity's screen
@@ -102,6 +106,8 @@ struct Atlas {
 
 struct BedLayers { records: array<vec4u>, };
 @group(0) @binding(4) var<storage, read> beds: BedLayers;
+struct DiningSupport { records: array<vec4f>, };
+@group(0) @binding(5) var<storage, read> dining: DiningSupport;
 
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
@@ -110,6 +116,8 @@ struct VertexOut {
   @location(3) corner: vec2<f32>,
   @location(4) @interpolate(flat) pair: vec2<u32>,
   @location(8) @interpolate(flat) bed: vec4u,
+  @location(9) supportUv: vec2f,
+  @location(10) @interpolate(flat) supportMask: u32,
   // Passed straight through. Every vertex of one quad carries the same
   // value, so the interpolation across the triangle is a no-op and the
   // fragment reads exactly what the instance packed.
@@ -162,6 +170,13 @@ fn vs(
   out.corner = corner;
   out.pair = vec2u(sprite.size.zw);
   out.bed = beds.records[u32(instance.w)];
+  let support = dining.records[u32(instance.w)];
+  out.supportMask = u32(support.x);
+  out.supportUv = vec2f(0.0);
+  if (out.supportMask > 0u) {
+    let mask = atlas.sprites[out.supportMask - 1u];
+    out.supportUv = (corner * size - support.yz) / mask.size.xy;
+  }
   out.tint = tint;
   out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + corner * size;
   out.wall = wall;
@@ -253,6 +268,18 @@ fn bedLayer(reference: u32, corner: vec2f) -> vec4f {
 
 @fragment
 fn fs(in: VertexOut) -> FragmentOut {
+  // Complementary passes reconstruct the same complete occupied colour.
+  // Only tabletop geometry changes depth; no meal pixels are drawn twice.
+  if (in.wall.x == DINING_BACKGROUND || in.wall.x == DINING_FOREGROUND) {
+    var supported = false;
+    if (in.supportMask > 0u && all(in.supportUv >= vec2f(0.0)) && all(in.supportUv <= vec2f(1.0))) {
+      let mask = atlas.sprites[in.supportMask - 1u];
+      let halfTexel = 0.5 / vec2f(textureDimensions(atlasTexture));
+      let uv = clamp(mix(mask.uv.xy, mask.uv.zw, in.supportUv), mask.uv.xy + halfTexel, mask.uv.zw - halfTexel);
+      supported = textureSampleLevel(atlasTexture, atlasSampler, uv, 0.0).a >= 0.5;
+    }
+    if (supported == (in.wall.x == DINING_BACKGROUND)) { discard; }
+  }
   // Linear filtering must stay inside this sprite's edge texels. Sampling
   // the transparent atlas gutter darkens every panel seam at fractional zoom.
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
@@ -337,7 +364,7 @@ fn fs(in: VertexOut) -> FragmentOut {
     // Coverage was tested above. Short walls blend after opaque geometry
     // without claiming depth, including when their current opacity is one.
     if (short) { out.colour.a *= in.wall.z; }
-  } else if (in.wall.x == -2.0) {
+  } else if (in.wall.x == SURFACE_DEPTH_PROJECTION) {
     let surface = atlas.sprites[u32(in.wall.z)];
     let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
       surface.uv.xy + halfTexel, surface.uv.zw - halfTexel);

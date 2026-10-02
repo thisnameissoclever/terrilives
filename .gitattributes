@@ -1,4 +1,25 @@
 * text=auto eol=lf
+assets/models/domestic/render_dining_hands.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/export_dining_hands.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/seated-hands/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/export/seated-hands-proof/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/export_dining_table_proof.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/export/seated-table-proof/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Cooking receipts bind the exact producer and contact-definition bytes.
+assets/models/domestic/render_dining.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/render_pot.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/cooking-contact.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/dining_pose.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/dining_contact.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/render_seated_dining.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/export_seated_dining.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/render_dining_meal.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/seated-meal/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/render_dining_table_proof.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/seated-table/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/seated-dining/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/export/seated-dining/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
 # This accepted source manifest is byte-hashed by the preservation proof.
 # Newline conversion would change the approved input on a clean checkout.

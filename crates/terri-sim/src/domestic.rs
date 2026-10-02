@@ -52,7 +52,13 @@ pub fn cleanup_probability(
     critical: f32,
     tuning: &terri_data::DomesticTuning,
 ) -> f32 {
-    let base = tuning.own_cleanup_min + tuning.own_cleanup_bonus * cleanliness * cleanliness;
+    let clean = cleanliness.clamp(0.0, 1.0);
+    let curve = clean * clean / (clean * clean + 0.5 * (1.0 - clean).powi(2));
+    let base = tuning.own_cleanup_min + tuning.own_cleanup_bonus * curve;
+    base * needs_multiplier(needs, critical, tuning)
+}
+
+fn needs_multiplier(needs: &Needs, critical: f32, tuning: &terri_data::DomesticTuning) -> f32 {
     let urgent = [NeedId::Energy, NeedId::Hunger, NeedId::Bladder]
         .into_iter()
         .map(|need| needs.get(need))
@@ -71,9 +77,18 @@ pub fn cleanup_probability(
     .into_iter()
     .map(|need| needs.get(need))
     .fold(100.0_f32, f32::min);
-    base * readiness
+    readiness
         * (tuning.other_need_floor
             + (1.0 - tuning.other_need_floor) * (other / tuning.other_need_level).clamp(0.0, 1.0))
+}
+
+pub(crate) fn blocked_cleanup_probability(
+    clean: f32,
+    needs: &Needs,
+    critical: f32,
+    tuning: &terri_data::DomesticTuning,
+) -> f32 {
+    (0.05 + 0.5 * clean.clamp(0.0, 1.0)) * needs_multiplier(needs, critical, tuning)
 }
 
 fn idle(world: &World, person: Entity) -> bool {
@@ -148,14 +163,14 @@ fn room_at(width: usize, labels: &[u32], position: &Position) -> Option<u32> {
     labels.get(y as usize * width + x as usize).copied()
 }
 
-fn visible(state: &SavedDomestic, dish: u32) -> bool {
+pub(crate) fn visible(state: &SavedDomestic, dish: u32) -> bool {
     !state
         .cleanup
         .iter()
         .any(|task| task.collected.contains(&dish))
 }
 
-fn annoying(
+fn room_piles(
     world: &World,
     person: Entity,
     state: &SavedDomestic,
@@ -168,13 +183,10 @@ fn annoying(
     let Some(room) = room_at(width, labels, position) else {
         return Vec::new();
     };
-    let Some(id) = world.get::<SimId>(person) else {
-        return Vec::new();
-    };
     state
         .dishes
         .iter()
-        .filter(|dish| dish.owner != id.0 && visible(state, dish.id))
+        .filter(|dish| visible(state, dish.id))
         .filter(|dish| {
             entity(world, dish.surface)
                 .and_then(|e| world.get::<Position>(e))
@@ -185,18 +197,37 @@ fn annoying(
         .collect()
 }
 
+fn annoying(
+    world: &World,
+    person: Entity,
+    state: &SavedDomestic,
+    width: usize,
+    labels: &[u32],
+) -> Vec<SavedDishes> {
+    let Some(id) = world.get::<SimId>(person) else {
+        return Vec::new();
+    };
+    room_piles(world, person, state, width, labels)
+        .into_iter()
+        .filter(|d| d.owner != id.0)
+        .collect()
+}
+
 pub(crate) fn mood_penalty(world: &World, person: Entity) -> Option<f32> {
     let tuning = world.resource::<Content>().0.tuning.domestic?;
     let state = world.get_resource::<SavedDomestic>()?;
     let (width, labels) = rooms(world);
-    let piles = annoying(world, person, state, width, &labels);
-    if piles.is_empty() {
+    let piles = room_piles(world, person, state, width, &labels);
+    let obstructed =
+        crate::dining::claim(world, person.index_u32()).is_some_and(|d| !d.obstructing.is_empty());
+    if piles.is_empty() && !obstructed {
         return None;
     }
     let units: u32 = piles.iter().map(|dish| dish.units).sum();
     Some(
         (tuning.mood_penalty_min + tuning.mood_penalty_bonus * cleanliness(world, person))
-            * (units as f32 / tuning.mood_units).min(tuning.mood_max_load),
+            * ((units as f32 / tuning.mood_units).min(tuning.mood_max_load)
+                + if obstructed { 0.5 } else { 0.0 }),
     )
 }
 
@@ -208,6 +239,35 @@ fn chain_index(world: &World, id: &str) -> Option<u32> {
         .iter()
         .position(|chain| chain.id == id)
         .map(|i| i as u32)
+}
+
+/// The extra complaint happens once when a diner discovers a dirty setting.
+pub(crate) fn blocked_setting_annoyance(world: &mut World, person: Entity, ids: &[u32]) {
+    let Some(tuning) = world.resource::<Content>().0.tuning.domestic else {
+        return;
+    };
+    let Some(own) = world.get::<SimId>(person).copied() else {
+        return;
+    };
+    let owners: BTreeSet<_> = world
+        .get_resource::<SavedDomestic>()
+        .into_iter()
+        .flat_map(|s| s.dishes.iter())
+        .filter(|d| ids.contains(&d.id) && d.owner != own.0)
+        .map(|d| d.owner)
+        .collect();
+    let penalty = 0.5
+        * (tuning.affinity_penalty_min
+            + tuning.affinity_penalty_bonus * cleanliness(world, person));
+    if !owners.is_empty() && world.get::<Relationships>(person).is_none() {
+        world.entity_mut(person).insert(Relationships::default());
+    }
+    for owner in owners {
+        world
+            .get_mut::<Relationships>(person)
+            .unwrap()
+            .bump(SimId(owner), -penalty);
+    }
 }
 
 fn start_cleanup(world: &mut World, person: Entity, dishes: Vec<u32>, directed: bool) -> bool {
@@ -370,6 +430,7 @@ pub(crate) fn tick(world: &mut World) {
     }
     state.cleanliness.sort_by_key(|(index, _)| *index);
     world.insert_resource(state);
+    crate::dining::maintain(world);
     let (width, labels) = rooms(world);
     let critical = world
         .resource::<Content>()
@@ -452,6 +513,55 @@ pub(crate) fn tick(world: &mut World) {
             seen: seen_now,
         });
         state.visits.sort_by_key(|visit| visit.person);
+        let all_piles = room_piles(
+            world,
+            person,
+            world.resource::<SavedDomestic>(),
+            width,
+            &labels,
+        );
+        let available: Vec<_> = all_piles
+            .iter()
+            .filter(|dish| {
+                !world
+                    .resource::<SavedDomestic>()
+                    .cleanup
+                    .iter()
+                    .any(|task| task.dishes.contains(&dish.id))
+            })
+            .map(|dish| dish.id)
+            .collect();
+        {
+            let state = world.resource_mut::<SavedDining>().into_inner();
+            if let Some(o) = state
+                .opportunities
+                .iter_mut()
+                .find(|o| o.person == person.index_u32())
+            {
+                if o.room != room {
+                    o.room = room;
+                    o.known.clear();
+                    o.pending = false;
+                }
+                for pile in &all_piles {
+                    if !o.known.contains(&pile.id) {
+                        o.known.push(pile.id);
+                        o.pending = true;
+                    }
+                }
+                o.known.sort_unstable();
+            } else {
+                let mut known: Vec<_> = all_piles.iter().map(|d| d.id).collect();
+                known.sort_unstable();
+                state.opportunities.push(SavedCleanupOpportunity {
+                    person: person.index_u32(),
+                    room,
+                    pending: !known.is_empty(),
+                    known,
+                });
+                state.opportunities.sort_by_key(|o| o.person);
+            }
+        }
         if !idle(world, person) {
             continue;
         }
@@ -480,26 +590,29 @@ pub(crate) fn tick(world: &mut World) {
                 }
             }
         }
-        if entered
-            && !piles.is_empty()
+        let pending = world
+            .resource::<SavedDining>()
+            .opportunities
+            .iter()
+            .any(|o| o.person == person.index_u32() && o.pending);
+        if pending && !available.is_empty() {
+            world
+                .resource_mut::<SavedDining>()
+                .opportunities
+                .iter_mut()
+                .find(|o| o.person == person.index_u32())
+                .unwrap()
+                .pending = false;
+        }
+        if pending
+            && !available.is_empty()
             && roll(
                 world,
                 tuning.visitor_cleanup_fraction
                     * cleanup_probability(clean, &needs, critical, &tuning),
             )
         {
-            let dishes = piles
-                .iter()
-                .filter(|dish| {
-                    !world
-                        .resource::<SavedDomestic>()
-                        .cleanup
-                        .iter()
-                        .any(|task| task.dishes.contains(&dish.id))
-                })
-                .map(|dish| dish.id)
-                .collect();
-            start_cleanup(world, person, dishes, false);
+            start_cleanup(world, person, available, false);
         }
     }
 }
@@ -621,7 +734,7 @@ pub(crate) fn gather_diners(world: &mut World) {
         .enumerate()
         .filter(|(_, meal)| !meal.dining_started)
     {
-        let Some(table) = meal.table else { continue };
+        let table = meal.table.unwrap_or(meal.counter);
         let mut participants = BTreeSet::new();
         let mut arrived = BTreeSet::new();
         let mut urgent = false;
@@ -641,7 +754,9 @@ pub(crate) fn gather_diners(world: &mut World) {
             }
             let target = world.get::<Target>(*person);
             let seated = target.is_some_and(|target| {
-                target.object.index_u32() == table
+                (target.object.index_u32() == table
+                    || crate::dining::claim(world, person.index_u32())
+                        .is_some_and(|d| d.station == target.object.index_u32()))
                     && target.interaction == crate::systems::chain::CHAIN_STEP
             }) && world.get::<StepWork>(*person).is_some()
                 && world.get::<Path>(*person).is_none();
@@ -677,9 +792,20 @@ pub(crate) fn gather_diners(world: &mut World) {
         if !arrived.is_empty()
             && (participants.iter().all(|id| arrived.contains(id))
                 || urgent
-                || participants.len() + outsiders > dining_capacity(world, table))
+                || (meal.table.is_some()
+                    && participants.len() + outsiders > dining_capacity(world, table)))
         {
             world.resource_mut::<SavedDomestic>().meals[index].dining_started = true;
+            if meal.table.is_none() {
+                world
+                    .resource_mut::<SavedDining>()
+                    .tableless
+                    .push((meal.cook, meal.tick));
+                world
+                    .resource_mut::<SavedDining>()
+                    .tableless
+                    .sort_unstable();
+            }
         }
     }
 }
@@ -784,6 +910,7 @@ pub(crate) fn completed(
             state
                 .cleanup
                 .retain(|task| task.person != person.index_u32());
+            crate::dining::maintain(world);
         }
         return;
     }
@@ -866,6 +993,11 @@ pub(crate) fn completed(
         return;
     }
     if def.id == "cook_dinner" || def.id == SNACK || def.id == SHARED {
+        let diner = crate::dining::release(world, person.index_u32());
+        let obstructing = world
+            .get_resource::<SavedDining>()
+            .and_then(|s| s.complaints.iter().find(|(p, _)| *p == person.index_u32()))
+            .map_or(vec![], |(_, ids)| ids.clone());
         if def.id == "cook_dinner" {
             world
                 .resource_mut::<SavedDomestic>()
@@ -873,6 +1005,16 @@ pub(crate) fn completed(
                 .retain(|(cook, _)| *cook != id.0);
         }
         add_dishes(world, station.index_u32(), id.0, 1);
+        let dish = world.resource::<SavedDomestic>().next_dish - 1;
+        if let Some(diner) = &diner {
+            if let Some(setting) = diner.setting {
+                world
+                    .resource_mut::<SavedDining>()
+                    .settings
+                    .push((dish, setting));
+                world.resource_mut::<SavedDining>().settings.sort_unstable();
+            }
+        }
         if def.id == SHARED {
             let mut state = world.resource_mut::<SavedDomestic>();
             if let Some(meal) = state
@@ -892,12 +1034,26 @@ pub(crate) fn completed(
             pack.tuning.mood_critical_need_level,
             &tuning,
         );
-        if roll(world, probability) {
+        let own = roll(world, probability);
+        let blocked = !obstructing.is_empty();
+        let response = blocked
+            && roll(
+                world,
+                blocked_cleanup_probability(
+                    cleanliness(world, person),
+                    &needs,
+                    pack.tuning.mood_critical_need_level,
+                    &tuning,
+                ),
+            );
+        if own || response {
             let dishes = world
                 .resource::<SavedDomestic>()
                 .dishes
                 .iter()
-                .filter(|dish| dish.owner == id.0)
+                .filter(|dish| {
+                    (own && dish.owner == id.0) || (response && obstructing.contains(&dish.id))
+                })
                 .filter(|dish| {
                     !world
                         .resource::<SavedDomestic>()
@@ -909,6 +1065,7 @@ pub(crate) fn completed(
                 .collect();
             start_cleanup(world, person, dishes, false);
         }
+        crate::dining::maintain(world);
     }
 }
 
@@ -1021,7 +1178,11 @@ pub(crate) fn restore(world: &mut World, saved: Option<SavedDomestic>) -> Result
         })
         || state.meals.iter().any(|meal| {
             !object(meal.counter)
-                || (meal.dining_started && meal.table.is_none())
+                || (meal.dining_started
+                    && meal.table.is_none()
+                    && world
+                        .get_resource::<SavedDining>()
+                        .is_none_or(|s| !s.tableless.contains(&(meal.cook, meal.tick))))
                 || meal.table.is_some_and(|table| !object(table))
                 || !crate::family::was_issued(world, meal.cook)
                 || meal.guests.is_empty()
@@ -1075,7 +1236,10 @@ pub(crate) fn restore(world: &mut World, saved: Option<SavedDomestic>) -> Result
                 .iter()
                 .find(|meal| meal.cook == *cook && meal.tick == *tick)
                 .unwrap();
-            if meal.table != Some(target.object.index_u32()) {
+            if meal.table != Some(target.object.index_u32())
+                && !crate::dining::claim(world, person.index_u32())
+                    .is_some_and(|d| d.station == target.object.index_u32() && d.chair.is_none())
+            {
                 return Err(SaveError::InvalidValue);
             }
         }
@@ -1163,6 +1327,10 @@ pub(crate) fn restore(world: &mut World, saved: Option<SavedDomestic>) -> Result
             } else {
                 step_station(&state, person.index_u32(), id, name, chain.step)
                     == Some(target.object.index_u32())
+                    || (chain.step == 1
+                        && name == SHARED
+                        && crate::dining::claim(world, person.index_u32())
+                            .is_some_and(|d| d.station == target.object.index_u32()))
             };
             if !valid {
                 return Err(SaveError::InvalidValue);
@@ -1261,6 +1429,10 @@ pub(crate) fn directed_cleanup(world: &mut World, person: Entity) {
 /// Cancelling or replacing a chain releases all owned domestic commitments.
 /// Collected dishes return to their source; a guest's abandoned plate is dirty.
 pub(crate) fn abandon(world: &mut World, person: Entity) {
+    crate::dining::release(world, person.index_u32());
+    if let Some(mut state) = world.get_resource_mut::<terri_core::save::SavedDining>() {
+        state.complaints.retain(|(p, _)| *p != person.index_u32());
+    }
     let id = world.get::<SimId>(person).copied();
     let plates = {
         let Some(mut state) = world.get_resource_mut::<SavedDomestic>() else {
@@ -1293,35 +1465,44 @@ pub(crate) fn abandon(world: &mut World, person: Entity) {
     for counter in plates {
         add_dishes(world, counter, id.unwrap().0, 1);
     }
+    crate::dining::maintain(world);
 }
 
 pub(crate) fn remove_person(world: &mut World, person: Entity) {
+    if let Some(mut state) = world.get_resource_mut::<terri_core::save::SavedDining>() {
+        state
+            .opportunities
+            .retain(|o| o.person != person.index_u32());
+    }
     abandon(world, person);
     let id = world.get::<SimId>(person).copied();
-    let Some(mut state) = world.get_resource_mut::<SavedDomestic>() else {
-        return;
-    };
-    state
-        .cleanliness
-        .retain(|(index, _)| *index != person.index_u32());
-    state
-        .visits
-        .retain(|visit| visit.person != person.index_u32());
-    if let Some(id) = id {
-        for meal in &mut state.meals {
-            meal.guests.retain(|guest| *guest != id.0);
-            meal.claimed.retain(|guest| *guest != id.0);
-            meal.collected.retain(|guest| *guest != id.0);
-            meal.eaten.retain(|guest| *guest != id.0);
+    {
+        let Some(mut state) = world.get_resource_mut::<SavedDomestic>() else {
+            return;
+        };
+        state
+            .cleanliness
+            .retain(|(index, _)| *index != person.index_u32());
+        state
+            .visits
+            .retain(|visit| visit.person != person.index_u32());
+        if let Some(id) = id {
+            for meal in &mut state.meals {
+                meal.guests.retain(|guest| *guest != id.0);
+                meal.claimed.retain(|guest| *guest != id.0);
+                meal.collected.retain(|guest| *guest != id.0);
+                meal.eaten.retain(|guest| *guest != id.0);
+            }
+            state.meals.retain(|meal| !meal.guests.is_empty());
+            let surviving: BTreeSet<_> = state
+                .meals
+                .iter()
+                .map(|meal| (meal.cook, meal.tick))
+                .collect();
+            state.serving_meals.retain(|meal| surviving.contains(meal));
         }
-        state.meals.retain(|meal| !meal.guests.is_empty());
-        let surviving: BTreeSet<_> = state
-            .meals
-            .iter()
-            .map(|meal| (meal.cook, meal.tick))
-            .collect();
-        state.serving_meals.retain(|meal| surviving.contains(meal));
     }
+    crate::dining::maintain(world);
 }
 
 pub(crate) fn surface_in_use(world: &World, surface: u32) -> bool {
@@ -1395,6 +1576,7 @@ pub(crate) fn carried_dishes(world: &World) -> std::collections::BTreeMap<u32, u
 
 /// A different activity frees the Sim's hands. Resume by collecting again.
 pub(crate) fn suspend_cleanup(world: &mut World, person: Entity) {
+    crate::dining::release(world, person.index_u32());
     let Some(chain) = world.get::<ChainState>(person) else {
         return;
     };
@@ -1420,9 +1602,14 @@ pub(crate) struct BoundaryOccupant {
     pub target: Target,
     pub chain: Option<ChainState>,
     pub seat: (i32, i32),
+    pub dining_endpoint: Option<(i32, i32)>,
 }
 
 pub(crate) fn boundary_occupants(world: &mut World) -> Vec<BoundaryOccupant> {
+    let dining = world
+        .get_resource::<SavedDining>()
+        .cloned()
+        .unwrap_or_default();
     world
         .query::<(
             Entity,
@@ -1436,6 +1623,11 @@ pub(crate) fn boundary_occupants(world: &mut World) -> Vec<BoundaryOccupant> {
             actor,
             target: *target,
             chain: chain.copied(),
+            dining_endpoint: dining
+                .diners
+                .iter()
+                .find(|d| d.person == actor.index_u32() && d.station == target.object.index_u32())
+                .map(|d| d.endpoint),
             seat: path
                 .and_then(|path| path.steps.last().copied())
                 .unwrap_or((position.x.round() as i32, position.y.round() as i32)),
@@ -1460,8 +1652,25 @@ pub(crate) fn boundary_route(
     exclusive: bool,
     occupants: &[BoundaryOccupant],
 ) -> Option<Vec<(i32, i32)>> {
-    let chain = &pack.chains[chain_state.chain as usize];
-    let step = &chain.steps[chain_state.step as usize];
+    let start = (from.x.round() as i32, from.y.round() as i32);
+    let chain = pack.chains.get(chain_state.chain as usize)?;
+    if crate::dining::managed_step(pack, chain, chain_state.step) {
+        let endpoint = occupants
+            .iter()
+            .find(|row| {
+                row.actor == actor
+                    && row.target.object == station
+                    && row.target.interaction == crate::systems::chain::CHAIN_STEP
+            })?
+            .dining_endpoint?;
+        if !grid.is_walkable(start.0, start.1) || !grid.is_walkable(endpoint.0, endpoint.1) {
+            return None;
+        }
+        return grid
+            .find_path(start, endpoint)
+            .and_then(|steps| grid.anchor_path((from.x, from.y), steps));
+    }
+    let step = chain.steps.get(chain_state.step as usize)?;
     let fixed = state
         .and_then(|state| step_station(state, actor.index_u32(), id, &chain.id, chain_state.step));
     let awaiting = state.is_some_and(|state| awaiting_meal_table(state, id, chain_state.step));
@@ -1496,13 +1705,29 @@ pub(crate) fn boundary_route(
     if !exclusive && !sharing {
         return None;
     }
-    let start = (from.x.round() as i32, from.y.round() as i32);
     let mut route_grid = grid.clone();
     if communal {
         for row in others {
             if row.seat != start {
                 route_grid.set_blocked(row.seat.0 as usize, row.seat.1 as usize, true);
             }
+        }
+    }
+    if step
+        .visual
+        .as_ref()
+        .is_some_and(|v| v.action == terri_data::CompiledVisualAction::Cook)
+    {
+        if let Some(front) = crate::stove_front(pack, &terri_core::SmartObject(object), &to, facing)
+        {
+            if !route_grid.is_walkable(start.0, start.1)
+                || !route_grid.is_walkable(front.x.round() as i32, front.y.round() as i32)
+            {
+                return None;
+            }
+            return route_grid
+                .find_path(start, (front.x.round() as i32, front.y.round() as i32))
+                .and_then(|steps| route_grid.anchor_path((from.x, from.y), steps));
         }
     }
     route_grid

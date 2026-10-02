@@ -39,21 +39,28 @@ and its creator, not to an omniscient account of why it was left.
 The [meal and cleanup spec](specs/2026-09-30-meals-and-cleanup.md) defines the
 new domestic interactions. A cook with a strong positive relationship can
 prepare an extra plate for a hungry friend, up to three friends per meal.
-Friends collect real portions and eat at the same table. The cook's competence
+Friends collect real portions and eat together, sitting at usable chairs or standing near the table; a household without a table eats near the counter. The cook's competence
 affects food quality for everyone; each eater leaves their own used dish.
 Committed diners gather before their shared eating countdown begins. A busy
 friend's player orders keep priority, and critical needs release the waiting
-group. Tables with too few accessible places serve diners as places become
-free. Late arrivals never restart a meal already underway. Cooking for friends
+group. Occupied, missing, inaccessible or dirty seats make diners stand instead of waiting indefinitely. Late arrivals never restart a meal already underway. Cooking for friends
 currently provides food and company; it does not invent a gratitude bonus.
 
-Preparation also leaves dishes on the counter. A visitor seeing someone
-else's dishes experiences a mood penalty and a small directional loss of
-affinity toward their creator. Cleanlier Sims are more annoyed and more
-likely to remove the nuisance. One room entry permits one roll at 20% of the
-observer's own-cleanup probability, with current needs still reducing it.
+Preparation also leaves dishes on the counter. Visible dishes lower mood,
+including the observer's own old mess. Someone else's dishes also cause a small
+directional loss of affinity toward their creator. Cleanlier Sims are more annoyed and more
+likely to remove the nuisance. Room entry or a genuinely new visible pile arms one roll at 35% of the observer's own-cleanup probability, with current needs still reducing it. Busy Sims retain that opportunity until idle. Own old dishes can also prompt cleanup without self-directed affinity penalties.
 Staying in the room does not generate repeated rolls or repeated penalties
 for the same pile. A later visit can produce another reaction.
+
+An average, comfortable Sim now has about a 66% own-cleanup chance. Critical
+energy, hunger or bladder still reduces willingness sharply, and a very low
+cleanliness score still seldom produces cleanup. A dirty setting that forces
+standing adds annoyance and a small extra directional penalty toward its creator.
+After eating, a separate blocker-cleanup response has a 30% base chance for
+average cleanliness, increasing or decreasing with cleanliness. Urgent needs
+reduce it. This is separate from cleaning the eater's own dishes; resuming an
+interrupted meal does not repeat the same complaint.
 
 Cleaning someone else's dishes currently removes the environmental nuisance.
 It does not automatically grant gratitude, a permanent friendship bonus, or

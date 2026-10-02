@@ -67,7 +67,6 @@ fn completion_sound_requires_each_exact_target_and_actor_identity() {
         "missing",
         "non-agent",
         "actor-position",
-        "chain",
         "step",
         "work",
         "social",
@@ -118,11 +117,6 @@ fn completion_sound_requires_each_exact_target_and_actor_identity() {
             }
             "actor-position" => {
                 sim.world_mut().entity_mut(actor).remove::<Position>();
-            }
-            "chain" => {
-                sim.world_mut()
-                    .entity_mut(actor)
-                    .insert(terri_core::ChainState::begin(0));
             }
             "step" => {
                 sim.world_mut()

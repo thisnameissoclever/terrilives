@@ -119,7 +119,6 @@ pub fn tick_interactions(
             With<terri_core::Position>,
             Without<terri_core::AtWork>,
             Without<terri_core::Socialising>,
-            Without<terri_core::ChainState>,
             Without<terri_core::StepWork>,
         ),
     >,

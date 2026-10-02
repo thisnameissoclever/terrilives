@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "base": "1d23f18018df26c3351cdba346f4851ff8ba2ca0",
+  "preserved_sprites": 2173,
+  "atlas_sha256": "9442d428e1191e31518d52fcae2d52d2e0f8767a0183fde2b7d64799056df8fa",
+  "metadata": [
+    {
+      "name": "SPRITE_ANCHORS",
+      "preserved_entries": 1741
+    },
+    {
+      "name": "SPRITE_CONTENT_TOPS",
+      "preserved_entries": 1340
+    },
+    {
+      "name": "SPRITE_CONTENT_BOUNDS",
+      "preserved_entries": 680
+    },
+    {
+      "name": "SPRITE_PAIRS",
+      "preserved_entries": 240
+    },
+    {
+      "name": "SPRITE_HAND_ANCHORS",
+      "preserved_entries": 48
+    },
+    {
+      "name": "SPRITE_HAND_FOREGROUND",
+      "preserved_entries": 48
+    },
+    {
+      "name": "RIGGED_SIM_CLIPS",
+      "preserved_entries": 19
+    },
+    {
+      "name": "RIGGED_SIM_VARIANTS",
+      "preserved_entries": 3
+    },
+    {
+      "name": "INTERACTION_SPRITES",
+      "preserved_entries": 16
+    }
+  ]
+}

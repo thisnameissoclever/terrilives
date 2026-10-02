@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import { packBedLayers } from './bed-sprites.js';
+import { packDiningSupport } from './dining-support.js';
 
 import {
   ATLAS_FILE_NAME,
@@ -9,6 +10,7 @@ import {
   SPRITE_PAIRS,
   SPRITE_ANCHORS,
   BED_LAYERS,
+  SPRITE_DINING_SUPPORT,
   type AtlasSprite,
 } from './atlas.js';
 import type { GpuContext } from './device.js';
@@ -190,6 +192,7 @@ export class SpriteRenderer {
   /** The atlas rect table, uploaded once; the atlas cannot change. */
   private readonly spriteBuffer: GPUBuffer;
   private readonly bedBuffer: GPUBuffer;
+  private readonly diningBuffer: GPUBuffer;
   private readonly bindGroup: GPUBindGroup;
   private capacity = INITIAL_CAPACITY;
   private instanceBuffer: GPUBuffer;
@@ -281,6 +284,7 @@ export class SpriteRenderer {
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
       { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
       { binding: 4, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+      { binding: 5, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
     ] });
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
@@ -379,6 +383,10 @@ export class SpriteRenderer {
     this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     gpu.device.queue.writeBuffer(this.bedBuffer, 0, bedTable);
+    const diningTable = packDiningSupport(SPRITES.length, SPRITE_DINING_SUPPORT);
+    this.diningBuffer = gpu.device.createBuffer({ size: diningTable.byteLength,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    gpu.device.queue.writeBuffer(this.diningBuffer, 0, diningTable);
     this.bindGroup = gpu.device.createBindGroup({
       layout: this.pipeline.getBindGroupLayout(0),
       entries: [
@@ -400,6 +408,7 @@ export class SpriteRenderer {
         // a second reference to it.
         { binding: 3, resource: atlasTexture.createView() },
         { binding: 4, resource: { buffer: this.bedBuffer } },
+        { binding: 5, resource: { buffer: this.diningBuffer } },
       ],
     });
   }

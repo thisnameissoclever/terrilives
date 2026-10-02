@@ -9091,6 +9091,44 @@ claim comparison; both assertions fail. Review actual moving wash frames with
 the media preference recorded, rather than treating identical screenshots as
 animation evidence.
 
+
+## [L-domestic-opportunities-and-physical-seats] Verify opportunities and furniture contact
+
+**What happened.** Low own-cleanup odds combined with busy room entry consuming
+its opportunity, so dishes accumulated. Logical dinner inventory also appeared as
+a floating badge during cooking, while table capacity counted walkable contacts
+rather than physical chairs.
+
+**Root cause.** Entry bookkeeping preceded the idle decision; rendering treated
+inventory as a universal prop. Dining had no exact chair or dirty-setting ownership.
+
+**Prevention rule.** Persist a pending episode decision until the Sim can act,
+consume it once, and tie furniture use to a real reachable chair and setting.
+Keep inventory semantics separate from contacting animation props. Reservation
+ownership comes from each exact Target, not a bare Reserved marker. Keep published
+postcard records frozen and append new envelope state instead.
+
+**Verification.** Test busy entry followed by idle, new and old own mess, urgent
+needs, simultaneous seat claims, wrong-facing chairs, dirty settings, interruption,
+no-table shared meals and every save transition. Reject forged route endpoints and
+duplicate claims. Inspect integrated animated captures independently; a successful
+sprite export does not establish that the plate, hand, chair and table meet.
+
+## [L-cooking-physical-contact] Derive animation contact from the visible models
+
+**What happened.** The first stirring pose left the utensil disconnected from
+the visible palm and the pot even though each asset exported successfully.
+
+**Root cause.** The pose used a wrist origin as its grip and guessed the stove
+target independently from the supported pot's position.
+
+**Prevention rule.** Use the visible palm as the grip and one measured contact
+definition for the character, utensil and furniture. Compose those models before
+baking sprites. Keep the accepted character mesh unchanged when adjusting poses.
+
+**Verification.** Inspect every phase in every direction. Measure grip and bowl
+contact, test evaluated meshes for furniture collisions, and inspect the final
+browser rendering after rebuilding both the sprite atlas and simulation.
 ## [L-long-term-score-needs-exact-restoration] Defaults and restoration use different constructors
 
 **What happened.** Introducing a neutral starting score exposed fixtures that assumed an empty ledger or no upper bound. A tuning comment also expressed a per-tick rate in real-time hours while the simulation clock uses game minutes.
@@ -9443,6 +9481,37 @@ writer cannot replace an existing terminal result.
 **Prevention.** Separate heavy simulations from timed browser and asset checks. Measure the complete relationship contribution before changing a timeout or choosing a coefficient. Preserve symmetric, strictly positive neutral drift and disclose changes to unattended friendship and grudge lifetimes.
 
 **Verify.** Retain the loaded failure and unloaded passing logs. Compare all predeclared cohorts after a joint coefficient change, including subsequent incidents, incomplete recoveries and layout-specific results.
+## [L-dining-save-and-contact-integration] Preserve dining claims across legacy saves and privacy routes
+
+**What happened.** Adding strict dining claims exposed old saves that contained active diners without those claims. A privacy detour could also substitute a different dining endpoint, and food-carrying picking initially used the ordinary body pose.
+
+**Root cause.** Three consumers treated the same physical interaction differently: loading restored only the historical action, routing selected a generic furniture approach, and picking omitted the displayed carrying pose.
+
+**Prevention.** Append new save fields after every published field. Adopt valid legacy diners before re-saving, while retaining strict validation for current saves. Preserve the exact reserved endpoint through privacy detours. Use the same pose predicate in rendering and picking. Compare receipt-bound producer hashes with Git index bytes; a matching working file does not prove that staged newline conversion preserves the receipt.
+
+**Verify.** Load an old active diner, tick, re-save and reload repeatedly. Check seated and standing detours, including blocked endpoints. Pick a carried-food silhouette outside the ordinary body's bounds. Deliberately disable each mechanism and require its regression test to fail.
+
+## [L-dining-chair-fit-and-owned-occlusion] Fit the pose to the actual occupied furniture
+
+**What happened.** Seated diners sank through dining chairs even though the animation review had accepted their appearance. Exposed rear rails also drew behind the entire Sim.
+
+**Root cause.** The generic sitting pose was fitted to a lower armchair cushion. Whole body and chair sprites could not express their partial occlusion. The review checked animation and registration without measuring complete furniture collisions. Its table checks also omitted the half-tile offset beside each side setting.
+
+**Prevention.** Fit each seated pose to the actual support surface. Check every evaluated body part against every named furniture solid and require a finite hip support footprint. Derive relative table placements from runtime footprint centres and every legal setting. Render reciprocal body, furniture and outline contributions from the complete occupied scene. Use the same visible ownership for picking. Treat a screenshot and a passing source test as different evidence; neither establishes the other.
+
+**Verify.** The generic pose must fail for seat penetration. Raising the seat or removing a required solid must fail physical acceptance. Both side offsets must pass in every phase and facing. Compare the actual graphics shader with an independent full-scene render; removing the chair contribution must fail. Pick a visible torso, shoe, rear rail and exposed seat separately. Inspect complete ordered motion and record the exact source hashes.
+
+The supporting table must also appear in the rendered test scene. A chair-only comparison cannot reveal a plate or hand hidden by the table. Preserve complete occupied colours while assigning tabletop geometry to its actual supporting depth. Picking must apply that depth even where antialias pixels belong to chair wood. Deliberately remove table support and the drawn hand contribution separately; both must fail their contact comparisons. Use named geometry ownership to select hand pixels; a skin-colour filter also selects food and wood. Report whole-scene outline differences separately from physical contact acceptance.
+
+## [L-render-reference-framing] Preserve physical pixel scale when expanding reference canvases
+
+**What happened.** Enlarged dining reference canvases still cropped the table because an aspect-ratio change also enlarged the projected scene.
+
+**Root cause.** Blender's automatic camera fit selects its controlling dimension from the canvas aspect ratio. Scaling the orthographic camera by height alone changed pixel density when a portrait canvas became landscape.
+
+**Prevention.** Measure evaluated geometry across every reference state before choosing a canvas. Preserve the camera pose and assert the projected world-unit basis on both axes after resizing. Leave margin for strokes and filtering. Check rendered alpha borders before marking the producer receipt complete.
+
+**Verify.** Project the same world origin and unit vectors through the original and expanded cameras. Require matching pixel scale and complete raw and encoded alpha borders. A completed file count does not replace those checks.
 
 ## [L-audio-memory-matched-endpoints] Compare memory at identical simulation endpoints
 
@@ -9466,3 +9535,23 @@ writer cannot replace an existing terminal result.
 ## [L-causal-evidence-must-survive-capture] Record each invariant independently
 
 A review found that a combined bound mutation stopped at its first assertion, leaving the second bound without observed failure evidence. Some dock failures lacked committed excerpts, and one browser result capture wrote `undefined` instead of the returned measurements. The checks had run, but the records overstated what they retained. Mutate independent guards separately, preserve failure output with source restoration digests, and parse generated evidence before claiming its contents. Verify each claimed invariant has an observed failure and every result file contains the expected non-empty structure.
+
+## [L-combined-render-modes-and-atlas-capacity] Verify combined graphics contracts before merging
+
+**What happened.** Independently valid door and dining changes reused one drawing mode and exceeded the combined texture capacity.
+
+**Root cause.** Renderer mode values had no shared collision check. Separate branches checked their own artwork budgets; fixed animation envelopes and shelf gaps consumed enough space to prevent the combined build.
+
+**Prevention.** Name renderer modes and check their distinct values against shader declarations. Preserve published sprite identities and decoded pixels during integration. Share exact duplicate texture rectangles, trim new animation envelopes with matching registration, and use a rectangle packer that can reclaim vertical gaps. Measure capacity before producing the atlas. Do not raise the portable texture limit or discard accepted artwork to make a merge pass.
+
+**Verify.** Reconstruct trimmed frames in their original canvases byte-for-byte. Check padded rectangles for overlap. Compare published sprite pixels and registration with the remote base. Execute door and dining graphics proofs against the same combined shader. Deliberately collide the modes and remove carried-food selection to verify that the regression tests reject both defects.
+
+## [L-suspended-work-is-not-the-active-action] Validate completion against the executing action
+
+**What happened.** Real toilet uses emitted no completion sound when they interrupted cooking or dish cleanup.
+
+**Root cause.** Audio eligibility rejected every actor with `ChainState`. The ordinary interruption contract retains that component so the recipe can resume; `Eating` and an ordinary `Target` describe the action currently executing.
+
+**Prevention.** Validate current action identity and active work separately from suspended commitments. Keep active `StepWork` and chain-step targets ineligible. Do not reject a saved recipe counter merely because it is present.
+
+**Verify.** Interrupt cooking and dish cleanup with a toilet order. Save and load during that toilet use. Require one completion event, matching continuation hashes, and resumed work that finishes. Restore the old blanket guard temporarily and require the interruption regression to fail.

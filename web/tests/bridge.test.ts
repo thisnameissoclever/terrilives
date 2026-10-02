@@ -912,7 +912,7 @@ describe('SimBridge', () => {
     // the applied migration flag, waiting, instincts and chronotype offsets.
     // Some(SavedSleepingPlaces) adds its tag and two empty vector lengths.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0];
     expect(Array.from(legacyCells.slice(-tail.length))).toEqual(tail);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
@@ -936,11 +936,11 @@ describe('SimBridge', () => {
     // Current tail: layout and appended lists, mortality, migration,
     // waiting, instincts and chronotypes, then sleeping places and the privacy fields.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0];
     expect(Array.from(valid.slice(-tail.length))).toEqual(tail);
     // A complete bed-era save lacks both privacy fields. Earlier V5 saves
     // also lack the whole grouped bed record; both remain loadable.
-    for (const absent of [1, 2, 2 + sleepingPlacesTail.length, 3 + sleepingPlacesTail.length]) {
+    for (const absent of [1, 2, 3, 3 + sleepingPlacesTail.length, 4 + sleepingPlacesTail.length]) {
       const historical = new SimBridge(new SimHandle(4, 4), wasmMemory);
       expect(historical.loadBytes(valid.slice(0, -absent))).toBe(true);
       expect(historical.saveBytes()).toEqual(valid);
@@ -951,8 +951,8 @@ describe('SimBridge', () => {
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -3), valid.slice(0, -4),
-      valid.slice(0, -8 - sleepingPlacesTail.length), valid.slice(0, -15 - sleepingPlacesTail.length),
+    const invalid = [valid.slice(0, -4), valid.slice(0, -5),
+      valid.slice(0, -9 - sleepingPlacesTail.length), valid.slice(0, -16 - sleepingPlacesTail.length),
       valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();

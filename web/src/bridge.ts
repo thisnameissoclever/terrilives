@@ -648,6 +648,10 @@ export class SimBridge {
     return new Uint32Array(this.memory.buffer, this.handle.dirty_dishes_ptr(), this.count);
   }
 
+  dirtySettings(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.dirty_settings_ptr(), this.count);
+  }
+
   carriedDishes(): Uint32Array {
     return new Uint32Array(this.memory.buffer, this.handle.carried_dishes_ptr(), this.count);
   }
@@ -698,6 +702,11 @@ export class SimBridge {
       this.handle.interaction_targets_ptr(),
       this.count,
     );
+  }
+
+  /** Actual plate support for running seated meals, or 0xffffffff. */
+  mealTables(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.meal_tables_ptr(), this.count);
   }
 
   /** Exact bed IDs for running sleep-tagged place ownership, or 0xffffffff. */

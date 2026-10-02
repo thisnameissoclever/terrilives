@@ -82,3 +82,40 @@ def layouts(root, sprites):
                   for x,y,z in dining_table_places(root)]
         result[indices['offlineDiningTable' + suffix]] = dict(kind='table', points=points, props=props)
     return result
+
+
+def load_pot(root):
+    base=Path(root)/'assets/models/domestic'
+    proof=json.loads((base/'export/pot/proof.json').read_text())
+    if proof['state']!='complete' or len(proof['renders'])!=4:
+        raise ValueError('Cooking pot bake is incomplete')
+    if hashlib.sha256((base/'pot.blend').read_bytes()).hexdigest()!=proof['model_sha256']:
+        raise ValueError('Cooking pot model changed since its bake')
+    for name,digest in proof['inputs'].items():
+        if hashlib.sha256((base/name).read_bytes()).hexdigest()!=digest:
+            raise ValueError(f'Cooking pot source changed: {name}')
+    sprites=[]
+    for row in proof['renders']:
+        path=base/'export/pot'/row['path']
+        if hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']:
+            raise ValueError(f'Cooking pot frame changed: {path}')
+        image=Image.open(path).convert('RGBA').resize((48,48),Image.Resampling.LANCZOS)
+        sprites.append((row['name'],image,48,48))
+    return sprites,proof['anchor']
+
+
+def stove_layouts(root,sprites):
+    indices={s[0]:i for i,s in enumerate(sprites)}
+    proof=json.loads((Path(root)/'assets/models/kitchen/owner-review-pending/stove/candidate-01/proof.json').read_text())
+    result={}
+    contact=json.loads((Path(root)/'assets/models/domestic/cooking-contact.json').read_text())
+    x,y,z=contact['pot_center_sim']
+    y+=contact['body_distance']
+    points=[]
+    for facing in ('SE','NW','SW','NE'):
+        angle=math.radians(FACINGS[facing])
+        points.append(project_model((x*math.cos(angle)-y*math.sin(angle),x*math.sin(angle)+y*math.cos(angle),z),proof))
+    for facing in FACINGS:
+        suffix='' if facing=='SE' else facing
+        result[indices['offlineStove'+suffix]]=dict(kind='stove',points=points,props=[indices['cookingPot'+f] for f in ('','NW','SW','NE')])
+    return result

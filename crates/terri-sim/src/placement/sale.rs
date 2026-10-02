@@ -67,6 +67,7 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
     let CurrentLayout { walls, rectangles } = current_layout(world)?;
     let mut people = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
     if world.get::<Reserved>(entity).is_some()
+        || crate::dining::object_in_use(world, object)
         || crate::domestic::surface_in_use(world, object)
         || people.iter(world).any(|person| {
             person.get::<Target>().is_some_and(|t| t.object == entity)
