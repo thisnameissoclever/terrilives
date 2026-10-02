@@ -10000,3 +10000,43 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Emit forward-slash relative references for new portable receipts. Decode supported legacy separator conventions at the reader boundary. Preserve accepted producer and artifact hashes; reject absolute paths and parent traversal rather than bypassing provenance checks.
 
 **Verify.** Exercise both separator forms with PurePosixPath even on Windows. Removing separator decoding must fail those tests and the actual recorded-input witness. Restore exact source bytes and require the full importer suite and generator check to pass.
+
+### [L-candidate-guard-before-receipt-write] Reject existing candidates before the first write
+
+**What happened.** A door exporter rejected an existing manifest only after its entrypoint replaced the candidate's status receipt. Rejection could damage accepted provenance without rendering anything.
+
+**Root cause.** The immutability guard was inside the rendering function rather than before the entrypoint's first side effect.
+
+**Prevention.** Check existing candidate receipts and destinations before writing running status, creating output files or opening the render operation. A rejected rerun must leave every accepted byte unchanged.
+
+**Verify.** Invoke the rejection path against an existing candidate and compare its file hashes before and after. Require a fresh complete receipt for new exports and preserve prior candidates.
+
+### [L-hashed-artifact-git-transport] Verify provenance bytes after Git filters
+
+**What happened.** Sixteen newly hashed producer and receipt files passed local art verification, but Git would change their Windows line endings before a Linux checkout. Accepted manifest and input hashes would then fail publication.
+
+**Root cause.** Verification bound working-file bytes without proving the bytes that Git would deliver.
+
+**Prevention.** Audit the complete hash-bound dependency closure through Git clean filters. Preserve exact accepted bytes with scoped attributes, or define canonical emission before generating receipts. Do not normalize accepted artifacts afterward and rewrite their hashes.
+
+**Verify.** Compare raw and clean object identities, then run production importers from exact staged Git bytes. Include manifests, producer sources, status, audits and audit scripts in the closure.
+
+### [L-depth-witness-flat-surface] Place analytic depth witnesses on the intended surface
+
+**What happened.** A near-parallel native door view projected a flat-panel witness onto raised moulding after a small seating change. The renderer matched its actual source surface; the analytic plane described another surface.
+
+**Root cause.** The witness position was not tied to an unambiguous authored flat region.
+
+**Prevention.** Select a model-defined panel center and retain source pixel and failing depth observations. Do not widen depth tolerances to conceal occlusion by another solid.
+
+**Verify.** Preserve the original failure, identify the physical surface, and repeat with the intended witness. Removing surface projection must still fail; exact restoration must pass the same bracket checks.
+
+### [L-mutation-cleanup-byte-gate] Verify restoration before continuing mutation work
+
+**What happened.** A Windows write error interrupted a mutation runner's cleanup, leaving modified material source bytes behind. The cause of the isolated OS error was not established.
+
+**Root cause.** A failed cleanup invalidates the assumption that later checks run against the accepted source, regardless of earlier mutant outcomes.
+
+**Prevention.** Stop source-dependent work after a cleanup failure. Restore a verified original snapshot and compare every bound input before continuing. Preserve partial-run failures separately from a later passing run.
+
+**Verify.** Compare exact source bytes and render-input hashes, require restored controls to pass, and never report unrecorded mutant outcomes as completed evidence.

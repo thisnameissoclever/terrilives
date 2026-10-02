@@ -1,0 +1,24 @@
+{
+  "roi": [
+    320,
+    180,
+    1450,
+    1040
+  ],
+  "nonbackground_pixels": 494550,
+  "minimum": 10000,
+  "pass": true,
+  "images": {
+    "dusk-full.png": "fd2fb0e265805a843846a93943ce7752ce28333ab58bbc4c24261c9fc6a0b732",
+    "enlarged-full.png": "fbc9df4958bdf490e4452d820dea3d9a5e41438d973ad0e63ad272590c6af28c",
+    "horizontal-cut.png": "9c1f2cb0692fafdffdf7b6b82b3b2a04c14936192522b9f15579514f3a23ffb1",
+    "horizontal-full.png": "d57c511970551452b2ecc9bc2415ffde66ee8738585c95980301fd6f973b957e",
+    "midnight-full.png": "fcbc758efa82f0ee0541163cdac33399a8a8f8fc1254f2a5d80adbb80bb3cc59",
+    "noon-cut.png": "1e42ca8afa4521b0d7dd95242208eb5736b1b1b08a1a807f0eb4bf793c2aad71",
+    "noon-full.png": "468f9eaf2660eae61e65fc0b2f284c7734b7eca78dccaf7f30af9aede6f8f90e",
+    "phone-200.png": "3fab1ddb245bfd380732b03e331fcb0a6cd4dc1dfbde963cb94e750013c3c4c6",
+    "phone.png": "2a141a647c107cc7a6c38d1775f3f2e472be2fe6a9a0d2f87cf7972de2beb093",
+    "vertical-cut.png": "8b6774f5102e18d1b7c3946e9c3bcc6f661ab0effdf81efecef164958d9816fe",
+    "vertical-full.png": "38d1e4fa39301f92d899f0df824810b1de3a0a444fc10c794050b923ab9b2d81"
+  }
+}

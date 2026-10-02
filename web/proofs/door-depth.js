@@ -54,7 +54,9 @@ export async function doorDepthProof({ show = false, progress = () => {} } = {})
           const side = Math.sign(normal);
           const x = .465 + side * .042 * Math.cos(theta) - .365 * Math.sin(theta);
           const y = -.365 + side * .042 * Math.sin(theta) + .365 * Math.cos(theta);
-          points.push({ part: 1, xyz: [...rotate(x, y, facing), .65], kind: 'leaf',
+          // Use the authored recessed panel's center. Near-parallel native
+          // views can project a higher witness onto the raised moulding.
+          points.push({ part: 1, xyz: [...rotate(x, y, facing), .445], kind: 'leaf',
             plane: [nx, ny, nx * hx + ny * hy + side * .042] });
         } else {
           // Look straight onto the slab's hinge or latch edge, using its
@@ -78,6 +80,7 @@ export async function doorDepthProof({ show = false, progress = () => {} } = {})
           const pixelSum = floor ? 0 : bounds ? Math.min(2*bounds[0]-column, 2*bounds[1]+column)
             : (2*plane[2]-(plane[0]-plane[1])*column)/(plane[0]+plane[1]);
           let pass = true;
+          const observations = [];
           for (const [delta, wins] of floor ? [[.97, true], [FLOOR_DEPTH, false]] : [[.065, true], [-.065, false]]) {
             const marker = new Float32Array(STRIDE);
             writeInstance(marker, 0, px + .5, py + .5,
@@ -87,9 +90,12 @@ export async function doorDepthProof({ show = false, progress = () => {} } = {})
             trial.set(rows.subarray(part * STRIDE, (part + 1) * STRIDE), reverse ? STRIDE : 0);
             trial.set(marker, reverse ? 0 : STRIDE);
             const actual = await sample(trial, 2, scale, px, py);
-            pass &&= actual.every((v, c) => v === expected[c]) === wins;
+            const observed = actual.every((v, c) => v === expected[c]);
+            pass &&= observed === wins;
+            observations.push({ delta, wins, observed, actual, expected });
           }
-          results.push({ scale, facing, phase, part, kind, reverse, pass });
+          results.push({ scale, facing, phase, part, kind, reverse, pass,
+            ...(!pass ? { px, py, pixelSum, xyz: [x, y, z], plane, bounds, observations } : {}) });
         }
       }
     }
