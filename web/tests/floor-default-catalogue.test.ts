@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 afterEach(() => { vi.doUnmock('../src/render/architecture-data.js'); vi.resetModules(); });
 
 it('pins baked identities to the accepted source manifest and color bytes', () => {
-  const bytes = readFileSync(new URL('../../assets/models/architecture/export/reviewed-04/manifest.json', import.meta.url));
+  const bytes = readFileSync(new URL('../../assets/models/architecture/export/depth-reviewed-01/manifest.json', import.meta.url));
   const manifest = JSON.parse(bytes.toString());
   expect(BAKED_FLOORS.manifestSha256).toBe(createHash('sha256').update(bytes).digest('hex'));
   expect(BAKED_FLOORS.colorSha256).toBe(manifest.hashes.color);

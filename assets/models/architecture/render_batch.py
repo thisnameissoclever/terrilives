@@ -29,7 +29,7 @@ def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 def inputs():
     names=('geometry.py','render_review.py','windows.py','walls.py','floors.py',
            'materials.py','render_batch.py','check_scene.py')
-    paths=[BASE/name for name in names]+[SIM/'sim-01-rigged.blend',SIM/'registered-canvas-proof.json']
+    paths=[BASE/name for name in names]+[SIM/'sim-01-rigged.blend',SIM/'registered-canvas-proof.json', BASE.parent/'architecture_dimensions.py',BASE.parent/'architecture-depth.json']
     return {p.relative_to(ROOT).as_posix():digest(p) for p in paths}
 
 
@@ -129,7 +129,7 @@ def floor_material(name,neutral):
     return result
 
 
-def run(directory):
+def run(directory, representative=False):
     assert bpy.app.background, 'Use hidden background Blender'
     directory.mkdir(parents=True,exist_ok=False)
     receipt={'schema':1,'state':'running','background':True,'blender_version':bpy.app.version_string,
@@ -164,6 +164,9 @@ def run(directory):
         initial=scene.camera.location.copy(); rotation=scene.camera.matrix_world.to_quaternion()
         right=rotation@Vector((1,0,0)); up=rotation@Vector((0,1,0))
         cases=list(window_cases())+list(wall_cases())+list(floor_cases())
+        if representative:
+            keys={'straight.x-front.full','straight.y-front.cut','doorway.x-front.full','doorway.y-front.full','junction.2222','window.sash.x-front.full','window.sliding.x-front.full','window.picture.x-front.full'}
+            cases=[case for case in cases if case['geometryKey'] in keys]
         receipt['expected_count']=len(cases)
         for case in cases:
             started=time.perf_counter(); geometry=validate_case(case)
@@ -201,4 +204,4 @@ def run(directory):
         receipt['state']='failed'; receipt['error']=traceback.format_exc(); save(); raise
 
 
-if __name__=='__main__': run(Path(sys.argv[sys.argv.index('--')+1]).resolve())
+if __name__=='__main__': run(Path(sys.argv[sys.argv.index('--')+1]).resolve(), '--representative' in sys.argv)

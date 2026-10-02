@@ -8,6 +8,7 @@ Build now offers nine window models with matching walls and distinct boards, til
 - Historical window saves load as one-unit Sash windows. Saved floor choices are preserved.
 
 ## Art
+- Walls are slightly thicker, and slimmer door frames now match their depth.
 - Windows have authored frames, glazing and openings. Walls include thickness, joins, caps, reveals and baseboards. Cutaway windows follow their wall height while rear exterior windows remain full height.
 - Interior Boards, Tiles and Carpet use separate material artwork with patterns aligned across neighboring tiles. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. The new floor artwork also appears in historical saves without changing saved covering choices.
 

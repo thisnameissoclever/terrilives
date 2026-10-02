@@ -112,12 +112,19 @@ strength ratio and lightness difference. Unchanged settings preserve the accepte
 art exactly; content adjustments still change its appearance. Preserve saved
 covering identities, content tuning and the historical sprite color path.
 
-Starting model dimensions are wall height 2.0, thickness 0.12 and baseboard height
+The initial checkpoint used wall height 2.0, thickness 0.12 and baseboard height
 0.14 world units. Match the existing 32-by-21 half-tile projection and 38-pixel
 vertical unit. Standard glazing starts approximately 0.65 units above the floor
 and ends below 1.85; the clerestory occupies approximately 1.45 through 1.80.
 These are measurable authoring targets for the room checkpoint, not permission
 to relocate furniture or shrink Sims when contact looks wrong.
+
+The owner's October 2 follow-up sets the current production wall and fixed door
+casing depth to a shared 0.14 units, increasing walls from 0.12 and reducing
+casings from 0.16. `assets/models/architecture-depth.json` owns that dimension.
+Current production junctions and window-wall cores derive their half-depth
+from it. The original room checkpoint and its source snapshot remain historical;
+the legacy corner helper is not the current production junction builder.
 
 ## Architecture
 

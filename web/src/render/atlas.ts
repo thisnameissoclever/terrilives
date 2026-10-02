@@ -22,9 +22,9 @@ export interface AtlasSprite {
 export const ATLAS_WIDTH = 8192;
 export const ATLAS_HEIGHT = 8192;
 /** SHA-256 of the exact generated atlas PNG bytes. */
-export const ATLAS_CONTENT_SHA256 = '127977fc70bb0b0eb15ff43ea515dce5fe31dbc6f5aa00652d2a3ab08ddf9605';
+export const ATLAS_CONTENT_SHA256 = 'd29e09fda8ae6cb8efefa453c64488ebdb6696a5721c10191c28b5c508f9fa45';
 /** Content-addressed public pathname; Pages ignores query strings in its cache key. */
-export const ATLAS_FILE_NAME = 'atlas-127977fc70bb0b0eb15ff43ea515dce5fe31dbc6f5aa00652d2a3ab08ddf9605.png';
+export const ATLAS_FILE_NAME = 'atlas-d29e09fda8ae6cb8efefa453c64488ebdb6696a5721c10191c28b5c508f9fa45.png';
 
 export const SPRITES: readonly AtlasSprite[] = [
   { name: 'floor', x: 5326, y: 8149, w: 64, h: 42 },
@@ -9133,7 +9133,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1704": [
     0.0,
-    31.666666666666668,
+    32.0,
     112.0,
     120.0
   ],
@@ -9145,13 +9145,13 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1708": [
     0.0,
-    31.333333333333332,
+    31.666666666666668,
     112.0,
     120.0
   ],
   "1710": [
     0.0,
-    31.333333333333332,
+    31.666666666666668,
     112.0,
     120.0
   ],
@@ -9169,7 +9169,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1716": [
     0.0,
-    19.666666666666668,
+    20.0,
     112.0,
     120.0
   ],
@@ -9193,19 +9193,19 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1724": [
     0.0,
-    29.333333333333332,
+    29.666666666666668,
     112.0,
     120.0
   ],
   "1726": [
     0.0,
-    27.333333333333332,
+    27.666666666666668,
     112.0,
     120.0
   ],
   "1728": [
     0.0,
-    26.333333333333332,
+    26.666666666666668,
     112.0,
     120.0
   ],
@@ -9217,19 +9217,19 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1732": [
     0.0,
-    26.333333333333332,
+    26.666666666666668,
     112.0,
     120.0
   ],
   "1734": [
     0.0,
-    27.333333333333332,
+    27.666666666666668,
     112.0,
     120.0
   ],
   "1736": [
     0.0,
-    29.333333333333332,
+    29.666666666666668,
     112.0,
     120.0
   ],
@@ -9247,13 +9247,13 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1744": [
     0.0,
-    16.0,
+    15.666666666666666,
     112.0,
     120.0
   ],
   "1746": [
     0.0,
-    19.666666666666668,
+    19.333333333333332,
     112.0,
     120.0
   ],
@@ -9265,7 +9265,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1750": [
     0.0,
-    27.666666666666668,
+    27.333333333333332,
     112.0,
     120.0
   ],
@@ -9283,7 +9283,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1756": [
     0.0,
-    28.0,
+    27.666666666666668,
     112.0,
     120.0
   ],
@@ -9301,7 +9301,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1764": [
     0.0,
-    13.0,
+    12.666666666666666,
     112.0,
     120.0
   ],
@@ -9313,7 +9313,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1768": [
     0.0,
-    13.333333333333334,
+    13.0,
     112.0,
     120.0
   ],
@@ -9325,7 +9325,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1772": [
     0.0,
-    13.333333333333334,
+    13.0,
     112.0,
     120.0
   ],
@@ -9337,7 +9337,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1776": [
     0.0,
-    13.0,
+    12.666666666666666,
     112.0,
     120.0
   ],

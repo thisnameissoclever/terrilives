@@ -14,6 +14,7 @@ import shaderSource from '../src/render/sprites.wgsl?raw';
 import { architectureModeVectors } from './architecture-mode-vectors.ts';
 import { layeredDepth, LAYER_PROP, FLOOR_DEPTH } from '../src/render/iso.ts';
 import { spriteIndex } from '../src/render/atlas.ts';
+import { writePortals } from '../src/render/portals.ts';
 import { acquireWithTimeout } from './owned-timeout.ts';
 
 const empty = new Float32Array();
@@ -485,6 +486,53 @@ export async function createArchitectureDepthProof() {
           assert(nonbackground > 1000 && same(current, previous), 'Historical renderer pixel parity with pinned inputs', { scale, nonbackground });
           return { pass: true, scale, nonbackground, rows: fixture.rows.length, baseline: fixture.baseline,
             pixelsSHA256: await sha256(current), rendererSHA256: metadata.files['sprites.ts'] };
+      },
+      async doorContactCase(axis = 0, scale = 1, cutaway = false) {
+        const edges = axis === 0 ? [0, 3, 2, 0, 0, 3, 3, 1, 0, 3, 4, 0]
+          : [1, 2, 3, 0, 1, 3, 3, 1, 1, 4, 3, 0];
+        const built = buildStaticInstances({ width: 6, height: 6, house: [0, 0],
+          walls: new Uint32Array(), edges: Uint32Array.from(edges),
+          doors: axis === 0 ? Uint32Array.from([3, 3]) : new Uint32Array(),
+          horizontalDoors: axis === 1 ? Uint32Array.from([3, 3]) : new Uint32Array(),
+          showCutAwayWalls: !cutaway, architecture: { windows: [], catalogue } }, ox, oy, 16, scale);
+        const walls = built.instances.slice(built.floorCount * 16, built.count * 16);
+        const portal = new Float32Array(32);
+        const position = axis === 0 ? [2, 3] : [3, 2];
+        writePortals(portal, 0, {
+          portalCount: 1, portalPositions: () => Float32Array.from(position),
+          portalFrames: () => Uint32Array.from([spriteIndex('frontDoorFrameSELeft')]),
+          portalDepthOffsets: () => Float32Array.from([.5]),
+          portalLeaves: () => Uint32Array.from([spriteIndex('frontDoorOpenSELeft')]),
+          portalFarSides: () => Float32Array.from([3, 3]),
+          portalOpenness: () => Float32Array.from([1]),
+          portalPreviousOpenness: () => Float32Array.from([1]),
+        }, ox, oy, 16, scale, false, null);
+        const frame = portal.slice(0, 16);
+        const combine = new Float32Array(walls.length + frame.length);
+        combine.set(walls); combine.set(frame, walls.length);
+        const full = await capture(combine, built.lowInstances, scale);
+        const noFrame = await capture(walls, built.lowInstances, scale);
+        const noWall = await capture(frame, empty, scale);
+        const clear = await capture(empty, empty, scale);
+        const records = [];
+        let frameWitnesses = 0, wallWitnesses = 0;
+        for (const joint of [2.5, 3.5]) for (const offset of [-.06, -.03, -.015, 0, .015, .03, .06])
+          for (const z of cutaway ? [.25, .45] : [.35, .95, 1.9]) {
+            // Front face of the independently specified 0.14 wall/casing depth.
+            const [x, y] = axis === 0 ? [2.57, joint + offset] : [joint + offset, 2.57];
+            const px = Math.floor(ox + (x - y) * 32 * scale);
+            const py = Math.floor(oy + (x + y) * 21 * scale - z * 38 * scale);
+            const actual = at(full, px, py), background = at(clear, px, py);
+            assert(!same(actual, background), 'Joined casing/wall contact has visible coverage',
+              { axis, scale, cutaway, joint, offset, z, px, py, actual, background });
+            frameWitnesses += Number(!same(actual, at(noFrame, px, py)));
+            wallWitnesses += Number(!same(actual, at(noWall, px, py)));
+            records.push({ joint, offset, z, px, py, actual });
+          }
+        assert(frameWitnesses > 0 && wallWitnesses > 0, 'Both physical producers affect contact witnesses',
+          { axis, scale, cutaway, frameWitnesses, wallWitnesses });
+        return { pass: true, axis, scale, cutaway, depth: .14, count: records.length,
+          frameWitnesses, wallWitnesses, records };
       },
       async compositionCase(scale = 1) {
         const rear = [{ axis: 1, x: 1, y: 0, model: 1 }, { axis: 0, x: 0, y: 2, model: 4 }];

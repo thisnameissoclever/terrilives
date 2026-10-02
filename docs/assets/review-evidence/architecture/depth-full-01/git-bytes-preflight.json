@@ -1,0 +1,148 @@
+{
+  "files": [
+    {
+      "path": "assets/models/architecture-depth.json",
+      "sha256": "22b959c181ee72a4ac9aa26675fbf30aa3e31a1f482438c887609e07bcdb45b0",
+      "gitCleanMatches": false,
+      "CRLF": 4
+    },
+    {
+      "path": "assets/models/architecture/check_scene.py",
+      "sha256": "efac6c9cf305222c0992cc7bcdb3676f967fd3bef5d250e12d23b16130296fae",
+      "gitCleanMatches": false,
+      "CRLF": 55
+    },
+    {
+      "path": "assets/models/architecture/export/depth-reviewed-01/manifest.json",
+      "sha256": "7cb5c25769601f4c73541f87d7b2609283a27596a8ec10eaeeee19f89e48aa7a",
+      "gitCleanMatches": false,
+      "CRLF": 30722
+    },
+    {
+      "path": "assets/models/architecture/export/depth-reviewed-01/render-proof.json",
+      "sha256": "9248447327042e20819e3d87871c6413fd0c5be083106acd74d2f2271e07a17c",
+      "gitCleanMatches": false,
+      "CRLF": 14792
+    },
+    {
+      "path": "assets/models/architecture/export/depth-reviewed-01/review.json",
+      "sha256": "58140a177148b8dec70c08892637c4c3fb03956666a41735ad222be61cae402e",
+      "gitCleanMatches": false,
+      "CRLF": 38
+    },
+    {
+      "path": "assets/models/architecture/export_batch.py",
+      "sha256": "b0573edaec7e23e0c4de6dc9a8255d7cbcb81b72907aa39786bcc1113fc893cb",
+      "gitCleanMatches": true,
+      "CRLF": 0
+    },
+    {
+      "path": "assets/models/architecture/floors.py",
+      "sha256": "d9fa65571b3bf471a965d6393ec764fcd762fec316989912597a79b4bf1d2d9d",
+      "gitCleanMatches": true,
+      "CRLF": 0
+    },
+    {
+      "path": "assets/models/architecture/geometry.py",
+      "sha256": "7fd67ffb0cc7375703ef970893f3d97d448549b39b7a56e5c25def925e0291ba",
+      "gitCleanMatches": false,
+      "CRLF": 164
+    },
+    {
+      "path": "assets/models/architecture/materials.py",
+      "sha256": "2d276a8be0b542aa922d84ce5120a17488e7f099df0af86d51e62155a3b7b706",
+      "gitCleanMatches": true,
+      "CRLF": 0
+    },
+    {
+      "path": "assets/models/architecture/render_batch.py",
+      "sha256": "e0a53303198943d69e98c8850fc581f78c8b193a9a44281af06bb16c012aa0e4",
+      "gitCleanMatches": false,
+      "CRLF": 207
+    },
+    {
+      "path": "assets/models/architecture/render_review.py",
+      "sha256": "f4cd5dee081388b2dcab8b0df330a3aceab840d2e862ade5fac31361bf9f8295",
+      "gitCleanMatches": true,
+      "CRLF": 282
+    },
+    {
+      "path": "assets/models/architecture/walls.py",
+      "sha256": "662bbf7e9bd92c7b45e48ae69eed9b8b2887c431c888bc8a89d5321c44dadd99",
+      "gitCleanMatches": false,
+      "CRLF": 60
+    },
+    {
+      "path": "assets/models/architecture/windows.py",
+      "sha256": "a5c3f148a3abc5d0e5a05f2764e3f260a5d0cbd45bf6180b1eb3f99e6cce7afd",
+      "gitCleanMatches": false,
+      "CRLF": 133
+    },
+    {
+      "path": "assets/models/architecture_dimensions.py",
+      "sha256": "156992e51649d4c6c646acf6bc19f541f7940930631bddb1d4c6053e1fd2567a",
+      "gitCleanMatches": false,
+      "CRLF": 9
+    },
+    {
+      "path": "assets/models/doors/audit_scene.py",
+      "sha256": "a988a302c9df8a61052aaa8bb7cf9bdeaebdaa9441df5c1b0fec321c7f2e3921",
+      "gitCleanMatches": false,
+      "CRLF": 83
+    },
+    {
+      "path": "assets/models/doors/export/depth-02/manifest.json",
+      "sha256": "ba66ad35bcefd23bb8b75401c4342d4fda9bb5a7912990054f817291ca676d22",
+      "gitCleanMatches": false,
+      "CRLF": 396
+    },
+    {
+      "path": "assets/models/doors/export/depth-02/review.json",
+      "sha256": "a8b554180a765929de6ae7227a22ddd136d8180f9e3d3406f09858158ad77cfd",
+      "gitCleanMatches": false,
+      "CRLF": 26
+    },
+    {
+      "path": "assets/models/doors/export/depth-02/scene-audit.json",
+      "sha256": "66c8d0a3ab6bc1ccab67eaf72f4ce281acc9cb3c2612e8ec15030ba89c89aa1c",
+      "gitCleanMatches": false,
+      "CRLF": 73
+    },
+    {
+      "path": "assets/models/doors/export/depth-02/status.json",
+      "sha256": "5a22d14140b4b609e63da475ec0c422e268f166846445e2f820c8a8f1fe216e5",
+      "gitCleanMatches": false,
+      "CRLF": 4
+    },
+    {
+      "path": "assets/models/doors/render_doors.py",
+      "sha256": "3b89115a651bf4d5bc20cc43c4979ed4cd5b4fe66d98e453fda063757a1f9912",
+      "gitCleanMatches": false,
+      "CRLF": 219
+    },
+    {
+      "path": "assets/models/furniture/build_parts.py",
+      "sha256": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+      "gitCleanMatches": true,
+      "CRLF": 0
+    },
+    {
+      "path": "assets/models/furniture/geometry.py",
+      "sha256": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+      "gitCleanMatches": true,
+      "CRLF": 0
+    },
+    {
+      "path": "assets/models/sims/sim-01/registered-canvas-proof.json",
+      "sha256": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+      "gitCleanMatches": true,
+      "CRLF": 0
+    },
+    {
+      "path": "assets/models/sims/sim-01/sim-01-rigged.blend",
+      "sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+      "gitCleanMatches": true,
+      "CRLF": 224
+    }
+  ]
+}

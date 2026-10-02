@@ -10,7 +10,7 @@ const limits = { maxTextureDimension2D: 8192, maxTextureArrayLayers: 256,
 afterEach(() => vi.unstubAllGlobals());
 
 it('checks direct caller texture, array, sampling and storage limits before GPU allocation', () => {
-  const atlas = { color: { width: 2048, height: 2926 }, carrier: { width: 2048, height: 2926 },
+  const atlas = { color: { width: 2048, height: 3037 }, carrier: { width: 2048, height: 3037 },
     sprites: ARCHITECTURE.sprites, registration: new Float32Array(472 * 4),
     patterns: [{ width: 256, height: 256 }] } as unknown as ArchitectureAtlas;
   expect(() => validateArchitectureDevice(atlas, limits, 1700)).not.toThrow();
@@ -30,7 +30,7 @@ it('rejects device limits before allocating or fetching any architecture resourc
 
 it('closes each decoded image when a later resource fails', async () => {
   const close = vi.fn(); vi.stubGlobal('location', { href: 'http://proof.invalid/' });
-  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 2048, height: 2926, close })));
+  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 2048, height: 3037, close })));
   vi.stubGlobal('fetch', vi.fn(async (url: URL) => {
     if (url.pathname.endsWith('.r16f')) throw new Error('Depth fetch failed');
     return new Response(new Uint8Array(1));
@@ -42,10 +42,10 @@ it('closes each decoded image when a later resource fails', async () => {
 it('loads accepted color and depth only for default walls, then explicitly releases the decoded image', async () => {
   const close = vi.fn(), fetched: string[] = [];
   vi.stubGlobal('location', { href: 'http://proof.invalid/' });
-  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 2048, height: 2926, close })));
+  vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 2048, height: 3037, close })));
   vi.stubGlobal('fetch', vi.fn(async (url: URL) => {
     fetched.push(url.pathname);
-    return new Response(url.pathname.endsWith('.r16f') ? new Uint8Array(2048 * 2926 * 2) : new Uint8Array(1));
+    return new Response(url.pathname.endsWith('.r16f') ? new Uint8Array(2048 * 3037 * 2) : new Uint8Array(1));
   }));
   const atlas = await loadArchitectureAtlas(limits, { baseUrl: '/' });
   expect(fetched).toEqual([`/${ARCHITECTURE.resources.color}`, `/${ARCHITECTURE.resources.depth}`]);
@@ -56,7 +56,7 @@ it('loads accepted color and depth only for default walls, then explicitly relea
 
 it('keeps browser fixture pattern bytes identical to the accepted portable export', () => {
   for (const name of ['fixture-stripes', 'fixture-checks']) {
-    const source = readFileSync(`../assets/models/architecture/export/reviewed-04/${name}.pattern.png`);
+    const source = readFileSync(`../assets/models/architecture/export/depth-reviewed-01/${name}.pattern.png`);
     const served = readFileSync(`proofs/fixtures/architecture/${name}.pattern.png`);
     expect(createHash('sha256').update(served).digest('hex')).toBe(createHash('sha256').update(source).digest('hex'));
     expect(served.length).toBeGreaterThan(500);
@@ -73,5 +73,5 @@ it('pins lossless RGBA references and original source padding without a canvas c
   expect(rgba.length).toBe(ARCHITECTURE.width * ARCHITECTURE.height * 4);
   expect(Object.keys(receipt.sources)).toHaveLength(168);
   expect(receipt.sources['junction.2222']).toEqual({ width: 320, height: 384,
-    rgba_sha256: 'c5b3b6900d7176d884e924dff123c1cf0a4c7f350cb65d83dfdea8d612e28ee5' });
+    rgba_sha256: '1a346ffcc256a27240d32eff49a155128a755c74777cbe12f4fe0d9f07f8c882' });
 });

@@ -1,7 +1,7 @@
 """Nine fixed-width windows. Frames and reveals are authored on both faces."""
 from dataclasses import dataclass, replace
 import math
-from geometry import box, wall, window_wall, clip, rotate, CUT_HEIGHT
+from geometry import box, wall, window_wall, clip, rotate, CUT_HEIGHT, WALL_THICKNESS
 
 MODELS = {1:('sash',1), 2:('cottage',1), 3:('arched',1),
           4:('sliding',2), 5:('steel-grid',2), 6:('twin-casement',2),
@@ -53,7 +53,7 @@ def frame(width, material, z0=.65, z1=1.82):
     x0,x1=-width/2+.14,width/2-.14
     parts=[]
     for side in (-1,1):
-        ya,yb=sorted((side*.048,side*.078))
+        ya,yb=sorted((side*(WALL_THICKNESS/2-.012),side*(WALL_THICKNESS/2+.018)))
         for x in (x0,x1-.055):
             parts.append(box('Frame upright',x,x+.055,ya,yb,z0,z1,material,.006))
         for z in (z0,z1-.055):
@@ -76,14 +76,14 @@ def arched():
         xa,xb=radius*math.cos(a),radius*math.cos(b)
         za,zb=spring+radius*math.sin(a),spring+radius*math.sin(b)
         if min(za,zb)<1.82-1e-9:
-            parts.append(Prism('Arch infill',((xb,zb),(xa,za),(xa,1.82),(xb,1.82)),-.06,.06,'plaster'))
+            parts.append(Prism('Arch infill',((xb,zb),(xa,za),(xa,1.82),(xb,1.82)),-WALL_THICKNESS/2,WALL_THICKNESS/2,'plaster'))
         for side in (-1,1):
-            ya,yb=sorted((side*.048,side*.078))
+            ya,yb=sorted((side*(WALL_THICKNESS/2-.012),side*(WALL_THICKNESS/2+.018)))
             parts.append(Prism('Arched surround',((xb,zb),(xa,za),
                 (inner*math.cos(a),spring+inner*math.sin(a)),
                 (inner*math.cos(b),spring+inner*math.sin(b))),ya,yb,'cream'))
     for side in (-1,1):
-        ya,yb=sorted((side*.048,side*.078))
+        ya,yb=sorted((side*(WALL_THICKNESS/2-.012),side*(WALL_THICKNESS/2+.018)))
         for x in (-radius,radius-.055):
             parts.append(box('Frame upright',x,x+.055,ya,yb,bottom,spring,'cream',.004))
         parts.append(box('Frame rail',-radius,radius,ya,yb,bottom,bottom+.055,'cream',.004))

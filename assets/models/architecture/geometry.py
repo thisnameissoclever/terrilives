@@ -1,9 +1,13 @@
 """Architecture in game coordinates: X/Y on the floor, Z up, origin on a wall line."""
 from dataclasses import dataclass, replace
 import math
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from architecture_dimensions import WALL_AND_DOOR_DEPTH
 
 WALL_HEIGHT = 2.0
-WALL_THICKNESS = 0.12
+WALL_THICKNESS = WALL_AND_DOOR_DEPTH
 BASEBOARD_HEIGHT = 0.14
 CUT_HEIGHT = WALL_HEIGHT / 3
 HALF_WIDTH = 32
@@ -83,7 +87,7 @@ def window(width, model, center=0):
     parts = []
     # Reveal liner stays inside the opening. Trim surrounds both physical faces.
     for side in (-1,1):
-        ya,yb = sorted((side*.048,side*.078))
+        ya,yb = sorted((side*(WALL_THICKNESS/2-.012),side*(WALL_THICKNESS/2+.018)))
         for x in (x0,x1-.055):
             parts.append(box('Frame upright',x,x+.055,ya,yb,z0,z1,material,.006))
         for z in (z0,z1-.055):
@@ -107,7 +111,7 @@ def doorway(width=1):
     aperture = (-.4,.4,0,1.75)
     parts = wall(width,[aperture])
     for side in (-1,1):
-        ya,yb=sorted((side*.06,side*.08))
+        ya,yb=sorted((side*(WALL_THICKNESS/2),side*(WALL_THICKNESS/2+.02)))
         for x in (-.435,.4):
             parts.append(box('Door casing',x,x+.035,ya,yb,0,1.785,'trim',.005))
         parts.append(box('Door lintel casing',-.435,.435,ya,yb,1.75,1.785,'trim',.005))

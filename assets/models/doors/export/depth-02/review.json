@@ -1,0 +1,26 @@
+{
+  "status": "accepted",
+  "independent": true,
+  "reviewer": "/root/wall_door_depth_source_review",
+  "date": "2026-10-02",
+  "manifestSha256": "ba66ad35bcefd23bb8b75401c4342d4fda9bb5a7912990054f817291ca676d22",
+  "scope": "Source art and physical export evidence; combined runtime contacts, played appearance and publication remain separate.",
+  "evidence": {
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-0-native.png": "39f2c7cdeb4f86b1ab4e0b90df5bddff9eadf4b3389c8d39f2d4e64f77d8b4c3",
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-0-original.png": "f518338f41d8af8edfed578155a2dda296174630a7aee7981a2aa4be715faf97",
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-1-native.png": "3420df19999e0162e83f4a07539ff5e9434b090e3c95f8012f1fa8b3fd8dbe6e",
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-1-original.png": "815de4cfe2cce4fa8cc8e8c8dfdfca4c05003f0a720bb284fa8066c65140d03b",
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-2-native.png": "d6feaa0bf1f47153b5dec239594591c55505750fa3ee3cffce1473509fbe5766",
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-2-original.png": "fd22ae510fef7fa99a8a0091acd7bb8d6b0ab1ece711e935f4a6e3b6e62eb1e7",
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-3-native.png": "798d0b30c962b5fe4ed6a89ab22906f309b8f4ae31806a3c94c72089969dd2f7",
+    "docs/assets/review-evidence/architecture/depth-doors-02/orientation-3-original.png": "e1babcf932d2b7a4983730a4e7364a14141ba1a81b621d178ceb9c7cd5fd5c72"
+  },
+  "rootAcceptance": "Fresh independent acceptance conveyed by root after exact source-art audit, exit 0.",
+  "sceneSha256": "671ebb16447843b252e7c4e2b84be3dc63926cebf838676dab31fb97fcb7e1f9",
+  "statusSha256": "5a22d14140b4b609e63da475ec0c422e268f166846445e2f820c8a8f1fe216e5",
+  "editableSceneAudit": {
+    "file": "scene-audit.json",
+    "sha256": "66c8d0a3ab6bc1ccab67eaf72f4ce281acc9cb3c2612e8ec15030ba89c89aa1c",
+    "scope": "Read-only evaluated saved-scene geometry and registration audit; independent raster appearance acceptance is recorded separately above."
+  }
+}

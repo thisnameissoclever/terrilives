@@ -2,3 +2,7 @@
 # trial atlas and completed render receipt are committed with review evidence.
 candidate-*/
 full-candidate-*/
+
+# Matching-depth raw render candidates remain local; reviewed exports are tracked.
+depth-representative-*/
+depth-full-*/

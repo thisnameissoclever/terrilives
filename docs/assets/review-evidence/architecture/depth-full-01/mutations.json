@@ -1,0 +1,1110 @@
+{
+  "mutations": [
+    {
+      "mutation": "missing model",
+      "removedGuard": "missing window model",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_missing_model_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_missing_model_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_missing_model_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 34, in assert_invalid\\n    validate_manifest(data,proof)\\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\offline_architecture.py\\\", line 44, in validate_manifest\\n    record=proof['models'][str(i)]\\n           ~~~~~~~~~~~~~~~^^^^^^^^\\nKeyError: '9'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 44, in test_missing_model_rejected\\n    self.assert_invalid('missing window model',lambda p:p['models'].pop('9'))\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 36, in assert_invalid\\n    self.assertIsInstance(error,AssertionError,f'intended malformed case: {label}')\\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: KeyError('9') is not an instance of <class 'AssertionError'> : intended malformed case: missing window model\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_missing_model_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 34, in assert_invalid\n    validate_manifest(data,proof)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 44, in validate_manifest\n    record=proof['models'][str(i)]\n           ~~~~~~~~~~~~~~~^^^^^^^^\nKeyError: '9'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 44, in test_missing_model_rejected\n    self.assert_invalid('missing window model',lambda p:p['models'].pop('9'))\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 36, in assert_invalid\n    self.assertIsInstance(error,AssertionError,f'intended malformed case: {label}')\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: KeyError('9') is not an instance of <class 'AssertionError'> : intended malformed case: missing window model\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "25c112e283650cba9bf475cb93e7558640211cd445c5d9f1159cb2d08e06a0d2",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_missing_model_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "width",
+      "removedGuard": "window width changed",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_changed_width_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_changed_width_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_changed_width_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 47, in test_changed_width_rejected\\n    self.assert_invalid('window width changed',lambda p:p['models']['4'].update(width=1))\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 39, in assert_invalid\\n    self.fail(f'intended malformed case accepted: {label}')\\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: intended malformed case accepted: window width changed\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_changed_width_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 47, in test_changed_width_rejected\n    self.assert_invalid('window width changed',lambda p:p['models']['4'].update(width=1))\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 39, in assert_invalid\n    self.fail(f'intended malformed case accepted: {label}')\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: intended malformed case accepted: window width changed\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "25c112e283650cba9bf475cb93e7558640211cd445c5d9f1159cb2d08e06a0d2",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_changed_width_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "direction",
+      "removedGuard": "window direction changed",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_changed_direction_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_changed_direction_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_changed_direction_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 34, in assert_invalid\\n    validate_manifest(data,proof)\\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\offline_architecture.py\\\", line 56, in validate_manifest\\n    assert actual==expected, 'missing window direction'\\n           ^^^^^^^^^^^^^^^^\\nAssertionError: missing window direction\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 50, in test_changed_direction_rejected\\n    self.assert_invalid('window direction changed',lambda p:p['renders'][0].update(direction='y-front'))\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 37, in assert_invalid\\n    self.assertEqual(str(error),label,f'intended malformed case: {label}')\\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: 'missing window direction' != 'window direction changed'\\n- missing window direction\\n+ window direction changed\\n : intended malformed case: window direction changed\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_changed_direction_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 34, in assert_invalid\n    validate_manifest(data,proof)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 56, in validate_manifest\n    assert actual==expected, 'missing window direction'\n           ^^^^^^^^^^^^^^^^\nAssertionError: missing window direction\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 50, in test_changed_direction_rejected\n    self.assert_invalid('window direction changed',lambda p:p['renders'][0].update(direction='y-front'))\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 37, in assert_invalid\n    self.assertEqual(str(error),label,f'intended malformed case: {label}')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'missing window direction' != 'window direction changed'\n- missing window direction\n+ window direction changed\n : intended malformed case: window direction changed\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "25c112e283650cba9bf475cb93e7558640211cd445c5d9f1159cb2d08e06a0d2",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_changed_direction_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "depth registration",
+      "removedGuard": "depth registration changed",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_shifted_depth_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_shifted_depth_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_shifted_depth_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 53, in test_shifted_depth_rejected\\n    self.assert_invalid('depth registration changed',lambda p:p['sprites'][0]['depthRegistration'].update(x=1),'data')\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 39, in assert_invalid\\n    self.fail(f'intended malformed case accepted: {label}')\\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: intended malformed case accepted: depth registration changed\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_shifted_depth_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 53, in test_shifted_depth_rejected\n    self.assert_invalid('depth registration changed',lambda p:p['sprites'][0]['depthRegistration'].update(x=1),'data')\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 39, in assert_invalid\n    self.fail(f'intended malformed case accepted: {label}')\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: intended malformed case accepted: depth registration changed\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "25c112e283650cba9bf475cb93e7558640211cd445c5d9f1159cb2d08e06a0d2",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_shifted_depth_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "sill contact",
+      "removedGuard": "detached sill",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_detached_sill_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_detached_sill_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_detached_sill_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 59, in test_detached_sill_rejected\\n    self.assert_invalid('detached sill',detach)\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 39, in assert_invalid\\n    self.fail(f'intended malformed case accepted: {label}')\\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: intended malformed case accepted: detached sill\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_detached_sill_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 59, in test_detached_sill_rejected\n    self.assert_invalid('detached sill',detach)\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 39, in assert_invalid\n    self.fail(f'intended malformed case accepted: {label}')\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: intended malformed case accepted: detached sill\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "efac6c9cf305222c0992cc7bcdb3676f967fd3bef5d250e12d23b16130296fae",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_detached_sill_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "split ownership",
+      "removedGuard": "overlapping split ownership",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_overlapping_split_ownership_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_overlapping_split_ownership_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_overlapping_split_ownership_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 71, in test_overlapping_split_ownership_rejected\\n    self.assert_invalid('overlapping split ownership',overlap,'data')\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 39, in assert_invalid\\n    self.fail(f'intended malformed case accepted: {label}')\\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: intended malformed case accepted: overlapping split ownership\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_overlapping_split_ownership_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 71, in test_overlapping_split_ownership_rejected\n    self.assert_invalid('overlapping split ownership',overlap,'data')\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 39, in assert_invalid\n    self.fail(f'intended malformed case accepted: {label}')\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: intended malformed case accepted: overlapping split ownership\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "25c112e283650cba9bf475cb93e7558640211cd445c5d9f1159cb2d08e06a0d2",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_overlapping_split_ownership_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "bar contact",
+      "removedGuard": "bar outside authored frame joints",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_nine_models_and_all_physical_views"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=1, bar='Meeting rail', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=1, bar='Meeting rail', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=1, bar='Meeting rail', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Horizontal bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Horizontal bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Horizontal bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=3, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=3, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=3, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=4, bar='Overlapping center rail', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=4, bar='Overlapping center rail', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=4, bar='Overlapping center rail', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Horizontal bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Horizontal bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Horizontal bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Upper light rail', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Upper light rail', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Upper light rail', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=2)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=1)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}, {\"test\": \"test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=0)\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: AssertionError not raised\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=1, bar='Meeting rail', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=1, bar='Meeting rail', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=1, bar='Meeting rail', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Horizontal bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Horizontal bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=2, bar='Horizontal bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=3, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=3, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=3, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=4, bar='Overlapping center rail', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=4, bar='Overlapping center rail', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=4, bar='Overlapping center rail', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Horizontal bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Horizontal bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Horizontal bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=5, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=6, bar='Casement crossbar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Upper light rail', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Upper light rail', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Upper light rail', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=8, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=2)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=1)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            },
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints (model=9, bar='Vertical bar', axis=0)",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 45, in test_every_authored_bar_rejects_displacement_outside_frame_joints\n    with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "efac6c9cf305222c0992cc7bcdb3676f967fd3bef5d250e12d23b16130296fae",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_every_authored_bar_rejects_displacement_outside_frame_joints"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "resource reference",
+      "removedGuard": "unknown pattern resource",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_pattern_resource_reference_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_pattern_resource_reference_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_pattern_resource_reference_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 34, in assert_invalid\\n    validate_manifest(data,proof)\\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\offline_architecture.py\\\", line 62, in validate_manifest\\n    validate_catalogue(data['catalogue'],data['patternResources'],require_shipped=True)\\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\materials.py\\\", line 67, in validate_catalogue\\n    assert resources[pattern['resource']]['shipped'] is True, 'pattern resource is not shipped'\\n           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\\nKeyError: 'missing-resource'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 74, in test_pattern_resource_reference_rejected\\n    self.assert_invalid('unknown pattern resource',lambda p:p['catalogue']['patterns']['floor.boards'].update(resource='missing-resource'),'data')\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 36, in assert_invalid\\n    self.assertIsInstance(error,AssertionError,f'intended malformed case: {label}')\\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: KeyError('missing-resource') is not an instance of <class 'AssertionError'> : intended malformed case: unknown pattern resource\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_pattern_resource_reference_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 34, in assert_invalid\n    validate_manifest(data,proof)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 62, in validate_manifest\n    validate_catalogue(data['catalogue'],data['patternResources'],require_shipped=True)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\materials.py\", line 67, in validate_catalogue\n    assert resources[pattern['resource']]['shipped'] is True, 'pattern resource is not shipped'\n           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'missing-resource'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 74, in test_pattern_resource_reference_rejected\n    self.assert_invalid('unknown pattern resource',lambda p:p['catalogue']['patterns']['floor.boards'].update(resource='missing-resource'),'data')\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 36, in assert_invalid\n    self.assertIsInstance(error,AssertionError,f'intended malformed case: {label}')\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: KeyError('missing-resource') is not an instance of <class 'AssertionError'> : intended malformed case: unknown pattern resource\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "2d276a8be0b542aa922d84ce5120a17488e7f099df0af86d51e62155a3b7b706",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_pattern_resource_reference_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "shipped resource",
+      "removedGuard": "pattern resource is not shipped",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_unshipped_pattern_resource_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_manifest_clean_control"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_unshipped_pattern_resource_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_offline_architecture.ArchitectureImport.test_unshipped_pattern_resource_rejected\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 77, in test_unshipped_pattern_resource_rejected\\n    self.assert_invalid('pattern resource is not shipped',lambda p:p['patternResources']['boards'].update(shipped=False),'data')\\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\sprites\\\\gen\\\\test_offline_architecture.py\\\", line 39, in assert_invalid\\n    self.fail(f'intended malformed case accepted: {label}')\\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: intended malformed case accepted: pattern resource is not shipped\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_offline_architecture.ArchitectureImport.test_unshipped_pattern_resource_rejected",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 77, in test_unshipped_pattern_resource_rejected\n    self.assert_invalid('pattern resource is not shipped',lambda p:p['patternResources']['boards'].update(shipped=False),'data')\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 39, in assert_invalid\n    self.fail(f'intended malformed case accepted: {label}')\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: intended malformed case accepted: pattern resource is not shipped\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "2d276a8be0b542aa922d84ce5120a17488e7f099df0af86d51e62155a3b7b706",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_offline_architecture.ArchitectureImport.test_unshipped_pattern_resource_rejected"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "glazing ownership",
+      "removedGuard": null,
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_production_surface_roles_keep_glazing_frame_and_trim_independent"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_nine_models_and_all_physical_views"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_production_surface_roles_keep_glazing_frame_and_trim_independent"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_catalogue.FullArchitectureGeometry.test_production_surface_roles_keep_glazing_frame_and_trim_independent\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 52, in test_production_surface_roles_keep_glazing_frame_and_trim_independent\\n    self.assertEqual(material_role(material),role,material)\\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: 1 != 4 : glass\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_production_surface_roles_keep_glazing_frame_and_trim_independent",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 52, in test_production_surface_roles_keep_glazing_frame_and_trim_independent\n    self.assertEqual(material_role(material),role,material)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 4 : glass\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "2d276a8be0b542aa922d84ce5120a17488e7f099df0af86d51e62155a3b7b706",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_production_surface_roles_keep_glazing_frame_and_trim_independent"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "excluded carrier",
+      "removedGuard": null,
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_production_carrier_selection_preserves_independent_materials"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_nine_models_and_all_physical_views"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_production_carrier_selection_preserves_independent_materials"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 1,
+        "output": "{\"testsRun\": 1, \"failures\": [{\"test\": \"test_catalogue.FullArchitectureGeometry.test_production_carrier_selection_preserves_independent_materials\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"D:\\\\VIBES\\\\.worktrees\\\\fe58\\\\terrilives\\\\assets\\\\models\\\\architecture\\\\test_catalogue.py\\\", line 58, in test_production_carrier_selection_preserves_independent_materials\\n    self.assertEqual(carrier_material(material),material)\\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAssertionError: 'neutral' != 'glass'\\n- neutral\\n+ glass\\n\\n\"}], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            {
+              "test": "test_catalogue.FullArchitectureGeometry.test_production_carrier_selection_preserves_independent_materials",
+              "traceback": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\test_catalogue.py\", line 58, in test_production_carrier_selection_preserves_independent_materials\n    self.assertEqual(carrier_material(material),material)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'neutral' != 'glass'\n- neutral\n+ glass\n\n"
+            }
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "2d276a8be0b542aa922d84ce5120a17488e7f099df0af86d51e62155a3b7b706",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult()\nsuite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[{'test':test.id(),'traceback':trace} for test,trace in result.failures], 'errors':[{'test':test.id(),'traceback':trace} for test,trace in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_catalogue.FullArchitectureGeometry.test_production_carrier_selection_preserves_independent_materials"
+        ],
+        "cwd": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture",
+        "exitCode": 0,
+        "output": "{\"testsRun\": 1, \"failures\": [], \"errors\": []}\n",
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    }
+  ]
+}

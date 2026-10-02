@@ -8,9 +8,29 @@ from geometry import (WALL_HEIGHT,WALL_THICKNESS,CUT_HEIGHT,window_span,wall,win
 
 
 class ArchitectureGeometry(unittest.TestCase):
+    def test_joined_and_arched_plaster_share_both_wall_faces(self):
+        from walls import junction
+        from windows import model_parts
+        from architecture_dimensions import WALL_AND_DOOR_DEPTH
+        self.assertEqual(WALL_THICKNESS, WALL_AND_DOOR_DEPTH)
+        half = WALL_THICKNESS / 2
+        for heights in ((2,0,2,0),(0,2,0,2),(2,1,2,1),(2,2,2,2)):
+            parts = junction(heights)
+            for across in (-half + .0001, half - .0001):
+                for arm, height in enumerate(heights):
+                    if not height: continue
+                    x,y=((.25,across),(across,.25),(-.25,across),(across,-.25))[arm]
+                    hit = visible_box_hit((x,y,3),(0,0,-1),parts)
+                    self.assertIsNotNone(hit, (heights,arm,across))
+                    self.assertEqual(hit[2], 'Plaster', (heights,arm,across))
+                    self.assertAlmostEqual(hit[1][2], CUT_HEIGHT if height == 1 else WALL_HEIGHT)
+        infill=[p for p in model_parts(3) if p.name=='Arch infill']
+        self.assertTrue(infill)
+        self.assertTrue(all(p.y0 == -half and p.y1 == half for p in infill))
+
     def test_architecture_dimensions(self):
         self.assertEqual(WALL_HEIGHT,2.0)
-        self.assertEqual(WALL_THICKNESS,.12)
+        self.assertEqual(WALL_THICKNESS,.14)
         for width in (1,2,3):
             self.assertEqual(window_span(width),float(width))
         for invalid in (0,4,True,1.5):
@@ -35,8 +55,8 @@ class ArchitectureGeometry(unittest.TestCase):
 
     def test_known_front_back_cap_and_sill_depth_surfaces(self):
         parts=wall(1)
-        for origin,direction,expected in (((.2,1,1),(0,-1,0),(.2,.06,1)),
-            ((.2,-1,1),(0,1,0),(.2,-.06,1)),((.2,0,3),(0,0,-1),(.2,0,2))):
+        for origin,direction,expected in (((.2,1,1),(0,-1,0),(.2,.07,1)),
+            ((.2,-1,1),(0,1,0),(.2,-.07,1)),((.2,0,3),(0,0,-1),(.2,0,2))):
             hit=visible_box_hit(origin,direction,parts)
             self.assertIsNotNone(hit)
             for actual,wanted in zip(hit[1],expected): self.assertAlmostEqual(actual,wanted)

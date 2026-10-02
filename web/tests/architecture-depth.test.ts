@@ -62,8 +62,14 @@ describe('opt-in architecture depth',()=>{
     expect(proof.registration.source_basis[0][0]).toBeCloseTo(32,4);
     expect(proof.registration.source_basis[0][1]).toBeCloseTo(21,4);
     expect(-proof.registration.source_basis[2][1]*proof.registration.architecture_z_scale).toBeCloseTo(38,8);
-    for(const [name,expected] of Object.entries(proof.inputs))
-      expect(createHash('sha256').update(readFileSync('../'+name.replaceAll('\\','/'))).digest('hex')).toBe(expected);
+    for(const [name,expected] of Object.entries(proof.inputs)) {
+      const relative = name.replaceAll('\\','/');
+      // The original room proof retains its .12 geometry while production uses .14.
+      const source = relative === 'assets/models/architecture/geometry.py'
+        ? '../docs/assets/review-evidence/architecture/depth-full-01/original-room-geometry.py'
+        : '../'+relative;
+      expect(createHash('sha256').update(readFileSync(source)).digest('hex')).toBe(expected);
+    }
     for(const [name,expected] of [[manifest.color,manifest.color_sha256],[manifest.depth,manifest.depth_sha256]])
       expect(createHash('sha256').update(readFileSync(directory+name)).digest('hex')).toBe(expected);
     for(const record of proof.renders) expect(record.planar_corner_normals_checked).toBeGreaterThan(0);

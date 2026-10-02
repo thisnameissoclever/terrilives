@@ -190,13 +190,13 @@ describe('finish catalogue and registered source coordinates', () => {
       palettes: { ...ARCHITECTURE.catalogue.palettes, cool: { multiply: [.5, .7, 1] } } };
     const selected = prepareArchitectureFinishes(['extra.0', 'extra.999', 'extra.0'], limits, extended);
     expect(selected.keys).toHaveLength(2); expect(selected.resources).toEqual(['plaster']);
-    expect(selected.residentBytes).toBe(65916928 + 256 * 256 * 4);
+    expect(selected.residentBytes).toBe(68417536 + 256 * 256 * 4);
     expect(architectureFinishSlot(selected, 'extra.999')).toBe(2);
     expect(() => architectureFinishSlot(selected, 'extra.2')).toThrow(/not prepared/);
     expect(() => prepareArchitectureFinishes(['extra.0'], { ...limits, maxSampledTexturesPerShaderStage: 4 }, extended)).toThrow(/sampled/);
     expect(() => prepareArchitectureFinishes(['extra.0'], { ...limits, maxTextureArrayLayers: 1 }, extended)).toThrow(/layer/);
     expect(() => prepareArchitectureFinishes(['extra.0'], { ...limits, maxStorageBufferBindingSize: 16 }, extended)).toThrow(/storage/);
-    expect(prepareArchitectureFinishes([], limits).residentBytes).toBe(35954688);
+    expect(prepareArchitectureFinishes([], limits).residentBytes).toBe(37318656);
   });
 
   it('reconstructs common source coordinates from actual signed depth texels across all split owners', () => {

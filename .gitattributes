@@ -66,3 +66,21 @@ docs/alpha-feel-notes.md merge=union
 # Architecture receipts bind exact exporter and receipt bytes.
 assets/models/architecture/render_review.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/assets/review-evidence/architecture/room-01/trial/**/render-proof.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Matching-depth inputs and fresh receipts bind raw bytes on every host.
+assets/models/architecture-depth.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/check_scene.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/export/depth-reviewed-01/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/export/depth-reviewed-01/render-proof.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/export/depth-reviewed-01/review.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/geometry.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/render_batch.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/walls.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture/windows.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/architecture_dimensions.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/doors/audit_scene.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/doors/export/depth-02/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/doors/export/depth-02/review.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/doors/export/depth-02/scene-audit.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/doors/export/depth-02/status.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/doors/render_doors.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

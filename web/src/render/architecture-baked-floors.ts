@@ -1,8 +1,8 @@
 // GENERATED from the accepted architecture export. Do not edit by hand.
 // Independent baked-pixel identities; never derive these from the live catalogue.
 export const BAKED_FLOORS = {
-  "manifestSha256": "bc0217ab63338aa5abbd740c0d2a060147c6a2f9c4b6cb6f0eb6063bc4eaa220",
-  "colorSha256": "609120f44b7afacfc9abb27a54b8d58bc96d3c3313bd440fb1cc6f9275362f9b",
+  "manifestSha256": "7cb5c25769601f4c73541f87d7b2609283a27596a8ec10eaeeee19f89e48aa7a",
+  "colorSha256": "2599e89005fabbe3a83b16794e9ced181215829c765bf2195721245d666e4e5c",
   "finishes": {
     "floor.boards": {
       "finish": {

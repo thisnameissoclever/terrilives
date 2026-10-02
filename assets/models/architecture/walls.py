@@ -1,6 +1,6 @@
 """Connected wall hubs with explicit arm heights and shared trim geometry."""
 from itertools import product
-from geometry import box, wall, doorway, clip, CUT_HEIGHT
+from geometry import box, wall, doorway, clip, CUT_HEIGHT, WALL_THICKNESS
 from windows import orient, DIRECTIONS
 
 ARMS = ('east','south','west','north')
@@ -9,7 +9,9 @@ ARMS = ('east','south','west','north')
 def junction(heights):
     assert len(heights)==4 and all(h in (0,1,2) for h in heights)
     assert any(heights)
-    xs=(-.5,-.078,-.06,.06,.078,.5)
+    half=WALL_THICKNESS/2
+    outer=half+.018
+    xs=(-.5,-outer,-half,half,outer,.5)
     ys=xs
     parts=[]
     # Grid partitioning creates one union: adjacent cells have identical faces.
@@ -19,7 +21,7 @@ def junction(heights):
             owners=[]
             for arm,h in enumerate(heights):
                 along,across=((x,y),(y,x),(-x,y),(-y,x))[arm]
-                if h and along>=-.06 and abs(across)<.06: owners.append(h)
+                if h and along>=-half and abs(across)<half: owners.append(h)
             if owners:
                 height=max(CUT_HEIGHT if h==1 else 2 for h in owners)
                 # A common Z partition lets mixed-height neighbors cancel their
@@ -31,7 +33,7 @@ def junction(heights):
             # Baseboards occupy the exposed perimeter, never another wall's core.
             for arm,h in enumerate(heights):
                 along,across=((x,y),(y,x),(-x,y),(-y,x))[arm]
-                if h and along>=-.06 and .06<=abs(across)<.078:
+                if h and along>=-half and half<=abs(across)<outer:
                     parts.append(box('Baseboard',x0,x1,y0,y1,0,.14,'trim',.003))
                     break
     return parts

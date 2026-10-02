@@ -1,11 +1,14 @@
 """Package linear surface data as lossless RG16 depth and a floor flag."""
 import hashlib
 import json
+import sys
 from pathlib import Path
 import numpy as np
 from PIL import Image
 
-BASE = Path(__file__).resolve().parent / 'export'
+BASE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent / 'export'
+status = json.loads((BASE / 'status.json').read_text())
+assert status['state'] == 'complete' and status['background'] is True
 manifest = json.loads((BASE / 'manifest.json').read_text())
 assert len(manifest['records']) == 40
 for record in manifest['records']:

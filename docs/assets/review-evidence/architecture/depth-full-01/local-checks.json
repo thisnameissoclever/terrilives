@@ -1,0 +1,65 @@
+{
+  "checks": [
+    {
+      "command": "python -B -m unittest discover -s assets/models/architecture -p 'test_*.py'",
+      "exitCode": 0,
+      "result": "17 tests passed again after strengthening the junction face assertion; current complete suite exit0."
+    },
+    {
+      "command": "python -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'",
+      "exitCode": 0,
+      "result": "167 tests passed in46.298s"
+    },
+    {
+      "command": "python -B assets/sprites/gen/verify_depth_history.py a1941ee3 docs/assets/review-evidence/architecture/depth-full-01/historical-preservation.json",
+      "exitCode": 0,
+      "result": "2445 exact historical identities; only80expected doorcolor/depth records changed; original1700 pixels unchanged"
+    },
+    {
+      "command": "python -B assets/sprites/gen/build.py",
+      "exitCode": 0,
+      "result": "2445 historical sprites,8192x8192;472 architecture pieces"
+    },
+    {
+      "command": "python -B assets/sprites/gen/build.py --check",
+      "exitCode": 0,
+      "result": "Atlas and architecture up to date; observed before mutation, restored sourcebytes match exactly afterward."
+    },
+    {
+      "command": "python -B web/proofs/prepare-architecture-rgba.py",
+      "exitCode": 0,
+      "result": "24879104 losslessRGBA bytes;168original source hashes"
+    },
+    {
+      "command": "python -B assets/sprites/gen/check_architecture_mutations.py docs/assets/review-evidence/architecture/depth-full-01/mutations.json",
+      "exitCode": 0,
+      "result": "Later run caught11mechanisms; every cleancontrol/restoredtarget passed; first restoration error retained separately."
+    },
+    {
+      "command": "python -B assets/models/architecture/check_depth_mutations.py docs/assets/review-evidence/architecture/depth-full-01/depth-mutations.json",
+      "exitCode": 0,
+      "result": "3 depthmechanisms caught, cleancontrols pass, exact byte-restoration and restored targets pass"
+    },
+    {
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "exitCode": 0,
+      "result": "1953 tests in144files passed,36.50s; prior2 stalefixture failures corrected without altering oldproof receipts"
+    },
+    {
+      "command": "npm --prefix web run typecheck",
+      "exitCode": 0,
+      "result": "TypeScript passed"
+    },
+    {
+      "command": "npm --prefix web run build",
+      "exitCode": 0,
+      "result": "Production build passed; standard size warning remains"
+    },
+    {
+      "command": "Production door and architecture importers from exact123-file Gitindex snapshot",
+      "exitCode": 0,
+      "result": "80doorcolor/depth records and472architecturepieces pass allguards; every boundindexbyte matches workingbytes"
+    }
+  ],
+  "notRun": "Rust/native/content/save suites: no affected native or content inputs; atlas.toml unchanged. Runtime GPU/crossing/played acceptance belongs to root."
+}
