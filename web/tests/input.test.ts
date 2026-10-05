@@ -894,7 +894,7 @@ describe('pickSprite', () => {
           facings: () => Uint32Array.from([facing]),
           clockTick: () => tick,
         };
-        for (const scale of [0.5, 1, 2.5]) {
+        for (const scale of [0.5, 1, 2.5, 3.25, 4]) {
           const box = drawnBox(tile, SPRITES[sprite].name, 100, 50, scale);
           const midY = (box.top + box.bottom) / 2;
           for (const [x, y] of [
@@ -1063,7 +1063,7 @@ describe('pickSprite', () => {
       activities: () => Uint32Array.from([1]),
     };
 
-    for (const scale of [0.5, 1, 2.5]) {
+    for (const scale of [0.5, 1, 2.5, 3.25, 4]) {
       const box = drawnBox(tile, 'sim', 0, 0, scale);
       // Limb frames share one fixed envelope. Walking and reduced motion must
       // therefore pick exactly the drawn box, with no invisible lift headroom.
