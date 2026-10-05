@@ -1,0 +1,62 @@
+{
+  "revision": "0dbd65c30a4d413dfae821ac1a956a0352a03da9",
+  "execution": "Root ran each remaining command separately and observed exit before the next. Worker completed the unchanged final code's 1854-test full web run and seven standalone Node tests before this sequence; they were not duplicated.",
+  "checks": [
+    {
+      "command": "npm --prefix web run typecheck",
+      "chunk_id": "48aa33",
+      "wall_time_seconds": 6.0065421,
+      "exit_code": 0,
+      "original_token_count": 8,
+      "output": "\n> typecheck\n> tsc --noEmit\n\n"
+    },
+    {
+      "command": "npm --prefix web run build",
+      "chunk_id": "9d5474",
+      "wall_time_seconds": 1.2937185,
+      "exit_code": 0,
+      "original_token_count": 243,
+      "output": "\n> build\n> vite build\n\nvite v8.1.5 building client environment for production...\n\u001b[2K\rtransforming...✓ 101 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/assets/save-worker-Cb-g-Su5.js          2.08 kB\ndist/index.html                             61.40 kB │ gzip:  14.08 kB\ndist/changelog/index.html                   64.75 kB │ gzip:  14.13 kB\ndist/assets/terri_wasm_bg-Icm7s71x.wasm  2,361.63 kB │ gzip: 753.58 kB\ndist/assets/index-D5EfDF54.css               8.12 kB │ gzip:   2.18 kB\ndist/assets/index-D--ZEW6k.js              702.40 kB │ gzip: 128.87 kB\n\n✓ built in 682ms\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n"
+    },
+    {
+      "command": "python check-doc-ids.py",
+      "chunk_id": "8943af",
+      "wall_time_seconds": 0.1488187,
+      "exit_code": 0,
+      "original_token_count": 13,
+      "output": "Documentation ids are unique and allocation-free.\r\n"
+    },
+    {
+      "command": "node --test scripts/build-changelog.test.mjs",
+      "chunk_id": "34af18",
+      "wall_time_seconds": 0.3130707,
+      "exit_code": 0,
+      "original_token_count": 176,
+      "output": "✔ newest notes come first and only the newest two start open (16.779ms)\n✔ editing, adding and deleting source notes changes the generated page (5.0092ms)\n✔ HTML is escaped while bold, code and HTTPS links remain usable (4.2346ms)\n✔ literal template markers in a note cannot expand into presentation code (3.0582ms)\n✔ invalid notes and empty collections fail instead of silently dropping content (3.2159ms)\n✔ wrapped summaries and continued list items preserve their meaning (0.1602ms)\n✔ the repository history renders and the CLI writes the same standalone page (60.4198ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 149.3488\n"
+    },
+    {
+      "command": "node scripts/build-changelog.mjs",
+      "chunk_id": "bd839c",
+      "wall_time_seconds": 0.1776255,
+      "exit_code": 0,
+      "original_token_count": 21,
+      "output": "Built changelog: D:\\VIBES\\.worktrees\\fe58\\terrilives\\web\\dist\\changelog\\index.html\n"
+    },
+    {
+      "command": "python -B web/proofs/prepare-architecture-baseline.py --check-profile",
+      "chunk_id": "209f79",
+      "wall_time_seconds": 0.2373447,
+      "exit_code": 0,
+      "original_token_count": 53,
+      "output": "{\"appearanceSource\": {\"path\": \"content/lot.toml\", \"sha256\": \"d74c671ed346f398f036a569ca50b591ebaf342d3fd59174576d4cbc02f05840\", \"fields\": \"covering[].hue,strength,lightness in content order\"}, \"checked\": true}\r\n"
+    },
+    {
+      "command": "git diff --check",
+      "chunk_id": "428c45",
+      "wall_time_seconds": 0.1732131,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ]
+}

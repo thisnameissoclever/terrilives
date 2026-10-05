@@ -1,0 +1,118 @@
+{
+  "scope": "Isolated mutation copy before later compiled-pack golden/comment repairs; restoration hashes identify that fixture, not final workspace",
+  "buildJobs": 1,
+  "cases": [
+    {
+      "mutation": "metadata-missing",
+      "command": "cargo test -p terri-sim --lib every_shipped_interaction -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "shower/take_shower needs authored activity metadata",
+      "source": "content/objects.toml",
+      "restoredSha256": "C75A4A4221780539907DA534F9FA4AC6215EE862E6CB0EA33B4B9A521566B9F8"
+    },
+    {
+      "mutation": "ordinary-identity-removed",
+      "command": "cargo test -p terri-sim --lib authored_ordinary_activity_rejects -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "malformed ordinary identity case 2; left (12, 0), right (7, 0)",
+      "source": "crates/terri-sim/src/lib.rs",
+      "restoredSha256": "AF5A8AA4DF54708FE4FAEF243B0E57C324118464429AC61347EABA2DE1AE807E"
+    },
+    {
+      "mutation": "chain-role-removed",
+      "command": "cargo test -p terri-sim --lib authored_chain_activity_rejects -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "malformed chain contract case 5; left (23, 0), right (7, 0)",
+      "source": "crates/terri-sim/src/lib.rs",
+      "restoredSha256": "AF5A8AA4DF54708FE4FAEF243B0E57C324118464429AC61347EABA2DE1AE807E"
+    },
+    {
+      "mutation": "activity-mapping-removed",
+      "command": "cargo test -p terri-sim --lib every_shipped_interaction -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "shower/take_shower; left (7, 0), right (12, 0)",
+      "source": "crates/terri-sim/src/lib.rs",
+      "restoredSha256": "AF5A8AA4DF54708FE4FAEF243B0E57C324118464429AC61347EABA2DE1AE807E"
+    },
+    {
+      "mutation": "chain-mapping-removed",
+      "command": "cargo test -p terri-sim --lib every_shipped_chain_step -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "dinner step 0; left (7, 0), right (21, 0)",
+      "source": "crates/terri-sim/src/lib.rs",
+      "restoredSha256": "AF5A8AA4DF54708FE4FAEF243B0E57C324118464429AC61347EABA2DE1AE807E"
+    },
+    {
+      "mutation": "body-precedence-reversed",
+      "command": "cargo test -p terri-sim --lib authored_body_action_and_active_state -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "fridge body action owns activity before metadata or waiting; left 20, right 3",
+      "source": "crates/terri-sim/src/lib.rs",
+      "restoredSha256": "AF5A8AA4DF54708FE4FAEF243B0E57C324118464429AC61347EABA2DE1AE807E"
+    },
+    {
+      "mutation": "blocked-wait-removed",
+      "command": "cargo test -p terri-sim --lib contested_item_waiting -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "left (0, 0), right (2, 0)",
+      "source": "crates/terri-sim/src/lib.rs",
+      "restoredSha256": "AF5A8AA4DF54708FE4FAEF243B0E57C324118464429AC61347EABA2DE1AE807E"
+    },
+    {
+      "mutation": "ordinary-activity-in-fingerprint",
+      "command": "cargo test -p terri-data --lib authored_activities -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "ordinary activity metadata is presentation only; left 9748748021700193051, right 5223139219749262216",
+      "source": "crates/terri-data/src/lib.rs",
+      "restoredSha256": "22CC56B80FDB42E8B12A77ADBA5ECCEE27C69F53DE3D0AA7382B2F580B530E8A"
+    },
+    {
+      "mutation": "chain-activity-in-fingerprint",
+      "command": "cargo test -p terri-data --lib authored_activities -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "chain activity metadata is presentation only; left 2523953690219228375, right 8478772599841479923",
+      "source": "crates/terri-data/src/lib.rs",
+      "restoredSha256": "22CC56B80FDB42E8B12A77ADBA5ECCEE27C69F53DE3D0AA7382B2F580B530E8A"
+    },
+    {
+      "mutation": "tv-vocabulary-misclassified",
+      "command": "cargo test -p terri-data --lib compiles_activity_vocabulary -- --test-threads=1",
+      "exit": 101,
+      "caught": true,
+      "failure": "watching_tv; left Some(Showering), right Some(WatchingTv)",
+      "source": "crates/terri-data/src/compile.rs",
+      "restoredSha256": "646FF1DF3F5B719D285B94B22060D39672BA55809E36BF84F1D76E3D18961C45"
+    }
+  ],
+  "restoredChecks": [
+    {
+      "command": "cargo test -p terri-sim --lib activity -- --test-threads=1",
+      "exit": 0,
+      "passed": 16
+    },
+    {
+      "command": "cargo test -p terri-sim --lib render_buffer -- --test-threads=1",
+      "exit": 0,
+      "passed": 64
+    },
+    {
+      "command": "cargo test -p terri-data --lib activity -- --test-threads=1",
+      "exit": 0,
+      "passed": 1
+    },
+    {
+      "command": "cargo test -p terri-data --lib authored_activities -- --test-threads=1",
+      "exit": 0,
+      "passed": 1
+    }
+  ]
+}

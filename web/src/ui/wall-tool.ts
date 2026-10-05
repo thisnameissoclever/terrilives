@@ -8,6 +8,7 @@
 
 import { WALL_OUT_OF_BOUNDS, type SimBridge, type WallEditPreview } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
+import type { WindowTool } from './window-tool.js';
 
 export const OPEN = 0;
 export const WALL = 1;
@@ -108,13 +109,14 @@ export class WallTool {
   private shownHighlight: TileHighlight | null = null;
 
   constructor(private readonly source: WallSource, private width: number,
-    private height: number, private readonly hooks: { changed(): void }) {
+    private height: number, private readonly hooks: { changed(): void }, readonly windows?: WindowTool) {
     this.revision = source.lotRevision();
   }
 
   enter(): void {
     if (this.active) return;
     this.active = true;
+    if (this.windows?.pending !== null && this.windows?.pending !== undefined) this.windows.enter();
     // Back before an edit left on its way has landed: the line and its status
     // still describe it, and the next drain reports the result.
     if (this.pending === null) this.status = CHOOSE_LINE;
@@ -129,19 +131,25 @@ export class WallTool {
   exit(): void {
     if (!this.active) return;
     this.active = false;
+    this.windows?.exit();
     if (this.pending === null) this.clear();
     else this.hooks.changed();
   }
 
   /** A click or tap at an unrounded world point. */
   choosePoint(wx: number, wy: number): void {
-    if (!this.active || this.pending !== null) return;
+    if (!this.active || this.pending !== null || this.blocked) return;
     const line = nearestLine(wx, wy, this.width, this.height);
     if (line) this.choose(line);
   }
 
   choose(line: WallLine): void {
-    if (!this.active || this.pending !== null) return;
+    if (!this.active || this.pending !== null || this.blocked) return;
+    if (this.windows?.active || this.windows?.ownerAt(line)) {
+      this.windows.enter();
+      this.windows.choose(line);
+      return;
+    }
     this.line = line;
     this.refresh();
     this.status = this.describe();
@@ -149,6 +157,7 @@ export class WallTool {
   }
 
   setBlocked(blocked: boolean): void {
+    this.windows?.setBlocked(blocked);
     if (this.blocked === blocked) return;
     this.blocked = blocked;
     this.hooks.changed();
@@ -156,7 +165,7 @@ export class WallTool {
 
   /** Whether pressing this state's button would stage an edit. */
   canApply(state: WallStateCode): boolean {
-    return this.active && !this.blocked && this.line !== null && this.pending === null
+    return this.active && !this.windows?.active && this.windows?.pending == null && !this.blocked && this.line !== null && this.pending === null
       && state !== this.current && this.previews?.[state].valid === true;
   }
 
@@ -173,6 +182,15 @@ export class WallTool {
 
   handleKey(key: string): boolean {
     if (!this.active) return false;
+    if (this.windows && (key === 'n' || key === 'N')) { this.selectWindows(); return true; }
+    if (this.windows?.active) {
+      if (key === 'w' || key === 'W' || key === 'd' || key === 'D') {
+        this.selectWalls();
+        this.apply(key.toLowerCase() === 'w' ? WALL : DOORWAY);
+        return true;
+      }
+      return this.windows.handleKey(key);
+    }
     if (key === 'Escape') {
       if (this.line === null) return false;
       // An edit on its way is applied whatever happens here; clearing now
@@ -237,7 +255,25 @@ export class WallTool {
 
   /** The lot tiles beside the chosen line, tinted for whether a wall may go there. */
   highlight(): TileHighlight | null {
-    return this.active ? this.shownHighlight : null;
+    return this.windows?.active ? this.windows.highlight() : this.active ? this.shownHighlight : null;
+  }
+
+  selectWindows(): void {
+    if (!this.windows || !this.active || this.pending !== null || this.blocked) return;
+    if (this.windows.active) return;
+    this.windows.enter();
+    if (this.line && this.windows.pending === null) this.windows.choose(this.line);
+    this.hooks.changed();
+  }
+
+  selectWalls(): void {
+    if (!this.windows?.active || this.windows.pending !== null || this.pending !== null) return;
+    this.line = this.windows.selectedLine;
+    this.windows.exit();
+    if (this.line === null) { this.clear(); return; }
+    this.refresh();
+    this.status = this.describe();
+    this.hooks.changed();
   }
 
   private clear(): void {
@@ -250,7 +286,18 @@ export class WallTool {
     this.hooks.changed();
   }
 
-  private turn(axis: 0 | 1): void {
+  clearSelection(): void {
+    if (!this.active || this.pending !== null || this.blocked) return;
+    this.clear();
+  }
+
+  rotate(): void {
+    if (!this.line) return;
+    this.turn(this.line.axis === 0 ? 1 : 0);
+  }
+
+  turn(axis: 0 | 1): void {
+    if (!this.active || this.pending !== null || this.blocked) return;
     const from = this.line ?? { axis, x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
     this.choose(this.clamped({ ...from, axis }));
   }

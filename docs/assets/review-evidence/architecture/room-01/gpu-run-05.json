@@ -1,0 +1,511 @@
+{
+  "result": {
+    "pass": true,
+    "error": null,
+    "results": [
+      {
+        "surface": "front face",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.2215625,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.20619029453822554,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "front face",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.13714285714286234,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.2799923706054699,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.1485790579659465,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.005721915108807707,
+        "expectedSum": 0.22999981834774935,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "front face",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.086666666666666,
+        "expectedSum": 0.2215625,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.086666666666666,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.08667429606120436,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.24665903727213845,
+        "expectedSum": 0.20619029453822554,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1,
+        "origin": [
+          230,
+          112
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 12096,
+        "holes": 0,
+        "outsideChecked": 3440,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1,
+        "origin": [
+          320.37,
+          240.37
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 12096,
+        "holes": 0,
+        "outsideChecked": 3440,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 12090,
+        "holes": 0,
+        "outsideChecked": 3431,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1.75,
+        "origin": [
+          402.5,
+          196
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 37031,
+        "holes": 0,
+        "outsideChecked": 10532,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1.75,
+        "origin": [
+          320.37,
+          240.37
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 37044,
+        "holes": 0,
+        "outsideChecked": 10533,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1.75,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 37034,
+        "holes": 0,
+        "outsideChecked": 10527,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 3,
+        "origin": [
+          690,
+          336
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 108864,
+        "holes": 0,
+        "outsideChecked": 30952,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 3,
+        "origin": [
+          320.37,
+          240.37
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 108864,
+        "holes": 0,
+        "outsideChecked": 30936,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 3,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": false,
+        "missing": false,
+        "checked": 108846,
+        "holes": 0,
+        "outsideChecked": 30925,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 0.75,
+        "origin": [
+          320.125,
+          240.375
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 6804,
+        "holes": 0,
+        "outsideChecked": 1934,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 0.75,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 6800,
+        "holes": 0,
+        "outsideChecked": 1930,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1.25,
+        "origin": [
+          320.125,
+          240.375
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 18900,
+        "holes": 0,
+        "outsideChecked": 5376,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1.25,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 18893,
+        "holes": 0,
+        "outsideChecked": 5360,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 2.25,
+        "origin": [
+          320.125,
+          240.375
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 61236,
+        "holes": 0,
+        "outsideChecked": 17409,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 2.25,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 61223,
+        "holes": 0,
+        "outsideChecked": 17393,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 2.7,
+        "origin": [
+          320.125,
+          240.375
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 88181,
+        "holes": 0,
+        "outsideChecked": 25082,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 2.7,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": true,
+        "missing": false,
+        "checked": 88172,
+        "holes": 0,
+        "outsideChecked": 25073,
+        "leaks": 0,
+        "missingChecked": 0,
+        "sharedEndpoints": 20,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": true,
+        "missing": true,
+        "checked": 10736,
+        "holes": 0,
+        "outsideChecked": 4773,
+        "leaks": 0,
+        "missingChecked": 1342,
+        "sharedEndpoints": 16,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 1.75,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": true,
+        "missing": true,
+        "checked": 32902,
+        "holes": 0,
+        "outsideChecked": 14638,
+        "leaks": 0,
+        "missingChecked": 4113,
+        "sharedEndpoints": 16,
+        "orderDifferences": 0,
+        "pass": true
+      },
+      {
+        "surface": "canonical floor coverage",
+        "scale": 3,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "contrast": true,
+        "missing": true,
+        "checked": 96720,
+        "holes": 0,
+        "outsideChecked": 43011,
+        "leaks": 0,
+        "missingChecked": 12090,
+        "sharedEndpoints": 16,
+        "orderDifferences": 0,
+        "pass": true
+      }
+    ],
+    "measurements": {
+      "uploadMilliseconds": 249.55499997735023,
+      "renderMilliseconds": 0.1646666665871938,
+      "historicalRenderMilliseconds": 0.2076666663090388,
+      "timingScope": "30 CPU submissions plus GPU completion; historical art uses the candidate renderer; not GPU timestamp timing",
+      "colorTextureBytes": 5128192,
+      "depthTextureBytes": 2564096,
+      "historicalSpriteCount": 1700,
+      "trialSpriteCount": 29
+    },
+    "room": {
+      "scale": 1,
+      "cutaway": true,
+      "staticCount": 38,
+      "lowCount": 12,
+      "referenceCount": 4,
+      "desk": [
+        1,
+        0.1
+      ],
+      "occupiedBed": [
+        3.5,
+        2
+      ],
+      "standingSim": [
+        1.5,
+        3.5
+      ]
+    }
+  },
+  "visibility": {
+    "state": "visible",
+    "focus": true
+  },
+  "timestamp": "2026-10-01T17:09:34.792Z",
+  "browser": "154.0.8037.58"
+}

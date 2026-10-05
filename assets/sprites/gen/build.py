@@ -19,6 +19,7 @@ TOML and fails if they do.
 """
 import argparse
 import hashlib
+from pathlib import Path
 import io
 import json
 import os
@@ -32,13 +33,16 @@ from PIL import Image, ImageChops                              # noqa: E402
 import objects                                                  # noqa: E402
 import front_door                                               # noqa: E402
 from iso import canvas, emit                                    # noqa: E402
-from offline_sims import load_export, runtime_tables             # noqa: E402
+from offline_sims import load_export, runtime_tables, trim_clip_envelopes  # noqa: E402
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
 from offline_props import load_props                           # noqa: E402
 from aquarium_motion import validate_aquarium_motion            # noqa: E402
 from offline_armchair import load_reviewed_armchair             # noqa: E402
+from offline_architecture import sync_generated_architecture    # noqa: E402
+from offline_double_bed import append_layers, append_scene_records
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
+from rectangle_packing import pack_rectangles                  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 # The PNG lives under the Vite root, in `web/public/`, so the dev server,
@@ -787,33 +791,61 @@ class AtlasHeightError(ValueError):
     """The next supported atlas width may fit the same records."""
 
 
+def deduplicate_pixels(sprites):
+    """Share texture rectangles only when dimensions and decoded RGBA agree."""
+    unique = []
+    aliases = []
+    candidates = {}
+    for sprite in sprites:
+        _, image, width, height = sprite
+        pixels = image.convert('RGBA').tobytes()
+        key = (width, height, hashlib.sha256(pixels).digest())
+        canonical = next((index for index in candidates.get(key, [])
+                          if unique[index][1].convert('RGBA').tobytes() == pixels), None)
+        if canonical is None:
+            canonical = len(unique)
+            unique.append(sprite)
+            candidates.setdefault(key, []).append(canonical)
+        aliases.append(canonical)
+    return unique, aliases
+
+
 def pack_atlas(sprites):
     """Choose the smallest supported width without relaxing the 8192 ceiling."""
     for width in (2048, 4096, 8192):
+        candidates = []
         try:
-            return pack(sprites, width)
-        except AtlasHeightError:
-            if width == 8192:
-                raise
+            candidates.append(pack(sprites, width))
+        except ValueError:
+            pass
+        try:
+            candidates.append(pack_rectangles([(sprite[2], sprite[3]) for sprite in sprites], width, 8192, PADDING))
+        except ValueError:
+            pass
+        if candidates:
+            return min(candidates, key=lambda result: result[2])
+    raise AtlasHeightError('atlas height exceeds texture dimension limit')
 
 
 def pack(sprites, width=512):
-    """Shelf packing, tallest first. The sheet is small and static, so the
-    simplest algorithm that does not waste half the texture is the right
-    one - there is no runtime cost to a slightly loose pack."""
+    """Pack tallest first and fill existing shelf gaps before adding height."""
     if not 1 <= width <= 8192 or any(sprite[2] + PADDING > width for sprite in sprites):
         raise ValueError("atlas width exceeds texture dimension limit")
     order = sorted(range(len(sprites)), key=lambda i: -sprites[i][3])
-    x = y = shelf = 0
+    shelves = []
+    height = 0
     placed = {}
     for i in order:
         _, _, w, h = sprites[i]
-        if x + w + PADDING > width:
-            x, y, shelf = 0, y + shelf + PADDING, 0
-        placed[i] = (x, y)
-        x += w + PADDING
-        shelf = max(shelf, h)
-    height = y + shelf + PADDING
+        candidates = [s for s in shelves if s['height'] >= h and s['x'] + w + PADDING <= width]
+        if candidates:
+            shelf = max(candidates, key=lambda s: s['x'])
+        else:
+            shelf = dict(x=0, y=height, height=h)
+            shelves.append(shelf)
+            height += h + PADDING
+        placed[i] = (shelf['x'], shelf['y'])
+        shelf['x'] += w + PADDING
     if height > 8192:
         raise AtlasHeightError("atlas height exceeds texture dimension limit")
     return placed, width, height
@@ -895,7 +927,8 @@ def write_toml(sprites, placed, width, height, densities=None):
 
 def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              hands=None, tops=None, clips=None, hand_fronts=None, variants=None, densities=None,
-             pairs=None, interactions=None, bounds=None):
+             pairs=None, interactions=None, bounds=None, surfaces=None, bed_catalog=None, bed_layers=None, bed_coverage=None,
+             pair_coverage=None, pair_masks=None, dining_meals=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -914,6 +947,13 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
     pairs_json = json.dumps(pairs or {}, indent=2)
     interactions_json = json.dumps(interactions or {}, indent=2)
     bounds_json = json.dumps(bounds or {}, indent=2)
+    surfaces_json = json.dumps(surfaces or {}, indent=2)
+    bed_catalog_json = json.dumps(bed_catalog or {}, indent=2)
+    bed_layers_json = json.dumps(bed_layers or {}, indent=2)
+    bed_coverage_json = json.dumps(bed_coverage or [], indent=2)
+    pair_coverage_json = json.dumps(pair_coverage or {}, indent=2)
+    pair_masks_json = json.dumps(pair_masks or [], indent=2)
+    dining_meals_json = json.dumps(dining_meals or {}, indent=2)
     # The export NAMES here are load-bearing: sprites.ts imports `SPRITES`,
     # `ATLAS_WIDTH` and `ATLAS_HEIGHT` by those names. Renaming any of them
     # is a compile error at best and a silently empty atlas at worst.
@@ -969,8 +1009,18 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {tops_json}
 export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {bounds_json};
 /** Indices of premultiplied visibility contributions composed in one fragment. */
 export const SPRITE_PAIRS: Readonly<Record<number, {{ readonly furniture: number; readonly outline: number }}>> = {pairs_json};
+/** Raw visible body and furniture ownership, sampled in the paired canvas. */
+export const SPRITE_PAIR_COVERAGE: Readonly<Record<number, readonly [number, number, number, number]>> = {pair_coverage_json};
+export const SPRITE_PAIR_MASKS: readonly import('./bed-sprites.js').EncodedCoverage[] = {pair_masks_json};
+/** Visible meal contributions use their actual table's depth while retaining the diner anchor. */
+export const SPRITE_DINING_SUPPORT: Readonly<Record<number, import('./dining-support.js').DiningSupport>> = {dining_meals_json};
 /** Exact empty-sprite profiles; explicit body indices retain shared-layer deduplication. */
 export const INTERACTION_SPRITES: import('./interaction-sprites.js').InteractionCatalog = {interactions_json};
+/** Furniture support points projected from its authored surface and camera. */
+export const BED_CATALOG: import('./bed-sprites.js').BedCatalog = {bed_catalog_json};
+export const BED_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {bed_layers_json};
+export const BED_COVERAGE: readonly import('./bed-sprites.js').EncodedCoverage[] = {bed_coverage_json};
+export const SURFACE_LAYOUTS: Readonly<Record<number, import('./surface-items.js').SurfaceLayout>> = {surfaces_json};
 export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
 /** Whether a held meal is nearer the camera than the body at its grip. */
 export const SPRITE_HAND_FOREGROUND: Readonly<Record<number, boolean>> = {hand_fronts_json};
@@ -1190,7 +1240,59 @@ def main():
         anchors[index] = prop_anchors[sprite[0]]
         densities[index] = prop_density[sprite[0]]
         bounds[index] = prop_bounds[sprite[0]]
-    validate_aquarium_motion(sprites)
+    # Activity replacements follow the complete historical atlas. Logical sizes
+    # stay 26px while density two keeps the strokes legible at camera zoom.
+    import activity_icons
+    for sprite in activity_icons.render_icons():
+        densities[len(sprites)] = 2
+        sprites.append(sprite)
+    domestic_registration = None
+    for variant in ("green", "blue", "red"):
+        domestic = load_export(
+            os.path.join(export_root, "domestic", variant, "manifest.json"),
+            required_clips={"prepare", "cook", "wash"}, expected_variant=variant,
+            existing_names={sprite[0] for sprite in sprites},
+        )
+        if domestic_registration is None:
+            domestic_registration = domestic.clips
+        elif domestic.clips != domestic_registration:
+            raise ValueError(f"{variant}: domestic registration differs between shirt palettes")
+        sprites.extend(domestic.sprites)
+        extra_anchors, extra_hands, extra_tops, extra_clips, extra_fronts = runtime_tables(domestic, sprites)
+        anchors.update(extra_anchors)
+        hands.update(extra_hands)
+        tops.update(extra_tops)
+        hand_fronts.update(extra_fronts)
+        variants[variant].update(extra_clips)
+        for name, row in domestic.frames.items():
+            index = next(index for index, sprite in enumerate(sprites) if sprite[0] == name)
+            densities[index] = domestic.pixel_density
+    from surface_items import load_dishes, layouts, load_pot, stove_layouts
+    dishes, dish_anchor = load_dishes(ROOT)
+    for sprite in dishes:
+        anchors[len(sprites)] = dish_anchor
+        densities[len(sprites)] = 2
+        sprites.append(sprite)
+    for variant in ('green', 'blue', 'red'):
+        cleanup = load_export(os.path.join(ROOT, 'assets/models/domestic/export/cleanup', variant, 'manifest.json'),
+                              required_clips={'carry_walk', 'carry_idle', 'wash'}, expected_variant=variant)
+        indices = {sprite[0]: i for i, sprite in enumerate(sprites)}
+        for sprite in cleanup.sprites:
+            index = indices.get(sprite[0], len(sprites))
+            if index == len(sprites):
+                sprites.append(sprite)
+            else:
+                sprites[index] = sprite
+            densities[index] = cleanup.pixel_density
+        more_anchors, _, more_tops, more_clips, _ = runtime_tables(cleanup, sprites)
+        anchors.update(more_anchors)
+        tops.update(more_tops)
+        variants[variant].update(more_clips)
+    surfaces = layouts(ROOT, sprites)
+    import door_assets
+    for sprite in door_assets.records():
+        densities[len(sprites)] = 3
+        sprites.append(sprite)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")
@@ -1198,10 +1300,71 @@ def main():
                        sim_body_indices(sprites, legacy_count, variants))
     bounds = dict(sorted(bounds.items()))
 
-    placed, width, height = pack_atlas(sprites)
+    covered_bed, covered_indices = append_layers(sprites, anchors, densities,
+        os.path.join(ROOT, 'assets/models/bedroom/export/double-bed-covered/manifest.json'))
+    # Preserve published aliases before appending new textured dining records.
+    provisional = {index: (0, 0) for index in range(len(sprites))}
+    bed_catalog, bed_layers, bed_coverage = append_scene_records(
+        sprites, provisional, anchors, densities, bounds, covered_bed, covered_indices)
+    dining_exports = [load_export(os.path.join(ROOT, 'assets/models/domestic/export/dining', variant, 'manifest.json'),
+                     required_clips={'food_walk', 'food_idle', 'seated_eat', 'cook_v2'}, expected_variant=variant)
+                     for variant in ('green', 'blue', 'red')]
+    for dining in trim_clip_envelopes(dining_exports):
+        variant = dining.variant
+        for sprite in dining.sprites:
+            densities[len(sprites)] = dining.pixel_density
+            sprites.append(sprite)
+        more_anchors, _, more_tops, more_clips, _ = runtime_tables(dining, sprites)
+        anchors.update(more_anchors)
+        tops.update(more_tops)
+        variants[variant].update(more_clips)
+    pots,pot_anchor=load_pot(ROOT)
+    for sprite in pots:
+        anchors[len(sprites)]=pot_anchor
+        densities[len(sprites)]=2
+        sprites.append(sprite)
+    surfaces.update(stove_layouts(ROOT,sprites))
+    from offline_dining import load_dining, coverage_tables, meal_tables
+    occupied = load_dining(os.path.join(ROOT, 'assets/models/domestic/export/seated-dining/manifest.json'),
+                           existing_names={sprite[0] for sprite in sprites})
+    sprites.extend(occupied.sprites)
+    pair_coverage, pair_masks = coverage_tables(occupied, sprites)
+    more_anchors, more_tops, more_bounds, more_density, more_pairs, more_profiles = furniture_tables(occupied, sprites)
+    anchors.update(more_anchors)
+    tops.update(more_tops)
+    bounds.update(more_bounds)
+    densities.update(more_density)
+    pairs.update(more_pairs)
+    interactions.update(more_profiles)
+    for meal_sprite in occupied.meal_sprites:
+        anchors[len(sprites)] = occupied.meal_anchors[meal_sprite[0]]
+        densities[len(sprites)] = 2
+        sprites.append(meal_sprite)
+    dining_meals = meal_tables(occupied, sprites, pair_masks)
+    # Aquarium frames append after every released sprite, including dining.
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        os.path.join(ROOT, 'assets', 'models', 'static-props-05.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
+    validate_aquarium_motion(sprites)
+    fill_padded_bounds(sprites, densities, bounds,
+                       sim_body_indices(sprites, legacy_count, variants))
+    sync_generated_architecture(sprites, check=args.check)
+    textured = [(index, sprite) for index, sprite in enumerate(sprites) if index not in bed_layers]
+    dense_sprites, texture_aliases = deduplicate_pixels([sprite for _, sprite in textured])
+    packed, width, height = pack_atlas(dense_sprites)
+    placed = {index: packed[texture_aliases[dense]] for dense, (index, _) in enumerate(textured)}
+    for alias, layers in bed_layers.items():
+        placed[alias] = placed[layers[0]]
     if height > 8192:
         raise ValueError("atlas exceeds the baseline WebGPU texture dimension limit")
-    sheet = compose(sprites, placed, width, height)
+    sheet = compose(dense_sprites, packed, width, height)
     png = png_bytes(sheet)
     toml = write_toml(sprites, placed, width, height, densities=densities)
     # The revision is part of the atlas PATH, so hashed JavaScript can never
@@ -1227,7 +1390,9 @@ def main():
     ts = write_ts(sprites, placed, width, height, png_sha256,
                   anchors=anchors, hands=hands, tops=tops, clips=clips,
                   hand_fronts=hand_fronts, variants=variants, densities=densities,
-                  pairs=pairs, interactions=interactions, bounds=bounds)
+                  pairs=pairs, interactions=interactions, bounds=bounds, surfaces=surfaces,
+                  bed_catalog=bed_catalog, bed_layers=bed_layers, bed_coverage=bed_coverage,
+                  pair_coverage=pair_coverage, pair_masks=pair_masks, dining_meals=dining_meals)
 
     if args.check:
         bad = []
@@ -1271,10 +1436,11 @@ def main():
         "wb",
     ) as fh:
         fh.write(png)
-    with open(ATLAS_TOML, "w") as fh:
-        fh.write(toml)
-    with open(ATLAS_TS, "w") as fh:
-        fh.write(ts)
+    # Preserve the exact existing file bytes when generated text is unchanged.
+    # Windows newline translation must not rewrite the frozen manifest prefix.
+    for path, text in ((ATLAS_TOML, toml), (ATLAS_TS, ts)):
+        if not os.path.exists(path) or Path(path).read_text() != text:
+            Path(path).write_text(text, newline="\n")
     print(f"wrote {len(sprites)} sprites into {width}x{height} "
           f"({len(png) // 1024} KB)")
     for name, _, w, h in sprites:

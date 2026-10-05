@@ -1,0 +1,2987 @@
+{
+  "errors": [],
+  "pass": true,
+  "records": [
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2174,
+        "outline": 2175
+      },
+      "phase": 0,
+      "pixels": 9115,
+      "sprite": 2173,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2177,
+        "outline": 2178
+      },
+      "phase": 1,
+      "pixels": 9104,
+      "sprite": 2176,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7,
+      "pair": {
+        "furniture": 2180,
+        "outline": 2181
+      },
+      "phase": 2,
+      "pixels": 9131,
+      "sprite": 2179,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7,
+      "pair": {
+        "furniture": 2183,
+        "outline": 2184
+      },
+      "phase": 3,
+      "pixels": 9104,
+      "sprite": 2182,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "mutation": {
+        "max": 170,
+        "p95": 162,
+        "pixels": 9111,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 170,
+          "reference": [
+            193,
+            161,
+            123,
+            255
+          ],
+          "x": 85,
+          "y": 129
+        }
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2186,
+        "outline": 2187
+      },
+      "phase": 4,
+      "pixels": 9111,
+      "sprite": 2185,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7.195219123505979,
+      "pair": {
+        "furniture": 2189,
+        "outline": 2190
+      },
+      "phase": 5,
+      "pixels": 9126,
+      "sprite": 2188,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7,
+      "pair": {
+        "furniture": 2192,
+        "outline": 2193
+      },
+      "phase": 6,
+      "pixels": 9160,
+      "sprite": 2191,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7.460000000000008,
+      "pair": {
+        "furniture": 2195,
+        "outline": 2196
+      },
+      "phase": 7,
+      "pixels": 9127,
+      "sprite": 2194,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2174,
+        "outline": 2175
+      },
+      "phase": 0,
+      "pixels": 9115,
+      "sprite": 2197,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2177,
+        "outline": 2178
+      },
+      "phase": 1,
+      "pixels": 9104,
+      "sprite": 2198,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2180,
+        "outline": 2181
+      },
+      "phase": 2,
+      "pixels": 9131,
+      "sprite": 2199,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2183,
+        "outline": 2184
+      },
+      "phase": 3,
+      "pixels": 9104,
+      "sprite": 2200,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2186,
+        "outline": 2187
+      },
+      "phase": 4,
+      "pixels": 9111,
+      "sprite": 2201,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2189,
+        "outline": 2190
+      },
+      "phase": 5,
+      "pixels": 9126,
+      "sprite": 2202,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2192,
+        "outline": 2193
+      },
+      "phase": 6,
+      "pixels": 9160,
+      "sprite": 2203,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 8,
+      "pair": {
+        "furniture": 2195,
+        "outline": 2196
+      },
+      "phase": 7,
+      "pixels": 9127,
+      "sprite": 2204,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7.5,
+      "pair": {
+        "furniture": 2174,
+        "outline": 2175
+      },
+      "phase": 0,
+      "pixels": 9115,
+      "sprite": 2205,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7,
+      "pair": {
+        "furniture": 2177,
+        "outline": 2178
+      },
+      "phase": 1,
+      "pixels": 9104,
+      "sprite": 2206,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7,
+      "pair": {
+        "furniture": 2180,
+        "outline": 2181
+      },
+      "phase": 2,
+      "pixels": 9131,
+      "sprite": 2207,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7,
+      "pair": {
+        "furniture": 2183,
+        "outline": 2184
+      },
+      "phase": 3,
+      "pixels": 9104,
+      "sprite": 2208,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7.88095238095238,
+      "pair": {
+        "furniture": 2186,
+        "outline": 2187
+      },
+      "phase": 4,
+      "pixels": 9111,
+      "sprite": 2209,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7.195219123505979,
+      "pair": {
+        "furniture": 2189,
+        "outline": 2190
+      },
+      "phase": 5,
+      "pixels": 9126,
+      "sprite": 2210,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7,
+      "pair": {
+        "furniture": 2192,
+        "outline": 2193
+      },
+      "phase": 6,
+      "pixels": 9160,
+      "sprite": 2211,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SE",
+      "max": 24,
+      "p95": 7.035856573705189,
+      "pair": {
+        "furniture": 2195,
+        "outline": 2196
+      },
+      "phase": 7,
+      "pixels": 9127,
+      "sprite": 2212,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          89,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          123,
+          118,
+          111,
+          255
+        ],
+        "x": 37,
+        "y": 146
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2214,
+        "outline": 2215
+      },
+      "phase": 0,
+      "pixels": 8835,
+      "sprite": 2213,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2217,
+        "outline": 2218
+      },
+      "phase": 1,
+      "pixels": 8886,
+      "sprite": 2216,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 24,
+      "p95": 6,
+      "pair": {
+        "furniture": 2220,
+        "outline": 2221
+      },
+      "phase": 2,
+      "pixels": 8947,
+      "sprite": 2219,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          102,
+          96,
+          90,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 36,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2223,
+        "outline": 2224
+      },
+      "phase": 3,
+      "pixels": 8992,
+      "sprite": 2222,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "mutation": {
+        "max": 171,
+        "p95": 170,
+        "pixels": 8964,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 171,
+          "reference": [
+            194,
+            161,
+            123,
+            255
+          ],
+          "x": 47,
+          "y": 144
+        }
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2226,
+        "outline": 2227
+      },
+      "phase": 4,
+      "pixels": 8964,
+      "sprite": 2225,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2229,
+        "outline": 2230
+      },
+      "phase": 5,
+      "pixels": 8956,
+      "sprite": 2228,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2232,
+        "outline": 2233
+      },
+      "phase": 6,
+      "pixels": 8886,
+      "sprite": 2231,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          90,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 36,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2235,
+        "outline": 2236
+      },
+      "phase": 7,
+      "pixels": 8848,
+      "sprite": 2234,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 7,
+      "pair": {
+        "furniture": 2214,
+        "outline": 2215
+      },
+      "phase": 0,
+      "pixels": 8835,
+      "sprite": 2237,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2217,
+        "outline": 2218
+      },
+      "phase": 1,
+      "pixels": 8886,
+      "sprite": 2238,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 24,
+      "p95": 6,
+      "pair": {
+        "furniture": 2220,
+        "outline": 2221
+      },
+      "phase": 2,
+      "pixels": 8947,
+      "sprite": 2239,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          102,
+          96,
+          90,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 36,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2223,
+        "outline": 2224
+      },
+      "phase": 3,
+      "pixels": 8992,
+      "sprite": 2240,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 7,
+      "pair": {
+        "furniture": 2226,
+        "outline": 2227
+      },
+      "phase": 4,
+      "pixels": 8964,
+      "sprite": 2241,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 7,
+      "pair": {
+        "furniture": 2229,
+        "outline": 2230
+      },
+      "phase": 5,
+      "pixels": 8956,
+      "sprite": 2242,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2232,
+        "outline": 2233
+      },
+      "phase": 6,
+      "pixels": 8886,
+      "sprite": 2243,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          90,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 36,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 7,
+      "pair": {
+        "furniture": 2235,
+        "outline": 2236
+      },
+      "phase": 7,
+      "pixels": 8848,
+      "sprite": 2244,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2214,
+        "outline": 2215
+      },
+      "phase": 0,
+      "pixels": 8835,
+      "sprite": 2245,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2217,
+        "outline": 2218
+      },
+      "phase": 1,
+      "pixels": 8886,
+      "sprite": 2246,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 24,
+      "p95": 6,
+      "pair": {
+        "furniture": 2220,
+        "outline": 2221
+      },
+      "phase": 2,
+      "pixels": 8947,
+      "sprite": 2247,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          96,
+          90,
+          255
+        ],
+        "error": 24,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 36,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2223,
+        "outline": 2224
+      },
+      "phase": 3,
+      "pixels": 8992,
+      "sprite": 2248,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2226,
+        "outline": 2227
+      },
+      "phase": 4,
+      "pixels": 8964,
+      "sprite": 2249,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2229,
+        "outline": 2230
+      },
+      "phase": 5,
+      "pixels": 8956,
+      "sprite": 2250,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          90,
+          84,
+          78,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          111,
+          106,
+          99,
+          255
+        ],
+        "x": 22,
+        "y": 97
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2232,
+        "outline": 2233
+      },
+      "phase": 6,
+      "pixels": 8886,
+      "sprite": 2251,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          90,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 36,
+        "y": 88
+      }
+    },
+    {
+      "facing": "SW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2235,
+        "outline": 2236
+      },
+      "phase": 7,
+      "pixels": 8848,
+      "sprite": 2252,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          97,
+          91,
+          84,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          119,
+          114,
+          107,
+          255
+        ],
+        "x": 34,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2254,
+        "outline": 2255
+      },
+      "phase": 0,
+      "pixels": 8861,
+      "sprite": 2253,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2257,
+        "outline": 2258
+      },
+      "phase": 1,
+      "pixels": 8797,
+      "sprite": 2256,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2260,
+        "outline": 2261
+      },
+      "phase": 2,
+      "pixels": 8780,
+      "sprite": 2259,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          121,
+          116,
+          109,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2263,
+        "outline": 2264
+      },
+      "phase": 3,
+      "pixels": 8767,
+      "sprite": 2262,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          121,
+          117,
+          110,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "mutation": {
+        "max": 171,
+        "p95": 167,
+        "pixels": 8747,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 171,
+          "reference": [
+            194,
+            161,
+            123,
+            255
+          ],
+          "x": 53,
+          "y": 148
+        }
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2266,
+        "outline": 2267
+      },
+      "phase": 4,
+      "pixels": 8747,
+      "sprite": 2265,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          121,
+          117,
+          109,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2269,
+        "outline": 2270
+      },
+      "phase": 5,
+      "pixels": 8728,
+      "sprite": 2268,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          121,
+          117,
+          110,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2272,
+        "outline": 2273
+      },
+      "phase": 6,
+      "pixels": 8721,
+      "sprite": 2271,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          121,
+          116,
+          109,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2275,
+        "outline": 2276
+      },
+      "phase": 7,
+      "pixels": 8756,
+      "sprite": 2274,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2254,
+        "outline": 2255
+      },
+      "phase": 0,
+      "pixels": 8861,
+      "sprite": 2277,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2257,
+        "outline": 2258
+      },
+      "phase": 1,
+      "pixels": 8797,
+      "sprite": 2278,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 7,
+      "pair": {
+        "furniture": 2260,
+        "outline": 2261
+      },
+      "phase": 2,
+      "pixels": 8780,
+      "sprite": 2279,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          121,
+          116,
+          109,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6.460000000000008,
+      "pair": {
+        "furniture": 2263,
+        "outline": 2264
+      },
+      "phase": 3,
+      "pixels": 8767,
+      "sprite": 2280,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          121,
+          117,
+          110,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6.460000000000008,
+      "pair": {
+        "furniture": 2266,
+        "outline": 2267
+      },
+      "phase": 4,
+      "pixels": 8747,
+      "sprite": 2281,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          121,
+          117,
+          109,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 7,
+      "pair": {
+        "furniture": 2269,
+        "outline": 2270
+      },
+      "phase": 5,
+      "pixels": 8728,
+      "sprite": 2282,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          121,
+          117,
+          110,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 7,
+      "pair": {
+        "furniture": 2272,
+        "outline": 2273
+      },
+      "phase": 6,
+      "pixels": 8721,
+      "sprite": 2283,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          100,
+          94,
+          88,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          121,
+          116,
+          109,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6.460000000000008,
+      "pair": {
+        "furniture": 2275,
+        "outline": 2276
+      },
+      "phase": 7,
+      "pixels": 8756,
+      "sprite": 2284,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2254,
+        "outline": 2255
+      },
+      "phase": 0,
+      "pixels": 8861,
+      "sprite": 2285,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2257,
+        "outline": 2258
+      },
+      "phase": 1,
+      "pixels": 8797,
+      "sprite": 2286,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2260,
+        "outline": 2261
+      },
+      "phase": 2,
+      "pixels": 8780,
+      "sprite": 2287,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          96,
+          91,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          122,
+          118,
+          111,
+          255
+        ],
+        "x": 124,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2263,
+        "outline": 2264
+      },
+      "phase": 3,
+      "pixels": 8767,
+      "sprite": 2288,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          95,
+          88,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          121,
+          117,
+          110,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2266,
+        "outline": 2267
+      },
+      "phase": 4,
+      "pixels": 8747,
+      "sprite": 2289,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          95,
+          88,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          121,
+          117,
+          109,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2269,
+        "outline": 2270
+      },
+      "phase": 5,
+      "pixels": 8728,
+      "sprite": 2290,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          100,
+          95,
+          88,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          121,
+          117,
+          110,
+          255
+        ],
+        "x": 123,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 22,
+      "p95": 6,
+      "pair": {
+        "furniture": 2272,
+        "outline": 2273
+      },
+      "phase": 6,
+      "pixels": 8721,
+      "sprite": 2291,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          96,
+          91,
+          255
+        ],
+        "error": 22,
+        "reference": [
+          122,
+          118,
+          111,
+          255
+        ],
+        "x": 124,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NW",
+      "max": 23,
+      "p95": 6,
+      "pair": {
+        "furniture": 2275,
+        "outline": 2276
+      },
+      "phase": 7,
+      "pixels": 8756,
+      "sprite": 2292,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          92,
+          87,
+          80,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          114,
+          110,
+          103,
+          255
+        ],
+        "x": 122,
+        "y": 88
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7.29133858267717,
+      "pair": {
+        "furniture": 2294,
+        "outline": 2295
+      },
+      "phase": 0,
+      "pixels": 8927,
+      "sprite": 2293,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7,
+      "pair": {
+        "furniture": 2297,
+        "outline": 2298
+      },
+      "phase": 1,
+      "pixels": 8905,
+      "sprite": 2296,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2300,
+        "outline": 2301
+      },
+      "phase": 2,
+      "pixels": 8959,
+      "sprite": 2299,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7.5,
+      "pair": {
+        "furniture": 2303,
+        "outline": 2304
+      },
+      "phase": 3,
+      "pixels": 8924,
+      "sprite": 2302,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "mutation": {
+        "max": 171,
+        "p95": 170,
+        "pixels": 8909,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 171,
+          "reference": [
+            194,
+            161,
+            123,
+            255
+          ],
+          "x": 57,
+          "y": 140
+        }
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2306,
+        "outline": 2307
+      },
+      "phase": 4,
+      "pixels": 8909,
+      "sprite": 2305,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2309,
+        "outline": 2310
+      },
+      "phase": 5,
+      "pixels": 8948,
+      "sprite": 2308,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2312,
+        "outline": 2313
+      },
+      "phase": 6,
+      "pixels": 8996,
+      "sprite": 2311,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2315,
+        "outline": 2316
+      },
+      "phase": 7,
+      "pixels": 8934,
+      "sprite": 2314,
+      "variant": "green",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2294,
+        "outline": 2295
+      },
+      "phase": 0,
+      "pixels": 8927,
+      "sprite": 2317,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2297,
+        "outline": 2298
+      },
+      "phase": 1,
+      "pixels": 8905,
+      "sprite": 2318,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2300,
+        "outline": 2301
+      },
+      "phase": 2,
+      "pixels": 8959,
+      "sprite": 2319,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2303,
+        "outline": 2304
+      },
+      "phase": 3,
+      "pixels": 8924,
+      "sprite": 2320,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2306,
+        "outline": 2307
+      },
+      "phase": 4,
+      "pixels": 8909,
+      "sprite": 2321,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2309,
+        "outline": 2310
+      },
+      "phase": 5,
+      "pixels": 8948,
+      "sprite": 2322,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2312,
+        "outline": 2313
+      },
+      "phase": 6,
+      "pixels": 8996,
+      "sprite": 2323,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2315,
+        "outline": 2316
+      },
+      "phase": 7,
+      "pixels": 8934,
+      "sprite": 2324,
+      "variant": "blue",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7,
+      "pair": {
+        "furniture": 2294,
+        "outline": 2295
+      },
+      "phase": 0,
+      "pixels": 8927,
+      "sprite": 2325,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7,
+      "pair": {
+        "furniture": 2297,
+        "outline": 2298
+      },
+      "phase": 1,
+      "pixels": 8905,
+      "sprite": 2326,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2300,
+        "outline": 2301
+      },
+      "phase": 2,
+      "pixels": 8959,
+      "sprite": 2327,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7.211155378486055,
+      "pair": {
+        "furniture": 2303,
+        "outline": 2304
+      },
+      "phase": 3,
+      "pixels": 8924,
+      "sprite": 2328,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7.592885375494063,
+      "pair": {
+        "furniture": 2306,
+        "outline": 2307
+      },
+      "phase": 4,
+      "pixels": 8909,
+      "sprite": 2329,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2309,
+        "outline": 2310
+      },
+      "phase": 5,
+      "pixels": 8948,
+      "sprite": 2330,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 8,
+      "pair": {
+        "furniture": 2312,
+        "outline": 2313
+      },
+      "phase": 6,
+      "pixels": 8996,
+      "sprite": 2331,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          102,
+          97,
+          91,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          124,
+          120,
+          113,
+          255
+        ],
+        "x": 125,
+        "y": 146
+      }
+    },
+    {
+      "facing": "NE",
+      "max": 23,
+      "p95": 7.584980237154141,
+      "pair": {
+        "furniture": 2315,
+        "outline": 2316
+      },
+      "phase": 7,
+      "pixels": 8934,
+      "sprite": 2332,
+      "variant": "red",
+      "worst": {
+        "actual": [
+          89,
+          82,
+          77,
+          255
+        ],
+        "error": 23,
+        "reference": [
+          110,
+          105,
+          98,
+          255
+        ],
+        "x": 137,
+        "y": 155
+      }
+    }
+  ],
+  "validation": null
+}

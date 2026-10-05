@@ -906,7 +906,7 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             // and the loader rebuilds that grid from the list, so the save a
             // commit would leave is the base save carrying this list.
             let mut after = base.clone();
-            after.layout = SavedLayout::EdgeWallsV1 { edges: plan.edges };
+            after.layout = plan.layout;
             assert_eq!(
                 reloaded.load_snapshot_v3(after).err(),
                 None,

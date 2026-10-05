@@ -64,6 +64,16 @@ actually won or lost.
 
 ## [D1] Repository layout
 
+The relationship extension uses `interpersonal` for ordered start/entry consequences,
+`privacy` for cached decisions and derived routes, `compatibility` for authored
+preference comparison, and `relationship_dynamics` for minute-by-minute contact.
+Movement checks current room occupancy before crossing a boundary or starting
+private use. Contact then runs before interaction completion, so a final minute
+of shared activity counts once and a conversation receives only its completion
+reward. `relationship_effects` exposes a read-only causal journal for native
+traces. Boundary decisions are saved and hashed; diagnostics and derived
+compatibility are not. See the [relationship specification](specs/2026-09-30-relationship-development.md).
+
 The load-bearing rule: **`terri-core`, `terri-data` and `terri-sim` contain zero
 `wasm-bindgen` and zero `web-sys`.** They compile natively and run under
 `cargo test` at full speed. The CI job of the same name checks all three
@@ -229,6 +239,14 @@ mutation path or allowing simulation time to leak through pause. The drain is
 associative across batch boundaries: splitting an ordered command stream across
 two rendered frames produces the same saved world as draining it in one batch.
 
+Each completed full tick and paused drain is also a Bevy ECS update boundary.
+After the schedule applies its deferred commands, `World::clear_trackers()`
+retires older component-removal records and retains the just-finished update's
+records. Standalone ECS does not perform this maintenance automatically. These
+records are runtime bookkeeping, absent from saves and the world hash. A future
+removal reader must run at every relevant boundary: a reader that runs only on
+full ticks can miss removals after multiple paused drains.
+
 1. `advance_clock` - advance the day clock.
 2. `decay_needs` - apply content-defined need decay.
 3. `start_shift` - begin a scheduled career commute after the clock advances.
@@ -240,10 +258,11 @@ two rendered frames produces the same saved world as draining it in one batch.
     intent **preempts** a running interaction rather than queueing behind it,
     since a sim asleep for 24 seconds would otherwise leave a click with no
     visible response for the whole of it.
-5. `select_action` - pick the winning interaction, **for sims with no queued
+5. `domestic::tick` - initialize saved cleanliness, attribute newly noticed foreign dishes once per room visit, claim prepared meals for idle hungry friends, and retain one pending needs-adjusted cleanup decision per room entry or genuinely new pile, including own old dishes. Player intents already have priority.
+6. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
-6. `advance_chains` - resume or begin the next station in a multi-step action.
-7. `wander` - a sim who samples wandering among the eligible weighted choices
+7. `advance_chains` - resume or begin the next station in a multi-step action.
+8. `wander` - a sim who samples wandering among the eligible weighted choices
     walks to a random reachable LOCAL tile instead of standing still ([D-5] of
     the M1c design and [LW2] of the local-wandering spec). Both the endpoint's
     Manhattan distance and the actual A* path are capped by
@@ -252,16 +271,16 @@ two rendered frames produces the same saved world as draining it in one batch.
     `wander_attempts`; the system never widens the search to the whole lot. It
     draws x then y and a pause length from the shared PRNG and
     processes sims in entity-index order before those draws.
-8. `follow_path` - move one deterministic step along the chosen path.
-9. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
-10. `tick_interactions` - advance ordinary object interactions and need deltas.
-11. `tick_chain_steps` - advance station work and terminal-only chain payoff.
-12. `tick_social` - advance conversations and directional relationships.
-13. `decay_habituation` - cool repeated-object memory.
-14. `decay_relationships` - apply directional relationship decay.
-15. `bleed_neglect` - reduce satisfaction when needs remain neglected.
-16. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
-17. `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
+9. `follow_path` - move one deterministic step along the chosen path.
+10. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
+11. `tick_interactions` - advance ordinary object interactions and need deltas.
+12. `tick_chain_steps` - advance station work and terminal-only chain payoff.
+13. `tick_social` - advance conversations and directional relationships.
+14. `decay_habituation` - cool repeated-object memory.
+15. `decay_relationships` - apply directional relationship decay.
+16. `bleed_neglect` - reduce satisfaction when needs remain neglected.
+17. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
+18. `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
 
 After the command drain and before advancing the clock, `mortality::cleanup` releases actions whose owner lost Needs or whose target lost SmartObject. Death releases its own claims before despawning without freeing the entity index. `waiting::clear` removes the previous item-wait decision before selection and chain scheduling publish the next one.
 
@@ -427,7 +446,12 @@ mappings, footprints, trait state kind, and the current-content front door a
 restored career still follows. Missing object, career, trait, chain, and
 carried-item ids are validated directly. Known fingerprints from the retired
 full-pack algorithm map only to the exact reviewed replacement shape; they do
-not bypass normal snapshot validation. The one shipped household rename is
+not bypass normal snapshot validation. The local, unpublished bed-assignment
+extension also hashes ordered sleep-place IDs and canonical approach tiles.
+Only its pinned live and reconstructed pre-rotation shapes inherit the prior
+bridges. Access rules apply to newly selected routes; valid saved paths retain
+their geometry across migration and subsequent re-save/load cycles.
+The one shipped household rename is
 also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.
@@ -570,6 +594,16 @@ world position via the depth buffer rather than painter's-algorithm sorting; at
 100k objects, not sorting beats sorting well. The alpha uploads static geometry
 for its one lot. Streaming visible lots in chunks remains future scale work.
 
+`buildInstanceBatch` packs dynamic instances once and publishes the actual written
+row count, including floor-tool highlights. Main draws `batch.instances` with
+`batch.count`; it does not repeat interaction selection or traverse entities to
+reconstruct that count. The batch object and its high-water-mark array are borrowed,
+module-owned storage, valid only until the next call through `buildInstanceBatch`
+or the legacy `buildInstances` wrapper. Only the first `count` rows are live;
+unused capacity is neither cleared nor inspected. `instanceCount` remains a legacy
+verification helper, outside the production frame loop. The 16-float row layout
+and renderer draw interface are unchanged.
+
 Short walls form a second atlas draw after opaque geometry, in the same render
 pass and submission. This small batch is sorted at geometry rebuild, tests the
 opaque depth buffer without writing it, and updates only its local fade opacity
@@ -585,7 +619,8 @@ not a reconstruction of each sprite's 3D surfaces or overhangs. See
 `docs/assets/review-evidence/wall-clipping.md` for pixel and mutation checks.
 
 The shipped art direction is **Muted Line**. Its isometric atlas combines
-procedural architecture and props with reviewed offline Blender renders.
+historical procedural sprites with reviewed offline Blender renders. Current
+explicit-edge architecture uses its own paired colour/depth resources.
 The approved rig supplies character animation frames in three shirt colours;
 furniture exports supply consistent facings and, where implemented, matched
 occupied layers. Those models are authoring sources, not live 3D objects.
@@ -604,24 +639,11 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
-A floor covering is what the player has laid on a tile ([FL-save] in
-`docs/specs/2026-09-22-floors.md`): a sparse, sorted list of painted tiles,
-appended last to the save envelope, so a house nobody has painted costs one
-byte and a save written before floors existed loads through the same one-byte
-pad the sleep-pressure list uses. It is drawing only, in the sense that nobody walks differently on carpet, but it is in the world hash like every other saved lot edit, so a save and load round trip cannot drop a painted tile unnoticed. Each covering's colour
-shift is appended to the shift table the yard and the street already write, so
-a painted tile writes one more row of it: no new instance, no new draw, and
-nothing reaches the simulation but the refusals that keep a covering on the
-lot and in the content.
+Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles and carpet; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
 
-A window is the third thing a wall line can be ([WN-state] in
-`docs/specs/2026-09-22-windows.md`). It keeps no wall record: the saved
-layout holds the window lines in their own list, in an appended enum variant
-that appears only once a house has a window, so a house without one saves
-exactly as it did before and its world hash does not move. Movement and the
-lamp field treat a window as a wall, the sky flood passes it because it is
-not a wall record, and it draws as a full panel at its own line, in wall art
-with a pale tint until there is window art.
+Whole windows store a model and canonical start in appended layout variants. The nine models span one, two or three lines on either axis. Historical window lines decode as Sash placements. Shared validation handles fit, replacement, removal, Room edits and load; it rejects partial spans, junctions, overlap and coordinate overflow before committing layout/grid changes. Historical command and layout encodings remain unchanged. The bridge exposes whole-window preview/result APIs while preserving the old expanded-line getter.
+
+The architecture renderer uses accepted colour and paired R16Float local depth. Finish alternatives add carrier/role data and bounded pattern textures; unchanged surfaces retain accepted pixels. Wall pieces share physical depth across splits, and floor tiles share canonical vertices. Geometry rebuilds on layout, camera and lighting changes; local cutaway fading updates retained rows without rebuilding architecture. See the [source guide](../assets/models/architecture/README.md) and [verification record](assets/review-evidence/architecture/verification.md) for resources, proof boundaries and current acceptance status.
 
 Daylight indoors works the same way ([OS-daylight] in
 `docs/specs/2026-09-22-the-outside.md`). `render/sky.ts` floods sky exposure
@@ -671,8 +693,7 @@ keeps frame zero, so the directional action remains legible without ornamental
 alternation.
 
 Eating extends the same two-column contract without widening the bridge.
-`Grab a snack` declares `eat / object / toward_anchor`; the terminal dinner
-chain step declares `eat / station / toward_anchor`. Render sync requires the
+The current snack and meal eating stages declare `eat / station / toward_anchor`. Historical in-flight standalone snacks retain their `eat / object / toward_anchor` contract. Render sync requires the
 exact active interaction or chain step, resolves its exact target object, and
 faces toward the centre of that object's authored footprint. Malformed or
 unauthored state emits no pose. The shell maps action code 2 to four
@@ -683,10 +704,21 @@ exported hand anchor of the same selected body frame. An exact authored snack an
 work step project the existing `EATING` activity so the fork bubble remains visible. A
 valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
 of the legacy shared `Eating` component projects the append-only
-`USING_OBJECT` activity code 7. The shell gives that generic state a HUD label
-but no indicator sprite because one 26-pixel glyph cannot honestly cover
-washing, television, bathing, and toilet use. Generic object
-use never selects eating body art.
+`USING_OBJECT` activity code 7 when no narrower activity is authored. Ordinary
+interactions and chain steps may author presentation-only `activity` metadata.
+Render sync validates the exact running target, interaction or chain station
+before publishing that code. Codes 12 through 23 distinguish showering, toilet
+use, television, lying down, handwashing, dishwashing, radio, correspondence,
+bathing, ingredients, preparation and cooking. Existing body-action precedence
+remains authoritative. Generic object use never selects eating body art.
+
+Activities and waiting have distinct 26-pixel bubbles, exported at texture
+density two. Walking toward an activity has no bubble; unauthored generic use
+has a gear. Idle Sims draw no bubble, and at-work Sims remain off the lot.
+Actual blocked waits and reserved conversation waits share the clock.
+The icons append after the historical atlas and use the displayed body's
+content top and its occupied owner's footprint depth projection. See
+`docs/specs/2026-10-01-activity-bubbles.md` for the complete pairing inventory.
 
 Seated reading adds an object-local action position without widening the
 render bridge. Definitions author sockets relative to their base-facing
@@ -810,12 +842,15 @@ with one pair of tiles and a room with its whole outline; the usability proofs
 and the loader's checks run once, on the finished room.
 
 Interior doors ([DR-derived] in `docs/specs/2026-09-22-interior-doors.md`)
-are presentation only. `portals::interior_door_lines` derives one from every
-vertical doorway of an edge-wall house when the lot's front door has art for a
-vertical line, and `sync_portals` appends each as a row after the front door's,
-with a state worked out every frame from sims' positions and walks, which are
-already saved. Nothing is added to the save, the save digest or the world
-hash.
+are presentation only. `portals::interior_door_lines` and
+`interior_horizontal_door_lines` derive them on both axes of an edge-wall house
+with the authored front-door style. `sync_portals` appends vertical then
+horizontal rows after the front door, deriving state and openness from saved
+positions and walks. Previous openness is retained only for interpolation and
+reset on load or a changed doorway list. Nothing is added to the save, digest
+or world hash. The shell selects one of nine model poses in four orientations.
+Paired surface-depth textures sort the solid leaf and joined casing per pixel;
+the flush threshold follows floor ordering. See `assets/models/doors/README.md`.
 
 The lot has a house and a yard ([OS-grow] in
 `docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
@@ -880,7 +915,7 @@ the world hash.
 11, the compiled seat facing, and the seat coordinates. The shell chooses four
 52 by 104 sitting bodies per facing on a 12-tick, stable-id phase;
 reduced motion pins frame zero. Activity 11 maps to the HUD label `Sitting` and
-has no indicator. The compiled visual enum, render action code, and activity
+has a chair indicator. The compiled visual enum, render action code, and activity
 code are append-only. The presentation does not add a simulation component,
 save field, bridge column, object reservation rule, or world-hash input.
 
@@ -920,6 +955,15 @@ requires all nine base clips and the exercise supplement for each of the three
 palettes. The generated atlas tables are authoritative for sprite counts and
 texture dimensions. Logical sprite dimensions and anchors remain independent
 of texture density; a 2x texture does not double a Sim's size in the world.
+The atlas compiler shares texture rectangles only when their dimensions and
+decoded colour and alpha bytes match. Sprite identities remain separate.
+New domestic animation clips remove empty borders using one envelope across
+every frame, facing and shirt palette. Anchors, hand positions and content
+height move with the crop so drawing, picking and activity bubbles retain
+their world positions. Source exports remain unchanged. Packing chooses the
+shorter valid result from shelf packing and maximal free-rectangle packing
+at each supported width, without rotating artwork or exceeding the portable
+texture limit. Published sprite canvases and registration remain intact.
 The old two-pose exercise supplement used a mirrored bike whose non-SE
 contacts failed review. The approved replacement bike and reading chair use
 real four-direction furniture renders and matched visible contributions;
@@ -966,7 +1010,10 @@ across a sync.
 
 JS to sim traffic is player commands only: small and infrequent, so a simple
 serialized command channel suffices. UI reads are pull-based and throttled; the
-needs panel does not need 60Hz.
+needs panel does not need 60Hz. Repeated text refreshes compare against the
+actual DOM value before assigning `textContent`: an unchanged assignment still
+replaces its text child and creates avoidable garbage. This is a write guard,
+not another cache of simulation state.
 
 The normal-play People panel follows the same projection rule. It gets the
 complete live row set from the household roster, gets sparse directional
@@ -1031,7 +1078,10 @@ translates observed outcomes into a small semantic event vocabulary:
 `command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
 `sim.footstep`, recorded conversation start/end and household sleep cadence, personal eating,
 reading, and exercise cadence, source-owned object sound start and stop edges,
-and geometry-keyed door open and close events. Staged means accepted into the command
+and geometry-keyed door open and close events. Opening remains an observed state
+transition but creates no voice; closing plays only `audio/doors/close-thunk.wav`.
+The closing clip retains bounded demand loading, retry and lifecycle cleanup.
+Staged means accepted into the command
 channel; it does not overclaim that the simulation later started the intent.
 Door audio samples the simulation-owned portal columns after fixed ticks, not
 the renderer. First observations anchor silently; closed-boundary transitions
@@ -1071,8 +1121,23 @@ Visibility changes synchronously gate emission, stop voices, clear walking
 phase, and serialize `suspend()` or `resume()` so the latest foreground state
 wins an asynchronous race. Both visibility edges clear stride history. A later
 trusted gesture remains armed in case an automatic foreground resume is denied.
-Pause stops fixed ticks and fades object loops, but does not suspend the context
-or stop an already-playing short cue or conversation. A successful Load reads
+While globally inaudible, fixed-tick audio frames still begin and end, but no
+observations reach their schedulers. Their normal absence handling releases
+object/conversation ownership and drops activity, stride and door history.
+An unavailable frame boundary also disposes unfinished procedural, door and toilet
+cues if they still have active sources, without resetting any open frame.
+Recording cleanup uses retained counts so object and conversation releases
+whose active owners already ended cannot survive the unavailable interval.
+Automatic return to running therefore starts only current actions, without
+requiring another gesture or replaying old motion. Fixed-tick boundaries sample
+availability. A browser audio-context state event also stops every player and
+resets schedulers immediately when the context stops running, including while
+the world is paused. This observes browser state, not operating-system events
+directly. See
+`docs/specs/2026-10-01-automatic-audio-recovery.md`.
+Pause stops fixed ticks, fades object loops and stops an active toilet flush.
+It does not suspend the context or stop an already-playing short cue or
+conversation. A successful Load reads
 identity from the replacement world's aligned
 render rows and clears transient audio only after the world was actually
 replaced.
@@ -1118,21 +1183,53 @@ player with at most four active loops and eight retained records including
 fades. Prepared recordings specify valid loop boundaries and gain. Its
 production catalog shares one provisional flowing-water WAV between showers
 (gain 0.6) and sinks (gain 0.35). Bathroom handwashing and kitchen washing-up
-author sink action 3; existing action codes stay unchanged. A playable water
-start with a missing clip triggers one cached fetch/decode; failures wait five seconds and a new
-semantic demand before retrying. Late completion reconciles only still-owned
-sources. Stove cooking remains silent. Every effective pause stops object loops,
+author sink action 3; existing action codes stay unchanged. Stove action 2 plays
+a provisional first-party cooking texture at gain 0.6. Water and stove have
+independent demand-driven fetches, decoded caches and five-second failure
+cooldowns. New demand or an explicit load can retry; fixed ticks cannot.
+Late completion reconciles only still-owned sources. Every effective pause stops object loops,
 including blocking overlays; resume waits for a new fixed-tick observation.
 Short cues and conversations retain their existing finish-on-pause behavior.
+
+Ordinary interaction completion uses a separate transient presentation buffer.
+Authored `completion_sound` metadata currently selects only toilet flushing.
+`tick_interactions` emits on a positive-to-zero timer transition after validating
+the exact live target and active interaction, before action state is removed.
+An ordinary toilet action can interrupt a recipe. Retained `ChainState` stores
+the suspended recipe and does not suppress its completion sound. Active
+`StepWork` and the chain-step target sentinel remain ineligible.
+Cancellation and active-sound disappearance cannot emit completion. The buffer
+holds at most 64 packed action/source pairs, deduplicates within one tick and is
+excluded from saves, hashes and RNG. Tick start, paused commands and world
+replacement clear it. The browser drains it after every fixed tick and clears it
+in `finally`, even when audio sampling is disabled. Missing or inaudible clips
+drop that event; finishing a decode never replays it.
+
+One cached flush recording preloads after an unmuted unlock gesture, including
+while Help or Options still pauses the simulation, with
+in-flight deduplication and five-second, demand-driven failure recovery. Flushes
+run at their original rate, gain 0.08 before Effects, with four voices maximum
+and one voice per physical source. Unlike the shorter door cues, an active flush
+stops on effective pause as well as Load, mute, Effects zero and backgrounding.
+See `docs/specs/2026-10-01-toilet-completion-audio.md` for verification status.
 
 Fresh bridge wrappers are expected under [D11]. The allocation rule is no
 allocation proportional to entity count and no scheduler capacity growth after
 warm-up. Three alternating enabled/disabled memory pairs compare quiescent
-paused endpoints after explicit garbage collection. The median audio-enabled
+paused endpoints after explicit garbage collection. Preparation exercises flush
+playback, waits for expiry and verifies pause cleanup, then restores a shared
+measurement fixture before the baseline. Matching baseline world hashes, ticks and loaded JS/WASM
+response hashes are required. No world reset occurs during measurement; heap
+snapshot callbacks mark a run diagnostic-only. The median audio-enabled
 retained-JavaScript differential must stay within a predeclared 64 KiB allowance
 while voices, tracks, capacity, DOM nodes, and listeners remain bounded. Broader
 page and WASM growth is reported separately. A production 40-walker, 600-tick
 scheduler run exercises retained audio state directly.
+
+The voice-count getter can sweep expired records. Its zero result proves an
+empty observed player, not natural `onended` cleanup without assistance. That
+narrower claim requires passive inspection before a getter, pause, stop or later
+play can release the record.
 
 The stress-only browser handle exposes cumulative successful cue starts by
 semantic cue name. The ordinary-Chrome listening harness pairs that counter
@@ -1318,3 +1415,21 @@ world. Older saves omit the field and retain zero offsets. Frozen entity records
 remain unchanged. The world hash includes nonzero offsets and their owners in
 entity order; zero-only historical worlds retain their previous hash layout.
 See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
+## Domestic state and presentation
+
+[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Dining claims resolve exact physical chairs, clean settings and approach endpoints before generic chain targeting. Other diners stand near the table, or a preparation counter when no table is reachable. Claims publish synchronously, with ownership-aware reservation release. Other uses remain exclusive.
+
+`SavedDomestic` is the appended optional V5 tail. It records cleanliness profiles, monotonically issued dish identities and their surfaces and responsible SimIds, canonical room-visit memory, exclusive cleanup claims, and shared-meal invite/claim/collection/completion state. Cancellation, chain replacement, washing, furniture sales and death maintain those references at their own transition. Loading validates both directions between claims and chains before adoption, then refreshes the render projection. Older bytes default the tail to absent. The exact structural bridge reconstructs the old four-step recipe and roles, validates the source, maps its terminal step 3 to 5, and preserves prior geometry migrations. Unreviewed structural destinations close the bridge.
+
+Room membership is a flood fill across open saved wall edges; doorways separate rooms while furniture never does. Annoyance is a derived moodlet, and existing sustained mood integrates its effect into satisfaction. Directional resentment is charged once per creator newly noticed during a visit. [Sim interpersonal relations](SIM-RELATIONSHIPS.md) documents the composition with other social effects.
+
+The render bridge adds aligned `dirty_dishes` and `meal_portions` columns. Surface stacks and up to three prepared plate sprites disappear on actual collection, rather than on a reservation. Visual action codes 10, 11 and 12 append prepare, cook and wash; four rig frames per facing and shirt color use a ten-tick phase. Reduced motion holds frame zero. Existing action codes, sprite-name prefix order and approved rig source stay stable.
+
+
+`SavedDining` appends a separate optional V5 tail after the published domestic, sleeping-place, shyness and boundary fields; published
+nested domestic records remain unchanged. It saves exact seats and settings,
+stand locations, deferred cleanup opportunities, episode complaints and tableless
+gathering decisions. The loader validates permitted contacts through these claims,
+then validates every claim transactionally. Rendering exposes four dirty-setting
+nibbles and a seated-eating action; the cooking prop follows the exact sound-source
+station rather than the logical carried item. See [MC-dining](specs/2026-09-30-meals-and-cleanup.md#mc-dining-physical-chairs-and-dirty-settings).

@@ -1,14 +1,16 @@
 import type { SimDetails } from '../bridge.js';
+import { setTextIfChanged } from './set-text-if-changed.js';
 
 export interface PersonalDetailsSource {
   selectedIndex(): number | null;
   simDetailsOf(entity: number): SimDetails | null;
+  shynessOf(entity: number): number | null;
   dayTicks(): number;
 }
 
 export type PersonalDetailsState =
   | { kind: 'unselected' | 'unavailable' }
-  | { kind: 'ready'; sleep: string; needs: readonly { name: string; drain: string; refill: string }[];
+  | { kind: 'ready'; sleep: string; shyness: number | null; needs: readonly { name: string; drain: string; refill: string }[];
     repeated: readonly { key: string; object: string; activity: string; percent: number }[] };
 
 export interface PersonalDetailsSurface { render(state: PersonalDetailsState): void; }
@@ -28,7 +30,7 @@ export function personalDetailsState(source: PersonalDetailsSource, names: reado
   if (!details || details.drain.length !== names.length || details.refill.length !== names.length) return { kind: 'unavailable' };
   const sleep = sleepTiming(details.sleepOffsetTicks, source.dayTicks());
   if (sleep === null) return { kind: 'unavailable' };
-  return { kind: 'ready', sleep,
+  return { kind: 'ready', sleep, shyness: source.shynessOf(selected),
     needs: names.map((name, index) => ({ name: name.charAt(0).toUpperCase() + name.slice(1),
       drain: `${Math.round(details.drain[index] * 100)}%`, refill: `${Math.round(details.refill[index] * 100)}%` })),
     repeated: details.repeated.map(row => ({ ...row, percent: Math.round(row.repetition * 100) })) };
@@ -59,6 +61,11 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
     element.className = className;
     return element;
   };
+  const shynessRow = doc.createElement('div');
+  shynessRow.className = 'summary-row';
+  const shyness = text('span', '', 'summary-value');
+  shyness.id = 'shyness-value';
+  shynessRow.append(text('span', 'Shyness', 'summary-label'), shyness);
   const table = doc.createElement('table');
   table.append(text('caption', 'Personality factors'));
   const headings = doc.createElement('tr');
@@ -82,14 +89,17 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
   list.className = 'personal-repetition';
   const needs: { name: HTMLElement; drain: HTMLElement; refill: HTMLElement }[] = [];
   const rows = new Map<string, { root: HTMLElement; object: HTMLElement; activity: HTMLElement; meter: HTMLMeterElement; value: HTMLElement }>();
-  content.append(table, factorsHelp, sleep, sleepHelp, repeatedHeading, repeatedHelp, noRepetition, list);
+  content.append(shynessRow, table, factorsHelp, sleep, sleepHelp, repeatedHeading, repeatedHelp, noRepetition, list);
 
   return { render(state): void {
     content.hidden = state.kind !== 'ready';
     empty.hidden = state.kind === 'ready';
-    empty.textContent = state.kind === 'unselected' ? 'Select a person to see their personality and habits.' : 'Personal details unavailable.';
+    setTextIfChanged(empty, state.kind === 'unselected' ? 'Select a person to see their personality and habits.' : 'Personal details unavailable.');
     const data = state.kind === 'ready' ? state : null;
-    sleep.textContent = data ? `Sleep rhythm: ${data.sleep}` : '';
+    shynessRow.hidden = data?.shyness == null;
+    const shynessText = data?.shyness == null ? '' : String(data.shyness);
+    setTextIfChanged(shyness, shynessText);
+    setTextIfChanged(sleep, data ? `Sleep rhythm: ${data.sleep}` : '');
     const needData = data?.needs ?? [];
     if (needs.length !== needData.length) {
       body.replaceChildren();
@@ -107,9 +117,9 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
       }
     }
     needData.forEach((need, index) => {
-      needs[index].name.textContent = need.name;
-      needs[index].drain.textContent = need.drain;
-      needs[index].refill.textContent = need.refill;
+      setTextIfChanged(needs[index].name, need.name);
+      setTextIfChanged(needs[index].drain, need.drain);
+      setTextIfChanged(needs[index].refill, need.refill);
     });
     const repeated = data?.repeated ?? [];
     const keys = new Set(repeated.map(row => row.key));
@@ -134,11 +144,11 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
         row = { root, object, activity, meter, value };
         rows.set(entry.key, row);
       }
-      row.object.textContent = entry.object;
-      row.activity.textContent = entry.activity;
+      setTextIfChanged(row.object, entry.object);
+      setTextIfChanged(row.activity, entry.activity);
       row.meter.value = entry.percent;
       row.meter.setAttribute('aria-label', `${entry.object}: ${entry.activity}, recent repetition`);
-      row.value.textContent = `${entry.percent}%`;
+      setTextIfChanged(row.value, `${entry.percent}%`);
       const at = list.children.item(index);
       if (at !== row.root) list.insertBefore(row.root, at);
     }

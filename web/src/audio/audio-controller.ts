@@ -20,15 +20,19 @@ import {
 import { FootstepScheduler } from './footsteps.js';
 import {
   ObjectSoundCueScheduler,
-  OBJECT_SOUND_ACTION_SHOWER_WATER,
-  OBJECT_SOUND_ACTION_SINK_WATER,
   type ObjectSoundAction,
   type ObjectSoundCueEvent,
 } from './object-cues.js';
 import { ObjectLoopPlayer, prepareObjectLoopClips, type ObjectLoopClips } from './object-loops.js';
-import { loadObjectRecordings } from './object-recordings.js';
+import {
+  loadObjectRecordings,
+  objectRecordingFamily,
+  OBJECT_RECORDING_FAMILIES,
+  type ObjectRecordingFamily,
+} from './object-recordings.js';
 import { PortalAudioScheduler } from './portal-audio.js';
 import { RecordedDoorPlayer } from './recorded-doors.js';
+import { RecordedToiletPlayer, MAX_TOILET_CLIP_SECONDS } from './recorded-toilet.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
@@ -36,6 +40,12 @@ export const DEFAULT_EFFECTS_LEVEL = 0.7;
 export const DEFAULT_VOICES_LEVEL = 1;
 const VOICE_RETRY_COOLDOWN_MS = 5000;
 const OBJECT_RECORDING_RETRY_COOLDOWN_MS = 5000;
+
+interface ObjectRecordingState {
+  fetching: Promise<void> | null;
+  retryAt: number;
+  clips?: ObjectLoopClips;
+}
 
 export interface AudioPreferences {
   readonly muted: boolean;
@@ -57,6 +67,8 @@ export interface BrowserAudioContext
     VoiceAudioContext {
   readonly destination: unknown;
   readonly state: AudioContextState;
+  /** Exclusively owned by the controller for the context it creates. */
+  onstatechange: ((event: Event) => void) | null;
   close(): Promise<void>;
   resume(): Promise<void>;
   suspend(): Promise<void>;
@@ -78,6 +90,7 @@ export type GameAudioEvent =
     }
   | ActivityCueEvent
   | ObjectSoundCueEvent
+  | { readonly type: 'object.completed'; readonly sourceId: number; readonly action: number }
   | { readonly type: 'door.opened'; readonly doorId: string }
   | { readonly type: 'door.closed'; readonly doorId: string };
 
@@ -94,6 +107,7 @@ export interface AudioCuePlayCounts {
   readonly exercise: number;
   readonly 'door-opened': number;
   readonly 'door-closed': number;
+  readonly 'toilet-flush': number;
 }
 
 export type AudioResetBoundary = 'load' | 'background';
@@ -126,12 +140,15 @@ export class AudioController implements GameAudioEventSink {
   private voices: VoiceClipPlayer | null = null;
   private objectLoops: ObjectLoopPlayer | null = null;
   private objectLoopClips: ObjectLoopClips = new Map();
-  private objectRecordingFetch: Promise<void> | null = null;
-  private nextObjectRecordingRetryAt = 0;
+  private readonly objectRecordings = new Map<ObjectRecordingFamily, ObjectRecordingState>();
   private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
   private objectSoundsPaused = false;
   private doors: RecordedDoorPlayer | null = null;
-  private readonly doorClips: Partial<Record<'opened' | 'closed', AudioBufferPort>> = {};
+  private toilet: RecordedToiletPlayer | null = null;
+  private toiletClip: AudioBufferPort | null = null;
+  private toiletFetch: Promise<void> | null = null;
+  private nextToiletRetryAt = 0;
+  private readonly doorClips: Partial<Record<'closed', AudioBufferPort>> = {};
   private doorFetch: Promise<void> | null = null;
   private nextDoorRetryAt = 0;
   private doorDemandObserved = false;
@@ -160,7 +177,7 @@ export class AudioController implements GameAudioEventSink {
   private readonly footsteps: FootstepScheduler;
   private readonly activities: ActivityCueScheduler;
   private readonly objectSounds: ObjectSoundCueScheduler;
-  private readonly playedCueCounts = new Uint32Array(8);
+  private readonly playedCueCounts = new Uint32Array(9);
 
   constructor(
     private readonly createContext: AudioContextFactory = createBrowserAudioContext,
@@ -254,6 +271,22 @@ export class AudioController implements GameAudioEventSink {
   }
 
   emit(event: GameAudioEvent): void {
+    // Ownership ends even when hardware cannot play. A stopped audio clock
+    // cannot render a release fade, so release only this owner's nodes now.
+    if (event.type === 'object.sound-stopped') {
+      if (this.desiredObjectLoops.get(event.sourceId) === event.action) {
+        this.desiredObjectLoops.delete(event.sourceId);
+      }
+      this.objectLoops?.stop(event.sourceId, event.action, this.context?.state !== 'running');
+      return;
+    }
+    if (event.type === 'sim.conversation-ended') {
+      const key = conversationVoiceKey(event.voice);
+      this.pendingVoices.delete(key);
+      this.voices?.stopConversation(key, this.context?.state !== 'running');
+      return;
+    }
+
     if (
       !this.isUnlocked() ||
       this.mutedPreference ||
@@ -274,12 +307,22 @@ export class AudioController implements GameAudioEventSink {
       return;
     }
 
+    if (event.type === 'object.completed') {
+      if (!this.objectCuesAudible() || event.action !== 1 || !Number.isInteger(event.sourceId) ||
+        event.sourceId < 0 || event.sourceId >= 0xffff_ffff) return;
+      if (this.toiletClip !== null && this.toilet?.play(event.sourceId, this.toiletClip)) {
+        this.playedCueCounts[8]++;
+      }
+      void this.loadToiletRecording();
+      return;
+    }
+
     if (event.type === 'door.opened' || event.type === 'door.closed') {
+      if (event.type === 'door.opened') return;
       if (this.objectSoundsPaused) return;
       this.doorDemandObserved = true;
-      const opened = event.type === 'door.opened';
-      const clip = this.doorClips[opened ? 'opened' : 'closed'];
-      if (clip !== undefined && this.doors?.play(clip)) this.playedCueCounts[opened ? 6 : 7]++;
+      const clip = this.doorClips.closed;
+      if (clip !== undefined && this.doors?.play(clip)) this.playedCueCounts[7]++;
       void this.loadDoorRecordings();
       return;
     }
@@ -289,29 +332,12 @@ export class AudioController implements GameAudioEventSink {
       const alreadyDesired = this.desiredObjectLoops.get(event.sourceId) === event.action;
       this.desiredObjectLoops.set(event.sourceId, event.action);
       this.objectLoops?.play(event.sourceId, event.action);
-      if (!alreadyDesired && (event.action === OBJECT_SOUND_ACTION_SHOWER_WATER ||
-        event.action === OBJECT_SOUND_ACTION_SINK_WATER)) {
-        void this.loadObjectRecordings();
+      const family = objectRecordingFamily(event.action);
+      if (!alreadyDesired && family !== undefined) {
+        void this.loadObjectRecordingFamily(family);
       }
       return;
     }
-    if (event.type === 'object.sound-stopped') {
-      if (this.desiredObjectLoops.get(event.sourceId) === event.action) {
-        this.desiredObjectLoops.delete(event.sourceId);
-      }
-      this.objectLoops?.stop(event.sourceId, event.action);
-      return;
-    }
-    if (event.type === 'sim.conversation-ended') {
-      const key = conversationVoiceKey(event.voice);
-      this.pendingVoices.delete(key);
-      // Only reached when the world outran its own audio, which is what
-      // fast-forward makes routine. At normal speed the recordings finish on
-      // the tick the talking does and have already torn themselves down.
-      this.voices?.stopConversation(key);
-      return;
-    }
-
     const cue = cueForEvent(event);
     if (cue === null) return;
     const pitchScale = pitchScaleForEvent(event);
@@ -328,21 +354,55 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginFootstepFrame(): void {
+    this.prepareWorldAudioFrame();
     this.footsteps.beginFrame();
   }
 
-  beginPortalFrame(): void { this.portals.beginFrame(); }
+  beginPortalFrame(): void {
+    this.prepareWorldAudioFrame();
+    this.portals.beginFrame();
+  }
   observePortal(x: number, y: number, farX: number, farY: number, state: number): void {
-    this.portals.observe(x, y, farX, farY, state);
+    if (this.worldAudioAvailable()) this.portals.observe(x, y, farX, farY, state);
   }
   endPortalFrame(): void {
     this.portals.endFrame();
-    if (!this.doorDemandObserved && this.portals.activeTrackCount() > 0 && this.doorsAudible()) {
+    if (!this.doorDemandObserved && this.portals.activeTrackCount() > 0 && this.objectCuesAudible()) {
       this.doorDemandObserved = true;
       void this.loadDoorRecordings();
     }
   }
   activeDoorVoiceCount(): number { return this.doors?.activeVoiceCount() ?? 0; }
+  activeToiletVoiceCount(): number { return this.toilet?.activeVoiceCount() ?? 0; }
+
+  /** Preload or fresh demand only; successful decoding never plays a held event. */
+  async loadToiletRecording(): Promise<void> {
+    if (this.toiletFetch !== null) { await this.toiletFetch; return; }
+    const context = this.context;
+    // Preparation may run while a trusted gesture closes a paused overlay.
+    // Only playback, not decoding, depends on simulation pause.
+    if (context === null || !this.isUnlocked() || this.mutedPreference ||
+      this.effectsLevelPreference === 0 || this.toiletClip !== null ||
+      performance.now() < this.nextToiletRetryAt) return;
+    const fetching = this.fetchToiletClip(context);
+    this.toiletFetch = fetching;
+    try { await fetching; }
+    finally { if (this.toiletFetch === fetching) this.toiletFetch = null; }
+  }
+
+  private async fetchToiletClip(context: BrowserAudioContext): Promise<void> {
+    try {
+      const response = await fetch('audio/toilet/flush.wav');
+      if (!response.ok) throw new Error(`toilet recording: ${response.status}`);
+      const clip = await context.decodeAudioData(await response.arrayBuffer());
+      if (!Number.isFinite(clip.duration) || clip.duration < .024 || clip.duration > MAX_TOILET_CLIP_SECONDS) {
+        throw new Error('invalid toilet recording');
+      }
+      this.toiletClip = clip;
+    } catch {
+      this.nextToiletRetryAt = performance.now() + 5000;
+    }
+  }
   doorTrackCount(): number { return this.portals.activeTrackCount(); }
   doorTrackCapacity(): number { return this.portals.trackCapacity(); }
 
@@ -350,9 +410,9 @@ export class AudioController implements GameAudioEventSink {
   async loadDoorRecordings(): Promise<void> {
     if (this.doorFetch !== null) { await this.doorFetch; return; }
     const context = this.context;
-    if (context === null || !this.doorsAudible() || !this.doorDemandObserved ||
+    if (context === null || !this.objectCuesAudible() || !this.doorDemandObserved ||
       performance.now() < this.nextDoorRetryAt ||
-      (this.doorClips.opened !== undefined && this.doorClips.closed !== undefined)) return;
+      this.doorClips.closed !== undefined) return;
     const fetching = this.fetchDoorClips(context);
     this.doorFetch = fetching;
     try { await fetching; }
@@ -360,26 +420,37 @@ export class AudioController implements GameAudioEventSink {
   }
 
   private async fetchDoorClips(context: BrowserAudioContext): Promise<void> {
-    await Promise.all((['opened', 'closed'] as const).map(async kind => {
-      if (this.doorClips[kind] !== undefined) return;
-      try {
-        const response = await fetch(`audio/doors/${kind === 'opened' ? 'open' : 'close'}.wav`);
-        if (!response.ok) throw new Error(`door recording: ${response.status}`);
-        const clip = await context.decodeAudioData(await response.arrayBuffer());
-        if (!Number.isFinite(clip.duration) || clip.duration < 0.024) throw new Error('invalid door recording');
-        this.doorClips[kind] = clip;
-      } catch {
-        this.nextDoorRetryAt = performance.now() + 5000;
-      }
-    }));
+    try {
+      const response = await fetch('audio/doors/close-thunk.wav');
+      if (!response.ok) throw new Error(`door recording: ${response.status}`);
+      const clip = await context.decodeAudioData(await response.arrayBuffer());
+      if (!Number.isFinite(clip.duration) || clip.duration < 0.024) throw new Error('invalid door recording');
+      this.doorClips.closed = clip;
+    } catch {
+      this.nextDoorRetryAt = performance.now() + 5000;
+    }
   }
 
-  private doorsAudible(): boolean {
+  private objectCuesAudible(): boolean {
     return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0 && !this.objectSoundsPaused;
   }
 
+  private worldAudioAvailable(): boolean {
+    return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0;
+  }
+
+  private prepareWorldAudioFrame(): void {
+    if (this.worldAudioAvailable()) return;
+    // Discard frozen sources, including releases whose scheduler owner is already gone.
+    if ((this.player?.activeVoiceCount() ?? 0) > 0) this.player?.stopAll();
+    if ((this.doors?.activeVoiceCount() ?? 0) > 0) this.doors?.stopAll();
+    if ((this.toilet?.activeVoiceCount() ?? 0) > 0) this.toilet?.stopAll();
+    if ((this.objectLoops?.retainedLoopCount() ?? 0) > 0) this.objectLoops?.stopAll(true);
+    if ((this.voices?.retainedConversationCount() ?? 0) > 0) this.voices?.stopAll(true);
+  }
+
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void {
-    this.footsteps.observe(simId, x, y, walking);
+    if (this.worldAudioAvailable()) this.footsteps.observe(simId, x, y, walking);
   }
 
   endFootstepFrame(): void {
@@ -387,6 +458,7 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginActivityFrame(): void {
+    this.prepareWorldAudioFrame();
     this.activities.beginFrame();
   }
 
@@ -401,7 +473,7 @@ export class AudioController implements GameAudioEventSink {
     // drops every conversation's clips - which is exactly what it did until a
     // run in the browser showed two Sims talking with the pair reaching the
     // render buffer and nothing playing.
-    this.activities.observe(simId, activity, voice);
+    if (this.worldAudioAvailable()) this.activities.observe(simId, activity, voice);
   }
 
   endActivityFrame(): void {
@@ -409,11 +481,12 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginObjectSoundFrame(): void {
+    this.prepareWorldAudioFrame();
     this.objectSounds.beginFrame();
   }
 
   observeObjectSound(sourceId: number, action: number): void {
-    this.objectSounds.observe(sourceId, action);
+    if (this.worldAudioAvailable()) this.objectSounds.observe(sourceId, action);
   }
 
   endObjectSoundFrame(): void {
@@ -428,43 +501,59 @@ export class AudioController implements GameAudioEventSink {
     this.reconcileObjectLoops();
   }
 
-  /** Loads missing water clips on demand. Success is cached; failures wait for new demand. */
+  /** Loads missing demanded families independently. Ticks never retry failures. */
   async loadObjectRecordings(): Promise<void> {
-    if (this.objectRecordingFetch !== null) {
-      await this.objectRecordingFetch;
+    await Promise.all(OBJECT_RECORDING_FAMILIES.map(family => this.loadObjectRecordingFamily(family)));
+  }
+
+  private async loadObjectRecordingFamily(family: ObjectRecordingFamily): Promise<void> {
+    let state = this.objectRecordings.get(family);
+    if (state?.fetching) {
+      await state.fetching;
       return;
     }
     const context = this.context;
     if (context === null || !this.isUnlocked() || this.mutedPreference ||
       this.effectsLevelPreference === 0 || this.objectSoundsPaused ||
       ![...this.desiredObjectLoops.values()].some(action =>
-        (action === OBJECT_SOUND_ACTION_SHOWER_WATER || action === OBJECT_SOUND_ACTION_SINK_WATER) &&
-        !this.objectLoopClips.has(action)) ||
-      performance.now() < this.nextObjectRecordingRetryAt) return;
+        objectRecordingFamily(action) === family && !this.objectLoopClips.has(action))) return;
 
-    const fetching = this.fetchObjectRecordings(context);
-    this.objectRecordingFetch = fetching;
+    if (state?.clips) {
+      this.installObjectLoopClips(new Map([...state.clips, ...this.objectLoopClips]));
+      return;
+    }
+    if (state && performance.now() < state.retryAt) return;
+    if (!state) {
+      state = { fetching: null, retryAt: 0 };
+      this.objectRecordings.set(family, state);
+    }
+
+    const fetching = this.fetchObjectRecordings(context, family, state);
+    state.fetching = fetching;
     try { await fetching; }
     finally {
-      if (this.objectRecordingFetch === fetching) this.objectRecordingFetch = null;
+      if (state.fetching === fetching) state.fetching = null;
     }
   }
 
-  private async fetchObjectRecordings(context: BrowserAudioContext): Promise<void> {
+  private async fetchObjectRecordings(
+    context: BrowserAudioContext,
+    family: ObjectRecordingFamily,
+    state: ObjectRecordingState,
+  ): Promise<void> {
     try {
       const clips = await loadObjectRecordings(async url => {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`object recording ${url}: ${response.status}`);
         return response.arrayBuffer();
-      }, bytes => context.decodeAudioData(bytes));
-      if (!clips.has(OBJECT_SOUND_ACTION_SHOWER_WATER) || !clips.has(OBJECT_SOUND_ACTION_SINK_WATER)) {
-        throw new Error('invalid water recording');
-      }
+      }, bytes => context.decodeAudioData(bytes), family);
+      if (clips.size === 0) throw new Error(`invalid ${family} recording`);
+      state.clips = clips;
       // A manual installation during the request keeps its selected recordings.
       this.installObjectLoopClips(new Map([...clips, ...this.objectLoopClips]));
     } catch {
       // Failed sound must not interrupt the game or retry on every fixed tick.
-      this.nextObjectRecordingRetryAt = performance.now() + OBJECT_RECORDING_RETRY_COOLDOWN_MS;
+      state.retryAt = performance.now() + OBJECT_RECORDING_RETRY_COOLDOWN_MS;
     }
   }
 
@@ -476,7 +565,10 @@ export class AudioController implements GameAudioEventSink {
     this.doorDemandObserved = false;
     this.objectSounds.reset();
     this.desiredObjectLoops.clear();
-    if (paused) this.objectLoops?.stopAll();
+    if (paused) {
+      this.toilet?.stopAll();
+      this.objectLoops?.stopAll();
+    }
   }
 
   private reconcileObjectLoops(): void {
@@ -571,10 +663,11 @@ export class AudioController implements GameAudioEventSink {
     // against a suspended clock that plays it on return to the tab.
     this.pendingVoices.clear();
     this.desiredObjectLoops.clear();
+    this.toilet?.stopAll();
     this.doors?.stopAll();
     this.objectLoops?.stopAll(true);
     this.player?.stopAll();
-    this.voices?.stopAll();
+    this.voices?.stopAll(true);
   }
 
   /**
@@ -783,6 +876,7 @@ export class AudioController implements GameAudioEventSink {
       exercise: this.playedCueCounts[5] ?? 0,
       'door-opened': this.playedCueCounts[6] ?? 0,
       'door-closed': this.playedCueCounts[7] ?? 0,
+      'toilet-flush': this.playedCueCounts[8] ?? 0,
     };
   }
 
@@ -814,12 +908,20 @@ export class AudioController implements GameAudioEventSink {
         this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
         this.doors = new RecordedDoorPlayer(context, effectsGain);
+        this.toilet = new RecordedToiletPlayer(context, effectsGain);
         this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
         this.objectLoops.setClips(this.objectLoopClips);
         // Voices adjusts recordings only; Effects and Sound still govern all audio.
         const voices = new VoiceClipPlayer(context, voicesGain);
         voices.setClips(compactClips(this.voiceClips));
         this.voices = voices;
+        const ownedContext = context;
+        ownedContext.onstatechange = () => {
+          if (this.context !== ownedContext || ownedContext.state === 'running') return;
+          // A paused world has no tick to observe a frozen source or release.
+          this.stopEveryPlayer();
+          this.resetSchedulers();
+        };
         // The ids usually arrived before any gesture could create this
         // context, so this is the first moment the bytes can be decoded.
         void this.fetchVoiceLibrary();
@@ -827,6 +929,7 @@ export class AudioController implements GameAudioEventSink {
         this.applyEffectsGain();
         this.applyVoicesGain();
       } catch {
+        if (context !== null) context.onstatechange = null;
         safelyDisconnect(voicesGain);
         safelyDisconnect(effectsGain);
         safelyDisconnect(masterGain);
@@ -838,6 +941,7 @@ export class AudioController implements GameAudioEventSink {
         this.voices = null;
         this.objectLoops = null;
         this.doors = null;
+        this.toilet = null;
         if (context !== null) {
           try {
             await context.close();
@@ -876,6 +980,7 @@ export class AudioController implements GameAudioEventSink {
       this.stopEveryPlayer();
       this.resetSchedulers();
     }
+    if (running) void this.loadToiletRecording();
     return running;
   }
 
@@ -980,6 +1085,7 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
       return 'exercise';
     case 'object.sound-started':
     case 'object.sound-stopped':
+    case 'object.completed':
       return null;
     case 'door.opened':
     case 'door.closed':

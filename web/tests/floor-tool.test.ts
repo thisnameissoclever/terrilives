@@ -80,10 +80,12 @@ describe('the Floors tool', () => {
     expect(floors.highlight()).toBeNull();
   });
 
-  it('lays the chosen covering where the player clicks, and says what is there', () => {
+  it('selects without mutation, then applies the requested covering to that tile', () => {
     const { floors, source } = tool();
     floors.choose(3);
     floors.choosePoint(1.1, 0.9);
+    expect(source.staged).toEqual([]);
+    floors.applyCovering(3);
     expect(source.staged).toEqual([[1, 1, 3]]);
     expect(floors.highlight()).toEqual({ tiles: [[1, 1]], valid: true });
 
@@ -108,6 +110,7 @@ describe('the Floors tool', () => {
     source.tiles = [2, 0, 1];
     floors.choose(BARE);
     floors.choosePoint(2, 0);
+    floors.applyCovering(BARE);
     expect(source.staged).toEqual([[2, 0, BARE]]);
     source.result = { x: 2, y: 0, covering: BARE, reason: 0 };
     source.tiles = [];
@@ -126,6 +129,7 @@ describe('the Floors tool', () => {
     // A refusal the drain reports reaches the status line.
     floors.choose(1);
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     source.result = { x: 1, y: 1, covering: 1, reason: 5 };
     floors.afterCommands();
     expect(floors.status).toBe('That tile is not on the lot.');
@@ -165,6 +169,7 @@ describe('the Floors tool', () => {
     floors.setBlocked(false);
 
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     expect(source.staged).toHaveLength(1);
     floors.choosePoint(2, 1);
     expect(source.staged).toHaveLength(1);
@@ -173,12 +178,14 @@ describe('the Floors tool', () => {
   it('clears on Escape and after a Load, and keeps a change already on its way', () => {
     const { floors, source } = tool();
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     source.result = { x: 1, y: 1, covering: 1, reason: 0 };
     floors.afterCommands();
     expect(floors.handleKey('Escape')).toBe(true);
     expect(floors.tile).toBeNull();
 
     floors.choosePoint(2, 1);
+    floors.applyCovering(1);
     expect(floors.pending).toBe(1);
     floors.exit();
     // An edit on its way is kept until its result arrives.
@@ -198,12 +205,13 @@ describe('the Floors tool', () => {
     const { floors, source } = tool();
     source.accept = false;
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     expect(floors.status).toBe('That change could not be sent.');
   });
 });
 
 describe('the Floors tool in the page', () => {
-  const IDS = ['build-tool-floors', 'floor-tool', 'floor-status', 'floor-coverings',
+  const IDS = ['build-tool-floors', 'floor-tool', 'floor-status', 'floor-shortcut-content',
     'floor-keyboard-help', 'floor-touch-help'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
@@ -225,33 +233,61 @@ describe('the Floors tool in the page', () => {
     // Review finding [F1] on PR 128: a Load left the previous game's floors
     // on screen, because only the lot-edit path re-read them. Both paths
     // must, so this counts rather than merely finding one.
-    expect(MAIN_TS.split('lot.floors = sim.floorTiles();')).toHaveLength(3);
+    expect(MAIN_TS.split('lot.floors = sim.floorTiles();')).toHaveLength(4);
     const load = MAIN_TS.slice(MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();') - 1200,
       MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();'));
     expect(load).toContain('lot.floors = sim.floorTiles();');
     expect(MAIN_TS).toContain('floorTool.resetAfterLoad(lotWidth, lotHeight);');
   });
 
-  it('builds one button per covering plus Remove, from the content', () => {
+  it('keeps selection feedback and optional shortcuts in the panel', () => {
     const source = new FakeFloors();
     const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
     const elements = new Map<string, FakeElement>();
-    const document = fakeDocument(elements);
-    const view = new FloorToolControls(document as never, floors);
-    expect(elements.get('floor-coverings')!.children.map((child) => child.textContent))
-      .toEqual(['Boards', 'Tiles', 'Carpet', 'Remove']);
-
-    floors.enter();
-    elements.get('floor-coverings')!.children[2].listeners.click?.();
-    expect(floors.chosen).toBe(3);
-    view.render();
-    expect(elements.get('floor-coverings')!.children.map((child) => child.attributes['aria-pressed']))
-      .toEqual(['false', 'false', 'true', 'false']);
+    const view = new FloorToolControls(fakeDocument(elements) as never, floors);
+    floors.enter(); floors.choosePoint(1, 1); view.render();
     expect(elements.get('floor-status')!.textContent).toBe(floors.status);
-
     view.setCompact(true);
-    expect(elements.get('floor-keyboard-help')!.hidden).toBe(true);
+    expect(elements.get('floor-keyboard-help')!.hidden).toBe(false);
     expect(elements.get('floor-touch-help')!.hidden).toBe(false);
+  });
+
+  it('appends content choices and their material samples without shifting saved IDs', () => {
+    const source = new FakeFloors();
+    source.names.push('Fixture');
+    const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
+    const elements = new Map<string, FakeElement>();
+    const samples: number[] = [];
+    new FloorToolControls(fakeDocument(elements) as never, floors, async (_canvas, id) => { samples.push(id); });
+    expect(samples).toEqual([1, 2, 3, 4]);
+    expect(elements.get('floor-material-samples')!.children.map(child => child.textContent)).toEqual(['Boards', 'Tiles', 'Carpet', 'Fixture']);
+    floors.enter();
+    expect(source.staged).toEqual([]);
+  });
+
+  it('offers Retry for a failed preview without staging a paint or exposing resource details', () => {
+    const source = new FakeFloors();
+    const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
+    const elements = new Map<string, FakeElement>();
+    let retries = 0;
+    const view = new FloorToolControls(fakeDocument(elements) as never, floors, async () => {}, () => {
+      retries++;
+      floors.setResourceStatus('Loading floor materials.');
+      view.render();
+    });
+    const retry = elements.get('floor-material-retry')!;
+    expect(retry.hidden).toBe(true);
+    floors.enter();
+    floors.setResourceStatus('Floor materials could not load. Try again.', true);
+    floors.choosePoint(1, 1);
+    view.render();
+    expect(source.staged).toEqual([]);
+    expect(elements.get('floor-status')!.textContent).toBe('Floor materials could not load. Try again.');
+    expect(retry.hidden).toBe(false);
+    retry.listeners.click?.();
+    expect(retries).toBe(1);
+    expect(retry.hidden).toBe(true);
+    expect(source.staged).toEqual([]);
   });
 });
 

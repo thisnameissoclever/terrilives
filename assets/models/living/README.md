@@ -297,7 +297,7 @@ doors face game +Y. Keep persistence ID `reference_shelf`, entity 27 at
    and reduced views independently. The back-facing panes provide an opaque
    aqua background so the water survives the runtime alpha threshold. This
    is stylized sprite shading, not physical refraction.
-5. Append both accepted frame proofs to `../static-props-04.json`. The atlas
+5. Append both accepted frame proofs to `../static-props-05.json`. The atlas
    guard in `assets/sprites/gen/aquarium_motion.py` requires identical alpha,
    unchanged RGBA outside three reviewed fish regions and visible motion from
    each fish. Derive those regions from the saved `scene-check.json` bounds,
@@ -314,6 +314,8 @@ doors face game +Y. Keep persistence ID `reference_shelf`, entity 27 at
    activity 10 and an adjacent ordinary tile, not a furniture body socket.
    Close owned browser contexts and stop owned preview servers afterward.
 
-Candidate 06 has passed source and isolated GPU review. Played-room acceptance
-is pending. See `../../../docs/assets/review-evidence/living/aquarium.md` and
-the per-object `owner-review-pending/aquarium/attempts.md` journal.
+Source, graphics-rendering and played acceptance are recorded in
+`../../../docs/assets/review-evidence/living/aquarium-2026-10-04.md`.
+See `aquarium.md` beside that record for earlier checkpoints and the per-object
+`owner-review-pending/aquarium/attempts.md` journal for rejected candidates.
+Do not infer publication from a candidate folder or local check.

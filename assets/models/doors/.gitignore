@@ -1,0 +1,5 @@
+export/*-depth.npy
+export/*/*-depth.npy
+
+# Preserve the superseded depth pilot locally; ship the independently reviewed batch.
+export/depth-01/

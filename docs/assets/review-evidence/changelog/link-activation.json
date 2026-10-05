@@ -1,0 +1,27 @@
+{
+  "cursor": 34,
+  "events": [
+    {
+      "sequence": 34,
+      "source": {
+        "tabId": 7
+      },
+      "method": "Page.windowOpen",
+      "params": {
+        "url": "http://changelog-final-20261001.localhost:4173/changelog/",
+        "userGesture": true,
+        "windowFeatures": [
+          "menubar",
+          "toolbar",
+          "status",
+          "scrollbars",
+          "resizable",
+          "noopener"
+        ],
+        "windowName": "_blank"
+      }
+    }
+  ],
+  "hasMore": false,
+  "truncated": false
+}

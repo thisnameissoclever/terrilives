@@ -1,0 +1,359 @@
+{
+  "revision": "aa5dfa1d",
+  "visual": {
+    "pass": true,
+    "revision": "aa5dfa1d",
+    "scene": {
+      "windows": [
+        0,
+        0,
+        1,
+        3,
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        4,
+        4,
+        0,
+        0,
+        7,
+        7,
+        1,
+        12,
+        0,
+        9,
+        1,
+        1,
+        0,
+        2,
+        1,
+        3,
+        0,
+        5,
+        1,
+        9,
+        0,
+        8,
+        1,
+        5,
+        0,
+        6
+      ],
+      "painted": 192,
+      "clock": 720,
+      "floors": 192
+    },
+    "rendered": {
+      "pixels": 0,
+      "width": 1600,
+      "height": 1100
+    },
+    "readiness": {
+      "clock": 720,
+      "visibility": "visible",
+      "stage": "visible",
+      "materialsBlocked": false
+    },
+    "clockAfter": 720,
+    "normal": {
+      "width": 390,
+      "documentWidth": 390,
+      "choices": 9,
+      "font": "14px"
+    },
+    "enlarged": {
+      "width": 390,
+      "documentWidth": 390,
+      "font": "28px",
+      "chooserScrollHeight": 1387
+    },
+    "errors": [],
+    "scripts": [
+      "http://127.0.0.1:5187/assets/index-BaC1bOFF.js"
+    ],
+    "screenshots": [
+      "publication-game-desktop.png",
+      "publication-game-phone.png",
+      "publication-game-phone-200.png"
+    ],
+    "notes": [
+      "Fixture uses public commands and normal ticks to noon.",
+      "Canvas-copy pixels are diagnostic only; actual saved screenshot must independently pass the same >10000 rendered-pixel threshold outside the HUD.",
+      "Nine choices clicked at390px and measured28px text; no horizontal overflow.",
+      "Owned isolated context closes in finally."
+    ]
+  },
+  "daylight": {
+    "revision": "aa5dfa1d",
+    "pass": true,
+    "cases": [
+      {
+        "pass": true,
+        "name": "noon",
+        "tick": 720,
+        "shade": 0.25,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          149,
+          148,
+          142,
+          255
+        ],
+        "window": [
+          179,
+          177,
+          171,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "dusk",
+        "tick": 1260,
+        "shade": 0.065,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          131,
+          116,
+          128,
+          255
+        ],
+        "window": [
+          136,
+          121,
+          133,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "midnight",
+        "tick": 0,
+        "shade": 0,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          84,
+          91,
+          125,
+          255
+        ],
+        "window": [
+          84,
+          91,
+          125,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "flat",
+        "tick": 0,
+        "shade": 0,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "window": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "reduced",
+        "tick": 0,
+        "shade": 0,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "window": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "closed": [
+          149,
+          148,
+          142,
+          255
+        ],
+        "interior": [
+          149,
+          148,
+          142,
+          255
+        ],
+        "external": [
+          169,
+          167,
+          161,
+          255
+        ],
+        "control": {
+          "px": 440,
+          "py": 304,
+          "source": [
+            199,
+            197,
+            189,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      }
+    ]
+  },
+  "operations": {
+    "result": "Four operation cases passed before the third walkthrough failed on the invalid hidden Close Options precondition. See publication-ui-attempts.json for complete callback, checked assertions and overall failure.",
+    "cases": [
+      "Nine desktop model selections",
+      "No-change disabled to narrower replacement enabled, applied",
+      "Back preserves clicked middle segment for Doorway",
+      "Actual Save, unsaved mutation and confirmed Load restore exact world hash"
+    ],
+    "savedHashRetention": "Comparison succeeded in the callback; the hash value was not returned before its later error, so no hash value is claimed here."
+  },
+  "cleanup": "All isolated contexts closed in finally. Task-owned production preview session25483 stopped with CtrlC after all captures; exit1 is the expected interrupted server exit. Both task-owned dev server sessions also stopped. No owner storage used.",
+  "fixtureNotes": [
+    "First visual attempts exceeded house bounds and crossed the x8 junction; authoritative refusals retained. Third combined pixel/clock assertion did not capture the branch. Fresh better-way review led to actual UI Pause and independent screenshot-pixel evidence.",
+    "An intermediate scene attempted192 floor commands but only64 were queued; final fixture checks each queue acceptance and flushes each command, producing192 saved floor records.",
+    "Canvas-copy returned0 pixels although saved screenshot visibly renders. It is retained as diagnostic and excluded from acceptance. Saved PNG independently passes the same >10000 nonbackground-pixel threshold outside the HUD; see publication-screenshot-pixels.json."
+  ]
+}

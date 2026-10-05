@@ -1,0 +1,32 @@
+[
+  {
+    "mutation": "copy-guard",
+    "exit": 1,
+    "restoredByteIdentical": true
+  },
+  {
+    "mutation": "one-date",
+    "exit": 1,
+    "restoredByteIdentical": true
+  },
+  {
+    "mutation": "latest-only",
+    "exit": 1,
+    "restoredByteIdentical": true
+  },
+  {
+    "mutation": "dark-default",
+    "exit": 1,
+    "restoredByteIdentical": true
+  },
+  {
+    "mutation": "legacy-link",
+    "exit": 1,
+    "restoredByteIdentical": true
+  },
+  {
+    "mutation": "legacy-validation",
+    "exit": 1,
+    "restoredByteIdentical": true
+  }
+]

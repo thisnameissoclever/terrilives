@@ -1,0 +1,59 @@
+{
+  "name": "window-context",
+  "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+  "source": "web/src/main.ts",
+  "sourceSha256": "55a400bf91a7b3e7efb9c3ab4b6d06ae8193d2fe7d3dd19b6c120f724b5e6e15",
+  "command": [
+    "cmd",
+    "/c",
+    "npm",
+    "test",
+    "--prefix",
+    "web",
+    "--",
+    "--maxWorkers=1",
+    "tests/build-context.test.ts",
+    "-t",
+    "typed window changes refresh cached contextual fit and removal capabilities"
+  ],
+  "removed": "    changed: () => {\r\n      placementActions?.invalidate();\r\n      lot.windowPreview = windowTool.preview();",
+  "replacement": "    changed: () => {\r\n      lot.windowPreview = windowTool.preview();",
+  "tests": {
+    "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+    "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+  },
+  "control": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:27.594576+00:00",
+    "finishedAt": "2026-10-02T18:14:28.802475+00:00",
+    "rawLogSha256": "3d78859618aec429d9c9b68c5bf6369f7b1529fc3b3f5d58680c46a476f035fd",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/window-context-control.log",
+    "resultOutput": " Test Files  1 passed (1)\n      Tests  1 passed | 16 skipped (17)"
+  },
+  "mutatedSha256": "d68d745c1c961ee6e65792301ac0158e105ceefd0154e9cac7a255544dfbfb78",
+  "mutated": {
+    "exitCode": 1,
+    "startedAt": "2026-10-02T18:14:28.802750+00:00",
+    "finishedAt": "2026-10-02T18:14:30.013201+00:00",
+    "rawLogSha256": "67b451b6ed56b386bc372c36c70fc952c7a0925a8378edfa468f7c721b0b4978",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/window-context-mutated.log",
+    "failureOutput": "\n FAIL  tests/build-context.test.ts > typed window changes refresh cached contextual fit and removal capabilities\nAssertionError: expected false to be true // Object.is equality\n\n- Expected\n+ Received\n\n- true\n+ false\n\n \u276f tests/build-context.test.ts:281:69\n    279|     windows.chooseModel(4); actions.frame(camera, 800, 600);\n    280|     model = surface.render.mock.lastCall![0]!;\n    281|     expect(model.actions.find(a => a.id === 'fit-window')!.enabled).to\u2026\n       |                                                                     ^\n    282|     model.actions.find(a => a.id === 'fit-window')!.invoke(); actions.\u2026\n    283|     expect(surface.render.mock.lastCall![0]!.actions.every(a => !a.ena\u2026",
+    "resultOutput": " Test Files  1 failed (1)\n      Tests  1 failed | 16 skipped (17)"
+  },
+  "restoredSha256": "55a400bf91a7b3e7efb9c3ab4b6d06ae8193d2fe7d3dd19b6c120f724b5e6e15",
+  "exactByteRestoration": true,
+  "restored": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:30.013605+00:00",
+    "finishedAt": "2026-10-02T18:14:31.222958+00:00",
+    "rawLogSha256": "7de6ef6651e61f66f021b5a449c5b865ebc98d477187ee7adb9bfe0229182645",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/window-context-restored.log",
+    "resultOutput": " Test Files  1 passed (1)\n      Tests  1 passed | 16 skipped (17)"
+  },
+  "verdict": "PASS",
+  "sourceGitBlobSha256": "26c95981a85d2337a9f46a192e535af7c27bd7444e72588fef34d7430e7b9331",
+  "testWitness": {
+    "path": "web/tests/build-context.test.ts",
+    "sha256": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+  }
+}

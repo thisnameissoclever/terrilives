@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.78s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test domestic::tests::mess_diagnostics_survive_full_tick_and_report_clamping ... FAILED
+
+failures:
+
+---- domestic::tests::mess_diagnostics_survive_full_tick_and_report_clamping stdout ----
+
+thread 'domestic::tests::mess_diagnostics_survive_full_tick_and_report_clamping' (85960) panicked at crates\terri-sim\src\domestic\tests.rs:1351:10:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    domestic::tests::mess_diagnostics_survive_full_tick_and_report_clamping
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 846 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

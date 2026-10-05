@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 
 const FIXED_TICKS = 600;
 const WARMUP_TICKS = 60;
@@ -11,6 +12,7 @@ function parseArgs(argv) {
     mode: 'performance',
     url: 'http://127.0.0.1:4173/',
     output: null,
+    diagnosticWindow: false,
   };
   const readValue = (flag, index) => {
     const value = argv[index + 1];
@@ -27,6 +29,8 @@ function parseArgs(argv) {
       result.url = readValue(value, index++);
     } else if (value === '--output') {
       result.output = readValue(value, index++);
+    } else if (value === '--diagnostic-window') {
+      result.diagnosticWindow = true;
     } else {
       throw new Error(`unknown argument: ${value}`);
     }
@@ -87,6 +91,22 @@ async function setSpeed(page, multiplier) {
     speed.checked = true;
     speed.dispatchEvent(new Event('change', { bubbles: true }));
   }, multiplier);
+}
+
+/** Self-contained for browser serialization; stop without a remote polling delay. */
+function pauseAtMemoryEndpoint(target) {
+  function pauseAtEndpoint() {
+    const tick = globalThis.__terriStress.sim.clockTick();
+    if (tick < target) {
+      requestAnimationFrame(pauseAtEndpoint);
+      return;
+    }
+    const pause = document.querySelector('#speed-0');
+    if (!(pause instanceof HTMLInputElement)) throw new Error('Missing memory endpoint pause control');
+    pause.checked = true;
+    pause.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  requestAnimationFrame(pauseAtEndpoint);
 }
 
 function percentile(sorted, fraction) {
@@ -260,6 +280,7 @@ async function collectMemorySample(page, cdp, includePageMemory) {
       if (stress === undefined) throw new Error('stress handle disappeared');
       return {
         tick: stress.sim.clockTick(),
+        portalCount: stress.sim.portalCount,
         entities: stress.entities,
         wasmMemoryBytes: stress.wasmMemoryBytes,
         activeVoices: stress.audio.activeVoices,
@@ -274,6 +295,8 @@ async function collectMemorySample(page, cdp, includePageMemory) {
         objectLoopVoices: stress.audio.objectLoopVoices,
         retainedObjectLoopVoices: stress.audio.retainedObjectLoopVoices,
         doorVoices: stress.audio.doorVoices,
+        toiletVoices: stress.audio.toiletVoices,
+        toiletFlushes: stress.audio.cuePlayCounts['toilet-flush'],
         doorTracks: stress.audio.doorTracks,
         doorCapacity: stress.audio.doorCapacity,
       };
@@ -292,15 +315,110 @@ async function collectMemorySample(page, cdp, includePageMemory) {
   };
 }
 
-async function runMemory(browser, baseUrl, audioEnabled, repetition) {
+async function warmToiletLifecycle(page, audioEnabled) {
+  await setSpeed(page, 0);
+  const setup = await page.evaluate(() => {
+    const sim = globalThis.__terriStress.sim;
+    const ids = Array.from(sim.ids()), kinds = Array.from(sim.kinds()), stable = Array.from(sim.simIds());
+    const agent = ids.find((id, row) => kinds[row] === 0 && stable[row] !== 0xffff_ffff);
+    const target = ids.find((id, row) => kinds[row] === 1 && sim.interactionLabels(id).includes('Use the toilet'));
+    if (agent === undefined || target === undefined) throw new Error('Missing toilet warmup fixture');
+    const clear = sim.clearCompletionSounds;
+    const events = [];
+    sim.clearCompletionSounds = function () {
+      const view = this.completionSounds();
+      for (let i = 0; i < view.length; i += 2) {
+        if (view[i] === 1 && view[i + 1] === target) {
+          if (events.length >= 16) throw new Error('Toilet warmup event bound exceeded');
+          events.push({ tick: this.clockTick(), source: target, timeMs: performance.now() });
+        }
+      }
+      clear.call(this);
+    };
+    globalThis.__toiletMemoryWarmup = { clear, events };
+    return { agent, target, interaction: sim.interactionLabels(target).indexOf('Use the toilet'),
+      initialFlushes: globalThis.__terriStress.audio.cuePlayCounts['toilet-flush'] };
+  });
+  try {
+    const complete = async () => {
+      await setSpeed(page, 0);
+      const eventCount = await page.evaluate(() => globalThis.__toiletMemoryWarmup.events.length + 1);
+      await page.evaluate(({ agent, target, interaction }) => {
+        const sim = globalThis.__terriStress.sim;
+        sim.cancelIntents(agent);
+        sim.flushCommands();
+        if (!sim.useObject(agent, target, interaction)) throw new Error('Toilet warmup order rejected');
+        sim.flushCommands();
+      }, setup);
+      await setSpeed(page, 3);
+      await page.waitForFunction(count => globalThis.__toiletMemoryWarmup.events.length >= count,
+        eventCount, { polling: 25, timeout: 30_000 });
+      return page.evaluate(() => ({
+        event: globalThis.__toiletMemoryWarmup.events.at(-1),
+        voices: globalThis.__terriStress.audio.toiletVoices,
+        flushes: globalThis.__terriStress.audio.cuePlayCounts['toilet-flush'],
+      }));
+    };
+    const first = await complete();
+    // Stay running and observe the end, rather than sampling much later when
+    // another autonomous Sim may already have started a new flush.
+    await page.waitForFunction(start => performance.now() - start >= 4100 &&
+      globalThis.__terriStress.audio.toiletVoices === 0,
+      first.event.timeMs, { polling: 25, timeout: 10_000 });
+    // This getter may reclaim an expired voice. Passive onended cleanup has a separate proof.
+    const observedDrain = await page.evaluate(start => ({
+      elapsedMs: performance.now() - start,
+      voices: globalThis.__terriStress.audio.toiletVoices,
+      events: globalThis.__toiletMemoryWarmup.events.length,
+    }), first.event.timeMs);
+    const second = await complete();
+    await setSpeed(page, 0);
+    await waitForAudioDrain(page);
+    const evidence = { first, second, drainedAfterPlayback: observedDrain.voices === 0,
+      observedDrain, pausedVoices: 0,
+      playedFlushes: second.flushes - setup.initialFlushes, target: setup.target };
+    if (!evidence.drainedAfterPlayback || (audioEnabled && (first.voices < 1 || second.voices < 1 || evidence.playedFlushes < 2))) {
+      throw new Error(`Incomplete toilet lifecycle warmup: ${JSON.stringify(evidence)}`);
+    }
+    return evidence;
+  } finally {
+    await page.evaluate(() => {
+      globalThis.__terriStress.sim.clearCompletionSounds = globalThis.__toiletMemoryWarmup.clear;
+      delete globalThis.__toiletMemoryWarmup;
+    });
+  }
+}
+
+async function runMemory(browser, baseUrl, audioEnabled, repetition, options = {}) {
   const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
+  const loadedBundles = [];
+  page.on('response', response => {
+    if (!/\.(?:js|wasm)(?:\?|$)/.test(response.url())) return;
+    loadedBundles.push(response.body().then(body => ({
+      url: response.url(), sha256: createHash('sha256').update(body).digest('hex'),
+    })));
+  });
   try {
     await page.goto(withQuery(baseUrl, audioEnabled), { waitUntil: 'networkidle' });
     await page.bringToFront();
     await waitForStress(page);
+    const bundleEvidence = (await Promise.all(loadedBundles)).sort((a, b) => a.url.localeCompare(b.url));
+    const fixture = options.fixture ?? {};
+    if (fixture.bytes === undefined) fixture.bytes = await page.evaluate(() => Array.from(globalThis.__terriStress.sim.saveBytes()));
+    await page.evaluate(bytes => {
+      if (!globalThis.__terriStress.sim.loadBytes(Uint8Array.from(bytes))) throw new Error('Memory fixture load rejected');
+    }, fixture.bytes);
+    const fixtureSha256 = createHash('sha256').update(Uint8Array.from(fixture.bytes)).digest('hex');
     await closeHelpAndSetThreeTimes(page);
+    const toiletWarmup = await warmToiletLifecycle(page, audioEnabled);
+    // Asset/player preparation must not choose the measured world's needs,
+    // actions or clock. Restore the same public save before timed warmup.
+    await page.evaluate(bytes => {
+      if (!globalThis.__terriStress.sim.loadBytes(Uint8Array.from(bytes))) throw new Error('Post-lifecycle fixture load rejected');
+    }, fixture.bytes);
+    await setSpeed(page, 3);
 
     const startTick = await page.evaluate(() => globalThis.__terriStress.sim.clockTick());
     await page.waitForFunction(
@@ -311,15 +429,27 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
 
     const samples = [];
     await setSpeed(page, 0);
+    // Wall-clock polling can overshoot warmup by a tick. Pin the paused
+    // baseline itself, not merely the random seed used before warmup.
+    if (fixture.measurementBytes === undefined) fixture.measurementBytes = await page.evaluate(() => Array.from(globalThis.__terriStress.sim.saveBytes()));
+    await page.evaluate(bytes => {
+      if (!globalThis.__terriStress.sim.loadBytes(Uint8Array.from(bytes))) throw new Error('Measurement fixture load rejected');
+    }, fixture.measurementBytes);
     const selected = await normalizeMemoryHud(page);
     await waitForAudioDrain(page);
+    const measurementBaseline = await page.evaluate(() => ({
+      tick: globalThis.__terriStress.sim.clockTick(),
+      worldHash: String(globalThis.__terriStress.sim.worldHash()),
+    }));
     samples.push(await collectMemorySample(page, cdp, true));
+    if (options.onCheckpoint) await options.onCheckpoint(cdp, 'baseline');
     const baselineTick = samples[0].tick;
     await page.evaluate(entity => {
       const sim = globalThis.__terriStress.sim;
       if (!sim.select(entity)) throw new Error('Could not restore memory-run selection');
       sim.flushCommands();
     }, selected);
+    await page.evaluate(pauseAtMemoryEndpoint, baselineTick + FIXED_TICKS - WARMUP_TICKS);
     await setSpeed(page, 3);
     await page.waitForTimeout(250);
     for (
@@ -342,9 +472,36 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
     await setSpeed(page, 0);
     await normalizeMemoryHud(page);
     await waitForAudioDrain(page);
+    const measurementEndpoint = await page.evaluate(() => ({
+      tick: globalThis.__terriStress.sim.clockTick(),
+      worldHash: String(globalThis.__terriStress.sim.worldHash()),
+    }));
+    if (measurementEndpoint.tick !== baselineTick + FIXED_TICKS - WARMUP_TICKS) {
+      throw new Error(`Invalid memory endpoint: expected ${baselineTick + FIXED_TICKS - WARMUP_TICKS}, got ${measurementEndpoint.tick}`);
+    }
     samples.push(await collectMemorySample(page, cdp, true));
+    if (options.onCheckpoint) await options.onCheckpoint(cdp, 'first540');
 
-    return { repetition, audioEnabled, samples };
+    const diagnosticSamples = [];
+    if (options.diagnosticWindow) {
+      diagnosticSamples.push(samples.at(-1));
+      await page.evaluate(entity => {
+        const sim = globalThis.__terriStress.sim;
+        sim.select(entity);
+        sim.flushCommands();
+      }, selected);
+      await setSpeed(page, 3);
+      const diagnosticStart = samples.at(-1).tick;
+      await page.waitForFunction(tick => globalThis.__terriStress.sim.clockTick() - tick >= 540,
+        diagnosticStart, { polling: 100, timeout: 35_000 });
+      await setSpeed(page, 0);
+      await normalizeMemoryHud(page);
+      await waitForAudioDrain(page);
+      diagnosticSamples.push(await collectMemorySample(page, cdp, true));
+      if (options.onCheckpoint) await options.onCheckpoint(cdp, 'second540');
+    }
+    return { repetition, audioEnabled, bundleEvidence, fixtureSha256, toiletWarmup,
+      diagnosticOnly: typeof options.onCheckpoint === 'function', measurementBaseline, measurementEndpoint, samples, diagnosticSamples };
   } finally {
     await context.close();
   }
@@ -360,14 +517,49 @@ async function normalizeMemoryHud(page) {
   });
   // Compare identical empty selected-person panels, while the measured
   // interval still renders normal changing moodlets and action cards.
-  await page.waitForFunction(() => {
-    const warnings = document.querySelectorAll('#needs-content .need-state');
-    return globalThis.__terriStress.sim.selectedIndex() === null &&
-      document.querySelector('#moodlet-list')?.childNodes.length === 0 &&
-      document.querySelector('#action-queue')?.childNodes.length === 0 &&
-      warnings.length === 7 && Array.from(warnings).every(span => span.childNodes.length === 0);
-  }, undefined, { polling: 50, timeout: 5000 });
+  await page.waitForFunction(memoryHudIsDeselected, undefined, { polling: 50, timeout: 5000 });
   return selected;
+}
+
+/** Self-contained for Playwright: every selected-person producer must finish its render. */
+function memoryHudIsDeselected() {
+  if (globalThis.__terriStress.sim.selectedIndex() !== null) return false;
+  const matches = (selector, check) => {
+    const node = document.querySelector(selector);
+    return node !== null && check(node);
+  };
+  const expectedText = [
+    ['#needs-caption', 'Select a person'],
+    ['#satisfaction-value', 'unavailable'],
+    ['#activity-value', 'Nothing selected'],
+    ['#orders-value', '0'],
+    ['#people-caption', 'People'],
+    ['#people-empty', 'Select a person to see how they feel about the household.'],
+    ['#traits-empty', 'No traits.'],
+    ['#mood-empty', 'Select a person to see their mood.'],
+  ];
+  const hidden = ['#needs-content', '#career-row', '#orders-row', '#action-queue',
+    '#people-list', '#traits-block', '#trait-list', '#mood-content', '#moodlet-list'];
+  const visible = ['#needs-empty', '#people-empty', '#traits-empty', '#mood-empty',
+    '#dock-traits-empty', '#queue-empty'];
+  const empty = ['#career-value', '#action-queue', '#people-list', '#trait-list',
+    '#moodlet-list', '#mood-label'];
+  const panelsReady = expectedText.every(([selector, text]) => matches(selector, node => node.textContent === text)) &&
+    hidden.every(selector => matches(selector, node => node.hidden === true)) &&
+    visible.every(selector => matches(selector, node => node.hidden === false)) &&
+    empty.every(selector => matches(selector, node => node.childNodes.length === 0));
+
+  const warnings = document.querySelectorAll('#needs-content .need-state');
+  const warningsReady = warnings.length === 7 && Array.from(warnings).every(span => span.childNodes.length === 0);
+  const members = document.querySelectorAll('#household-roster-members .household-member');
+  const rosterReady = document.querySelector('#household-roster-members') !== null &&
+    members.length > 0 && Array.from(members).every(button => button.getAttribute('aria-pressed') === 'false');
+  const dockReady = matches('#dock-activity', node =>
+    node.textContent === document.querySelector('#activity-value')?.textContent && node.dataset.urgent === 'false') &&
+    matches('#needs-caption', node => node.title === node.textContent);
+  // Closed personal details intentionally do not refresh; assert the scenario, not their stale contents.
+  const detailsClosed = matches('#personal-details', node => node.open === false);
+  return panelsReady && warningsReady && rosterReady && dockReady && detailsClosed;
 }
 
 async function waitForAudioDrain(page) {
@@ -375,7 +567,7 @@ async function waitForAudioDrain(page) {
   // listeners are live ownership, not leaked listeners.
   await page.waitForFunction(() => {
     const audio = globalThis.__terriStress.audio;
-    return audio.activeVoices === 0 && audio.doorVoices === 0 &&
+    return audio.activeVoices === 0 && audio.doorVoices === 0 && audio.toiletVoices === 0 &&
       audio.conversationVoices === 0 && audio.retainedConversationVoices === 0 &&
       audio.objectLoopVoices === 0 && audio.retainedObjectLoopVoices === 0;
   }, undefined, { polling: 50, timeout: 10_000 });
@@ -393,6 +585,29 @@ function median(values) {
 }
 
 function analyseMemory(runs) {
+  const reference = runs[0];
+  const coveragePass = runs.every(run => {
+    const warmup = run.toiletWarmup;
+    return run.diagnosticOnly === false &&
+      typeof run.measurementBaseline?.worldHash === 'string' &&
+      run.measurementBaseline.worldHash === reference.measurementBaseline?.worldHash &&
+      Number.isInteger(run.measurementBaseline.tick) && run.measurementBaseline.tick === reference.measurementBaseline?.tick &&
+      typeof run.measurementEndpoint?.worldHash === 'string' &&
+      run.measurementEndpoint.worldHash === reference.measurementEndpoint?.worldHash &&
+      Number.isInteger(run.measurementEndpoint.tick) &&
+      run.measurementEndpoint.tick === run.measurementBaseline.tick + FIXED_TICKS - WARMUP_TICKS &&
+      run.measurementEndpoint.tick === reference.measurementEndpoint?.tick &&
+      typeof run.fixtureSha256 === 'string' && run.fixtureSha256 === reference.fixtureSha256 &&
+      run.bundleEvidence?.length > 0 &&
+      run.bundleEvidence.some(bundle => /\.js(?:\?|$)/.test(bundle.url)) &&
+      run.bundleEvidence.some(bundle => /\.wasm(?:\?|$)/.test(bundle.url)) &&
+      JSON.stringify(run.bundleEvidence) === JSON.stringify(reference.bundleEvidence) &&
+      warmup?.drainedAfterPlayback === true && warmup.pausedVoices === 0 &&
+      warmup.second?.event?.tick > warmup.first?.event?.tick &&
+      warmup.second.event.source === warmup.first.event.source &&
+      (run.audioEnabled ? warmup.playedFlushes >= 2 && warmup.first.voices > 0 && warmup.second.voices > 0 :
+        warmup.playedFlushes === 0 && warmup.first.voices === 0 && warmup.second.voices === 0);
+  });
   const pairs = [0, 1, 2].map((repetition) => {
     const enabled = runs.find((run) => run.repetition === repetition && run.audioEnabled);
     const disabled = runs.find((run) => run.repetition === repetition && !run.audioEnabled);
@@ -418,6 +633,8 @@ function analyseMemory(runs) {
     const boundedLiveState = run.samples.every(
       (sample) =>
         sample.entities === 1037 &&
+        Number.isInteger(baseline.portalCount) && baseline.portalCount > 0 &&
+        sample.portalCount === baseline.portalCount &&
         sample.wasmMemoryBytes >= 65_536 &&
         sample.footstepCapacity === baseline.footstepCapacity &&
         sample.footstepTracks <= 3 &&
@@ -427,8 +644,10 @@ function analyseMemory(runs) {
         // Three household Sims can each use one of the shower, stove or sinks.
         sample.objectSoundTracks <= 3 &&
         sample.doorCapacity === baseline.doorCapacity &&
-        sample.doorTracks <= 4 &&
+        sample.doorCapacity <= baseline.portalCount &&
+        sample.doorTracks <= baseline.portalCount &&
         sample.doorVoices <= 4 &&
+        sample.toiletVoices <= 4 &&
         sample.activeVoices <= 8 &&
         // The recorded conversation voices are a retained scheduler like the
         // rest, and `activeVoices` cannot see them: that counts oscillators
@@ -457,7 +676,7 @@ function analyseMemory(runs) {
       // Intermediate samples may be sounding. Endpoints wait for natural
       // completion so listener comparisons measure retained ownership.
       [baseline, final].every(sample => ['activeVoices', 'objectLoopVoices',
-        'doorVoices', 'conversationVoices', 'retainedConversationVoices',
+        'doorVoices', 'toiletVoices', 'conversationVoices', 'retainedConversationVoices',
         'retainedObjectLoopVoices'].every(field => sample[field] === 0)) &&
       final.domDocuments === baseline.domDocuments &&
       final.domNodes === baseline.domNodes &&
@@ -471,6 +690,7 @@ function analyseMemory(runs) {
     retainedAudioPass:
       medianAudioSpecificJsGrowthBytes <= AUDIO_RETAINED_ALLOWANCE_BYTES,
     structuralPass,
+    coveragePass,
   };
 }
 
@@ -524,10 +744,11 @@ async function main() {
       };
     } else if (args.mode === 'memory') {
       const runs = [];
+      const fixture = {};
       for (let repetition = 0; repetition < 3; repetition += 1) {
         const order = repetition % 2 === 0 ? [true, false] : [false, true];
         for (const audioEnabled of order) {
-          runs.push(await runMemory(browser, args.url, audioEnabled, repetition));
+          runs.push(await runMemory(browser, args.url, audioEnabled, repetition, { fixture, diagnosticWindow: args.diagnosticWindow }));
         }
       }
       report = {
@@ -536,6 +757,7 @@ async function main() {
         contract: {
           repetitions: 3,
           warmupTicks: WARMUP_TICKS,
+          lifecycleWarmup: 'toilet completion, getter-assisted drain after playback, second completion, pause drain',
           measuredTicks: FIXED_TICKS - WARMUP_TICKS,
           sampleEveryTicks: MEMORY_STEP_TICKS,
           audioRetainedAllowanceBytes: AUDIO_RETAINED_ALLOWANCE_BYTES,
@@ -567,12 +789,12 @@ async function main() {
   process.stdout.write(json);
   const pass =
     report.mode === 'memory'
-      ? report.analysis.retainedAudioPass && report.analysis.structuralPass
+      ? report.analysis.retainedAudioPass && report.analysis.structuralPass && report.analysis.coveragePass
       : report.pass;
   if (!pass) process.exitCode = 1;
 }
 
-module.exports = { analyseMemory, closeHelpAndSetThreeTimes };
+module.exports = { analyseMemory, closeHelpAndSetThreeTimes, pauseAtMemoryEndpoint, runMemory, warmToiletLifecycle, loadPlaywright, memoryHudIsDeselected, normalizeMemoryHud };
 
 if (require.main === module) main().catch((error) => {
   console.error(error);

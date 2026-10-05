@@ -1,17 +1,17 @@
 # Build mode: hinged doors in doorways
 
-Status: [DR-slice-derived] shipped in PR 98 at merge `2534ec5`.
+Status: [DR-slice-derived] shipped in PR 98 at merge `2534ec5`. The solid-model
+and horizontal-door extension below is implemented and owner-approved on 2026-10-01.
 
 This is [WT-slice-interior-doors] in `docs/specs/2026-09-21-wall-tool.md` and
 the "doors" part of [B-builder] in `docs/FEATURES.md`. The Walls and Room tools
-make doorways. Vertical doorways now receive hinged doors through this slice;
-horizontal doorways remain empty frames. The front door also swings open when
+make doorways. Doorways on both axes now receive hinged doors.
+The front door also swings open when
 someone leaves for work or comes home.
 
 ## What the player gets
 
-* **Doors in doorways.** A doorway on a line that runs the way the front door's
-  wall runs holds a hinged door, drawn with the front door's art. It swings
+* **Doors in doorways.** Doorways on both wall axes hold a solid hinged door. It swings
   open as a sim walks through and closes behind them.
 * **Nothing to press.** Doors come with doorways; there is no new tool state in
   this slice.
@@ -22,16 +22,16 @@ someone leaves for work or comes home.
   state (closed, opening, open, closing) from where sims are and where they are
   walking. The renderer draws any number of portal rows, each a frame and a
   leaf, with reduced-motion leaves and depth offsets.
-* **The art.** `frontDoorFrameSELeft` and its closed, ajar and open leaves fit a
-  vertical line. There is no art for a horizontal line, and mirroring the
-  sprites would light them from the wrong side, so horizontal doorways stay
-  empty frames until the owner's art arrives ([T-interior-door-art]).
+* **The art.** The original front-door sprite identity selects the replacement
+  solid model. Four orientations each have a fixed casing and nine leaf poses.
+  The authored style remains the source for interior doors; custom portal art
+  retains its existing rendering path. See `assets/models/doors/README.md`.
 
 ## Decisions
 
 ### [DR-derived] A door is derived from a doorway, not saved
 
-Which lines hold doors follows from the saved walls: every vertical doorway,
+Which lines hold doors follows from the saved walls: every doorway on either axis,
 on a lot whose front door has art that fits a vertical line, as the shipped
 lot's does. A lot with no front door, or a cell-wall house, has none. So a door
 adds nothing to the save or the save digest, and no save changes
@@ -68,15 +68,27 @@ not worth a save change.
 The rule has no thresholds to tune: half a tile is where the tile centres
 are.
 
+The solid model's angle follows distance only after the step rule has selected
+an opening or closing state. It reaches fully open at half a tile from the
+line and closed at one and a half tiles. This animates an eligible crossing;
+it does not make standing beside a door open it. Previous and current amounts
+interpolate between fixed ticks into nine poses. Reduced motion selects only
+closed or fully open. Short walks can still shorten the transition described
+above; the leaf remains fully open while a Sim occupies the crossing.
+
 ### [DR-render] Where it is drawn
 
 A door is one more row in the portal buffer the front door already uses,
-after the front door's row: the renderer, the boundary's portal columns and
-the reduced-motion leaf need no change. It stands on the +X edge of the tile
-left of its line, where the front door's art stands on its own tile, with the
-front door's depth offset. The shell leaves out the doorway's empty panel on a
-line that holds a door (`interior_door_lines` at the boundary), so the two
-never double up.
+after the front door's row, ordered vertical then horizontal. It stands on
+the near tile's +X or +Y edge, with a half-tile depth offset. Separate vertical
+and horizontal doorway lists preserve the original boundary API. The shell
+omits each occupied doorway's empty panel in both full and cutaway geometry.
+
+The model exports colour and actual surface X+Y through the same camera. The
+shader uses that surface depth for the solid leaf and continuous casing. The
+flush threshold is tagged as floor and stays below feet and upright geometry.
+No part of the doorway is assigned a single vertical plane. Colour and depth
+poses are selected together, preserving occlusion during every swing pose.
 
 A portal is lit like the wall it stands in, from the brighter of its own tile
 and the tile across its line, which each row carries in the portal buffer. For
@@ -127,7 +139,8 @@ by ten, now corrected.
 * **[DR-slice-derived]** Everything above.
 * **[DR-slice-choice]** A Door state in the Walls tool, so a doorway can be an
   open arch or hold a door, which needs a save change and is its own design.
-* **[DR-slice-horizontal]** Doors on horizontal lines, once their art exists.
+* **[DR-slice-horizontal]** Implemented with the replacement solid model;
+  approved by the owner with the visual changes on 2026-10-01.
 
 ## What this does not do
 

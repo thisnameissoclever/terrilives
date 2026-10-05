@@ -34,7 +34,9 @@ mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
 pub(super) mod chronotype;
+mod meal_migration;
 pub(super) mod self_preservation;
+pub(super) mod sleeping_places;
 #[cfg(test)]
 mod v3_tests;
 mod wall_migration;
@@ -328,6 +330,17 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             y: *y,
             facing: *facing,
         },
+        SimCommand::FitWindow { axis, x, y, model } => SavedCommand::FitWindow {
+            axis: *axis,
+            x: *x,
+            y: *y,
+            model: *model,
+        },
+        SimCommand::RemoveWindow { axis, x, y } => SavedCommand::RemoveWindow {
+            axis: *axis,
+            x: *x,
+            y: *y,
+        },
         SimCommand::SetWallEdge { axis, x, y, state } => SavedCommand::SetWallEdge {
             axis: *axis,
             x: *x,
@@ -340,6 +353,10 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             covering: *covering,
         },
         SimCommand::SetDeathEnabled(enabled) => SavedCommand::SetDeathEnabled(*enabled),
+        SimCommand::SetBedAssignment { agent, place } => SavedCommand::SetBedAssignment {
+            agent: *agent,
+            place: *place,
+        },
         SimCommand::SetFamilyTie { who, to, relation } => SavedCommand::SetFamilyTie {
             who: *who,
             to: *to,
@@ -438,7 +455,7 @@ fn restore_with_facings(
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
     retired: &[u32],
 ) -> Result<Sim, SaveError> {
-    let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
+    let (snapshot, migrate_legacy_household_names) = meal_migration::prepare(snapshot, content)?;
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
@@ -691,9 +708,7 @@ fn restore_entity(
         });
     }
     if let Some(value) = saved.satisfaction {
-        let mut satisfaction = Satisfaction::default();
-        satisfaction.add(value);
-        target.insert(satisfaction);
+        target.insert(Satisfaction::from_value(value));
     }
     if let Some(hobbies) = &saved.hobbies {
         target.insert(Hobbies(hobbies.clone()));
@@ -858,11 +873,18 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             y,
             facing,
         },
+        SavedCommand::FitWindow { axis, x, y, model } => {
+            SimCommand::FitWindow { axis, x, y, model }
+        }
+        SavedCommand::RemoveWindow { axis, x, y } => SimCommand::RemoveWindow { axis, x, y },
         SavedCommand::SetWallEdge { axis, x, y, state } => {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
         SavedCommand::SetFloor { x, y, covering } => SimCommand::SetFloor { x, y, covering },
         SavedCommand::SetDeathEnabled(enabled) => SimCommand::SetDeathEnabled(enabled),
+        SavedCommand::SetBedAssignment { agent, place } => {
+            SimCommand::SetBedAssignment { agent, place }
+        }
         SavedCommand::SetFamilyTie { who, to, relation } => {
             SimCommand::SetFamilyTie { who, to, relation }
         }
@@ -1163,10 +1185,22 @@ fn validate_command(
 ) -> Result<(), SaveError> {
     match command {
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
+        SavedCommand::FitWindow { axis, x, y, model } => terri_core::windows::WindowPlacement {
+            line: terri_core::layout::WallLine {
+                axis: *axis,
+                x: *x,
+                y: *y,
+            },
+            model: *model,
+        }
+        .checked_lines()
+        .ok_or(SaveError::InvalidValue)
+        .map(|_| ()),
         // Placement is revalidated when its position in the stream drains.
         // Impossible or stale edits must replay as refusals, not prevent Load.
         SavedCommand::PlaceObject { .. }
         | SavedCommand::SetWallEdge { .. }
+        | SavedCommand::RemoveWindow { .. }
         | SavedCommand::BuyObject { .. }
         | SavedCommand::BuildRoom { .. }
         | SavedCommand::SellObject { .. }
@@ -1174,7 +1208,8 @@ fn validate_command(
         | SavedCommand::BuyObjectInColourway { .. }
         | SavedCommand::SetFloor { .. }
         | SavedCommand::SetFamilyTie { .. }
-        | SavedCommand::SetDeathEnabled(_) => Ok(()),
+        | SavedCommand::SetDeathEnabled(_)
+        | SavedCommand::SetBedAssignment { .. } => Ok(()),
         // [CS-save]: held to the limits every saved name and list is held
         // to; the drain checks the rest.
         SavedCommand::AddHousemateWithInstinct { instinct, .. } if *instinct > 100 => {
@@ -1784,7 +1819,7 @@ mod tests {
             partner: agents[1],
             remaining_ticks: 11,
         });
-        agent.satisfaction = Some(123.5);
+        agent.satisfaction = Some(83.5);
         agent.fumbled_delta_scale = Some(0.5);
         agent.commuting = true;
         agent.at_work_ticks = Some(19);
@@ -1939,6 +1974,41 @@ mod tests {
             "the counter has to survive the round trip - it counts elapsed \
              ticks and nothing in a loaded world can recompute it"
         );
+    }
+
+    #[test]
+    fn satisfaction_restores_without_reapplying_baseline_or_trait_bias() {
+        for (saved_value, expected) in [
+            (0.0, 0.0),
+            (46.0, 46.0),
+            (50.0, 50.0),
+            (100.0, 100.0),
+            (12345.0, 100.0),
+        ] {
+            let mut sim = Sim::new_from_shipped_lot();
+            let mut snapshot = sim.save_snapshot_v5();
+            let person = snapshot
+                .world
+                .entities
+                .iter_mut()
+                .find(|person| person.satisfaction.is_some())
+                .unwrap();
+            let index = person.index;
+            person.satisfaction = Some(saved_value);
+            sim.load_snapshot_v5(snapshot.clone()).unwrap();
+            assert_eq!(sim.satisfaction_of(index), Some(expected));
+            snapshot
+                .world
+                .entities
+                .iter_mut()
+                .find(|person| person.index == index)
+                .unwrap()
+                .satisfaction = Some(expected);
+            let captured = sim.save_snapshot_v5();
+            assert_eq!(captured, snapshot, "only the historical score may saturate");
+            sim.load_snapshot_v5(captured.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v5(), captured, "load must be idempotent");
+        }
     }
 
     #[test]
@@ -2124,7 +2194,7 @@ mod tests {
 
             let mut fresh = Sim::new_from_shipped_lot();
             assert_eq!(
-                fresh.load_snapshot_v2(sim.save_snapshot_v2()),
+                fresh.load_snapshot_v5(sim.save_snapshot_v5()),
                 Ok(()),
                 "the snapshot taken at tick {tick} will not load"
             );

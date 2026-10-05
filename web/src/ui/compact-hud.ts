@@ -1,6 +1,6 @@
 /** Presentation only: the existing panels still own their simulation data. */
 export const COMPACT_HUD_MEDIA_QUERY = '(max-width: 600px), (max-height: 480px)';
-export type SimPanel = 'overview' | 'queue' | 'people' | 'traits' | 'household';
+export type SimPanel = 'overview' | 'queue' | 'people' | 'traits';
 
 export interface CompactHudState {
   panel: SimPanel | null;
@@ -28,6 +28,13 @@ export class CompactHud {
     this.state.panel = null;
     this.reflect();
     return true;
+  }
+
+  toggle(panel: SimPanel): boolean {
+    if (this.state.editing) return false;
+    this.state.panel = this.state.panel === panel ? null : panel;
+    this.reflect();
+    return this.state.panel !== null;
   }
 
   toggleCollapsed(): void {
@@ -105,8 +112,16 @@ export function createCompactHud(document: Document, refreshQueue: () => void, b
   for (const button of buttons) {
     button.addEventListener('click', () => {
       beforeOpen();
-      if (!sheet.contains(button)) opener = button;
-      hud.show(button.dataset.openSimPanel as SimPanel);
+      const panel = button.dataset.openSimPanel as SimPanel;
+      if (!sheet.contains(button)) {
+        opener = button;
+        if ((button === details && hud.close()) || !hud.toggle(panel)) {
+          button.focus();
+          return;
+        }
+      } else {
+        hud.show(panel);
+      }
       // The same tab is reachable by keyboard after entering the sheet.
       sheet.querySelector<HTMLButtonElement>(`[data-open-sim-panel="${button.dataset.openSimPanel}"]`)?.focus();
     });

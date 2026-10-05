@@ -1,7 +1,9 @@
 # Aquarium: four facings and two fish frames
 
-Candidate 06 passes source-art, construction and isolated GPU review. The
-production gameplay check is incomplete, so this is not release acceptance.
+Candidate 06's current local source, rendering, integration and played
+acceptance is recorded in [the 2026-10-04 verification](aquarium-2026-10-04.md).
+The checkpoints below retain the earlier source and pre-integration evidence;
+their atlas indices, counts and pending browser status are historical.
 Branch checkpoints do not establish merge or public deployment.
 
 The existing `reference_shelf` persistence ID remains the aquarium, entity 27
@@ -52,7 +54,7 @@ Canonical proof digests:
 `af0337623fe1bbf0cc33b418de72d0c023ff66a659f00582018d54f15ad8aaa7`
 and `65b9281355635970ce6a6def1dc745ba1da5040c04c242eba50a95ffa243ab9c`.
 
-## Renderer evidence and open gameplay check
+## Original renderer checkpoint
 
 `aquarium-gpu.png` contains 18 actual-renderer fixtures: two frames and a
 midnight view per facing, five restored colourways and Build preview. GPU
@@ -74,7 +76,7 @@ the worktree is outside that browser tool's allowed file roots. The gameplay
 check did not run. The denied path was not retried through another access
 route. Both task-owned servers were stopped and browser contexts closed.
 
-## Preservation and automated checks
+## Original preservation and automated checks
 
 Eight records append at 1370..1377, with SE/NW/SW/NE for frame 0 followed by
 the same order for frame 1. Textures are 192x240 at density 2 on the existing
@@ -119,7 +121,7 @@ was added afterward and changes no source, artwork or runtime code.
 Independent review found no documentation mismatch at the original base,
 `9fe41f2f33599a9fee667f6e87ef80381a58e24c`.
 
-## Integration with newer main
+## Historical integration checkpoints
 
 The worktree subsequently fast-forwarded to
 `9fdf635cfb8bbc524020dea678a6177e02d7a6f4`, preserving the staged aquarium

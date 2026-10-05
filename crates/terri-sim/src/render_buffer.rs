@@ -80,13 +80,15 @@ pub struct RenderBuffer {
     /// that fails if this ever silently becomes the identity again.
     pub ids: Vec<u32>,
     /// What each row is DOING right now, as the [A-11] activity codes:
-    /// 0 none, 1 walking, 2 waiting (reserved for a conversation whose
-    /// initiator is still inbound), 3 exact authored eating, 4 talking
+    /// 0 none, 1 walking, 2 waiting (for an occupied item or a conversation
+    /// whose initiator is still inbound), 3 exact authored eating, 4 talking
     /// (either side of a conversation), 5 sleeping (a valid sleep-tagged
     /// object interaction), 6 at work, 7 ordinary object use without a
     /// narrower authored activity, 8 exact authored reading, 9 exercising,
-    /// 10 watching fish, and 11 sitting. Some codes are text-only and draw no
-    /// indicator.
+    /// 10 watching fish, 11 sitting, 12 showering, 13 using the toilet,
+    /// 14 watching TV, 15 lying down, 16 washing hands, 17 washing dishes,
+    /// 18 listening to the radio, 19 correspondence, 20 bathing,
+    /// 21 getting ingredients, 22 preparing food, and 23 cooking.
     ///
     /// Exists because the owner's play report put it plainly: "if you
     /// can't see what they're doing, they may as well not be doing
@@ -108,6 +110,16 @@ pub struct RenderBuffer {
     /// Exact target entity index for a winning socket interaction, or the
     /// absent-target sentinel. This is derived presentation state, not a save field.
     pub interaction_targets: Vec<u32>,
+    /// Actual supporting table for a validated running seated meal, or u32::MAX.
+    /// The occupied body targets its chair; the separate plate uses this table.
+    /// Walking, standing, interrupted and completed meals carry the sentinel.
+    pub meal_tables: Vec<u32>,
+    /// Exact bed entity for running sleep-tagged place ownership, or [`NO_SLEEPING_BED`].
+    /// Independent visual metadata still owns the body pose and activity label.
+    pub sleeping_beds: Vec<u32>,
+    /// Physical place within `sleeping_beds`, or [`NO_SLEEPING_PLACE`].
+    /// Walking leases and permanent assignments alone carry no sleeping pair.
+    pub sleeping_places: Vec<u32>,
     /// Lot-axis direction each projected body action faces. See [`facing`].
     /// A row whose visual action is [`visual_action::NONE`] also carries
     /// [`facing::NONE`].
@@ -130,6 +142,13 @@ pub struct RenderBuffer {
     /// shell resolves the index against `item_kinds()` and the
     /// `carried_<kind>` atlas convention.
     pub carrying: Vec<u32>,
+    /// Visible dirty dish units and unclaimed meal plates on each surface row.
+    pub dirty_dishes: Vec<u32>,
+    /// Four table-setting nibbles, each the visible dish count capped at 15.
+    pub dirty_settings: Vec<u32>,
+    /// Collected cleanup load, derived from the saved cleanup claims.
+    pub carried_dishes: Vec<u32>,
+    pub meal_portions: Vec<u32>,
     /// The voice clip played first by the conversation this row is in, or
     /// [`NO_VOICE_CLIP`].
     ///
@@ -162,6 +181,10 @@ pub const NOT_CARRYING: u32 = u32::MAX;
 pub const NO_FOREGROUND_SPRITE: u32 = u32::MAX;
 /// No active, validated socket interaction owns this presentation row.
 pub const NO_INTERACTION_TARGET: u32 = u32::MAX;
+/// No validated current sleeping ownership on this row.
+pub const NO_SLEEPING_BED: u32 = u32::MAX;
+/// No physical sleeping place on this row; zero is a real place.
+pub const NO_SLEEPING_PLACE: u32 = u32::MAX;
 /// The `sim_ids` column's absent authored-identity sentinel.
 pub const NO_SIM_ID: u32 = u32::MAX;
 /// The `sound_sources` column's absent-source sentinel.
@@ -192,9 +215,7 @@ pub mod activity {
     /// the whole row's draw (sprite, indicator, pick box), so the sim
     /// is gone without its interpolation slot moving.
     pub const AT_WORK: u32 = 6;
-    /// Ordinary object use without a narrower authored activity. This is
-    /// text-only in the shell: one glyph cannot honestly mean reading,
-    /// washing, television, bathing, and toilet use at once.
+    /// Ordinary object or chain use without a validated authored activity.
     pub const USING_OBJECT: u32 = 7;
     /// Exact authored reading, either at a validated object socket or toward
     /// a validated object anchor.
@@ -203,8 +224,20 @@ pub mod activity {
     pub const EXERCISING: u32 = 9;
     /// Exact authored aquarium watching toward a validated object anchor.
     pub const WATCHING_FISH: u32 = 10;
-    /// Exact authored ordinary sitting at a validated object socket.
+    /// Exact authored ordinary sitting, with or without a body-action socket.
     pub const SITTING: u32 = 11;
+    pub const SHOWERING: u32 = 12;
+    pub const USING_TOILET: u32 = 13;
+    pub const WATCHING_TV: u32 = 14;
+    pub const LOUNGING: u32 = 15;
+    pub const WASHING_HANDS: u32 = 16;
+    pub const WASHING_DISHES: u32 = 17;
+    pub const LISTENING_RADIO: u32 = 18;
+    pub const CORRESPONDENCE: u32 = 19;
+    pub const BATHING: u32 = 20;
+    pub const GETTING_INGREDIENTS: u32 = 21;
+    pub const PREPARING_FOOD: u32 = 22;
+    pub const COOKING: u32 = 23;
 }
 
 /// Presentation body-action codes. Kept as `u32` so JavaScript can view the
@@ -228,6 +261,10 @@ pub mod visual_action {
     pub const SIT: u32 = 8;
     /// Horizontal sleeping body art at an object-local action socket.
     pub const SLEEP: u32 = 9;
+    pub const PREPARE: u32 = 10;
+    pub const COOK: u32 = 11;
+    pub const WASH: u32 = 12;
+    pub const SEATED_EAT: u32 = 13;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -586,6 +623,10 @@ mod tests {
         let take_shower = shipped_interaction_index(shower, "take_shower");
         let mut sim = Sim::new_with_lot(24, 24);
         let shower_target = sim.spawn_object(Position { x: 12.0, y: 8.0 }, shower);
+        let person = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 11.0, y: 8.0 }))
+            .id();
         let action = Eating {
             object: shower,
             interaction: take_shower + 1,
@@ -600,6 +641,7 @@ mod tests {
             crate::authored_object_sound(
                 pack,
                 sim.world(),
+                person,
                 Some(&action),
                 None,
                 None,
@@ -835,7 +877,7 @@ mod tests {
         assert_eq!(of(reading_object), activity::NONE, "objects do nothing");
         assert_eq!(of(idler), activity::NONE);
         assert_eq!(of(eater), activity::EATING);
-        assert_eq!(of(generic_user), activity::USING_OBJECT);
+        assert_eq!(of(generic_user), activity::WASHING_HANDS);
         assert_eq!(of(reader), activity::READING);
         assert_eq!(of(sleeper), activity::SLEEPING);
         assert_eq!(of(walker), activity::WALKING);
@@ -1662,6 +1704,9 @@ mod tests {
         let bed_agent_position = Position { x: 23.0, y: 24.0 };
         let (sleeper, bed_target, _, _) =
             spawn_shipped_sleeper(&mut sim, bed_position, bed_agent_position);
+        sim.world_mut()
+            .entity_mut(sleeper)
+            .insert(terri_core::SleepPlace(0));
         let lower_bunk = sim
             .world()
             .get::<crate::ResolvedActionSockets>(bed_target)
@@ -1956,7 +2001,7 @@ mod tests {
         use terri_data::{CompiledInteraction, CompiledVisualAction, CompiledVisualAnchor};
 
         type Mutation = fn(&mut CompiledInteraction);
-        let generic = (visual_action::NONE, facing::NONE, activity::USING_OBJECT);
+        let generic = (visual_action::NONE, facing::NONE, activity::EXERCISING);
         let exercise_cases: [(&str, Mutation, (u32, u32, u32)); 7] = [
             (
                 "missing visual",
@@ -2037,6 +2082,7 @@ mod tests {
             );
         }
 
+        let generic = (visual_action::NONE, facing::NONE, activity::WATCHING_FISH);
         let watch_cases: [(&str, Mutation, (u32, u32, u32)); 6] = [
             (
                 "missing visual",
@@ -2158,6 +2204,9 @@ mod tests {
             Position { x: 24.0, y: 12.0 },
         );
         for entity in [exerciser, watcher] {
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(terri_core::SleepPlace(0));
             assert!(crate::systems::circadian::is_asleep(
                 sim.world().resource::<crate::Content>().0,
                 sim.world().get::<Eating>(entity),
@@ -2165,6 +2214,24 @@ mod tests {
         }
 
         sim.sync_render_buffer();
+
+        for entity in [exerciser, watcher] {
+            let row = sim
+                .render_buffer()
+                .ids
+                .iter()
+                .position(|id| *id == entity.index_u32())
+                .unwrap();
+            assert_eq!(sim.render_buffer().sleeping_places[row], 0);
+            assert_eq!(
+                sim.render_buffer().sleeping_beds[row],
+                sim.world()
+                    .get::<Target>(entity)
+                    .unwrap()
+                    .object
+                    .index_u32()
+            );
+        }
 
         assert_eq!(
             projection_of(sim.render_buffer(), exerciser),
@@ -2367,21 +2434,21 @@ mod tests {
                 |visual: &mut terri_data::CompiledVisual| {
                     visual.anchor = terri_data::CompiledVisualAnchor::Station;
                 },
-                (visual_action::NONE, facing::NONE, activity::USING_OBJECT),
+                (visual_action::NONE, facing::NONE, activity::READING),
             ),
             (
                 "facing",
                 |visual: &mut terri_data::CompiledVisual| {
                     visual.facing = terri_data::CompiledVisualFacing::Socket;
                 },
-                (visual_action::NONE, facing::NONE, activity::USING_OBJECT),
+                (visual_action::NONE, facing::NONE, activity::READING),
             ),
             (
                 "surplus socket",
                 |visual: &mut terri_data::CompiledVisual| {
                     visual.socket = Some(0);
                 },
-                (visual_action::NONE, facing::NONE, activity::USING_OBJECT),
+                (visual_action::NONE, facing::NONE, activity::READING),
             ),
         ] {
             let shipped = terri_data::pack();
@@ -2438,6 +2505,7 @@ mod tests {
         let mut tag_only = bookshelf_definition.interactions[read as usize].clone();
         tag_only.id = "tag_only".to_string();
         tag_only.visual = None;
+        tag_only.activity = None;
         assert!(tag_only.tags.iter().any(|tag| tag == "reading"));
         let tag_only_read = bookshelf_definition.interactions.len() as u32;
         bookshelf_definition.interactions.push(tag_only);
@@ -2732,7 +2800,7 @@ mod tests {
         );
         assert_eq!(
             projection_of(sim.render_buffer(), generic_user),
-            (visual_action::NONE, facing::NONE, activity::USING_OBJECT)
+            (visual_action::NONE, facing::NONE, activity::WASHING_HANDS)
         );
     }
 
@@ -3694,37 +3762,141 @@ mod tests {
     }
 
     #[test]
-    fn shipped_ordinary_object_uses_report_generic_activity_without_eating_art() {
-        use crate::render_buffer::{activity, facing, visual_action};
+    fn every_shipped_interaction_projects_its_exact_activity_without_inventing_body_art() {
+        use crate::render_buffer::{activity, visual_action};
         use terri_core::Target;
 
         let pack = terri_data::pack();
         let cases = [
-            ("shower", "take_shower"),
-            ("toilet", "relieve_self"),
-            ("television", "watch_tv"),
-            ("sink", "wash_hands"),
-            ("kitchen_sink", "wash_up"),
-            ("reading_chair", "settle_in"),
+            ("fridge", "grab_snack", activity::EATING, visual_action::EAT),
+            ("bed", "sleep", activity::SLEEPING, visual_action::SLEEP),
+            (
+                "shower",
+                "take_shower",
+                activity::SHOWERING,
+                visual_action::NONE,
+            ),
+            (
+                "toilet",
+                "relieve_self",
+                activity::USING_TOILET,
+                visual_action::NONE,
+            ),
+            (
+                "television",
+                "watch_tv",
+                activity::WATCHING_TV,
+                visual_action::NONE,
+            ),
+            ("sofa", "lounge", activity::SITTING, visual_action::NONE),
+            (
+                "sink",
+                "wash_hands",
+                activity::WASHING_HANDS,
+                visual_action::NONE,
+            ),
+            (
+                "bookshelf",
+                "read",
+                activity::READING,
+                visual_action::STANDING_READ,
+            ),
+            (
+                "kitchen_sink",
+                "wash_up",
+                activity::WASHING_HANDS,
+                visual_action::NONE,
+            ),
+            (
+                "dining_table",
+                "sit_properly",
+                activity::SITTING,
+                visual_action::NONE,
+            ),
+            (
+                "long_sofa",
+                "stretch_out",
+                activity::LOUNGING,
+                visual_action::NONE,
+            ),
+            (
+                "armchair",
+                "take_the_chair",
+                activity::SITTING,
+                visual_action::SIT,
+            ),
+            (
+                "radio",
+                "listen",
+                activity::LISTENING_RADIO,
+                visual_action::NONE,
+            ),
+            (
+                "double_bed",
+                "sleep_properly",
+                activity::SLEEPING,
+                visual_action::SLEEP,
+            ),
+            (
+                "moving_box",
+                "use_exercise_bike",
+                activity::EXERCISING,
+                visual_action::EXERCISE,
+            ),
+            (
+                "desk",
+                "attend_correspondence",
+                activity::CORRESPONDENCE,
+                visual_action::NONE,
+            ),
+            (
+                "reading_chair",
+                "settle_in",
+                activity::READING,
+                visual_action::READ,
+            ),
+            (
+                "reference_shelf",
+                "watch_fish",
+                activity::WATCHING_FISH,
+                visual_action::WATCH,
+            ),
+            ("bathtub", "soak", activity::BATHING, visual_action::NONE),
         ];
-        let mut sim = Sim::new_with_lot(24, 24);
+        assert_eq!(
+            pack.objects
+                .iter()
+                .map(|object| object.interactions.len())
+                .sum::<usize>(),
+            cases.len(),
+            "every new shipped interaction needs an activity and icon review"
+        );
+        let mut sim = Sim::new_with_lot(64, 64);
         let mut agents = Vec::new();
-
-        for (offset, (object_id, interaction_id)) in cases.into_iter().enumerate() {
-            let definition = pack
-                .find(object_id)
-                .unwrap_or_else(|| panic!("the shipped pack declares '{object_id}'"));
+        for (offset, (object_id, interaction_id, expected_activity, expected_action)) in
+            cases.into_iter().enumerate()
+        {
+            let definition = pack.find(object_id).expect("shipped object");
             let interaction = shipped_interaction_index(definition, interaction_id);
-            let x = 2.0 + offset as f32 * 3.0;
-            let target = sim
-                .world_mut()
-                .spawn((Position { x: x + 1.0, y: 8.0 }, SmartObject(definition)))
-                .id();
+            assert!(
+                pack.object(definition).interactions[interaction as usize]
+                    .activity
+                    .is_some(),
+                "{object_id}/{interaction_id} needs authored activity metadata"
+            );
+            let position = Position {
+                x: 3.0 + offset as f32 * 3.0,
+                y: 8.0,
+            };
+            let target = sim.spawn_object(position, definition);
             let agent = sim
                 .world_mut()
                 .spawn((
                     Agent,
-                    Position { x, y: 8.0 },
+                    Position {
+                        x: position.x - 1.0,
+                        y: position.y,
+                    },
                     Eating {
                         object: definition,
                         interaction,
@@ -3736,17 +3908,35 @@ mod tests {
                     },
                 ))
                 .id();
-            agents.push((agent, object_id, interaction_id));
+            agents.push((
+                agent,
+                object_id,
+                interaction_id,
+                expected_activity,
+                expected_action,
+            ));
         }
-
+        let before = sim.save_snapshot_v5();
+        let before_hash = sim.world_hash();
         sim.sync_render_buffer();
-        for (agent, object_id, interaction_id) in agents {
+        for (agent, object_id, interaction_id, expected_activity, expected_action) in agents {
+            let (action, _, activity) = projection_of(sim.render_buffer(), agent);
             assert_eq!(
-                projection_of(sim.render_buffer(), agent),
-                (visual_action::NONE, facing::NONE, activity::USING_OBJECT,),
-                "{object_id}/{interaction_id} is ordinary object use, not authored eating"
+                (activity, action),
+                (expected_activity, expected_action),
+                "{object_id}/{interaction_id}"
             );
         }
+        assert_eq!(
+            sim.save_snapshot_v5(),
+            before,
+            "activity projection must not change saves"
+        );
+        assert_eq!(
+            sim.world_hash(),
+            before_hash,
+            "activity projection must not change simulation state"
+        );
     }
 
     #[test]
@@ -3835,12 +4025,7 @@ mod tests {
         assert!(pack.object(station).roles.contains(&role));
 
         let mut sim = Sim::new_with_lot(24, 24);
-        let decoy_definition = pack
-            .objects
-            .iter()
-            .position(|object| object.id == "desk")
-            .map(|index| terri_data::ObjectDefId(index as u32))
-            .expect("shipped desk");
+        let decoy_definition = station;
         assert!(pack.object(decoy_definition).roles.contains(&role));
         let _decoy = sim
             .world_mut()
@@ -4961,8 +5146,13 @@ mod tests {
             assert_eq!(buf.activities.len(), expected_count);
             assert_eq!(buf.visual_actions.len(), expected_count);
             assert_eq!(buf.interaction_targets.len(), expected_count);
+            assert_eq!(buf.sleeping_beds.len(), expected_count);
+            assert_eq!(buf.sleeping_places.len(), expected_count);
             assert_eq!(buf.facings.len(), expected_count);
             assert_eq!(buf.carrying.len(), expected_count);
+            assert_eq!(buf.carried_dishes.len(), expected_count);
+            assert_eq!(buf.dirty_dishes.len(), expected_count);
+            assert_eq!(buf.meal_portions.len(), expected_count);
             assert_eq!(buf.positions.len(), expected_count * 2);
 
             sim.world_mut().spawn((

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "terri-sim",
+    "toilet_completion_survives",
+    "--",
+    "--test-threads=1"
+  ],
+  "exit_code": 101,
+  "observed_failure": "\nrunning 1 test\ntest domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load ... FAILED\n\nfailures:\n\n---- domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load stdout ----\n\nthread 'domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load' (77236) panicked at crates\\terri-sim\\src\\domestic\\tests.rs:117:17:\nassertion `left == right` failed: one real toilet completion\n  left: 0\n right: 1\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 885 filtered out; finished in 0.17s\n\n   Compiling terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-sim)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.42s\n     Running unittests src\\lib.rs (target\\debug\\deps\\terri_sim-0bcea68002488dc1.exe)\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+  "restored_sha256": "4ddc7fe17122d3d5cde96eb1f246eff397954c9fccdd64707cd84267ce0d9978"
+}

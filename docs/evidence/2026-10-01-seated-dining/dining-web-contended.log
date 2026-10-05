@@ -1,0 +1,46 @@
+
+> test
+> vitest run
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/1dc2/terrilives/web
+
+ ❯ tests/atlas.test.ts (14 tests | 3 failed) 53094ms
+     × appends registered model clips without losing their source anchors or hand contacts 17751ms
+     × preserves registration, sample counts and source hashes for the blue shirt palette 17281ms
+     × preserves registration, sample counts and source hashes for the red shirt palette 15159ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/atlas.test.ts > the atlas manifest > appends registered model clips without losing their source anchors or hand contacts
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/atlas.test.ts:366:3
+    364|   });
+    365|
+    366|   it('appends registered model clips without losing their source ancho…
+       |   ^
+    367|     const manifest = JSON.parse(readFileSync('../assets/models/sims/si…
+    368|     expect(SPRITES.slice(360, 368).map(sprite => sprite.name)).toEqual(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/atlas.test.ts > the atlas manifest > preserves registration, sample counts and source hashes for the blue shirt palette
+ FAIL  tests/atlas.test.ts > the atlas manifest > preserves registration, sample counts and source hashes for the red shirt palette
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/atlas.test.ts:398:36
+    396|   });
+    397|
+    398|   it.each(['blue', 'red'] as const)(
+       |                                    ^
+    399|     'preserves registration, sample counts and source hashes for the %…
+    400|     (variant) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed | 122 passed (123)
+      Tests  3 failed | 1804 passed (1807)
+   Start at  12:14:33
+   Duration  60.94s (transform 42.47s, setup 0ms, import 83.39s, tests 88.66s, environment 12ms)

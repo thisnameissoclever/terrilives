@@ -6,7 +6,7 @@ fn authored_objects_keep_positions_and_footprints_with_reviewed_sprite_replaceme
     // Captured from preceding release WASM; the reviewed bookcase, desk chair,
     // dining furniture, long sofa, media cabinets, armchair, lamp and coat rack
     // use appended art.
-    // Positions and footprints remain unchanged.
+    // The double bed moves to expose both sleeping sides; footprints stay fixed.
     let expected: &[(u32, f32, f32, u32, u32, u32, u32)] = &[
         (0, 0.0, 0.0, 1, 1, 1091, 4294967295),
         (1, 1.0, 0.0, 1, 1, 1099, 4294967295),
@@ -27,7 +27,7 @@ fn authored_objects_keep_positions_and_footprints_with_reviewed_sprite_replaceme
         (16, 8.0, 3.0, 1, 1, 1266, 4294967295),
         (17, 10.0, 3.0, 1, 1, 1262, 4294967295),
         (18, 12.0, 3.0, 1, 1, 1358, 4294967295),
-        (19, 0.5, 6.5, 2, 2, 1133, 4294967295),
+        (19, 0.5, 8.5, 2, 2, 1133, 4294967295),
         (20, 2.0, 6.0, 1, 1, 1127, 4294967295),
         (21, 0.0, 10.0, 1, 1, 1129, 4294967295),
         (22, 4.0, 11.0, 1, 1, 849, 4294967295),
@@ -35,7 +35,7 @@ fn authored_objects_keep_positions_and_footprints_with_reviewed_sprite_replaceme
         (24, 6.0, 7.0, 1, 1, 1247, 4294967295),
         (25, 9.5, 6.0, 2, 1, 1137, 4294967295),
         (26, 9.0, 9.0, 1, 1, 853, 4294967295),
-        (27, 6.0, 10.0, 1, 1, 1370, 4294967295),
+        (27, 6.0, 10.0, 1, 1, 2445, 4294967295),
         (28, 10.0, 11.0, 1, 1, 1354, 4294967295),
         (29, 12.0, 6.0, 1, 1, 1109, 4294967295),
         (30, 14.0, 6.0, 1, 1, 1113, 4294967295),

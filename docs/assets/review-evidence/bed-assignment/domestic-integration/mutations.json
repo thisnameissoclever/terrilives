@@ -1,0 +1,26 @@
+[
+  {
+    "name": "presence",
+    "test": "grouped_sleeping_places_rejects_explicit_none",
+    "mutant_exit": 101,
+    "restored_exit": 0,
+    "byte_identical": true,
+    "sha256": "b2c5b529cbf551dfc6fdc0a52e16c12e5c49854a664d0e8e5dddc420dc080cb7"
+  },
+  {
+    "name": "domestic-boundary",
+    "test": "released_domestic_v5",
+    "mutant_exit": 101,
+    "restored_exit": 0,
+    "byte_identical": true,
+    "sha256": "b2c5b529cbf551dfc6fdc0a52e16c12e5c49854a664d0e8e5dddc420dc080cb7"
+  },
+  {
+    "name": "same-recipe",
+    "test": "released_domestic_v5",
+    "mutant_exit": 101,
+    "restored_exit": 0,
+    "byte_identical": true,
+    "sha256": "5add6acaa0b145ac757bd4188bbaa010cdb4f334fe2870e3419216df4e9df9d0"
+  }
+]

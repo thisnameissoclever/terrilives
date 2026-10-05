@@ -12,12 +12,13 @@ use terri_core::{
 };
 
 use super::advertise::{relationship_scale, scaled_delta};
+use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
 use crate::Content;
 
 /// Advances every conversation by one tick, delivering to BOTH
-/// participants, and completes it: relationships move only when the talk
-/// finishes, mirroring `tick_interactions`' rule that an interrupted
-/// interaction costs no habituation.
+/// participants, and completes it. The ordinary affinity gain happens on
+/// completion. An unmet-need penalty is applied separately at actual contact
+/// by the interpersonal movement phase and survives a later interruption.
 ///
 /// # Both sides receive, each through its own multipliers
 ///
@@ -48,6 +49,9 @@ use crate::Content;
 pub fn tick_social(
     mut commands: Commands,
     content: Res<Content>,
+    clock: Res<terri_core::SimClock>,
+    mut diagnostics: ResMut<RelationshipDiagnostics>,
+    context: Res<crate::relationship_dynamics::RelationshipContext>,
     mut talking: Query<(Entity, &mut Socialising)>,
     mut needs: Query<&mut Needs>,
     personalities: Query<&Personality>,
@@ -91,8 +95,7 @@ pub fn tick_social(
         // redirected (it gains a Target and walks off, still wearing this
         // talk's Reserved), or a future system despawns it outright. In
         // either case the talk ends now, with no delivery this tick and
-        // NO impression - the same completion-only rule an interrupted
-        // meal follows for habituation - and the initiator releases its
+        // no completion gain. Any start penalty remains. The initiator releases its
         // claim so the partner is not stuck wearing a stale reservation
         // after its errand.
         let disturbed = match partners.get(partner) {
@@ -147,10 +150,8 @@ pub fn tick_social(
             continue;
         }
 
-        // Completion. The relationship moves HERE and only here,
-        // mirroring habituation's completion-only bump: an interrupted
-        // conversation leaves no impression, by the same rule that an
-        // interrupted meal leaves no habituation.
+        // Completion pays the ordinary affinity gain. An interrupted
+        // conversation earns none; its earlier unmet-need penalty remains.
         //
         // **The hobby payout pays BOTH sides too** ([E2]), each against
         // their OWN hobbies: a chat is worth triple to Casey, who loves
@@ -171,7 +172,7 @@ pub fn tick_social(
                         tuning.hobby_multiplier,
                     ) * super::trait_effects::condition_accrual_scale(traits.as_deref(), content.0);
                 if payout > 0.0 {
-                    ledger.add(payout);
+                    ledger.reward(payout);
                 }
                 if let Some(mut traits) = traits {
                     super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
@@ -182,8 +183,40 @@ pub fn tick_social(
             let Some(other_id) = other_sim_id(&sim_ids, other) else {
                 continue;
             };
+            let score = context
+                .0
+                .get(&me)
+                .zip(context.0.get(&other))
+                .map_or(0.0, |(a, b)| crate::compatibility::between(a, b));
+            let allowed = needs
+                .get(me)
+                .ok()
+                .zip(needs.get(other).ok())
+                .is_some_and(|(a, b)| {
+                    crate::relationship_dynamics::positive_allowed(a, b, &act.advertises, &tuning)
+                });
+            let gain = if allowed {
+                tuning.relationship_gain_per_talk
+                    * crate::relationship_dynamics::positive_scale(score)
+            } else {
+                0.0
+            };
+            let before = relationships.get(me).map_or(0.0, |r| r.feeling(other_id));
+            if let Ok(&affected) = sim_ids.get(me) {
+                diagnostics.effects.push(RelationshipEffect {
+                    tick: clock.tick,
+                    event: 0,
+                    cause: RelationshipCause::Conversation,
+                    responsible: other_id,
+                    affected,
+                    requested: gain,
+                    actual: (before + gain).clamp(-1.0, 1.0) - before,
+                    emergency: false,
+                    directed: false,
+                });
+            }
             match relationships.get_mut(me) {
-                Ok(mut mine) => mine.bump(other_id, tuning.relationship_gain_per_talk),
+                Ok(mut mine) => mine.bump(other_id, gain),
                 // First feeling this sim has ever had: the component is
                 // created on demand, like Habituation on first
                 // completion, so a sim who has met nobody carries
@@ -194,7 +227,7 @@ pub fn tick_social(
                 // try_remove below names.
                 Err(_) => {
                     let mut fresh = Relationships::default();
-                    fresh.bump(other_id, tuning.relationship_gain_per_talk);
+                    fresh.bump(other_id, gain);
                     commands.entity(me).try_insert(fresh);
                 }
             }
@@ -251,12 +284,35 @@ fn other_sim_id(sim_ids: &Query<&SimId>, entity: Entity) -> Option<SimId> {
 pub fn decay_relationships(
     content: Res<Content>,
     mortality: Res<terri_core::save::SavedMortality>,
-    mut relationships: Query<&mut Relationships>,
+    clock: Res<terri_core::SimClock>,
+    mut diagnostics: ResMut<RelationshipDiagnostics>,
+    mut relationships: Query<(Entity, Option<&SimId>, &mut Relationships)>,
 ) {
     let preserved: Vec<_> = mortality.deaths.iter().map(|d| SimId(d.sim_id)).collect();
     let rate = content.0.tuning.relationship_decay_per_tick;
-    for mut feelings in &mut relationships {
+    let mut people: Vec<_> = relationships.iter().map(|(entity, ..)| entity).collect();
+    people.sort_unstable_by_key(|entity| entity.index());
+    for entity in people {
+        let (_, id, mut feelings) = relationships.get_mut(entity).unwrap();
+        let before_entries = feelings.entries().to_vec();
         feelings.decay_except(rate, &preserved);
+        if let Some(&affected) = id {
+            for (responsible, before) in before_entries {
+                if !preserved.contains(&responsible) && rate > 0.0 {
+                    diagnostics.effects.push(RelationshipEffect {
+                        tick: clock.tick,
+                        event: 0,
+                        cause: RelationshipCause::Decay,
+                        responsible,
+                        affected,
+                        requested: -before.signum() * rate,
+                        actual: feelings.feeling(responsible) - before,
+                        emergency: false,
+                        directed: false,
+                    });
+                }
+            }
+        }
     }
 }
 
@@ -403,7 +459,12 @@ mod tests {
                 .unwrap_or_else(|| panic!("the {label} must have a Relationships component"))
                 .feeling(SimId(other));
             assert!(
-                feeling > gain * 0.9 && feeling <= gain,
+                feeling > gain * 0.9
+                    && feeling
+                        <= gain
+                            + SESSION as f32
+                                * test_content::tuning().relationships.proximity_per_hour
+                                / 60.0,
                 "the {label}'s feeling must be one or two completed talks' \
                  worth; got {feeling} against a gain of {gain}"
             );
@@ -1317,10 +1378,9 @@ mod tests {
              it wears it through its errand and cannot be chosen after"
         );
         assert!(
-            sim.world()
-                .get::<Relationships>(lonely)
-                .is_none_or(|r| r.feeling(SimId(1)) == 0.0),
-            "an interrupted conversation leaves no impression"
+            sim.relationship_effects().iter().all(|effect| effect.cause
+                != crate::relationship_effects::RelationshipCause::Conversation),
+            "an interrupted conversation earns no completion reward; nearby time can still count"
         );
     }
 
@@ -1844,8 +1904,8 @@ mod tests {
 
     /// Cancelling mid-conversation is whole on the cancel's own tick:
     /// the talk, the target, the queue and the partner's reservation all
-    /// go together, and the interrupted conversation leaves no
-    /// impression. Reachable only since TalkTo - an autonomous talk has
+    /// go together, and the interrupted conversation earns no completion
+    /// reward. Reachable only since TalkTo - an autonomous talk has
     /// no queue for a cancel's guard to match.
     #[test]
     fn a_cancel_mid_directed_conversation_removes_the_talk_and_frees_the_partner() {
@@ -1884,10 +1944,9 @@ mod tests {
             "and free the partner"
         );
         assert!(
-            sim.world()
-                .get::<Relationships>(a)
-                .is_none_or(|r| r.feeling(SimId(1)) == 0.0),
-            "an interrupted conversation leaves no impression"
+            sim.relationship_effects().iter().all(|effect| effect.cause
+                != crate::relationship_effects::RelationshipCause::Conversation),
+            "an interrupted conversation earns no completion reward; nearby time can still count"
         );
     }
 

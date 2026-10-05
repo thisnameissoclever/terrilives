@@ -1,0 +1,524 @@
+{
+  "diagnosticOnly": true,
+  "generatedAt": "2026-10-01T08:27:44.024Z",
+  "protocolSha256": "36c08ec7095b951a694741c9d87ee878d1b854b48daa43c0c86e1fe29b44fe42",
+  "scriptSha256": "5ad77777bf3b41abc2eaf3b875e8b9a6d0ff5d061595d840c0097d37598d2867",
+  "conditions": [
+    {
+      "revision": "pre-feature",
+      "enabled": false,
+      "port": 5202
+    },
+    {
+      "revision": "current",
+      "enabled": true,
+      "port": 5201
+    },
+    {
+      "revision": "pre-feature",
+      "enabled": true,
+      "port": 5202
+    },
+    {
+      "revision": "current",
+      "enabled": false,
+      "port": 5201
+    }
+  ],
+  "runs": [
+    {
+      "revision": "pre-feature",
+      "enabled": false,
+      "port": 5202,
+      "diagnosticOnly": true,
+      "errors": [],
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:5202/assets/index-8sFPQual.js",
+          "sha256": "e3bf8ad5b5508eb6395557e0eed1c54af7e61027022b9d5298aea35b701e513b",
+          "bytes": 397629
+        },
+        {
+          "url": "http://127.0.0.1:5202/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a",
+          "bytes": 2082
+        },
+        {
+          "url": "http://127.0.0.1:5202/assets/terri_wasm_bg-DeTPiNCV.wasm",
+          "sha256": "e4f9add0f7746018373b835849d8071b732df59fc00ed803cdbc929246155c11",
+          "bytes": 2075548
+        }
+      ],
+      "initialFixtureSha256": "1600dd2885ebf868f1078d68a908bd4a6a62d8e90b6cef1b449e0cdcbbfa6426",
+      "capabilities": {
+        "completionApi": false,
+        "toiletVoiceDiagnostic": false,
+        "toiletCuePresent": false
+      },
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "transitions": [
+          {
+            "agent": 34,
+            "startTick": 33,
+            "endTick": 48,
+            "flushCount": null
+          },
+          {
+            "agent": 34,
+            "startTick": 230,
+            "endTick": 244,
+            "flushCount": null
+          }
+        ],
+        "naturalOnendedProven": false
+      },
+      "warmup": {
+        "start": 0,
+        "end": 60,
+        "ticks": 60
+      },
+      "measurementFixtureSha256": "7f376f0a55f30059ef61d8f04df7b292cb67595b0d8b528055108c8c24dd8088",
+      "baseline": {
+        "tick": 60,
+        "worldHash": "15673571512124383760",
+        "wasmBytes": 9240576,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0
+        },
+        "timestampClamps": 2,
+        "heap": {
+          "usedSize": 4508028,
+          "totalSize": 5111808,
+          "embedderHeapUsedSize": 1380880,
+          "backingStorageSize": 824474
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "interval": {
+        "start": 60,
+        "end": 600,
+        "ticks": 540
+      },
+      "final": {
+        "tick": 600,
+        "worldHash": "13352472879687521638",
+        "wasmBytes": 19922944,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0
+        },
+        "timestampClamps": 2,
+        "heap": {
+          "usedSize": 4548572,
+          "totalSize": 5111808,
+          "embedderHeapUsedSize": 1399088,
+          "backingStorageSize": 824481
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "rawJsGrowthBytes": 40544,
+      "domEqual": true
+    },
+    {
+      "revision": "current",
+      "enabled": true,
+      "port": 5201,
+      "diagnosticOnly": true,
+      "errors": [],
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:5201/assets/index-Czdmmf1M.js",
+          "sha256": "492f48e7820d4d48ceeef3ae989a4d3e40c3ac32a78fdb6cea68ce80c2aad35e",
+          "bytes": 401157
+        },
+        {
+          "url": "http://127.0.0.1:5201/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a",
+          "bytes": 2082
+        },
+        {
+          "url": "http://127.0.0.1:5201/assets/terri_wasm_bg-C7Tb9Vl0.wasm",
+          "sha256": "41762a5c6784656e05a39881bf6cb0fda21eb59380e19449c9dabf432eef20b2",
+          "bytes": 2118501
+        }
+      ],
+      "initialFixtureSha256": "1600dd2885ebf868f1078d68a908bd4a6a62d8e90b6cef1b449e0cdcbbfa6426",
+      "capabilities": {
+        "completionApi": true,
+        "toiletVoiceDiagnostic": true,
+        "toiletCuePresent": true
+      },
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "transitions": [
+          {
+            "agent": 34,
+            "startTick": 33,
+            "endTick": 48,
+            "flushCount": 1
+          },
+          {
+            "agent": 34,
+            "startTick": 230,
+            "endTick": 244,
+            "flushCount": 2
+          }
+        ],
+        "naturalOnendedProven": false
+      },
+      "warmup": {
+        "start": 0,
+        "end": 60,
+        "ticks": 60
+      },
+      "measurementFixtureSha256": "7f376f0a55f30059ef61d8f04df7b292cb67595b0d8b528055108c8c24dd8088",
+      "baseline": {
+        "tick": 60,
+        "worldHash": "15673571512124383760",
+        "wasmBytes": 9961472,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 151,
+          "sleep-breath": 6,
+          "eating": 0,
+          "page-turn": 2,
+          "exercise": 0,
+          "door-opened": 23,
+          "door-closed": 21,
+          "toilet-flush": 3
+        },
+        "timestampClamps": 2,
+        "heap": {
+          "usedSize": 4751124,
+          "totalSize": 5373952,
+          "embedderHeapUsedSize": 1903080,
+          "backingStorageSize": 828066
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "interval": {
+        "start": 60,
+        "end": 600,
+        "ticks": 540
+      },
+      "final": {
+        "tick": 600,
+        "worldHash": "13352472879687521638",
+        "wasmBytes": 20643840,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 173,
+          "sleep-breath": 9,
+          "eating": 0,
+          "page-turn": 2,
+          "exercise": 0,
+          "door-opened": 51,
+          "door-closed": 62,
+          "toilet-flush": 7
+        },
+        "timestampClamps": 2,
+        "heap": {
+          "usedSize": 4790880,
+          "totalSize": 5373952,
+          "embedderHeapUsedSize": 1399104,
+          "backingStorageSize": 828073
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "rawJsGrowthBytes": 39756,
+      "domEqual": true
+    },
+    {
+      "revision": "pre-feature",
+      "enabled": true,
+      "port": 5202,
+      "diagnosticOnly": true,
+      "errors": [],
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:5202/assets/index-8sFPQual.js",
+          "sha256": "e3bf8ad5b5508eb6395557e0eed1c54af7e61027022b9d5298aea35b701e513b",
+          "bytes": 397629
+        },
+        {
+          "url": "http://127.0.0.1:5202/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a",
+          "bytes": 2082
+        },
+        {
+          "url": "http://127.0.0.1:5202/assets/terri_wasm_bg-DeTPiNCV.wasm",
+          "sha256": "e4f9add0f7746018373b835849d8071b732df59fc00ed803cdbc929246155c11",
+          "bytes": 2075548
+        }
+      ],
+      "initialFixtureSha256": "1600dd2885ebf868f1078d68a908bd4a6a62d8e90b6cef1b449e0cdcbbfa6426",
+      "capabilities": {
+        "completionApi": false,
+        "toiletVoiceDiagnostic": false,
+        "toiletCuePresent": false
+      },
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "transitions": [
+          {
+            "agent": 34,
+            "startTick": 33,
+            "endTick": 48,
+            "flushCount": null
+          },
+          {
+            "agent": 34,
+            "startTick": 230,
+            "endTick": 244,
+            "flushCount": null
+          }
+        ],
+        "naturalOnendedProven": false
+      },
+      "warmup": {
+        "start": 0,
+        "end": 60,
+        "ticks": 60
+      },
+      "measurementFixtureSha256": "7f376f0a55f30059ef61d8f04df7b292cb67595b0d8b528055108c8c24dd8088",
+      "baseline": {
+        "tick": 60,
+        "worldHash": "15673571512124383760",
+        "wasmBytes": 9830400,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 151,
+          "sleep-breath": 6,
+          "eating": 0,
+          "page-turn": 2,
+          "exercise": 0,
+          "door-opened": 23,
+          "door-closed": 22
+        },
+        "timestampClamps": 1,
+        "heap": {
+          "usedSize": 4651600,
+          "totalSize": 5373952,
+          "embedderHeapUsedSize": 1424488,
+          "backingStorageSize": 824516
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "interval": {
+        "start": 60,
+        "end": 600,
+        "ticks": 540
+      },
+      "final": {
+        "tick": 600,
+        "worldHash": "13352472879687521638",
+        "wasmBytes": 18350080,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 173,
+          "sleep-breath": 9,
+          "eating": 0,
+          "page-turn": 2,
+          "exercise": 0,
+          "door-opened": 52,
+          "door-closed": 63
+        },
+        "timestampClamps": 1,
+        "heap": {
+          "usedSize": 4749468,
+          "totalSize": 5373952,
+          "embedderHeapUsedSize": 1400832,
+          "backingStorageSize": 824523
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "rawJsGrowthBytes": 97868,
+      "domEqual": true
+    },
+    {
+      "revision": "current",
+      "enabled": false,
+      "port": 5201,
+      "diagnosticOnly": true,
+      "errors": [],
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:5201/assets/index-Czdmmf1M.js",
+          "sha256": "492f48e7820d4d48ceeef3ae989a4d3e40c3ac32a78fdb6cea68ce80c2aad35e",
+          "bytes": 401157
+        },
+        {
+          "url": "http://127.0.0.1:5201/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a",
+          "bytes": 2082
+        },
+        {
+          "url": "http://127.0.0.1:5201/assets/terri_wasm_bg-C7Tb9Vl0.wasm",
+          "sha256": "41762a5c6784656e05a39881bf6cb0fda21eb59380e19449c9dabf432eef20b2",
+          "bytes": 2118501
+        }
+      ],
+      "initialFixtureSha256": "1600dd2885ebf868f1078d68a908bd4a6a62d8e90b6cef1b449e0cdcbbfa6426",
+      "capabilities": {
+        "completionApi": true,
+        "toiletVoiceDiagnostic": true,
+        "toiletCuePresent": true
+      },
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "transitions": [
+          {
+            "agent": 34,
+            "startTick": 33,
+            "endTick": 48,
+            "flushCount": 0
+          },
+          {
+            "agent": 34,
+            "startTick": 230,
+            "endTick": 244,
+            "flushCount": 0
+          }
+        ],
+        "naturalOnendedProven": false
+      },
+      "warmup": {
+        "start": 0,
+        "end": 60,
+        "ticks": 60
+      },
+      "measurementFixtureSha256": "7f376f0a55f30059ef61d8f04df7b292cb67595b0d8b528055108c8c24dd8088",
+      "baseline": {
+        "tick": 60,
+        "worldHash": "15673571512124383760",
+        "wasmBytes": 9306112,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0,
+          "toilet-flush": 0
+        },
+        "timestampClamps": 1,
+        "heap": {
+          "usedSize": 4488376,
+          "totalSize": 5111808,
+          "embedderHeapUsedSize": 1421544,
+          "backingStorageSize": 828024
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "interval": {
+        "start": 60,
+        "end": 600,
+        "ticks": 540
+      },
+      "final": {
+        "tick": 600,
+        "worldHash": "13352472879687521638",
+        "wasmBytes": 19988480,
+        "entities": 1037,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0,
+          "toilet-flush": 0
+        },
+        "timestampClamps": 1,
+        "heap": {
+          "usedSize": 4536692,
+          "totalSize": 5111808,
+          "embedderHeapUsedSize": 1395168,
+          "backingStorageSize": 828031
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 1434,
+          "jsEventListeners": 157
+        }
+      },
+      "rawJsGrowthBytes": 48316,
+      "domEqual": true
+    }
+  ],
+  "acceptanceVerdict": null,
+  "browserVersion": "154.0.8037.58",
+  "preFeatureAudioSpecificBytes": 57324,
+  "currentAudioSpecificBytes": -8560,
+  "currentMinusPreFeatureBytes": -65884,
+  "finalWorldsMatch": true
+}

@@ -105,6 +105,7 @@ pub(crate) fn tick(world: &mut World) {
 fn clear_action(world: &mut World, entity: Entity) {
     world.entity_mut(entity).remove::<(
         Target,
+        terri_core::SleepPlace,
         Path,
         Eating,
         Socialising,
@@ -115,6 +116,12 @@ fn clear_action(world: &mut World, entity: Entity) {
 }
 
 fn remove_person(world: &mut World, dead: Entity) {
+    if let Some(person) = world.get::<SimId>(dead).copied() {
+        world
+            .resource_mut::<crate::beds::BedAssignments>()
+            .set(person, None);
+    }
+    crate::domestic::remove_person(world, dead);
     let own_target = world.get::<Target>(dead).copied();
     let partner = world.get::<Socialising>(dead).map(|talk| Target {
         object: talk.partner,

@@ -110,6 +110,19 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
+    mut completion_sounds: Option<ResMut<crate::completion_sounds::CompletionSounds>>,
+    objects: Query<(&terri_core::SmartObject, &terri_core::Position)>,
+    eligible: Query<
+        Entity,
+        (
+            With<terri_core::Agent>,
+            With<terri_core::Position>,
+            Without<terri_core::AtWork>,
+            Without<terri_core::Socialising>,
+            Without<terri_core::StepWork>,
+        ),
+    >,
+    conversations: Query<&terri_core::Socialising>,
     mut agents: Query<(
         Entity,
         &mut Eating,
@@ -167,9 +180,41 @@ pub fn tick_interactions(
             let delta = super::advertise::scaled_delta(*delta, satisfaction * fumble);
             needs.fill(NeedId::ALL[*need_index as usize], delta / duration);
         }
+        let was_positive = eating.remaining_ticks > 0;
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            // Validate presentation independently; gameplay cleanup still runs.
+            if was_positive
+                && eligible.contains(entity)
+                && !conversations.iter().any(|talk| talk.partner == entity)
+                && target.interaction != super::chain::CHAIN_STEP
+                && target.interaction == eating.interaction
+            {
+                if let Ok((object, _position)) = objects.get(target.object) {
+                    if object.0 == eating.object {
+                        if let Some(interaction) = content
+                            .0
+                            .objects
+                            .get(object.0 .0 as usize)
+                            .and_then(|definition| {
+                                definition.interactions.get(target.interaction as usize)
+                            })
+                        {
+                            if interaction.completion_sound
+                                == Some(terri_data::pack::CompiledCompletionSound::ToiletFlush)
+                            {
+                                if let Some(events) = completion_sounds.as_mut() {
+                                    events.push(
+                                        crate::completion_sounds::TOILET_FLUSH,
+                                        target.object.index_u32(),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             // **Habituation rises on COMPLETION, not per tick** - [S2]. The sim
             // is tired of the activity, not of the minutes, so a 180-tick sleep
             // and a 21-tick hand-wash habituate by the same amount. Per-tick
@@ -253,7 +298,7 @@ pub fn tick_interactions(
                 // changed every meal - `add(0.0)` is arithmetic nothing
                 // but change-detection something.
                 if payout > 0.0 {
-                    ledger.add(payout);
+                    ledger.reward(payout);
                 }
             }
 
@@ -413,7 +458,7 @@ mod tests {
     }
 
     #[test]
-    fn hungry_sim_walks_to_the_fridge_and_eats() {
+    fn an_ordinary_hunger_interaction_walks_refills_and_releases() {
         // Event-driven, not tick-counted, on purpose. Ticking a fixed
         // number of times and then asserting `Eating` is none proves
         // nothing: it passes just as well if the meal never started, the
@@ -428,7 +473,14 @@ mod tests {
         // is the end-to-end check that real content produces the
         // behaviour [D-6] requires: a hungry sim paths to the fridge and
         // eats.
-        let mut sim = Sim::new_with_lot(16, 16);
+        // Isolate ordinary per-tick refill. Actual staged snacks are exercised
+        // through the shipped household in domestic::tests.
+        let mut ordinary = terri_data::pack().objects
+            [terri_data::pack().find("fridge").unwrap().0 as usize]
+            .clone();
+        ordinary.roles.clear();
+        let content = test_content::pack(vec![ordinary]);
+        let mut sim = test_content::sim_with(16, 16, content);
 
         let fridge = sim
             .world_mut()
@@ -523,6 +575,10 @@ mod tests {
         let mut sim = Sim::new_with_lot(16, 16);
         sim.world_mut()
             .spawn((Position { x: 10.0, y: 8.0 }, test_content::shipped_fridge()));
+        sim.world_mut().spawn((
+            Position { x: 12.0, y: 8.0 },
+            SmartObject(terri_data::pack().find("counter").unwrap()),
+        ));
         let sim_entity = sim
             .world_mut()
             .spawn((

@@ -16,6 +16,8 @@ import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
+import { WindowTool } from './ui/window-tool.js';
+import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { FloorTool } from './ui/floor-tool.js';
 import { FloorToolControls } from './ui/floor-tool-controls.js';
@@ -27,14 +29,21 @@ import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
+import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
+import { activeFloorFinishKeys } from './render/floor-materials.js';
+import { FloorFinishResources } from './render/floor-finish-resources.js';
+import { FloorScenePresentation } from './render/floor-scene-presentation.js';
+import { createFloorSceneStatus } from './ui/floor-scene-status.js';
+import type { ActiveFinishes } from './render/architecture-finishes.js';
+import { drawFloorSwatch } from './ui/floor-swatches.js';
+import { decodeWindowPlacements } from './architecture/windows.js';
 import {
   FixedStepDriver,
   advanceSimulationFrame,
-  buildInstances,
-  instanceCount,
+  buildInstanceBatch,
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
-import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
+import { clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { householdMembers } from './ui/household-roster.js';
 import { WallFade } from './render/wall-fade.js';
@@ -51,6 +60,7 @@ import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
+import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
   describeStartupFailure,
@@ -59,7 +69,10 @@ import {
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
-import { PlacementActions, createPlacementActionsSurface, type KeepOut } from './ui/placement-actions.js';
+import { type KeepOut } from './ui/placement-actions.js';
+import { BuildContextActions, createContextSurface } from './ui/placement-actions.js';
+import { createCompactBuildLayout } from './ui/build-layout.js';
+import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
@@ -73,6 +86,7 @@ import {
   restorePersistenceFocus,
 } from './ui/persistence-controller.js';
 import { QueueMode } from './ui/queue-mode.js';
+import { createSatisfactionSurface } from './ui/satisfaction-meter.js';
 import { LightingMode } from './ui/lighting-mode.js';
 import {
   advanceFrameWithCommandFeedback,
@@ -101,6 +115,7 @@ import {
   type AudioCuePlayCounts,
 } from './audio/audio-controller.js';
 import { sampleSimAudioAfterTick, samplePortalAudioAfterTick, withObjectSoundPause } from './audio/frame-audio.js';
+import { drainCompletionAudioAfterTick } from './audio/completion-audio.js';
 import { armAudioUnlock } from './audio/gesture-unlock.js';
 import { AudioControls } from './ui/audio-controls.js';
 
@@ -156,6 +171,7 @@ export interface StressHandle {
     readonly retainedConversationVoices: number;
     readonly objectLoopVoices: number;
     readonly doorVoices: number;
+    readonly toiletVoices: number;
     readonly doorTracks: number;
     readonly doorCapacity: number;
     readonly retainedObjectLoopVoices: number;
@@ -280,7 +296,10 @@ async function main(): Promise<void> {
   // it synchronously and uploading later would let the first frames
   // sample an empty texture, which is a black room that fixes itself -
   // the hardest kind of glitch to reproduce.
-  const renderer = await SpriteRenderer.create(gpu);
+  const architectureAtlas = await loadArchitectureAtlas(gpu.device.limits);
+  let renderer: SpriteRenderer;
+  try { renderer = await SpriteRenderer.create(gpu, architectureAtlas); }
+  finally { closeArchitectureAtlas(architectureAtlas); }
 
   // The lot, its walls and all eight authored objects come out of
   // content/lot.toml through the compiled pack. Nothing here names a
@@ -409,14 +428,18 @@ async function main(): Promise<void> {
       // stride distance that the simulation actually travelled.
       if (footstepSampling) {
         if (footstepSamplerTimer === null) {
+          drainCompletionAudioAfterTick(sim, audio, true);
           sampleSimAudioAfterTick(sim, audio);
           samplePortalAudioAfterTick(sim, audio);
         } else {
           const sampleStartedMs = performance.now();
+          drainCompletionAudioAfterTick(sim, audio, true);
           sampleSimAudioAfterTick(sim, audio);
           samplePortalAudioAfterTick(sim, audio);
           footstepSamplerTimer.sample(performance.now() - sampleStartedMs);
         }
+      } else {
+        drainCompletionAudioAfterTick(sim, audio, false);
       }
     },
     flushCommands(): void {
@@ -524,8 +547,19 @@ async function main(): Promise<void> {
   const personalDetailsPanel = new PersonalDetailsPanel(sim, sim.needNames(),
     createPersonalDetailsSurface(document, personalDetailsEmpty, personalDetailsContent), sim.needBarRefreshMs(),
     () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
+  const bedAssignmentSurface = createBedAssignmentSurface(document, personalDetails, {
+    choose: place => bedAssignmentPanel.choose(place),
+    assign: () => bedAssignmentPanel.assign(),
+    clear: () => bedAssignmentPanel.clear(),
+  });
+  const bedAssignmentPanel = new BedAssignmentPanel(sim, bedAssignmentSurface, sim.needBarRefreshMs(),
+    () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
   personalDetails.addEventListener('toggle', () => {
-    if (personalDetails.open) personalDetailsPanel.update(performance.now(), true);
+    if (personalDetails.open) {
+      const nowMs = performance.now();
+      personalDetailsPanel.update(nowMs, true);
+      bedAssignmentPanel.update(nowMs, true);
+    }
   });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
@@ -546,6 +580,9 @@ async function main(): Promise<void> {
   const clockValue = document.querySelector<HTMLElement>('#clock-value');
   const fundsValue = document.querySelector<HTMLElement>('#funds-value');
   const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
+  const satisfactionSummary = document.querySelector<HTMLElement>('#satisfaction-summary');
+  const satisfactionLabel = document.querySelector<HTMLElement>('#satisfaction-label');
+  const satisfactionMeter = document.querySelector<HTMLMeterElement>('#satisfaction-meter');
   const careerRow = document.querySelector<HTMLElement>('#career-row');
   const careerValue = document.querySelector<HTMLElement>('#career-value');
   const activityValue = document.querySelector<HTMLElement>('#activity-value');
@@ -560,6 +597,9 @@ async function main(): Promise<void> {
     !clockValue ||
     !fundsValue ||
     !satisfactionValue ||
+    !satisfactionSummary ||
+    !satisfactionLabel ||
+    !satisfactionMeter ||
     !careerRow ||
     !careerValue ||
     !activityValue ||
@@ -572,6 +612,7 @@ async function main(): Promise<void> {
     throw new Error('missing player status markup');
   }
   const compactHudQuery = window.matchMedia(COMPACT_HUD_MEDIA_QUERY);
+  const compactBuildQuery = window.matchMedia('(max-width: 700px), (max-height: 480px)');
   const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
   const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close());
   compactHud.setCompact(compactHudQuery.matches);
@@ -579,16 +620,19 @@ async function main(): Promise<void> {
   const dockTraitsEmpty = document.getElementById('dock-traits-empty');
   const queueEmpty = document.getElementById('queue-empty');
   const dockAlert = document.getElementById('dock-alert');
-  if (!dockActivity || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
+  const dockCritical = document.getElementById('dock-critical');
+  if (!dockActivity || !dockCritical || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
   const needMeters = Array.from(needsContent.querySelectorAll<HTMLElement>('[role="meter"]'));
   const syncDockSummary = () => {
     const critical = needsContent.hidden ? [] : needMeters
       .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
       .map(meter => meter.getAttribute('aria-label'));
-    const activity = critical.length ? `Critical: ${critical.join(', ')}`
-      : [activityValue.textContent, moodContent.hidden ? '' : moodLabel.textContent].filter(Boolean).join(' / ');
+    // The current activity always shows; critical needs get their own line.
+    const activity = activityValue.textContent ?? '';
+    const urgent = critical.length ? `Critical: ${critical.join(', ')}` : '';
     dockActivity.dataset.urgent = String(critical.length > 0);
     if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
+    if (dockCritical.textContent !== urgent) dockCritical.textContent = urgent;
     dockTraitsEmpty.hidden = !traitsBlock.hidden;
     queueEmpty.hidden = !actionQueueRoot.hidden;
     const warning = householdWarningText(householdRosterRoot.querySelectorAll<HTMLElement>('.household-member'));
@@ -624,10 +668,16 @@ async function main(): Promise<void> {
   );
   compactHudQuery.addEventListener('change', (event) => {
     compactHud.setCompact(event.matches);
+  });
+  compactBuildQuery.addEventListener('change', (event) => {
     builderControls.setCompact(event.matches);
     wallControls?.setCompact(event.matches);
+    windowControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
+    floorControls?.setCompact(event.matches);
+    placementActions?.invalidate();
+    syncBuildOptionsHost();
   });
   observeHudScrollbar(hudRoot);
   const gameHud = new GameHud(
@@ -642,6 +692,7 @@ async function main(): Promise<void> {
       orders: ordersValue,
     },
     sim.needBarRefreshMs(),
+    createSatisfactionSurface(satisfactionSummary, satisfactionLabel, satisfactionMeter),
   );
   const householdRoster = new HouseholdRoster(
     sim,
@@ -663,6 +714,7 @@ async function main(): Promise<void> {
   moodPanel.update(initialHudMs, true);
   traitsPanel.update(initialHudMs, true);
   personalDetailsPanel.update(initialHudMs, true);
+  bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -866,12 +918,14 @@ async function main(): Promise<void> {
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.windows = sim.windowLines();
+          lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
           // [FL-draw]: the loaded house's own painted tiles. Without this the
           // previous game's floors stayed on screen, and on a lot of another
           // height they landed on unrelated tiles, because the renderer keys
           // the list by height.
           lot.floors = sim.floorTiles();
           lot.doors = sim.interiorDoorLines();
+          lot.horizontalDoors = sim.interiorHorizontalDoorLines();
           lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.
           lot.street = sim.streetColumn();
@@ -883,8 +937,10 @@ async function main(): Promise<void> {
           keyboardTargets.clear();
           builder.resetAfterLoad();
           housemateForm.resetAfterLoad();
+          bedAssignmentPanel.resetAfterLoad();
           syncNewHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
+          windowTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
           roomTool.resetAfterLoad(lotWidth, lotHeight);
           floorTool.resetAfterLoad(lotWidth, lotHeight);
@@ -895,6 +951,7 @@ async function main(): Promise<void> {
           moodPanel.update(nowMs, true);
           traitsPanel.update(nowMs, true);
           personalDetailsPanel.update(nowMs, true);
+          bedAssignmentPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -940,6 +997,7 @@ async function main(): Promise<void> {
   housemateDialog.addEventListener('close', () => {
     overlayPause.resume('housemate');
     syncNewHousemateButton();
+    restorePersistenceFocus(document, housemateDialog, optionsToggle, persistenceFocusFallbacks);
   });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
@@ -1063,10 +1121,14 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
+    windowPreview: null as import('./architecture/windows.js').WindowEditPreview | null,
+    architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue(),
+      finishes: architectureAtlas.finishes },
+    floorPreview: null as readonly [number, number, number] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
-    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
+    doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
@@ -1077,7 +1139,7 @@ async function main(): Promise<void> {
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
   const buildSky = (): SkyExposure =>
-    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile);
+    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile, lot.windows);
   let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
@@ -1177,12 +1239,13 @@ async function main(): Promise<void> {
       sky,
     );
     wallFade.configure(staticGeometry.lowInstances, staticGeometry.lowPanels, lot.width, lot.height);
+    renderer.setArchitectureCamera(camera.originX, camera.originY);
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count, staticGeometry.lowInstances);
     cameraDirty = false;
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
   // and the flag coalesces the burst into one rebuild on the next frame.
-  let placementActions: PlacementActions | undefined;
+  let placementActions: BuildContextActions | undefined;
   window.addEventListener('resize', () => {
     cameraDirty = true;
     placementActions?.invalidate();
@@ -1227,12 +1290,24 @@ async function main(): Promise<void> {
   // [BM-shell]. The third tool, beside Furniture and Walls.
   let buyControls: BuyToolControls | undefined;
   let toolSwitch: BuildToolSwitch | undefined;
+  let windowControls: WindowToolControls | undefined;
+  const windowTool = new WindowTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      placementActions?.invalidate();
+      lot.windowPreview = windowTool.preview();
+      cameraDirty = true;
+      windowControls?.render();
+      wallControls?.render();
+    },
+  });
   const wallTool = new WallTool(sim, lotWidth, lotHeight, {
     changed: () => {
       wallControls?.render();
+      windowControls?.render();
       toolSwitch?.render();
+      placementActions?.invalidate();
     },
-  });
+  }, windowTool);
   const buyTool = new BuyTool(sim, lotWidth, lotHeight, {
     changed: () => {
       buyControls?.render();
@@ -1246,42 +1321,90 @@ async function main(): Promise<void> {
     changed: () => {
       roomControls?.render();
       toolSwitch?.render();
+      placementActions?.invalidate();
     },
   });
   // [FL-tool]. A covering laid on one tile, beside the tools that move
   // walls and furniture.
   let floorControls: FloorToolControls | undefined;
+  let floorResourceError: string | null = null;
+  let syncFloorResources = (): void => {};
   const floorTool = new FloorTool(sim, lotWidth, lotHeight, {
     changed: () => {
+      syncFloorResources();
+      lot.floorPreview = floorTool.preview();
+      cameraDirty = true;
       floorControls?.render();
       toolSwitch?.render();
+      placementActions?.invalidate();
     },
   });
+  const presentFloorSceneStatus = createFloorSceneStatus(document, stage, () => floorResources.retry());
+  const floorScene = new FloorScenePresentation({
+    suspend: () => overlayPause.suspend('floor-materials'),
+    resume: () => overlayPause.resume('floor-materials'),
+    status: presentFloorSceneStatus,
+  });
+  const syncFloorScene = () => floorScene.update(activeFloorFinishKeys(sim.floorTiles(), null),
+    lot.architecture.finishes?.keys ?? [], floorResourceError);
+  const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; finishes: ActiveFinishes | undefined }>({
+    prepare: async finishKeys => {
+      const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys });
+      try { return { renderer: await SpriteRenderer.create(gpu, atlas), finishes: atlas.finishes }; }
+      finally { closeArchitectureAtlas(atlas); }
+    },
+    publish: next => {
+      const previous = renderer, previousFinishes = lot.architecture.finishes;
+      renderer = next.renderer;
+      lot.architecture.finishes = next.finishes;
+      lot.floors = sim.floorTiles();
+      try { applyCamera(); }
+      catch (error) {
+        renderer = previous;
+        lot.architecture.finishes = previousFinishes;
+        throw error;
+      }
+      previous.destroy();
+    },
+    dispose: next => next.renderer.destroy(),
+    state: (ready, error) => {
+      floorResourceError = error;
+      if (error) console.warn('Floor material resource failed', error);
+      floorTool.setResourceStatus(ready ? null : error ? 'Floor materials could not load. Try again.' : 'Loading floor materials.', error !== null);
+      syncFloorScene();
+      cameraDirty = true;
+    },
+  });
+  syncFloorResources = () => {
+    floorResources.request(activeFloorFinishKeys(sim.floorTiles(), floorTool.active ? floorTool.chosen : null));
+    syncFloorScene();
+  };
+  syncFloorResources();
   const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
-  // [PA-show]: Confirm and Cancel over the piece being placed. They sit
+  // [PA-show]: Context actions surround the active selection. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
   // window.
   const placementRoot = document.querySelector<HTMLElement>('#placement-actions');
-  const placementConfirm = document.querySelector<HTMLButtonElement>('#placement-confirm');
-  const placementCancel = document.querySelector<HTMLButtonElement>('#placement-cancel');
   const builderDock = document.querySelector<HTMLElement>('#builder-dock');
-  if (!placementRoot || !placementConfirm || !placementCancel || !builderDock) {
+  if (!placementRoot || !builderDock) {
     throw new Error('missing the placement buttons');
   }
+  const contextLayout = createCompactBuildLayout(document, placementRoot, () => compactBuildQuery.matches);
   // [PA-place]: clear of the desktop sidebar, which holds the Build panel,
   // and of the compact world controls. The Build dock bounds the bottom.
   const placementKeepOut = (): KeepOut => {
     const gear = hudRoot.getBoundingClientRect();
+    const options = optionsPanel.hidden ? gear : optionsPanel.getBoundingClientRect();
     return {
-      left: compactHudQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
+      left: compactBuildQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
       gearLeft: gear.left,
-      gearBottom: gear.bottom,
-      gearRight: gear.right,
+      gearBottom: Math.max(gear.bottom, options.bottom),
+      gearRight: Math.max(gear.right, options.right),
     };
   };
   const dockTop = (): number => {
     const panel = builderDock.querySelector<HTMLElement>('#builder-controls');
-    return compactHudQuery.matches && panel !== null && !panel.hidden
+    return compactBuildQuery.matches && panel !== null && !panel.hidden
       ? builderDock.getBoundingClientRect().top
       : document.documentElement.clientHeight;
   };
@@ -1292,27 +1415,51 @@ async function main(): Promise<void> {
     },
     enter() {
       optionsMenu.close();
+      document.querySelectorAll<HTMLDetailsElement>('#builder-controls .shortcuts').forEach(section => { section.open = false; });
       canvas.focus();
       menu.close();
       keyboardTargets.clear();
       compactHud.beginEditing();
+      syncBuildOptionsHost();
       cameraDirty = true;
     },
     exit() {
+      contextLayout.setRows(false);
       wallTool.exit();
       roomTool.exit();
       buyTool.exit();
+      floorTool.exit();
       compactHud.endEditing();
+      syncBuildOptionsHost();
       optionsMenu.close();
       document.querySelector<HTMLButtonElement>('#build-toggle')?.focus();
       cameraDirty = true;
     },
   });
-  const placementButtons = new PlacementActions(
-    createPlacementActionsSurface(document, placementRoot, placementConfirm, placementCancel, stage,
-      dockTop, placementKeepOut, () => placementButtons.confirm(), () => placementButtons.cancel()),
-    builder,
-    buyTool,
+  function syncBuildOptionsHost(): void {
+    if (!optionsRoot) return;
+    const host = document.getElementById(builder.active && compactBuildQuery.matches ? 'build-camera' : 'world-actions')!;
+    if (optionsRoot.parentElement === host) return;
+    const focused = optionsRoot.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
+    host.append(optionsRoot);
+    focused?.focus();
+  }
+  const placementButtons = new BuildContextActions(
+    { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
+      suspended: () => optionsMenu.isOpen(),
+      focusCatalogue: () => document.querySelector<HTMLSelectElement>('#buy-object')?.focus() },
+    createContextSurface(document, placementRoot, stage,
+      () => {
+        const zoom = document.querySelector<HTMLElement>('#build-camera')!.getBoundingClientRect();
+        return { width: document.documentElement.clientWidth, bottom: dockTop(), keepOut: placementKeepOut(),
+          topRight: { left: zoom.left, bottom: zoom.bottom } };
+      },
+      () => placementActions?.invalidate(), contextLayout, (dx, dy) => {
+        const rect = stage.getBoundingClientRect();
+        camera.originX += dx * stage.width / rect.width;
+        camera.originY += dy * stage.height / rect.height;
+        clampCamera(); applyCamera();
+      }),
     // The visible art: its height from the content bounds, which cover
     // furniture, and the taller of the body and its foreground layer.
     (ghost) => ({
@@ -1323,16 +1470,36 @@ async function main(): Promise<void> {
   );
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;
+  installShortcuts(document, sim.coveringNames());
   builderControls = new BuilderControls(document, builder);
-  builderControls.setCompact(compactHudQuery.matches);
+  builderControls.setCompact(compactBuildQuery.matches);
   wallControls = new WallToolControls(document, wallTool);
-  wallControls.setCompact(compactHudQuery.matches);
+  wallControls.setCompact(compactBuildQuery.matches);
+  windowControls = new WindowToolControls(document, windowTool, wallTool);
+  windowControls.setCompact(compactBuildQuery.matches);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames());
-  buyControls.setCompact(compactHudQuery.matches);
+  buyControls.setCompact(compactBuildQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
-  roomControls.setCompact(compactHudQuery.matches);
-  floorControls = new FloorToolControls(document, floorTool);
-  floorControls.setCompact(compactHudQuery.matches);
+  roomControls.setCompact(compactBuildQuery.matches);
+  floorControls = new FloorToolControls(document, floorTool, (canvas, covering) =>
+    drawFloorSwatch(canvas, covering, lot.coveringLooks.subarray((covering - 1) * 3, covering * 3)), () => floorResources.retry());
+  floorControls.setCompact(compactBuildQuery.matches);
+  document.querySelector<HTMLButtonElement>('#builder-exit')?.addEventListener('click', () => builder.exit());
+  const zoomView = (direction: -1 | 1): void => {
+    const rect = stage.getBoundingClientRect();
+    const bounds = placementKeepOut();
+    const free = contextLayout.freeArea();
+    const anchorX = ((free ? free.left + free.width / 2 : (bounds.left + rect.right) / 2) - rect.left) * stage.width / rect.width;
+    const centerY = free ? free.top + free.height / 2
+      : compactBuildQuery.matches ? (bounds.gearBottom + dockTop()) / 2 : (rect.top + rect.bottom) / 2;
+    const anchorY = (centerY - rect.top) * stage.height / rect.height;
+    const scale = clampZoom(camera.scale * 1.12 ** direction);
+    const origin = zoomAnchoredOrigin(camera.originX, camera.originY, anchorX, anchorY, camera.scale, scale);
+    camera.scale = scale; camera.originX = origin.x; camera.originY = origin.y;
+    clampCamera(); cameraDirty = true;
+  };
+  document.querySelector('#build-zoom-in')?.addEventListener('click', () => zoomView(1));
+  document.querySelector('#build-zoom-out')?.addEventListener('click', () => zoomView(-1));
   toolSwitch = new BuildToolSwitch(document, [
     { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
     { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
@@ -1348,6 +1515,12 @@ async function main(): Promise<void> {
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
     if (builder.active) {
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
+        && event.key.toLowerCase() === 'n') {
+        if (toolSwitch?.select('build-tool-walls')) wallTool.selectWindows();
+        event.preventDefault();
+        return;
+      }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && routeBuildKey(event.key, buildTools, builder)) {
         event.preventDefault();
@@ -1536,16 +1709,21 @@ async function main(): Promise<void> {
     roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
     floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
+    windowTool.afterCommands();
     roomTool.afterCommands();
     floorTool.afterCommands();
     buyTool.afterCommands();
     housemateForm.afterCommands();
+    bedAssignmentPanel.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
       lot.windows = sim.windowLines();
+      lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
       lot.floors = sim.floorTiles();
+      syncFloorResources();
       lot.doors = sim.interiorDoorLines();
+      lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lightingDirty = true;
       cameraDirty = true;
       keyboardTargets.clear();
@@ -1556,47 +1734,48 @@ async function main(): Promise<void> {
     if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
-    if (cameraDirty) applyCamera();
-    // [PA-place]: after the camera settles, so the buttons follow this
-    // frame's pan and zoom.
-    placementButtons.frame(camera, stage.width, stage.height);
-    // Editing marks the original furniture; play mode marks the selected Sim.
-    const selected = builder.active ? builder.selected : sim.selectedIndex();
-    const instances = buildInstances(
-      sim,
-      alpha,
-      camera.originX,
-      camera.originY,
-      depthScale,
-      selected,
-      camera.scale,
-      reducedMotion.matches,
-      sim.clockTick(),
-      lightingMode.isFlat() ? null : lighting,
-      undefined,
-      buyTool.ghost() ?? builder.preview,
-      wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight(),
-      // A purchase in the Buy tool's colourway; a moved object in its own.
-      buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
-      sky,
-    );
-    // The day/night cycle. `LightingMode` combines the player's saved flat
-    // choice with reduced motion's temporary constraint, so one effective
-    // state governs ambient light, pools, and the button without rewriting
-    // the player's preference.
-    const ambient = lightingMode.isFlat()
-      ? AMBIENT_NEUTRAL
-      : ambientFor(sim.clockTick(), sim.dayTicks());
-    wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
-    renderer.draw(
-      instances,
-      instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,
-        wallTool.highlight() ?? roomTool.highlight()),
-      camera.scale,
-      ambient,
-      // [OS-daylight]: the sky shades the house by day; flat light is even.
-      lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),
-    );
+    if (floorScene.visible) {
+      if (cameraDirty) applyCamera();
+      // [PA-place]: after the camera settles, so the buttons follow this
+      // frame's pan and zoom.
+      placementButtons.frame(camera, stage.width, stage.height);
+      // Editing marks the original furniture; play mode marks the selected Sim.
+      const selected = builder.active ? builder.selected : sim.selectedIndex();
+      const batch = buildInstanceBatch(
+        sim,
+        alpha,
+        camera.originX,
+        camera.originY,
+        depthScale,
+        selected,
+        camera.scale,
+        reducedMotion.matches,
+        sim.clockTick(),
+        lightingMode.isFlat() ? null : lighting,
+        undefined,
+        buyTool.ghost() ?? builder.preview,
+        wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight(),
+        // A purchase in the Buy tool's colourway; a moved object in its own.
+        buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
+        sky,
+      );
+      // The day/night cycle. `LightingMode` combines the player's saved flat
+      // choice with reduced motion's temporary constraint, so one effective
+      // state governs ambient light, pools, and the button without rewriting
+      // the player's preference.
+      const ambient = lightingMode.isFlat()
+        ? AMBIENT_NEUTRAL
+        : ambientFor(sim.clockTick(), sim.dayTicks());
+      wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
+      renderer.draw(
+        batch.instances,
+        batch.count,
+        camera.scale,
+        ambient,
+        // [OS-daylight]: the sky shades the house by day; flat light is even.
+        lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),
+      );
+    }
 
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside
@@ -1612,6 +1791,7 @@ async function main(): Promise<void> {
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
     personalDetailsPanel.update(nowMs);
+    bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
@@ -1653,6 +1833,7 @@ async function main(): Promise<void> {
           return audio.activeObjectLoopCount();
         },
         get doorVoices() { return audio.activeDoorVoiceCount(); },
+        get toiletVoices() { return audio.activeToiletVoiceCount(); },
         get doorTracks() { return audio.doorTrackCount(); },
         get doorCapacity() { return audio.doorTrackCapacity(); },
         get retainedObjectLoopVoices() {

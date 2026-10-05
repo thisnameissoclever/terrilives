@@ -38,8 +38,7 @@ pub struct WallEditResult {
 #[derive(Debug)]
 pub struct WallPlan {
     pub changed: bool,
-    edges: Vec<WallEdge>,
-    windows: Vec<terri_core::layout::WallLine>,
+    layout: SavedLayout,
     grid: TileGrid,
 }
 
@@ -179,8 +178,16 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
         y: edit.y,
         doorway: edit.state == WallState::Doorway,
     };
-    // Interior boundaries only: the outside wall belongs with [B-outside].
-    if !line.in_bounds(live.width() as u32, live.height() as u32) {
+    let requested_line = terri_core::layout::WallLine {
+        axis: edit.axis,
+        x: edit.x,
+        y: edit.y,
+    };
+    let owner = layout.window_at(requested_line);
+    // A rear window can be restored to shell, but never opened as a wall edit.
+    let rear_restore =
+        owner.is_some() && super::windows::is_rear(requested_line) && edit.state == WallState::Wall;
+    if !rear_restore && !line.in_bounds(live.width() as u32, live.height() as u32) {
         return Err(OutOfBounds);
     }
     // [OS-door]: a barrier on the front door's line would shut the door.
@@ -193,58 +200,83 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
         return Err(BlockedDoor);
     }
 
-    let existing = edges
-        .iter()
-        .position(|e| e.axis == edit.axis && e.x == edit.x && e.y == edit.y);
-    let requested_line = terri_core::layout::WallLine {
-        axis: edit.axis,
-        x: edit.x,
-        y: edit.y,
-    };
     if layout.state_of(requested_line) == edit.state {
         return Ok(WallPlan {
             changed: false,
-            edges: edges.to_vec(),
-            windows: layout.windows().to_vec(),
+            layout: layout.clone(),
             grid: live.clone(),
         });
     }
-
-    // The record is updated where it is, appended when new and removed when
-    // opened. Never re-sorted, so the same edits in the same order give the
-    // same save bytes - [WT-apply].
     let mut next = edges.to_vec();
-    match (existing, edit.state) {
-        // A window keeps no wall record: the line moves from one list to the
-        // other, never sitting in both ([WN-state]).
-        (Some(index), WallState::Open | WallState::Window) => {
-            next.remove(index);
+    let mut windows = layout.window_placements();
+    let mut affected = vec![requested_line];
+    if let Some(owner) = owner {
+        affected = owner.checked_lines().ok_or(OutOfBounds)?;
+        windows.retain(|w| *w != owner);
+        // Doorway edits open only the clicked segment; the rest becomes wall.
+        if edit.state == WallState::Doorway {
+            let remaining: Vec<_> = affected
+                .iter()
+                .copied()
+                .filter(|l| *l != requested_line)
+                .collect();
+            super::windows::restore_solid(&mut next, &remaining);
         }
-        (Some(index), state) => next[index].doorway = state == WallState::Doorway,
-        (None, WallState::Open | WallState::Window) => {}
-        (None, _) => next.push(line),
     }
-    let mut windows = layout.windows().to_vec();
-    windows.retain(|held| *held != requested_line);
+    let edited = if edit.state == WallState::Doorway {
+        vec![requested_line]
+    } else {
+        affected.clone()
+    };
+    for &segment in &edited {
+        let existing = next
+            .iter()
+            .position(|e| e.axis == segment.axis && e.x == segment.x && e.y == segment.y);
+        match (existing, edit.state) {
+            (Some(index), WallState::Open | WallState::Window) => {
+                next.remove(index);
+            }
+            (Some(index), state) => next[index].doorway = state == WallState::Doorway,
+            (None, WallState::Open | WallState::Window) => {}
+            (None, _) if !super::windows::is_rear(segment) => next.push(super::windows::record(
+                segment,
+                edit.state == WallState::Doorway,
+            )),
+            (None, _) => {}
+        }
+    }
     if edit.state == WallState::Window {
-        windows.push(requested_line);
+        windows.push(terri_core::windows::WindowPlacement {
+            line: requested_line,
+            model: terri_core::windows::WindowModel::Sash,
+        });
     }
-    let [a, b] = line.cells();
+    let candidate = super::windows::with_architecture(layout, next, windows);
+    super::windows::validate_window_layout(
+        &candidate,
+        live.width() as u32,
+        live.height() as u32,
+        world.resource::<Content>().0.lot.house,
+    )?;
     let mut grid = live.clone();
-    grid.set_edge_blocked(a, b, edit.state.blocks_movement());
-
-    // Opening a line or making it a doorway only ever removes a barrier, so
-    // it cannot cut anything off. Running the proofs for it would refuse to
-    // mend a house that was already in trouble. A window is a barrier and is
-    // held to every proof a wall is ([WN-rules]).
-    if edit.state.blocks_movement() {
-        check_new_walls(world, &rectangles, &grid, &[[a, b]])?;
+    let mut barriers = Vec::new();
+    for segment in affected {
+        if super::windows::is_rear(segment) {
+            continue;
+        }
+        let [a, b] = super::windows::record(segment, false).cells();
+        let blocked = candidate.state_of(segment).blocks_movement();
+        grid.set_edge_blocked(a, b, blocked);
+        if blocked {
+            barriers.push([a, b]);
+        }
     }
-
+    if !barriers.is_empty() {
+        check_new_walls(world, &rectangles, &grid, &barriers)?;
+    }
     Ok(WallPlan {
-        changed: true,
-        edges: next,
-        windows,
+        changed: candidate != *layout,
+        layout: candidate,
         grid,
     })
 }
@@ -256,7 +288,7 @@ pub(crate) fn commit(world: &mut World, edit: WallEdit) {
     if let Ok(plan) = result {
         if plan.changed {
             world.insert_resource(plan.grid);
-            world.insert_resource(SavedLayout::from_parts(plan.edges, plan.windows));
+            world.insert_resource(plan.layout);
             let mut state = world.resource_mut::<LotEditState>();
             state.revision = state.revision.saturating_add(1);
         }

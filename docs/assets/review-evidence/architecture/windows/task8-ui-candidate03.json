@@ -1,0 +1,200 @@
+{
+  "revision": "581dd7e350cc74b829c72975bde30049f07d92c1",
+  "cases": [
+    {
+      "tag": "desktop",
+      "cards": [
+        {
+          "id": "1",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "2",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "3",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "4",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "5",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "6",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "7",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "8",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        },
+        {
+          "id": "9",
+          "width": 175,
+          "scroll": 175,
+          "font": "28px"
+        }
+      ],
+      "tabs": [
+        {
+          "id": "build-tool-furniture",
+          "width": 185,
+          "scroll": 185,
+          "text": "Furniture"
+        },
+        {
+          "id": "build-tool-walls",
+          "width": 83,
+          "scroll": 83,
+          "text": "Walls"
+        },
+        {
+          "id": "build-tool-room",
+          "width": 92,
+          "scroll": 92,
+          "text": "Room"
+        },
+        {
+          "id": "build-tool-buy",
+          "width": 73,
+          "scroll": 73,
+          "text": "Buy"
+        },
+        {
+          "id": "build-tool-floors",
+          "width": 102,
+          "scroll": 102,
+          "text": "Floors"
+        }
+      ],
+      "fit": {
+        "x": 17,
+        "y": 916.703125,
+        "width": 187,
+        "height": 43.1875
+      }
+    },
+    {
+      "tag": "touch",
+      "cards": [
+        {
+          "id": "1",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "2",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "3",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "4",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "5",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "6",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "7",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "8",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        },
+        {
+          "id": "9",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px"
+        }
+      ],
+      "tabs": [
+        {
+          "id": "build-tool-furniture",
+          "width": 118,
+          "scroll": 118,
+          "text": "Furniture"
+        },
+        {
+          "id": "build-tool-walls",
+          "width": 71,
+          "scroll": 71,
+          "text": "Walls"
+        },
+        {
+          "id": "build-tool-room",
+          "width": 79,
+          "scroll": 79,
+          "text": "Room"
+        },
+        {
+          "id": "build-tool-buy",
+          "width": 52,
+          "scroll": 52,
+          "text": "Buy"
+        },
+        {
+          "id": "build-tool-floors",
+          "width": 350,
+          "scroll": 350,
+          "text": "Floors"
+        }
+      ],
+      "fit": {
+        "x": 19,
+        "y": 781,
+        "width": 352,
+        "height": 44
+      }
+    }
+  ],
+  "visualReview": "All labels readable; cards/actions reachable by dock scrolling; desktop horizontal scrollbar removed. Both contexts closed and owned preview stopped."
+}

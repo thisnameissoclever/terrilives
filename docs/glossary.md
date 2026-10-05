@@ -122,7 +122,7 @@ multipliers. The overlay shows only the ones that deviate from neutral:
 | `relationships:` | The overlay's relationship line. |
 | **People panel** | The normal HUD's selected-person view of that same ordered value. It merges the complete live household with sparse relationship entries by stable `SimId`; a missing entry displays as Stranger. |
 | **relationship state** | The panel's plain-language band: Hostile, Dislikes, Wary, Stranger, Warm, Friendly, or Close. The centered meter still carries the exact direction and movement without printing float noise. |
-| **gain** | Each completed conversation adds 0.15 to both sides. Roughly seven chats takes strangers to best friends. |
+| **gain** | A completed conversation has a base affinity gain of 0.17 in each direction, scaled by compatibility. Poor hygiene or an unhelped critical need can block that person's gain. Pleasant proximity and recognized shared activities also contribute; see [relationship development](specs/2026-09-30-relationship-development.md). |
 | **decay** | Every relationship drifts toward zero by 0.00001 per tick - a grudge fades on the same clock a friendship does. Maintenance matters. |
 | **relationship scale** | A friend's conversation is worth up to 1.5x its authored value and a nemesis's 0.5x, so sims visibly prefer their friends. |
 
@@ -133,13 +133,13 @@ mood change it. It has no need bar to refill.
 
 | Term | Means |
 | --- | --- |
-| `life satisfaction` | An accumulator per sim, starting at 0 on move-in day. It can rise or fall but never below zero. Sustained positive and negative mood contribute each tick; activities, careers and neglect also contribute. There is no maximum. |
+| `life satisfaction` | A long-term assessment from 0 to 100, starting at 50 with at most nine points of trait adjustment. Sustained mood, completed activities, careers and neglect change it over game months and years. The dock shows a status meter; hover or focus reveals its exact score. See [life satisfaction](specs/2026-10-01-life-satisfaction.md). |
 | **hobby** | An activity tag a sim loves (`content/household.toml`). Completing a loved activity pays **3x** its base satisfaction. Tim loves correspondence and reading; Bill television and cooking; Casey socialising. |
 | **tag** | A label on an activity (`cooking`, `reading`, `socialising`) - the vocabulary hobbies and traits both key on, so one word covers every activity that counts as that thing. |
 | **deprivation** | Hunger or energy held at zero on consecutive simulation ticks. The counter resets when both recover. Death is enabled for new worlds and enabled once when older saves migrate; neglect remains a separate satisfaction penalty. |
 | **grief** | A derived negative moodlet after a household death. Its strength and duration use the survivor's preserved affinity at death. It fades linearly to zero over 10 game days for a neutral acquaintance through 60 for the closest relationship; hatred produces neither grief nor a happiness bonus. Later newcomers do not grieve earlier deaths. |
 | **death record** | Saved permanent SimId, name, cause, simulation tick and the identity boundary at death. It preserves a person after their entity is removed; family ties and survivors' affinities stay. |
-| **neglect** | Any need below 15 bleeds 0.002 life satisfaction per tick, per crisis. Keeping a sim alive is table stakes; failing to is a life quietly not worth living. |
+| **neglect** | Each need below 15 costs 0.00001 life-satisfaction points per tick, about 0.0144 per game day before rounding. |
 
 **Activity rewards pay on completion.** An interrupted activity pays no reward,
 which is the same rule habituation and relationships follow. Mood contributes
@@ -203,12 +203,12 @@ table. Authored in `content/chains.toml`.
 | **placement** | One object standing at one position. Several placements can share an object definition (two chairs, one `chair`). |
 | **footprint** | How many tiles an object occupies. A 2x1 bed blocks two tiles, and nothing may overlap it. |
 | **facing** | Which of the kit's four pre-rendered directions a placement is drawn with. Presentation only - the simulation neither knows nor cares which way a counter faces. |
-| **doorway** | A passable segment of a wall, recorded as its own line so it draws as a frame. A doorway on a vertical line holds a **door**. |
+| **doorway** | A passable segment of a wall, recorded as its own line. Doorways on both wall axes hold a **door** when the lot has the authored door style. |
 | **family tie** | What one household member is to another: partner, parent, child or sibling. Chosen when somebody moves in, saved with the house, and shown beside the feeling in the relationship list. One stored fact per pair, read from either end, so a parent one way is a child the other. It names both people by SimId, never by entity index, so it stays with them whatever happens to the entity that carries them. Nothing in the simulation behaves differently for it yet. |
 | **floor covering** | What the player has laid on a tile with the Floors tool: Boards, Tiles or Carpet, or nothing, which leaves the tile drawn by where it is. It changes how the tile is drawn and nothing else: nobody walks differently on carpet. Saved per painted tile. |
 | **window** | A wall line nobody walks through and the day comes through: it stops people exactly as a wall does, passes **sky exposure** as a doorway does, and stops a lamp's pool as a wall does. Fitted with Window in the Walls tool. Drawn as the wall panel it stands in, washed pale blue, until there is window art. The front door's line never becomes one. |
 | **line** | In the Walls tool, the boundary between two neighbouring floor tiles. Each line is open, a wall, a doorway or a **window**. The outside edge of the lot is not a line the tool can change, and the front door's line never becomes a wall or a window. |
-| **door** | A hinged door standing in a doorway, which swings open as a sim walks through and closes behind them. Every doorway on a vertical line has one when the lot's front door has art for a vertical line, as the shipped lot's does, and it is drawn with that art; doorways on horizontal lines stay open frames until their art exists. A door blocks nobody and is not saved: it follows from the walls. |
+| **door** | A hinged door standing in a doorway, which swings open as a sim walks through and closes behind them. The authored front-door style supplies solid models for both doorway axes, as used by the shipped lot. A door blocks nobody and is not saved: it follows from the walls. |
 | **retired index** | An entity index a sale took out of use. The sold object is despawned without freeing its index, so no later spawn can take it; the V4 save lists every retired index so a Load keeps them out of use too. |
 | **colourway** | A colour shift the game can draw a placed object in: its hues turned, its colours made stronger or weaker, its lightness shifted, with the colour of ink, metal and white left alone. Chosen in the Furniture tool's Colour list and saved with the game; the first colourway is the art as drawn. [RC-shift] in `docs/specs/2026-09-22-colourways.md`. |
 | **Room tool** | Build mode's fourth tool. The player chooses two opposite corner tiles and, if they like, a line of the outline as the doorway, and Build room walls the whole outline in one edit. The whole room is refused or built together. |

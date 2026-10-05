@@ -1,0 +1,56 @@
+### Result
+{"originalPlayback":[{"file":"paper_01.ogg","completed":true,"status":"Finished paper_01.ogg. Playback completion is not an approval."},{"file":"paper_02.ogg","completed":true,"status":"Finished paper_02.ogg. Playback completion is not an approval."},{"file":"paper_03.ogg","completed":true,"status":"Finished paper_03.ogg. Playback completion is not an approval."},{"file":"paper_04.ogg","completed":true,"status":"Finished paper_04.ogg. Playback completion is not an approval."}],"errors":[],"switch":{"previousEndedHandlerRemoved":true,"interruptedNotCompleted":true,"status":"Playing paper_02.ogg: 15-second native loop (0.548 s source)."},"stop":{"inactive":true,"interruptedNotCompleted":true},"repeat":{"elapsedMs":15047,"completed":true},"download":{"filename":"household-sound-review.json","failure":null},"mobile":{"width":390,"scrollWidth":375,"noHorizontalOverflow":true}}
+### Ran Playwright code
+```js
+await (async (page) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const report = { originalPlayback: [], errors };
+  try {
+    await page.context().setOffline(true);
+    for (let index = 0; index < 4; index++) {
+      await page.getByRole('button', { name: 'Play original', exact: true }).nth(index).click();
+      await page.waitForFunction(i => results[i].completedOriginal && active === null, index);
+      report.originalPlayback.push(await page.evaluate(i => ({ file: results[i].file,
+        completed: results[i].completedOriginal, status: status.textContent }), index));
+    }
+    await page.getByRole('button', { name: 'Repeat for 15 seconds', exact: true }).nth(0).click();
+    await page.waitForFunction(() => active !== null);
+    await page.evaluate(() => { window.previousSource = active.source; });
+    await page.getByRole('button', { name: 'Repeat for 15 seconds', exact: true }).nth(1).click();
+    await page.waitForFunction(() => active !== null && active.source !== window.previousSource);
+    report.switch = await page.evaluate(() => ({ previousEndedHandlerRemoved: window.previousSource.onended === null,
+      interruptedNotCompleted: !results[0].completedRepeat, status: status.textContent }));
+    await page.getByRole('button', { name: 'Stop all', exact: true }).click();
+    report.stop = await page.evaluate(() => ({ inactive: active === null,
+      interruptedNotCompleted: !results[1].completedRepeat }));
+    const started = Date.now();
+    await page.getByRole('button', { name: 'Repeat for 15 seconds', exact: true }).nth(2).click();
+    await page.waitForFunction(() => results[2].completedRepeat && active === null, undefined, { timeout: 20000 });
+    report.repeat = { elapsedMs: Date.now() - started, completed: true };
+    await page.getByRole('combobox', { name: 'Decision', exact: true }).nth(0).selectOption('keep');
+    await page.getByRole('textbox', { name: 'Listening notes and possible use', exact: true }).nth(0)
+      .fill('AUTOMATED EXPORT TEST ONLY. No listening judgment or shipping approval.');
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download review notes', exact: true }).click();
+    const download = await downloadPromise;
+    await download.saveAs('D:/VIBES/.worktrees/audio-candidate-review/terrilives/.tmp/paper-review-export.json');
+    report.download = { filename: download.suggestedFilename(), failure: await download.failure() };
+    report.mobile = await page.evaluate(() => ({ width: innerWidth,
+      scrollWidth: document.documentElement.scrollWidth, noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth }));
+    return report;
+  } finally {
+    await page.context().setOffline(false);
+    await page.getByRole('button', { name: 'Stop all', exact: true }).click();
+  }
+}
+)(page);
+```
+### Page
+- Page URL: http://127.0.0.1:5205/audio-review.html
+- Page Title: Paper sound review
+- Console: 1 errors, 0 warnings
+### Events
+- New console entries: .playwright-cli\console-2026-10-01T08-56-33-433Z.log#L3
+- Downloading file household-sound-review.json ...
+- Downloaded file household-sound-review.json to ".playwright-cli\household-sound-review.json"

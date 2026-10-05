@@ -1,0 +1,59 @@
+{
+  "name": "horizontal-door",
+  "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+  "source": "web/src/render/architecture-geometry.ts",
+  "sourceSha256": "dfc6eacb7f40df69870e1864c4a53a093ffe6aa04e62dd3f4d17da24e571cd48",
+  "command": [
+    "cmd",
+    "/c",
+    "npm",
+    "test",
+    "--prefix",
+    "web",
+    "--",
+    "--maxWorkers=1",
+    "tests/architecture.test.ts",
+    "-t",
+    "hinged frames own both doorway orientations"
+  ],
+  "removed": "  for (let i = 0; i + 1 < (lot.horizontalHinged?.length ?? 0); i += 2) {\r\n    hinged.add(lineKey(1, lot.horizontalHinged![i], lot.horizontalHinged![i + 1]));\r\n  }\r\n",
+  "replacement": "",
+  "tests": {
+    "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+    "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+  },
+  "control": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:23.912789+00:00",
+    "finishedAt": "2026-10-02T18:14:25.115497+00:00",
+    "rawLogSha256": "f640823fb2084e9451d497fe99b46db5d958be78c5573a68c134f63b294f5f13",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/horizontal-door-control.log",
+    "resultOutput": " Test Files  1 passed (1)\n      Tests  2 passed | 13 skipped (15)"
+  },
+  "mutatedSha256": "2dd492655becc6e90d194083046b0d70e7750d0e25857cf92ab5f2ab23a8a064",
+  "mutated": {
+    "exitCode": 1,
+    "startedAt": "2026-10-02T18:14:25.115673+00:00",
+    "finishedAt": "2026-10-02T18:14:26.303577+00:00",
+    "rawLogSha256": "b6507d71fe2f96e1f0131cc86756d88f44b86cea7e91f68604791335cff6cd1e",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/horizontal-door-mutated.log",
+    "failureOutput": " FAIL  tests/architecture.test.ts > hinged frames own both doorway orientations with cutaway false\n FAIL  tests/architecture.test.ts > hinged frames own both doorway orientations with cutaway true\nAssertionError: expected true to be false // Object.is equality\n\n- Expected\n+ Received\n\n- false\n+ true\n\n \u276f tests/architecture.test.ts:233:72\n    231|     const panels = buildArchitectureWallGeometry({ ...base, edges, cut\u2026\n    232|       hinged: axis === 0 ? [3, 3] : [], horizontalHinged: axis === 1 ?\u2026\n    233|     expect(panels.some(panel => panel.fadeKey === `door/${axis}/3/3`))\u2026\n       |                                                                        ^\n    234|     expect(panels.some(panel => panel.fadeKey === `door/${1 - axis}/3/\u2026\n    235|   }",
+    "resultOutput": " Test Files  1 failed (1)\n      Tests  2 failed | 13 skipped (15)"
+  },
+  "restoredSha256": "dfc6eacb7f40df69870e1864c4a53a093ffe6aa04e62dd3f4d17da24e571cd48",
+  "exactByteRestoration": true,
+  "restored": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:26.303928+00:00",
+    "finishedAt": "2026-10-02T18:14:27.562308+00:00",
+    "rawLogSha256": "49e5bdeadf9f66ed3a40a2e2c88d3d8def6fec3e4533b35a181b581a43c60c11",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/horizontal-door-restored.log",
+    "resultOutput": " Test Files  1 passed (1)\n      Tests  2 passed | 13 skipped (15)"
+  },
+  "verdict": "PASS",
+  "sourceGitBlobSha256": "1ccf8e3e59b9bf6929de54c705f08360476214cc1443326d6bc69279df9658ea",
+  "testWitness": {
+    "path": "web/tests/architecture.test.ts",
+    "sha256": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc"
+  }
+}

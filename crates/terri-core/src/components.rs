@@ -30,6 +30,10 @@ pub struct SmartObject(pub ObjectDefId);
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Reserved;
 
+/// Physical sleeping place held by this agent's current Target, including travel.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SleepPlace(pub u8);
+
 /// A tile path being followed. `steps` excludes the origin tile.
 #[derive(Component, Debug, Clone)]
 pub struct Path {
@@ -441,7 +445,7 @@ impl Relationships {
 /// How well this sim's LIFE is going - the second axis, [E1] in
 /// `docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md`.
 ///
-/// An accumulator with no ceiling. Activity completions and career shifts
+/// A bounded long-term assessment. Activity completions and career shifts
 /// pay authored yields, conditions scale activity accrual, and neglect costs
 /// points. Sustained mood also contributes each tick, in either direction,
 /// under [MW-satisfaction]. Objects never advertise satisfaction as a need.
@@ -449,18 +453,77 @@ impl Relationships {
 /// Non-negative: a life cannot owe. [`Self::add`] holds the invariant
 /// so `world_hash`, which digests this, never sees a sign a replay
 /// could disagree about.
-#[derive(Component, Debug, Clone, Copy, Default, PartialEq)]
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct Satisfaction(f32);
 
+impl Default for Satisfaction {
+    fn default() -> Self {
+        Self(Self::INITIAL)
+    }
+}
+
 impl Satisfaction {
-    /// The accumulated total, `>= 0`.
+    pub const INITIAL: f32 = 50.0;
+    pub const MAX: f32 = 100.0;
+    pub const REWARD_SCALE: f32 = 0.001;
+    /// Restore an exact score, saturating historical totals above the new cap.
+    pub fn from_value(value: f32) -> Self {
+        Self(value.clamp(0.0, Self::MAX))
+    }
+    /// The current assessment, between zero and 100.
     pub fn value(&self) -> f32 {
         self.0
     }
     /// Moves the total by `amount` - negative for the neglect bleed -
-    /// clamped at zero from below and unbounded above.
+    /// clamped to the assessment's zero-to-100 range.
     pub fn add(&mut self, amount: f32) {
-        self.0 = (self.0 + amount).max(0.0);
+        self.0 = (self.0 + amount).clamp(0.0, Self::MAX);
+    }
+
+    /// Convert authored activity or career reward units to long-term points.
+    pub fn reward(&mut self, authored_amount: f32) {
+        self.add(authored_amount * Self::REWARD_SCALE);
+    }
+}
+
+#[cfg(test)]
+mod satisfaction_tests {
+    use super::Satisfaction;
+
+    #[test]
+    fn starts_neutral() {
+        assert_eq!(Satisfaction::default().value(), 50.0);
+    }
+
+    #[test]
+    fn clamps_both_ends() {
+        let mut score = Satisfaction::from_value(50.0);
+        score.add(70.0);
+        assert_eq!(score.value(), 100.0);
+        score.add(-110.0);
+        assert_eq!(score.value(), 0.0);
+    }
+
+    #[test]
+    fn converts_authored_reward_units() {
+        let mut score = Satisfaction::from_value(0.0);
+        score.reward(1000.0);
+        assert_eq!(score.value(), 1.0);
+    }
+
+    #[test]
+    fn restores_exact_values_and_saturates_historical_totals_idempotently() {
+        for (saved, expected) in [
+            (0.0, 0.0),
+            (24.25, 24.25),
+            (50.0, 50.0),
+            (100.0, 100.0),
+            (12345.0, 100.0),
+        ] {
+            let score = Satisfaction::from_value(saved);
+            assert_eq!(score.value(), expected);
+            assert_eq!(Satisfaction::from_value(score.value()), score);
+        }
     }
 }
 

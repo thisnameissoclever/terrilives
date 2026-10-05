@@ -1,0 +1,22 @@
+[
+  {
+    "path": "assets/models/sims/sim-01/sim-01-rigged.blend",
+    "hash": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "unchanged": true
+  },
+  {
+    "path": "web/src/render/atlas.ts",
+    "hash": "0effc1bbfa9a0ae5d3b010a23a1fdec22ddcf8a03d3a05ef88302faef5f9355d",
+    "unchanged": true
+  },
+  {
+    "path": "web/public/atlas.png",
+    "hash": "5099e359aca16902592e20e3f1532619d666bb53b95a36d63d7a2ca1d04622c4",
+    "unchanged": true
+  },
+  {
+    "path": "web/public/atlas-5099e359aca16902592e20e3f1532619d666bb53b95a36d63d7a2ca1d04622c4.png",
+    "hash": "5099e359aca16902592e20e3f1532619d666bb53b95a36d63d7a2ca1d04622c4",
+    "unchanged": true
+  }
+]

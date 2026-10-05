@@ -23,8 +23,8 @@
 # ---------------------------------------------------------------------------
 #
 # Kitchen x0..7 and living x8..15 occupy y0..5. Below y=5.5, bedroom
-# x0..5, study x6..11, and bathroom x12..15 occupy y6..11. Furniture
-# origins are unchanged. The former blocked wall cells are now usable floor.
+# x0..5, study x6..11, and bathroom x12..15 occupy y6..11. The former
+# blocked wall cells are now usable floor.
 # Doors: V(8,2), H(3,6), H(13,6), V(6,9), V(12,8).
 #
 # Five rooms, and the circulation is a **ring** rather than a tree:
@@ -71,21 +71,21 @@ width = 20
 height = 16
 house = { width = 16, height = 12 }
 
-# How a yard tile is drawn until there is grass art: the floor's art turned
-# from beige to a muted green, as a colourway turns furniture ([OS-yard]).
+# Yard grass colour settings, applied relative to its authored appearance
+# ([OS-yard]). The historical sprite path uses the same values as absolute shifts.
 yard = { hue = 65.0, strength = 2.0, lightness = -0.22 }
 
-# How the street is drawn until there is street art: the floor's art nearly
-# grey and darker. The street is the lot's last column across the yard from
-# the front door, where commutes end ([OS-street]).
+# Street asphalt colour settings, applied relative to its authored appearance.
+# The street is the lot's last column across the yard from the front door,
+# where commutes end ([OS-street]).
 street = { hue = 0.0, strength = 0.15, lightness = -0.22 }
 
 # What the player may lay on a floor tile, in the Floors tool's order
-# ([FL-content] in docs/specs/2026-09-22-floors.md). There is one floor
-# sprite, so each of these is that art under a colour shift, as the yard and
-# the street are; real floor art is [T-floor-art]. A covering's id is its
-# place in this list counted from 1, and 0 is the tile drawn by where it is,
-# so the list grows by appending and never by reordering.
+# ([FL-content] in docs/specs/2026-09-22-floors.md). Architecture materials
+# map each covering to its artwork and apply colour settings relative to the
+# authored appearance in all loaded layouts, including historical saves.
+# A covering's id is its place in this list counted from 1; 0 uses the tile's
+# location. Append new coverings without reordering existing entries.
 covering = [
   # Warmer and darker than the house's own floor: boards.
   { name = "Boards", hue = 18.0, strength = 1.15, lightness = -0.12 },
@@ -222,9 +222,9 @@ place = [
 
   # ---- Bedroom, x 0..5, y 6..11 ----------------------------------------
   #
-  # The double bed is in the corner furthest from everything, which is
-  # what makes "I am tired" a journey rather than a step to the left.
-  { object = "double_bed", x = 0.0, y = 6.0 },
+  # Both sleeping sides need open approaches. The north side has row 7;
+  # the south side uses (1, 10), beside the one-tile dresser.
+  { object = "double_bed", x = 0.0, y = 8.0 },
   { object = "nightstand", x = 2.0, y = 6.0, facing = "SW" },
   { object = "dresser", x = 0.0, y = 10.0 },
   # `moving_box` is the bike's historical Save V1 persistence key. Keep the

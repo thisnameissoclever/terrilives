@@ -894,7 +894,7 @@ describe('pickSprite', () => {
           facings: () => Uint32Array.from([facing]),
           clockTick: () => tick,
         };
-        for (const scale of [0.5, 1, 2.5]) {
+        for (const scale of [0.5, 1, 2.5, 3.25, 4]) {
           const box = drawnBox(tile, SPRITES[sprite].name, 100, 50, scale);
           const midY = (box.top + box.bottom) / 2;
           for (const [x, y] of [
@@ -1063,7 +1063,7 @@ describe('pickSprite', () => {
       activities: () => Uint32Array.from([1]),
     };
 
-    for (const scale of [0.5, 1, 2.5]) {
+    for (const scale of [0.5, 1, 2.5, 3.25, 4]) {
       const box = drawnBox(tile, 'sim', 0, 0, scale);
       // Limb frames share one fixed envelope. Walking and reduced motion must
       // therefore pick exactly the drawn box, with no invisible lift headroom.
@@ -1110,6 +1110,30 @@ describe('pickSprite', () => {
           true,
         ),
       ).not.toBeNull();
+    }
+  });
+
+  it('picks the displayed food transport body for idle and walking Sims', () => {
+    const tile = [8, 6] as const;
+    for (const action of [0, 5]) {
+      const rows: PickSource = {
+        ...source([[7, KIND_AGENT, ...tile]]),
+        visualActions: () => Uint32Array.from([action]),
+        facings: () => Uint32Array.from([1]),
+        carrying: () => Uint32Array.from([0]),
+        itemKinds: () => ['dinner'],
+        activities: () => Uint32Array.from([action === 5 ? 1 : 0]),
+      };
+      const sprite = simBodySprite(7, action, 1, 0, false, ...tile, undefined, 0, true);
+      const ordinary = simBodySprite(7, action, 1, 0, false, ...tile, undefined, 0, false);
+      const box = drawnBox(tile, SPRITES[sprite].name);
+      const x = box.centreX;
+      const y = (box.top + box.bottom) / 2;
+      expect(pickSprite(rows, x, y, 0, 0)?.entity).toBe(7);
+      // Isolate frame selection even when both animation envelopes overlap.
+      const bounds = { [ordinary]: [0, 0, 0, 0] as const };
+      expect(pickSprite(rows, x, y, 0, 0, 1, false, undefined, bounds)?.entity).toBe(7);
+      expect(pickSprite({ ...rows, carrying: undefined }, x, y, 0, 0, 1, false, undefined, bounds)).toBeNull();
     }
   });
 

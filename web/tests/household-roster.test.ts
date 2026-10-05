@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   HouseholdRoster,
@@ -315,6 +316,29 @@ describe('HouseholdRoster', () => {
 });
 
 describe('createHouseholdRosterSurface', () => {
+  it('skips unchanged button text without losing selection handlers or focus', () => {
+    const doc = new FakeDocument();
+    const root = new FakeRoot(doc);
+    const surface = createHouseholdRosterSurface(doc as unknown as Document, root as unknown as HTMLElement);
+    const members = [{ simId: 0, entity: 3, name: 'Terri' }];
+    surface.render(members, 0, () => undefined);
+    const button = root.items[0];
+    const probe = textWriteProbe(button);
+    button.focus();
+    const selected: number[] = [];
+    surface.render(members, 0, id => selected.push(id));
+    expect(probe.writes).toBe(0);
+    expect(doc.activeElement).toBe(button);
+    button.click();
+    expect(selected).toEqual([0]);
+    surface.render([{ ...members[0], warning: 'Needs food' }], 0, () => undefined);
+    expect(button.textContent).toBe('Needs food');
+    expect(probe.writes).toBe(1);
+    button.textContent = 'External change';
+    surface.render(members, 0, () => undefined);
+    expect(button.textContent).toBe('Terri');
+  });
+
   it('reuses correctly ordered buttons without moving or blurring focus', () => {
     const doc = new FakeDocument();
     const root = new FakeRoot(doc);

@@ -128,7 +128,8 @@ describe('the sun strength', () => {
   it('is none at night, full by day, and in between at dawn and dusk', () => {
     expect(sunStrength(ambientFor(at(0), DAY))).toBe(0);
     expect(sunStrength(ambientFor(at(3), DAY))).toBe(0);
-    expect(sunStrength(ambientFor(at(12), DAY))).toBeGreaterThan(0.95);
+    expect(sunStrength(ambientFor(0, 1440))).toBe(0);
+    expect(sunStrength(ambientFor(720, 1440))).toBe(1);
     const dawn = sunStrength(ambientFor(at(7), DAY));
     const dusk = sunStrength(ambientFor(at(21), DAY));
     for (const between of [dawn, dusk]) {
@@ -140,5 +141,14 @@ describe('the sun strength', () => {
 
   it('is none for a colour that is not a number', () => {
     expect(sunStrength([1, Number.NaN, 1, 1])).toBe(0);
+  });
+
+  it('changes continuously through dawn and dusk, including the zero threshold', () => {
+    for (const [start, end] of [[240, 480], [1140, 1440]]) {
+      for (let tick = start; tick < end; tick++) {
+        expect(Math.abs(sunStrength(ambientFor(tick + 1, DAY))
+          - sunStrength(ambientFor(tick, DAY)))).toBeLessThan(0.01);
+      }
+    }
   });
 });

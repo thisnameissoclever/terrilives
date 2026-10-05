@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "source": {
+    "path": "content/lot.toml",
+    "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9",
+    "fields": "covering[].hue,strength,lightness in content order"
+  },
+  "coveringNames": [
+    "Boards",
+    "Tiles",
+    "Carpet"
+  ],
+  "profiles": {
+    "shipped-content": {
+      "description": "Current checked-in covering looks; authored architecture should encode identity shifts.",
+      "coveringLooks": [
+        18.0,
+        1.15,
+        -0.12,
+        -25.0,
+        0.55,
+        0.1,
+        -20.0,
+        1.6,
+        -0.18
+      ]
+    },
+    "altered-zero-look": {
+      "description": "Previous benchmark profile: zero hue, strength and lightness for every covering; requests an altered desaturated appearance.",
+      "coveringLooks": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  }
+}

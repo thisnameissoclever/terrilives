@@ -6,6 +6,33 @@ import { emissiveForSprite, sampleLight, type TileLighting } from './lighting.js
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './sprite-anchors.js';
 import { writeFootprintProjection } from './footprint-depth.js';
 import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
+import { coveredWindowLines, type WindowDefinition, type WindowEditPreview, type WindowPlacement } from '../architecture/windows.js';
+import type { WallLine } from '../ui/wall-tool.js';
+
+const lineKey = (line: WallLine): string => `${line.axis}/${line.x}/${line.y}`;
+export const windowOwnerKey = (window: WindowPlacement): string => `window/${lineKey(window)}/${window.model}`;
+
+/** A render-only layout from the accepted preview, including opaque wall restored by a narrower span. */
+export function windowPreviewLayout(edges: Uint32Array, windows: readonly WindowPlacement[],
+  catalogue: readonly WindowDefinition[], preview: WindowEditPreview | null | undefined):
+  { edges: Uint32Array; windows: readonly WindowPlacement[]; ghostKey: string | null } {
+  if (!preview?.valid) return { edges, windows, ghostKey: null };
+  const affected = new Set(preview.affectedLines.map(lineKey));
+  const nextWindows = windows.filter(window => !coveredWindowLines(window, catalogue).some(line => affected.has(lineKey(line))));
+  if (preview.placement) nextWindows.push(preview.placement);
+  const occupied = new Set(preview.placement ? coveredWindowLines(preview.placement, catalogue).map(lineKey) : []);
+  const nextEdges: number[] = [];
+  for (let i = 0; i < edges.length; i += 4) {
+    if (!affected.has(`${edges[i]}/${edges[i + 1]}/${edges[i + 2]}`)) nextEdges.push(...edges.subarray(i, i + 4));
+  }
+  for (const line of preview.affectedLines) if (!occupied.has(lineKey(line))) nextEdges.push(line.axis, line.x, line.y, 0);
+  return { edges: new Uint32Array(nextEdges), windows: nextWindows,
+    ghostKey: preview.placement ? windowOwnerKey(preview.placement) : null };
+}
+
+export function tintWindowPreview(out: Float32Array, offset: number): void {
+  out.set(VALID, offset + 4);
+}
 
 const RING = spriteIndex('selectionRing');
 const VALID = [0.75, 0.9, 1] as const;

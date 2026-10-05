@@ -1,0 +1,97 @@
+{
+  "generatedAt": "2026-10-01T12:42:08.831Z",
+  "passed": true,
+  "pageErrors": [],
+  "result": [
+    {
+      "label": "object, ordinary fade control: positive playing signal",
+      "expected": 0.14,
+      "actual": 0.14000000059604645
+    },
+    {
+      "label": "object, ordinary fade control: fade before suspension",
+      "expected": 0.11200000000000002,
+      "actual": 0.1120000034570694
+    },
+    {
+      "label": "object, ordinary fade control: first resumed sample",
+      "expected": 0.084,
+      "actual": 0.08399999886751175
+    },
+    {
+      "label": "object, ordinary fade control: endpoint remains silent",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "label": "object, state-event interruption: positive playing signal",
+      "expected": 0.14,
+      "actual": 0.14000000059604645
+    },
+    {
+      "label": "object, state-event interruption: fade before suspension",
+      "expected": 0.11200000000000002,
+      "actual": 0.1120000034570694
+    },
+    {
+      "label": "object, state-event interruption: first resumed sample",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "label": "object, state-event interruption: entire resumed tail",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "label": "object, state-event interruption: endpoint remains silent",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "label": "conversation, ordinary fade control: positive playing signal",
+      "expected": 0.1568,
+      "actual": 0.15680000185966492
+    },
+    {
+      "label": "conversation, ordinary fade control: fade before suspension",
+      "expected": 0.10453333333333334,
+      "actual": 0.10453326255083084
+    },
+    {
+      "label": "conversation, ordinary fade control: first resumed sample",
+      "expected": 0.05226666666666667,
+      "actual": 0.05226665362715721
+    },
+    {
+      "label": "conversation, ordinary fade control: endpoint remains silent",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "label": "conversation, state-event interruption: positive playing signal",
+      "expected": 0.1568,
+      "actual": 0.15680000185966492
+    },
+    {
+      "label": "conversation, state-event interruption: fade before suspension",
+      "expected": 0.10453333333333334,
+      "actual": 0.10453326255083084
+    },
+    {
+      "label": "conversation, state-event interruption: first resumed sample",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "label": "conversation, state-event interruption: entire resumed tail",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "label": "conversation, state-event interruption: endpoint remains silent",
+      "expected": 0,
+      "actual": 0
+    }
+  ]
+}

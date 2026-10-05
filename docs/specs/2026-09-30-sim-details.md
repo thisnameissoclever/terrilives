@@ -6,9 +6,12 @@ at the bottom, with detail available on request.
 
 ## Player behavior
 
-Overview contains a native Personality and habits disclosure, initially
+Overview contains a native Personality, habits and bed disclosure, initially
 closed. Its 44-pixel summary responds to Enter, Space and pointer input. The
 existing sheet owns scrolling and Escape; the closed dock gains no height.
+The original read-only slice shipped as Personality and habits. Its local
+bed-assignment extension and remaining release checks are documented in
+`2026-10-01-bed-assignment.md`.
 
 1. Personality factors show Drain and Refill percentages for all seven needs.
    100% is the normal personality factor. These values do not incorporate
@@ -27,10 +30,28 @@ existing sheet owns scrolling and Escape; the closed dock gains no height.
 Opening the disclosure forces current values. Closed or hidden sections do
 no periodic reads. Successful Load forces a refresh even if the entity index
 has not changed. Missing selections and missing people clear old rows.
+Visible refreshes preserve unchanged text children. Changed values, including
+text changed outside the panel, are corrected on the next refresh. Evidence:
+`docs/assets/review-evidence/personal-details-text/README.md`.
 
-This does not add controls, personality identity, saved state, commands or
-new simulation behavior. Future sensitivities, skills and editing remain
-their own roadmap work. Traits and People retain their existing panels.
+The original read-only slice adds no controls, personality identity, saved
+state, commands or simulation behavior. The held bed-assignment extension
+adds the controls described in its own spec. Future sensitivities, skills and
+editing remain their own roadmap work. Traits and People retain their
+existing panels.
+
+Shyness appears inside the personality disclosure, alongside the need factors
+and sleep rhythm. It uses the existing 1-100 value. Periodic refresh runs only
+while this section is visible. Opening it, switching people or loading refreshes the
+display; an absent selection clears the value. Overview no longer gives
+shyness a standalone summary row.
+
+The desktop sheet starts at 360 pixels wide. Expanding this disclosure allows
+540 pixels for its tables and bed controls. Other tabs return to the narrower
+width. Navigation wraps so all tabs stay reachable. Compact screens retain
+their available-width sheet and 44-pixel controls.
+The local follow-up's checks and captures are in
+`docs/assets/review-evidence/sim-details-layout/README.md`.
 
 ## Data contract
 
@@ -54,6 +75,11 @@ offset, finite nonnegative factors and repetition within 0..1. It uses stable
 numeric factors.
 
 ## Verification
+
+Personal details and the bed-assignment controls retain unchanged text nodes
+across visible refreshes. Changed factors, sleep timing, repetition, assignment,
+occupancy and status still update in the same refresh. Surface regression tests
+cover both behaviors; these controls alone are not a whole-game memory result.
 
 Local evidence is retained in `.tmp/sim-details/` for this worktree.
 

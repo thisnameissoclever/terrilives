@@ -221,12 +221,74 @@ pub enum SimCommand {
         traits: Vec<u32>,
         instinct: u8,
     },
+    /// Assign or clear one physical bed place without interrupting current use.
+    SetBedAssignment {
+        agent: u32,
+        place: Option<(u32, u8)>,
+    },
+    /// Fit or replace one complete typed window. Appended wire code.
+    FitWindow {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+        model: crate::windows::WindowModel,
+    },
+    /// Restore the solid wall under the window owning this segment.
+    RemoveWindow {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
 /// issued in one tick must apply in the order the player issued them.
 #[derive(Resource, Debug, Default)]
 pub struct CommandQueue(Vec<SimCommand>);
+
+#[cfg(test)]
+mod bed_assignment_wire_tests {
+    use super::*;
+
+    #[test]
+    fn set_and_clear_bed_assignment_keep_wire_code_nineteen() {
+        for (command, saved, expected) in [
+            (
+                SimCommand::SetBedAssignment {
+                    agent: 300,
+                    place: Some((129, 1)),
+                },
+                crate::SavedCommand::SetBedAssignment {
+                    agent: 300,
+                    place: Some((129, 1)),
+                },
+                vec![19, 172, 2, 1, 129, 1, 1],
+            ),
+            (
+                SimCommand::SetBedAssignment {
+                    agent: 300,
+                    place: None,
+                },
+                crate::SavedCommand::SetBedAssignment {
+                    agent: 300,
+                    place: None,
+                },
+                vec![19, 172, 2, 0],
+            ),
+        ] {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), expected);
+            assert_eq!(postcard::to_allocvec(&saved).unwrap(), expected);
+            assert_eq!(
+                postcard::from_bytes::<SimCommand>(&expected).unwrap(),
+                command
+            );
+            assert_eq!(
+                postcard::from_bytes::<crate::SavedCommand>(&expected).unwrap(),
+                saved
+            );
+        }
+    }
+}
 
 impl CommandQueue {
     /// A queue already holding these commands in drain order. Used by
@@ -627,5 +689,96 @@ mod instinct_wire_tests {
         assert_eq!(new_bytes[0], 18);
         assert_eq!(&new_bytes[1..new_bytes.len() - 1], &old_bytes[1..]);
         assert_eq!(new_bytes.last(), Some(&100));
+    }
+}
+
+#[cfg(test)]
+mod window_wire_tests {
+    use super::*;
+    use crate::{layout::EdgeAxis, windows::WindowModel, SavedCommand};
+
+    #[test]
+    fn later_historical_live_commands_keep_complete_golden_vectors() {
+        let cases = [
+            (
+                SimCommand::SetFloor {
+                    x: 2,
+                    y: 3,
+                    covering: 200,
+                },
+                vec![15, 2, 3, 200],
+            ),
+            (
+                SimCommand::SetFamilyTie {
+                    who: 2,
+                    to: 3,
+                    relation: Some(crate::layout::Relation::Parent),
+                },
+                vec![16, 2, 3, 1, 1],
+            ),
+            (SimCommand::SetDeathEnabled(true), vec![17, 1]),
+            (
+                SimCommand::AddHousemateWithInstinct {
+                    name: "a".into(),
+                    personality: 2,
+                    traits: vec![3],
+                    instinct: 100,
+                },
+                vec![18, 1, b'a', 2, 1, 3, 100],
+            ),
+        ];
+        for (command, bytes) in cases {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
+            assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), command);
+        }
+    }
+
+    #[test]
+    fn window_commands_append_tags_and_preserve_every_required_field() {
+        let live = [
+            SimCommand::FitWindow {
+                axis: EdgeAxis::Horizontal,
+                x: 300,
+                y: 5,
+                model: WindowModel::Clerestory,
+            },
+            SimCommand::RemoveWindow {
+                axis: EdgeAxis::Vertical,
+                x: 7,
+                y: 300,
+            },
+        ];
+        let saved = [
+            SavedCommand::FitWindow {
+                axis: EdgeAxis::Horizontal,
+                x: 300,
+                y: 5,
+                model: WindowModel::Clerestory,
+            },
+            SavedCommand::RemoveWindow {
+                axis: EdgeAxis::Vertical,
+                x: 7,
+                y: 300,
+            },
+        ];
+        let expected = [vec![20, 1, 172, 2, 5, 8], vec![21, 0, 7, 172, 2]];
+        for ((live, saved), expected) in live.into_iter().zip(saved).zip(expected) {
+            let bytes = postcard::to_allocvec(&live).unwrap();
+            assert_eq!(bytes, expected, "appended command bytes must stay fixed");
+            assert_eq!(postcard::to_allocvec(&saved).unwrap(), expected);
+            assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), live);
+            assert_eq!(postcard::from_bytes::<SavedCommand>(&bytes).unwrap(), saved);
+            for end in 0..bytes.len() {
+                assert!(postcard::from_bytes::<SimCommand>(&bytes[..end]).is_err());
+                assert!(postcard::from_bytes::<SavedCommand>(&bytes[..end]).is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn fit_command_rejects_unknown_stored_model_tag() {
+        let invalid = [20, 0, 4, 3, 9];
+        assert!(postcard::from_bytes::<SimCommand>(&invalid).is_err());
+        assert!(postcard::from_bytes::<SavedCommand>(&invalid).is_err());
     }
 }

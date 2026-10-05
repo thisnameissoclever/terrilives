@@ -1,0 +1,101 @@
+{
+  "revision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+  "main": "310ea16a982e7999023dcc9ad18e8f98bf4b221c",
+  "execution": "Commands run serially; each actual exit is observed before the next command. No remote CI or review is a merge gate under owner authorization.",
+  "checks": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "seconds": 1.052,
+      "log": "publication-format.log",
+      "tail": []
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -j 1 -- -D warnings",
+      "exit_code": 0,
+      "seconds": 40.169,
+      "log": "publication-clippy.log",
+      "tail": [
+        "   Compiling terri-core v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-core)",
+        "   Compiling terri-data v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-data)",
+        "    Checking terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-sim)",
+        "    Checking terri-wasm v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-wasm)",
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.03s"
+      ]
+    },
+    {
+      "command": "cargo test --workspace -j 1",
+      "exit_code": 0,
+      "seconds": 163.868,
+      "log": "publication-rust.log",
+      "tail": [
+        "   Doc-tests terri_sim",
+        "",
+        "running 0 tests",
+        "",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "",
+        "   Doc-tests terri_wasm",
+        "",
+        "running 0 tests",
+        "",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        ""
+      ]
+    },
+    {
+      "command": "wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm",
+      "exit_code": 0,
+      "seconds": 26.697,
+      "log": "publication-wasm.log",
+      "tail": [
+        "[INFO]: Checking for the Wasm target...",
+        "[INFO]: Compiling to Wasm...",
+        "   Compiling terri-core v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-core)",
+        "   Compiling terri-data v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-data)",
+        "   Compiling terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-sim)",
+        "   Compiling terri-wasm v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-wasm)",
+        "    Finished `release` profile [optimized] target(s) in 18.75s",
+        "[INFO]: Installing wasm-bindgen...",
+        "[INFO]: Optimizing wasm binaries with `wasm-opt`...",
+        "[INFO]: Optional fields missing from Cargo.toml: 'description', 'repository', and 'license'. These are not necessary, but recommended",
+        "[INFO]: :-) Done in 26.31s",
+        "[INFO]: :-) Your wasm pkg is ready to publish at web\\src\\wasm."
+      ]
+    },
+    {
+      "command": "npm --prefix web run typecheck",
+      "exit_code": 0,
+      "seconds": 3.266,
+      "log": "publication-typecheck-initial.log",
+      "tail": [
+        "",
+        "> typecheck",
+        "> tsc --noEmit",
+        ""
+      ]
+    },
+    {
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "exit_code": 1,
+      "seconds": 35.085,
+      "log": "publication-web-initial.log",
+      "tail": [
+        "       |                        ^",
+        "    438|     expect(INDEX_HTML).toContain('#build-tools > * { flex: 1 1 auto; m\u2026",
+        "    439|   });",
+        "",
+        "\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[5/6]\u23af",
+        "",
+        "",
+        " Test Files  4 failed | 140 passed (144)",
+        "      Tests  5 failed | 1942 passed (1947)",
+        "   Start at  11:10:29",
+        "   Duration  34.56s (transform 1.66s, setup 0ms, import 7.88s, tests 13.40s, environment 7ms)",
+        ""
+      ]
+    }
+  ],
+  "logs_archive": "publication-logs.zip",
+  "log_hashes": "publication-log-hashes.json"
+}

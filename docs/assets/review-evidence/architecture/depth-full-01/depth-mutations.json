@@ -1,0 +1,208 @@
+{
+  "mutations": [
+    {
+      "mutation": "shared depth",
+      "source": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture-depth.json",
+      "beforeSha256": "22b959c181ee72a4ac9aa26675fbf30aa3e31a1f482438c887609e07bcdb45b0",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_architecture_dimensions"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_projection_and_rotation_keep_physical_registration"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_architecture_dimensions"
+        ],
+        "exitCode": 1,
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            "test_architecture_dimensions (test_geometry.ArchitectureGeometry.test_architecture_dimensions)"
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "22b959c181ee72a4ac9aa26675fbf30aa3e31a1f482438c887609e07bcdb45b0",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_architecture_dimensions"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "junction depth",
+      "source": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\walls.py",
+      "beforeSha256": "662bbf7e9bd92c7b45e48ae69eed9b8b2887c431c888bc8a89d5321c44dadd99",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_projection_and_rotation_keep_physical_registration"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces"
+        ],
+        "exitCode": 1,
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            "test_joined_and_arched_plaster_share_both_wall_faces (test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces)"
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "662bbf7e9bd92c7b45e48ae69eed9b8b2887c431c888bc8a89d5321c44dadd99",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "mutation": "arch infill depth",
+      "source": "D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\models\\architecture\\windows.py",
+      "beforeSha256": "a5c3f148a3abc5d0e5a05f2764e3f260a5d0cbd45bf6180b1eb3f99e6cce7afd",
+      "baseline": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "mutatedCleanControl": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_projection_and_rotation_keep_physical_registration"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      },
+      "targetedFailure": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces"
+        ],
+        "exitCode": 1,
+        "result": {
+          "testsRun": 1,
+          "failures": [
+            "test_joined_and_arched_plaster_share_both_wall_faces (test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces)"
+          ],
+          "errors": []
+        }
+      },
+      "restoredSha256": "a5c3f148a3abc5d0e5a05f2764e3f260a5d0cbd45bf6180b1eb3f99e6cce7afd",
+      "restoredTarget": {
+        "command": [
+          "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+          "-B",
+          "-c",
+          "import json,sys,unittest\nsuite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[1])\nresult=unittest.TestResult();suite.run(result)\nprint(json.dumps({'testsRun':result.testsRun,'failures':[str(t) for t,_ in result.failures],'errors':[str(t) for t,_ in result.errors]}))\nsys.exit(0 if result.wasSuccessful() else 1)\n",
+          "test_geometry.ArchitectureGeometry.test_joined_and_arched_plaster_share_both_wall_faces"
+        ],
+        "exitCode": 0,
+        "result": {
+          "testsRun": 1,
+          "failures": [],
+          "errors": []
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "state": "complete",
+  "background": true,
+  "sceneSha256Before": "671ebb16447843b252e7c4e2b84be3dc63926cebf838676dab31fb97fcb7e1f9",
+  "auditScriptSha256": "a988a302c9df8a61052aaa8bb7cf9bdeaebdaa9441df5c1b0fec321c7f2e3921",
+  "blenderVersion": "4.5.14 LTS",
+  "evaluatedCasingFaces": [
+    0.4300000071525574,
+    0.5699999928474426
+  ],
+  "evaluatedCasingDepth": 0.13999998569488525,
+  "leafHinge": [
+    0.4650000035762787,
+    0.36500000953674316,
+    0.0
+  ],
+  "leafFrontSeating": 0.034999996423721313,
+  "apertureWidth": 0.7799999713897705,
+  "apertureHeight": 1.8000001054959818,
+  "evaluatedSlabBounds": [
+    [
+      0.42750000953674316,
+      -0.36500000953674316,
+      0.027821123600006104
+    ],
+    [
+      0.5024999976158142,
+      0.36500000953674316,
+      1.986426830291748
+    ]
+  ],
+  "slabWidth": 0.7300000190734863,
+  "evaluatedThresholdBounds": [
+    [
+      0.4300000071525574,
+      -0.38999998569488525,
+      -0.0066770645789802074
+    ],
+    [
+      0.5699999928474426,
+      0.38999998569488525,
+      0.0
+    ]
+  ],
+  "thresholdFloor": true,
+  "logicalOrigin": [
+    55.99995994567871,
+    99.00006294250488
+  ],
+  "gameBasis": [
+    [
+      31.999998092651367,
+      21.000001795057415
+    ],
+    [
+      -32.000001430511475,
+      21.000001795057415
+    ],
+    [
+      3.337860107421875e-06,
+      -38.000006675720215
+    ]
+  ],
+  "physicalCanvas": [
+    336,
+    360
+  ],
+  "density": 3,
+  "referenceCollectionAbsent": true,
+  "modelMeshCount": 20,
+  "allMeshesOwnedByDoor": true,
+  "sceneSha256After": "671ebb16447843b252e7c4e2b84be3dc63926cebf838676dab31fb97fcb7e1f9"
+}

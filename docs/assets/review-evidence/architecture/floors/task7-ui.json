@@ -1,0 +1,19 @@
+{
+  "revision": "22a0435caf52571d5cc9581b399f89885c608c19",
+  "storage": "Fresh isolated browser context; no owner saves accessed",
+  "mode": "Build / Floors; Flat lighting; sound off",
+  "paintedThroughControls": {"boards": 9, "tiles": 9, "carpet": 9},
+  "removedThroughControls": [[2,9],[5,9],[8,9]],
+  "afterRemoveCount": 24,
+  "savedCount": 24,
+  "afterUnsavedRemovalCount": 23,
+  "afterConfirmedAsyncLoadCount": 24,
+  "loadedTriplesExactlyMatchSaved": true,
+  "desktopViewport": [1600,1000],
+  "narrowViewport": [390,844],
+  "narrowDocumentWidth": 390,
+  "narrowControlsVisible": ["Boards","Tiles","Carpet","Remove"],
+  "screenshots": ["ui-initial.png","ui-boards.png","ui-tiles.png","ui-carpet.png","ui-remove.png","ui-loaded.png","ui-narrow.png"],
+  "visualInspection": "Floor materials and swatches match. Carpet is continuous across tile boundaries. Furniture and Sim feet draw above floors. Narrow controls fit without horizontal overflow.",
+  "cleanup": "Task-owned game and proof pages and isolated contexts closed; task preview server stopped."
+}

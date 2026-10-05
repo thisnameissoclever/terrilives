@@ -37,6 +37,10 @@ The controls live in Options on desktop and mobile. Both ranges are at least
 44 CSS pixels tall. The help dialog names the controls. Browser storage denial
 leaves the current session settings usable.
 
+Footsteps have a peak amplitude of 0.0225 before Effects and master gain. Their
+40-millisecond duration and 175-to-130 Hz pitch sweep remain unchanged. Continuous
+indoor background noise is excluded from the sound design.
+
 The versioned preference key remains `terrilives.audio-preferences.v1`.
 Malformed original fields or an unknown version discard the record. Existing
 valid records without `voicesLevel` keep their mute and Effects settings and
@@ -67,6 +71,31 @@ default Voices to 100%. An invalid Voices field defaults only that field.
 10. Successful Load reads the replacement world's aligned stable identity and
    clears active world phase after replacement. Failed or cancelled Load
    changes no audio world state.
+11. Object stops and conversation ends cancel matching ownership even while
+    audio is suspended or otherwise inaudible. A running clock keeps normal
+    release fades; a stopped clock immediately releases the affected nodes.
+    Late decoding cannot revive an ended action. See
+    `2026-10-01-suspended-audio-cancellation.md` for cancellation evidence.
+12. While globally inaudible, fixed ticks finish every scheduler frame but
+    forward no observations. Existing object and conversation ownership ends;
+    footstep, personal, sleep and door history clears through normal absence
+    handling. At the first unavailable frame boundary, unfinished procedural
+    and door cues are stopped so their frozen tails cannot resume. The first
+    audible tick starts only current actions and silently
+    re-anchors footsteps and doors, including automatic context recovery without
+    a new gesture. Continuing recordings restart rather than preserve their
+    frozen position. See `2026-10-01-automatic-audio-recovery.md`.
+13. Unavailable frame cleanup also reclaims retained object and conversation
+    releases whose owners already ended. An active count of zero does not
+    prove those nodes are disconnected. Normal audible fades remain unchanged;
+    see `2026-10-01-interrupted-release-cleanup.md`.
+14. The controller owns its context's `onstatechange` handler. A non-running
+    event immediately clears every player family, including release-only
+    recordings, pending ownership and every scheduler, even while simulation
+    ticks are paused. Returning to running starts nothing by itself; fresh
+    observations may restart current actions. Abandoned graph construction
+    detaches the handler before closing, and queued callbacks from that graph
+    cannot touch a later context. See `2026-10-01-audio-state-events.md`.
 
 ## Node graph and bounded playback
 
@@ -271,17 +300,19 @@ fresh rather than resuming a loop whose start happened while silent.
 The bounded object-loop player now consumes these edges and explicit prepared
 recordings. It admits at most four active loops and retains at most eight
 records including fades. Missing clips cause no placeholder sound. The
-controller fetches the shared prepared water clip on playable shower or sink demand.
+controller fetches the shared prepared water clip on playable shower or sink
+demand, and a separate prepared texture on cooking demand.
 Pending sources clear at lifecycle boundaries; capacity-rejected sources remain
 eligible while observed. Effective pause stops loops and resume waits for a new
 fixed tick. See `2026-10-01-object-loop-playback.md` for the playback contract
 and rendered-signal proof.
 
 The shipped catalog contains one provisional CC0 water loop, shared by showering,
-handwashing and kitchen washing-up. Success is cached; failures retry only on
-new water demand after five seconds. Ended or
-globally invalidated sources cannot revive on late decode. Stove cooking remains
-silent. See `2026-10-01-shower-water-recording.md` for provenance, measured
+handwashing and kitchen washing-up, plus one provisional first-party synthetic
+cooking texture. Each family caches success and independently delays failed
+retries for five seconds until new demand or an explicit loader call. Ended or
+globally invalidated sources cannot revive on late decode. See
+`2026-10-01-stove-cooking-texture.md` and `2026-10-01-shower-water-recording.md` for provenance, measured
 levels and the still-unverified listening assessment.
 The sink mapping and lower gain are recorded in `2026-10-01-sink-water-audio.md`.
 Front and interior doors now supply geometry-keyed closed-boundary transitions
@@ -312,12 +343,17 @@ Use a visible production build, not a hidden `requestAnimationFrame` loop.
    [D11] and must not be misreported as literal zero allocation.
 7. Run three alternating enabled/disabled retained-memory pairs. Measure
    quiescent paused endpoints after explicit garbage collection. Clear selection
-   through the public command and wait for empty moodlet/action rows at both
-   endpoints; restore selection for the measured gameplay interval. Let all
+   through the public command and wait for the complete unselected UI projection
+   at both endpoints, including cleared career/mood text, empty panel rows,
+   unpressed roster selection and matching dock summaries. Empty moodlet/action
+   rows alone can precede the independently throttled HUD refresh. Keep Personal
+   Details closed for this scenario. Restore selection for the measured gameplay
+   interval. Let all
    audio players finish before comparing retained listener counts. Require the
    median enabled-minus-disabled retained JavaScript delta to remain within the
    predeclared 64 KiB allowance, with zero active voices, bounded track count,
-   unchanged scheduler capacity, and no DOM or listener growth. Report broader
+   unchanged scheduler capacity, and exactly equal document, DOM-node and listener
+   counts at normalized endpoints. A decrease also fails equality. Report broader
    page and WASM growth separately instead of assigning it to audio.
 8. Separately run 40 stable walking Sims for 600 ticks so the scheduler's own
    retained state is exercised rather than inferred from autonomous stress Sims.
@@ -714,8 +750,16 @@ Restored SHA-256 values were:
 
 ## Open work
 
-1. Complete subjective listening review for provisional shower and door recordings.
-2. Select and accept recordings for the object-loop player. Add ambience,
+Toilet audio has a separate authored completion event and
+a recorded flush. It does not infer success from disappearance of the
+active action. The bounded transient buffer is drained once per fixed tick;
+cancellation, Load and late decoding stay silent. Unlike sub-second door cues,
+the four-second flush stops on effective pause. See
+`2026-10-01-toilet-completion-audio.md` for the source, contract and evidence.
+
+1. Complete in-game listening review for shower, sink, door and toilet mixing.
+   The owner accepted the selected toilet recording independently of the game mix.
+2. Select and accept recordings for the object-loop player. Add outdoor ambience,
    alarms, music, and non-conversation Sim voices.
 3. Add music and ambience controls when those categories have playable content.
    Voices now has its own multiplier without changing the Effects meaning.

@@ -1,0 +1,977 @@
+{
+  "schema_version": 1,
+  "width": 38,
+  "height": 88,
+  "anchor": [
+    19.00001358985901,
+    100.00043803453445
+  ],
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "variant": "blue",
+  "pixel_density": 2,
+  "frames": [
+    {
+      "name": "rigSimBlueFoodWalkSE0",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 0,
+      "path": "food_walk-SE-0.png",
+      "sha256": "8bd8962c0c2d0040fed226c84759a17d60c49e1356861a3e94c0040031285ace"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSE1",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 1,
+      "path": "food_walk-SE-1.png",
+      "sha256": "b454fc7633e8eff7d6783cdebe2fb9478dcab76e2807556ca64b9d1689f0b3ff"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSE2",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 2,
+      "path": "food_walk-SE-2.png",
+      "sha256": "5872cc1f89383ac867345aaf98139d6ba164df25ea34c06dcb9707ae03638955"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSE3",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 3,
+      "path": "food_walk-SE-3.png",
+      "sha256": "c92d5f17da39b92d4ceef134a039892935b03871cd3e1488cf64d3dd7b3677b6"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSE4",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 4,
+      "path": "food_walk-SE-4.png",
+      "sha256": "14be8f098869ce6f816bfa56f912e180dd8b27b5b0138d5008b3ae3cce24bb83"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSE5",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 5,
+      "path": "food_walk-SE-5.png",
+      "sha256": "9d7ec2fc4376eaf1ee9d1e4b571ee718a3dfaca20062fa43e1ba86292a0a6b35"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSE6",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 6,
+      "path": "food_walk-SE-6.png",
+      "sha256": "3fdd15f46ddecba003898c20ee978853aae8047c3115501ad9216402c5df527b"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSE7",
+      "action": "food_walk",
+      "facing": "SE",
+      "frame": 7,
+      "path": "food_walk-SE-7.png",
+      "sha256": "9f324062f0d554d25aa40b16c5088ff98eee76dc65de2460097328591d7ed254"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW0",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 0,
+      "path": "food_walk-SW-0.png",
+      "sha256": "fc5cc692e4f466b036ecb2cd52764466bc566ed53e62b46a1182c5b8ae424389"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW1",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 1,
+      "path": "food_walk-SW-1.png",
+      "sha256": "634409dd0fdc67107adbb676e088ba5c745d8bb1b87a621db165b2e758641da4"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW2",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 2,
+      "path": "food_walk-SW-2.png",
+      "sha256": "d4b646782e2d9383e677229721d3676d69692efd443765b99629358750ec9e28"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW3",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 3,
+      "path": "food_walk-SW-3.png",
+      "sha256": "a660ea4cbdf8c392dd080d9c3c27c2a29a779438849c01bd59b6cbb8720a5633"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW4",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 4,
+      "path": "food_walk-SW-4.png",
+      "sha256": "6d54e2d5f597ab8307ec3f6518649cf05dbe6a7d7c4ecf3c1017619a2d40aeab"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW5",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 5,
+      "path": "food_walk-SW-5.png",
+      "sha256": "f1a37bd13b86b43c645dd8915036a631fd04b1e9ea9241086a4e261dd475e87b"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW6",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 6,
+      "path": "food_walk-SW-6.png",
+      "sha256": "478677671c46ac6ba94ad8634c36feeb08ddbeb21172cdd5894e2192a36b674e"
+    },
+    {
+      "name": "rigSimBlueFoodWalkSW7",
+      "action": "food_walk",
+      "facing": "SW",
+      "frame": 7,
+      "path": "food_walk-SW-7.png",
+      "sha256": "c2a665425a8608acb83ce59e6e27f39763c53463e2fbbd6b3f1d224eb341b2e9"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW0",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 0,
+      "path": "food_walk-NW-0.png",
+      "sha256": "e776206df1a6d067f47dee6a7c52f83b65cee1f6c08f843a3128fd57c8b7d74f"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW1",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 1,
+      "path": "food_walk-NW-1.png",
+      "sha256": "d1c734c22aae8ecc2d17a74f22227b5230a5dc64de7477d514b0058da9b4fb5a"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW2",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 2,
+      "path": "food_walk-NW-2.png",
+      "sha256": "58a38d98a2c49a2bfb6502c8097c51a71d44d02506d60ae27edda3405247f8e6"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW3",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 3,
+      "path": "food_walk-NW-3.png",
+      "sha256": "09fb67ebfb72a0f79cbbbf6b1639b01e6dabe175b98ff727fa8bb4ca0dd203ef"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW4",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 4,
+      "path": "food_walk-NW-4.png",
+      "sha256": "a6eddff9ad56ebd0c146076ec88e465cc6d403dc1b8a082a7c7bb6ead1724d64"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW5",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 5,
+      "path": "food_walk-NW-5.png",
+      "sha256": "bafc12e532ea7f103bff0e7a7761f1b5637ac6f0cae0dbff44e9d91d45db2bf0"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW6",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 6,
+      "path": "food_walk-NW-6.png",
+      "sha256": "0c986c9403c8e11a4afdc4fe56d41db11d9ec2f6fe3f97734b5976802d8dbb97"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNW7",
+      "action": "food_walk",
+      "facing": "NW",
+      "frame": 7,
+      "path": "food_walk-NW-7.png",
+      "sha256": "04a8a78375633ad3f092990c906cee742126fa66c1d8d692749bb9e908775172"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE0",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 0,
+      "path": "food_walk-NE-0.png",
+      "sha256": "3103be62d0384022f1e32d629bb73fd8e74fe011fa5adec500adb882559d2d11"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE1",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 1,
+      "path": "food_walk-NE-1.png",
+      "sha256": "8eab6858e3e440350f1f488db7bb5b749c3a15b56f008ed4d1737c952ab7e35e"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE2",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 2,
+      "path": "food_walk-NE-2.png",
+      "sha256": "1c28280cbc6d91f9f4c63f22a08f545077a119f0b749904d99465b468629a682"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE3",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 3,
+      "path": "food_walk-NE-3.png",
+      "sha256": "fcf7dc1bb4b56549c7749d88c6f8033002ea9a5845036f2d75a5831b7c3db5df"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE4",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 4,
+      "path": "food_walk-NE-4.png",
+      "sha256": "9732d6a3cb4b7975711a5f470af8bec284b2e3954a07eba83893978d094af1b0"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE5",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 5,
+      "path": "food_walk-NE-5.png",
+      "sha256": "dfa6b65a380b8d44b0367edf187cbc941dedec42ca544d97264dda7af31e5d70"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE6",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 6,
+      "path": "food_walk-NE-6.png",
+      "sha256": "495570721d7c3791183b16ab14d2a6ff7f5918ff8dd84f9d6a9edaa771f0de9d"
+    },
+    {
+      "name": "rigSimBlueFoodWalkNE7",
+      "action": "food_walk",
+      "facing": "NE",
+      "frame": 7,
+      "path": "food_walk-NE-7.png",
+      "sha256": "3a71ba3e1c9da4156f7f6fbcfad335f9dabdf8d9b240da022b810aea928f35ff"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSE0",
+      "action": "food_idle",
+      "facing": "SE",
+      "frame": 0,
+      "path": "food_idle-SE-0.png",
+      "sha256": "1acbdf3bae595b9b0f99d5cde8547a9b37673f1d93b72a87bfe3b0d2f54b6b64"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSE1",
+      "action": "food_idle",
+      "facing": "SE",
+      "frame": 1,
+      "path": "food_idle-SE-1.png",
+      "sha256": "1acbdf3bae595b9b0f99d5cde8547a9b37673f1d93b72a87bfe3b0d2f54b6b64"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSE2",
+      "action": "food_idle",
+      "facing": "SE",
+      "frame": 2,
+      "path": "food_idle-SE-2.png",
+      "sha256": "1acbdf3bae595b9b0f99d5cde8547a9b37673f1d93b72a87bfe3b0d2f54b6b64"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSE3",
+      "action": "food_idle",
+      "facing": "SE",
+      "frame": 3,
+      "path": "food_idle-SE-3.png",
+      "sha256": "1acbdf3bae595b9b0f99d5cde8547a9b37673f1d93b72a87bfe3b0d2f54b6b64"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSW0",
+      "action": "food_idle",
+      "facing": "SW",
+      "frame": 0,
+      "path": "food_idle-SW-0.png",
+      "sha256": "747229461c58559ee4a8e7c5d951c8bf794e0462342f2b3367c96a1ebf79e7bf"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSW1",
+      "action": "food_idle",
+      "facing": "SW",
+      "frame": 1,
+      "path": "food_idle-SW-1.png",
+      "sha256": "747229461c58559ee4a8e7c5d951c8bf794e0462342f2b3367c96a1ebf79e7bf"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSW2",
+      "action": "food_idle",
+      "facing": "SW",
+      "frame": 2,
+      "path": "food_idle-SW-2.png",
+      "sha256": "747229461c58559ee4a8e7c5d951c8bf794e0462342f2b3367c96a1ebf79e7bf"
+    },
+    {
+      "name": "rigSimBlueFoodIdleSW3",
+      "action": "food_idle",
+      "facing": "SW",
+      "frame": 3,
+      "path": "food_idle-SW-3.png",
+      "sha256": "747229461c58559ee4a8e7c5d951c8bf794e0462342f2b3367c96a1ebf79e7bf"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNW0",
+      "action": "food_idle",
+      "facing": "NW",
+      "frame": 0,
+      "path": "food_idle-NW-0.png",
+      "sha256": "3eb183342395767dc7da419e8d40dd41e6ce34a0b57cdec65e7493dc0cbccb90"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNW1",
+      "action": "food_idle",
+      "facing": "NW",
+      "frame": 1,
+      "path": "food_idle-NW-1.png",
+      "sha256": "3eb183342395767dc7da419e8d40dd41e6ce34a0b57cdec65e7493dc0cbccb90"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNW2",
+      "action": "food_idle",
+      "facing": "NW",
+      "frame": 2,
+      "path": "food_idle-NW-2.png",
+      "sha256": "3eb183342395767dc7da419e8d40dd41e6ce34a0b57cdec65e7493dc0cbccb90"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNW3",
+      "action": "food_idle",
+      "facing": "NW",
+      "frame": 3,
+      "path": "food_idle-NW-3.png",
+      "sha256": "3eb183342395767dc7da419e8d40dd41e6ce34a0b57cdec65e7493dc0cbccb90"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNE0",
+      "action": "food_idle",
+      "facing": "NE",
+      "frame": 0,
+      "path": "food_idle-NE-0.png",
+      "sha256": "b199cc49aa3b495a58f9409c97840a9be9e4456e8770555c8451370278745be0"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNE1",
+      "action": "food_idle",
+      "facing": "NE",
+      "frame": 1,
+      "path": "food_idle-NE-1.png",
+      "sha256": "b199cc49aa3b495a58f9409c97840a9be9e4456e8770555c8451370278745be0"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNE2",
+      "action": "food_idle",
+      "facing": "NE",
+      "frame": 2,
+      "path": "food_idle-NE-2.png",
+      "sha256": "b199cc49aa3b495a58f9409c97840a9be9e4456e8770555c8451370278745be0"
+    },
+    {
+      "name": "rigSimBlueFoodIdleNE3",
+      "action": "food_idle",
+      "facing": "NE",
+      "frame": 3,
+      "path": "food_idle-NE-3.png",
+      "sha256": "b199cc49aa3b495a58f9409c97840a9be9e4456e8770555c8451370278745be0"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE0",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 0,
+      "path": "seated_eat-SE-0.png",
+      "sha256": "e91c06aa0c882049b21ccd763e5e675e928ce4b7e9e37071d0baedd4ea850683"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE1",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 1,
+      "path": "seated_eat-SE-1.png",
+      "sha256": "ef1a2c9ac4dd0909429c041efeda405136c7cff702d0d3ea66eca5b7081a736d"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE2",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 2,
+      "path": "seated_eat-SE-2.png",
+      "sha256": "00fc8644369e48721909a612e9ac28ee7ef1cd896147f8b1f8fcad97f5052c91"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE3",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 3,
+      "path": "seated_eat-SE-3.png",
+      "sha256": "f8cacbcfd81a257078e41456d0184c52c50db5b436dc470efb78c9dd400a07ad"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE4",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 4,
+      "path": "seated_eat-SE-4.png",
+      "sha256": "b1da3838c044e91ad9de84779c1a7648e83b0eae595c2d7da7e2895e3f4663bc"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE5",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 5,
+      "path": "seated_eat-SE-5.png",
+      "sha256": "9e942a250dde7a43eeb1a0be7b22d6f64105910490ae2325c6da1282370146e1"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE6",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 6,
+      "path": "seated_eat-SE-6.png",
+      "sha256": "872b99cb77b661dab105096c470bd18becdf41bf09855ebbf856cf0efe276be1"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSE7",
+      "action": "seated_eat",
+      "facing": "SE",
+      "frame": 7,
+      "path": "seated_eat-SE-7.png",
+      "sha256": "38e2bf6c797862c5e403b910c219828d3573795d7a2758ccba721d5754a1d354"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW0",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 0,
+      "path": "seated_eat-SW-0.png",
+      "sha256": "92cb7903e125a92f9c4af73b0ba162340803368104a8808b30fa203dc09af6f3"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW1",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 1,
+      "path": "seated_eat-SW-1.png",
+      "sha256": "af8024308894de4d06440ec337c5d6f1db14ee640df1d2a5515c7bfa62cb501f"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW2",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 2,
+      "path": "seated_eat-SW-2.png",
+      "sha256": "0f2266d89958cc9364842f0a09a0a23c4fb64a472aed2af0d4b32f14fb86f724"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW3",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 3,
+      "path": "seated_eat-SW-3.png",
+      "sha256": "127748e6e88ed0729fca119045c00bf2e7aaf6d0c53594b5bd7a0f8f861f9ef6"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW4",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 4,
+      "path": "seated_eat-SW-4.png",
+      "sha256": "c52b166f44bcb56d9f1087797890cec83c3b053c611e4157ca07f5a345a05f5a"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW5",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 5,
+      "path": "seated_eat-SW-5.png",
+      "sha256": "36cb1a2b9fcc0705405bfea3ad1ce5f217f4f0d0aa2dfa9521010c863fa601c7"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW6",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 6,
+      "path": "seated_eat-SW-6.png",
+      "sha256": "a05ae7f577e82e5f80b6a8501f4f25ea525842fd9eb3e1cee3389ab6f23e8e62"
+    },
+    {
+      "name": "rigSimBlueSeatedEatSW7",
+      "action": "seated_eat",
+      "facing": "SW",
+      "frame": 7,
+      "path": "seated_eat-SW-7.png",
+      "sha256": "9dc0b7ccd70ec6c7ae9985b230a0a8b989f91db452163c3ce93ab81fd7c4251b"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW0",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 0,
+      "path": "seated_eat-NW-0.png",
+      "sha256": "7700cd603484bfa8f36b6f2f85e4571985ac9041ace0163289a1902a5aa8fa3e"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW1",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 1,
+      "path": "seated_eat-NW-1.png",
+      "sha256": "f77f7f774d2ea9d744dc36b2df96587b26025261482e1a75953b088c3912c746"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW2",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 2,
+      "path": "seated_eat-NW-2.png",
+      "sha256": "5a8348f34213c7461a09b65392a63aa1fc5215f58606edc48220d6784c0d4c8e"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW3",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 3,
+      "path": "seated_eat-NW-3.png",
+      "sha256": "8c8ad064951b7769acb0f4efe1eedbab4a84171436b7e134ac425efe3e8abbb6"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW4",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 4,
+      "path": "seated_eat-NW-4.png",
+      "sha256": "da528ad73abadf01df4949710df641b21db5e0369490b5f095a12e938eebf8c9"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW5",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 5,
+      "path": "seated_eat-NW-5.png",
+      "sha256": "c92e1ae594598075f0fff37d0cf78a7cc570aef703ba693d59abf9b5f4981e61"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW6",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 6,
+      "path": "seated_eat-NW-6.png",
+      "sha256": "c1765ebf984305094ac321f68539a8606510eeaf897f82e85551449bd1805f99"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNW7",
+      "action": "seated_eat",
+      "facing": "NW",
+      "frame": 7,
+      "path": "seated_eat-NW-7.png",
+      "sha256": "5edc87a463087074a2ee1c1efc9954fe4061feec55dc7b4f3770c44de96fac00"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE0",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 0,
+      "path": "seated_eat-NE-0.png",
+      "sha256": "4eadf116152c63db905134bfde6ad9865aa71d28f22d3254fa310326f4e5d959"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE1",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 1,
+      "path": "seated_eat-NE-1.png",
+      "sha256": "2df5c43ea6c1a06e0947624c6b0b46ad6629cb29aae9e20041820e2e20fc5822"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE2",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 2,
+      "path": "seated_eat-NE-2.png",
+      "sha256": "db8f58e1f21690875dfba10374249fb644235e66253cf96d3842883d86fe86b8"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE3",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 3,
+      "path": "seated_eat-NE-3.png",
+      "sha256": "c5c1521563db54448a2c2d5717b66d784adccdd3c19a8c39cf70c8ab757f50b5"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE4",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 4,
+      "path": "seated_eat-NE-4.png",
+      "sha256": "5370e84eb2e28554f18a81829acffbf409ad210ee0198446086be51ea6ff92ba"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE5",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 5,
+      "path": "seated_eat-NE-5.png",
+      "sha256": "d488836a32a8c46b6eb3393faad81cf3a25f2a7142c9f79decb0941a4284aa78"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE6",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 6,
+      "path": "seated_eat-NE-6.png",
+      "sha256": "e5f63da68902d0e0284f9191500ac9a9c5a7b993bfd5df792e391193fb7717f7"
+    },
+    {
+      "name": "rigSimBlueSeatedEatNE7",
+      "action": "seated_eat",
+      "facing": "NE",
+      "frame": 7,
+      "path": "seated_eat-NE-7.png",
+      "sha256": "7afdff97833e8fe94f7a179ab8d511c47383573832def9cb21d73b837a916e58"
+    },
+    {
+      "name": "rigSimBlueCookV2SE0",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 0,
+      "path": "cook_v2-SE-0.png",
+      "sha256": "5c4f88345f4f61c271a77c2773ed08294bd80585579d76b845dc7a30184868a9"
+    },
+    {
+      "name": "rigSimBlueCookV2SE1",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 1,
+      "path": "cook_v2-SE-1.png",
+      "sha256": "deb5cbf7d881c9b7c2d0a0ef284d855820ff484a8ff29e91b7ab80497fe3d8fd"
+    },
+    {
+      "name": "rigSimBlueCookV2SE2",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 2,
+      "path": "cook_v2-SE-2.png",
+      "sha256": "a02c07ea952c177d468370c44eab0a3605e56c55c49d30f5130eb14fc15455f8"
+    },
+    {
+      "name": "rigSimBlueCookV2SE3",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 3,
+      "path": "cook_v2-SE-3.png",
+      "sha256": "3d182bd88d05e404dd88e869881f00f4a74b44a417e191c318af1a5121c2d0a2"
+    },
+    {
+      "name": "rigSimBlueCookV2SE4",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 4,
+      "path": "cook_v2-SE-4.png",
+      "sha256": "6edac91dee343fcfab802670cf3192364f617a45c21f1c42315795e4db6065e7"
+    },
+    {
+      "name": "rigSimBlueCookV2SE5",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 5,
+      "path": "cook_v2-SE-5.png",
+      "sha256": "4603318b6f9e4971bec8a452a26bf5eccdbfda2c289c22fd50ca11aaf2253484"
+    },
+    {
+      "name": "rigSimBlueCookV2SE6",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 6,
+      "path": "cook_v2-SE-6.png",
+      "sha256": "52a880102351f8b792c95b390309b97eac40a27cfd28bbe6b806202238774ad2"
+    },
+    {
+      "name": "rigSimBlueCookV2SE7",
+      "action": "cook_v2",
+      "facing": "SE",
+      "frame": 7,
+      "path": "cook_v2-SE-7.png",
+      "sha256": "9a7eb1c1a40c53db0f00c481e7c6e160b2cf6a81cc70274977367b654620bc9e"
+    },
+    {
+      "name": "rigSimBlueCookV2SW0",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 0,
+      "path": "cook_v2-SW-0.png",
+      "sha256": "0eae57b0c5865dc4960490b9d72ee617646e12bf0324cf25906ade95cf7055b1"
+    },
+    {
+      "name": "rigSimBlueCookV2SW1",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 1,
+      "path": "cook_v2-SW-1.png",
+      "sha256": "5b51045fb99bb3000bb546ef4fbee54812487871f929897caf51e0d4d1c4d0fd"
+    },
+    {
+      "name": "rigSimBlueCookV2SW2",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 2,
+      "path": "cook_v2-SW-2.png",
+      "sha256": "558abec430cdcd609b53209839b0d784846aa9e476cdf9c079839cfed81d0a3c"
+    },
+    {
+      "name": "rigSimBlueCookV2SW3",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 3,
+      "path": "cook_v2-SW-3.png",
+      "sha256": "57691f63b242fdb4bc61585711e980716184ba013869014bc344c06b4a17dace"
+    },
+    {
+      "name": "rigSimBlueCookV2SW4",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 4,
+      "path": "cook_v2-SW-4.png",
+      "sha256": "5e0a88d8498d922ca4ef19c3523bcdb103502fee80b5998b7d016631069cf4ec"
+    },
+    {
+      "name": "rigSimBlueCookV2SW5",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 5,
+      "path": "cook_v2-SW-5.png",
+      "sha256": "1d4d2585f11743f51cba1c1d1786618262acf8dfdcd46dcf2f0480fe79b86838"
+    },
+    {
+      "name": "rigSimBlueCookV2SW6",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 6,
+      "path": "cook_v2-SW-6.png",
+      "sha256": "fd1523ca4a94e450c0db9cb5a32d554a01ba7e4ba01e2c2aaaca81911e3d9ce3"
+    },
+    {
+      "name": "rigSimBlueCookV2SW7",
+      "action": "cook_v2",
+      "facing": "SW",
+      "frame": 7,
+      "path": "cook_v2-SW-7.png",
+      "sha256": "0b783490072f7bec328d3d1df324ebbf63e2b87a438a7d862b70f8c28e36be83"
+    },
+    {
+      "name": "rigSimBlueCookV2NW0",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 0,
+      "path": "cook_v2-NW-0.png",
+      "sha256": "1d05cce5bee1e54c69771f7d7d761cd9f01cc050a8d6555f110e2469c63b561f"
+    },
+    {
+      "name": "rigSimBlueCookV2NW1",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 1,
+      "path": "cook_v2-NW-1.png",
+      "sha256": "6cdadd39e3deac9c8a96ce982fff265a772091969c4806f2eec0803f1f7a85cb"
+    },
+    {
+      "name": "rigSimBlueCookV2NW2",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 2,
+      "path": "cook_v2-NW-2.png",
+      "sha256": "79dca87bdc6364a559df263131de0d04c9c210cb25f03af97f991468e6c4fe5f"
+    },
+    {
+      "name": "rigSimBlueCookV2NW3",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 3,
+      "path": "cook_v2-NW-3.png",
+      "sha256": "bacc3aaf26414972f7c4fda77d238f8d4b9f08431f4d4b1f3c555cebc6e01e9a"
+    },
+    {
+      "name": "rigSimBlueCookV2NW4",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 4,
+      "path": "cook_v2-NW-4.png",
+      "sha256": "5a3d68fbfd7d75ee3953ac08f49e6d5919728a3ae81b5ae9dd2e7948e4742b32"
+    },
+    {
+      "name": "rigSimBlueCookV2NW5",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 5,
+      "path": "cook_v2-NW-5.png",
+      "sha256": "930814825bafa8c695f17b1e263aace4e9997368b2b9ef9cc4d346ee3b69a821"
+    },
+    {
+      "name": "rigSimBlueCookV2NW6",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 6,
+      "path": "cook_v2-NW-6.png",
+      "sha256": "f2250787ea470882a338a1374a7e8dae8ca59a6ed7328cd01411e192af93cd26"
+    },
+    {
+      "name": "rigSimBlueCookV2NW7",
+      "action": "cook_v2",
+      "facing": "NW",
+      "frame": 7,
+      "path": "cook_v2-NW-7.png",
+      "sha256": "e0ca9223ac6f6643ea2919fdf7cbcad9ddf0187e7ceeb80a65f46d0fcf7eea6c"
+    },
+    {
+      "name": "rigSimBlueCookV2NE0",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 0,
+      "path": "cook_v2-NE-0.png",
+      "sha256": "e0281f558cf39cfbbcf1321bde768fbc9e753161c817b40e2674057709acc48a"
+    },
+    {
+      "name": "rigSimBlueCookV2NE1",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 1,
+      "path": "cook_v2-NE-1.png",
+      "sha256": "59e270ee7be13bb7ed18fd40e885ee5c0fc0ff735d1dbddca5282b61da3d7c36"
+    },
+    {
+      "name": "rigSimBlueCookV2NE2",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 2,
+      "path": "cook_v2-NE-2.png",
+      "sha256": "1f9cef8015329ee505905eb147da65a7a8e5f14b847d341c38ab166e865eb6f9"
+    },
+    {
+      "name": "rigSimBlueCookV2NE3",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 3,
+      "path": "cook_v2-NE-3.png",
+      "sha256": "fbd8a35043929aebba9a80daf692b0bf34f036b730050f3d6a2e5177b2d52997"
+    },
+    {
+      "name": "rigSimBlueCookV2NE4",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 4,
+      "path": "cook_v2-NE-4.png",
+      "sha256": "a5d1d2a08f81886694128d392e182ed7a753864138b2d67b9baad9e233743b54"
+    },
+    {
+      "name": "rigSimBlueCookV2NE5",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 5,
+      "path": "cook_v2-NE-5.png",
+      "sha256": "0d7d588d65559da2f96fd0b399148aecd11a17f8ca0afc073747faf8cbbc2464"
+    },
+    {
+      "name": "rigSimBlueCookV2NE6",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 6,
+      "path": "cook_v2-NE-6.png",
+      "sha256": "025a42752b27e7465333f5eabb17aa2cf11bbf9a18ac351e78b12354f34b2411"
+    },
+    {
+      "name": "rigSimBlueCookV2NE7",
+      "action": "cook_v2",
+      "facing": "NE",
+      "frame": 7,
+      "path": "cook_v2-NE-7.png",
+      "sha256": "fa17762058d1d557cc0918db14c0a9c11c848b3355b5e5c40298609243166b82"
+    }
+  ],
+  "clips": {
+    "food_walk": {
+      "frame_count": 8,
+      "sample_fps": 10,
+      "loop": true,
+      "source_action": "food_walk",
+      "width": 80,
+      "height": 104,
+      "anchor": [
+        40.00001239776611,
+        108.00043880939484
+      ],
+      "world_origin": [
+        40.00001239776611,
+        87.00043880939484
+      ],
+      "distance_per_cycle_model_units": 1.0
+    },
+    "food_idle": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "food_idle",
+      "width": 80,
+      "height": 104,
+      "anchor": [
+        40.00001239776611,
+        108.00043880939484
+      ],
+      "world_origin": [
+        40.00001239776611,
+        87.00043880939484
+      ]
+    },
+    "seated_eat": {
+      "frame_count": 8,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "seated_eat",
+      "width": 80,
+      "height": 104,
+      "anchor": [
+        40.00001239776611,
+        108.00043880939484
+      ],
+      "world_origin": [
+        40.00001239776611,
+        87.00043880939484
+      ]
+    },
+    "cook_v2": {
+      "frame_count": 8,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "cook_v2",
+      "width": 80,
+      "height": 104,
+      "anchor": [
+        40.00001239776611,
+        108.00043880939484
+      ],
+      "world_origin": [
+        40.00001239776611,
+        87.00043880939484
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "batch": "export/depth-reviewed-01",
+  "historicalCount": 2445,
+  "historicalPrefixSha256": "ce3bed17e9b8cd67e1df53311a9e0fe6209dfdeeeeca3a460f253dc94e55de28",
+  "historicalExtensions": [
+    {
+      "catalog": "assets/models/static-props-05.json",
+      "canonicalSha256": "500a41024633708c583d4658b7c535af46977c7123fd5a4f786e150239f756f6"
+    }
+  ],
+  "historicalFiles": {
+    "web/src/render/atlas.ts": "e57f156c9292733bf7c51a1dfda51b1b0392ea1071eaa88dac0532314d239233",
+    "assets/sprites/atlas.toml": "8d5bd3a5eb344b7b3f33c8d9634dbc8669926b41b9c928526b7a2e79f7b63ba4",
+    "web/public/atlas.png": "d29e09fda8ae6cb8efefa453c64488ebdb6696a5721c10191c28b5c508f9fa45"
+  },
+  "historicalDepthRevisionProof": "docs/assets/review-evidence/architecture/depth-full-01/historical-preservation.json"
+}

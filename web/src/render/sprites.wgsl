@@ -36,6 +36,10 @@
 // One atlas serves both layers: opaque sprites first, translucent short
 // walls second. Both draws share a bind group, render pass and submission.
 
+const SURFACE_DEPTH_PROJECTION: f32 = -2.0;
+const DINING_BACKGROUND: f32 = -3.0;
+const DINING_FOREGROUND: f32 = -4.0;
+
 struct Uniforms {
   viewport: vec2<f32>,
   // Where a sprite's bottom centre sits relative to the entity's screen
@@ -45,8 +49,8 @@ struct Uniforms {
   // multiplies by the camera scale below, so this stays half a tile at
   // every zoom.
   anchor: vec2<f32>,
-  // The camera zoom in x; yzw are padding to the 16-byte uniform
-  // stride, so the scale sits at offset 16 and `ambient` at 32.
+  // Camera zoom in x, shared architecture camera origin in yz, padding in w.
+  // The scale sits at offset 16 and `ambient` at 32.
   //
   // Instance POSITIONS arrive already scaled - `screenX`/`screenY` bake
   // the zoom into the world term on the CPU, for statics and entities
@@ -99,6 +103,40 @@ struct Atlas {
 @group(0) @binding(1) var<storage, read> atlas: Atlas;
 @group(0) @binding(2) var atlasSampler: sampler;
 @group(0) @binding(3) var atlasTexture: texture_2d<f32>;
+@group(0) @binding(4) var architectureDepth: texture_2d<f32>;
+@group(0) @binding(5) var architectureColor: texture_2d_array<f32>;
+@group(0) @binding(6) var architectureRoles: texture_2d<u32>;
+struct ArchitectureRegistration { entries: array<vec4f>, };
+struct ArchitectureFinish { pattern: vec4f, palette: vec4f, };
+struct ArchitectureFinishes { entries: array<ArchitectureFinish>, };
+@group(0) @binding(7) var<storage, read> architectureRegistration: ArchitectureRegistration;
+@group(0) @binding(8) var<storage, read> architectureFinishes: ArchitectureFinishes;
+// ARCHITECTURE_PATTERN_BINDINGS
+
+// ARCHITECTURE_MODE_HELPERS_BEGIN
+override maxArchitectureFinishSlot: u32;
+fn isArchitecture(mode: f32) -> bool {
+  // Inspect finite bits before float operations, then guard every integer cast.
+  if ((bitcast<u32>(mode) & 0x7f800000u) == 0x7f800000u) { return false; }
+  if (mode > -6.0 || mode < -f32(4u * maxArchitectureFinishSlot + 7u)
+    || floor(mode) != mode) { return false; }
+  let kind = u32(-mode) % 4u;
+  return kind == 2u || kind == 3u;
+}
+fn isArchitectureFloor(mode: f32) -> bool {
+  if (!isArchitecture(mode)) { return false; }
+  return u32(-mode) % 4u == 3u;
+}
+fn architectureFinishSlot(mode: f32) -> u32 {
+  if (!isArchitecture(mode)) { return 0u; }
+  return u32(-mode) / 4u - 1u;
+}
+// ARCHITECTURE_MODE_HELPERS_END
+
+struct BedLayers { records: array<vec4u>, };
+@group(0) @binding(9) var<storage, read> beds: BedLayers;
+struct DiningSupport { records: array<vec4f>, };
+@group(0) @binding(10) var<storage, read> dining: DiningSupport;
 
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
@@ -106,6 +144,9 @@ struct VertexOut {
   @location(2) @interpolate(flat) uvBounds: vec4<f32>,
   @location(3) corner: vec2<f32>,
   @location(4) @interpolate(flat) pair: vec2<u32>,
+  @location(8) @interpolate(flat) bed: vec4u,
+  @location(9) supportUv: vec2f,
+  @location(10) @interpolate(flat) supportMask: u32,
   // Passed straight through. Every vertex of one quad carries the same
   // value, so the interpolation across the triangle is a no-op and the
   // fragment reads exactly what the instance packed.
@@ -113,6 +154,8 @@ struct VertexOut {
   @location(5) localPixel: vec2<f32>,
   @location(6) @interpolate(flat) wall: vec4<f32>,
   @location(7) @interpolate(flat) colourway: vec4<f32>,
+  @location(11) @interpolate(flat) registration: vec4f,
+  @location(12) @interpolate(flat) groundOrigin: vec2f,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -141,8 +184,23 @@ fn vs(
   // toilet, a wall - all stand on the same line. Everything drawn-sized
   // scales with the camera; the instance position already did on the CPU.
   let scale = u.scale.x;
-  let topLeft = instance.xy + (u.anchor - vec2f(size.x * 0.5, size.y)) * scale;
-  let screen = topLeft + corner * size * scale;
+  var registration = vec4f(size.x * 0.5, size.y - u.anchor.y, 1.0, 0.0);
+  if (isArchitecture(wall.x)) {
+    let registered = architectureRegistration.entries[u32(instance.w - u.sky.y)];
+    if (registered.w > 0.0) { registration = registered; }
+  }
+  let topLeft = instance.xy - registration.xy * scale;
+  var screen = topLeft + corner * size * scale;
+  var textureCorner = corner;
+  if (isArchitectureFloor(wall.x)) {
+    // A canonical world corner is computed identically by both adjacent tiles.
+    // The hardware triangle fill rule owns their shared edge; independent
+    // fragment predicates from separately rounded centers cannot open a seam.
+    let ground = wall.zw + corner - vec2f(0.5);
+    screen = u.scale.yz + vec2f((ground.x-ground.y)*32.0,
+      (ground.x+ground.y)*21.0) * scale;
+    textureCorner = (screen-topLeft) / (size*scale);
+  }
 
   // Screen pixels to clip space. Y is flipped because screen space
   // grows downward and clip space grows upward.
@@ -153,14 +211,26 @@ fn vs(
 
   var out: VertexOut;
   out.clip = vec4f(clipXy, instance.z, 1.0);
-  out.uv = mix(sprite.uv.xy, sprite.uv.zw, corner);
+  out.uv = mix(sprite.uv.xy, sprite.uv.zw, textureCorner);
   out.uvBounds = sprite.uv;
-  out.corner = corner;
+  out.corner = textureCorner;
   out.pair = vec2u(sprite.size.zw);
+  out.bed = beds.records[u32(instance.w)];
+  let support = dining.records[u32(instance.w)];
+  out.supportMask = u32(support.x);
+  out.supportUv = vec2f(0.0);
+  if (out.supportMask > 0u) {
+    let mask = atlas.sprites[out.supportMask - 1u];
+    out.supportUv = (corner * size - support.yz) / mask.size.xy;
+  }
   out.tint = tint;
-  out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + corner * size;
+  out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + textureCorner * size;
   out.wall = wall;
   out.colourway = colourway;
+  out.registration = registration;
+  let groundScreen = (instance.xy - u.scale.yz) / scale;
+  out.groundOrigin = vec2f((groundScreen.y / 21.0 + groundScreen.x / 32.0) * 0.5,
+    (groundScreen.y / 21.0 - groundScreen.x / 32.0) * 0.5);
   return out;
 }
 
@@ -228,14 +298,95 @@ fn wallSumOffset(pixel: vec2<f32>, mask: u32, height: f32) -> f32 {
   return -distance;
 }
 
+fn srgbToLinear(rgb: vec3f) -> vec3f {
+  return select(pow((rgb + 0.055) / 1.055, vec3f(2.4)), rgb / 12.92, rgb <= vec3f(0.04045));
+}
+
+fn linearToSrgb(rgb: vec3f) -> vec3f {
+  return select(1.055 * pow(max(rgb, vec3f(0.0)), vec3f(1.0 / 2.4)) - 0.055,
+    rgb * 12.92, rgb <= vec3f(0.0031308));
+}
+
+fn bedLayer(reference: u32, corner: vec2f) -> vec4f {
+  if (reference == 0u) { return vec4f(0.0); }
+  let sprite = atlas.sprites[reference - 1u];
+  let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
+  let uv = clamp(mix(sprite.uv.xy, sprite.uv.zw, corner),
+    sprite.uv.xy + halfTexel, sprite.uv.zw - halfTexel);
+  return textureSampleLevel(atlasTexture, atlasSampler, uv, 0.0);
+}
+
 @fragment
 fn fs(in: VertexOut) -> FragmentOut {
+  // Complementary passes reconstruct the same complete occupied colour.
+  // Only tabletop geometry changes depth; no meal pixels are drawn twice.
+  if (in.wall.x == DINING_BACKGROUND || in.wall.x == DINING_FOREGROUND) {
+    var supported = false;
+    if (in.supportMask > 0u && all(in.supportUv >= vec2f(0.0)) && all(in.supportUv <= vec2f(1.0))) {
+      let mask = atlas.sprites[in.supportMask - 1u];
+      let halfTexel = 0.5 / vec2f(textureDimensions(atlasTexture));
+      let uv = clamp(mix(mask.uv.xy, mask.uv.zw, in.supportUv), mask.uv.xy + halfTexel, mask.uv.zw - halfTexel);
+      supported = textureSampleLevel(atlasTexture, atlasSampler, uv, 0.0).a >= 0.5;
+    }
+    if (supported == (in.wall.x == DINING_BACKGROUND)) { discard; }
+  }
   // Linear filtering must stay inside this sprite's edge texels. Sampling
   // the transparent atlas gutter darkens every panel seam at fractional zoom.
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
   var colour = textureSample(atlasTexture, atlasSampler, uv);
-  if (in.pair.x > 0u) {
+  let architectureFloor = isArchitectureFloor(in.wall.x);
+  let architecture = isArchitecture(in.wall.x);
+  var architecturePixel = vec2i(0);
+  if (architecture) {
+    let architectureSize = vec2f(textureDimensions(architectureColor));
+    let architectureUv = clamp(in.uv, in.uvBounds.xy + vec2f(0.5) / architectureSize,
+      in.uvBounds.zw - vec2f(0.5) / architectureSize);
+    architecturePixel = vec2i(floor(architectureUv * architectureSize));
+    // Color coverage and depth have the same nearest-texel owner, including
+    // antialiased and silhouette pixels. No filtered depth crosses a reveal.
+    colour = textureLoad(architectureColor, architecturePixel, 0, 0);
+    let finishSlot = architectureFinishSlot(in.wall.x);
+    if (finishSlot > 0u) {
+      let finish = architectureFinishes.entries[finishSlot - 1u];
+      let role = textureLoad(architectureRoles, architecturePixel, 0).r;
+      if (role == u32(finish.pattern.y)) {
+        let localSum = textureLoad(architectureDepth, architecturePixel, 0).r;
+        let localPixel = (vec2f(architecturePixel) + vec2f(0.5)
+          - in.uvBounds.xy * architectureSize) / in.registration.z - in.registration.xy;
+        let height = (21.0 * localSum - localPixel.y) / 38.0;
+        var coordinates = vec2f(in.groundOrigin.x + in.groundOrigin.y + localSum, height);
+        if (architectureFloor) {
+          let groundScreen = (in.clip.xy - u.scale.yz) / u.scale.x;
+          coordinates = vec2f((groundScreen.y / 21.0 + groundScreen.x / 32.0) * 0.5,
+            (groundScreen.y / 21.0 - groundScreen.x / 32.0) * 0.5) + vec2f(0.5);
+        }
+        let pattern = architecturePattern(u32(finish.pattern.x), coordinates / finish.pattern.zw);
+        let carrier = textureLoad(architectureColor, architecturePixel, 1, 0).rgb;
+        let linear = select(pow((carrier + 0.055) / 1.055, vec3f(2.4)), carrier / 12.92,
+          carrier <= vec3f(0.04045));
+        let result = linear * pattern * finish.palette.rgb;
+        let encoded = select(1.055 * pow(result, vec3f(1.0 / 2.4)) - 0.055,
+          result * 12.92, result <= vec3f(0.0031308));
+        colour = vec4f(encoded, colour.a);
+      }
+    }
+    if (architectureFloor) {
+      // The vertex stage already supplies exact physical coverage. The material
+      // apron protects sampling at the silhouette without expanding geometry.
+      colour.a = 1.0;
+    }
+  }
+  if (in.bed.x > 0u) {
+    var furniture = bedLayer(in.bed.x, in.corner);
+    if (furniture.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
+      let rgb = recolour(linearToSrgb(furniture.rgb / furniture.a), in.colourway);
+      furniture = vec4f(srgbToLinear(rgb) * furniture.a, furniture.a);
+    }
+    // Fills already include shared-ink attenuation before export filtering.
+    colour = furniture + bedLayer(in.bed.y, in.corner)
+      + bedLayer(in.bed.z, in.corner) + bedLayer(in.bed.w, in.corner);
+  } else if (in.pair.x > 0u) {
     let furniture = atlas.sprites[in.pair.x - 1u];
     let outline = atlas.sprites[in.pair.y - 1u];
     let furnitureUv = clamp(mix(furniture.uv.xy, furniture.uv.zw, in.corner),
@@ -269,7 +420,9 @@ fn fs(in: VertexOut) -> FragmentOut {
   if (colour.a < 0.5) {
     discard;
   }
-  if (in.pair.x > 0u) {
+  if (in.bed.x > 0u) {
+    colour = vec4f(linearToSrgb(colour.rgb / colour.a), clamp(colour.a, 0.0, 1.0));
+  } else if (in.pair.x > 0u) {
     colour = vec4f(colour.rgb / colour.a, colour.a);
   } else {
     // An object's own picture takes its colourway; everything else carries
@@ -296,13 +449,28 @@ fn fs(in: VertexOut) -> FragmentOut {
   var out: FragmentOut;
   out.colour = vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
   out.depth = in.clip.z;
-  if (in.wall.x > 0.0) {
+  if (architecture) {
+    let localSum = textureLoad(architectureDepth, architecturePixel, 0).r;
+    out.depth = clamp(in.clip.z - localSum * in.wall.y, 0.0, 1.0);
+    if (!architectureFloor && in.wall.w > 0.0) { out.colour.a *= in.wall.z; }
+  } else if (in.wall.x > 0.0) {
     let short = in.wall.w > 0.0;
     let height = select(76.0, in.wall.w, short);
     out.depth = clamp(in.clip.z - wallSumOffset(in.localPixel, u32(in.wall.x), height) * in.wall.y, 0.0, 1.0);
     // Coverage was tested above. Short walls blend after opaque geometry
     // without claiming depth, including when their current opacity is one.
     if (short) { out.colour.a *= in.wall.z; }
+  } else if (in.wall.x == SURFACE_DEPTH_PROJECTION) {
+    let surface = atlas.sprites[u32(in.wall.z)];
+    let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
+      surface.uv.xy + halfTexel, surface.uv.zw - halfTexel);
+    let sample = textureSampleLevel(atlasTexture, atlasSampler, depthUv, 0.0);
+    // Lossless RG16 encodes the model's game-space X+Y in [-2, 2].
+    let sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0 - in.wall.w;
+    out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);
+    // Flush threshold pixels share the floor's ordering convention, just
+    // ahead of the tile but behind the leaf, casing and every person's feet.
+    if (sample.b > 0.5) { out.depth = 1.0 - 1.0 / 4096.0 * 0.625; }
   } else if (in.wall.x < 0.0) {
     // Intersect the view column x-y=t with the centered rectangular
     // footprint. Its interval midpoint in x+y is this clamped slope.

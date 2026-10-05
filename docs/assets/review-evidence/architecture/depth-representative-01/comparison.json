@@ -1,0 +1,149 @@
+{
+  "sourceProofSha256": "9c07f453c316437dd9f1863d712b0dc826c3445a0f26b6946a88164cc8907e0d",
+  "records": [
+    {
+      "geometryKey": "window.sash.x-front.full",
+      "baselineColorSha256": "6b0e257cac3625e83ec5c85d918683347e532d66c272e1f672f4e0e7b4997caf",
+      "candidateColorSha256": "d0c6f5347e60c1e5a24d40bc14894a48ee662f2955e3baf797abc08f032548e1",
+      "sheetSha256": "0d7880c8d879caced8178e615501c7104e1f237aa06e44e58f1a019e7f02eb23",
+      "physicalBounds": [
+        [
+          -0.5,
+          -0.125,
+          0
+        ],
+        [
+          0.5,
+          0.125,
+          2.0
+        ]
+      ]
+    },
+    {
+      "geometryKey": "window.sliding.x-front.full",
+      "baselineColorSha256": "9d9e52a5e416b0191b7bacc80619d4f5b93296450a8b33b9c5e7d0185bad0434",
+      "candidateColorSha256": "6df2ecce9ff77241ad671d9c3517048bd2cbfad40becbea05c5d10d41efbcfd9",
+      "sheetSha256": "ee0a5c4df1b4830ee360b5af08c368af71845ae8df7aac2581913fbf6e443bfb",
+      "physicalBounds": [
+        [
+          -1.0,
+          -0.125,
+          0
+        ],
+        [
+          1.0,
+          0.125,
+          2.0
+        ]
+      ]
+    },
+    {
+      "geometryKey": "window.picture.x-front.full",
+      "baselineColorSha256": "bc470c8b3c9573527da5664763b57af2d7a7deffe7d583f85d4d212cc50dae49",
+      "candidateColorSha256": "973e86d73ffe8e8030c56fd4a12b5c07894ba56b58874a26b3914c655a4c07a3",
+      "sheetSha256": "b601435881b52f5d4df10a1c4415f9a609586ffd14d6f67294205c557d494b88",
+      "physicalBounds": [
+        [
+          -1.5,
+          -0.125,
+          0
+        ],
+        [
+          1.5,
+          0.125,
+          2.0
+        ]
+      ]
+    },
+    {
+      "geometryKey": "straight.x-front.full",
+      "baselineColorSha256": "6308864283a527e719fd5e9ce77ccedab999425b35c00e463a8d0863e73d8123",
+      "candidateColorSha256": "f4aa0f8173278e3cbb3081a87282d419ec2bfc525833612b9cac277800b6f845",
+      "sheetSha256": "3a58a3f30ea2f87b60f4916b45ca02c50af83cc7169fb41e5963a5aca9de679d",
+      "physicalBounds": [
+        [
+          -0.5,
+          -0.08800000000000001,
+          0
+        ],
+        [
+          0.5,
+          0.08800000000000001,
+          2.0
+        ]
+      ]
+    },
+    {
+      "geometryKey": "straight.y-front.cut",
+      "baselineColorSha256": "19531f6556230301b3af69fe4bd5f078e9a2af39648c6de42bfe2f2dbf7945c2",
+      "candidateColorSha256": "594f281dcf1b7d456ca4ea2160775434af974fde3fb5eaaae36218778b48f27f",
+      "sheetSha256": "3edd2d285f82f8581f68ecf4ef2db05ac1111c13fc8bcfeff3829afbb8b1201e",
+      "physicalBounds": [
+        [
+          -0.08800000000000001,
+          -0.5,
+          0
+        ],
+        [
+          0.08800000000000001,
+          0.5,
+          0.6666666666666666
+        ]
+      ]
+    },
+    {
+      "geometryKey": "doorway.x-front.full",
+      "baselineColorSha256": "a5ce26415f8adc22f25e5cca503ae83dc0a523b482abfa4c5749a4f230c3d586",
+      "candidateColorSha256": "70ece84e080db92dad843d3058723b52bd0f9ddf3f6cc921b2885c2572340bd3",
+      "sheetSha256": "dd5e9833676922f7e50cdb8cb5bb05d7aaed82e75451ba3151a02a23575ff93c",
+      "physicalBounds": [
+        [
+          -0.5,
+          -0.09000000000000001,
+          0
+        ],
+        [
+          0.5,
+          0.09000000000000001,
+          2.0
+        ]
+      ]
+    },
+    {
+      "geometryKey": "doorway.y-front.full",
+      "baselineColorSha256": "9cbaf70efc8cb7003b0a075461cf1a51b9bd063a2515795db85215a246211f28",
+      "candidateColorSha256": "95232ed8f9cecf064caef1073925d52e630f0adb6b444cc211b6e68cc04c92c3",
+      "sheetSha256": "149b725b2b1de1336aa6751c5caa03e5ed1dc04b61858928a6b5765e108f6245",
+      "physicalBounds": [
+        [
+          -0.09000000000000001,
+          -0.5,
+          0
+        ],
+        [
+          0.09000000000000001,
+          0.5,
+          2.0
+        ]
+      ]
+    },
+    {
+      "geometryKey": "junction.2222",
+      "baselineColorSha256": "d7911f51076245d5e997af5c9bbd19b253895de7bf090a7d6f1b6234658d0b30",
+      "candidateColorSha256": "1e469047f91669d745058b0dfe2ac1ea1ab43a2a7ec98a84975234f5a0c8f545",
+      "sheetSha256": "a7553842dbec8a877533773999b67a27163239d7411f563901e38dfa70286b41",
+      "physicalBounds": [
+        [
+          -0.5,
+          -0.5,
+          0
+        ],
+        [
+          0.5,
+          0.5,
+          2
+        ]
+      ]
+    }
+  ]
+}

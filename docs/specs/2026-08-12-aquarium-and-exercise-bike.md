@@ -4,8 +4,9 @@ This document records the original implementation. The later offline-model
 aquarium replacement is documented in
 [`../assets/review-evidence/living/aquarium.md`](../assets/review-evidence/living/aquarium.md).
 It adds four object facings with two fish frames each while preserving the
-current interaction, save contract and Sim watch animation. Source and
-isolated GPU review have passed; played-room acceptance is still pending.
+current interaction, save contract and Sim watch animation. Its current local
+acceptance is recorded in the [2026-10-04 verification](../assets/review-evidence/living/aquarium-2026-10-04.md).
+Source merge and public deployment require separate evidence.
 
 Status: merged in [PR #52](https://github.com/thisnameissoclever/terrilives/pull/52)
 at `080ff7e1` on 2026-08-13. [CI run

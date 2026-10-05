@@ -1,0 +1,1415 @@
+[
+  {
+    "source": "docs\\evidence\\relationship-development\\publication\\sink-pilot.txt",
+    "seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "scenario_runs": 28,
+    "ordinary": {
+      "runs": 16,
+      "sim_weeks": 384,
+      "incidents": 286,
+      "directional_contact_hours": 18862.033,
+      "incidents_per_sim_week": 0.7447916666666666,
+      "emergencies": 64,
+      "player_directed": 0,
+      "non_incompatible_samples": 123648,
+      "above_hostility_percent": 91.7774650621118,
+      "wait_minutes": 2419,
+      "max_wait_minutes": 179,
+      "low_need_minutes": 571600,
+      "essential_empty_minutes": 271260,
+      "essential_empty_while_waiting": 24,
+      "entry_wait_minutes": 896,
+      "start_wait_minutes": 1523,
+      "alive_at_end": 48,
+      "original_population": 48,
+      "chains_completed": 4234,
+      "chains_abandoned": 19,
+      "chains_active_at_end": 12,
+      "max_chain_age_minutes": 1322,
+      "max_chain_stall_minutes": 761
+    },
+    "layouts": {
+      "shipped": {
+        "runs": 4,
+        "sim_weeks": 96,
+        "incidents": 123,
+        "directional_contact_hours": 2867.033,
+        "incidents_per_sim_week": 1.28125,
+        "emergencies": 54,
+        "player_directed": 0,
+        "non_incompatible_samples": 16128,
+        "above_hostility_percent": 38.095238095238095,
+        "wait_minutes": 1529,
+        "max_wait_minutes": 179,
+        "low_need_minutes": 312019,
+        "essential_empty_minutes": 132375,
+        "essential_empty_while_waiting": 24,
+        "entry_wait_minutes": 557,
+        "start_wait_minutes": 972,
+        "alive_at_end": 12,
+        "original_population": 12,
+        "chains_completed": 982,
+        "chains_abandoned": 13,
+        "chains_active_at_end": 5,
+        "max_chain_age_minutes": 1322,
+        "max_chain_stall_minutes": 761
+      },
+      "two": {
+        "runs": 4,
+        "sim_weeks": 64,
+        "incidents": 24,
+        "directional_contact_hours": 1743.533,
+        "incidents_per_sim_week": 0.375,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 10752,
+        "above_hostility_percent": 100.0,
+        "wait_minutes": 2,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 56610,
+        "essential_empty_minutes": 29656,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 2,
+        "alive_at_end": 8,
+        "original_population": 8,
+        "chains_completed": 754,
+        "chains_abandoned": 0,
+        "chains_active_at_end": 2,
+        "max_chain_age_minutes": 893,
+        "max_chain_stall_minutes": 307
+      },
+      "three": {
+        "runs": 4,
+        "sim_weeks": 96,
+        "incidents": 34,
+        "directional_contact_hours": 4928.032999999999,
+        "incidents_per_sim_week": 0.3541666666666667,
+        "emergencies": 1,
+        "player_directed": 0,
+        "non_incompatible_samples": 32256,
+        "above_hostility_percent": 100.0,
+        "wait_minutes": 69,
+        "max_wait_minutes": 14,
+        "low_need_minutes": 84565,
+        "essential_empty_minutes": 45594,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 41,
+        "start_wait_minutes": 28,
+        "alive_at_end": 12,
+        "original_population": 12,
+        "chains_completed": 1076,
+        "chains_abandoned": 4,
+        "chains_active_at_end": 2,
+        "max_chain_age_minutes": 825,
+        "max_chain_stall_minutes": 283
+      },
+      "four": {
+        "runs": 4,
+        "sim_weeks": 128,
+        "incidents": 105,
+        "directional_contact_hours": 9323.434,
+        "incidents_per_sim_week": 0.8203125,
+        "emergencies": 9,
+        "player_directed": 0,
+        "non_incompatible_samples": 64512,
+        "above_hostility_percent": 99.7163318452381,
+        "wait_minutes": 819,
+        "max_wait_minutes": 107,
+        "low_need_minutes": 118406,
+        "essential_empty_minutes": 63635,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 298,
+        "start_wait_minutes": 521,
+        "alive_at_end": 16,
+        "original_population": 16,
+        "chains_completed": 1422,
+        "chains_abandoned": 2,
+        "chains_active_at_end": 3,
+        "max_chain_age_minutes": 1176,
+        "max_chain_stall_minutes": 620
+      }
+    },
+    "recovery": {
+      "recovery0": {
+        "observations": 4,
+        "finished": 4,
+        "unfinished": 0,
+        "statistics_population": "completed observations only",
+        "censoring_horizon_days": 56,
+        "cohort_mean_lower_bound_days": 5.656775,
+        "mean_days": 5.656775,
+        "median_days": 2.9913,
+        "p90_days": 15.2396,
+        "max_days": 15.2396,
+        "subsequent_incidents_during_recovery": 3,
+        "subsequent_incidents_in_56_days": 9,
+        "effects_until_recovery": {
+          "Proximity": {
+            "events": 3630,
+            "actual": 3.44847875
+          },
+          "Decay": {
+            "events": 32583,
+            "actual": 0.32605895
+          },
+          "HouseholdMess": {
+            "events": 125,
+            "actual": -2.06249973
+          },
+          "Conversation": {
+            "events": 1,
+            "actual": 0.0
+          },
+          "PrivacyEntry": {
+            "events": 1,
+            "actual": -0.24999997
+          },
+          "PrivacyStart": {
+            "events": 2,
+            "actual": -0.49999997
+          }
+        }
+      },
+      "recovery5": {
+        "observations": 4,
+        "finished": 4,
+        "unfinished": 0,
+        "statistics_population": "completed observations only",
+        "censoring_horizon_days": 56,
+        "cohort_mean_lower_bound_days": 6.266,
+        "mean_days": 6.266,
+        "median_days": 5.2851,
+        "p90_days": 11.1299,
+        "max_days": 11.1299,
+        "subsequent_incidents_during_recovery": 2,
+        "subsequent_incidents_in_56_days": 10,
+        "effects_until_recovery": {
+          "Proximity": {
+            "events": 3274,
+            "actual": 3.1103193199999994
+          },
+          "SharedActivity": {
+            "events": 58,
+            "actual": 0.55099985
+          },
+          "Decay": {
+            "events": 36092,
+            "actual": -0.12453059999999999
+          },
+          "HouseholdMess": {
+            "events": 127,
+            "actual": -2.09549962
+          },
+          "PrivacyEntry": {
+            "events": 1,
+            "actual": -0.25
+          },
+          "PrivacyStart": {
+            "events": 1,
+            "actual": -0.25
+          },
+          "Conversation": {
+            "events": 1,
+            "actual": 0.17000002
+          },
+          "LowNeedInterruption": {
+            "events": 1,
+            "actual": -0.10999998
+          }
+        }
+      }
+    },
+    "incompatible": {
+      "observations": 8,
+      "finished": 8,
+      "unfinished": 0,
+      "statistics_population": "completed observations only",
+      "censoring_horizon_days": 56,
+      "cohort_mean_lower_bound_days": 3.791225,
+      "mean_days": 3.791225,
+      "median_days": 3.7177,
+      "p90_days": 4.8083,
+      "max_days": 4.8083,
+      "SharedActivity": 0.19712555,
+      "Incompatibility": -6.63078018,
+      "Conversation": 0.51000017,
+      "Decay": 6.45276411
+    },
+    "empty_needs_by_activity": {
+      "shipped:Hunger:Chain": {
+        "minutes": 47475,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:Conversation": {
+        "minutes": 139,
+        "within_two_hours_of_privacy_wait": 67
+      },
+      "shipped:Hunger:Idle": {
+        "minutes": 2662,
+        "within_two_hours_of_privacy_wait": 4
+      },
+      "shipped:Hunger:Walk": {
+        "minutes": 27437,
+        "within_two_hours_of_privacy_wait": 144
+      },
+      "shipped:Hunger:Work": {
+        "minutes": 36021,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:armchair:take_the_chair": {
+        "minutes": 202,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:bathtub:soak": {
+        "minutes": 136,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:bed:sleep": {
+        "minutes": 3054,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:bookshelf:read": {
+        "minutes": 1591,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:desk:attend_correspondence": {
+        "minutes": 910,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:dining_table:sit_properly": {
+        "minutes": 222,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:double_bed:sleep_properly": {
+        "minutes": 1784,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:kitchen_sink:wash_up": {
+        "minutes": 33,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:long_sofa:stretch_out": {
+        "minutes": 387,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 97,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:radio:listen": {
+        "minutes": 539,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:reading_chair:settle_in": {
+        "minutes": 571,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:reference_shelf:watch_fish": {
+        "minutes": 115,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:shower:take_shower": {
+        "minutes": 2184,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:sink:wash_hands": {
+        "minutes": 204,
+        "within_two_hours_of_privacy_wait": 20
+      },
+      "shipped:Hunger:television:watch_tv": {
+        "minutes": 1100,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:toilet:relieve_self": {
+        "minutes": 1573,
+        "within_two_hours_of_privacy_wait": 29
+      },
+      "shipped:Energy:Chain": {
+        "minutes": 1127,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Energy:Idle": {
+        "minutes": 99,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Energy:Walk": {
+        "minutes": 2736,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Energy:Work": {
+        "minutes": 2330,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Energy:desk:attend_correspondence": {
+        "minutes": 22,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Energy:shower:take_shower": {
+        "minutes": 158,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Energy:toilet:relieve_self": {
+        "minutes": 147,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:Chain": {
+        "minutes": 21382,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:Idle": {
+        "minutes": 1086,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:Walk": {
+        "minutes": 4711,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:bed:sleep": {
+        "minutes": 248,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Energy:Chain": {
+        "minutes": 353,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Energy:Idle": {
+        "minutes": 19,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Energy:Walk": {
+        "minutes": 1306,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Energy:toilet:relieve_self": {
+        "minutes": 62,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:Chain": {
+        "minutes": 32975,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:Conversation": {
+        "minutes": 117,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:Idle": {
+        "minutes": 2805,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:Walk": {
+        "minutes": 7035,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:bed:sleep": {
+        "minutes": 967,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:dining_table:sit_properly": {
+        "minutes": 60,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:kitchen_sink:wash_up": {
+        "minutes": 56,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:shower:take_shower": {
+        "minutes": 118,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:television:watch_tv": {
+        "minutes": 147,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:toilet:relieve_self": {
+        "minutes": 130,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Energy:Chain": {
+        "minutes": 551,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Energy:Idle": {
+        "minutes": 42,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Energy:Walk": {
+        "minutes": 807,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Energy:toilet:relieve_self": {
+        "minutes": 42,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:Chain": {
+        "minutes": 42914,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:Conversation": {
+        "minutes": 328,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:Idle": {
+        "minutes": 6333,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:Walk": {
+        "minutes": 10458,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:bed:sleep": {
+        "minutes": 708,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:bookshelf:read": {
+        "minutes": 29,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:dining_table:sit_properly": {
+        "minutes": 137,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:shower:take_shower": {
+        "minutes": 523,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:television:watch_tv": {
+        "minutes": 327,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:toilet:relieve_self": {
+        "minutes": 253,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Energy:Idle": {
+        "minutes": 13,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Energy:Walk": {
+        "minutes": 845,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Energy:shower:take_shower": {
+        "minutes": 37,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Chain": {
+        "minutes": 24380,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Idle": {
+        "minutes": 1805,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Walk": {
+        "minutes": 5260,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:bed:sleep": {
+        "minutes": 342,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:bookshelf:read": {
+        "minutes": 61,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:dining_table:sit_properly": {
+        "minutes": 103,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:shower:take_shower": {
+        "minutes": 389,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:television:watch_tv": {
+        "minutes": 177,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:toilet:relieve_self": {
+        "minutes": 168,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Chain": {
+        "minutes": 786,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Idle": {
+        "minutes": 24,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Walk": {
+        "minutes": 1213,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:shower:take_shower": {
+        "minutes": 63,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:toilet:relieve_self": {
+        "minutes": 75,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Chain": {
+        "minutes": 22913,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Idle": {
+        "minutes": 1395,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Walk": {
+        "minutes": 3511,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:bed:sleep": {
+        "minutes": 557,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:bookshelf:read": {
+        "minutes": 19,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:shower:take_shower": {
+        "minutes": 102,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:toilet:relieve_self": {
+        "minutes": 45,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Idle": {
+        "minutes": 43,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Walk": {
+        "minutes": 992,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:shower:take_shower": {
+        "minutes": 21,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:Chain": {
+        "minutes": 29808,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:Idle": {
+        "minutes": 1292,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:Walk": {
+        "minutes": 6197,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:bed:sleep": {
+        "minutes": 725,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:bookshelf:read": {
+        "minutes": 33,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:dining_table:sit_properly": {
+        "minutes": 107,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:kitchen_sink:wash_up": {
+        "minutes": 21,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:reference_shelf:watch_fish": {
+        "minutes": 232,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:shower:take_shower": {
+        "minutes": 311,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:television:watch_tv": {
+        "minutes": 211,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:toilet:relieve_self": {
+        "minutes": 106,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Energy:Chain": {
+        "minutes": 572,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Energy:Idle": {
+        "minutes": 22,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Energy:Walk": {
+        "minutes": 1490,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Energy:moving_box:use_exercise_bike": {
+        "minutes": 5,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Energy:shower:take_shower": {
+        "minutes": 127,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Energy:toilet:relieve_self": {
+        "minutes": 61,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Hunger:sofa:lounge": {
+        "minutes": 252,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:Conversation": {
+        "minutes": 5,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:kitchen_sink:wash_up": {
+        "minutes": 35,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 79,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:reading_chair:settle_in": {
+        "minutes": 49,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:shower:take_shower": {
+        "minutes": 186,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:television:watch_tv": {
+        "minutes": 77,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Hunger:toilet:relieve_self": {
+        "minutes": 116,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "two:Energy:shower:take_shower": {
+        "minutes": 68,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:reference_shelf:watch_fish": {
+        "minutes": 67,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:reference_shelf:watch_fish": {
+        "minutes": 280,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Energy:Chain": {
+        "minutes": 494,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:television:watch_tv": {
+        "minutes": 32,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Chain": {
+        "minutes": 502,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "incompatible:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 46,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "shipped:Energy:moving_box:use_exercise_bike": {
+        "minutes": 41,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Hunger:reading_chair:settle_in": {
+        "minutes": 74,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Energy:television:watch_tv": {
+        "minutes": 7,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 76,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:toilet:relieve_self": {
+        "minutes": 53,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "three:Energy:shower:take_shower": {
+        "minutes": 6,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "four:Hunger:reading_chair:settle_in": {
+        "minutes": 59,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:reference_shelf:watch_fish": {
+        "minutes": 79,
+        "within_two_hours_of_privacy_wait": 0
+      }
+    },
+    "active_chains_at_end": [
+      {
+        "scenario": "shipped",
+        "seed": 1,
+        "actor": "1",
+        "chain": "0",
+        "step": "4",
+        "age_minutes": "438",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "shipped",
+        "seed": 1,
+        "actor": "2",
+        "chain": "1",
+        "step": "2",
+        "age_minutes": "103",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "three",
+        "seed": 1,
+        "actor": "2",
+        "chain": "2",
+        "step": "0",
+        "age_minutes": "7",
+        "stall_minutes": "7"
+      },
+      {
+        "scenario": "four",
+        "seed": 1,
+        "actor": "2",
+        "chain": "1",
+        "step": "2",
+        "age_minutes": "115",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "four",
+        "seed": 1,
+        "actor": "3",
+        "chain": "1",
+        "step": "2",
+        "age_minutes": "195",
+        "stall_minutes": "69"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 1,
+        "actor": "0",
+        "chain": "0",
+        "step": "4",
+        "age_minutes": "373",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 1,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "21",
+        "stall_minutes": "21"
+      },
+      {
+        "scenario": "incompatible",
+        "seed": 1,
+        "actor": "0",
+        "chain": "0",
+        "step": "2",
+        "age_minutes": "199",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "incompatible",
+        "seed": 1,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "56",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "shipped",
+        "seed": 2,
+        "actor": "2",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "35",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "two",
+        "seed": 2,
+        "actor": "0",
+        "chain": "0",
+        "step": "3",
+        "age_minutes": "328",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "four",
+        "seed": 2,
+        "actor": "0",
+        "chain": "0",
+        "step": "2",
+        "age_minutes": "183",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 2,
+        "actor": "1",
+        "chain": "0",
+        "step": "1",
+        "age_minutes": "178",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 2,
+        "actor": "1",
+        "chain": "0",
+        "step": "0",
+        "age_minutes": "53",
+        "stall_minutes": "53"
+      },
+      {
+        "scenario": "shipped",
+        "seed": 3,
+        "actor": "2",
+        "chain": "0",
+        "step": "4",
+        "age_minutes": "387",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "two",
+        "seed": 3,
+        "actor": "0",
+        "chain": "2",
+        "step": "0",
+        "age_minutes": "41",
+        "stall_minutes": "26"
+      },
+      {
+        "scenario": "three",
+        "seed": 3,
+        "actor": "1",
+        "chain": "3",
+        "step": "0",
+        "age_minutes": "80",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 3,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "26",
+        "stall_minutes": "26"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 3,
+        "actor": "0",
+        "chain": "0",
+        "step": "4",
+        "age_minutes": "474",
+        "stall_minutes": "4"
+      },
+      {
+        "scenario": "incompatible",
+        "seed": 3,
+        "actor": "0",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "56",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "incompatible",
+        "seed": 3,
+        "actor": "1",
+        "chain": "0",
+        "step": "1",
+        "age_minutes": "135",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "shipped",
+        "seed": 4,
+        "actor": "1",
+        "chain": "0",
+        "step": "4",
+        "age_minutes": "461",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 4,
+        "actor": "1",
+        "chain": "0",
+        "step": "2",
+        "age_minutes": "171",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "incompatible",
+        "seed": 4,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "69",
+        "stall_minutes": "0"
+      }
+    ],
+    "critical_person_minutes": {
+      "four": {
+        "Bladder": 38054,
+        "Comfort": 5688,
+        "Energy": 23266,
+        "Fun": 9156,
+        "Hunger": 301886,
+        "Hygiene": 28844,
+        "Social": 44779
+      },
+      "incompatible": {
+        "Bladder": 16933,
+        "Comfort": 859,
+        "Energy": 29542,
+        "Fun": 5492,
+        "Hunger": 184129,
+        "Hygiene": 10501,
+        "Social": 44952
+      },
+      "recovery0": {
+        "Bladder": 19025,
+        "Comfort": 1594,
+        "Energy": 25958,
+        "Fun": 8036,
+        "Hunger": 148307,
+        "Hygiene": 13758,
+        "Social": 27331
+      },
+      "recovery5": {
+        "Bladder": 20629,
+        "Comfort": 1147,
+        "Energy": 24787,
+        "Fun": 5457,
+        "Hunger": 140625,
+        "Hygiene": 13680,
+        "Social": 32821
+      },
+      "shipped": {
+        "Bladder": 73447,
+        "Comfort": 1095,
+        "Energy": 53982,
+        "Fun": 92906,
+        "Hunger": 359486,
+        "Hygiene": 66982,
+        "Social": 418470
+      },
+      "three": {
+        "Bladder": 27846,
+        "Comfort": 3393,
+        "Energy": 25272,
+        "Fun": 9759,
+        "Hunger": 201428,
+        "Hygiene": 19151,
+        "Social": 40947
+      },
+      "two": {
+        "Bladder": 14004,
+        "Comfort": 744,
+        "Energy": 24557,
+        "Fun": 5816,
+        "Hunger": 140733,
+        "Hygiene": 11881,
+        "Social": 36494
+      }
+    },
+    "first_positive_contact": [
+      {
+        "scenario": "recovery0",
+        "seed": 1,
+        "first_positive_minute": "25"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 1,
+        "first_positive_minute": "25"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 2,
+        "first_positive_minute": "64"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 2,
+        "first_positive_minute": "64"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 3,
+        "first_positive_minute": "32"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 3,
+        "first_positive_minute": "32"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 4,
+        "first_positive_minute": "306"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 4,
+        "first_positive_minute": "306"
+      }
+    ],
+    "contributions": {
+      "four": {
+        "Conversation": {
+          "events": 150,
+          "actual": 11.007010229999999,
+          "requested": 14.62000015
+        },
+        "LowNeedInterruption": {
+          "events": 44,
+          "actual": -4.84000042,
+          "requested": -4.83999998
+        },
+        "CriticalNeedInterruption": {
+          "events": 30,
+          "actual": -5.9999997,
+          "requested": -6.0000000799999995
+        },
+        "PrivacyEntry": {
+          "events": 45,
+          "actual": -11.24999995,
+          "requested": -11.25
+        },
+        "PrivacyStart": {
+          "events": 69,
+          "actual": -17.24999995,
+          "requested": -17.25
+        },
+        "Proximity": {
+          "events": 331841,
+          "actual": 275.07665691,
+          "requested": 315.24895532
+        },
+        "SharedActivity": {
+          "events": 3205,
+          "actual": 19.64745852,
+          "requested": 30.447499030000003
+        },
+        "Decay": {
+          "events": 3867567,
+          "actual": -35.14103419,
+          "requested": -35.097509120000005
+        },
+        "HouseholdMess": {
+          "events": 12875,
+          "actual": -212.43745453,
+          "requested": -212.43749885
+        }
+      },
+      "incompatible": {
+        "Conversation": {
+          "events": 26,
+          "actual": 0.51000017,
+          "requested": 0.51
+        },
+        "CriticalNeedInterruption": {
+          "events": 4,
+          "actual": -0.00173694,
+          "requested": -0.80000002
+        },
+        "PrivacyEntry": {
+          "events": 6,
+          "actual": 0.0,
+          "requested": 0.0
+        },
+        "SharedActivity": {
+          "events": 83,
+          "actual": 0.19712555,
+          "requested": 0.19712500000000002
+        },
+        "Incompatibility": {
+          "events": 98302,
+          "actual": -6.6307801799999995,
+          "requested": -29.49059853
+        },
+        "Decay": {
+          "events": 644439,
+          "actual": 6.45276411,
+          "requested": 6.44438984
+        },
+        "HouseholdMess": {
+          "events": 2298,
+          "actual": -8.19173753,
+          "requested": -37.9169998
+        },
+        "LowNeedInterruption": {
+          "events": 7,
+          "actual": -0.33162974,
+          "requested": -0.77
+        },
+        "PrivacyStart": {
+          "events": 8,
+          "actual": 0.0,
+          "requested": 0.0
+        }
+      },
+      "recovery0": {
+        "Conversation": {
+          "events": 26,
+          "actual": 1.9071073,
+          "requested": 2.72000003
+        },
+        "PrivacyEntry": {
+          "events": 9,
+          "actual": -2.24999997,
+          "requested": -2.25
+        },
+        "Proximity": {
+          "events": 65951,
+          "actual": 51.688065349999995,
+          "requested": 62.653451059999995
+        },
+        "SharedActivity": {
+          "events": 308,
+          "actual": 0.86933216,
+          "requested": 2.9259999
+        },
+        "Decay": {
+          "events": 644660,
+          "actual": -5.57506681,
+          "requested": -5.567739850000001
+        },
+        "HouseholdMess": {
+          "events": 2323,
+          "actual": -38.32949164,
+          "requested": -38.3294998
+        },
+        "LowNeedInterruption": {
+          "events": 7,
+          "actual": -0.77000007,
+          "requested": -0.77
+        },
+        "CriticalNeedInterruption": {
+          "events": 2,
+          "actual": -0.39999998,
+          "requested": -0.4
+        },
+        "PrivacyStart": {
+          "events": 5,
+          "actual": -1.24999997,
+          "requested": -1.25
+        }
+      },
+      "recovery5": {
+        "Conversation": {
+          "events": 28,
+          "actual": 2.12070045,
+          "requested": 2.89000004
+        },
+        "LowNeedInterruption": {
+          "events": 8,
+          "actual": -0.8800000800000001,
+          "requested": -0.88
+        },
+        "CriticalNeedInterruption": {
+          "events": 1,
+          "actual": -0.19999999,
+          "requested": -0.2
+        },
+        "PrivacyEntry": {
+          "events": 10,
+          "actual": -2.5,
+          "requested": -2.5
+        },
+        "PrivacyStart": {
+          "events": 9,
+          "actual": -2.25,
+          "requested": -2.25
+        },
+        "Proximity": {
+          "events": 63014,
+          "actual": 49.269578280000005,
+          "requested": 59.86330102
+        },
+        "SharedActivity": {
+          "events": 617,
+          "actual": 2.07693778,
+          "requested": 5.86149981
+        },
+        "Decay": {
+          "events": 645120,
+          "actual": -6.21523193,
+          "requested": -6.2069598500000005
+        },
+        "HouseholdMess": {
+          "events": 2274,
+          "actual": -37.52099145,
+          "requested": -37.520999800000006
+        }
+      },
+      "shipped": {
+        "Conversation": {
+          "events": 30,
+          "actual": 1.72222977,
+          "requested": 2.0690635000000004
+        },
+        "LowNeedInterruption": {
+          "events": 10,
+          "actual": -0.66728965,
+          "requested": -1.1
+        },
+        "PrivacyEntry": {
+          "events": 74,
+          "actual": -6.33136242,
+          "requested": -18.5
+        },
+        "PrivacyStart": {
+          "events": 105,
+          "actual": -8.49290377,
+          "requested": -26.25
+        },
+        "Proximity": {
+          "events": 33027,
+          "actual": 22.5686287,
+          "requested": 31.37565052
+        },
+        "Incompatibility": {
+          "events": 83276,
+          "actual": -0.96278552,
+          "requested": -1.25011216
+        },
+        "Decay": {
+          "events": 1933903,
+          "actual": 13.18256394,
+          "requested": 13.16518967
+        },
+        "HouseholdMess": {
+          "events": 4061,
+          "actual": -30.0826837,
+          "requested": -64.1823011
+        },
+        "CriticalNeedInterruption": {
+          "events": 4,
+          "actual": -0.20426376000000002,
+          "requested": -0.80000001
+        }
+      },
+      "three": {
+        "Conversation": {
+          "events": 76,
+          "actual": 5.05467889,
+          "requested": 7.820000090000001
+        },
+        "LowNeedInterruption": {
+          "events": 23,
+          "actual": -2.53000031,
+          "requested": -2.5300000000000002
+        },
+        "CriticalNeedInterruption": {
+          "events": 7,
+          "actual": -1.39999992,
+          "requested": -1.40000002
+        },
+        "PrivacyEntry": {
+          "events": 14,
+          "actual": -3.5,
+          "requested": -3.5
+        },
+        "PrivacyStart": {
+          "events": 21,
+          "actual": -5.25,
+          "requested": -5.25
+        },
+        "Proximity": {
+          "events": 185163,
+          "actual": 143.50144744,
+          "requested": 175.90485296999998
+        },
+        "SharedActivity": {
+          "events": 1312,
+          "actual": 5.586222080000001,
+          "requested": 12.46399959
+        },
+        "Decay": {
+          "events": 1934731,
+          "actual": -18.76352092,
+          "requested": -18.73962952
+        },
+        "HouseholdMess": {
+          "events": 6615,
+          "actual": -109.14747537,
+          "requested": -109.1474994
+        }
+      },
+      "two": {
+        "Conversation": {
+          "events": 26,
+          "actual": 1.4412880000000001,
+          "requested": 2.72000002
+        },
+        "LowNeedInterruption": {
+          "events": 4,
+          "actual": -0.44000005,
+          "requested": -0.44
+        },
+        "CriticalNeedInterruption": {
+          "events": 4,
+          "actual": -0.79999996,
+          "requested": -0.80000002
+        },
+        "PrivacyEntry": {
+          "events": 10,
+          "actual": -2.5,
+          "requested": -2.5
+        },
+        "PrivacyStart": {
+          "events": 14,
+          "actual": -3.5,
+          "requested": -3.5
+        },
+        "Proximity": {
+          "events": 64388,
+          "actual": 49.8154886,
+          "requested": 61.16860104
+        },
+        "SharedActivity": {
+          "events": 274,
+          "actual": 2.05998627,
+          "requested": 2.6029999100000003
+        },
+        "Decay": {
+          "events": 644464,
+          "actual": -6.40430931,
+          "requested": -6.39587984
+        },
+        "HouseholdMess": {
+          "events": 2256,
+          "actual": -37.22399147,
+          "requested": -37.2239998
+        }
+      }
+    }
+  }
+]

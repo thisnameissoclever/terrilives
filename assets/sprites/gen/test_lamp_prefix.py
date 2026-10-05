@@ -29,6 +29,15 @@ def preserved_table(source, name, cutoff=1346):
     value = json.loads(re.sub(r',\s*([}\]])', r'\1', body))
     if name not in ('RIGGED_SIM_CLIPS', 'RIGGED_SIM_VARIANTS'):
         value = {key: item for key, item in value.items() if int(key) < cutoff}
+        if name == 'INTERACTION_SPRITES':
+            value = {key: item for key, item in value.items()
+                     if all(index < cutoff for frames in item['frames'].values() for index in frames)}
+    else:
+        def published_clips(clips):
+            return {key: clip for key, clip in clips.items()
+                    if all(index < cutoff for facing in clip['frames'] for index in facing)}
+        value = (published_clips(value) if name == 'RIGGED_SIM_CLIPS' else
+                 {variant: published_clips(clips) for variant, clips in value.items()})
     return value
 
 

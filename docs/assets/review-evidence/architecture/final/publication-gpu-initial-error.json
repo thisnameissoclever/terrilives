@@ -1,0 +1,15 @@
+{
+  "revision": "9d74163b",
+  "case": "Combined actual architecture pipeline creation",
+  "tool_result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "### Error\nError: page.evaluate: Error: Architecture pipeline validation: {\"error\":\"Error while parsing WGSL: :163:4 error: '@location(8)' appears multiple times\\n  @location(8) @interpolate(flat) registration: vec4f,\\n   ^^^^^^^^\\n\\n\\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor]).\\n\"}\n    at assert (http://127.0.0.1:5187/proofs/architecture-depth.js:26:67)\n    at createArchitectureDepthProof (http://127.0.0.1:5187/proofs/architecture-depth.js:59:5)\n    at async eval (eval at evaluate (:368:30), <anonymous>:1:107)\n    at async <anonymous>:394:30"
+      }
+    ],
+    "isError": true
+  },
+  "cleanup": "Owned isolated browser context closed in finally; proof setup catch released device.",
+  "verdict": "FAIL; no GPU cases accepted"
+}

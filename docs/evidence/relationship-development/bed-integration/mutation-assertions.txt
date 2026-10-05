@@ -1,0 +1,186 @@
+
+partner-reservation
+
+running 1 test
+test privacy::bed_tests::changing_a_bed_errand_preserves_the_other_sleeper_and_assignment ... FAILED
+
+failures:
+
+---- privacy::bed_tests::changing_a_bed_errand_preserves_the_other_sleeper_and_assignment stdout ----
+
+thread 'privacy::bed_tests::changing_a_bed_errand_preserves_the_other_sleeper_and_assignment' (77724) panicked at crates\terri-sim\src\privacy_bed_tests.rs:160:5:
+assertion failed: sim.world().get::<Reserved>(bed).is_some()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::bed_tests::changing_a_bed_errand_preserves_the_other_sleeper_and_assignment
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 806 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.93s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+sleep-place
+
+running 1 test
+test privacy::bed_tests::privacy_substitutes_claim_distinct_places_and_preserve_fractional_approaches ... FAILED
+
+failures:
+
+---- privacy::bed_tests::privacy_substitutes_claim_distinct_places_and_preserve_fractional_approaches stdout ----
+
+thread 'privacy::bed_tests::privacy_substitutes_claim_distinct_places_and_preserve_fractional_approaches' (39156) panicked at crates\terri-sim\src\privacy_bed_tests.rs:93:13:
+assertion `left == right` failed
+  left: None
+ right: Some(SleepPlace(0))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::bed_tests::privacy_substitutes_claim_distinct_places_and_preserve_fractional_approaches
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 806 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+warning: unused variable: `ordinal`
+   --> crates\terri-sim\src\privacy.rs:597:45
+    |
+597 |             crate::beds::Admission::Sleep { ordinal, .. } => {
+    |                                             ^^^^^^^ help: try ignoring the field: `ordinal: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.74s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+cross-bed-preference
+
+running 1 test
+test privacy::bed_tests::privacy_substitution_preserves_assignment_preference_across_beds_when_safe ... FAILED
+
+failures:
+
+---- privacy::bed_tests::privacy_substitution_preserves_assignment_preference_across_beds_when_safe stdout ----
+
+thread 'privacy::bed_tests::privacy_substitution_preserves_assignment_preference_across_beds_when_safe' (24656) panicked at crates\terri-sim\src\privacy_bed_tests.rs:355:9:
+assertion `left == right` failed
+  left: 5v0
+ right: 0v0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::bed_tests::privacy_substitution_preserves_assignment_preference_across_beds_when_safe
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 806 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.67s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+place-survival-risk
+
+running 1 test
+test privacy::bed_tests::privacy_bed_substitution_prioritizes_survival_before_assignment ... FAILED
+
+failures:
+
+---- privacy::bed_tests::privacy_bed_substitution_prioritizes_survival_before_assignment stdout ----
+
+thread 'privacy::bed_tests::privacy_bed_substitution_prioritizes_survival_before_assignment' (67600) panicked at crates\terri-sim\src\privacy_bed_tests.rs:279:9:
+assertion `left == right` failed
+  left: Some(SleepPlace(0))
+ right: Some(SleepPlace(1))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::bed_tests::privacy_bed_substitution_prioritizes_survival_before_assignment
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 806 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.58s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+authored-base
+
+running 1 test
+test privacy::bed_tests::privacy_bed_substitution_uses_the_authored_base_without_an_explicit_facing ... FAILED
+
+failures:
+
+---- privacy::bed_tests::privacy_bed_substitution_uses_the_authored_base_without_an_explicit_facing stdout ----
+
+thread 'privacy::bed_tests::privacy_bed_substitution_uses_the_authored_base_without_an_explicit_facing' (72452) panicked at crates\terri-sim\src\privacy_bed_tests.rs:298:5:
+assertion `left == right` failed
+  left: Some((6, 7))
+ right: Some((7, 6))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::bed_tests::privacy_bed_substitution_uses_the_authored_base_without_an_explicit_facing
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 806 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.68s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+bed-era-prefix
+
+running 1 test
+test save_v3_tests::bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns ... FAILED
+
+failures:
+
+---- save_v3_tests::bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns stdout ----
+
+thread 'save_v3_tests::bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns' (20380) panicked at crates\terri-wasm\src\save_v3_tests.rs:205:9:
+assertion failed: loaded.load_bytes(&bytes)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    save_v3_tests::bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 156 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.86s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-dd3bb79986d069a6.exe)
+error: test failed, to rerun pass `-p terri-wasm --lib`
+
+explicit-bed-none
+
+running 1 test
+test save_v3_tests::grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut ... FAILED
+
+failures:
+
+---- save_v3_tests::grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut stdout ----
+
+thread 'save_v3_tests::grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut' (62188) panicked at crates\terri-wasm\src\save_v3_tests.rs:113:9:
+explicit None with 0 absent privacy fields
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    save_v3_tests::grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 156 filtered out; finished in 1.22s
+
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.92s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-dd3bb79986d069a6.exe)
+error: test failed, to rerun pass `-p terri-wasm --lib`

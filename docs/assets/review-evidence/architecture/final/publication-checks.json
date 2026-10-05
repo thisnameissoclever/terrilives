@@ -1,0 +1,268 @@
+{
+  "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+  "main": "310ea16a982e7999023dcc9ad18e8f98bf4b221c",
+  "execution": "Commands run serially; each actual exit is observed before the next command. No remote CI or review is a merge gate under owner authorization.",
+  "checks": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "seconds": 1.052,
+      "log": "publication-format.log",
+      "tail": [],
+      "revision": "4550ba2d2587f7aa7ef740fc27996530f824914a"
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -j 1 -- -D warnings",
+      "exit_code": 0,
+      "seconds": 40.169,
+      "log": "publication-clippy.log",
+      "tail": [
+        "   Compiling terri-core v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-core)",
+        "   Compiling terri-data v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-data)",
+        "    Checking terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-sim)",
+        "    Checking terri-wasm v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-wasm)",
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.03s"
+      ],
+      "revision": "4550ba2d2587f7aa7ef740fc27996530f824914a"
+    },
+    {
+      "command": "cargo test --workspace -j 1",
+      "exit_code": 0,
+      "seconds": 163.868,
+      "log": "publication-rust.log",
+      "tail": [
+        "   Doc-tests terri_sim",
+        "",
+        "running 0 tests",
+        "",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "",
+        "   Doc-tests terri_wasm",
+        "",
+        "running 0 tests",
+        "",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        ""
+      ],
+      "revision": "4550ba2d2587f7aa7ef740fc27996530f824914a"
+    },
+    {
+      "command": "wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm",
+      "exit_code": 0,
+      "seconds": 26.697,
+      "log": "publication-wasm.log",
+      "tail": [
+        "[INFO]: Checking for the Wasm target...",
+        "[INFO]: Compiling to Wasm...",
+        "   Compiling terri-core v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-core)",
+        "   Compiling terri-data v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-data)",
+        "   Compiling terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-sim)",
+        "   Compiling terri-wasm v0.1.0 (D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-wasm)",
+        "    Finished `release` profile [optimized] target(s) in 18.75s",
+        "[INFO]: Installing wasm-bindgen...",
+        "[INFO]: Optimizing wasm binaries with `wasm-opt`...",
+        "[INFO]: Optional fields missing from Cargo.toml: 'description', 'repository', and 'license'. These are not necessary, but recommended",
+        "[INFO]: :-) Done in 26.31s",
+        "[INFO]: :-) Your wasm pkg is ready to publish at web\\src\\wasm."
+      ],
+      "revision": "4550ba2d2587f7aa7ef740fc27996530f824914a"
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "npm --prefix web run typecheck",
+      "exit_code": 0,
+      "seconds": 3.218,
+      "log": "publication-typecheck.log",
+      "tail": [
+        "",
+        "> typecheck",
+        "> tsc --noEmit",
+        ""
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "exit_code": 0,
+      "seconds": 34.751,
+      "log": "publication-web.log",
+      "tail": [
+        "> test",
+        "> vitest run --maxWorkers=1",
+        "",
+        "",
+        " RUN  v4.1.10 D:/VIBES/.worktrees/fe58/terrilives/web",
+        "",
+        "",
+        " Test Files  144 passed (144)",
+        "      Tests  1950 passed (1950)",
+        "   Start at  11:16:09",
+        "   Duration  34.22s (transform 1.52s, setup 0ms, import 7.83s, tests 13.09s, environment 7ms)",
+        ""
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "npm --prefix web run build",
+      "exit_code": 0,
+      "seconds": 1.228,
+      "log": "publication-build.log",
+      "tail": [
+        "dist/changelog/index.html                   48.06 kB \u2502 gzip:  11.87 kB",
+        "dist/index.html                             58.04 kB \u2502 gzip:  13.64 kB",
+        "dist/assets/terri_wasm_bg-C1lFBRz8.wasm  2,954.51 kB \u2502 gzip: 955.58 kB",
+        "dist/assets/index-DCiEGXKL.css              18.68 kB \u2502 gzip:   4.03 kB",
+        "dist/assets/index-ECDW2gDD.js            4,711.17 kB \u2502 gzip: 522.86 kB",
+        "",
+        "\u2713 built in 763ms",
+        "[plugin builtin:vite-reporter] ",
+        "(!) Some chunks are larger than 500 kB after minification. Consider:",
+        "- Using dynamic import() to code-split the application",
+        "- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting",
+        "- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit."
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "python -B -m unittest discover -s assets/models/architecture -p test_*.py",
+      "exit_code": 0,
+      "seconds": 0.703,
+      "log": "publication-architecture-assets.log",
+      "tail": [
+        "................",
+        "----------------------------------------------------------------------",
+        "Ran 16 tests in 0.390s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "python -B -m unittest discover -s assets/sprites/gen -p test_*.py",
+      "exit_code": 0,
+      "seconds": 27.735,
+      "log": "publication-sprite-generator.log",
+      "tail": [
+        ".............................................D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_door_assets.py:29: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.",
+        "  covered = [(c, d) for c, d in zip(colour.getdata(), depth.getdata()) if c[3] >= 128]",
+        "...D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_door_assets.py:39: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.",
+        "  covered = [(i, d) for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())) if c[3] >= 128]",
+        ".D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_door_assets.py:50: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.",
+        "  for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())):",
+        "..................................................................................................................",
+        "----------------------------------------------------------------------",
+        "Ran 163 tests in 27.471s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "python -B assets/sprites/gen/build.py --check",
+      "exit_code": 0,
+      "seconds": 17.117,
+      "log": "publication-atlas.log",
+      "tail": [
+        "architecture is up to date: 472 logical records after 2445 historical records",
+        "atlas is up to date: 2445 sprites, 8192x8192"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "node --test web/proofs/architecture-benchmark-metrics.node-test.mjs",
+      "exit_code": 0,
+      "seconds": 0.107,
+      "log": "publication-proof-metrics.log",
+      "tail": [
+        "\u2714 malformed pairs and negative or empty timing samples are rejected (0.2019ms)",
+        "\u2714 floor and wall selections partition only live rows and retain short walls only with walls (0.2507ms)",
+        "\u2714 component selection rejects an unknown mode or invalid floor prefix (0.1245ms)",
+        "\u2714 opaque split covers each original instance exactly once in its original order (0.3466ms)",
+        "\u2139 tests 7",
+        "\u2139 suites 0",
+        "\u2139 pass 7",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 61.7965"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "python -B -m unittest discover -s web/proofs -p test_architecture_profiles.py",
+      "exit_code": 0,
+      "seconds": 0.117,
+      "log": "publication-proof-profile-tests.log",
+      "tail": [
+        "..",
+        "----------------------------------------------------------------------",
+        "Ran 2 tests in 0.003s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "python -B web/proofs/prepare-architecture-baseline.py --check-profile",
+      "exit_code": 0,
+      "seconds": 0.071,
+      "log": "publication-proof-profile.log",
+      "tail": [
+        "{\"appearanceSource\": {\"path\": \"content/lot.toml\", \"sha256\": \"44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9\", \"fields\": \"covering[].hue,strength,lightness in content order\"}, \"checked\": true}"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "node --test scripts/build-changelog.test.mjs",
+      "exit_code": 0,
+      "seconds": 0.221,
+      "log": "publication-changelog-tests.log",
+      "tail": [
+        "\u2714 same-day notes must be consolidated and former links reach the dated update (4.3864ms)",
+        "\u2714 dark is the default even on a light system; theme choices persist and blocked storage stays usable (2.232ms)",
+        "\u2714 expand and collapse switch controls and keep keyboard focus; old links open the right update (1.2496ms)",
+        "\u2714 the repository history renders and the CLI writes the same standalone page (63.2278ms)",
+        "\u2139 tests 12",
+        "\u2139 suites 0",
+        "\u2139 pass 12",
+        "\u2139 fail 0",
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 176.0241"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "node scripts/build-changelog.mjs",
+      "exit_code": 0,
+      "seconds": 0.058,
+      "log": "publication-changelog-build.log",
+      "tail": [
+        "Built changelog: D:\\VIBES\\.worktrees\\fe58\\terrilives\\web\\dist\\changelog\\index.html"
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "python check-doc-ids.py",
+      "exit_code": 0,
+      "seconds": 0.065,
+      "log": "publication-doc-ids.log",
+      "tail": [
+        "Documentation ids are unique and allocation-free."
+      ]
+    },
+    {
+      "revision": "9d74163bbfe7103d189deb2fcd9912c6b6834db2",
+      "command": "git diff --check origin/main HEAD",
+      "exit_code": 0,
+      "seconds": 0.281,
+      "log": "publication-whitespace.log",
+      "tail": []
+    }
+  ],
+  "initial_revision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+  "logs_archive": "publication-logs.zip",
+  "log_hashes": "publication-log-hashes.json"
+}

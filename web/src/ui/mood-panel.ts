@@ -1,3 +1,5 @@
+import { setTextIfChanged } from './set-text-if-changed.js';
+
 export interface MoodPanelSource {
   selectedIndex(): number | null;
   moodSnapshotOf(entity: number): Float32Array;
@@ -179,8 +181,8 @@ function createMoodletRow(doc: Document): MoodletRow {
 function updateMoodletRow(row: MoodletRow, moodlet: MoodletView): void {
   row.root.dataset.tone = moodlet.tone;
   row.root.setAttribute('aria-label', `${moodlet.label}: ${formatScore(moodlet.score)}`);
-  row.label.textContent = moodlet.label;
-  row.score.textContent = formatScore(moodlet.score);
+  setTextIfChanged(row.label, moodlet.label);
+  setTextIfChanged(row.score, formatScore(moodlet.score));
 }
 
 function resetOverallMeter(
@@ -188,7 +190,7 @@ function resetOverallMeter(
   overallMeter: HTMLElement,
   marker: HTMLElement,
 ): void {
-  overallLabel.textContent = '';
+  setTextIfChanged(overallLabel, '');
   overallMeter.dataset.tone = 'neutral';
   overallMeter.setAttribute('aria-valuenow', '0');
   overallMeter.setAttribute('aria-valuetext', 'Mood unavailable');
@@ -207,7 +209,7 @@ export function createMoodPanelSurface(
   const rowByKey = new Map<string, MoodletRow>();
   const noMoodlets = doc.createElement('li');
   noMoodlets.className = 'moodlet-empty';
-  noMoodlets.textContent = 'No active moodlets.';
+  setTextIfChanged(noMoodlets, 'No active moodlets.');
 
   overallMeter.setAttribute('role', 'meter');
   overallMeter.setAttribute('aria-label', 'Overall mood');
@@ -228,10 +230,10 @@ export function createMoodPanelSurface(
       if (state.kind !== 'ready') {
         clearRows();
         empty.hidden = false;
-        empty.textContent =
+        setTextIfChanged(empty,
           state.kind === 'unselected'
             ? 'Select a person to see their mood.'
-            : 'Mood unavailable';
+            : 'Mood unavailable');
         content.hidden = true;
         list.hidden = true;
         resetOverallMeter(overallLabel, overallMeter, marker);
@@ -241,7 +243,7 @@ export function createMoodPanelSurface(
       const { view } = state;
       empty.hidden = true;
       content.hidden = false;
-      overallLabel.textContent = view.overall.label;
+      setTextIfChanged(overallLabel, view.overall.label);
       overallMeter.dataset.tone = view.overall.tone;
       overallMeter.setAttribute('aria-valuenow', String(roundToTenth(view.overall.score)));
       overallMeter.setAttribute('aria-valuetext', view.overall.label);

@@ -53,7 +53,14 @@ pub fn advance_chains(
     grid: Res<TileGrid>,
     content: Res<Content>,
     idle: Query<
-        (Entity, &Position, Option<&IntentQueue>, &ChainState),
+        (
+            Entity,
+            &Position,
+            Option<&IntentQueue>,
+            &ChainState,
+            Option<&terri_core::SimId>,
+            &Needs,
+        ),
         (
             With<Agent>,
             Without<Target>,
@@ -72,6 +79,17 @@ pub fn advance_chains(
         Has<Reserved>,
         Option<&terri_core::ObjectFacing>,
     )>,
+    mut domestic: Option<ResMut<terri_core::save::SavedDomestic>>,
+    occupants: Query<
+        (
+            Entity,
+            &Target,
+            Option<&ChainState>,
+            &Position,
+            Option<&Path>,
+        ),
+        With<Agent>,
+    >,
 ) {
     // Entity order: stations are claimed within this loop, so which
     // sim gets the last free counter must be a function of world state.
@@ -80,8 +98,8 @@ pub fn advance_chains(
         // A queued player intent outranks the resume - serve_intents
         // will act on it this tick, and targeting here as well would
         // hand the sim two walks at once.
-        .filter(|(_, _, queue, _)| queue.is_none_or(|q| q.is_empty()))
-        .map(|(entity, _, _, _)| entity)
+        .filter(|(_, _, queue, ..)| queue.is_none_or(|q| q.is_empty()))
+        .map(|(entity, ..)| entity)
         .collect();
     resuming.sort_by_key(|entity| entity.index());
 
@@ -91,15 +109,27 @@ pub fn advance_chains(
     let mut claimed: Vec<Entity> = Vec::new();
 
     for sim in resuming {
-        let Ok((_, pos, _, chain_state)) = idle.get(sim) else {
+        let Ok((_, pos, _, chain_state, sim_id, needs)) = idle.get(sim) else {
             continue;
         };
         let chain = &content.0.chains[chain_state.chain as usize];
-        if chain.steps[chain_state.step as usize..].iter().any(|step| {
-            !stations
-                .iter()
-                .any(|(_, _, object, _, _)| content.0.object(object.0).roles.contains(&step.role))
-        }) {
+        // Exact dining, including standing without a table, is resolved by the
+        // preceding exclusive system. Unreachable diners retain their recipe.
+        if crate::dining::managed_step(content.0, chain, chain_state.step) {
+            continue;
+        }
+        if chain.steps[chain_state.step as usize..]
+            .iter()
+            .enumerate()
+            .any(|(i, step)| {
+                if crate::dining::managed_step(content.0, chain, chain_state.step + i as u32) {
+                    return false;
+                }
+                !stations.iter().any(|(_, _, object, _, _)| {
+                    content.0.object(object.0).roles.contains(&step.role)
+                })
+            })
+        {
             // Sold stations cannot become free. Abandon the unfinished recipe.
             commands
                 .entity(sim)
@@ -108,9 +138,52 @@ pub fn advance_chains(
                 .remove::<terri_core::Fumbled>()
                 .remove::<Blocked>()
                 .remove::<Restless>();
+            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
             continue;
         }
         let step = &chain.steps[chain_state.step as usize];
+        let cleanup = chain.id == crate::domestic::CLEANUP;
+        if cleanup
+            && domestic.as_ref().is_none_or(|state| {
+                state
+                    .cleanup
+                    .iter()
+                    .find(|task| task.person == sim.index_u32())
+                    .is_none_or(|task| {
+                        !task.directed
+                            && [NeedId::Energy, NeedId::Hunger, NeedId::Bladder]
+                                .into_iter()
+                                .any(|need| {
+                                    needs.get(need) <= content.0.tuning.mood_critical_need_level
+                                })
+                    })
+            })
+        {
+            commands.entity(sim).remove::<ChainState>();
+            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
+            continue;
+        }
+        let fixed = domestic.as_ref().and_then(|state| {
+            crate::domestic::step_station(
+                state,
+                sim.index_u32(),
+                sim_id.copied(),
+                &chain.id,
+                chain_state.step,
+            )
+        });
+        let awaiting_table = domestic.as_ref().is_some_and(|state| {
+            crate::domestic::awaiting_meal_table(state, sim_id.copied(), chain_state.step)
+        });
+        if chain.id == crate::domestic::SHARED && fixed.is_none() && !awaiting_table {
+            commands
+                .entity(sim)
+                .remove::<ChainState>()
+                .remove::<Carrying>();
+            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
+            continue;
+        }
+        let communal = crate::domestic::communal(&chain.id, chain_state.step, chain.steps.len());
         let from = (pos.x.round() as i32, pos.y.round() as i32);
 
         // The nearest free station wearing the role, by real path
@@ -124,7 +197,15 @@ pub fn advance_chains(
         in_order.sort_by_key(|(entity, ..)| entity.index());
         for (station, station_pos, object, reserved, facing) in in_order {
             let def = content.0.object(object.0);
-            if !def.roles.contains(&step.role) {
+            if fixed.is_some_and(|index| station.index_u32() != index)
+                || (!cleanup
+                    && content.0.roles[step.role as usize] == "prep_surface"
+                    && def
+                        .roles
+                        .iter()
+                        .any(|role| content.0.roles[*role as usize] == "dish_sink"))
+                || (fixed.is_none() && !def.roles.contains(&step.role))
+            {
                 continue;
             }
             any_station = true;
@@ -132,13 +213,60 @@ pub fn advance_chains(
             // The ORIENTED rectangle: a station the player has turned is
             // approached where it now lies.
             let footprint = crate::placed_footprint(content.0, object.0, facing);
-            let Some(steps) = grid
-                .find_path_adjacent(from, to, footprint)
-                .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
+            let mut dining_grid;
+            let route_grid = if communal {
+                dining_grid = grid.clone();
+                for (other, target, _, position, path) in &occupants {
+                    if other == sim || target.object != station {
+                        continue;
+                    }
+                    let seat = path
+                        .and_then(|path| path.steps.last().copied())
+                        .unwrap_or((position.x.round() as i32, position.y.round() as i32));
+                    if seat != from {
+                        dining_grid.set_blocked(seat.0 as usize, seat.1 as usize, true);
+                    }
+                }
+                &dining_grid
+            } else {
+                &grid
+            };
+            let approach = if step
+                .visual
+                .as_ref()
+                .is_some_and(|v| v.action == terri_data::CompiledVisualAction::Cook)
+            {
+                crate::stove_front(content.0, object, station_pos, facing)
+            } else {
+                None
+            };
+            let route = if let Some(front) = approach {
+                route_grid.find_path(from, (front.x.round() as i32, front.y.round() as i32))
+            } else {
+                route_grid.find_path_adjacent(from, to, footprint)
+            };
+            let Some(steps) = route.and_then(|steps| route_grid.anchor_path((pos.x, pos.y), steps))
             else {
                 continue;
             };
-            if reserved || claimed.contains(&station) {
+            let meal_occupants: Vec<_> = occupants
+                .iter()
+                .filter(|(_, target, ..)| target.object == station)
+                .collect();
+            let sharing = communal
+                && !meal_occupants.is_empty()
+                && meal_occupants.len() < 4
+                && meal_occupants.iter().all(|(_, target, state, ..)| {
+                    target.interaction == CHAIN_STEP
+                        && state.is_some_and(|state| {
+                            crate::domestic::communal(
+                                &content.0.chains[state.chain as usize].id,
+                                state.step,
+                                content.0.chains[state.chain as usize].steps.len(),
+                            )
+                        })
+                });
+            if (reserved && !sharing) || claimed.contains(&station) {
                 occupied_reachable.get_or_insert(station);
                 continue;
             }
@@ -155,6 +283,16 @@ pub fn advance_chains(
             Some((station, steps)) => {
                 claimed.push(station);
                 commands.entity(station).insert(Reserved);
+                if communal {
+                    if let (Some(state), Some(id)) = (domestic.as_mut(), sim_id) {
+                        crate::domestic::bind_meal_table(
+                            state,
+                            *id,
+                            station.index_u32(),
+                            &chain.id,
+                        );
+                    }
+                }
                 commands
                     .entity(sim)
                     .remove::<Restless>()
@@ -208,6 +346,7 @@ pub fn advance_chains(
 pub fn tick_chain_steps(
     mut commands: Commands,
     content: Res<Content>,
+    domestic: Option<Res<terri_core::save::SavedDomestic>>,
     mut working: Query<
         (
             Entity,
@@ -220,6 +359,7 @@ pub fn tick_chain_steps(
             Option<&mut Satisfaction>,
             Option<&mut Traits>,
             Option<&Carrying>,
+            Option<&terri_core::SimId>,
         ),
         With<Agent>,
     >,
@@ -239,10 +379,23 @@ pub fn tick_chain_steps(
             satisfaction,
             mut traits,
             carrying,
+            sim_id,
         )) = working.get_mut(sim)
         else {
             continue;
         };
+        if domestic.as_ref().is_some_and(|state| {
+            sim_id.is_some_and(|id| {
+                crate::domestic::gathering(
+                    state,
+                    *id,
+                    &content.0.chains[chain_state.chain as usize].id,
+                    chain_state.step,
+                )
+            })
+        }) {
+            continue;
+        }
         // Saturating, the Eating countdown's own idiom: this arm never
         // re-enters below zero today, but a StepWork inserted at 0 by a
         // future path would underflow-panic in debug rather than
@@ -256,6 +409,9 @@ pub fn tick_chain_steps(
         let chain = &content.0.chains[chain_state.chain as usize];
         let step = &chain.steps[chain_state.step as usize];
         let terminal = chain_state.step as usize + 1 == chain.steps.len();
+        let completed_chain = chain_state.chain;
+        let completed_step = chain_state.step;
+        let station = target.map(|target| target.object);
 
         // The hands, first: the step's whole observable effect below
         // the terminal. Compile's hands rule proved the bookkeeping, so
@@ -288,6 +444,9 @@ pub fn tick_chain_steps(
 
         if !terminal {
             chain_state.step += 1;
+            commands.queue(move |world: &mut World| {
+                crate::domestic::completed(world, sim, completed_chain, completed_step, station)
+            });
             continue;
         }
 
@@ -304,8 +463,22 @@ pub fn tick_chain_steps(
 
         // Habituation against the advertiser, under the chain's flyout
         // row: the sim tires of DINNER, not of the table.
-        let row = content.0.object(chain.advertised_by).interactions.len() as u32
-            + chain_position(content.0, chain_state.chain);
+        let advertiser = content.0.object(chain.advertised_by);
+        let row = (chain.id == crate::domestic::SNACK)
+            .then(|| {
+                advertiser
+                    .interactions
+                    .iter()
+                    .position(|interaction| interaction.id == "grab_snack")
+            })
+            .flatten()
+            .map_or_else(
+                || {
+                    advertiser.interactions.len() as u32
+                        + chain_position(content.0, chain_state.chain)
+                },
+                |row| row as u32,
+            );
         commands.queue({
             let advertiser = chain.advertised_by;
             let per_use = content.0.tuning.habituation_per_use;
@@ -334,11 +507,14 @@ pub fn tick_chain_steps(
                         hobbies,
                         content.0.tuning.hobby_multiplier,
                     ) * super::trait_effects::condition_accrual_scale(traits.as_deref(), content.0);
-                satisfaction.add(payout);
+                satisfaction.reward(payout);
             }
         }
 
         commands.entity(sim).remove::<ChainState>();
+        commands.queue(move |world: &mut World| {
+            crate::domestic::completed(world, sim, completed_chain, completed_step, station)
+        });
     }
 }
 
@@ -403,6 +579,7 @@ mod tests {
                     consumes: None,
                     visual: None,
                     sound_action: None,
+                    activity: None,
                 },
                 CompiledChainStep {
                     role: 1,
@@ -414,6 +591,7 @@ mod tests {
                     consumes: Some(0),
                     visual: None,
                     sound_action: None,
+                    activity: None,
                 },
             ],
         }
@@ -467,7 +645,7 @@ mod tests {
                 Agent,
                 Position { x: 2.0, y: 4.0 },
                 needs,
-                Satisfaction::default(),
+                Satisfaction::from_value(0.0),
                 terri_core::Hobbies(vec!["cooking".to_string()]),
             ))
             .id();
@@ -623,7 +801,8 @@ mod tests {
                     "consumed at the table"
                 );
                 let paid = world.get::<Satisfaction>(agent).unwrap().value();
-                let expected = 2.5 * test_content::tuning().hobby_multiplier;
+                let expected =
+                    2.5 * test_content::tuning().hobby_multiplier * Satisfaction::REWARD_SCALE;
                 assert!(
                     (paid - expected).abs() < 0.001,
                     "a loved dinner pays base times the hobby multiplier; \
@@ -767,6 +946,7 @@ mod tests {
             .0;
         let pack = Box::leak(Box::new(ContentPack {
             traits: vec![terri_data::CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "cannot_cook".to_string(),
                 label: "Can't cook".to_string(),
                 tag: "cooking".to_string(),
@@ -959,6 +1139,7 @@ mod tests {
             item_kinds: vec!["dinner".to_string()],
             chains: vec![weak, decoy, target],
             traits: vec![terri_data::CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "wary_cook".to_string(),
                 label: "Wary cook".to_string(),
                 tag: "cooking".to_string(),
@@ -1007,7 +1188,7 @@ mod tests {
                 personality,
                 habituation,
                 Traits::from_entries(vec![(0, 0.0)]),
-                Satisfaction::default(),
+                Satisfaction::from_value(0.0),
             ))
             .id();
         // The target chain is global index 2: the fridge's weak decoy
@@ -1215,7 +1396,7 @@ mod tests {
                 Agent,
                 Position { x: 2.0, y: 4.0 },
                 Needs::all_at(80.0),
-                Satisfaction::default(),
+                Satisfaction::from_value(0.0),
             ))
             .id();
         start_chain(&mut sim, agent);
@@ -1249,7 +1430,7 @@ mod tests {
                 Agent,
                 Position { x: 3.0, y: 4.0 },
                 Needs::all_at(80.0),
-                Satisfaction::default(),
+                Satisfaction::from_value(0.0),
             ))
             .id();
         start_chain(&mut sim, agent);
@@ -1272,7 +1453,7 @@ mod tests {
                 Agent,
                 Position { x: 2.0, y: 4.0 },
                 Needs::all_at(80.0),
-                Satisfaction::default(),
+                Satisfaction::from_value(0.0),
             ))
             .id();
         start_chain(&mut sim, agent);
@@ -1385,6 +1566,7 @@ mod tests {
             .0;
         let pack = Box::leak(Box::new(ContentPack {
             traits: vec![terri_data::CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "weary".to_string(),
                 label: "Weary".to_string(),
                 tag: "resting".to_string(),
@@ -1407,7 +1589,10 @@ mod tests {
             sim.tick();
             if sim.world().get::<ChainState>(agent).is_none() {
                 let paid = sim.world().get::<Satisfaction>(agent).unwrap().value();
-                let expected = 2.5 * test_content::tuning().hobby_multiplier * 0.5;
+                let expected = 2.5
+                    * test_content::tuning().hobby_multiplier
+                    * 0.5
+                    * Satisfaction::REWARD_SCALE;
                 assert!(
                     (paid - expected).abs() < 0.001,
                     "severity 1 at scale 0.5 halves the loved payout: got \

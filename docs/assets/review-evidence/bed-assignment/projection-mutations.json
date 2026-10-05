@@ -1,0 +1,32 @@
+[
+  {
+    "name": "ordinal-zero",
+    "test": "sleeping_projection_keeps_exact_places_without_requiring_body_art",
+    "exit": 101,
+    "restored_sha256": "4700049E42A81F072BE74B3248FD145F8590B95B50463B644B1945AB4DC6137C"
+  },
+  {
+    "name": "walking-projected",
+    "test": "sleeping_projection_rejects_inactive_and_invalid_claims",
+    "exit": 101,
+    "restored_sha256": "4700049E42A81F072BE74B3248FD145F8590B95B50463B644B1945AB4DC6137C"
+  },
+  {
+    "name": "capacity-unchecked",
+    "test": "sleeping_projection_rejects_inactive_and_invalid_claims",
+    "exit": 101,
+    "restored_sha256": "4700049E42A81F072BE74B3248FD145F8590B95B50463B644B1945AB4DC6137C"
+  },
+  {
+    "name": "column-not-cleared",
+    "test": "sleeping_projection_keeps_exact_places_without_requiring_body_art",
+    "exit": 101,
+    "restored_sha256": "B7AFCAC36CA18A1BF9C84BBE6BBCBE025AC5E069BBBD8F6BC61B37859076A17C"
+  },
+  {
+    "name": "generation-ignored",
+    "test": "sleeping_projection_rejects_inactive_and_invalid_claims",
+    "exit": 101,
+    "restored_sha256": "4700049E42A81F072BE74B3248FD145F8590B95B50463B644B1945AB4DC6137C"
+  }
+]

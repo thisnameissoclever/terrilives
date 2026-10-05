@@ -345,34 +345,24 @@ describe('RoomToolControls', () => {
     return { room, source, view, element: (id: string) => elements.get(id)! };
   }
 
-  it('enables Build room only for a buildable room, and presses build and cancel', () => {
+  it('keeps outline and refusal information in the panel', () => {
     const { room, source, view, element } = controls();
-    expect([element('room-build').disabled, element('room-cancel').disabled]).toEqual([true, true]);
     room.enter();
-    clickTile(room, 2, 1);
+    clickTile(room, 2, 1); clickTile(room, 3, 2);
     view.render();
-    expect([element('room-build').disabled, element('room-cancel').disabled]).toEqual([true, false]);
-    clickTile(room, 3, 2);
-    view.render();
-    expect(element('room-build').disabled).toBe(false);
     expect(element('room-status').textContent).toBe(room.status);
-    element('room-build').click();
-    expect(source.staged).toHaveLength(1);
-    view.render();
-    expect([element('room-build').disabled, element('room-cancel').disabled]).toEqual([true, true]);
-    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null, code: 0 };
-    room.afterCommands();
-    view.render();
-    expect([room.first, element('room-cancel').disabled, element('room-status').textContent])
-      .toEqual([null, true, 'Room built.']);
+    source.code = 10; source.revision += 1;
+    room.afterCommands(); view.render();
+    expect(element('room-status').textContent).toBe(room.status);
+    expect(room.canBuild).toBe(false);
   });
 
-  it('shows the touch help on a phone and the keyboard help elsewhere', () => {
+  it('keeps the optional shortcuts available on desktop and phone', () => {
     const { view, element } = controls();
     view.setCompact(true);
-    expect([element('room-keyboard-help').hidden, element('room-touch-help').hidden]).toEqual([true, false]);
+    expect([element('room-keyboard-help').hidden, element('room-touch-help').hidden]).toEqual([false, false]);
     view.setCompact(false);
-    expect([element('room-keyboard-help').hidden, element('room-touch-help').hidden]).toEqual([false, true]);
+    expect([element('room-keyboard-help').hidden, element('room-touch-help').hidden]).toEqual([false, false]);
   });
 });
 
@@ -426,7 +416,7 @@ describe('the Room tool on real wasm', () => {
 });
 
 describe('the Room tool in the page', () => {
-  const IDS = ['build-tool-room', 'room-tool', 'room-status', 'room-build', 'room-cancel',
+  const IDS = ['build-tool-room', 'room-tool', 'room-status',
     'room-keyboard-help', 'room-touch-help'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
@@ -440,11 +430,15 @@ describe('the Room tool in the page', () => {
     expect(panel).toContain('<div id="room-tool" class="builder-tool" hidden>');
   });
 
-  // Found in the played check [A-room-tool]: four tool buttons in one row
-  // overflowed the side panel and cut Buy off.
-  it('lays the four tool buttons out two by two', () => {
+  // [A-room-tool] originally exposed clipped tabs. The enlarged-text review
+  // requires wrapping at the actual label width instead of fixed columns.
+  it('keeps content-width Build tabs scrollable within the compact panel', () => {
     expect(INDEX_HTML).toContain('<div id="build-tools" role="group" aria-label="Build tool">');
-    expect(INDEX_HTML).toContain('#build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }');
+    const css = readFileSync(new URL('../src/ui/build-controls.css', import.meta.url), 'utf8');
+    expect(css).toContain('#builder-dock #build-tools { display: flex; flex-wrap: nowrap;');
+    expect(css).toContain('overflow-x: auto');
+    expect(css).toContain('#builder-dock #build-tools button { flex: 1 0 max-content;');
+    expect(css).toContain('min-width: 0');
   });
 
   it('is wired into the frame, the click, Load and leaving Build', () => {
@@ -455,6 +449,6 @@ describe('the Room tool in the page', () => {
       "{ tool: roomTool, button: 'build-tool-room', panel: 'room-tool' }"]) {
       expect(MAIN_TS).toContain(wiring);
     }
-    expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(3);
+    expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(2);
   });
 });

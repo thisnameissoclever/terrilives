@@ -18,8 +18,11 @@ opacity is applied. Only the bounded wall batch is sorted when geometry changes;
 the entity buffer is never sorted. Both layers share the atlas and command submit.
 
 Door leaves and their authored frames remain full-height interactive objects.
-Empty passages have short jambs without floating lintels. Window panels become
-short, tinted sill sections in play; their full representation returns in build.
+Empty passages have short jambs without floating lintels. Interior and camera-facing window panels use authored cut forms in play; rear
+exterior windows remain full height with their walls. Full-wall mode restores
+each complete frame. The 2026-10-01 geometry includes caps, reveals, baseboards
+and mixed-height corner, T and cross junctions. Paired per-pixel depth preserves
+ordering through apertures and along beveled surfaces.
 Collision, room ownership, lighting propagation, save data and furniture placement
 are unchanged. This does not modify or regenerate any existing furniture art.
 Frozen legacy cell-layout saves retain their existing presentation contract;

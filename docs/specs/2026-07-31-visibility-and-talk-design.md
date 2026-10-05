@@ -116,6 +116,9 @@ once for the hit box.
 
 ## [V7] Two zoom routes, one clamped scale
 
+The current zoom range is 0.5x to 4x. The maximum permits closer views on
+small screens; the opening scale and gesture speed are unchanged.
+
 The wheel (smooth exponential steps, ~12% per notch, wheel-up in) and
 a two-finger pinch (spread ratio anchored to the gesture's start) both
 end in the same `clampZoom`ed scale - Tim's "make sure the zoom works

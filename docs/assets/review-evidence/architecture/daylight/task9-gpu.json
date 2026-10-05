@@ -1,0 +1,361 @@
+{
+  "revision": "9f70b5236bbea569d7c7a08c28ee85461cadeb1f",
+  "proofSHA256": "9a2ef00e51bb94456c38c621cafcba8675145cd3e260c8f6c6eed6fa0840ce52",
+  "clean": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "expression": "lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient)",
+    "cases": [
+      {
+        "pass": true,
+        "name": "noon",
+        "tick": 720,
+        "shade": 0.25,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          149,
+          148,
+          142,
+          255
+        ],
+        "window": [
+          179,
+          177,
+          171,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "dusk",
+        "tick": 1260,
+        "shade": 0.065,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          131,
+          116,
+          128,
+          255
+        ],
+        "window": [
+          136,
+          121,
+          133,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "midnight",
+        "tick": 0,
+        "shade": 0,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          84,
+          91,
+          125,
+          255
+        ],
+        "window": [
+          84,
+          91,
+          125,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "flat",
+        "tick": 0,
+        "shade": 0,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "window": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "name": "reduced",
+        "tick": 0,
+        "shade": 0,
+        "exposure": 0.6000000238418579,
+        "closed": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "window": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "control": {
+          "px": 408,
+          "py": 283,
+          "source": [
+            199,
+            197,
+            190,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      },
+      {
+        "pass": true,
+        "closed": [
+          149,
+          148,
+          142,
+          255
+        ],
+        "interior": [
+          149,
+          148,
+          142,
+          255
+        ],
+        "external": [
+          169,
+          167,
+          161,
+          255
+        ],
+        "control": {
+          "px": 440,
+          "py": 304,
+          "source": [
+            199,
+            197,
+            189,
+            255
+          ],
+          "marker": [
+            183,
+            0,
+            148,
+            255
+          ],
+          "clear": [
+            23,
+            23,
+            28,
+            255
+          ]
+        }
+      }
+    ]
+  },
+  "mutations": [
+    {
+      "failure": "Window adds exactly zero nighttime or flat illumination: {\"name\":\"midnight\",\"a\":[63,68,94,255],\"b\":[75,82,113,255],\"shade\":0.25}"
+    },
+    {
+      "failure": "Interior window does not seed outdoor light: {\"a\":[149,148,142,255],\"b\":[189,187,180,255]}"
+    }
+  ],
+  "restored": {
+    "midnight": {
+      "pass": true,
+      "name": "midnight",
+      "tick": 0,
+      "shade": 0,
+      "exposure": 0.6000000238418579,
+      "closed": [
+        84,
+        91,
+        125,
+        255
+      ],
+      "window": [
+        84,
+        91,
+        125,
+        255
+      ],
+      "control": {
+        "px": 408,
+        "py": 283,
+        "source": [
+          199,
+          197,
+          190,
+          255
+        ],
+        "marker": [
+          183,
+          0,
+          148,
+          255
+        ],
+        "clear": [
+          23,
+          23,
+          28,
+          255
+        ]
+      }
+    },
+    "interior": {
+      "pass": true,
+      "closed": [
+        149,
+        148,
+        142,
+        255
+      ],
+      "interior": [
+        149,
+        148,
+        142,
+        255
+      ],
+      "external": [
+        169,
+        167,
+        161,
+        255
+      ],
+      "control": {
+        "px": 440,
+        "py": 304,
+        "source": [
+          199,
+          197,
+          189,
+          255
+        ],
+        "marker": [
+          183,
+          0,
+          148,
+          255
+        ],
+        "clear": [
+          23,
+          23,
+          28,
+          255
+        ]
+      }
+    }
+  },
+  "restorationSHA256": {
+    "main": "3ab2fe243421ef03c8e60bba88848634f708b254f4975a7ea120b76ecb5e2375",
+    "sky": "8491011db40995b4b96fa1127afdf2aeac1015141305d215c8d8f9ae24e0c6e0"
+  },
+  "notes": [
+    "Initial combined mutation callback stalled; source restored and page state inspected. Page close also stalled; closing its owned context completed and confirmed only default about:blank remained.",
+    "Staged navigation/import/proof then context cleanup completed both intended mutations. All owned contexts closed and preview PID43612 stopped.",
+    "This helper executes the extracted production multiplier and real renderer; actual main dirty-gate integration is separately reviewed and final game checks follow."
+  ]
+}

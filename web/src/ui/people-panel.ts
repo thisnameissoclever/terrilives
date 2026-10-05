@@ -1,4 +1,5 @@
 import { relationWord } from '../bridge.js';
+import { setTextIfChanged } from './set-text-if-changed.js';
 import {
   householdMembers,
   type HouseholdMember,
@@ -70,8 +71,9 @@ export interface PeoplePanelSurface {
 /**
  * Turns the simulation's directional -1..=1 value into player vocabulary.
  *
- * The bands deliberately expose a first completed Chat: the authored gain is
- * 0.15, so one conversation moves a stranger to Warm. The UI does not
+ * The bands expose a first eligible Chat at neutral compatibility: its base
+ * gain is 0.17, scaled by compatibility and gated by need and hygiene rules.
+ * An eligible neutral chat moves a stranger to Warm. The UI does not
  * call this friendship or romance state because the simulation currently owns
  * one ordered feeling, not two relationship axes.
  */
@@ -208,12 +210,12 @@ export function createPeoplePanelSurface(
 
   return {
     render(view) {
-      caption.textContent = view === null ? 'People' : `How ${view.selectedName} feels`;
+      setTextIfChanged(caption, view === null ? 'People' : `How ${view.selectedName} feels`);
       empty.hidden = view !== null && view.people.length > 0;
-      empty.textContent =
+      setTextIfChanged(empty,
         view === null
           ? 'Select a person to see how they feel about the household.'
-          : 'There is nobody else in the household.';
+          : 'There is nobody else in the household.');
       list.hidden = view === null || view.people.length === 0;
 
       const people = view?.people ?? [];
@@ -234,10 +236,10 @@ export function createPeoplePanelSurface(
         row.root.dataset.tone = person.tone;
         // [FM-show]: the tie beside the name, so the row reads as who they
         // are as well as how they are getting on.
-        row.name.textContent = person.tie === null
+        setTextIfChanged(row.name, person.tie === null
           ? person.name
-          : `${person.name}, their ${person.tie}`;
-        row.state.textContent = person.label;
+          : `${person.name}, their ${person.tie}`);
+        setTextIfChanged(row.state, person.label);
         row.meter.setAttribute(
           'aria-label',
           `${view?.selectedName ?? ''}'s feeling about ${person.name}`,

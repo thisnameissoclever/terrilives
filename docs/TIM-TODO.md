@@ -95,16 +95,11 @@ complete but voiceless.
 
 ### [T-interior-door-art] Hinged doors for the Walls tool `[YOURS]`
 
-The Walls tool (PR 95) makes doorways: gaps in a wall that draw as a frame.
-Doorways on vertical lines now hold a hinged door that opens as a sim walks
-through, drawn with the front door's art as a stand-in, because that art fits
-that direction. Doorways on horizontal lines stay empty frames: there is no
-art for that direction, and mirroring the front door lights it from the wrong
-side. What is needed: a frame and a leaf in open, ajar and closed states for
-the horizontal direction, and, if you want interior doors to look unlike the
-front door, the vertical direction too, matched to the existing wall art.
-Tell me whether to draft them with the generator for you to accept or reject,
-or whether you would rather supply them. Nothing is blocked meanwhile.
+The replacement solid door model is implemented in `assets/models/doors/`,
+with four orientations, nine swing poses, hardware on both faces and paired
+surface-depth data. Both doorway axes now use it. The owner approved the visuals
+and authorized delivery on 2026-10-01. See
+`specs/2026-10-01-solid-door-verification.md` for the verification record.
 
 ### [T-subobject-art] Parts that need their own depth `[YOURS]`
 
@@ -120,31 +115,13 @@ is left in [B-facing]; the mechanism needs no further work, and each new split
 costs one instance. Tell me whether to draft them with the generator for you
 to accept or reject, or whether you would rather supply them.
 
-### [T-floor-art] Floors that look like floors `[YOURS]`
+### [T-floor-art] Review integrated floor materials `[YOURS]`
 
-The Floors tool lays a covering on a tile, and there is one floor sprite, so
-Boards, Tiles and Carpet are that sprite under three colour shifts: warmer and
-darker, cooler and paler, deeper and softer. They read as three shades of the
-same floor rather than as three materials. What is needed: floor art per
-covering, tiling cleanly across neighbouring tiles at the isometric angle the
-rest of the art uses, and ideally a name apiece that the tool can show. The
-covering list in `content/lot.toml` grows by appending, so new art is a
-content edit rather than a code change. Tell me whether to draft them with the
-generator for you to accept or reject, or whether you would rather supply
-them. Nothing is blocked meanwhile.
+Boards, tiles and carpet now have authored art in the local 2026-10-01 implementation. Candidate08's wall/floor appearance was accepted; final combined game acceptance is separate. Review the delivered room evidence in `docs/assets/review-evidence/architecture/verification.md`. Additional patterns and palettes can extend the finish catalogue; this batch adds neither a new finish library nor room-wide painting.
 
-### [T-window-art] Glazed wall panels for the Walls tool `[YOURS]`
+### [T-window-art] Review the nine integrated window models `[YOURS]`
 
-The Walls tool now fits windows: a line that stops people and lets the
-daylight through, so a back room brightens at noon instead of sitting dim.
-There is no window art, so a window draws as the wall panel it stands in,
-washed pale blue, which is the only thing telling a player which lines are
-glazed. What is needed: a wall panel with a glazed opening for the vertical
-line and one for the horizontal, matched to the existing wall art, and light
-enough that a window reads as a window at a glance rather than as a wall
-somebody tinted. Tell me whether to draft them with the generator for you to
-accept or reject, or whether you would rather supply them. Nothing is blocked
-meanwhile.
+All nine concepts and their widths were approved. Both axes and full/cut forms are implemented with whole-span placement, replacement and removal. Final owner review covers the assembled game and controls, separately from source sheets and the first-room checkpoint. The verification record tracks that boundary and unobserved devices.
 
 ### [T-death-art] What a death looks like `[YOURS]`
 
@@ -503,10 +480,18 @@ fades, capacity, and effective-pause cleanup. Shower use now has one prepared CC
 water loop with on-demand loading and bounded failure recovery. Handwashing and
 kitchen washing-up reuse that decoded recording at lower gain, with independent
 source ownership. Its timbre and
-mix still need listening acceptance; stove selection remains mine. Door opening
-and closing now have quiet provisional recorded cues tied to authoritative portal
-state. Ambience, alarms, music, non-conversation voices
-and music/ambience controls remain unbuilt. The current contract and evidence are in
+mix still need listening acceptance. Stove cooking now uses a provisional
+first-party synthetic texture with independent demand loading; its listening
+acceptance also remains open. Doors open silently and close with a filtered thunk
+tied to authoritative portal state. Footsteps use a quieter peak amplitude without
+changing pitch or cadence. Toilet audio plays a recorded
+flush after completed use; cancellation, loading and late decoding do not
+trigger one. The owner accepted the recording;
+in-game mixing and technical release evidence belong in
+`docs/specs/2026-10-01-toilet-completion-audio.md`.
+Continuous indoor background noise is excluded from the sound design. Outdoor
+ambience, alarms, music, non-conversation voices and their controls remain unbuilt.
+The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-10-01-object-loop-playback.md`.
 

@@ -1,5 +1,6 @@
 import { beforeAll, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import * as atlas from '../src/render/atlas.js';
@@ -13,12 +14,32 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
+it('loads an actual released-main save and changes only the aquarium artwork', () => {
+  const bytes = Uint8Array.from(readFileSync('tests/fixtures/aquarium-released-main.sav'));
+  expect(createHash('sha256').update(bytes).digest('hex'))
+    .toBe('117f99a05d6e9ad879954ec46c6ccc84858a3d9d7c6d7b957847927600a6eea6');
+  const handle = SimHandle.from_lot();
+  try {
+    const sim = new SimBridge(handle, memory);
+    expect(sim.loadBytes(bytes)).toBe(true);
+    expect(sim.saveBytes()).toEqual(bytes);
+    expect(sim.worldHash().toString()).toBe('16205700675540473065');
+    const row = Array.from(sim.ids()).indexOf(27);
+    expect(row).toBeGreaterThanOrEqual(0);
+    expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));
+    expect([...sim.positions().slice(row * 2, row * 2 + 2)]).toEqual([6, 10]);
+    expect(sim.interactionLabels(27)).toEqual(['Watch the fish']);
+  } finally {
+    handle.free();
+  }
+});
+
 it.each(['', 'NW', 'SW', 'NE'])('keeps fish timing and the picking envelope for facing %s', suffix => {
   const zero = atlas.spriteIndex('offlineAquarium' + suffix);
   const one = atlas.spriteIndex('offlineAquariumFrame1' + suffix);
   for (const [tick, wanted] of [[0, zero], [23, zero], [24, one], [47, one], [48, zero]]) {
     expect(objectBodySprite(zero, tick, false)).toBe(wanted);
-    expect(objectBodySprite(zero, tick, false)).toBe(wanted);
+    expect(objectBodySprite(one, tick, false)).toBe(one);
     expect(objectBodySprite(zero, tick, true)).toBe(zero);
   }
   expect(atlas.SPRITE_ANCHORS[zero]).toEqual(atlas.SPRITE_ANCHORS[one]);

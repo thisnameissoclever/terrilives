@@ -1,6 +1,35 @@
 # Alpha Feel Notes
 
+## [A-build-context-controls] Build actions in the viewport, 2026-10-01
+
+The displayed game was exercised on desktop, phone and short landscape with all five Build tools. Contextual actions followed selection, pan and zoom. Floors selected without painting; applying a covering changed the chosen tile. Furniture sale showed the actual payout. Help and Options suspended contextual actions, and tool changes reset only the relevant shortcut disclosure.
+
+Enlarged text exposed overlapping controls and focus loss during layout changes. One grid now allocates compact controls and scrollable tool content; focus survives container moves. Other reviewed surfaces include Options, object menus, the Sim dock and its detail tabs, both housemate form pages, and confirmation dialogs.
+
+These are local browser observations and automated geometry checks. The owner accepted the displayed screenshots on 2026-10-01. Physical-phone use and spoken screen-reader output remain unverified. Commands, measurements and screenshots belong to the dated [Build controls evidence](assets/review-evidence/build-controls/README.md).
+
+## [A-packed-floor-preview] Drawn floor selection and viewport help
+
+2026-10-01, production build on isolated port 5224. Desktop and 390x844
+reduced-motion checks showed the selected floor tile's cyan ring in the actual
+GPU draw. Dining-table movement displayed one preview, not a duplicate; Cancel
+restored the original table and left save bytes unchanged. The compact build
+dock remained usable. Screenshots were inspected, not only captured.
+
+Resizing revealed that Floors kept keyboard instructions on a phone viewport.
+The missing compact-layout notification was corrected. A rebuilt production
+pass verified desktop to phone to desktop help transitions and inspected each
+view. Evidence and exact check boundaries are in
+`specs/2026-10-01-packed-instance-count-verification.md`. Owned pages and servers
+were closed. No audio-memory, complete world-visual or sleep-animation acceptance
+is inferred from this renderer pass.
+
 ## [A-door-recordings] Quiet recordings on physical door transitions
+
+The following observation predates the owner's rejection of the squeak. Current
+door opening is silent and closing uses only the filtered 0.32-second thunk.
+The old opening counters and signal evidence do not establish acceptance of
+that replacement; see `specs/2026-10-01-door-audio.md` for the current contract.
 
 Inspected the production build at 1280x720 on isolated port 5201, Day 1,
 00:01 through 05:41. The kitchen doorway appeared open during movement and
@@ -3894,3 +3923,37 @@ browser viewport pass, not physical-phone or spoken screen-reader acceptance.
 It did not watch a complete conversation. Task-owned game pages and the
 preview server were closed. Details, test counts and retained evidence paths
 are in `docs/specs/2026-09-30-sim-details.md`.
+
+## [A-complete-activity-bubbles] Visible activity identity, 2026-10-01
+
+The displayed release game now shows a bubble for every active on-lot activity.
+The shower was started through its ordinary menu; production canvas captures
+exercise all 19 ordinary interactions, four dinner phases, walking, waiting
+and conversation. All 22 glyphs received an independent visual and meaning
+review, including the centered fish and revised bicycle. Night, neutral light,
+normal camera size, maximum zoom and minimum zoom were inspected.
+
+No blocking visual finding remains in the pairing review. Idle Sims have no
+active task and no bubble; off-lot workers remain hidden. This pass verifies
+activity presentation, not a full need cycle or public deployment. The review
+receipts, limitations and local checks are in
+`docs/assets/review-evidence/activity-bubbles/README.md`. Task-owned game pages
+were closed, temporary lighting restored, and preview servers stopped.
+
+## [A-solid-door-crossings] Door model and floor joins, 2026-10-01
+
+Inspected the displayed production build with the replacement doors at play
+zoom, flat light, automatic night lighting, reduced motion and a 390px viewport.
+Both doorway axes now have leaves. Recorded native crossings include opening,
+occupied doorway, closing and closed, with no observed threshold clipping of
+feet, leaf or casing. The first replacement's heavy ink and projecting bottom
+tabs were rejected; thinner brown contours and a threshold fitted inside the
+casing correct those findings in the revised images.
+
+Fresh-context review required casing, edge-on and threshold-visibility samples
+in addition to broad leaf depth. The expanded GPU proof passes 864 cases and
+detects removal of each depth mechanism. The model, captures, executed gates,
+mutation receipts and evidence limits are recorded in
+`docs/specs/2026-10-01-solid-door-verification.md`. The owner approved the visuals
+and authorized delivery on 2026-10-01. This is a door presentation pass,
+not a full household activity playthrough or a deployment claim.

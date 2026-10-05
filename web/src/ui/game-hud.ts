@@ -1,4 +1,6 @@
 /** The player-facing clock, household and selected-sim summary. */
+import { setTextIfChanged } from './set-text-if-changed.js';
+import type { SatisfactionSurface } from './satisfaction-meter.js';
 
 export interface GameHudSource {
   selectedIndex(): number | null;
@@ -42,6 +44,18 @@ const ACTIVITY_NAMES = [
   'Exercising',
   'Watching fish',
   'Sitting',
+  'Showering',
+  'Using the toilet',
+  'Watching TV',
+  'Lying down',
+  'Washing hands',
+  'Washing dishes',
+  'Listening to the radio',
+  'Handling correspondence',
+  'Bathing',
+  'Getting ingredients',
+  'Preparing food',
+  'Cooking',
 ] as const;
 
 export function formatActivity(
@@ -90,6 +104,7 @@ export class GameHud {
   constructor(
     private readonly roots: GameHudRoots,
     private readonly refreshMs: number,
+    private readonly satisfactionSurface?: SatisfactionSurface,
   ) {
     if (!Number.isFinite(refreshMs) || refreshMs <= 0) {
       throw new Error('HUD refresh interval must be positive');
@@ -102,29 +117,30 @@ export class GameHud {
     }
     this.lastReadMs = nowMs;
 
-    this.roots.clock.textContent = formatSimTime(
+    setTextIfChanged(this.roots.clock, formatSimTime(
       source.clockTick(),
       source.dayTicks(),
-    );
-    this.roots.funds.textContent = formatFunds(source.funds());
+    ));
+    setTextIfChanged(this.roots.funds, formatFunds(source.funds()));
 
     const selected = source.selectedIndex();
     const satisfaction =
       selected === null ? null : source.satisfactionOf(selected);
-    this.roots.satisfaction.textContent = formatSatisfaction(satisfaction);
+    setTextIfChanged(this.roots.satisfaction, formatSatisfaction(satisfaction));
+    this.satisfactionSurface?.render(satisfaction);
 
     const career = selected === null ? null : source.careerOf(selected);
     this.roots.careerRow.hidden = career === null;
-    this.roots.career.textContent = career ?? '';
+    setTextIfChanged(this.roots.career, career ?? '');
 
     const activity = selected === null ? null : source.activityOf(selected);
     const chain = selected === null ? null : source.chainStatusOf(selected);
     const stalled = selected === null ? null : source.stallReasonOf(selected);
-    this.roots.activity.textContent = formatActivity(activity, chain, stalled);
+    setTextIfChanged(this.roots.activity, formatActivity(activity, chain, stalled));
 
     const queued = selected === null ? 0 : source.queuedOrdersOf(selected);
     this.roots.ordersRow.hidden = queued === 0;
-    this.roots.orders.textContent = String(queued);
+    setTextIfChanged(this.roots.orders, String(queued));
     return true;
   }
 }

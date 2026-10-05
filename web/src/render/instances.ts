@@ -45,9 +45,12 @@ export type InstanceArray = Float32Array<ArrayBuffer>;
  * The colourway fields are all zero for the art as drawn, so a slot nobody
  * recolours draws exactly as before; `writeInstance` resets them.
  *
- * Positive projection modes are wall arm masks; -1 projects a rectangular
- * footprint. Zero retains flat depth. For positive modes, fields 10/11 are
- * opacity and raster height: height zero retains full-height opaque art.
+ * Positive projection modes are historical wall arm masks; -1 projects a
+ * rectangular footprint; -2 samples door surface depth, -3/-4 split dining
+ * support layers. Zero retains flat depth. Architecture modes encode
+ * wall/floor kind and finish slot through architectureMode. For positive
+ * modes, fields 10/11 are opacity and raster height; architecture walls use
+ * opacity and a cutaway flag. Height zero retains full-height opaque art.
  * Short walls use a second depth-tested, non-depth-writing draw.
  */
 export const FLOATS_PER_INSTANCE = 16;
@@ -72,7 +75,7 @@ export const OFFSET_WALL_MASK = 8;
 export const OFFSET_WALL_DEPTH_STEP = 9;
 export const OFFSET_FOOTPRINT_SPAN = 10;
 export const OFFSET_PROJECTION_ANCHOR_X = 11;
-/** Positive-mask interpretation only; negative modes retain footprint fields. */
+/** Wall interpretation; footprint and architecture-floor modes reuse these fields. */
 export const OFFSET_WALL_OPACITY = 10;
 export const OFFSET_WALL_HEIGHT = 11;
 export const SHORT_WALL_RASTER_HEIGHT = 26;
@@ -89,6 +92,26 @@ export const OFFSET_SHADE = 15;
 export const COLOURWAY_ATTRIBUTE_OFFSET =
   OFFSET_COLOURWAY_HUE * Float32Array.BYTES_PER_ELEMENT;
 export const FOOTPRINT_PROJECTION = -1;
+/** Opt-in local X + Y texture; never interpreted as a furniture footprint. */
+export const ARCHITECTURE_DEPTH = -6;
+/** Exact physical tile coverage with historical fixed floor depth. */
+export const ARCHITECTURE_FLOOR = -7;
+export const MAX_ARCHITECTURE_FINISH_SLOT = 0xfffff;
+/** Four integers per finish reserve footprint, door and dining modes. */
+export function architectureMode(floor: boolean, finishSlot = 0): number {
+  if (!Number.isInteger(finishSlot) || finishSlot < 0 || finishSlot > MAX_ARCHITECTURE_FINISH_SLOT) {
+    throw new Error('Invalid architecture finish slot');
+  }
+  return (floor ? ARCHITECTURE_FLOOR : ARCHITECTURE_DEPTH) - 4 * finishSlot;
+}
+
+export function decodeArchitectureMode(mode: number): { floor: boolean; finishSlot: number } | null {
+  if (!Number.isInteger(mode) || mode > ARCHITECTURE_DEPTH || mode < ARCHITECTURE_FLOOR - 4 * MAX_ARCHITECTURE_FINISH_SLOT) return null;
+  const value = -mode;
+  if (value % 4 !== 2 && value % 4 !== 3) return null;
+  return { floor: value % 4 === 3, finishSlot: Math.floor(value / 4) - 1 };
+}
+export const SURFACE_DEPTH_PROJECTION = -2;
 export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
 /** Byte offset of the tint attribute within one instance. */
@@ -248,11 +271,32 @@ export function writeShade(out: Float32Array, index: number, shade: number): voi
   out[index * FLOATS_PER_INSTANCE + OFFSET_SHADE] = shade;
 }
 
+/** Call after writeInstance. Cut surfaces share the existing low-wall draw. */
+export function writeArchitectureDepth(
+  out: Float32Array, index: number, depthStep: number, opacity = 1, cutaway = false, finishSlot = 0,
+): void {
+  const base = index * FLOATS_PER_INSTANCE;
+  out[base + OFFSET_WALL_MASK] = architectureMode(false, finishSlot);
+  out[base + OFFSET_WALL_DEPTH_STEP] = depthStep;
+  out[base + OFFSET_WALL_OPACITY] = opacity;
+  out[base + OFFSET_WALL_HEIGHT] = cutaway ? 1 : 0;
+}
+
+/** Canonical tile coordinates let neighboring floor quads share exact vertices. */
+export function writeArchitectureFloor(
+  out: Float32Array, index: number, tileX: number, tileY: number, finishSlot = 0,
+): void {
+  const base = index * FLOATS_PER_INSTANCE;
+  out[base + OFFSET_WALL_MASK] = architectureMode(true, finishSlot);
+  out[base + OFFSET_WALL_DEPTH_STEP] = 0;
+  out[base + OFFSET_WALL_OPACITY] = tileX;
+  out[base + OFFSET_WALL_HEIGHT] = tileY;
+}
+
 /**
- * The pale wash a window is drawn in until there is window art ([WN-art] in
- * `docs/specs/2026-09-22-windows.md`). Cool and light rather than a colour
- * nothing else in the house uses, because it has to read as glass in a wall
- * rather than as a mistake.
+ * Pale wash for historical window placeholders ([WN-art] in
+ * `docs/specs/2026-09-22-windows.md`). Authored architecture windows retain
+ * their accepted material pixels and never use this tint.
  */
 export const WINDOW_TINT = [0.72, 0.86, 1] as const;
 

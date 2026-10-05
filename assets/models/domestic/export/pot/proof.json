@@ -1,0 +1,84 @@
+{
+  "state": "complete",
+  "background": true,
+  "renders": [
+    {
+      "name": "cookingPot",
+      "path": "cookingPot.png",
+      "kind": "pot",
+      "facing": "SE",
+      "sha256": "e458510b8acb95fc85021c607e3a443ce75d2dc819a479f61b2e0b6d008ae767"
+    },
+    {
+      "name": "cookingPotNW",
+      "path": "cookingPotNW.png",
+      "kind": "pot",
+      "facing": "NW",
+      "sha256": "9297c6654020cd51847ebbb46c46b1118572540dbad0467b980ea4e39bca584b"
+    },
+    {
+      "name": "cookingPotSW",
+      "path": "cookingPotSW.png",
+      "kind": "pot",
+      "facing": "SW",
+      "sha256": "3e33384c705159b20496441b876a2d326aa999add920018f3e15e0c7f4be61cd"
+    },
+    {
+      "name": "cookingPotNE",
+      "path": "cookingPotNE.png",
+      "kind": "pot",
+      "facing": "NE",
+      "sha256": "682e40d3b88a2c2ae4c1d021d92ca2d2ddece5310ec42e4df3bc740ab608b1e3"
+    }
+  ],
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "blender": "4.5.14 LTS",
+  "inputs": {
+    "render_pot.py": "ba80c8c77abf3f1dcffc2d1d663b55416aa433ac7e6a6f959b4492a345c9fd2a",
+    "dishes.py": "ba66c899eb7abd5c09cb96d940ca0c4e971bd52a194c033bcf8b816623f69220"
+  },
+  "origin": [
+    12.00001859664917,
+    12.512252569198608
+  ],
+  "anchor": [
+    12.00001859664917,
+    33.51225256919861
+  ],
+  "logical_size": [
+    24,
+    24
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      6.577500343322754
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_scale": 0.5303300619125366,
+  "cookingPot": {
+    "base_z": 0,
+    "diameter": 0.36
+  },
+  "model_sha256": "f751cbeb2995a89f55241caf10ec21d659fe88290c5bdd33db7405cef1f2a9cf"
+}

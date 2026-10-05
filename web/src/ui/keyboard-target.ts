@@ -91,10 +91,7 @@ export class KeyboardTargetController {
     const target = targets[next];
     this.entity = target.entity;
     this.status.hidden = false;
-    const controls = target.kind === 'person'
-      ? 'Space selects this person; Enter selects or opens social actions.'
-      : 'Enter opens actions.';
-    this.status.textContent = `Target: ${target.label}. ${controls}`;
+    this.status.textContent = `Target: ${target.label}.`;
     return target;
   }
 
@@ -105,7 +102,7 @@ export class KeyboardTargetController {
   activate(): KeyboardActivation {
     const target = this.current();
     if (target === null) {
-      return { kind: 'unavailable', message: 'Use an arrow key to choose a target first' };
+      return { kind: 'unavailable', message: 'Choose a target first.' };
     }
     if (target.kind === 'person') {
       const selected = this.source.selectedIndex();

@@ -1,0 +1,108 @@
+{
+  "sourceRevision": "3c3d28ba",
+  "production": {
+    "pass": true,
+    "revision": "3c3d28ba",
+    "scene": {
+      "windows": [
+        0,
+        0,
+        1,
+        3,
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        4,
+        4,
+        0,
+        0,
+        7,
+        7,
+        1,
+        12,
+        0,
+        9,
+        1,
+        1,
+        0,
+        2,
+        1,
+        3,
+        0,
+        5,
+        1,
+        9,
+        0,
+        8,
+        1,
+        5,
+        0,
+        6
+      ],
+      "painted": 192,
+      "clock": 720,
+      "floors": 192
+    },
+    "rendered": {
+      "pixels": 0,
+      "width": 1600,
+      "height": 1100
+    },
+    "readiness": {
+      "clock": 720,
+      "visibility": "visible",
+      "stage": "visible",
+      "materialsBlocked": false
+    },
+    "clockAfter": 1440,
+    "additionalScreenshots": [
+      "noon-cut.png",
+      "enlarged-full.png",
+      "dusk-full.png",
+      "midnight-full.png"
+    ],
+    "normal": {
+      "width": 390,
+      "documentWidth": 390,
+      "choices": 9,
+      "font": "14px"
+    },
+    "enlarged": {
+      "width": 390,
+      "documentWidth": 390,
+      "font": "28px",
+      "chooserScrollHeight": 1387
+    },
+    "errors": [],
+    "scripts": [
+      "http://127.0.0.1:5187/assets/index-CnqIosEi.js"
+    ],
+    "screenshots": [
+      "noon-full.png",
+      "phone.png",
+      "phone-200.png"
+    ],
+    "notes": [
+      "Fixture uses public commands and normal ticks to noon.",
+      "Canvas-copy pixels are diagnostic only; actual saved screenshot must independently pass the same >10000 rendered-pixel threshold outside the HUD.",
+      "Nine choices clicked at390px and measured28px text; no horizontal overflow.",
+      "Owned isolated context closes in finally."
+    ]
+  },
+  "firstCrossingAutomationFailure": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "### Error\nTimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#build-toggle')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" id=\"build-toggle\" class=\"hud-button\" aria-pressed=\"true\" aria-controls=\"builder-controls\">Exit build</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    56 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+        }
+      ],
+      "isError": true
+    },
+    "interpretation": "First combined crossing walkthrough reached vertical full/cut captures, then tried a hidden original Build button to exit. Separate axis cases use measured current state and do not depend on that transition. Both completed crossings are in gpu-and-crossings.json."
+  },
+  "cleanup": "All task-owned isolated contexts closed in finally; production preview stopped after final capture. Initial development server stopped before production verification. No owner saves or unrelated processes accessed."
+}

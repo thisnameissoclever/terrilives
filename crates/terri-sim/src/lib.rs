@@ -1,7 +1,18 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 mod action_queue;
+#[cfg(test)]
+mod activity_tests;
+pub mod beds;
+mod compatibility;
+#[cfg(test)]
+mod completion_sound_tests;
+pub mod completion_sounds;
 pub mod details;
+mod dining;
+pub mod domestic;
+#[cfg(test)]
+mod ecs_lifecycle_tests;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
@@ -10,11 +21,16 @@ mod mood;
 pub mod mortality;
 pub mod placement;
 pub mod portals;
+mod privacy;
+mod relationship_dynamics;
+pub mod relationship_effects;
 pub mod render_buffer;
 mod reservations;
 #[cfg(test)]
 mod reservations_tests;
+mod room_regions;
 mod save;
+mod shyness;
 pub mod systems;
 #[cfg(test)]
 pub mod test_content;
@@ -136,6 +152,9 @@ struct RenderRow {
     activity: u32,
     visual_action: u32,
     interaction_target: u32,
+    meal_table: u32,
+    sleeping_bed: u32,
+    sleeping_place: u32,
     facing: u32,
     sound_action: u32,
     sound_source: u32,
@@ -306,18 +325,27 @@ fn authored_object_facing_codes(
             terri_data::CompiledVisualFacing::TowardAnchor,
             None,
         ) => Some((visual_action::WATCH, activity::WATCHING_FISH)),
+        (
+            terri_data::CompiledVisualAction::Sleep,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+            None,
+        ) => Some((visual_action::SLEEP, activity::SLEEPING)),
         _ => None,
     }
 }
 
-fn is_authored_station_eat_visual(step: &terri_data::CompiledChainStep) -> bool {
+fn is_authored_station_visual(step: &terri_data::CompiledChainStep) -> bool {
     let Some(visual) = step.visual.as_ref() else {
         return false;
     };
     matches!(
         (&visual.action, &visual.anchor, &visual.facing,),
         (
-            terri_data::CompiledVisualAction::Eat,
+            terri_data::CompiledVisualAction::Eat
+                | terri_data::CompiledVisualAction::Prepare
+                | terri_data::CompiledVisualAction::Cook
+                | terri_data::CompiledVisualAction::Wash,
             terri_data::CompiledVisualAnchor::Station,
             terri_data::CompiledVisualFacing::TowardAnchor,
         )
@@ -468,6 +496,112 @@ fn eating_interaction_exists(
         .is_some()
 }
 
+fn activity_code(activity: terri_data::CompiledActivity) -> u32 {
+    use render_buffer::activity as code;
+    use terri_data::CompiledActivity as Activity;
+    match activity {
+        Activity::Eating => code::EATING,
+        Activity::Sleeping => code::SLEEPING,
+        Activity::Reading => code::READING,
+        Activity::Exercising => code::EXERCISING,
+        Activity::WatchingFish => code::WATCHING_FISH,
+        Activity::Sitting => code::SITTING,
+        Activity::Showering => code::SHOWERING,
+        Activity::UsingToilet => code::USING_TOILET,
+        Activity::WatchingTv => code::WATCHING_TV,
+        Activity::Lounging => code::LOUNGING,
+        Activity::WashingHands => code::WASHING_HANDS,
+        Activity::WashingDishes => code::WASHING_DISHES,
+        Activity::ListeningRadio => code::LISTENING_RADIO,
+        Activity::Correspondence => code::CORRESPONDENCE,
+        Activity::Bathing => code::BATHING,
+        Activity::GettingIngredients => code::GETTING_INGREDIENTS,
+        Activity::PreparingFood => code::PREPARING_FOOD,
+        Activity::Cooking => code::COOKING,
+    }
+}
+
+/// Resolves bubble identity from the exact active interaction or station step.
+/// Authored indicators do not select body art and never infer identity from
+/// menu labels, gameplay tags, or the sprite drawn for an object.
+fn authored_activity(
+    content: &terri_data::ContentPack,
+    world: &World,
+    person: Entity,
+    eating: Option<&terri_core::Eating>,
+    chain_state: Option<&terri_core::ChainState>,
+    step_work: Option<&terri_core::StepWork>,
+    target: Option<&terri_core::Target>,
+) -> Option<u32> {
+    if eating.is_some() && step_work.is_some() {
+        return None;
+    }
+    let target = target?;
+    let object = world.get::<terri_core::SmartObject>(target.object)?;
+    world.get::<terri_core::Position>(target.object)?;
+    let definition = content.objects.get(object.0 .0 as usize)?;
+    if let Some(eating) = eating {
+        if target.interaction == systems::chain::CHAIN_STEP
+            || target.interaction != eating.interaction
+            || object.0 != eating.object
+        {
+            return None;
+        }
+        let interaction = definition.interactions.get(target.interaction as usize)?;
+        return interaction.activity.map(activity_code);
+    }
+    step_work?;
+    let chain_state = chain_state?;
+    if target.interaction != systems::chain::CHAIN_STEP {
+        return None;
+    }
+    let chain = content.chains.get(chain_state.chain as usize)?;
+    let step = chain.steps.get(chain_state.step as usize)?;
+    if !chain_station_matches(
+        world,
+        person,
+        chain,
+        chain_state.step,
+        definition,
+        target.object,
+    ) {
+        return None;
+    }
+    step.activity.map(activity_code)
+}
+
+fn chain_station_matches(
+    world: &World,
+    person: Entity,
+    chain: &terri_data::CompiledChain,
+    step: u32,
+    definition: &terri_data::CompiledObject,
+    station: Entity,
+) -> bool {
+    if definition.roles.contains(&chain.steps[step as usize].role) {
+        return true;
+    }
+    if domestic::communal(&chain.id, step, chain.steps.len())
+        && dining::claim(world, person.index_u32())
+            .is_some_and(|d| d.station == station.index_u32())
+    {
+        return true;
+    }
+    chain.id == domestic::CLEANUP
+        && step == 0
+        && world
+            .get_resource::<terri_core::save::SavedDomestic>()
+            .is_some_and(|state| {
+                domestic::step_station(
+                    state,
+                    person.index_u32(),
+                    world.get::<terri_core::SimId>(person).copied(),
+                    &chain.id,
+                    step,
+                ) == Some(station.index_u32())
+            })
+}
+
 fn object_footprint_centre(
     content: &terri_data::ContentPack,
     object: &terri_core::SmartObject,
@@ -479,6 +613,79 @@ fn object_footprint_centre(
     Some(terri_core::Position {
         x: origin.x + (footprint.width as f32 - 1.0) * 0.5,
         y: origin.y + (footprint.depth as f32 - 1.0) * 0.5,
+    })
+}
+
+fn stove_front(
+    pack: &terri_data::ContentPack,
+    object: &terri_core::SmartObject,
+    position: &terri_core::Position,
+    facing: Option<&terri_core::ObjectFacing>,
+) -> Option<terri_core::Position> {
+    let definition = pack.object(object.0);
+    if definition.id != "stove" {
+        return None;
+    }
+    let center = object_footprint_centre(pack, object, position, facing)?;
+    let (dx, dy) = facing
+        .map_or(definition.base_facing, |f| f.0)
+        .rotate_axis(1, 0);
+    Some(terri_core::Position {
+        x: center.x + dx as f32,
+        y: center.y + dy as f32,
+    })
+}
+
+fn cooking_projection(world: &World, person: Entity) -> Option<SocketActionProjection> {
+    use terri_core::{ChainState, Eating, Path, Position, SmartObject, StepWork, Target};
+    let pack = world.resource::<Content>().0;
+    if world.get::<Path>(person).is_some() || world.get::<Eating>(person).is_some() {
+        return None;
+    }
+    world.get::<StepWork>(person)?;
+    let chain = world.get::<ChainState>(person)?;
+    let recipe = pack.chains.get(chain.chain as usize)?;
+    let step = recipe.steps.get(chain.step as usize)?;
+    if !is_authored_station_visual(step)
+        || step.visual.as_ref()?.action != terri_data::CompiledVisualAction::Cook
+        || step.activity != Some(terri_data::CompiledActivity::Cooking)
+    {
+        return None;
+    }
+    let target = world.get::<Target>(person)?;
+    let object = world.get::<SmartObject>(target.object)?;
+    if target.interaction != systems::chain::CHAIN_STEP
+        || pack.object(object.0).id != "stove"
+        || !pack.object(object.0).roles.contains(&step.role)
+    {
+        return None;
+    }
+    let center = object_footprint_centre(
+        pack,
+        object,
+        world.get::<Position>(target.object)?,
+        world.get::<terri_core::ObjectFacing>(target.object),
+    )?;
+    let front = stove_front(
+        pack,
+        object,
+        world.get::<Position>(target.object)?,
+        world.get::<terri_core::ObjectFacing>(target.object),
+    )?;
+    if !world
+        .resource::<terri_core::TileGrid>()
+        .is_walkable(front.x.round() as i32, front.y.round() as i32)
+    {
+        return None;
+    }
+    let facing = facing_toward(person, &front, target.object, &center);
+    Some(SocketActionProjection {
+        x: front.x,
+        y: front.y,
+        facing,
+        target_entity: target.object.index_u32(),
+        visual_action: render_buffer::visual_action::COOK,
+        activity: render_buffer::activity::COOKING,
     })
 }
 
@@ -539,13 +746,20 @@ fn authored_eating_visual(
         }
         let chain = content.chains.get(chain_state.chain as usize)?;
         let step = chain.steps.get(chain_state.step as usize)?;
-        if !is_authored_station_eat_visual(step) {
+        if !is_authored_station_visual(step) {
             return None;
         }
         let target_object = world.get::<terri_core::SmartObject>(target.object)?;
         let target_position = world.get::<terri_core::Position>(target.object)?;
         let definition = content.objects.get(target_object.0 .0 as usize)?;
-        if !definition.roles.contains(&step.role) {
+        if !chain_station_matches(
+            world,
+            entity,
+            chain,
+            chain_state.step,
+            definition,
+            target.object,
+        ) {
             return None;
         }
         let anchor = object_footprint_centre(
@@ -555,7 +769,13 @@ fn authored_eating_visual(
             world.get::<terri_core::ObjectFacing>(target.object),
         )?;
         return Some((
-            visual_action::EAT,
+            match step.visual.as_ref()?.action {
+                terri_data::CompiledVisualAction::Eat => visual_action::EAT,
+                terri_data::CompiledVisualAction::Prepare => visual_action::PREPARE,
+                terri_data::CompiledVisualAction::Cook => visual_action::COOK,
+                terri_data::CompiledVisualAction::Wash => visual_action::WASH,
+                _ => return None,
+            },
             facing_toward(entity, position, target.object, &anchor),
         ));
     }
@@ -579,6 +799,7 @@ fn sound_action_code(action: terri_data::CompiledSoundAction) -> u32 {
 fn authored_object_sound(
     content: &terri_data::ContentPack,
     world: &World,
+    entity: Entity,
     eating: Option<&terri_core::Eating>,
     chain_state: Option<&terri_core::ChainState>,
     step_work: Option<&terri_core::StepWork>,
@@ -619,7 +840,14 @@ fn authored_object_sound(
         let target_object = world.get::<terri_core::SmartObject>(target.object)?;
         world.get::<terri_core::Position>(target.object)?;
         let definition = content.objects.get(target_object.0 .0 as usize)?;
-        if !definition.roles.contains(&step.role) {
+        if !chain_station_matches(
+            world,
+            entity,
+            chain,
+            chain_state.step,
+            definition,
+            target.object,
+        ) {
             return None;
         }
         return Some((
@@ -655,7 +883,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -744,6 +974,17 @@ impl Sim {
             waiting_needs: waiting::snapshot(&self.world),
             self_preservation: save::self_preservation::capture(&self.world),
             chronotype_offsets: save::chronotype::capture(&self.world),
+            sleeping_places: Some(save::sleeping_places::capture(&self.world)),
+            shyness: shyness::deviations(&self.world),
+            boundaries: self
+                .world
+                .resource::<privacy::BoundaryDecisions>()
+                .0
+                .values()
+                .cloned()
+                .collect(),
+            domestic: domestic::snapshot(&self.world),
+            dining: dining::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -772,7 +1013,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -784,7 +1027,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -812,6 +1057,9 @@ impl Sim {
             .saturating_add(1);
         *self = restored;
         portals::sync_portals(&mut self.world, &mut self.portals);
+        self.portals
+            .previous_openness
+            .clone_from(&self.portals.openness);
     }
 
     /// Loads a historical V1 payload, including reviewed layout migrations.
@@ -819,7 +1067,9 @@ impl Sim {
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::restore(snapshot, content, active_portals)?;
+        let mut restored = save::restore(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -838,6 +1088,10 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+        world.insert_resource(completion_sounds::CompletionSounds::default());
+        world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
+        world.insert_resource(relationship_dynamics::RelationshipContext::default());
+        world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
             ..Default::default()
@@ -866,6 +1120,8 @@ impl Sim {
         world.insert_resource(terri_core::CommandQueue::default());
         world.insert_resource(systems::command::CommandFeedback::default());
         world.insert_resource(placement::LotEditState::default());
+        world.insert_resource(beds::BedAssignments::default());
+        world.insert_resource(beds::AssignmentFeedback::default());
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -882,6 +1138,7 @@ impl Sim {
         world.register_component::<terri_core::Reserved>();
         world.register_component::<terri_core::Path>();
         world.register_component::<terri_core::Target>();
+        world.register_component::<terri_core::SleepPlace>();
         world.register_component::<terri_core::Eating>();
         world.register_component::<terri_core::Restless>();
         world.register_component::<terri_core::Wander>();
@@ -908,6 +1165,7 @@ impl Sim {
         world.register_component::<terri_core::SimId>();
         world.register_component::<terri_core::SimName>();
         world.register_component::<terri_core::Personality>();
+        world.register_component::<terri_core::Shyness>();
         // M2d's two. `Relationships` is in `world_hash`'s query, so [L3]
         // bites the way it does for Habituation: unregistered, the digest
         // goes EMPTY rather than wrong, and empty compares equal to
@@ -1028,14 +1286,20 @@ impl Sim {
                 // which `select_action` deliberately does not, because
                 // an intent PREEMPTS a running interaction. See that
                 // function's docs for why that is the choice.
-                systems::action::serve_intents,
-                systems::action::select_action,
+                (
+                    systems::action::serve_intents,
+                    crate::relationship_effects::reset,
+                    domestic::tick,
+                    systems::interpersonal::prepare,
+                    systems::action::select_action,
+                )
+                    .chain(),
                 // Directly after selection, so a chain chosen this
                 // tick (or resumed after an interruption) gets its
                 // station walk on the same tick a chosen fridge gets
                 // its path - and there is exactly ONE targeting code
                 // path for chains, this system ([K4]).
-                systems::chain::advance_chains,
+                (dining::advance, systems::chain::advance_chains).chain(),
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -1045,7 +1309,14 @@ impl Sim {
                 // exactly like a path to an object - a wander that had
                 // to wait a tick would read as a hesitation.
                 systems::idle::wander,
-                systems::movement::follow_path,
+                (
+                    privacy::route,
+                    systems::interpersonal::refresh_routes,
+                    systems::movement::follow_path,
+                    systems::interpersonal::apply,
+                    relationship_dynamics::tick,
+                )
+                    .chain(),
                 // Directly after movement, because arrival at the door
                 // is a fact `follow_path` establishes (an exhausted
                 // target-less path is removed there - the wander shape,
@@ -1053,6 +1324,7 @@ impl Sim {
                 // paid return.
                 systems::career::commute_and_work,
                 systems::interact::tick_interactions,
+                domestic::gather_diners,
                 // Beside tick_interactions because it is the same job
                 // for chain steps: run the clock at the station, and
                 // pay - whole, terminal-only - when the last one ends.
@@ -1078,7 +1350,7 @@ impl Sim {
                 // lives.
                 systems::satisfaction::bleed_neglect,
                 mortality::tick,
-                mood::accrue_satisfaction,
+                (mood::accrue_satisfaction, privacy::maintain).chain(),
             )
                 .chain(),
         );
@@ -1277,7 +1549,7 @@ impl Sim {
                 .filter(|edge| edge.in_bounds(width, height))
                 .copied()
                 .collect(),
-            ..pack.lot.clone()
+            ..test_content::historical_lot(pack)
         };
         let mut sim = Self::new_from_lot(&lot, &pack.objects);
         sim.world
@@ -1328,7 +1600,10 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
+        // Standalone ECS needs explicit update boundaries to retire removal history.
+        self.world.clear_trackers();
     }
 
     /// Applies staged player input without advancing simulation time.
@@ -1338,7 +1613,25 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
+        privacy::maintain(&mut self.world);
+        // Paused frames can remove components too; keep the same observation window.
+        self.world.clear_trackers();
+    }
+
+    pub fn completion_sounds(&self) -> &[u32] {
+        &self
+            .world
+            .resource::<completion_sounds::CompletionSounds>()
+            .0
+    }
+
+    pub fn clear_completion_sounds(&mut self) {
+        self.world
+            .resource_mut::<completion_sounds::CompletionSounds>()
+            .0
+            .clear();
     }
 
     /// Returns and clears the number of object or social orders refused
@@ -1417,6 +1710,11 @@ impl Sim {
     }
 
     fn sync_render_buffer_inner(&mut self, advance_interpolation: bool) {
+        if advance_interpolation {
+            self.portals
+                .previous_openness
+                .clone_from(&self.portals.openness);
+        }
         portals::sync_portals(&mut self.world, &mut self.portals);
         use std::collections::{HashMap, HashSet};
 
@@ -1445,10 +1743,17 @@ impl Sim {
         self.render.activities.clear();
         self.render.visual_actions.clear();
         self.render.interaction_targets.clear();
+        self.render.meal_tables.clear();
+        self.render.sleeping_beds.clear();
+        self.render.sleeping_places.clear();
         self.render.facings.clear();
         self.render.sound_actions.clear();
         self.render.sound_sources.clear();
         self.render.carrying.clear();
+        self.render.dirty_dishes.clear();
+        self.render.dirty_settings.clear();
+        self.render.carried_dishes.clear();
+        self.render.meal_portions.clear();
         self.render.voice_firsts.clear();
         self.render.voice_seconds.clear();
         self.render.conversation_owners.clear();
@@ -1660,6 +1965,12 @@ impl Sim {
             } else {
                 None
             };
+            let station_visual = if is_agent && !socially_active && !at_work {
+                dining::projection(&self.world, entity)
+                    .or_else(|| cooking_projection(&self.world, entity))
+            } else {
+                None
+            };
             let socket_action_visual = if is_agent && !socially_active && !at_work {
                 authored_socket_action_visual(content, &self.world, eating, step_work, target)
             } else {
@@ -1679,7 +1990,15 @@ impl Sim {
                 None
             };
             let sound_projection = if is_agent && !socially_active && !at_work {
-                authored_object_sound(content, &self.world, eating, chain_state, step_work, target)
+                authored_object_sound(
+                    content,
+                    &self.world,
+                    entity,
+                    eating,
+                    chain_state,
+                    step_work,
+                    target,
+                )
             } else {
                 None
             };
@@ -1697,6 +2016,15 @@ impl Sim {
                         false,
                         Some(render_buffer::activity::TALKING),
                     )
+                } else if let Some(diner) = station_visual {
+                    (
+                        diner.visual_action,
+                        diner.facing,
+                        diner.x,
+                        diner.y,
+                        true,
+                        Some(diner.activity),
+                    )
                 } else if let Some((action, direction)) = eating_visual {
                     (
                         action,
@@ -1704,7 +2032,8 @@ impl Sim {
                         x,
                         y,
                         false,
-                        Some(render_buffer::activity::EATING),
+                        (action == render_buffer::visual_action::EAT)
+                            .then_some(render_buffer::activity::EATING),
                     )
                 } else if let Some(socket_action) = socket_action_visual {
                     (
@@ -1741,7 +2070,17 @@ impl Sim {
             } else if socially_active {
                 render_buffer::activity::TALKING
             } else if eating.is_some() {
-                if let Some(activity) = authored_activity {
+                if let Some(activity) = authored_activity.or_else(|| {
+                    self::authored_activity(
+                        content,
+                        &self.world,
+                        entity,
+                        eating,
+                        chain_state,
+                        step_work,
+                        target,
+                    )
+                }) {
                     // An exact visual contract owns both the body pose and its
                     // activity label. Tags remain independent authored data,
                     // so a legal overlap must not split those two signals.
@@ -1757,17 +2096,26 @@ impl Sim {
                     // player-facing eating activity.
                     render_buffer::activity::USING_OBJECT
                 }
-            } else if step_work.is_some()
-                && authored_activity == Some(render_buffer::activity::EATING)
-            {
-                // A running chain step has no `Eating` component, but an
-                // authored terminal eat still needs the existing fork bubble.
-                // The implication is one-way: generic object use never
-                // selects body art or the fork bubble.
-                render_buffer::activity::EATING
+            } else if step_work.is_some() {
+                authored_activity
+                    .or_else(|| {
+                        self::authored_activity(
+                            content,
+                            &self.world,
+                            entity,
+                            eating,
+                            chain_state,
+                            step_work,
+                            target,
+                        )
+                    })
+                    .unwrap_or(render_buffer::activity::USING_OBJECT)
             } else if path.is_some() {
                 render_buffer::activity::WALKING
-            } else if reserved {
+            } else if reserved
+                || (self.world.get::<terri_core::Blocked>(entity).is_some()
+                    && self.world.get::<waiting::WaitingNeeds>(entity).is_some())
+            {
                 render_buffer::activity::WAITING
             } else {
                 render_buffer::activity::NONE
@@ -1790,6 +2138,9 @@ impl Sim {
                 render_buffer::NO_SOUND_SOURCE,
             ));
             let crossing = portals::crossing_position(&self.world, entity, Position { x, y });
+            let sleeping = (is_agent && !socially_active && !at_work)
+                .then(|| beds::sleeping_place(&self.world, entity))
+                .flatten();
             rows.push(RenderRow {
                 entity,
                 index: entity.index_u32(),
@@ -1808,11 +2159,25 @@ impl Sim {
                     .map_or(0, |colourway| colourway.0),
                 activity,
                 visual_action,
-                interaction_target: socket_action_visual
+                interaction_target: station_visual
+                    .or(socket_action_visual)
                     .filter(|_| socket_projected)
                     .map_or(render_buffer::NO_INTERACTION_TARGET, |projection| {
                         projection.target_entity
                     }),
+                meal_table: station_visual
+                    .filter(|projection| {
+                        socket_projected
+                            && projection.visual_action == render_buffer::visual_action::SEATED_EAT
+                    })
+                    .and_then(|_| dining::claim(&self.world, entity.index_u32()))
+                    .map_or(render_buffer::NO_INTERACTION_TARGET, |diner| diner.station),
+                sleeping_bed: sleeping.map_or(render_buffer::NO_SLEEPING_BED, |place| {
+                    place.bed.index_u32()
+                }),
+                sleeping_place: sleeping.map_or(render_buffer::NO_SLEEPING_PLACE, |place| {
+                    u32::from(place.ordinal)
+                }),
                 facing,
                 sound_action,
                 sound_source,
@@ -1837,7 +2202,24 @@ impl Sim {
         }
         rows.sort_by_key(|row| row.index);
 
+        let domestic_items = domestic::surface_items(&self.world);
+        let carried_dishes = domestic::carried_dishes(&self.world);
         for row in &rows {
+            self.render
+                .carried_dishes
+                .push(carried_dishes.get(&row.index).copied().unwrap_or(0));
+            let surface = domestic_items
+                .chunks_exact(3)
+                .find(|items| items[0] == row.index);
+            self.render
+                .dirty_dishes
+                .push(surface.map_or(0, |items| items[1]));
+            self.render
+                .dirty_settings
+                .push(dining::setting_counts(&self.world, row.index));
+            self.render
+                .meal_portions
+                .push(surface.map_or(0, |items| items[2]));
             self.render.positions.push(row.x);
             self.render.positions.push(row.y);
             self.render.kinds.push(row.kind);
@@ -1854,6 +2236,9 @@ impl Sim {
             self.render.activities.push(row.activity);
             self.render.visual_actions.push(row.visual_action);
             self.render.interaction_targets.push(row.interaction_target);
+            self.render.meal_tables.push(row.meal_table);
+            self.render.sleeping_beds.push(row.sleeping_bed);
+            self.render.sleeping_places.push(row.sleeping_place);
             self.render.facings.push(row.facing);
             self.render.sound_actions.push(row.sound_action);
             self.render.sound_sources.push(row.sound_source);
@@ -2082,6 +2467,14 @@ impl Sim {
                 // into a blank line, not a panicked overlay.
                 let chain = pack.chains.get(chain_state.chain as usize)?;
                 let step = chain.steps.get(chain_state.step as usize)?;
+                let label = if chain.id == "cook_dinner" {
+                    domestic::meal_label(
+                        self.world.resource::<terri_core::SimClock>().tick,
+                        pack.tuning.day_ticks,
+                    )
+                } else {
+                    &chain.label
+                };
                 Some(match carrying {
                     Some(item) => {
                         let kind = pack
@@ -2093,9 +2486,9 @@ impl Sim {
                         // dinner: Cook": the panel prefixes this with a
                         // label of its own, and three colons in one
                         // line reads as nothing at all.
-                        format!("{} - step: {} (carrying {})", chain.label, step.label, kind)
+                        format!("{} - step: {} (carrying {})", label, step.label, kind)
                     }
-                    None => format!("{} - step: {}", chain.label, step.label),
+                    None => format!("{} - step: {}", label, step.label),
                 })
             })
     }
@@ -2242,6 +2635,13 @@ impl Sim {
             })
     }
 
+    pub fn cleanliness_of(&self, index: u32) -> Option<f32> {
+        let entity_index = bevy_ecs::entity::EntityIndex::from_raw_u32(index)?;
+        let person = self.world.entities().resolve_from_index(entity_index);
+        self.world.get::<terri_core::Agent>(person)?;
+        Some(domestic::cleanliness(&self.world, person))
+    }
+
     /// How the sim carrying `index` feels about everyone it knows, as
     /// interleaved `[sim_id, feeling, sim_id, feeling, ...]` pairs in
     /// the component's own key-sorted order.
@@ -2341,7 +2741,17 @@ impl Sim {
                     pack.chains
                         .iter()
                         .filter(|chain| chain.advertised_by == object.0)
-                        .map(|chain| chain.label.as_str()),
+                        .filter(|chain| !domestic::hidden_chain(&chain.id))
+                        .map(|chain| {
+                            if chain.id == "cook_dinner" {
+                                domestic::meal_label(
+                                    self.world.resource::<SimClock>().tick,
+                                    pack.tuning.day_ticks,
+                                )
+                            } else {
+                                chain.label.as_str()
+                            }
+                        }),
                 )
                 .collect(),
         )
@@ -2398,6 +2808,13 @@ impl Sim {
             .world
             .try_query_filtered::<Entity, With<terri_core::Selected>>()?;
         state.iter(&self.world).map(|e| e.index_u32()).min()
+    }
+
+    pub fn shyness_of(&self, index: u32) -> Option<u8> {
+        let index = bevy_ecs::entity::EntityIndex::from_raw_u32(index)?;
+        let entity = self.world.entities().resolve_from_index(index);
+        self.world.get::<terri_core::Agent>(entity)?;
+        Some(shyness::of(&self.world, entity).value())
     }
 
     /// Hashes all simulation-visible state. Entities are sorted by index
@@ -2724,6 +3141,21 @@ impl Sim {
             // any ([WN-state]), so an unglazed house digests exactly as it
             // did before windows existed. Two houses that differ in where
             // their windows sit are different houses.
+            if let terri_core::layout::SavedLayout::EdgeWallsV3 { windows, .. } = layout {
+                let mut descriptors: Vec<_> = windows
+                    .iter()
+                    .map(|w| (w.line.axis.code(), w.line.x, w.line.y, w.model.id()))
+                    .collect();
+                descriptors.sort_unstable();
+                hasher.write_bytes(b"windows-v3");
+                hasher.write_u64(descriptors.len() as u64);
+                for (axis, x, y, model) in descriptors {
+                    hasher.write_bytes(&[axis]);
+                    hasher.write_u64(x as u64);
+                    hasher.write_u64(y as u64);
+                    hasher.write_bytes(&[model]);
+                }
+            }
             let mut glazed: Vec<(u8, u32, u32)> = layout
                 .windows()
                 .iter()
@@ -2782,6 +3214,7 @@ impl Sim {
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
+        beds::hash(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<terri_core::Funds>().0 as u64);
 
         let commands = self.world.resource::<terri_core::CommandQueue>();
@@ -2792,6 +3225,12 @@ impl Sim {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
                     SetDeathEnabled(enabled) => vec![17, u64::from(*enabled)],
+                    SetBedAssignment { agent, place } => match place {
+                        Some((bed, ordinal)) => {
+                            vec![19, *agent as u64, 1, *bed as u64, *ordinal as u64]
+                        }
+                        None => vec![19, *agent as u64, 0],
+                    },
                     Select(id) => vec![0, id.map_or(u64::MAX, |id| id as u64)],
                     UseObject {
                         agent,
@@ -2827,6 +3266,16 @@ impl Sim {
                         *y as u64,
                         facing.code() as u64,
                     ],
+                    FitWindow { axis, x, y, model } => vec![
+                        20,
+                        axis.code() as u64,
+                        *x as u64,
+                        *y as u64,
+                        model.id() as u64,
+                    ],
+                    RemoveWindow { axis, x, y } => {
+                        vec![21, axis.code() as u64, *x as u64, *y as u64]
+                    }
                     SetWallEdge { axis, x, y, state } => vec![
                         8,
                         axis.code() as u64,
@@ -3031,6 +3480,18 @@ impl Sim {
                 hasher.write_u64(offset as i64 as u64);
             }
         }
+        privacy::hash(&self.world, &mut hasher);
+        let shyness = shyness::deviations(&self.world);
+        if !shyness.is_empty() {
+            hasher.write_u64(0x5348_594E_4553);
+            hasher.write_u64(shyness.len() as u64);
+            for (id, value) in shyness {
+                hasher.write_u64(u64::from(id));
+                hasher.write_u64(u64::from(value));
+            }
+        }
+        domestic::hash(&self.world, &mut hasher);
+        dining::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -3117,6 +3578,7 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                sleep_places: Vec::new(),
                 id: format!("object_{index}"),
                 name: format!("Object {index}"),
                 presentation: None,
@@ -3684,18 +4146,18 @@ mod lot_tests {
         // **The double bed is the 2x2 object, and all four of its tiles are
         // solid.** Literal coordinates for the same reason as the doorways
         // above. The depth axis matters as much as the width: a rule that
-        // walked `width` twice would leave (0, 7) and (1, 7) walkable and a
+        // walked `width` twice would leave (0, 9) and (1, 9) walkable and a
         // sim would path straight through the bed, which is the transposition
         // trap in [L34] wearing a footprint.
-        for tile in [(0, 6), (1, 6), (0, 7), (1, 7)] {
+        for tile in [(0, 8), (1, 8), (0, 9), (1, 9)] {
             assert!(
                 !grid.is_walkable(tile.0, tile.1),
                 "the double bed covers {tile:?} and it must be solid"
             );
         }
         assert!(
-            grid.is_walkable(2, 7),
-            "(2, 7) is beside the bed and is where a sim sleeps from"
+            grid.is_walkable(1, 7) && grid.is_walkable(1, 10),
+            "both sleeping sides need a walkable approach"
         );
     }
 }
@@ -3721,6 +4183,7 @@ mod household_tests {
         // pairwise distinct for the same reason.
         let personalities = vec![
             terri_data::CompiledPersonality {
+                cleanliness: 0.5,
                 id: "a".into(),
                 drain: [1.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                 satisfaction: [1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0],
@@ -3729,6 +4192,7 @@ mod household_tests {
                 description: String::new(),
             },
             terri_data::CompiledPersonality {
+                cleanliness: 0.5,
                 id: "b".into(),
                 drain: [1.0, 1.0, 2.25, 1.0, 1.0, 1.0, 1.0],
                 satisfaction: [1.0, 1.0, 1.0, 1.125, 1.0, 1.0, 1.0],
@@ -3834,8 +4298,8 @@ mod household_tests {
         pairs.sort_by_key(|(id, ..)| *id);
         assert_eq!(
             pairs,
-            vec![(0, vec!["whittling".to_string()], 0.0), (1, vec![], 0.0),],
-            "hobbies are the member's own and every ledger opens empty"
+            vec![(0, vec!["whittling".to_string()], 50.0), (1, vec![], 50.0),],
+            "hobbies are the member's own and satisfaction starts neutral"
         );
     }
 
@@ -4969,7 +5433,10 @@ mod determinism_tests {
         // Varied autonomy changes selection draws and adds per-person instinct
         // state to the digest. Native and rebuilt release WASM independently
         // measured this value from the matching seeded debug-spawn scenario.
-        const GOLDEN: u64 = 0xa1a1f123206ce493;
+        // Staged snack work and domestic state now compose with varied autonomy.
+        // This fridge-only fixture cannot prepare snacks without a counter;
+        // eligibility excludes that action and changes the selection draws.
+        const GOLDEN: u64 = 0x21c21e6232f46614;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

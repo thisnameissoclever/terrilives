@@ -1,0 +1,20 @@
+{
+  "result": {
+    "error": "Error: Architecture color, depth and dimensions must agree\n    at validateArchitectureAtlas (http://127.0.0.1:5186/src/render/architecture-atlas.ts:4:9)\n    at SpriteRenderer.create (http://127.0.0.1:5186/src/render/sprites.ts:217:4)\n    at Module.architectureRoomProof (http://127.0.0.1:5186/proofs/architecture-room.js:89:73)\n    at async eval (eval at evaluate (:368:30), <anonymous>:1:24)\n    at async <anonymous>:394:30",
+    "progress": {
+      "label": "Create SpriteRenderer",
+      "time": 351.4899999797344,
+      "scale": 1,
+      "probes": true
+    }
+  },
+  "messages": [
+    "[vite] connecting...",
+    "[vite] connected.",
+    "Architecture proof: Acquire GPU",
+    "Architecture proof: Fetch trial color",
+    "Architecture proof: Decode trial color",
+    "Architecture proof: Fetch trial depth",
+    "Architecture proof: Create SpriteRenderer"
+  ]
+}

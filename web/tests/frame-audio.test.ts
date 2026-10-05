@@ -297,8 +297,10 @@ describe('sampleSimAudioAfterTick', () => {
     expect(MAIN).toMatch(/new FrameTimer\(540\)/);
     expect(MAIN).toMatch(/get\('audio'\) !== '0'/);
     expect(MAIN).toMatch(
-      /sampleStartedMs = performance\.now\(\)[\s\S]*?sampleSimAudioAfterTick\(sim, audio\)[\s\S]*?footstepSamplerTimer\.sample\(performance\.now\(\) - sampleStartedMs\)/,
+      /sampleStartedMs = performance\.now\(\)[\s\S]*?drainCompletionAudioAfterTick\(sim, audio, true\)[\s\S]*?sampleSimAudioAfterTick\(sim, audio\)[\s\S]*?footstepSamplerTimer\.sample\(performance\.now\(\) - sampleStartedMs\)/,
     );
+    expect(MAIN).toMatch(/if \(footstepSamplerTimer === null\) \{\s*drainCompletionAudioAfterTick\(sim, audio, true\)/);
+    expect(MAIN).toMatch(/\} else \{\s*drainCompletionAudioAfterTick\(sim, audio, false\)/);
   });
 
   it('exposes bounded audio and WASM diagnostics only through the stress handle', () => {

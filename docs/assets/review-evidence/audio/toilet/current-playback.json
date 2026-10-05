@@ -1,0 +1,128 @@
+{
+  "generatedAt": "2026-10-01T20:05:40.055Z",
+  "pageErrors": [],
+  "browserClosed": true,
+  "serversClosed": true,
+  "beforeCancellation": {
+    "count": 0,
+    "buffer": 0
+  },
+  "afterCancellation": {
+    "count": 0,
+    "buffer": 0
+  },
+  "productionLifecycle": {
+    "first": {
+      "event": {
+        "tick": 53,
+        "source": 29,
+        "timeMs": 4841.360000014305
+      },
+      "voices": 1,
+      "flushes": 1
+    },
+    "second": {
+      "event": {
+        "tick": 236,
+        "source": 29,
+        "timeMs": 10940.794999986887
+      },
+      "voices": 1,
+      "flushes": 2
+    },
+    "drainedAfterPlayback": true,
+    "observedDrain": {
+      "elapsedMs": 4143.984999984503,
+      "voices": 0,
+      "events": 1
+    },
+    "pausedVoices": 0,
+    "playedFlushes": 2,
+    "target": 29
+  },
+  "bufferAfterPlayback": 0,
+  "nativeRecordingRenders": [
+    {
+      "mode": "single",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.06049012392759323,
+      "afterBoundary": 0.06049012392759323,
+      "afterEnd": 0,
+      "lateEnergy": 0.4409549072049982
+    },
+    {
+      "mode": "four",
+      "requests": 1,
+      "count": 4,
+      "peak": 0.24196049571037292,
+      "afterBoundary": 0.24196049571037292,
+      "afterEnd": 0,
+      "lateEnergy": 7.055278515279971
+    },
+    {
+      "mode": "load",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.007739493623375893,
+      "afterBoundary": 0,
+      "afterEnd": 0,
+      "lateEnergy": 0
+    },
+    {
+      "mode": "mute",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.007739493623375893,
+      "afterBoundary": 0,
+      "afterEnd": 0,
+      "lateEnergy": 0
+    },
+    {
+      "mode": "effects",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.007739493623375893,
+      "afterBoundary": 0,
+      "afterEnd": 0,
+      "lateEnergy": 0
+    },
+    {
+      "mode": "background",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.007739493623375893,
+      "afterBoundary": 0,
+      "afterEnd": 0,
+      "lateEnergy": 0
+    },
+    {
+      "mode": "pause",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.007739493623375893,
+      "afterBoundary": 0,
+      "afterEnd": 0,
+      "lateEnergy": 0
+    },
+    {
+      "mode": "suspended",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.007739493623375893,
+      "afterBoundary": 0,
+      "afterEnd": 0,
+      "lateEnergy": 0
+    },
+    {
+      "mode": "interrupted",
+      "requests": 1,
+      "count": 1,
+      "peak": 0.007739493623375893,
+      "afterBoundary": 0,
+      "afterEnd": 0,
+      "lateEnergy": 0
+    }
+  ],
+  "pass": true
+}

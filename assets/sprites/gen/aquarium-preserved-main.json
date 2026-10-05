@@ -1,0 +1,71 @@
+{
+  "revision": "2465daaad3f098e34c2d11113356b62be2e55ebc",
+  "count": 2445,
+  "pixel_sha256": "892bb76d3c6ae84b0aeb5aae9cd49ce3c0689ce90a8d6a5c23d36f0641f2b149",
+  "tables": {
+    "SPRITE_ANCHORS": {
+      "count": 1933,
+      "sha256": "91a99ef5ad047c9f8b9c602da2d1b835562e6166ec7735312514674d4eeb1807"
+    },
+    "SPRITE_CONTENT_TOPS": {
+      "count": 1436,
+      "sha256": "de929b370491a4ff5104551b90d9d87f748cd422c4c2f5e15d28af7dbdd22a51"
+    },
+    "SPRITE_CONTENT_BOUNDS": {
+      "count": 878,
+      "sha256": "0715bbd985854e014a4312a0a2c9eecaa5e12bdd6802423d7188bee778352e29"
+    },
+    "SPRITE_PAIRS": {
+      "count": 336,
+      "sha256": "5429572e152b057e3a55eadd6291260fba60b6386f7625b11d7bd17306baf19a"
+    },
+    "SPRITE_PAIR_COVERAGE": {
+      "count": 96,
+      "sha256": "39050b14bc98f5d79eb1ffdf4d9728c9a7dd9445196f420d81147c456af63a6f"
+    },
+    "SPRITE_PAIR_MASKS": {
+      "count": 143,
+      "sha256": "4afcbefcabb763c957c1478e6ac562c696ea320f1682cb247aa9ce6e4b22b031"
+    },
+    "SPRITE_DINING_SUPPORT": {
+      "count": 96,
+      "sha256": "7dfe1093777abba5417f232586aca04aa426a9236569633e8c9e09cd9244db94"
+    },
+    "INTERACTION_SPRITES": {
+      "count": 20,
+      "sha256": "e0ea9af300bcaf8049d2b1b17866c3c2af9100acabbcb0a52c707af3b7135a5b"
+    },
+    "BED_CATALOG": {
+      "count": 4,
+      "sha256": "65d2e8348b4e285407181a2c8715535eb49e2114012c909d16b8ef61c5b4b573"
+    },
+    "BED_LAYERS": {
+      "count": 64,
+      "sha256": "45ac9aedbc3b37a5776ea5e1d534d7fde69392027601bb38312f5ea66935fd1e"
+    },
+    "BED_COVERAGE": {
+      "count": 26,
+      "sha256": "306d1ebef6f0e56c028605d1bc90f73f7695e8e3437749db21e5b4632cf1b5e8"
+    },
+    "SURFACE_LAYOUTS": {
+      "count": 16,
+      "sha256": "51411860822ab5d9cd128a74b1e8c33bac111019a7f1c7a1497520b74d0ee7ed"
+    },
+    "SPRITE_HAND_ANCHORS": {
+      "count": 48,
+      "sha256": "44a758ed55f551cfe734ec20cf03608f951a4666873d266ed6d24bc45fc85e76"
+    },
+    "SPRITE_HAND_FOREGROUND": {
+      "count": 48,
+      "sha256": "92e3ec14b47074f23dc72bc43083966b57e768915425e2c160187e38ec5b0d50"
+    },
+    "RIGGED_SIM_CLIPS": {
+      "count": 19,
+      "sha256": "efb25e60783a242703e29e00bc2abf875c64829af36cbabcb389adcf26fe05e9"
+    },
+    "RIGGED_SIM_VARIANTS": {
+      "count": 3,
+      "sha256": "285af1cb86f92027d242ff201452891e093f1547b0fcddcc84ff105d2b21df06"
+    }
+  }
+}

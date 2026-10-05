@@ -1,0 +1,4 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `release` profile [optimized] target(s) in 31.74s

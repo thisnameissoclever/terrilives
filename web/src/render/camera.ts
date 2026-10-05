@@ -29,12 +29,12 @@ export interface Camera {
 
 /**
  * The zoom band. 0.5x fits the whole lot with margin on a small window;
- * 2.5x fills a 1280-wide canvas with about six tiles, which is close
- * enough to count a sim's buttons. Multiplicative steps inside a
+ * 4x permits closer views of Sims and furniture on small screens.
+ * The opening scale is unchanged. Multiplicative steps inside a
  * clamped band, so holding the wheel saturates instead of running away.
  */
 export const MIN_ZOOM = 0.5;
-export const MAX_ZOOM = 2.5;
+export const MAX_ZOOM = 4;
 
 /** `scale` forced into the zoom band. NaN becomes 1, not a clamp edge:
  * a corrupt delta should leave the camera sane, not slammed wide. */

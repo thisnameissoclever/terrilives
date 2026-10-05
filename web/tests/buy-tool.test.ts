@@ -218,9 +218,15 @@ describe('BuyTool', () => {
     expect(buy.preview?.facing).toBe(2);
     buy.rotate();
     expect(buy.preview?.facing).toBe(0);
+    buy.rotate(-1);
+    expect(buy.preview?.facing).toBe(2);
+    buy.rotate(-1);
+    expect(buy.preview?.facing).toBe(0);
     buy.choose(DESK.definition);
     expect(buy.canRotate).toBe(false);
     buy.rotate();
+    expect(buy.preview?.facing).toBe(1);
+    buy.rotate(-1);
     expect(buy.preview?.facing).toBe(1);
   });
 
@@ -628,25 +634,18 @@ describe('BuyToolControls', () => {
     expect(options.slice(1).map((option) => option.disabled)).toEqual([false, false, false]);
   });
 
-  it('chooses from the list, shows the price, and presses buy, turn and cancel', () => {
+  it('preserves catalogue selection, price and facing while actions live in the viewport', () => {
     const { buy, source, view, element } = controls();
     buy.enter();
     element('buy-object').value = String(BED.definition);
-    element('buy-object').fire('change');
-    view.render();
+    element('buy-object').fire('change'); view.render();
     expect([element('buy-price').textContent, element('buy-facing').textContent])
       .toEqual(['Price: 250', 'Facing: South-east']);
-    expect([element('buy-rotate').disabled, element('buy-confirm').disabled]).toEqual([false, false]);
-    element('buy-rotate').fire('click');
-    element('buy-confirm').fire('click');
+    buy.rotate(); buy.buy(); view.render();
     expect(source.staged).toEqual([[BED.definition, 4, 3, 2]]);
-    view.render();
-    expect([element('buy-object').disabled, element('buy-confirm').disabled, element('buy-cancel').disabled,
-      element('buy-filter').disabled]).toEqual([true, true, true, true]);
+    expect([element('buy-object').disabled, element('buy-filter').disabled]).toEqual([true, true]);
     source.result = { definition: BED.definition, x: 4, y: 3, facing: 2, reason: null, object: 41 };
-    buy.afterCommands();
-    element('buy-cancel').fire('click');
-    view.render();
+    buy.afterCommands(); buy.cancel(); view.render();
     expect([buy.chosen, element('buy-status').textContent, element('buy-price').textContent,
       element('buy-serves').textContent]).toEqual([null, CHOOSE_ITEM, '', '']);
   });
@@ -659,18 +658,18 @@ describe('BuyToolControls', () => {
     element('buy-object').fire('change');
     element('buy-object').value = '';
     element('buy-object').fire('change');
-    expect([buy.chosen, buy.preview, element('buy-confirm').disabled, element('buy-price').textContent,
-      element('buy-serves').textContent]).toEqual([null, null, true, '', '']);
+    expect([buy.chosen, buy.preview, buy.canBuy, element('buy-price').textContent,
+      element('buy-serves').textContent]).toEqual([null, null, false, '', '']);
     buy.buy();
     expect(source.staged).toEqual([]);
   });
 
-  it('shows the touch help on a phone and the keyboard help elsewhere', () => {
+  it('keeps the optional shortcuts available on desktop and phone', () => {
     const { view, element } = controls();
     view.setCompact(true);
-    expect([element('buy-keyboard-help').hidden, element('buy-touch-help').hidden]).toEqual([true, false]);
+    expect([element('buy-keyboard-help').hidden, element('buy-touch-help').hidden]).toEqual([false, false]);
     view.setCompact(false);
-    expect([element('buy-keyboard-help').hidden, element('buy-touch-help').hidden]).toEqual([false, true]);
+    expect([element('buy-keyboard-help').hidden, element('buy-touch-help').hidden]).toEqual([false, false]);
   });
 
   it('writes a price the way the Funds line does, apart from a name with a comma in it', () => {
@@ -767,8 +766,8 @@ describe('the Buy tool on real wasm', () => {
 });
 
 describe('the Buy tool in the page', () => {
-  const IDS = ['build-tool-buy', 'buy-tool', 'buy-filter', 'buy-object', 'buy-facing', 'buy-rotate',
-    'buy-price', 'buy-serves', 'buy-status', 'buy-confirm', 'buy-cancel', 'buy-keyboard-help',
+  const IDS = ['build-tool-buy', 'buy-tool', 'buy-filter', 'buy-object', 'buy-facing',
+    'buy-price', 'buy-serves', 'buy-status', 'buy-keyboard-help',
     'buy-touch-help', 'buy-colour'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
@@ -790,8 +789,8 @@ describe('the Buy tool in the page', () => {
       'new BuyToolControls(document, buyTool, sim.needNames())']) {
       expect(MAIN_TS).toContain(wiring);
     }
-    // The ghost reaches both the instance writer and the instance count.
-    expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(3);
+    // The ghost reaches the one packer; its batch publishes the live count.
+    expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(2);
     // [RC-render]: the ghost of a purchase is drawn in the Buy tool's colourway,
     // a moved object's in the object's own.
     expect(MAIN_TS).toContain('buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,');

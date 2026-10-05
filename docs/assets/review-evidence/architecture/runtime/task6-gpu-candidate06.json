@@ -1,0 +1,1465 @@
+{
+  "candidate": "06",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "limits": {
+    "dimension": 8192,
+    "textures": 16
+  },
+  "controls": [
+    {
+      "method": "compositionCase",
+      "result": {
+        "pass": true,
+        "scale": 0.5,
+        "rearHash": "1a0c675a7408a14aed669abb6ba36b49885fd6cbe42de8b5656aa1e1abde4c3f",
+        "frontFullHash": "267d35b28d0111b168419b726611c5bd0ab5f56f9c97821ebc933dd43fb147fc",
+        "frontCutHash": "ed2f275530b52bdb75676839ab3771a4d3c53b085182a435f07f92608eb12a19"
+      }
+    },
+    {
+      "method": "compositionCase",
+      "result": {
+        "pass": true,
+        "scale": 1,
+        "rearHash": "04303cbea4a39730855a9afc655dfc4446e934d42c61cd1b1eb480cd16da0925",
+        "frontFullHash": "499772d8cd697720490602779bb1a3e325773f56eeeaa20a2e6ebf2326488e79",
+        "frontCutHash": "1dbf63f64d547aa4272d4ebc37f4c1318736dbe8e21235aab748b7d863aa1a5f"
+      }
+    },
+    {
+      "method": "compositionCase",
+      "result": {
+        "pass": true,
+        "scale": 1.375,
+        "rearHash": "fe548a4914d39f1b2c582fdfdf5a9a32e4bfbf2415bbdebe3ee641b6290ccbb6",
+        "frontFullHash": "933ab83711b55e308335920ac36e8d52e453ba2fb8743a74dad8a8ac4617c4ce",
+        "frontCutHash": "081f3ef5eb4c459cc26e4e83bd736f2e900f1eca693f095d41afb1059b8f2f0f"
+      }
+    },
+    {
+      "method": "compositionCase",
+      "result": {
+        "pass": true,
+        "scale": 2.5,
+        "rearHash": "a4b07fefcc2b402261e81eeecfd1ff9c1a1a8e64cc652b06a26851c1e8db102e",
+        "frontFullHash": "aa7ad62d04b1d86073365d4160506cc665074f6cd1a0ae5cdb5540aa3b60920b",
+        "frontCutHash": "2fc6358dde458a47217e4520f977805b49acdb5849de693ffafcf641afeda4f8"
+      }
+    },
+    {
+      "method": "finishCase",
+      "result": {
+        "pass": true,
+        "retained": [
+          3,
+          4,
+          5
+        ],
+        "slots": [
+          1,
+          2,
+          3
+        ],
+        "resources": [
+          "fixture-stripes",
+          "fixture-checks"
+        ],
+        "residentBytes": 66441216,
+        "shortBlend": {
+          "base": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "full": [
+            162,
+            197,
+            231,
+            255
+          ],
+          "single": [
+            58,
+            67,
+            79,
+            255
+          ],
+          "pair": [
+            84,
+            100,
+            117,
+            255
+          ]
+        }
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 1,
+        "scale": 0.5,
+        "actual": [
+          132,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 2,
+        "scale": 0.5,
+        "actual": [
+          132,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 3,
+        "scale": 0.5,
+        "actual": [
+          141,
+          170,
+          184,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 4,
+        "scale": 0.5,
+        "actual": [
+          131,
+          162,
+          177,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 5,
+        "scale": 0.5,
+        "actual": [
+          131,
+          162,
+          177,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 6,
+        "scale": 0.5,
+        "actual": [
+          131,
+          162,
+          177,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 7,
+        "scale": 0.5,
+        "actual": [
+          131,
+          161,
+          177,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 8,
+        "scale": 0.5,
+        "actual": [
+          131,
+          161,
+          177,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 9,
+        "scale": 0.5,
+        "actual": [
+          130,
+          160,
+          176,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 1,
+        "scale": 0.5,
+        "actual": [
+          141,
+          175,
+          191,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 2,
+        "scale": 0.5,
+        "actual": [
+          141,
+          175,
+          191,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 3,
+        "scale": 0.5,
+        "actual": [
+          123,
+          153,
+          168,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 4,
+        "scale": 0.5,
+        "actual": [
+          141,
+          174,
+          191,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 5,
+        "scale": 0.5,
+        "actual": [
+          141,
+          174,
+          191,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 6,
+        "scale": 0.5,
+        "actual": [
+          141,
+          174,
+          191,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 7,
+        "scale": 0.5,
+        "actual": [
+          141,
+          175,
+          192,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 8,
+        "scale": 0.5,
+        "actual": [
+          141,
+          175,
+          192,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 9,
+        "scale": 0.5,
+        "actual": [
+          152,
+          182,
+          196,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 1,
+        "scale": 1,
+        "actual": [
+          142,
+          171,
+          185,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 2,
+        "scale": 1,
+        "actual": [
+          142,
+          171,
+          185,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 3,
+        "scale": 1,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 4,
+        "scale": 1,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 5,
+        "scale": 1,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 6,
+        "scale": 1,
+        "actual": [
+          140,
+          169,
+          184,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 7,
+        "scale": 1,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 8,
+        "scale": 1,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 9,
+        "scale": 1,
+        "actual": [
+          129,
+          160,
+          176,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 1,
+        "scale": 1,
+        "actual": [
+          135,
+          167,
+          183,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 2,
+        "scale": 1,
+        "actual": [
+          135,
+          167,
+          183,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 3,
+        "scale": 1,
+        "actual": [
+          124,
+          153,
+          168,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 4,
+        "scale": 1,
+        "actual": [
+          140,
+          173,
+          190,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 5,
+        "scale": 1,
+        "actual": [
+          140,
+          173,
+          190,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 6,
+        "scale": 1,
+        "actual": [
+          140,
+          173,
+          190,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 7,
+        "scale": 1,
+        "actual": [
+          142,
+          176,
+          192,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 8,
+        "scale": 1,
+        "actual": [
+          142,
+          176,
+          192,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 9,
+        "scale": 1,
+        "actual": [
+          151,
+          182,
+          197,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 1,
+        "scale": 1.375,
+        "actual": [
+          140,
+          169,
+          184,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 2,
+        "scale": 1.375,
+        "actual": [
+          140,
+          169,
+          184,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 3,
+        "scale": 1.375,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 4,
+        "scale": 1.375,
+        "actual": [
+          138,
+          168,
+          182,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 5,
+        "scale": 1.375,
+        "actual": [
+          138,
+          168,
+          182,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 6,
+        "scale": 1.375,
+        "actual": [
+          138,
+          168,
+          182,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 7,
+        "scale": 1.375,
+        "actual": [
+          138,
+          167,
+          182,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 8,
+        "scale": 1.375,
+        "actual": [
+          138,
+          167,
+          182,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 9,
+        "scale": 1.375,
+        "actual": [
+          129,
+          160,
+          175,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 1,
+        "scale": 1.375,
+        "actual": [
+          128,
+          159,
+          174,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 2,
+        "scale": 1.375,
+        "actual": [
+          128,
+          159,
+          174,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 3,
+        "scale": 1.375,
+        "actual": [
+          124,
+          153,
+          168,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 4,
+        "scale": 1.375,
+        "actual": [
+          131,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 5,
+        "scale": 1.375,
+        "actual": [
+          131,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 6,
+        "scale": 1.375,
+        "actual": [
+          131,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 7,
+        "scale": 1.375,
+        "actual": [
+          135,
+          167,
+          183,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 8,
+        "scale": 1.375,
+        "actual": [
+          135,
+          167,
+          183,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 9,
+        "scale": 1.375,
+        "actual": [
+          146,
+          177,
+          192,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 1,
+        "scale": 2.5,
+        "actual": [
+          142,
+          171,
+          185,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 2,
+        "scale": 2.5,
+        "actual": [
+          142,
+          171,
+          185,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 3,
+        "scale": 2.5,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 4,
+        "scale": 2.5,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 5,
+        "scale": 2.5,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 6,
+        "scale": 2.5,
+        "actual": [
+          140,
+          169,
+          184,
+          255
+        ],
+        "origin": [
+          -0.5,
+          1.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 7,
+        "scale": 2.5,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 8,
+        "scale": 2.5,
+        "actual": [
+          140,
+          169,
+          183,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 0,
+        "model": 9,
+        "scale": 2.5,
+        "actual": [
+          129,
+          160,
+          175,
+          255
+        ],
+        "origin": [
+          -0.5,
+          2
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 1,
+        "scale": 2.5,
+        "actual": [
+          128,
+          159,
+          174,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 2,
+        "scale": 2.5,
+        "actual": [
+          128,
+          159,
+          174,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 3,
+        "scale": 2.5,
+        "actual": [
+          125,
+          154,
+          169,
+          255
+        ],
+        "origin": [
+          1,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 4,
+        "scale": 2.5,
+        "actual": [
+          131,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 5,
+        "scale": 2.5,
+        "actual": [
+          131,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 6,
+        "scale": 2.5,
+        "actual": [
+          131,
+          163,
+          178,
+          255
+        ],
+        "origin": [
+          1.5,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 7,
+        "scale": 2.5,
+        "actual": [
+          135,
+          167,
+          183,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 8,
+        "scale": 2.5,
+        "actual": [
+          135,
+          167,
+          183,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    },
+    {
+      "method": "apertureCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "model": 9,
+        "scale": 2.5,
+        "actual": [
+          146,
+          177,
+          192,
+          255
+        ],
+        "origin": [
+          2,
+          -0.5
+        ]
+      }
+    }
+  ]
+}

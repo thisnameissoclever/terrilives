@@ -63,6 +63,192 @@ pub struct SaveSnapshotV5 {
     /// Person index and exact nonzero sleep-schedule offset, ascending by index.
     /// Missing entries retain the historical zero; never infer them from content.
     pub chronotype_offsets: Vec<(u32, i32)>,
+    /// Food, dishes, cleanup claims and room visits. Older saves append None.
+    pub domestic: Option<SavedDomestic>,
+    /// Absent only in historical payloads; current writers emit Some, even empty.
+    pub sleeping_places: Option<SavedSleepingPlaces>,
+    /// Stable SimId and nondefault shyness. Earlier payloads omit this tail.
+    pub shyness: Vec<(u32, u8)>,
+    pub boundaries: Vec<SavedBoundaryDecision>,
+    /// Exact dining claims and deferred room cleanup opportunities. Optional tail
+    /// preserves the published domestic record's positional wire layout.
+    pub dining: Option<SavedDining>,
+}
+
+#[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedDining {
+    pub diners: Vec<SavedDiner>,
+    /// Dish identity and exact table setting (0..4).
+    pub settings: Vec<(u32, u8)>,
+    pub opportunities: Vec<SavedCleanupOpportunity>,
+    /// Dirty-setting complaints persist across interruptions, separately from seats.
+    pub complaints: Vec<(u32, Vec<u32>)>,
+    /// Batches whose shared eating interval started without a table.
+    pub tableless: Vec<(u32, u64)>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedDiner {
+    pub person: u32,
+    pub station: u32,
+    pub chair: Option<u32>,
+    pub setting: Option<u8>,
+    pub endpoint: (i32, i32),
+    /// Dishes which prevented a reachable, unoccupied chair being used.
+    pub obstructing: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedCleanupOpportunity {
+    pub person: u32,
+    pub room: u32,
+    pub known: Vec<u32>,
+    pub pending: bool,
+}
+
+#[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedDomestic {
+    pub cleanliness: Vec<(u32, f32)>,
+    pub dishes: Vec<SavedDishes>,
+    pub visits: Vec<SavedRoomVisit>,
+    pub cleanup: Vec<SavedCleanup>,
+    pub meals: Vec<SavedMeal>,
+    pub next_dish: u32,
+    /// Current cook's SimId and plating tick, distinct from older unclaimed meals.
+    pub serving_meals: Vec<(u32, u64)>,
+}
+
+/// Frozen local V5 order, accepted only for its reviewed bed-era fingerprint.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LocalBedSnapshotV5 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+    pub object_facings: Vec<(u32, u8)>,
+    pub retired_indices: Vec<u32>,
+    pub object_colourways: Vec<(u32, String)>,
+    /// What the player has laid on each floor tile - [FL-save] in
+    /// `docs/specs/2026-09-22-floors.md`.
+    ///
+    /// **Appended last, and sparse, both on purpose**, for the reason
+    /// `sleep_pressure` is: postcard writes a struct's fields back to back,
+    /// so a payload written before this field existed is a prefix of one
+    /// written after it, and the loader reads the prefix and defaults the
+    /// tail. A house nobody has painted costs one byte.
+    #[serde(default)]
+    pub floors: crate::layout::SavedFloors,
+    /// Who the household were to each other, keyed on entity index, as the
+    /// first build with ties wrote it ([FM-identity]) - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Appended after the floors, for the
+    /// same reason: an older payload is a prefix of a newer one, so a save
+    /// written before ties existed loads with nobody related.
+    ///
+    /// **Read, never written.** A save now writes this empty and the ties
+    /// in `family` below; the loader turns a non-empty one into SimIds,
+    /// which it can because a load rebuilds every entity index exactly.
+    #[serde(default)]
+    pub family_by_index: crate::layout::FamilyTies,
+    /// Who the household are to each other, keyed on SimId - [FM-save].
+    /// Appended last, so a save written with the entity-index list above is
+    /// a prefix of this one and loads through it.
+    #[serde(default)]
+    pub family: crate::layout::FamilyTies,
+    /// Appended optional death state. Old saves supply one zero byte.
+    pub mortality: Option<SavedMortality>,
+    /// Older worlds adopt the enabled default once. Later saved choices win.
+    pub death_default_applied: bool,
+    /// Person index, occupied item index, and the activity's relevant need bits.
+    pub waiting_needs: Vec<(u32, u32, u8)>,
+    /// Living person index and instinct, in ascending entity order.
+    pub self_preservation: Vec<(u32, u8)>,
+    /// Person index and exact nonzero sleep-schedule offset, ascending by index.
+    /// Missing entries retain the historical zero; never infer them from content.
+    pub chronotype_offsets: Vec<(u32, i32)>,
+    /// Absent only in historical payloads; current writers emit Some, even empty.
+    pub sleeping_places: Option<SavedSleepingPlaces>,
+    /// Stable SimId and nondefault shyness. Earlier payloads omit this tail.
+    pub shyness: Vec<(u32, u8)>,
+    pub boundaries: Vec<SavedBoundaryDecision>,
+}
+
+impl LocalBedSnapshotV5 {
+    pub fn into_current(self) -> SaveSnapshotV5 {
+        SaveSnapshotV5 {
+            world: self.world,
+            layout: self.layout,
+            object_facings: self.object_facings,
+            retired_indices: self.retired_indices,
+            object_colourways: self.object_colourways,
+            floors: self.floors,
+            family_by_index: self.family_by_index,
+            family: self.family,
+            mortality: self.mortality,
+            death_default_applied: self.death_default_applied,
+            waiting_needs: self.waiting_needs,
+            self_preservation: self.self_preservation,
+            chronotype_offsets: self.chronotype_offsets,
+            sleeping_places: self.sleeping_places,
+            shyness: self.shyness,
+            boundaries: self.boundaries,
+            domestic: None,
+            dining: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedDishes {
+    pub id: u32,
+    pub surface: u32,
+    pub owner: u32,
+    pub units: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedRoomVisit {
+    pub person: u32,
+    pub room: u32,
+    pub seen: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedCleanup {
+    pub person: u32,
+    pub dishes: Vec<u32>,
+    pub collected: Vec<u32>,
+    pub directed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedMeal {
+    pub cook: u32,
+    pub counter: u32,
+    pub table: Option<u32>,
+    pub guests: Vec<u32>,
+    pub claimed: Vec<u32>,
+    pub collected: Vec<u32>,
+    pub eaten: Vec<u32>,
+    pub scale: f32,
+    pub tick: u64,
+    pub dining_started: bool,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedSleepingPlaces {
+    /// Agent entity index and physical place ordinal, ascending by agent.
+    pub active_places: Vec<(u32, u8)>,
+    /// Stable SimId, bed entity index and ordinal, ascending by SimId.
+    pub assignments: Vec<(u32, u32, u8)>,
+}
+
+/// Sparse autonomous boundary decisions. Actor uses stable identity; goal uses entity index.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedBoundaryDecision {
+    pub actor: u32,
+    pub expires: u64,
+    pub lapse: bool,
+    pub waiting_since: Option<u64>,
+    pub goal: Option<(u32, u32)>,
+    pub directed_chain: Option<u32>,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
@@ -91,6 +277,152 @@ pub struct SaveSnapshotV3 {
 #[cfg(test)]
 mod wire_tests {
     use super::*;
+
+    #[test]
+    fn every_historical_saved_command_keeps_its_golden_vector() {
+        use crate::{
+            layout::{EdgeAxis, Relation, WallState},
+            Facing,
+        };
+        let cases: Vec<(SavedCommand, Vec<u8>)> = vec![
+            (SavedCommand::Select(Some(7)), vec![0, 1, 7]),
+            (
+                SavedCommand::UseObject {
+                    agent: 1,
+                    object: 2,
+                    interaction: 3,
+                },
+                vec![1, 1, 2, 3],
+            ),
+            (SavedCommand::CancelIntents { agent: 4 }, vec![2, 4]),
+            (SavedCommand::SetSpeed(200), vec![3, 200]),
+            (
+                SavedCommand::TalkTo {
+                    agent: 1,
+                    target: 2,
+                    interaction: 3,
+                },
+                vec![4, 1, 2, 3],
+            ),
+            (
+                SavedCommand::UseObjectFirst {
+                    agent: 1,
+                    object: 2,
+                    interaction: 3,
+                },
+                vec![5, 1, 2, 3],
+            ),
+            (
+                SavedCommand::TalkToFirst {
+                    agent: 1,
+                    target: 2,
+                    interaction: 3,
+                },
+                vec![6, 1, 2, 3],
+            ),
+            (
+                SavedCommand::PlaceObject {
+                    object: 1,
+                    x: 2,
+                    y: 3,
+                    facing: Facing::NorthWest,
+                },
+                vec![7, 1, 2, 3, 2],
+            ),
+            (
+                SavedCommand::SetWallEdge {
+                    axis: EdgeAxis::Horizontal,
+                    x: 2,
+                    y: 3,
+                    state: WallState::Window,
+                },
+                vec![8, 1, 2, 3, 3],
+            ),
+            (
+                SavedCommand::BuyObject {
+                    definition: Some("a".into()),
+                    x: 2,
+                    y: 3,
+                    facing: Facing::NorthWest,
+                },
+                vec![9, 1, 1, b'a', 2, 3, 2],
+            ),
+            (
+                SavedCommand::BuildRoom {
+                    x0: 1,
+                    y0: 2,
+                    x1: 3,
+                    y1: 4,
+                    doorway: None,
+                },
+                vec![10, 1, 2, 3, 4, 0],
+            ),
+            (SavedCommand::SellObject { object: 7 }, vec![11, 7]),
+            (
+                SavedCommand::SetColourway {
+                    object: 7,
+                    colourway: Some("b".into()),
+                },
+                vec![12, 7, 1, 1, b'b'],
+            ),
+            (
+                SavedCommand::BuyObjectInColourway {
+                    definition: Some("a".into()),
+                    x: 2,
+                    y: 3,
+                    facing: Facing::NorthWest,
+                    colourway: Some("b".into()),
+                },
+                vec![13, 1, 1, b'a', 2, 3, 2, 1, 1, b'b'],
+            ),
+            (
+                SavedCommand::AddHousemate {
+                    name: "a".into(),
+                    personality: Some("b".into()),
+                    traits: vec![Some("c".into())],
+                },
+                vec![14, 1, b'a', 1, 1, b'b', 1, 1, 1, b'c'],
+            ),
+            (
+                SavedCommand::SetFloor {
+                    x: 2,
+                    y: 3,
+                    covering: 200,
+                },
+                vec![15, 2, 3, 200],
+            ),
+            (
+                SavedCommand::SetFamilyTie {
+                    who: 2,
+                    to: 3,
+                    relation: Some(Relation::Parent),
+                },
+                vec![16, 2, 3, 1, 1],
+            ),
+            (SavedCommand::SetDeathEnabled(true), vec![17, 1]),
+            (
+                SavedCommand::AddHousemateWithInstinct {
+                    name: "a".into(),
+                    personality: Some("b".into()),
+                    traits: vec![Some("c".into())],
+                    instinct: 100,
+                },
+                vec![18, 1, b'a', 1, 1, b'b', 1, 1, 1, b'c', 100],
+            ),
+        ];
+        assert_eq!(cases.len(), 19);
+        for (command, bytes) in cases {
+            assert_eq!(
+                postcard::to_allocvec(&command).unwrap(),
+                bytes,
+                "{command:?}"
+            );
+            assert_eq!(
+                postcard::from_bytes::<SavedCommand>(&bytes).unwrap(),
+                command
+            );
+        }
+    }
 
     fn wire(hex: &str) -> Vec<u8> {
         let hex: String = hex.split_whitespace().collect();
@@ -398,6 +730,23 @@ pub enum SavedCommand {
         personality: Option<String>,
         traits: Vec<Option<String>>,
         instinct: u8,
+    },
+    SetBedAssignment {
+        agent: u32,
+        place: Option<(u32, u8)>,
+    },
+    /// One complete typed window edit staged before a save.
+    FitWindow {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+        model: crate::windows::WindowModel,
+    },
+    /// Restore the solid wall under the window owning this segment.
+    RemoveWindow {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
     },
 }
 

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "lower-score-bound",
+    "file": "crates/terri-core/src/components.rs",
+    "command": "cargo test -p terri-core -j 2 --lib components::satisfaction_tests::clamps_both_ends -- --test-threads=2",
+    "exit": 101,
+    "restoredSha256": "098db024be030f77da340951b3a18f74cfe469b3389592801c765f16c9e81f94",
+    "failureExcerpt": "thread 'components::satisfaction_tests::clamps_both_ends' (14004) panicked at crates\\terri-core\\src\\components.rs:504:9:\nassertion `left == right` failed\n  left: -10.0\n right: 0.0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+  },
+  {
+    "name": "upper-initial-bias-bound",
+    "file": "crates/terri-sim/src/household.rs",
+    "command": "cargo test -p terri-sim -j 2 --lib starts_exactly_neutral_without_bias_and_bounds_combined_trait_bias -- --test-threads=2",
+    "exit": 101,
+    "restoredSha256": "bc76ea7cbaa415354945f2f040e125834a13e77caf2004f689e44b79271c5b07",
+    "failureExcerpt": "thread 'household::satisfaction_tests::starts_exactly_neutral_without_bias_and_bounds_combined_trait_bias' (18984) panicked at crates\\terri-sim\\src\\household.rs:114:9:\nassertion `left == right` failed\n  left: 62.0\n right: 59.0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+  },
+  {
+    "name": "lower-initial-bias-bound",
+    "file": "crates/terri-sim/src/household.rs",
+    "command": "cargo test -p terri-sim -j 2 --lib starts_exactly_neutral_without_bias_and_bounds_combined_trait_bias -- --test-threads=2",
+    "exit": 101,
+    "restoredSha256": "bc76ea7cbaa415354945f2f040e125834a13e77caf2004f689e44b79271c5b07",
+    "failureExcerpt": "thread 'household::satisfaction_tests::starts_exactly_neutral_without_bias_and_bounds_combined_trait_bias' (36928) panicked at crates\\terri-sim\\src\\household.rs:118:9:\nassertion `left == right` failed\n  left: 38.0\n right: 41.0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+  },
+  {
+    "name": "authored-offset-range",
+    "file": "crates/terri-data/src/compile.rs",
+    "command": "cargo test -p terri-data -j 2 --lib starting_satisfaction_offset_rejects_out_of_range_values -- --test-threads=2",
+    "exit": 101,
+    "restoredSha256": "93d61b8cb05273bc1af1f312d00d3373495fd233703671232d4c0e229295784e",
+    "failureExcerpt": "thread 'compile::tests::starting_satisfaction_offset_rejects_out_of_range_values' (59356) panicked at crates\\terri-data\\src\\compile.rs:7842:13:\nassertion failed: compile_people_with_traits(vec![], vec![], vec![definition]).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+  },
+  {
+    "name": "authored-offset-finite",
+    "file": "crates/terri-data/src/compile.rs",
+    "command": "cargo test -p terri-data -j 2 --lib starting_satisfaction_offset_rejects_nonfinite_values -- --test-threads=2",
+    "exit": 101,
+    "restoredSha256": "93d61b8cb05273bc1af1f312d00d3373495fd233703671232d4c0e229295784e",
+    "failureExcerpt": "thread 'compile::tests::starting_satisfaction_offset_rejects_nonfinite_values' (11792) panicked at crates\\terri-data\\src\\compile.rs:7847:13:\nassertion failed: compile_people_with_traits(vec![], vec![], vec![definition]).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+  }
+]

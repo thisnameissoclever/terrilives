@@ -1,6 +1,33 @@
 use super::*;
 use terri_core::layout::{EdgeAxis, WallState};
 
+#[test]
+fn window_yard_growth_preserves_model_and_rear_shell() {
+    let mut sim = Sim::new_from_pre_yard_lot();
+    let placed = terri_core::windows::WindowPlacement {
+        line: terri_core::layout::WallLine {
+            axis: EdgeAxis::Horizontal,
+            x: 8,
+            y: 0,
+        },
+        model: terri_core::windows::WindowModel::Craftsman,
+    };
+    let before = edges(&sim);
+    sim.world_mut()
+        .insert_resource(SavedLayout::from_window_placements(
+            before.clone(),
+            vec![placed],
+        ));
+    grow(&mut sim, terri_data::pack());
+    assert_eq!(size(&sim), (20, 16));
+    assert_eq!(
+        sim.world().resource::<SavedLayout>().window_placements(),
+        [placed]
+    );
+    assert_eq!(&edges(&sim)[..before.len()], before);
+    assert!(!sim.world().resource::<TileGrid>().can_step((8, 0), (8, -1)));
+}
+
 fn edges(sim: &Sim) -> Vec<WallEdge> {
     let layout = sim.world().resource::<SavedLayout>();
     assert!(layout.has_edges(), "not an edge-wall house: {layout:?}");
@@ -29,16 +56,26 @@ fn floor_plan(sim: &Sim) -> Vec<(bool, bool, bool)> {
 }
 
 /// [OS-migrate] in `docs/specs/2026-09-22-the-outside.md`: a house saved
-/// before the yard loads as the shipped house standing in its yard. The lot's
-/// size, the saved walls then the house's outside walls, every tile and step
-/// where the shipped lot has them, and the shipped world's own digest.
+/// before the yard loads as the shipped house standing in its yard. The lot
+/// grows and gains the house's outside walls. Saved furniture stays put even
+/// when the new-game layout changes.
 #[test]
 fn a_house_saved_before_the_yard_loads_standing_in_it() {
     let saved = Sim::new_from_pre_yard_lot();
     assert_eq!(size(&saved), (16, 12), "precondition: the old lot");
     let mut loaded = Sim::new_from_shipped_lot();
     loaded.load_snapshot_v5(saved.save_snapshot_v5()).unwrap();
-    let shipped = Sim::new_from_shipped_lot();
+    let pack = terri_data::pack();
+    let grown_lot = crate::test_content::historical_lot(pack);
+    let mut shipped = Sim::new_from_lot(&grown_lot, &pack.objects);
+    shipped
+        .world_mut()
+        .insert_resource(crate::portals::ActivePortals::from_content(pack));
+    shipped.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+    assert_eq!(
+        loaded.save_snapshot().entities,
+        saved.save_snapshot().entities
+    );
     assert_eq!(size(&loaded), (20, 16));
     assert_eq!(edges(&loaded), edges(&shipped));
     assert_eq!(floor_plan(&loaded), floor_plan(&shipped));

@@ -59,10 +59,17 @@ assets/models/sims/sim-01/exercise-*-status.json
 # docs/assets/review-evidence/ first, without account balances or provider
 # identifiers.
 .tmp/
+web/proofs/.covered-bed-reference.json
+.scratch/
+assets/models/sims/sim-01/domestic-status.json
+assets/models/sims/sim-01/export/domestic/*/raw-*.png
+assets/models/sims/sim-01/export/domestic/*/render-manifest.json
 # Rejected furniture source snapshots are retained locally; keep their images
 # and rejection records. The current candidate's editable sources are tracked.
 assets/models/furniture/review/candidate-01/*.blend
 assets/models/furniture/review/status.json
+assets/models/domestic/cleanup/*/*.png
+assets/models/domestic/cleanup/*/manifest.json
 # Full-resolution production passes remain locally available for inspection.
 # Track runtime exports, journals, contact proofs and GPU review images instead.
 assets/models/furniture/review/contributions-01/*.png
@@ -72,6 +79,8 @@ assets/models/bedroom/owner-review-pending/bunk/candidate-02/contributions-*/*.p
 assets/models/bedroom/owner-review-pending/bunk/candidate-02/contribution-pilot/*.png
 assets/models/bedroom/owner-review-pending/bunk/candidate-03/contributions-*/*.png
 assets/models/bedroom/owner-review-pending/bunk/candidate-01/*.blend
+# Full-size covered double-bed passes remain local; retain their hash-linked journal.
+assets/models/bedroom/owner-review-pending/double-bed/candidate-03/contributions-01/*.png
 assets/models/office/owner-review-pending/office-chair/candidate-01/*.blend
 assets/models/office/owner-review-pending/office-chair/candidate-02/*.blend
 # Keep rejected chair originals and notes, but only the accepted editable model.
@@ -81,3 +90,17 @@ assets/models/living/owner-review-pending/armchair/candidate-02/*.blend
 assets/models/living/owner-review-pending/armchair/candidate-03/contributions-01/*.png
 # Rejected aquarium models stay local; retain rejected images and receipts.
 assets/models/living/owner-review-pending/aquarium/rejected/**/*.blend
+
+# Full-resolution dining bakes; runtime frames and receipts are tracked.
+assets/models/domestic/dining/*/*.png
+assets/models/domestic/dining/*/manifest.json
+dining-render.log
+assets/models/domestic/seated-dining/*.png
+assets/models/domestic/seated-dining/.checkpoints/
+assets/models/domestic/seated-meal/*.png
+assets/models/domestic/seated-meal/.checkpoints/
+assets/models/domestic/seated-table/*.png
+assets/models/domestic/seated-table/.checkpoints/
+web/public/review-dining.sav
+assets/models/domestic/seated-hands/*.png
+assets/models/domestic/seated-hands/.checkpoints/

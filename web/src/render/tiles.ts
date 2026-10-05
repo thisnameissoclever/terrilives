@@ -25,6 +25,12 @@
 import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { spriteIndex } from './atlas.js';
 import { buildEdgeWallGeometry, buildShortEdgeWallGeometry, type EdgeWallPanel } from './edge-walls.js';
+import { buildArchitectureWallGeometry } from './architecture-geometry.js';
+import { windowPreviewLayout, tintWindowPreview } from './placement-preview.js';
+import type { WindowEditPreview } from '../architecture/windows.js';
+import { floorMaterial, relativeFloorLook } from './floor-materials.js';
+import { architectureFinishSlot, type ActiveFinishes, type FinishCatalogue } from './architecture-finishes.js';
+import type { WindowDefinition, WindowPlacement } from '../architecture/windows.js';
 import {
   FLOATS_PER_INSTANCE,
   OFFSET_WALL_HEIGHT,
@@ -36,6 +42,8 @@ import {
   writeShade,
   type InstanceArray,
   writeWindowTint,
+  writeArchitectureDepth,
+  writeArchitectureFloor,
 } from './instances.js';
 import {
   sampleLight,
@@ -52,6 +60,15 @@ import {
 
 /** What `buildStaticInstances` needs to know about the lot. */
 export interface Lot {
+  /** Explicit opt-in keeps historical snapshots and proof atlases on their original path. */
+  readonly architecture?: { readonly windows: readonly WindowPlacement[];
+    readonly catalogue: readonly WindowDefinition[]; readonly wallFinishSlot?: number;
+    /** Overrides keyed by the panel's stable physical fadeKey, shared by wide-window pieces. */
+    readonly wallFinishSlots?: Readonly<Record<string, number>>;
+    readonly floorCatalogue?: FinishCatalogue; readonly finishes?: ActiveFinishes };
+  /** Transient tool selection; never written to the simulation or save. */
+  readonly floorPreview?: readonly [number, number, number] | null;
+  readonly windowPreview?: WindowEditPreview | null;
   readonly width: number;
   readonly height: number;
   /**
@@ -67,9 +84,10 @@ export interface Lot {
    * frame is drawn there, so the empty doorway panel is left out.
    */
   readonly doors?: Uint32Array | null;
+  readonly horizontalDoors?: Uint32Array | null;
   /**
-   * The lines that are windows, three words each ([WN-state]). Drawn in
-   * wall art in a paler tint until there is window art ([WN-art]).
+   * Historical window lines, three words each ([WN-state]), drawn as tinted
+   * wall art. The architecture path uses typed span placements instead.
    */
   readonly windows?: Uint32Array | null;
   /**
@@ -195,12 +213,17 @@ export function buildStaticInstances(
   sky: SkyExposure = OPEN_SKY,
 ): StaticGeometry {
   const house = lot.house ?? [lot.width, lot.height];
-  const edgePanels = lot.edges == null ? null
+  const windowLayout = lot.architecture && lot.edges != null
+    ? windowPreviewLayout(lot.edges, lot.architecture.windows, lot.architecture.catalogue, lot.windowPreview) : null;
+  const edgePanels = lot.edges == null ? null : lot.architecture
+    ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, edges: windowLayout!.edges,
+      windows: windowLayout!.windows, catalogue: lot.architecture.catalogue,
+      hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [], cutaway: lot.showCutAwayWalls !== true })
     : lot.showCutAwayWalls === true
       ? buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
-        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [])
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [], false, lot.horizontalDoors ?? [])
       : buildShortEdgeWallGeometry(lot.width, lot.height, lot.edges,
-        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.windows ?? []);
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.windows ?? [], lot.horizontalDoors ?? []);
   // Only the small wall batch needs painter ordering. Entities retain depth ordering.
   edgePanels?.sort((a, b) => Number(a.low === true) - Number(b.low === true)
     || (a.x + a.y) - (b.x + b.y) || a.y - b.y);
@@ -352,19 +375,33 @@ export function buildStaticInstances(
    * `FLOOR_DEPTH`.
    */
   const writeFloor = (x: number, y: number, sprite: number): void => {
+    const look = lookOf(x, y);
+    const covering = lot.floorPreview?.[0] === x && lot.floorPreview[1] === y
+      ? lot.floorPreview[2] : look >= 3 ? look - 2 : 0;
+    const zone = x === street ? 'street' : x >= house[0] || y >= house[1] ? 'yard' : 'house';
+    const material = lot.architecture ? floorMaterial(covering, zone, x, y, lot.architecture.floorCatalogue) : null;
     writeInstance(
       instances,
       slot++,
       screenX(x, y, originX, scale),
       screenY(x, y, originY, scale),
       FLOOR_DEPTH,
-      sprite,
+      material?.sprite.id ?? sprite,
       TINT_NONE,
       TINT_NONE,
       TINT_NONE,
       lighting === null ? 0 : sampleLight(lighting, x, y),
     );
-    writeColourway(instances, slot - 1, lookShifts, lookOf(x, y));
+    if (material) {
+      const finishSlot = material.accepted ? 0 : architectureFinishSlot(
+        lot.architecture!.finishes ?? { keys: [], resources: [], table: new Float32Array(), residentBytes: 0 }, material.finishKey);
+      writeArchitectureFloor(instances, slot - 1, x, y, finishSlot);
+      const lookRow = covering > 0 ? covering + 2 : zone === 'street' ? 2 : zone === 'yard' ? 1 : 0;
+      const relative = relativeFloorLook(lookShifts.subarray(lookRow * 3, lookRow * 3 + 3), material.authoredContentLook);
+      writeColourway(instances, slot - 1, Float32Array.from([0, 1, 0, ...relative]), 1);
+    } else {
+      writeColourway(instances, slot - 1, lookShifts, look);
+    }
     writeShade(instances, slot - 1, sampleShade(sky, x, y));
   };
 
@@ -400,7 +437,15 @@ export function buildStaticInstances(
     // Doors share that plane; their transparent aperture remains in the atlas.
     const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS' || panel.spriteName === 'doorwayLowNS'
       || (panel.window === true && (panel.spriteName === 'wallNS' || panel.spriteName === 'wallLow5')) ? 5 : 10);
-    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask, shade);
+    write(panel.x, panel.y, LAYER_PROP, panel.architectureId ?? spriteIndex(panel.spriteName), emissive, mask, shade);
+    if (panel.architectureId !== undefined) {
+      if (panel.fadeKey === windowLayout?.ghostKey) tintWindowPreview(instances, (slot - 1) * FLOATS_PER_INSTANCE);
+      writeArchitectureDepth(instances, slot - 1,
+        layeredDepth(0, 0, gridSize, LAYER_PROP) - layeredDepth(1, 0, gridSize, LAYER_PROP),
+        1, panel.low, (panel.fadeKey ? lot.architecture?.wallFinishSlots?.[panel.fadeKey] : undefined)
+          ?? lot.architecture?.wallFinishSlot ?? 0);
+      continue;
+    }
     if (panel.low) {
       instances[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_WALL_OPACITY] = 1;
       // P(0, 0, 2/3) rasterizes 26 pixels above the ground-plane origin.

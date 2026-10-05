@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   GameHud,
@@ -45,6 +46,14 @@ function source(overrides: Partial<GameHudSource> = {}): GameHudSource {
 }
 
 describe('game HUD formatting', () => {
+  it.each([
+    [12, 'Showering'], [13, 'Using the toilet'], [14, 'Watching TV'],
+    [15, 'Lying down'], [16, 'Washing hands'], [17, 'Washing dishes'],
+    [18, 'Listening to the radio'], [19, 'Handling correspondence'],
+    [20, 'Bathing'], [21, 'Getting ingredients'], [22, 'Preparing food'], [23, 'Cooking'],
+  ])('names exact authored activity %i as %s', (code, label) => {
+    expect(formatActivity(code, null, null)).toBe(label);
+  });
   it('formats day boundaries and the authored day length', () => {
     expect(formatSimTime(0, 1440)).toBe('Day 1, 00:00');
     expect(formatSimTime(359, 1440)).toBe('Day 1, 05:59');
@@ -77,6 +86,34 @@ describe('game HUD formatting', () => {
 });
 
 describe('GameHud', () => {
+  it('shares one satisfaction read with the numeric value and meter, including deselection', () => {
+    const view = roots();
+    const rendered: (number | null)[] = [];
+    let reads = 0;
+    const hud = new GameHud(view, 100, { render: value => rendered.push(value) });
+    hud.update(0, source({ satisfactionOf: () => { reads++; return 50; } }));
+    expect(reads).toBe(1);
+    expect(view.satisfaction.textContent).toBe('50.0');
+    expect(rendered).toEqual([50]);
+    hud.update(100, source({ selectedIndex: () => null }));
+    expect(rendered).toEqual([50, null]);
+  });
+  it('preserves unchanged text while applying changed state and repairing external edits', () => {
+    const view = roots();
+    const hud = new GameHud(view, 100);
+    hud.update(0, source());
+    const probes = Object.values(view).map(textWriteProbe);
+    hud.update(100, source());
+    expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
+    hud.update(200, source({ funds: () => 4321 }));
+    expect(view.funds.textContent).toBe('4,321');
+    expect(probes[1].writes).toBe(1);
+    view.clock.textContent = 'External change';
+    hud.update(300, source());
+    expect(view.clock.textContent).toBe('Day 2, 01:30');
+    expect(probes[0].writes).toBe(2);
+  });
+
   it('shows the clock, funds and selected sim state together', () => {
     const view = roots();
     const hud = new GameHud(view, 100);

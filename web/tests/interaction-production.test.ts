@@ -15,8 +15,8 @@ beforeAll(async () => {
 });
 
 it('contains all registered production facings, palettes and samples after the stable prefix', () => {
-  expect(Object.keys(INTERACTION_SPRITES)).toHaveLength(16);
-  expect(Object.keys(SPRITE_PAIRS)).toHaveLength(240);
+  expect(Object.keys(INTERACTION_SPRITES)).toHaveLength(20);
+  expect(Object.keys(SPRITE_PAIRS)).toHaveLength(336);
   for (const [object, action, count] of [['Bike', 6, 8], ['Chair', 3, 4], ['Bunk', 9, 4], ['Armchair', 8, 4]] as const) {
     for (const facing of ['', 'NW', 'SW', 'NE']) {
       const empty = spriteIndex(`offline${object}${facing}`);
@@ -66,8 +66,8 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
         const body = data[FLOATS_PER_INSTANCE + 3];
         const profile = INTERACTION_SPRITES[spriteIndex(sprite)];
         expect(profile.frames[simShirtVariant(source.simIds()[1])]).toContain(body);
-        // Sitting is text-only; the other three activities have a bubble.
-        expect(instanceCount(source, null)).toBe(action === 8 ? 2 : 3);
+        // Every active occupied interaction has a bubble.
+        expect(instanceCount(source, null)).toBe(3);
         if (action === 9 || action === 8) {
           const [left,top,right,bottom] = SPRITE_CONTENT_BOUNDS[body];
           const [anchorX,anchorY] = SPRITE_ANCHORS[body];

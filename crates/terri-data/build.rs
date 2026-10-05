@@ -28,6 +28,9 @@ mod error;
 #[allow(dead_code)]
 #[path = "src/pack.rs"]
 mod pack;
+#[path = "src/relationship_tuning.rs"]
+mod relationship_tuning;
+pub use relationship_tuning::RelationshipTuning;
 #[path = "src/schema.rs"]
 mod schema;
 

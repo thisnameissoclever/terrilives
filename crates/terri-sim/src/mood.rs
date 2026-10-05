@@ -190,6 +190,12 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         });
     }
 
+    if let Some(penalty) = crate::domestic::mood_penalty(world, subject) {
+        moodlets.push(Moodlet {
+            label: "Dirty dishes".into(),
+            score: -penalty,
+        });
+    }
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)
@@ -247,13 +253,7 @@ fn has_bed_shortage(world: &World) -> bool {
                 pack.objects
                     .get(object.0 .0 as usize)
                     .map_or(0, |definition| {
-                        definition
-                            .interactions
-                            .iter()
-                            .filter(|i| i.tags.contains(&pack.sleep_tag))
-                            .map(|i| usize::from(i.slots))
-                            .max()
-                            .unwrap_or(0)
+                        usize::from(crate::beds::capacity(pack, definition))
                     })
             })
             .sum()
@@ -325,7 +325,10 @@ mod tests {
 
     #[test]
     fn mood_contribution_has_a_neutral_band_and_a_signed_linear_rate() {
-        let tuning = test_content::tuning();
+        let tuning = terri_data::Tuning {
+            satisfaction_mood_per_tick: 0.025,
+            ..test_content::tuning()
+        };
         for score in [-15.0, -10.0, 0.0, 10.0, 15.0] {
             assert_eq!(satisfaction_change(score, &tuning), 0.0);
         }
@@ -381,8 +384,8 @@ mod tests {
             .get_mut::<Needs>(victim)
             .unwrap()
             .set(NeedId::Hunger, 0.0);
-        let mut ledger = terri_core::Satisfaction::default();
-        ledger.add(100.0);
+        let mut ledger = terri_core::Satisfaction::from_value(0.0);
+        ledger.add(50.0);
         let mut feelings = Relationships::default();
         feelings.bump(SimId(0), 1.0);
         let survivor = sim
@@ -416,7 +419,7 @@ mod tests {
                 .get::<terri_core::Satisfaction>(survivor)
                 .unwrap()
                 .value(),
-            100.0
+            50.0
         );
         // Without grief this same comfortable survivor gains satisfaction.
         sim.world_mut()
@@ -429,7 +432,7 @@ mod tests {
                 .get::<terri_core::Satisfaction>(survivor)
                 .unwrap()
                 .value()
-                > 100.0
+                > 50.0
         );
     }
 
@@ -440,8 +443,8 @@ mod tests {
         let sad = subject(&mut sim, Needs::all_at(25.0));
         let neutral = subject(&mut sim, Needs::all_at(55.0));
         for person in [happy, sad, neutral] {
-            let mut ledger = terri_core::Satisfaction::default();
-            ledger.add(100.0);
+            let mut ledger = terri_core::Satisfaction::from_value(0.0);
+            ledger.add(50.0);
             sim.world_mut().entity_mut(person).insert(ledger);
         }
         // Fixed needs isolate mood from neglect, decay, work and hobbies.
@@ -454,14 +457,43 @@ mod tests {
         };
         let first_happy = read(&sim, happy);
         let first_sad = read(&sim, sad);
-        assert!(first_happy > 100.0 && first_happy < 100.1);
-        assert!(first_sad < 100.0 && first_sad > 99.9);
+        assert!(first_happy > 50.0 && first_happy < 50.01);
+        assert!(first_sad < 50.0 && first_sad > 49.99);
         for _ in 1..1440 {
             super::accrue_satisfaction(sim.world_mut());
         }
-        assert!(read(&sim, happy) > first_happy + 1.0);
-        assert!(read(&sim, sad) < first_sad - 10.0);
-        assert_eq!(read(&sim, neutral), 100.0);
+        assert!(read(&sim, happy) > first_happy + 0.03);
+        assert!(read(&sim, sad) < first_sad - 0.1);
+        assert_eq!(read(&sim, neutral), 50.0);
+    }
+
+    #[test]
+    fn shipped_rates_move_extreme_mood_over_months_and_ordinary_mood_over_years() {
+        let tuning = &terri_data::pack().tuning;
+        for score in [-100.0, 100.0] {
+            let mut ledger = terri_core::Satisfaction::default();
+            let change = super::satisfaction_change(score, tuning);
+            for _ in 0..30 * 1440 {
+                ledger.add(change);
+            }
+            assert!((ledger.value() - 50.0).abs() > 16.0);
+            assert!((ledger.value() - 50.0).abs() < 18.0);
+            for _ in 30 * 1440..100 * 1440 {
+                ledger.add(change);
+            }
+            assert_eq!(ledger.value(), if score > 0.0 { 100.0 } else { 0.0 });
+        }
+        let mut ordinary = terri_core::Satisfaction::default();
+        for _ in 0..365 * 1440 {
+            ordinary.add(super::satisfaction_change(20.0, tuning));
+        }
+        assert!((60.0..64.0).contains(&ordinary.value()));
+        let mut at_ceiling = terri_core::Satisfaction::from_value(100.0);
+        at_ceiling.add(-tuning.neglect_bleed_per_tick);
+        assert!(
+            at_ceiling.value() < 100.0,
+            "neglect must survive f32 rounding at the ceiling"
+        );
     }
 
     fn subject(sim: &mut Sim, needs: Needs) -> Entity {
@@ -545,6 +577,7 @@ mod tests {
 
     fn condition(label: &str) -> CompiledTrait {
         CompiledTrait {
+            starting_satisfaction_offset: 0.0,
             id: label.to_lowercase().replace(' ', "_"),
             label: label.to_string(),
             tag: "resting".to_string(),
@@ -559,6 +592,7 @@ mod tests {
 
     fn capability(label: &str) -> CompiledTrait {
         CompiledTrait {
+            starting_satisfaction_offset: 0.0,
             id: label.to_lowercase().replace(' ', "_"),
             label: label.to_string(),
             tag: "cooking".to_string(),
@@ -573,6 +607,7 @@ mod tests {
 
     fn disposition(label: &str) -> CompiledTrait {
         CompiledTrait {
+            starting_satisfaction_offset: 0.0,
             id: label.to_lowercase().replace(' ', "_"),
             label: label.to_string(),
             tag: "reading".to_string(),

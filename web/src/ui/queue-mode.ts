@@ -8,7 +8,7 @@ export interface QueueButton {
  * makes a run of several queued taps possible on a phone.
  */
 export class QueueMode {
-  private active = false;
+  private active = true;
 
   constructor(private readonly button: QueueButton) {
     this.reflect();

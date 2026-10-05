@@ -1,0 +1,116 @@
+[
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/sprites/gen",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/sims/sim-01",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/furniture",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/kitchen",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bathroom",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bedroom",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/office",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  },
+  {
+    "command": [
+      "python",
+      "assets/sprites/gen/build.py",
+      "--check"
+    ],
+    "exit": 0,
+    "verdict": "PASS"
+  }
+]

@@ -1,0 +1,127 @@
+{
+  "mutations": [
+    {
+      "mutation": "missing model",
+      "removedGuard": "missing window model",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "assets/sprites/gen",
+        "-p",
+        "test_offline_architecture.py"
+      ],
+      "exitCode": 1,
+      "output": "..E.\n======================================================================\nERROR: test_named_mutations_fail_and_unchanged_source_passes (test_offline_architecture.ArchitectureImport.test_named_mutations_fail_and_unchanged_source_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 34, in test_named_mutations_fail_and_unchanged_source_passes\n    mutate('missing window model',lambda p:p['models'].pop('9'))\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 31, in mutate\n    with self.assertRaisesRegex(AssertionError,label): validate_manifest(data,proof)\n                                                       ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 43, in validate_manifest\n    record=proof['models'][str(i)]\n           ~~~~~~~~~~~~~~~^^^^^^^^\nKeyError: '9'\n\n----------------------------------------------------------------------\nRan 4 tests in 3.544s\n\nFAILED (errors=1)\n",
+      "restoredSha256": "99ef883ff15bde7d33a6ec2efe04857015293e14b861215b1f5b15ea2e652fce"
+    },
+    {
+      "mutation": "width",
+      "removedGuard": "window width changed",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "assets/sprites/gen",
+        "-p",
+        "test_offline_architecture.py"
+      ],
+      "exitCode": 1,
+      "output": "..F.\n======================================================================\nFAIL: test_named_mutations_fail_and_unchanged_source_passes (test_offline_architecture.ArchitectureImport.test_named_mutations_fail_and_unchanged_source_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 35, in test_named_mutations_fail_and_unchanged_source_passes\n    mutate('window width changed',lambda p:p['models']['4'].update(width=1))\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 31, in mutate\n    with self.assertRaisesRegex(AssertionError,label): validate_manifest(data,proof)\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n\n----------------------------------------------------------------------\nRan 4 tests in 3.563s\n\nFAILED (failures=1)\n",
+      "restoredSha256": "99ef883ff15bde7d33a6ec2efe04857015293e14b861215b1f5b15ea2e652fce"
+    },
+    {
+      "mutation": "direction",
+      "removedGuard": "window direction changed",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "assets/sprites/gen",
+        "-p",
+        "test_offline_architecture.py"
+      ],
+      "exitCode": 1,
+      "output": "..F.\n======================================================================\nFAIL: test_named_mutations_fail_and_unchanged_source_passes (test_offline_architecture.ArchitectureImport.test_named_mutations_fail_and_unchanged_source_passes)\n----------------------------------------------------------------------\nAssertionError: missing window direction\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 36, in test_named_mutations_fail_and_unchanged_source_passes\n    mutate('window direction changed',lambda p:p['renders'][0].update(direction='y-front'))\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 31, in mutate\n    with self.assertRaisesRegex(AssertionError,label): validate_manifest(data,proof)\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"window direction changed\" does not match \"missing window direction\"\n\n----------------------------------------------------------------------\nRan 4 tests in 5.560s\n\nFAILED (failures=1)\n",
+      "restoredSha256": "99ef883ff15bde7d33a6ec2efe04857015293e14b861215b1f5b15ea2e652fce"
+    },
+    {
+      "mutation": "depth registration",
+      "removedGuard": "depth registration changed",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "assets/sprites/gen",
+        "-p",
+        "test_offline_architecture.py"
+      ],
+      "exitCode": 1,
+      "output": "..F.\n======================================================================\nFAIL: test_named_mutations_fail_and_unchanged_source_passes (test_offline_architecture.ArchitectureImport.test_named_mutations_fail_and_unchanged_source_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 37, in test_named_mutations_fail_and_unchanged_source_passes\n    mutate('depth registration changed',lambda p:p['sprites'][0]['depthRegistration'].update(x=1),'data')\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 31, in mutate\n    with self.assertRaisesRegex(AssertionError,label): validate_manifest(data,proof)\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n\n----------------------------------------------------------------------\nRan 4 tests in 5.180s\n\nFAILED (failures=1)\n",
+      "restoredSha256": "99ef883ff15bde7d33a6ec2efe04857015293e14b861215b1f5b15ea2e652fce"
+    },
+    {
+      "mutation": "sill contact",
+      "removedGuard": "detached sill",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "assets/sprites/gen",
+        "-p",
+        "test_offline_architecture.py"
+      ],
+      "exitCode": 1,
+      "output": ".FFF\n======================================================================\nFAIL: test_generated_ids_follow_the_complete_historical_prefix (test_offline_architecture.ArchitectureImport.test_generated_ids_follow_the_complete_historical_prefix)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 69, in test_generated_ids_follow_the_complete_historical_prefix\n    batch=load_reviewed_architecture()\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 141, in load_reviewed_architecture\n    assert digest(inside(ROOT,path))==want, 'architecture source hash changed'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: architecture source hash changed\n\n======================================================================\nFAIL: test_named_mutations_fail_and_unchanged_source_passes (test_offline_architecture.ArchitectureImport.test_named_mutations_fail_and_unchanged_source_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 41, in test_named_mutations_fail_and_unchanged_source_passes\n    mutate('detached sill',detach)\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 31, in mutate\n    with self.assertRaisesRegex(AssertionError,label): validate_manifest(data,proof)\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: AssertionError not raised\n\n======================================================================\nFAIL: test_window_catalogue_is_complete (test_offline_architecture.ArchitectureImport.test_window_catalogue_is_complete)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 20, in test_window_catalogue_is_complete\n    batch=load_reviewed_architecture()\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 141, in load_reviewed_architecture\n    assert digest(inside(ROOT,path))==want, 'architecture source hash changed'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: architecture source hash changed\n\n----------------------------------------------------------------------\nRan 4 tests in 1.354s\n\nFAILED (failures=3)\n",
+      "restoredSha256": "25224802a960868440919c5fa0bf33ae780ff096d3d128af47cf498403c8611b"
+    },
+    {
+      "mutation": "split ownership",
+      "removedGuard": "overlapping split ownership",
+      "command": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "assets/sprites/gen",
+        "-p",
+        "test_offline_architecture.py"
+      ],
+      "exitCode": 1,
+      "output": ".EEE\n======================================================================\nERROR: test_generated_ids_follow_the_complete_historical_prefix (test_offline_architecture.ArchitectureImport.test_generated_ids_follow_the_complete_historical_prefix)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 69, in test_generated_ids_follow_the_complete_historical_prefix\n    batch=load_reviewed_architecture()\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 137, in load_reviewed_architecture\n    validate_manifest(data,proof)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 90, in validate_manifest\n    coverage[entry['source']].add(owner)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'window.sash.x-front.full'\n\n======================================================================\nERROR: test_named_mutations_fail_and_unchanged_source_passes (test_offline_architecture.ArchitectureImport.test_named_mutations_fail_and_unchanged_source_passes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 34, in test_named_mutations_fail_and_unchanged_source_passes\n    mutate('missing window model',lambda p:p['models'].pop('9'))\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 32, in mutate\n    validate_manifest(self.data,self.proof)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 90, in validate_manifest\n    coverage[entry['source']].add(owner)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'window.sash.x-front.full'\n\n======================================================================\nERROR: test_window_catalogue_is_complete (test_offline_architecture.ArchitectureImport.test_window_catalogue_is_complete)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\test_offline_architecture.py\", line 20, in test_window_catalogue_is_complete\n    batch=load_reviewed_architecture()\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 137, in load_reviewed_architecture\n    validate_manifest(data,proof)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\fe58\\terrilives\\assets\\sprites\\gen\\offline_architecture.py\", line 90, in validate_manifest\n    coverage[entry['source']].add(owner)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^\nKeyError: 'window.sash.x-front.full'\n\n----------------------------------------------------------------------\nRan 4 tests in 1.326s\n\nFAILED (errors=3)\n",
+      "restoredSha256": "99ef883ff15bde7d33a6ec2efe04857015293e14b861215b1f5b15ea2e652fce"
+    }
+  ],
+  "restored": {
+    "command": [
+      "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/sprites/gen",
+      "-p",
+      "test_offline_architecture.py"
+    ],
+    "exitCode": 0,
+    "output": "....\n----------------------------------------------------------------------\nRan 4 tests in 3.790s\n\nOK\n"
+  }
+}

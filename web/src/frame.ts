@@ -1,3 +1,4 @@
+import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 /**
  * The frame loop's two halves: pacing the simulation, and turning the two
  * most recent simulation ticks into one frame's worth of GPU instances.
@@ -13,11 +14,14 @@ import {
   layeredDepth,
   screenX,
   screenY,
+  TILE_HALF_WIDTH,
 } from './render/iso.js';
 import {
   ACTIVITY_AT_WORK,
   EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
+  OFFSET_PROJECTION_ANCHOR_X,
+  OFFSET_WALL_MASK,
   KIND_AGENT,
   TINT_NONE,
   writeInstance,
@@ -25,13 +29,15 @@ import {
   writeColourway,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, SPRITE_DINING_SUPPORT, BED_CATALOG, spriteIndex } from './render/atlas.js';
+import { DINING_BACKGROUND, DINING_FOREGROUND } from './render/dining-support.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
 import { writeFootprintProjection } from './render/footprint-depth.js';
+import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
 import type { PlacementPreview } from './bridge.js';
 import {
   placementInstanceCount,
@@ -332,7 +338,7 @@ export const VISUAL_ACTION_WATCH_FISH = 7;
 export const VISUAL_ACTION_SIT = 8;
 
 /** The append-only visual-action code for sleeping in the lower bunk. */
-export const VISUAL_ACTION_SLEEP = 9;
+export const VISUAL_ACTION_SLEEP = SLEEP_VISUAL_ACTION;
 
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
@@ -556,8 +562,8 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
   return 'green';
 }
 
-const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
-const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG);
 
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {
@@ -566,20 +572,28 @@ export function simSprite(_id: number, simId = 0xffff_ffff): number {
 
 const RIGGED_ACTIONS: readonly string[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
-  'watch_fish', 'sit', 'sleep',
+  'watch_fish', 'sit', 'sleep', 'prepare', 'cook_v2', 'wash', 'seated_eat',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
   1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
+  10, 10, 10, 16,
 ];
 
 /** Sample the baked rig from simulation state, without an animation clock. */
 export function simBodySprite(
   id: number, visualAction: number, facing: number, simulationTick: number,
-  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff,
+  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff, carriedDishes = 0, carriedFood = false,
 ): number {
-  if (!validFacing(facing)) return simSprite(id, simId);
-  const action = RIGGED_ACTIONS[visualAction] ?? 'idle';
+  if (!validFacing(facing)) {
+    if (carriedDishes === 0 && !carriedFood) return simSprite(id, simId);
+    facing = 1;
+  }
+  const action = carriedFood && (visualAction === VISUAL_ACTION_WALK || visualAction === 0)
+    ? (visualAction === VISUAL_ACTION_WALK ? 'food_walk' : 'food_idle')
+    : carriedDishes > 0 && (visualAction === VISUAL_ACTION_WALK || visualAction === 0)
+    ? (visualAction === VISUAL_ACTION_WALK ? 'carry_walk' : 'carry_idle')
+    : RIGGED_ACTIONS[visualAction] ?? 'idle';
   const clip = RIGGED_SIM_VARIANTS[simShirtVariant(simId)][action];
   const frames = clip.frames[facing - 1];
   const halfCycle = ACTION_HALF_CYCLE_TICKS[visualAction] ?? 1;
@@ -592,29 +606,36 @@ export function simBodySprite(
 }
 
 /**
- * The activity-indicator bubbles, one atlas slot per code that draws.
- * Index 0 and 1 (none, walking) are deliberately null: an idle sim needs
- * no badge and a walking sim's motion IS its indicator - a bubble on
- * every walker would turn the house into a notification tray. The
- * remaining codes match `render_buffer::activity` on the Rust side.
+ * Bubbles identify activities and waiting; travel has no bubble.
+ * Idle Sims have no task; off-lot workers have no visible body. The codes
+ * match `render_buffer::activity`, including exact authored object uses.
  */
 const INDICATOR_SPRITES: readonly (number | null)[] = [
   null,
   null,
-  spriteIndex('indicatorWait'),
-  spriteIndex('indicatorEat'),
-  spriteIndex('indicatorTalk'),
-  spriteIndex('indicatorSleep'),
-  // AT_WORK: no bubble - the whole ROW is skipped below; gone is gone.
+  spriteIndex('activityWait'),
+  spriteIndex('activityEat'),
+  spriteIndex('activityTalk'),
+  spriteIndex('activitySleep'),
+  // AT_WORK: the entire row stays off the lot.
   null,
-  // USING_OBJECT: text-only. One 26px glyph cannot honestly cover
-  // washing, television, bathing, and toilet use.
-  null,
-  spriteIndex('indicatorReading'),
-  spriteIndex('indicatorExercise'),
-  spriteIndex('indicatorWatchFish'),
-  // SITTING: text-only. The seated silhouette and HUD name are explicit.
-  null,
+  spriteIndex('activityUse'),
+  spriteIndex('activityReading'),
+  spriteIndex('activityExercise'),
+  spriteIndex('activityWatchFish'),
+  spriteIndex('activitySitting'),
+  spriteIndex('activityShower'),
+  spriteIndex('activityToilet'),
+  spriteIndex('activityTV'),
+  spriteIndex('activityLyingDown'),
+  spriteIndex('activityWashHands'),
+  spriteIndex('activityWashDishes'),
+  spriteIndex('activityRadio'),
+  spriteIndex('activityCorrespondence'),
+  spriteIndex('activityBath'),
+  spriteIndex('activityIngredients'),
+  spriteIndex('activityPrepareFood'),
+  spriteIndex('activityCooking'),
 ];
 
 /**
@@ -808,6 +829,10 @@ export interface RenderSource {
   simIds?(): Uint32Array;
   /** Exact validated action target entity ID, or u32::MAX. */
   interactionTargets?(): Uint32Array;
+  /** Actual supporting table for a running seated meal, or u32::MAX. */
+  mealTables?(): Uint32Array;
+  sleepingBeds?(): Uint32Array;
+  sleepingPlaces?(): Uint32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
   /**
@@ -846,6 +871,12 @@ export interface RenderSource {
    * u32::MAX empty-hands sentinel. Read every frame.
    */
   carrying(): Uint32Array;
+  dirtyDishes?(): Uint32Array;
+  dirtySettings?(): Uint32Array;
+  soundActions?(): Uint32Array;
+  soundSources?(): Uint32Array;
+  carriedDishes?(): Uint32Array;
+  mealPortions?(): Uint32Array;
   /**
    * One name per pack item kind - `carried_<kind>` atlas resolution's
    * input. Stable for the life of the pack; read lazily once.
@@ -893,6 +924,12 @@ function carriedSprite(source: RenderSource, kind: number): number | null {
 const CARRIED_LIFT = 24;
 const CARRIED_SIDE = 14;
 
+function cookingSurface(id:number, actions?:Uint32Array, sources?:Uint32Array, facings?:Uint32Array):number {
+  if (!actions || !sources || !facings) return 0;
+  for (let i=0;i<actions.length;i++) if (actions[i]===2 && sources[i]===id && facings[i]>=1 && facings[i]<=4) return facings[i];
+  return 0;
+}
+
 function exactEatingPose(
   kind: number,
   activity: number,
@@ -911,7 +948,18 @@ function displayedPropSprite(
   source: RenderSource,
   carriedKind: number,
   eatingPose: boolean,
+  visualAction = 0,
+  activity = 0,
 ): number | null {
+  // Work represents food at its station; seated eating and transport bake it
+  // into the contacting body pose. Logical carrying still drives the recipe.
+  if ((visualAction === 10 && activity === 22) ||
+      (visualAction === 11 && activity === 23) ||
+      (visualAction === 12 && activity === 17) ||
+      (visualAction === 13 && activity === ACTIVITY_EATING)) return null;
+  if (carriedKind === source.itemKinds().indexOf('dinner') &&
+      ((visualAction === 0 && activity <= 2) ||
+       (visualAction === VISUAL_ACTION_WALK && activity === 1))) return null;
   if (eatingPose && carriedKind === NOT_CARRYING) return HELD_SNACK_SPRITE;
   return carriedKind === NOT_CARRYING
     ? null
@@ -930,6 +978,16 @@ function displayedPropSprite(
  */
 let scratch: InstanceArray = new Float32Array(0);
 
+/** Borrowed live prefix; both fields are invalidated by either building API. */
+export interface InstanceBatch {
+  readonly instances: InstanceArray;
+  readonly count: number;
+}
+const batch: { -readonly [K in keyof InstanceBatch]: InstanceBatch[K] } = {
+  instances: scratch,
+  count: 0,
+};
+
 /**
  * Builds one frame of GPU instances by interpolating between the previous
  * and the current simulation tick.
@@ -938,11 +996,10 @@ let scratch: InstanceArray = new Float32Array(0);
  * entity would jump six frames' worth of distance ten times a second.
  * `alpha` comes from `FixedStepDriver.advance`.
  *
- * Returns the shared scratch buffer, which is longer than the live entity
- * count once entities have despawned; callers pass `count` to `draw`
- * separately and the trailing slots are never read.
+ * Returns the reused batch and high-water-mark array. Only its `count` rows
+ * are live; trailing capacity is never read. Consume before either API runs again.
  */
-export function buildInstances(
+export function buildInstanceBatch(
   source: RenderSource,
   alpha: number,
   originX: number,
@@ -960,17 +1017,18 @@ export function buildInstances(
   placementColourway = 0,
   /** How much open sky each tile sees ([OS-daylight]); open sky everywhere by default. */
   sky: SkyExposure = OPEN_SKY,
-): InstanceArray {
+): InstanceBatch {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
   // each in the worst case, and the selection ring. Still [D11]-clean: the
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
-  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
+  const needed = (count * 8 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
     + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
+    batch.instances = scratch;
   }
 
   // Read every frame, never hoisted or cached. `positions_ptr()` and
@@ -978,6 +1036,8 @@ export function buildInstances(
   // `sync_render_buffer` starts with a `std::mem::swap`, and memory
   // growth detaches the ArrayBuffer underneath both. See bridge.ts.
   const current = source.positions();
+  const carrying = source.carrying();
+  const dinnerKind = source.itemKinds().indexOf('dinner');
   const previous = source.prevPositions();
   const kinds = source.kinds();
   const sprites = source.sprites();
@@ -991,14 +1051,20 @@ export function buildInstances(
   const colourwayShifts = source.colourwayShifts?.() ?? null;
   const footprintWidths = source.footprintWidths?.();
   const footprintDepths = source.footprintDepths?.();
+  const dirtyDishes = source.dirtyDishes?.();
+  const dirtySettings = source.dirtySettings?.();
+  const cookingActions=source.soundActions?.();
+  const cookingSources=source.soundSources?.();
+  const carriedDishes = source.carriedDishes?.();
+  const mealPortions = source.mealPortions?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
   const replacedRow = placementReplacedRow(source, selected, placement);
 
   for (let i = 0; i < count; i++) {
-    // Office Sims, paired objects and overlapping previews keep their row slots:
+    // Office Sims, paired objects and drawable move previews keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
-    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || i === replacedRow) {
+    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || interactions.drawSuppressed[i] || i === replacedRow) {
       writeInstance(scratch, i, -1e6, -1e6, 1, 0);
       continue;
     }
@@ -1046,6 +1112,8 @@ export function buildInstances(
             wx,
             wy,
             simIds?.[i],
+            carriedDishes?.[i],
+            carrying[i] === dinnerKind && (activities[i] <= 2),
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     const localLight = lighting === null
@@ -1081,6 +1149,10 @@ export function buildInstances(
     }
     writeFootprintProjection(scratch, i, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
+    if (interactions.mealRows[i] >= 0 && SPRITE_DINING_SUPPORT[sprite]
+        && interactions.mealRows[i] !== replacedRow) {
+      scratch[i * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_BACKGROUND;
+    }
   }
 
   // **Authored object foregrounds, in the slots after the entities.** The
@@ -1088,8 +1160,61 @@ export function buildInstances(
   // posts, rail and ladder over it without teaching the shell which object
   // owns those pixels.
   let slot = count;
+  for (let row = 0; row < count; row++) {
+    const table = interactions.mealRows[row];
+    const body = interactions.bodies[row];
+    const meal = SPRITE_DINING_SUPPORT[body];
+    if (table < 0 || !meal || row === replacedRow || table === replacedRow) continue;
+    const chair = interactions.targetRows[row];
+    const wx = lerp(previous[chair * 2], current[chair * 2], alpha);
+    const wy = lerp(previous[chair * 2 + 1], current[chair * 2 + 1], alpha);
+    const tableX = lerp(previous[table * 2], current[table * 2], alpha);
+    const tableY = lerp(previous[table * 2 + 1], current[table * 2 + 1], alpha);
+    const light = scratch[row * FLOATS_PER_INSTANCE + 7];
+    writeInstance(scratch, slot,
+      screenX(wx, wy, originX, scale) + spriteDrawOffsetX(body) * scale,
+      screenY(wx, wy, originY, scale) + spriteDrawOffsetY(body) * scale,
+      layeredDepth(tableX, tableY, gridSize, LAYER_FOREGROUND), body,
+      TINT_NONE, TINT_NONE, TINT_NONE, light);
+    for (let field = 12; field < 16; field++) {
+      scratch[slot * FLOATS_PER_INSTANCE + field] = scratch[row * FLOATS_PER_INSTANCE + field];
+    }
+    writeFootprintProjection(scratch, slot, footprintWidths?.[table] ?? 0,
+      footprintDepths?.[table] ?? 0, body, gridSize);
+    scratch[slot * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_FOREGROUND;
+    scratch[slot * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] +=
+      ((wx - tableX) - (wy - tableY)) * TILE_HALF_WIDTH;
+    slot++;
+  }
+  for (let row = 0; row < count; row++) {
+    if (row === replacedRow || interactions.suppressed[row]) continue;
+    const wx = current[row * 2];
+    const wy = current[row * 2 + 1];
+    const layout = surfaceLayout(sprites[row]);
+    if (!layout) continue;
+    const dirty = dirtyDishes?.[row] ?? 0;
+    const settings = dirtySettings?.[row];
+    const cooking = layout.kind === 'stove' ? cookingSurface(ids[row],cookingActions,cookingSources,facings) : 0;
+    const items = surfaceItemCount(layout, dirty, mealPortions?.[row] ?? 0, settings, cooking);
+    for (let item = 0; item < items; item++) {
+      const sprite = surfaceItemSprite(layout, dirty, item, settings, cooking);
+      const point = layout.points[surfacePointIndex(layout, dirty, item, settings, cooking)];
+      const light = lighting === null ? EMISSIVE_NONE : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
+      writeInstance(scratch, slot,
+        screenX(wx, wy, originX, scale) + (spriteDrawOffsetX(sprite) + point[0]) * scale,
+        screenY(wx, wy, originY, scale) + (spriteDrawOffsetY(sprite) + point[1]) * scale,
+        layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND), sprite,
+        TINT_NONE, TINT_NONE, TINT_NONE, light);
+      writeShade(scratch, slot, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
+      // Continue the supporting furniture's depth field at this displaced point.
+      writeFootprintProjection(scratch, slot, footprintWidths?.[row] ?? 0,
+        footprintDepths?.[row] ?? 0, sprite, gridSize);
+      scratch[slot * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += point[0];
+      slot++;
+    }
+  }
   if (portals !== undefined) {
-    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky);
+    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky, alpha);
   }
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
@@ -1130,7 +1255,7 @@ export function buildInstances(
   // the owner's "if you can't see what they're doing, they may as well
   // not be doing anything", as quads.
   for (let i = 0; i < count; i++) {
-    const sprite = INDICATOR_SPRITES[activities[i]] ?? null;
+    const sprite = kinds[i] === KIND_AGENT ? INDICATOR_SPRITES[activities[i]] ?? null : null;
     if (sprite === null) continue;
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
@@ -1156,17 +1281,21 @@ export function buildInstances(
             wx,
             wy,
             simIds?.[i],
+            carriedDishes?.[i],
+            carrying[i] === dinnerKind && (activities[i] <= 2),
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
+    const bedOwner = interactions.bedScenes[i]?.owners[interactions.bedPlaces[i]];
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale),
+      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
       // The lift scales with the camera: the sim's sprite is drawn
       // `scale` times taller, so an unscaled lift would sink the bubble
       // into a zoomed head and orbit it high over a zoomed-out one.
-      screenY(wx, wy, originY, scale) -
-        (spriteContentLift(displayedBody) - INDICATOR_INSET) * scale,
+      screenY(wx, wy, originY, scale) + (bedOwner
+        ? bedOwner.marker[1] - 24
+        : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
       layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
@@ -1174,6 +1303,7 @@ export function buildInstances(
     // not merely the owner's center. Its screen X remains that same center.
     writeFootprintProjection(scratch, slot - 1, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
+    if (bedOwner) scratch[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += bedOwner.marker[0];
   }
 
   // **The carried and eating props, after the bubbles** - [K3]'s hands on
@@ -1186,7 +1316,6 @@ export function buildInstances(
   // zoomed sims moved at scaled ones - the owner saw the badge
   // tracking its carrier "at a different rate". Both the position and
   // the offsets take the scale.
-  const carrying = source.carrying();
   for (let i = 0; i < count; i++) {
     if (activities[i] === ACTIVITY_AT_WORK) continue;
     const eatingPose = exactEatingPose(
@@ -1195,7 +1324,7 @@ export function buildInstances(
       visualActions[i],
       facings[i],
     );
-    const sprite = displayedPropSprite(source, carrying[i], eatingPose);
+    const sprite = displayedPropSprite(source, carrying[i], eatingPose, visualActions[i], activities[i]);
     if (sprite === null) continue;
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
@@ -1250,12 +1379,14 @@ export function buildInstances(
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
+    const bedOwner = interactions.bedScenes[ringRow]?.owners[interactions.bedPlaces[ringRow]];
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale),
-      screenY(wx, wy, originY, scale),
-      layeredDepth(wx, wy, gridSize, LAYER_PROP),
+      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
+      screenY(wx, wy, originY, scale) + (bedOwner ? bedOwner.marker[1] - 6 : 0) * scale,
+      layeredDepth(wx, wy, gridSize, bedOwner ? LAYER_FOREGROUND : LAYER_PROP)
+        - (bedOwner ? INDICATOR_DEPTH_NUDGE : 0),
       SELECTION_RING_SPRITE,
       TINT_NONE,
       TINT_NONE,
@@ -1266,31 +1397,66 @@ export function buildInstances(
 
   slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
     colourwayShifts, placementColourway, sky);
-  writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
-  return scratch;
+  slot = writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
+  batch.count = slot;
+  return batch;
+}
+
+/** Legacy array-only API, sharing the batch's borrowed storage and defaults. */
+export function buildInstances(
+  source: RenderSource,
+  alpha: number,
+  originX: number,
+  originY: number,
+  gridSize: number,
+  selected: number | null = null,
+  scale = 1,
+  reducedMotion = false,
+  simulationTick = 0,
+  lighting: TileLighting | null = null,
+  interactions: InteractionSelection = frameInteractions,
+  placement: PlacementPreview | null = null,
+  highlight: TileHighlight | null = null,
+  placementColourway = 0,
+  sky: SkyExposure = OPEN_SKY,
+): InstanceArray {
+  return buildInstanceBatch(source, alpha, originX, originY, gridSize, selected,
+    scale, reducedMotion, simulationTick, lighting, interactions, placement,
+    highlight, placementColourway, sky).instances;
 }
 
 /**
  * Count fixed entity rows plus unsuppressed foregrounds, bubbles, props and ring.
  *
- * Returned separately rather than folded into the array because the caller
- * passes a count to `draw`, and the scratch buffer is deliberately longer than
- * the live data. Getting this wrong uploads uninitialised zeroes - quads at
- * screen (0, 0) with depth 0, which draw in front of everything.
+ * Legacy verification helper. Production uses the packer's batch count instead
+ * of repeating this traversal and interaction selection.
  */
 export function instanceCount(source: RenderSource, selected: number | null,
   interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null,
   highlight: TileHighlight | null = null): number {
   let extras = 0;
+  const sprites = source.sprites();
   const activities = source.activities();
   const carrying = source.carrying();
+  const ids = source.ids();
   const kinds = source.kinds();
   const visualActions = source.visualActions();
   const facings = source.facings();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
   interactions.updateSource(source, 0, true);
   const replacedRow = placementReplacedRow(source, selected, placement);
+  const dirtyDishes = source.dirtyDishes?.();
+  const dirtySettings = source.dirtySettings?.();
+  const cookingActions=source.soundActions?.();
+  const cookingSources=source.soundSources?.();
+  const mealPortions = source.mealPortions?.();
   for (let i = 0; i < source.count; i++) {
+    const mealTable = interactions.mealRows[i];
+    if (mealTable >= 0 && SPRITE_DINING_SUPPORT[interactions.bodies[i]]
+        && i !== replacedRow && mealTable !== replacedRow) extras++;
+    if (i !== replacedRow && !interactions.suppressed[i]) {
+      extras += surfaceItemCount(surfaceLayout(sprites[i]), dirtyDishes?.[i] ?? 0, mealPortions?.[i] ?? 0, dirtySettings?.[i], cookingSurface(ids[i],cookingActions,cookingSources,facings));
+    }
     if (
       foregroundSprites !== null &&
       foregroundSprites[i] !== NO_FOREGROUND_SPRITE &&
@@ -1300,7 +1466,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
     ) {
       extras++;
     }
-    if (INDICATOR_SPRITES[activities[i]] != null) extras++;
+    if (kinds[i] === KIND_AGENT && INDICATOR_SPRITES[activities[i]] != null) extras++;
     const eatingPose = exactEatingPose(
       kinds[i],
       activities[i],
@@ -1309,7 +1475,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
     );
     if (
       activities[i] !== ACTIVITY_AT_WORK &&
-      displayedPropSprite(source, carrying[i], eatingPose) !== null
+      displayedPropSprite(source, carrying[i], eatingPose, visualActions[i], activities[i]) !== null
     ) {
       extras++;
     }

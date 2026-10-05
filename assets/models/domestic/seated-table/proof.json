@@ -1,0 +1,1203 @@
+{
+  "state": "complete",
+  "inputs": {
+    "render_dining_table_proof.py": "5a664f99af4989a999f37b6eb8675120ce99ec9aa62afb4fd8f4de63c3012fb1",
+    "seated-dining.blend": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+    "seated-dining/proof.json": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-0-end.png",
+      "sha256": "ecff2d8a5d345f57f23c2fbf83363d7db92bcf3b89a9f0ef69c26557741f51fe"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-0-side-left.png",
+      "sha256": "cfdd0e091670adca330d3ef12867bb8d927af007da9a8bf4e2f05ebee20a8b31"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-0-side-right.png",
+      "sha256": "49619f0a5d4a647bc2a8adcc55b5e36346b237cb230fc988dcd2807ea7c9f93c"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-1-end.png",
+      "sha256": "ae9713da2e87c30e3c05597bd8dfcae88991b2c616b0624091133706550efdc5"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-1-side-left.png",
+      "sha256": "68e61e60265d41b6feb205d9ee7aa8d45de63cd02c4b696316a85b1bfb00ce91"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-1-side-right.png",
+      "sha256": "cae7f68b61ba5551837d810a71944541398c17e1de54961a43a2f533f8e51fd2"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-2-end.png",
+      "sha256": "7528806512d51132fe9fceaae248943655d697ae00ef6a6cc15bade745ed9532"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-2-side-left.png",
+      "sha256": "a0b6b18f97effc42ffcd8ac74d510e240245aa05945e82b6cd98cd7d61306f0e"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-2-side-right.png",
+      "sha256": "0eecd7ccf6b0df65a19e6e1fcfe9a83cab3a02eb47261aa1ae07d6de9a6607c7"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-3-end.png",
+      "sha256": "a65bdbc42cb96cc2ab0ada2685545488138092e0f3e1c0ec8d6cd26179d6e1fb"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-3-side-left.png",
+      "sha256": "24437c95bb889e50f063615e2c97123066fc3ff9aabaf913c86861506d1af341"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-3-side-right.png",
+      "sha256": "5117dcc59bfda9ee80543283c269269dd5a58fe6e10c3489f0d6359a357a3c26"
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-4-end.png",
+      "sha256": "951376924ccb07b625aaf0a08228405b3164f167bf66b62abfec15c788fd58aa"
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-4-side-left.png",
+      "sha256": "c722ab1076df1ad6312818562de49dbb59c55c34235fb839225a152d469c4019"
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-4-side-right.png",
+      "sha256": "915e03178f21819e5fcc0e470f9f9594ef8aeffd6bc77083a95696984d02ef59"
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-5-end.png",
+      "sha256": "8e43548bc34ee49ad4caf0d56eedefe9e0816c9cc37910f8bf5b8c11bf31ec74"
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-5-side-left.png",
+      "sha256": "7daa86e14e9d011428219c7805159f9c6c141c7f004fe6e31e14c9fd5700d504"
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-5-side-right.png",
+      "sha256": "975f0e12e6099160281deeeefc2da466c919d8d9e3cfd1fd0f2968aa6347c6c3"
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-6-end.png",
+      "sha256": "b3934d38bbad70d63538c4fc66a0dd8f3902ff09794015a9d81229a677466765"
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-6-side-left.png",
+      "sha256": "da935c0aa82fb27dd56c01cfc0c4fae2c4ad69cebe3a4c3b42f369a5c6516e55"
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-6-side-right.png",
+      "sha256": "72faa543c314f23906a3359d0e4c5d63a110b8523db52fe55e31f1277dd7316c"
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "arrangement": "end",
+      "table_position": [
+        -9.184850732644269e-17,
+        -1.5
+      ],
+      "table_angle": 0.0,
+      "path": "SE-7-end.png",
+      "sha256": "47ce38baba66d9a063ab3d92f7da1e49b1e60bc39621651c4ef4691dae341c95"
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "arrangement": "side-left",
+      "table_position": [
+        0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-7-side-left.png",
+      "sha256": "f6246cd0a0c6969997191796343886ddf2d27ca1da6772aeccad82faef073802"
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "arrangement": "side-right",
+      "table_position": [
+        -0.5,
+        -1.0
+      ],
+      "table_angle": 90.0,
+      "path": "SE-7-side-right.png",
+      "sha256": "8c931158d5f753b9312a848595a7dd4861b394812348243cff88d097decc01d3"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-0-end.png",
+      "sha256": "df63a2c223e4758f74a5c1a845a38f1d3a175d5aad8db4051c6e32702220cd3f"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-0-side-left.png",
+      "sha256": "dfee4f82211c3d1e24bce96834783fc7b797f83eba5fcb93f5ecfb304d296ce7"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-0-side-right.png",
+      "sha256": "3f330c9fe1338f0c0084d98b18a493250da52add87922a0b59a0fde44e269eb7"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-1-end.png",
+      "sha256": "b203db3d39fc0889f276e8cf57f89ab76ad590fccf65e87269128cafc9061af4"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-1-side-left.png",
+      "sha256": "0d1e25fd15ce921c7e8fd4948ca2442544a3cce34ec7efc8fd31dec17cf066f4"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-1-side-right.png",
+      "sha256": "f721ab8dd9c586f04a53e4ab5dd5259b55cb2ae40fe8c9d52823421eb870200a"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-2-end.png",
+      "sha256": "31e84328ee6f605276fe389e95e93fce39357fd89afa0d626586bdb4305135b9"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-2-side-left.png",
+      "sha256": "189dfa5df306322eddd3d53d4c8fa0e04b6fe0375ba404b2efedf520948f37b0"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-2-side-right.png",
+      "sha256": "e4be799c521c19ac9fe9901e50db157218fe6a353076e178b93615b6f1208f20"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-3-end.png",
+      "sha256": "74a3405883b1ceaa5a214d6cce9c80da92d71035de081faf497d1a7f4da5d5d9"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-3-side-left.png",
+      "sha256": "ce0bc26228ca65e6dd58121d2a50c06b11b51019739aaafa5ca7d5899b4a8917"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-3-side-right.png",
+      "sha256": "978eb494c6221ef12e176cc3f081bc161bba71a5715c9afd5d5b8efff08bdc75"
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-4-end.png",
+      "sha256": "336c9318216395e860027f346fe50aa2ea13212a2b8a0ab66e04f8058b88ce61"
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-4-side-left.png",
+      "sha256": "8d6de6e9b6267091106b7e1041ac250dc0725161bd585ae27b0f3615546dce47"
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-4-side-right.png",
+      "sha256": "b84ce519cb3a3a4a16fa8d22aae5bf69b0ef82f1e21a0343e8565a11bef55f2a"
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-5-end.png",
+      "sha256": "adae39d930e90ad187529e9a884ca3782a9429d300654104be5b2816a2a5f38a"
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-5-side-left.png",
+      "sha256": "62d742e7e3e62f368398861bdc3c3930931a599acfd2fe0c405c889ee40a241b"
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-5-side-right.png",
+      "sha256": "06da47c463ad4f068b13f517b260cd54328076bdd464d1c55e25541bdc04f506"
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-6-end.png",
+      "sha256": "7aaabe81d3f52932ada35e484a7c0f296f62486722e384bd2bbfdce62c3c53a1"
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-6-side-left.png",
+      "sha256": "f146d222608efdab91a195db2594df843fa0fe1dfd7724e1b56a2f99290fb5fc"
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-6-side-right.png",
+      "sha256": "1fd6d80a44c8aa38150a759267723e5007936b240316190145dca77079c87bfa"
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "arrangement": "end",
+      "table_position": [
+        -1.5,
+        0.0
+      ],
+      "table_angle": -90.0,
+      "path": "SW-7-end.png",
+      "sha256": "831767ccb5262cee90bcd3d6f05853a65c81cf5dc7129198e62cff7f589dcaa2"
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "arrangement": "side-left",
+      "table_position": [
+        -1.0,
+        -0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-7-side-left.png",
+      "sha256": "4a3f4d8bb826e8b535be32e48dda1163b5470061e7f19b7e94ea31b69a4a92e7"
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "arrangement": "side-right",
+      "table_position": [
+        -1.0,
+        0.5
+      ],
+      "table_angle": 0.0,
+      "path": "SW-7-side-right.png",
+      "sha256": "2bfb299740af1cf8d3333e344a9cb5b1d09f951018834dd4a582ec2ccf0f9fb5"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-0-end.png",
+      "sha256": "e21e5d47ccd5f261a8b3d85c22b24ff248e10bf06fb1c3b01a4dc4ae50dfb85f"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-0-side-left.png",
+      "sha256": "127009340be0ce60d7f3c077b526f3d4e4fb4c231e9cef6f1167566c4bd60aa8"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-0-side-right.png",
+      "sha256": "de1e575ee48b05f1896fcbccce70bc1e74b4fc1d23ee1b7c43999ba82fb684f6"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-1-end.png",
+      "sha256": "567c5d50cab5e61ede81b96092d514b44902fac76920d49342810d1713f35772"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-1-side-left.png",
+      "sha256": "912710e2265c88484aa0a2c3d0e6a92846aa2f8f0ab34962ddb000af78e28596"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-1-side-right.png",
+      "sha256": "acfc2a90a82afa706b824db2017345e06c7d952097fabd9d7f0bacb972b49ad6"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-2-end.png",
+      "sha256": "bc6d9b84f346440d01366c206fe1548829e7e744c2bcab2742ea13c5aafaa573"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-2-side-left.png",
+      "sha256": "e8e3e4ab237a86e63c8fd20aed98de1ccc929348165c4a997eebe4a9baf5ba63"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-2-side-right.png",
+      "sha256": "625632f3b835dc705ae8377be2107782d79d7a10c2f1e6b54f956b4a04fe1858"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-3-end.png",
+      "sha256": "d8188ea0f636dc74380c5bcf53fbf137a38957f7c9005610f2f7f2198dcd65c7"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-3-side-left.png",
+      "sha256": "c37832f65d98420610ebb1f1da9ef88e4a437b7526bfb5f6561eab7a45b364fd"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-3-side-right.png",
+      "sha256": "cda9f9229ffd89558f38fa1d4cae19b21d54609ec133b2754382fb0fb9c497be"
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-4-end.png",
+      "sha256": "22c9934ba0cacfe738a352c85f90ad6dbb938e25c4506a3d53f4623803533757"
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-4-side-left.png",
+      "sha256": "eaccec43467a3d74c52836873f73ed85ee5f2b8e2a1ea67b78760f085da488b6"
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-4-side-right.png",
+      "sha256": "a1852b2d2765505ccf64f4ff39025fecd5890a097571842826043a6caea3e902"
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-5-end.png",
+      "sha256": "7ca7442e7009c7b4c8eb992e82d951df92ac800c2f90d7a916fcec53cd21289f"
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-5-side-left.png",
+      "sha256": "96b41e6ba0b9948248a76e184802c7141317d22838233fd8a95aa2fef76a8bd5"
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-5-side-right.png",
+      "sha256": "d6fde0413d3eda8ddc07fc83621559ffd8e227f739e14c917705a92f031a31e7"
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-6-end.png",
+      "sha256": "32168a4ce6ba090269fc3d3111489d52ab6f477abe098be968bcb183e3ec3d7e"
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-6-side-left.png",
+      "sha256": "d7542dc2b07b3605f8fedd6ddc65c8adc16e6af44aa05952b261ca2e00155c0a"
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-6-side-right.png",
+      "sha256": "cad9e3963f300422946aa335174d49a3acdd5bfdcfa816935dc0bdbc774f35c2"
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "arrangement": "end",
+      "table_position": [
+        2.7554553521421787e-16,
+        1.5
+      ],
+      "table_angle": 180.0,
+      "path": "NW-7-end.png",
+      "sha256": "6ca16d63cb51d9532c5b9edebf0bf365cabb6fdc87f94ce3db4f24af8b4a0ecd"
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "arrangement": "side-left",
+      "table_position": [
+        -0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-7-side-left.png",
+      "sha256": "b0ad6b26ed8e95c23fac989e9299df79454fcedd39e31ed6b74e0ba5129d945d"
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "arrangement": "side-right",
+      "table_position": [
+        0.5,
+        1.0
+      ],
+      "table_angle": 270.0,
+      "path": "NW-7-side-right.png",
+      "sha256": "1c2c22196b6a5eb0017fe746614e92834d9692ce501730511f3f67473e8feac6"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-0-end.png",
+      "sha256": "1b9e5bd2fd61bf058c29f2fdd934c451618291abc1c1064305475b834f98b915"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-0-side-left.png",
+      "sha256": "f5ea646d6944d53c570742aff45c37867ba86d5b6d5362a6052eef7eac37d342"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-0-side-right.png",
+      "sha256": "9485785a9cc98cf8b2319c84d10c02baa36ee455166763353f30a1aa01415464"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-1-end.png",
+      "sha256": "0b058ea536d58d1f36b9a7646d74d1cbeb37572c6d52b47de8a73e8faaa51282"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-1-side-left.png",
+      "sha256": "f2a47b447c302198621755d42c640c048ad7f3dd9a085eca8894370d8e41290c"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-1-side-right.png",
+      "sha256": "d8662043ba46c8b348eaea04b52ba631d89d7eb031cac32ebef7da31882bb8fd"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-2-end.png",
+      "sha256": "0df1b4161e5ac3691bfb045b499c98d40e7dd7276d1f4c4454a3ddb5ffd041ba"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-2-side-left.png",
+      "sha256": "27912cd2366261aa4e9d94c5981237fc24add3847a8c4288d4926c8f12750c50"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-2-side-right.png",
+      "sha256": "93c7b30b46209a1ecaacb23242407a93db3043be057963caf3cf4f8eede8246a"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-3-end.png",
+      "sha256": "84f4017c967901dd3aaaf11942ce9cc9c03e8de24c14a25c3a3347f2676abd3f"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-3-side-left.png",
+      "sha256": "a5546e4e24d8a075e879028131ebb86b1bbf2a9b48823a4f0de113a339ba4e33"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-3-side-right.png",
+      "sha256": "af55d1f701d57ee3b878314c7b19bc7d428b36519d4d6c72e67f2b50620c299e"
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-4-end.png",
+      "sha256": "b99e1252d412b73e8d04fbce9f5db1286da0f6b89dd945dc9042e59967a919c1"
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-4-side-left.png",
+      "sha256": "f9901bf0635e19b4ef21dd3c5090a5c400cf355969868636cae70d961960fed8"
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-4-side-right.png",
+      "sha256": "7d273fc1c7416e7ed219684730d4bf773551468e2741af7f7f34c1f0d5b7ee01"
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-5-end.png",
+      "sha256": "098b504b75fc2dd4631ae24f5179fe11a53895c7bb31a7d52334a6b2c46a4e2a"
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-5-side-left.png",
+      "sha256": "091f24e40ec214368fb84b52e8ebda4f3db2034e1f9b45909c1cae26b0866596"
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-5-side-right.png",
+      "sha256": "617d3fec710fe6b88ec11330d92bdb5c99e42917be937c434bb311b1564b7122"
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-6-end.png",
+      "sha256": "931e17b0010cc3132f6c29c69661bc3e914b9244fcc79cfd39097280bb968e29"
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-6-side-left.png",
+      "sha256": "60f18a4cbca094eda49d8f0bac7f589be31d75bcbd21dcce4e033df9e4294330"
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-6-side-right.png",
+      "sha256": "eee07e080b2100490a24c2fa78b9d2fc4b2c7ede9b52e822ef7efebdad005172"
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "arrangement": "end",
+      "table_position": [
+        1.5,
+        -1.8369701465288538e-16
+      ],
+      "table_angle": 90.0,
+      "path": "NE-7-end.png",
+      "sha256": "e370c7d72c547c09290e9e32bb48a066ef5896d9c2a6e4123f1c8c431a2b37ee"
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "arrangement": "side-left",
+      "table_position": [
+        1.0,
+        0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-7-side-left.png",
+      "sha256": "e4707e2ce1a298cf545bcc79027dc9064daac8695926be845dd1ff1b27cd1ebb"
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "arrangement": "side-right",
+      "table_position": [
+        1.0,
+        -0.5
+      ],
+      "table_angle": 180.0,
+      "path": "NE-7-side-right.png",
+      "sha256": "feea7bbec76d08c1355bfdceafe1df285a6e96f4b3ffbd097ad5ec50f59f67b3"
+    }
+  ],
+  "width": 200,
+  "height": 199,
+  "framing": {
+    "max_x_from_optical_center": 91.84001922607422,
+    "max_y_from_optical_center": 91.07044219970703,
+    "margin": 8
+  },
+  "projection_basis": {
+    "original": [
+      [
+        31.999993324279785,
+        21.000003444765753
+      ],
+      [
+        32.00000286102295,
+        -20.99999165534973
+      ],
+      [
+        4.76837158203125e-06,
+        -34.1467444896698
+      ]
+    ],
+    "framed": [
+      [
+        31.999993324279785,
+        21.00000023841858
+      ],
+      [
+        32.00000524520874,
+        -20.999994307756424
+      ],
+      [
+        0.0,
+        -34.14674812555313
+      ]
+    ]
+  },
+  "anchor": [
+    100.00001192092896,
+    155.50044322013855
+  ]
+}

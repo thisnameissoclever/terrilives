@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Covered double-bed GPU checks</title>
+<body><p id="status">Checking the actual renderer...</p><details><summary>Pixel comparison results</summary><pre id="result"></pre></details><div id="downloads"></div><div id="board"></div>
+<script type="module">
+import { coveredBedProof } from './covered-bed.js';
+try {
+  const result=await coveredBedProof();
+  document.querySelector('#result').textContent=JSON.stringify(result,null,2);
+  document.querySelector('#status').textContent=`${result.pass?'PASS':'FAIL'}: ${result.cases} GPU cases, maximum difference ${result.maximum}/255`;
+  const link=document.createElement('a');link.textContent='Download GPU receipt';link.download='covered-bed-gpu.json';
+  link.href=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));document.querySelector('#downloads').append(link);
+}
+catch (error) { document.querySelector('#result').textContent = JSON.stringify({pass:false,error:String(error),stack:error.stack}); }
+</script></body></html>
