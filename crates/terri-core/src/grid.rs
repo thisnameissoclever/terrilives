@@ -6,6 +6,8 @@ use std::collections::{BinaryHeap, VecDeque};
 mod segment_tests;
 
 #[cfg(test)]
+mod distance_tests;
+#[cfg(test)]
 mod edge_tests;
 
 /// A single lot's walkability grid. One tile is roughly one metre.
@@ -591,6 +593,11 @@ impl TileGrid {
 }
 
 impl TileDistanceField {
+    /// Shortest distance to an exact walkable tile in this field's snapshot.
+    pub fn distance_to_tile(&self, tile: (i32, i32)) -> Option<u32> {
+        let distance = self.distance_at(tile);
+        (distance != u32::MAX).then_some(distance)
+    }
     /// Distance to an exact approach tile with an open cardinal contact edge.
     pub fn distance_to_contact(&self, approach: (i32, i32), contact: (i32, i32)) -> Option<u32> {
         if contact.0 < 0

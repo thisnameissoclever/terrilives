@@ -95,7 +95,7 @@ for (const item of media) {
     } finally { handle.free(); }
   });
 
-  it(`${item.prefix} keeps the standing body and static art with its exact activity`, () => {
+  it(`${item.prefix} uses fitted seating while retaining device activity and static art`, () => {
     const handle = SimHandle.from_lot();
     try {
       const sim = new SimBridge(handle, memory);
@@ -106,10 +106,11 @@ for (const item of media) {
         if (sim.activityOf(34) !== item.activity || !sim.actionQueueOf(34)[0]?.startsWith(item.action)) continue;
         const row = Array.from(sim.ids()).indexOf(34);
         expect(sim.actionQueueOf(34)[0]).toMatch(new RegExp(`^${item.action}`));
-        expect(sim.visualActions()[row]).toBe(0);
-        expect(sim.interactionTargets()[row]).toBe(0xffffffff);
+        expect(sim.visualActions()[row]).toBe(8);
+        expect(sim.interactionTargets()[row]).not.toBe(0xffffffff);
+        expect(sim.interactionTargets()[row]).not.toBe(item.id);
         const instances = buildInstances(sim, 1, 0, 0, 16);
-        expect(atlas.SPRITES[instances[row * FLOATS_PER_INSTANCE + 3]].name).toMatch(/^rigSimBlueIdle/);
+        expect(atlas.SPRITES[instances[row * FLOATS_PER_INSTANCE + 3]].name).toMatch(/^neutralSeat_.*_blue_/);
         const objectRow = Array.from(sim.ids()).indexOf(item.id);
         expect(instances[objectRow * FLOATS_PER_INSTANCE + 3]).toBe(atlas.spriteIndex(item.prefix));
         observed = true;

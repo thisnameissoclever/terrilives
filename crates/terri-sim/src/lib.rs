@@ -17,6 +17,7 @@ mod ecs_lifecycle_tests;
 mod facing_tests;
 pub mod family;
 pub mod household;
+mod media;
 mod mood;
 pub mod mortality;
 pub mod placement;
@@ -30,6 +31,7 @@ mod reservations;
 mod reservations_tests;
 mod room_regions;
 mod save;
+mod seating;
 mod shyness;
 pub mod systems;
 #[cfg(test)]
@@ -1273,7 +1275,7 @@ impl Sim {
                 // and `select_action`, which both skip a commuting or
                 // working sim outright. After `advance_clock`, because
                 // the day clock it reads must be THIS tick's.
-                systems::career::start_shift,
+                (systems::career::start_shift, media::maintain).chain(),
                 // Strictly before selection, because a player-issued
                 // intent overrides autonomy rather than competing with
                 // it - [D-3]. Running it first means the object is
@@ -1616,6 +1618,7 @@ impl Sim {
         self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
         privacy::maintain(&mut self.world);
+        media::maintain(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
     }
@@ -1967,6 +1970,8 @@ impl Sim {
             };
             let station_visual = if is_agent && !socially_active && !at_work {
                 dining::projection(&self.world, entity)
+                    .or_else(|| media::projection(&self.world, entity))
+                    .or_else(|| seating::ordinary_projection(&self.world, entity))
                     .or_else(|| cooking_projection(&self.world, entity))
             } else {
                 None

@@ -279,6 +279,18 @@ impl Occupancy {
                 .any(|(owner, target, _)| *owner != agent && target.object == object)
     }
 
+    pub(crate) fn physical_claim(&mut self, owner: Entity, object: Entity) {
+        self.orphaned_markers.remove(&object);
+        self.targets.push((
+            owner,
+            Target {
+                object,
+                interaction: 0,
+            },
+            None,
+        ));
+    }
+
     pub(crate) fn admissions(
         &self,
         pack: &ContentPack,

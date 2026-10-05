@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { packBedLayers } from './bed-sprites.js';
+import { packVisibleSceneLayers } from './visible-scene-layers.js';
 import { packDiningSupport } from './dining-support.js';
 import { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 export { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
@@ -11,6 +11,7 @@ import {
   SPRITE_PAIRS,
   SPRITE_ANCHORS,
   BED_LAYERS,
+  SEATING_LAYERS,
   BED_LAYER_TRIMS,
   ATLAS_PAGE_FILES,
   SPRITE_DINING_SUPPORT,
@@ -491,7 +492,8 @@ export class SpriteRenderer {
         { width: bitmap.width, height: bitmap.height });
       return texture;
     });
-    const bedTable = packBedLayers(SPRITES.length + (architecture?.sprites.length ?? 0), BED_LAYERS);
+    const bedTable = packVisibleSceneLayers(SPRITES.length + (architecture?.sprites.length ?? 0),
+      { ...BED_LAYERS, ...SEATING_LAYERS });
     this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.bedBuffer);

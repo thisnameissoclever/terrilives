@@ -338,6 +338,12 @@ pub(super) fn validate_edge_world(
                     let endpoint = remaining.last().copied().unwrap_or(tile);
                     if !valid_contact(grid, endpoint, at, footprint)
                         && !dining_contact(world, entity.index, target.object, endpoint)
+                        && !crate::media::valid_standing_contact(
+                            world,
+                            entity.index,
+                            target.object,
+                            endpoint,
+                        )
                     {
                         return Err(SaveError::InvalidGrid);
                     }
@@ -364,6 +370,7 @@ pub(super) fn validate_edge_world(
             let footprint = restored_footprint(target, world, content)?;
             if !valid_contact(grid, tile, at, footprint)
                 && !dining_contact(world, entity.index, index, tile)
+                && !crate::media::valid_standing_contact(world, entity.index, index, tile)
             {
                 return Err(SaveError::InvalidGrid);
             }
@@ -378,9 +385,15 @@ fn dining_contact(
     station: u32,
     endpoint: (i32, i32),
 ) -> bool {
-    crate::dining::entity(world, person).is_some_and(|e| crate::dining::terminal(world, e))
-        && crate::dining::claim(world, person)
-            .is_some_and(|d| d.station == station && d.endpoint == endpoint)
+    crate::seating::claim(world, person).is_some_and(|d| {
+        d.station == station
+            && d.endpoint == endpoint
+            && match crate::seating::kind(world, d) {
+                Some(crate::seating::UseKind::Meal) => true,
+                Some(crate::seating::UseKind::Media) => crate::media::valid_lease(world, d),
+                None => false,
+            }
+    })
 }
 
 fn restored_footprint(

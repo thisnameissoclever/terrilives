@@ -512,6 +512,10 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
                 expected,
                 if object == "double_bed" {
                     visual_action::SLEEP
+                } else if matches!(object, "television" | "radio") {
+                    visual_action::WATCH
+                } else if object == "sofa" {
+                    visual_action::SIT
                 } else {
                     visual_action::NONE
                 },

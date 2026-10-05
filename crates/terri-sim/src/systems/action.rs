@@ -74,6 +74,8 @@ use crate::Content;
 #[derive(SystemParam)]
 pub struct BedState<'w, 's> {
     pub(super) assignments: Res<'w, crate::beds::BedAssignments>,
+    places: Option<Res<'w, terri_core::save::SavedDining>>,
+    objects: Query<'w, 's, Entity, With<SmartObject>>,
     targets: Query<
         'w,
         's,
@@ -90,12 +92,34 @@ pub struct BedState<'w, 's> {
 
 impl BedState<'_, '_> {
     pub(super) fn occupancy(&self) -> crate::beds::Occupancy {
-        crate::beds::Occupancy::new(
+        let mut result = crate::beds::Occupancy::new(
             self.targets.iter().map(|(owner, target, place, agent)| {
                 (owner, *target, place.copied().filter(|_| agent))
             }),
             self.reservations.iter(),
-        )
+        );
+        for place in self.physical_places() {
+            if let Some(chair) = place.chair {
+                if let Some((owner, _, _, _)) =
+                    self.targets.iter().find(|(owner, target, _, agent)| {
+                        *agent
+                            && owner.index_u32() == place.person
+                            && target.object.index_u32() == place.station
+                    })
+                {
+                    if let Some(object) = self.objects.iter().find(|e| e.index_u32() == chair) {
+                        result.physical_claim(owner, object);
+                    }
+                }
+            }
+        }
+        result
+    }
+
+    fn physical_places(&self) -> Vec<terri_core::save::SavedDiner> {
+        self.places
+            .as_ref()
+            .map_or_else(Vec::new, |s| s.diners.clone())
     }
 }
 
@@ -482,6 +506,7 @@ pub fn serve_intents(
         ),
     >,
     objects: Query<(
+        Entity,
         &Position,
         &SmartObject,
         Has<Reserved>,
@@ -518,6 +543,18 @@ pub fn serve_intents(
 
     let mut claimed: Vec<Entity> = Vec::new();
     let mut occupancy = beds.occupancy();
+    let mut physical_places = beds.physical_places();
+    let furniture: Vec<_> = objects
+        .iter()
+        .map(
+            |(entity, position, placed, _, facing)| super::interpersonal::BoundaryFurniture {
+                entity,
+                position: *position,
+                definition: placed.0,
+                facing: facing.map_or(content.0.object(placed.0).base_facing, |f| f.0),
+            },
+        )
+        .collect();
 
     for agent in directed {
         // Infallible: the list was just collected from this query and
@@ -568,7 +605,7 @@ pub fn serve_intents(
         // mistaken for contention with somebody else.
         let held_here = target.is_some_and(|t| t.object == intent.object);
 
-        let Ok((object_pos, placed, _, facing)) = objects.get(intent.object) else {
+        let Ok((_, object_pos, placed, _, facing)) = objects.get(intent.object) else {
             // **Not an object - perhaps a PERSON.** A TalkTo intent
             // carries the target sim's entity in the same field a
             // UseObject carries a fridge's, and this is where the two
@@ -770,7 +807,33 @@ pub fn serve_intents(
             to,
             &field,
         );
-        if access.nearest(sleep).is_none() {
+        let media_requested =
+            crate::seating::media_activity(content.0, placed.0, intent.interaction).is_some();
+        let media_plan = if media_requested {
+            let device = furniture
+                .iter()
+                .find(|item| item.entity == intent.object)
+                .expect("known media device");
+            let Some(plan) = crate::media::plan(
+                crate::media::Planning {
+                    pack: content.0,
+                    grid: &grid,
+                    field: &field,
+                    objects: &furniture,
+                    occupancy: &occupancy,
+                    claims: &physical_places,
+                },
+                agent,
+                device,
+            ) else {
+                queue.pop();
+                continue;
+            };
+            Some(plan)
+        } else {
+            None
+        };
+        if !media_requested && access.nearest(sleep).is_none() {
             queue.pop();
             continue;
         }
@@ -786,8 +849,10 @@ pub fn serve_intents(
             &beds.assignments,
         );
         let chosen = available.into_iter().find_map(|admission| {
-            access
-                .for_admission(admission)
+            media_plan
+                .as_ref()
+                .map(|plan| plan.access)
+                .or_else(|| access.for_admission(admission))
                 .map(|reachable| (admission, reachable))
         });
         let Some((admission, reachable)) = chosen else {
@@ -859,6 +924,20 @@ pub fn serve_intents(
                 Path { steps, cursor: 0 },
             ));
         admission.apply(&mut commands.entity(agent));
+        if let Some(plan) = media_plan {
+            physical_places.retain(|d| d.person != agent.index_u32());
+            if let Some(lease) = &plan.lease {
+                let chair = furniture
+                    .iter()
+                    .find(|item| Some(item.entity.index_u32()) == lease.chair)
+                    .expect("planned physical seat")
+                    .entity;
+                occupancy.physical_claim(agent, chair);
+                physical_places.push(lease.clone());
+            }
+            commands
+                .queue(move |world: &mut World| crate::seating::replace(world, agent, plan.lease));
+        }
     }
 }
 
@@ -1037,6 +1116,17 @@ pub fn select_action(
         })
         .collect();
     placed_objects.sort_by_key(|(e, ..)| e.index());
+    let furniture: Vec<_> = placed_objects
+        .iter()
+        .map(
+            |(entity, position, placed, _, _, facing)| super::interpersonal::BoundaryFurniture {
+                entity: *entity,
+                position: *position,
+                definition: placed.0,
+                facing: *facing,
+            },
+        )
+        .collect();
 
     let mut company: Vec<(Entity, Position, SimId, bool)> = people
         .iter()
@@ -1051,6 +1141,7 @@ pub fn select_action(
 
     let mut decisions = Vec::new();
     let mut occupancy = beds.occupancy();
+    let mut physical_places = beds.physical_places();
     for (
         agent,
         agent_pos,
@@ -1074,6 +1165,7 @@ pub fn select_action(
         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
         let mut admissions = std::collections::HashMap::new();
         let mut routes = std::collections::HashMap::new();
+        let mut media_plans = std::collections::HashMap::new();
         let mut risks = Vec::new();
         let deprivation = mortality
             .counts
@@ -1093,21 +1185,41 @@ pub fn select_action(
             let object = *object;
             let contested = *reserved || claimed.contains(&object);
             let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
-            let Some(distance) =
-                distances.and_then(|field| field.distance_to_adjacent(to, *footprint))
+            let Some(field) = distances else {
+                continue;
+            };
+            let definition = content.0.object(placed.0);
+            let mut viewing = std::collections::HashMap::new();
+            for (index, _) in definition.interactions.iter().enumerate() {
+                if crate::seating::media_activity(content.0, placed.0, index as u32).is_some() {
+                    let device = furniture
+                        .iter()
+                        .find(|item| item.entity == object)
+                        .expect("known media device");
+                    if let Some(plan) = crate::media::plan(
+                        crate::media::Planning {
+                            pack: content.0,
+                            grid: &grid,
+                            field,
+                            objects: &furniture,
+                            occupancy: &occupancy,
+                            claims: &physical_places,
+                        },
+                        agent,
+                        device,
+                    ) {
+                        viewing.insert(index as u32, plan);
+                    }
+                }
+            }
+            let perimeter_distance = field.distance_to_adjacent(to, *footprint);
+            let Some(distance) = perimeter_distance
+                .or_else(|| viewing.values().map(|plan| plan.access.distance).min())
             else {
                 continue;
             };
             let distance = distance as f32;
-
-            let definition = content.0.object(placed.0);
-            let access = Access::new(
-                definition,
-                &content.0.sleep_tag,
-                *facing,
-                to,
-                distances.expect("reachable perimeter has a distance field"),
-            );
+            let access = Access::new(definition, &content.0.sleep_tag, *facing, to, field);
             for (index, advert) in definition.interactions.iter().enumerate() {
                 let sleep =
                     !content.0.sleep_tag.is_empty() && advert.tags.contains(&content.0.sleep_tag);
@@ -1122,12 +1234,18 @@ pub fn select_action(
                     },
                     &beds.assignments,
                 );
+                let media_requested =
+                    crate::seating::media_activity(content.0, placed.0, index as u32).is_some();
+                let media_plan = viewing.get(&(index as u32)).cloned();
                 let reachable: Vec<_> = available
                     .into_iter()
                     .filter_map(|admission| {
-                        access
-                            .for_admission(admission)
-                            .map(|route| (admission, route))
+                        (if media_requested {
+                            media_plan.as_ref().map(|plan| plan.access)
+                        } else {
+                            access.for_admission(admission)
+                        })
+                        .map(|route| (admission, route))
                     })
                     .collect();
                 let snack = (advert.id == "grab_snack")
@@ -1231,6 +1349,9 @@ pub fn select_action(
                     risks.push(risk);
                     admissions.insert((object, index as u32), admission);
                     routes.insert((object, index as u32), route.route);
+                    if let Some(plan) = media_plan {
+                        media_plans.insert((object, index as u32), plan);
+                    }
                 } else if let Some(route) = access.nearest(sleep) {
                     let (score, _) = score_at(route.distance);
                     waiting_rows.push((
@@ -1242,6 +1363,9 @@ pub fn select_action(
             }
 
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
+            if perimeter_distance.is_none() {
+                continue;
+            }
             let mut chain_row = 0u32;
             for chain in content.0.chains.iter() {
                 if chain.advertised_by != placed.0 {
@@ -1570,6 +1694,20 @@ pub fn select_action(
             Path { steps, cursor: 0 },
         ));
         admission.apply(&mut commands.entity(agent));
+        if let Some(plan) = media_plans.remove(&(object, interaction)) {
+            physical_places.retain(|d| d.person != agent.index_u32());
+            if let Some(lease) = &plan.lease {
+                let chair = furniture
+                    .iter()
+                    .find(|item| Some(item.entity.index_u32()) == lease.chair)
+                    .expect("planned physical seat")
+                    .entity;
+                occupancy.physical_claim(agent, chair);
+                physical_places.push(lease.clone());
+            }
+            commands
+                .queue(move |world: &mut World| crate::seating::replace(world, agent, plan.lease));
+        }
     }
     commands.insert_resource(super::autonomy::DecisionTelemetry(decisions));
 }

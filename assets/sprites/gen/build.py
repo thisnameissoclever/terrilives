@@ -934,13 +934,14 @@ def write_toml(sprites, placed, width, height, densities=None, pages=None, page_
 def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              hands=None, tops=None, clips=None, hand_fronts=None, variants=None, densities=None,
              pairs=None, interactions=None, bounds=None, surfaces=None, bed_catalog=None, bed_layers=None, bed_coverage=None,
-             pair_coverage=None, pair_masks=None, dining_meals=None, pages=None, page_files=None, bed_trims=None):
+             pair_coverage=None, pair_masks=None, dining_meals=None, pages=None, page_files=None, bed_trims=None,
+             seating_profiles=None, seating_layers=None, seating_coverage=None, seating_masks=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
         density = f", pixel_density: {densities[i]}" if i in (densities or {}) else ""
         page = f", page: {pages[i]}" if pages is not None else ""
-        rows.append(f"  {{ name: '{name}', x: {px}, y: {py}, w: {w}, h: {h}{density}{page} }},")
+        rows.append(f"  atlasSprite({{ name: '{name}', x: {px}, y: {py}, w: {w}, h: {h}{density}{page} }}),")
     body = "\n".join(rows)
     anchor_rows = "\n".join(
         f"  {index}: [{point[0]}, {point[1]}],"
@@ -986,6 +987,8 @@ export interface AtlasSprite {{
   readonly page?: number;
 }}
 
+function atlasSprite(sprite: AtlasSprite): AtlasSprite {{ return sprite; }}
+
 export const ATLAS_WIDTH = {width};
 export const ATLAS_HEIGHT = {height};
 /** SHA-256 of the exact generated atlas PNG bytes. */
@@ -1030,6 +1033,11 @@ export const INTERACTION_SPRITES: import('./interaction-sprites.js').Interaction
 export const BED_CATALOG: import('./bed-sprites.js').BedCatalog = {bed_catalog_json};
 export const BED_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {bed_layers_json};
 export const BED_COVERAGE: readonly import('./bed-sprites.js').EncodedCoverage[] = {bed_coverage_json};
+/** Action-specific neutral seating retains existing reading and dining profiles. */
+export const SEATING_SPRITES: import('./interaction-sprites.js').ActionInteractionCatalog = {json.dumps(seating_profiles or {}, indent=2)};
+export const SEATING_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(seating_layers or {}, indent=2)};
+export const SEATING_COVERAGE: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(seating_coverage or {}, indent=2)};
+export const SEATING_MASKS: readonly import('./bed-sprites.js').EncodedCoverage[] = {json.dumps(seating_masks or [], indent=2)};
 export const SURFACE_LAYOUTS: Readonly<Record<number, import('./surface-items.js').SurfaceLayout>> = {surfaces_json};
 export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
 /** Whether a held meal is nearer the camera than the body at its grip. */
@@ -1377,16 +1385,27 @@ def main():
         bounds[index] = prop_bounds[sprite[0]]
     from aquarium_motion import validate_swimming_catalog
     validate_swimming_catalog(sprites, swim_catalog)
+    from offline_seating import load_neutral_seats, records as seating_records, tables as seating_tables
+    seating = load_neutral_seats(Path(ROOT) / 'assets/models/seating/export/neutral-03/manifest.json')
+    seating_rows = seating_records(seating)
+    assert not {row[0] for row in sprites}.intersection(row[0] for row in seating_rows), 'duplicate neutral seating records'
+    sprites.extend(seating_rows)
+    seating_data = seating_tables(seating, sprites)
+    anchors.update(seating_data['anchors'])
+    tops.update(seating_data['tops'])
+    bounds.update(seating_data['bounds'])
+    densities.update(seating_data['density'])
+    visible_layers = {**bed_layers, **seating_data['layers']}
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     sync_generated_architecture(sprites, check=args.check)
-    textured = [(index, sprite) for index, sprite in enumerate(sprites) if index not in bed_layers]
+    textured = [(index, sprite) for index, sprite in enumerate(sprites) if index not in visible_layers]
     dense_sprites, texture_aliases = deduplicate_pixels([sprite for _, sprite in textured])
     packed_pages, page_count = pack_pages([(row[2], row[3]) for row in dense_sprites], 2048, PADDING)
     width, height = 2048, 2048
     placed = {index: packed_pages[texture_aliases[dense]][1:] for dense, (index, _) in enumerate(textured)}
     pages = {index: packed_pages[texture_aliases[dense]][0] for dense, (index, _) in enumerate(textured)}
-    for alias, layers in bed_layers.items():
+    for alias, layers in visible_layers.items():
         placed[alias] = placed[layers[0]]
         pages[alias] = pages[layers[0]]
     sheets = [Image.new('RGBA', (width, height)) for _ in range(page_count)]
@@ -1430,7 +1449,10 @@ def main():
                   pairs=pairs, interactions=interactions, bounds=bounds, surfaces=surfaces,
                   bed_catalog=bed_catalog, bed_layers=bed_layers, bed_coverage=bed_coverage,
                   pair_coverage=pair_coverage, pair_masks=pair_masks, dining_meals=dining_meals,
-                  pages=pages, page_files=page_files, bed_trims=bed_trims)
+                  pages=pages, page_files=page_files, bed_trims=bed_trims,
+                  seating_profiles={index: {profile['action']: profile} for index, profile in seating_data['profiles'].items()},
+                  seating_layers=seating_data['layers'],
+                  seating_coverage=seating_data['coverage'], seating_masks=seating_data['masks'])
 
     if args.check:
         bad = []

@@ -59,19 +59,4 @@ export function sampleBedCoverage(record: EncodedCoverage, x: number, y: number)
 }
 
 /** Startup-only descriptors keep the historical sprite-table layout unchanged. */
-export function packBedLayers(
-  count: number,
-  layers: Readonly<Record<number, readonly [number, number, number, number]>>,
-): Uint32Array<ArrayBuffer> {
-  const table = new Uint32Array(Math.max(1, count) * 4);
-  for (const [key, references] of Object.entries(layers)) {
-    const scene = Number(key);
-    if (!Number.isInteger(scene) || scene < 0 || scene >= count || references.length !== 4
-        || references[0] < 0 || references[3] < 0
-        || references.some((index) => !Number.isInteger(index) || index < -1 || index >= count)) {
-      throw new Error('bed layer reference is out of range');
-    }
-    table.set(references.map((index) => index + 1), scene * 4);
-  }
-  return table;
-}
+export { packVisibleSceneLayers as packBedLayers } from './visible-scene-layers.js';

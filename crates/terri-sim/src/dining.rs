@@ -47,25 +47,17 @@ pub(crate) fn managed_step(
 }
 
 pub(crate) fn claim(world: &World, person: u32) -> Option<&SavedDiner> {
-    world
-        .get_resource::<SavedDining>()?
-        .diners
-        .iter()
-        .find(|d| d.person == person)
+    crate::seating::claim(world, person)
+        .filter(|d| crate::seating::kind(world, d) == Some(crate::seating::UseKind::Meal))
 }
 
 pub(crate) fn object_in_use(world: &World, object: u32) -> bool {
-    world.get_resource::<SavedDining>().is_some_and(|s| {
-        s.diners
-            .iter()
-            .any(|d| d.station == object || d.chair == Some(object))
-    })
+    crate::seating::object_in_use(world, object)
 }
 
 pub(crate) fn release(world: &mut World, person: u32) -> Option<SavedDiner> {
-    let mut state = world.get_resource_mut::<SavedDining>()?;
-    let i = state.diners.iter().position(|d| d.person == person)?;
-    Some(state.diners.remove(i))
+    claim(world, person)?;
+    crate::seating::release(world, person)
 }
 
 /// Four authored place settings: two along each long edge, rotated with the table.
@@ -204,7 +196,7 @@ pub(crate) fn maintain(world: &mut World) {
         .retain(|(id, _)| dishes.iter().any(|d| d.id == *id));
     state
         .diners
-        .retain(|d| entity(world, d.person).is_some_and(|e| terminal(world, e)));
+        .retain(|d| crate::seating::kind(world, d).is_some());
     for diner in &mut state.diners {
         diner.obstructing.retain(|id| {
             world.get_resource::<SavedDomestic>().is_some_and(|s| {
@@ -607,6 +599,16 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
         return Err(SaveError::InvalidValue);
     }
     for (i, d) in state.diners.iter().enumerate() {
+        if crate::seating::kind(world, d) == Some(crate::seating::UseKind::Media) {
+            if !crate::media::valid_lease(world, d)
+                || state.diners[..i]
+                    .iter()
+                    .any(|other| other.chair == d.chair || other.endpoint == d.endpoint)
+            {
+                return Err(SaveError::InvalidValue);
+            }
+            continue;
+        }
         let p = entity(world, d.person).ok_or(SaveError::InvalidValue)?;
         let station = entity(world, d.station).ok_or(SaveError::InvalidValue)?;
         if !terminal(world, p)

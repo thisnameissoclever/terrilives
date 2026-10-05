@@ -70,6 +70,9 @@ class ShippedAtlasTests(unittest.TestCase):
         bounds = {int(index): box for index, box in shipped_table("SPRITE_CONTENT_BOUNDS").items()}
         self.assertGreater(len(bounds), 300)
         bed_layers = {int(index): layers for index, layers in shipped_table("BED_LAYERS").items()}
+        seating_layers = {int(index): layers for index, layers in shipped_table("SEATING_LAYERS").items()}
+        self.assertEqual(len(seating_layers), 5 * 4 * 3 * 4)
+        visible_layers = {**bed_layers, **seating_layers}
         pair_coverage = {int(index) for index in shipped_table("SPRITE_PAIR_COVERAGE")}
         pairs = {int(index): layers for index, layers in shipped_table("SPRITE_PAIRS").items()}
         trims = {int(index): offset for index, offset in shipped_table("BED_LAYER_TRIMS").items()}
@@ -79,11 +82,11 @@ class ShippedAtlasTests(unittest.TestCase):
                 row = records[index]
                 density = row.get("pixel_density", 1)
                 crop = atlas.crop(row)
-                if index in bed_layers or index in pair_coverage:
+                if index in visible_layers or index in pair_coverage:
                     # A scene alias reuses furniture texels but draws all visible layers.
                     # Independently union their alpha support rather than inspecting only furniture.
                     alpha = Image.new("L", crop.size)
-                    layers = bed_layers[index] if index in bed_layers else [index, *pairs[index].values()]
+                    layers = visible_layers[index] if index in visible_layers else [index, *pairs[index].values()]
                     for layer in layers:
                         if layer < 0:
                             continue

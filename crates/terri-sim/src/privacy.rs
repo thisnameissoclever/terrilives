@@ -428,22 +428,7 @@ pub(crate) fn route(world: &mut World) {
 }
 
 fn occupancy(world: &mut World) -> crate::beds::Occupancy {
-    let targets: Vec<_> = world
-        .query::<(
-            Entity,
-            &terri_core::Target,
-            Option<&terri_core::SleepPlace>,
-            Has<terri_core::Agent>,
-        )>()
-        .iter(world)
-        .map(|(e, t, p, agent)| (e, *t, p.copied().filter(|_| agent)))
-        .collect();
-    crate::beds::Occupancy::new(
-        targets.into_iter(),
-        world
-            .query_filtered::<Entity, With<terri_core::Reserved>>()
-            .iter(world),
-    )
+    crate::seating::occupancy(world)
 }
 
 pub(crate) fn substitute(
@@ -483,12 +468,28 @@ pub(crate) fn substitute(
     };
     let mut candidates = Vec::new();
     let mut objects = world.query::<(Entity, &Position, &SmartObject, Option<&ObjectFacing>)>();
-    for (object, position, placed, facing) in objects.iter(world) {
-        let definition = pack.object(placed.0);
+    let furniture: Vec<_> = objects
+        .iter(world)
+        .map(|(entity, position, object, facing)| {
+            crate::systems::interpersonal::BoundaryFurniture {
+                entity,
+                position: *position,
+                definition: object.0,
+                facing: facing.map_or(pack.object(object.0).base_facing, |f| f.0),
+            }
+        })
+        .collect();
+    let physical_claims = world
+        .get_resource::<terri_core::save::SavedDining>()
+        .map_or_else(Vec::new, |state| state.diners.clone());
+    for item in &furniture {
+        let object = item.entity;
+        let position = &item.position;
+        let definition = pack.object(item.definition);
         let access = crate::beds::navigation::Access::new(
             definition,
             &pack.sleep_tag,
-            facing.map_or(definition.base_facing, |f| f.0),
+            item.facing,
             (position.x.round() as i32, position.y.round() as i32),
             &field,
         );
@@ -514,6 +515,24 @@ pub(crate) fn substitute(
                 object,
                 interaction: interaction as u32,
             };
+            let media =
+                crate::seating::media_activity(pack, item.definition, next.interaction).is_some();
+            let media_plan = media
+                .then(|| {
+                    crate::media::plan(
+                        crate::media::Planning {
+                            pack,
+                            grid: safe,
+                            field: &field,
+                            objects: &furniture,
+                            occupancy: &occupancy,
+                            claims: &physical_claims,
+                        },
+                        actor,
+                        item,
+                    )
+                })
+                .flatten();
             let available = occupancy.admissions(
                 pack,
                 definition,
@@ -527,7 +546,11 @@ pub(crate) fn substitute(
             let chosen = available
                 .into_iter()
                 .filter_map(|admission| {
-                    let route = access.for_admission(admission)?;
+                    let route = if media {
+                        media_plan.as_ref()?.access
+                    } else {
+                        access.for_admission(admission)?
+                    };
                     let steps = route.route.path(safe, from)?;
                     let steps = safe.anchor_path((pos.x, pos.y), steps)?;
                     let risk = crate::systems::autonomy::survival_penalty(
@@ -562,14 +585,15 @@ pub(crate) fn substitute(
                         ordinal,
                         admission,
                         steps,
+                        media_plan.as_ref().and_then(|p| p.lease.clone()),
                     ))
                 })
                 .min_by(|a, b| {
                     a.0.total_cmp(&b.0)
                         .then_with(|| (a.1, a.2, a.3, a.4).cmp(&(b.1, b.2, b.3, b.4)))
                 })
-                .map(|(risk, _, _, _, _, admission, steps)| (risk, admission, steps));
-            if let Some((risk, admission, steps)) = chosen {
+                .map(|(risk, _, _, _, _, admission, steps, lease)| (risk, admission, steps, lease));
+            if let Some((risk, admission, steps, lease)) = chosen {
                 candidates.push((
                     steps.len(),
                     object.index_u32(),
@@ -578,6 +602,7 @@ pub(crate) fn substitute(
                     admission,
                     steps,
                     risk,
+                    lease,
                 ));
             }
         }
@@ -592,8 +617,10 @@ pub(crate) fn substitute(
     let eligible: std::collections::HashSet<_> =
         choices.into_iter().map(|row| (row.0, row.1)).collect();
     candidates.retain(|row| eligible.contains(&(row.3, row.2)));
-    candidates.sort_by_key(|(length, index, act, _, _, _, _)| (*length, *index, *act));
-    if let Some((_, _, interaction, object, admission, steps, _)) = candidates.into_iter().next() {
+    candidates.sort_by_key(|(length, index, act, _, _, _, _, _)| (*length, *index, *act));
+    if let Some((_, _, interaction, object, admission, steps, _, lease)) =
+        candidates.into_iter().next()
+    {
         crate::domestic::suspend_cleanup(world, actor);
         if let Some(t) = target {
             crate::reservations::release_now(world, actor, t);
@@ -616,6 +643,7 @@ pub(crate) fn substitute(
             },
             Path { steps, cursor: 0 },
         ));
+        crate::seating::replace(world, actor, lease);
         return true;
     }
     false

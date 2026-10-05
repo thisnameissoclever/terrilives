@@ -1,0 +1,4812 @@
+{
+  "dining": [
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2798,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6250,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2798,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6250,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2798,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6250,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9741,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2785,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6239,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9741,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2785,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6239,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9741,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2785,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6239,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2798,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6250,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2798,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6250,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2798,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6250,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9780,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2824,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6272,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9780,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2824,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6272,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9780,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2824,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6272,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9379,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2278,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4929,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9379,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2278,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4929,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9379,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2278,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4929,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9416,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2290,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4960,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9416,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2290,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4960,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9416,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2290,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4960,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9379,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2278,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4929,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9379,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2278,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4929,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9379,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2278,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4929,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9335,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2281,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9335,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2281,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 5,
+        "p95_error": 2,
+        "active_pixels": 9335,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 5,
+        "p95_error": 2,
+        "active_pixels": 2281,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 5,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9396,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2231,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4948,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9396,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2231,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4948,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9396,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2231,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4948,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9429,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2242,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4972,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9429,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2242,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4972,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9429,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2242,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4972,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9396,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2231,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4948,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9396,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2231,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4948,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9396,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2231,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4948,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9362,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2229,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4917,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9362,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2229,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4917,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9362,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2229,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4917,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9609,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2894,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6116,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9609,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2894,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6116,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9609,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2894,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6116,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9580,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2878,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6089,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9580,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2878,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6089,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9580,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2878,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6089,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9609,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2894,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6116,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9609,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2894,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6116,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9609,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2894,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6116,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9631,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2896,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6145,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9631,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2896,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6145,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9631,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2896,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6145,
+        "pixels_above_8": 0
+      }
+    }
+  ],
+  "office": [
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10099,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2713,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6281,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10099,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2713,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6281,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10099,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2713,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6281,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10087,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2711,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6259,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10087,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2711,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6259,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10087,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2711,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6259,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10099,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2713,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6281,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10099,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2713,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6281,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10099,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2713,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6281,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10108,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2742,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6307,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10108,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2742,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6307,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10108,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2742,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6307,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9709,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2460,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9709,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2460,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9709,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2460,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2462,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4916,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2462,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4916,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2462,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4916,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9709,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2460,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9709,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2460,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9709,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2460,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4894,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9678,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2469,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4856,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9678,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2469,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4856,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9678,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2469,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4856,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2442,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4911,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2442,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4911,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2442,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4911,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9779,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2444,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4937,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9779,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2444,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4937,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9779,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2444,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4937,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2442,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4911,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2442,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4911,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9747,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2442,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4911,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9717,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2425,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4874,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9717,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2425,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4874,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9717,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2425,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4874,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9937,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2794,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6147,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9937,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2794,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6147,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9937,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2794,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6147,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9923,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2820,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6124,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9923,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2820,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6124,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9923,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2820,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6124,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9937,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2794,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6147,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9937,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2794,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6147,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9937,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2794,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6147,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9951,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2821,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6183,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9951,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2821,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6183,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9951,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2821,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6183,
+        "pixels_above_8": 0
+      }
+    }
+  ],
+  "sofa": [
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19280,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3340,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6266,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19280,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3340,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6266,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19280,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3340,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6266,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19268,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3323,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6239,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19268,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3323,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6239,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19268,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3323,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6239,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19280,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3340,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6266,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19280,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3340,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6266,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19280,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3340,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6266,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19294,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3350,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6288,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19294,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3350,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6288,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19294,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3350,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6288,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18775,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2607,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4659,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18775,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2607,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4659,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18775,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2607,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4659,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18811,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2620,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4690,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18811,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2620,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4690,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18811,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2620,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4690,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18775,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2607,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4659,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18775,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2607,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4659,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18775,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2607,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4659,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18735,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4626,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18735,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4626,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18735,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4626,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18796,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2554,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18796,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2554,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18796,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2554,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18823,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2572,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 1,
+        "active_pixels": 4703,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18823,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2572,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4703,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18823,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2572,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4703,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18796,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2554,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18796,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2554,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18796,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2554,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18758,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2557,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 4654,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18758,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2557,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4654,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 18758,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2557,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4654,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19185,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3475,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6132,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19185,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3475,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6132,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19185,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3475,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6132,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19178,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3462,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6098,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19178,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3462,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6098,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19178,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3462,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6098,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19185,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3475,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6132,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19185,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3475,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6132,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19185,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3475,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6132,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19201,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3482,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6160,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19201,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3482,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 6160,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 19201,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3482,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6160,
+        "pixels_above_8": 0
+      }
+    }
+  ],
+  "ottoman": [
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8871,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6080,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8871,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6080,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8871,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6080,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8838,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2605,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6063,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8838,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2605,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6063,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8838,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2605,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6063,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8871,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6080,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8871,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6080,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8871,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2612,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6080,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8900,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2629,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6090,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8900,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2629,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6090,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8900,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2629,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 6090,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9017,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2061,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4731,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9017,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2061,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4731,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9017,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2061,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4731,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9058,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2067,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4765,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9058,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2067,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4765,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9058,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2067,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4765,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9017,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2061,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4731,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9017,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2061,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4731,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9017,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2061,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4731,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8987,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2060,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4696,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8987,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2060,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4696,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8987,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2060,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4696,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9030,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 1998,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4753,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9030,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 1998,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4753,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9030,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1998,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4753,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9072,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2023,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4784,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9072,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2023,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4784,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9072,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2023,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4784,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9030,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 1998,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4753,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9030,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 1998,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4753,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 9030,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1998,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 4753,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9000,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2007,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 1,
+        "active_pixels": 4719,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9000,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2007,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4719,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 9000,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2007,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 4719,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 8732,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2710,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5943,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 8732,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2710,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5943,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8732,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2710,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5943,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 8700,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2695,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5916,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 8700,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2695,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5916,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 8700,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2695,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5916,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 8732,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2710,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5943,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 8732,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2710,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5943,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8732,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2710,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5943,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2721,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5972,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2721,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5972,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 8763,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2721,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5972,
+        "pixels_above_8": 0
+      }
+    }
+  ],
+  "reading": [
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2988,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5688,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2988,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5688,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2988,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5688,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10970,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2982,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5666,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10970,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2982,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5666,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10970,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2982,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5666,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2988,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5688,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2988,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5688,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2988,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5688,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2985,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5713,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2985,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5713,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10972,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2985,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5713,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10675,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1769,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10675,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1769,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10675,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1769,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10707,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1786,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3726,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10707,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1786,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3726,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10707,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1786,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3726,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10675,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1769,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10675,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1769,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10675,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1769,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10637,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1774,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3665,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10637,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1774,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3665,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10637,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1774,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3665,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 11136,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2918,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5828,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 11136,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2918,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5828,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 11136,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2918,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5828,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 11139,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2891,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5807,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 11139,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2891,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5807,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 11139,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2891,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5807,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 11136,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2918,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5828,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 11136,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 2918,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 5828,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 11136,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2918,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5828,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 11131,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2935,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5841,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 11131,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2935,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5841,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 11131,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 2935,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 5841,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10656,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1816,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10656,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1816,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10656,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1816,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10696,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1829,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3712,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10696,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1829,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3712,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10696,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1829,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3712,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10656,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1816,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10656,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1816,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10656,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1816,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 2,
+        "active_pixels": 3677,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10616,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1823,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3639,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10616,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1823,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3639,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "scene": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 10616,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1823,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3639,
+        "pixels_above_8": 0
+      }
+    }
+  ]
+}
