@@ -1,0 +1,12 @@
+{
+  "occupancy": 0,
+  "facing": "NE",
+  "palettes": [
+    "green",
+    "green"
+  ],
+  "sample": 0,
+  "owner": "beauty",
+  "path": "covered-bunk-0-NE-green-0-beauty.png",
+  "sha256": "0b3269325527b9029028547bee314897a407d04a8e6ead4fa8dba1de36ce58d9"
+}

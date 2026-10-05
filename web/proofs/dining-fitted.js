@@ -1,5 +1,5 @@
 import { initDevice } from '../src/render/device.ts';
-import { SpriteRenderer, packSpriteTable } from '../src/render/sprites.ts';
+import { SpriteRenderer, packSpriteTable, FLOATS_PER_SPRITE } from '../src/render/sprites.ts';
 import { buildInstances } from '../src/frame.ts';
 import { InteractionSelection } from '../src/render/interaction-sprites.ts';
 import { INTERACTION_SPRITES, SPRITE_PAIRS, spriteIndex } from '../src/render/atlas.ts';
@@ -77,7 +77,7 @@ export async function diningFittedProof() {
             throw new Error(JSON.stringify({ facing, variant, phase, ...metrics }));
           }
           if (variant === 'green' && phase === 4) {
-            const broken = table.slice(); broken[sprite * 8 + 6] = 0; broken[sprite * 8 + 7] = 0;
+            const broken = table.slice(); broken[sprite * FLOATS_PER_SPRITE + 6] = 0; broken[sprite * FLOATS_PER_SPRITE + 7] = 0;
             try {
               gpu.device.queue.writeBuffer(renderer.spriteBuffer, 0, broken);
               renderer.draw(data, source.count + 1, 2);

@@ -6,6 +6,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -23,7 +24,7 @@ class KitchenPrefixTests(unittest.TestCase):
             (1125,'303d593494271f880caa13190dccebe5d5e9a00bcd4b353e0345f2d114eaef66'),
             (1133,'cc6bf794b7def991014d55e12798c4993c87d33b240c00eb059f07f913625b4e'),
         ):
-            with self.subTest(count=count), Image.open(ROOT/'web/public/atlas.png') as image:
+            with self.subTest(count=count), AtlasPages(ROOT) as image:
                 rows = records[:count]
                 self.assertEqual(len(rows),count)
                 digest = hashlib.sha256()
@@ -36,7 +37,7 @@ class KitchenPrefixTests(unittest.TestCase):
                         continue
                     metadata = [row['name'],row['w'],row['h'],row.get('pixel_density',1)]
                     digest.update(json.dumps(metadata,separators=(',',':')).encode())
-                    digest.update(image.crop((row['x'],row['y'],row['x']+row['w'],row['y']+row['h'])).tobytes())
+                    digest.update(image.crop(row).tobytes())
                 self.assertEqual(digest.hexdigest(),expected)
 
 

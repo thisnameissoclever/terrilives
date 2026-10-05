@@ -1,5 +1,6 @@
 import { SPRITES, type AtlasSprite } from './atlas.js';
 import { ARCHITECTURE } from './architecture-data.js';
+import { BYTES_PER_SPRITE } from './sprite-table-layout.js';
 import { prepareArchitectureFinishes, type ActiveFinishes, type FinishCatalogue,
   type PatternResource } from './architecture-finishes.js';
 
@@ -76,7 +77,7 @@ export function validateArchitectureDevice(atlas: ArchitectureAtlas, limits: Pic
   if (limits.maxStorageBuffersPerShaderStage < 4) {
     throw new Error('Architecture tables exceed device storage buffer counts');
   }
-  if (Math.max((historicalSpriteCount + atlas.sprites.length) * 32,
+  if (Math.max((historicalSpriteCount + atlas.sprites.length) * BYTES_PER_SPRITE,
     atlas.registration?.byteLength ?? 16, atlas.finishes?.table.byteLength ?? 32) > limits.maxStorageBufferBindingSize) {
     throw new Error('Architecture tables exceed device storage limits');
   }

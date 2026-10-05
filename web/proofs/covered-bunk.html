@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Covered bunk GPU checks</title>
+<body><style>#result{white-space:pre-wrap;overflow:auto;max-height:180px;max-width:880px}#board{display:flex;flex-wrap:wrap;max-width:900px}</style><pre id="result">Checking actual rendering...</pre><div id="board"></div>
+<script type="module">
+import { initDevice } from '../src/render/device.ts';
+import { SpriteRenderer } from '../src/render/sprites.ts';
+import { BED_CATALOG, BED_LAYERS, BED_LAYER_TRIMS, SPRITES, SPRITE_ANCHORS, ATLAS_PAGE_FILES, spriteIndex } from '../src/render/atlas.ts';
+import { writeInstance } from '../src/render/instances.ts';
+const canvas=document.createElement('canvas');canvas.width=420;canvas.height=380;
+const gpu=await initDevice(canvas), errors=[];
+gpu.device.addEventListener('uncapturederror',event=>errors.push(event.error.message));
+try {
+ gpu.device.pushErrorScope('validation');
+ const renderer=await SpriteRenderer.create(gpu), reference=await(await fetch('./.covered-bunk-reference.json')).json();
+ const image=document.createElement('canvas');image.width=420;image.height=380;
+ const context=image.getContext('2d',{willReadFrequently:true}), instances=new Float32Array(16), records=[];
+ // Opaque gutters must not leak into the two-zero-texel body border.
+ const texture=renderer.ownedTextures[0];
+ for(const key of Object.keys(BED_LAYER_TRIMS)) {
+  const sprite=SPRITES[Number(key)], pixels=new Uint8Array(sprite.h*4);
+  for(let at=0;at<pixels.length;at+=4)pixels.set([255,0,255,255],at);
+  gpu.device.queue.writeTexture({texture,origin:[sprite.x+sprite.w,sprite.y,sprite.page]},pixels,{bytesPerRow:4},[1,sprite.h]);
+ }
+ for(const row of reference.records) {
+  const empty=spriteIndex('offlineBunk'+(row.facing==='SE'?'':row.facing)), palette=['green','blue','red'].indexOf(row.palette);
+  const scene=BED_CATALOG[empty][9+3*palette], sprite=SPRITES[scene.sprite], anchor=SPRITE_ANCHORS[scene.sprite];
+  const worldX=20.375+47.000009536743164*row.scale, worldY=20.125+121.00043869018555*row.scale;
+  writeInstance(instances,0,worldX+(sprite.w/4-anchor[0])*row.scale,
+   worldY+(sprite.h/2-21-anchor[1])*row.scale,.5,scene.sprite);
+  instances.set(row.shift,12);renderer.draw(instances,1,row.scale);
+  await gpu.device.queue.onSubmittedWorkDone();context.drawImage(canvas,0,0);
+  const pixels=context.getImageData(0,0,420,380).data, differences=[];let maximum=0,worst;
+  for(const [x,y,...expected] of row.samples){const at=(y*420+x)*4,actual=Array.from(pixels.slice(at,at+3));
+   const error=Math.max(...actual.map((value,i)=>Math.abs(value-expected[i])));differences.push(error);
+   if(error>maximum){maximum=error;worst={x,y,actual,expected};}}
+  differences.sort((a,b)=>a-b);const p95=differences[Math.floor(differences.length*.95)];
+  records.push({facing:row.facing,palette:row.palette,scale:row.scale,shift:row.shift,maximum,p95,samples:row.samples.length,worst});
+  if(row.palette==='green'&&row.scale===2.5&&row.shift[0]===0){const tile=document.createElement('section'),label=document.createElement('div'),copy=document.createElement('canvas');
+   label.textContent=row.facing;copy.width=420;copy.height=380;copy.getContext('2d').drawImage(canvas,0,0);tile.append(label,copy);document.querySelector('#board').append(tile);}
+ }
+ const validation=await gpu.device.popErrorScope();
+ document.querySelector('#result').textContent=JSON.stringify({pass:!validation&&!errors.length&&records.every(row=>row.maximum<=6&&row.p95<=2),pages:ATLAS_PAGE_FILES,validation:validation?.message??null,errors,records});
+}catch(error){document.querySelector('#result').textContent=JSON.stringify({pass:false,error:String(error)});}
+finally{gpu.device.destroy();}
+</script></body></html>

@@ -7,6 +7,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 ROOT = Path(__file__).resolve().parents[3]
 BASELINE = json.loads(Path(__file__).with_name('aquarium-preserved-main.json').read_text())
 
@@ -30,7 +31,7 @@ class AquariumPrefixTests(unittest.TestCase):
         self.assertIsNotNone(match)
         value = json.loads(match.group(1))
         base = value.pop('baseSpriteId')
-        self.assertEqual(base, BASELINE['count'] + 8)
+        self.assertEqual(base, BASELINE['count'] + 8 + 30)
         for index, row in enumerate(value['sprites']):
             self.assertEqual(row.pop('id'), base + index)
         digest = hashlib.sha256(json.dumps(value, sort_keys=True,
@@ -44,11 +45,11 @@ class AquariumPrefixTests(unittest.TestCase):
                  for suffix in ('', 'NW', 'SW', 'NE')]
         self.assertEqual([row['name'] for row in rows[count:count + 8]], names)
         digest = hashlib.sha256()
-        with Image.open(ROOT/'web/public/atlas.png') as image:
+        with AtlasPages(ROOT) as image:
             for row in rows[:count]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), BASELINE['pixel_sha256'])
 
     def test_preserves_bed_dining_coverage_surface_and_other_registration_tables(self):
@@ -56,6 +57,10 @@ class AquariumPrefixTests(unittest.TestCase):
         for name, expected in BASELINE['tables'].items():
             with self.subTest(table=name):
                 value = table_value(source, name)
+                if name == 'BED_CATALOG':
+                    value = {key: value[key] for key in ('1133', '1134', '1135', '1136')}
+                elif name == 'BED_COVERAGE':
+                    value = value[:expected['count']]
                 self.assertEqual(len(value), expected['count'])
                 digest = hashlib.sha256(json.dumps(value, sort_keys=True,
                     separators=(',', ':'), allow_nan=False).encode()).hexdigest()

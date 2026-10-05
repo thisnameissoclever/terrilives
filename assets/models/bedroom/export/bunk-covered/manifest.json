@@ -1,0 +1,565 @@
+{
+  "version": 1,
+  "pilot": false,
+  "static": true,
+  "pixel_density": 2,
+  "encoding": "scene-linear-premultiplied-visible-additive",
+  "picking": "visible-owner-fill-alpha",
+  "source_receipt_sha256": "0585bbbf8a01487473c80f463673d6cf3e72f58fec8c3bb53adcaf61d8f71533",
+  "crop": [
+    66,
+    46,
+    254,
+    308
+  ],
+  "source_fit_sha256": "73817fdea1a50b623d1edaf45ad8ccc1233a85f789233413c5a3fbcd93e3920a",
+  "export_signature": {
+    "export_covered_bunk_sleep.py": "ce5c116033ba3d31488ca07f8a3c22d8d18dafdbee51f7c26861d199258c1aaa",
+    "double_bed_linear.py": "4bf119ab8bbe1aaacbd29ea3ec444d4125e373cdfa9d1d2efa23fd90a04e1e1b",
+    "double_bed_layers.py": "b0e9ccd4aa28c97a84980cad0b5603b4b2e25cb99344702747719adc9cccc470"
+  },
+  "width": 94,
+  "height": 131,
+  "anchor": [
+    47.000009536743164,
+    121.00043869018555
+  ],
+  "scenes": [
+    {
+      "occupancy": 0,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-839686ea611bb74727a4c21252a31ba49857bbffca25be1e49acceeca98d24ba.png",
+        "sha256": "2ec603b6cf2540215a53f014f346ff66c9204f58c7d3290047693d4daf8a2050",
+        "pixels_sha256": "839686ea611bb74727a4c21252a31ba49857bbffca25be1e49acceeca98d24ba"
+      },
+      "outline": {
+        "path": "layers/188x262-ebe739eda868bcd8b59ade9229a73d11b11154faa06e6ceacb13a1d608cea3c3.png",
+        "sha256": "9dfb98179503ac1d61801259a2f276273230729b7300d76ddae93b0d1def9655",
+        "pixels_sha256": "ebe739eda868bcd8b59ade9229a73d11b11154faa06e6ceacb13a1d608cea3c3"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 0,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-a5dfd008151297f1470a0087e2707f65c9ec73955af39786285be41f3bcf1bba.png",
+        "sha256": "a7a0571734b9b2c67f0967f07447048a214f04c1d8767fec638ffcbf7c8535f6",
+        "pixels_sha256": "a5dfd008151297f1470a0087e2707f65c9ec73955af39786285be41f3bcf1bba"
+      },
+      "outline": {
+        "path": "layers/188x262-af6d4c944a6d3bb3af60388f17b44590f931ddfdef85c4cb98ba9297e96e1d68.png",
+        "sha256": "b779dabc55ad869b1275e35f97c10d47ff3241647eb1ef326a67fda8104c463a",
+        "pixels_sha256": "af6d4c944a6d3bb3af60388f17b44590f931ddfdef85c4cb98ba9297e96e1d68"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 0,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-4e2deadf0c2ec052cd756c80318e784bf01b536aa6e1e0e5b2ca735a4d680d94.png",
+        "sha256": "d8caed8d4c01278f3e7ef33f73e2565a737bd583271a63f1a07f5574f55d6332",
+        "pixels_sha256": "4e2deadf0c2ec052cd756c80318e784bf01b536aa6e1e0e5b2ca735a4d680d94"
+      },
+      "outline": {
+        "path": "layers/188x262-1e1bddb6288db50f9ad2f5efe62c539748462b10e3ab3167da4c8fcda613f4bd.png",
+        "sha256": "9a827ac9c6cfd698cccb52acb4967d59d4533e2621e3fdc3d321d4cc61b4ae53",
+        "pixels_sha256": "1e1bddb6288db50f9ad2f5efe62c539748462b10e3ab3167da4c8fcda613f4bd"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 0,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-4ea542d25c92fa48ffa0be6c5b444774abb42cb8f2785d44f934cdfa346f2b04.png",
+        "sha256": "9dbceff65ac4e8de4c93076eca7bea61df0401aa3d8f064c166c7c4a514b5687",
+        "pixels_sha256": "4ea542d25c92fa48ffa0be6c5b444774abb42cb8f2785d44f934cdfa346f2b04"
+      },
+      "outline": {
+        "path": "layers/188x262-4617c65016276ce556c2649c2ee40e4219b4c17a96a2ddd2103d0ba9da8b5f92.png",
+        "sha256": "fb6c7dcc2474bd1ef4d5f3317d96a73799af16755cdec3607a3412953f5ec393",
+        "pixels_sha256": "4617c65016276ce556c2649c2ee40e4219b4c17a96a2ddd2103d0ba9da8b5f92"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-815551374333e5e9cbbf5276a50f6efdda4f49b5b1c72f26297f9612fc48cae7.png",
+        "sha256": "266eb9e61d9691a12ea9de4cbc4f54e7ee7100e2916f1dfe9fef745bf7bb0af8",
+        "pixels_sha256": "815551374333e5e9cbbf5276a50f6efdda4f49b5b1c72f26297f9612fc48cae7"
+      },
+      "outline": {
+        "path": "layers/188x262-5119e3e2fd9f9fc6993a939408942fe1f198907eeb3d2ce4b7d687a8dfb5f5bd.png",
+        "sha256": "c95e32f94edf8c3b26201f87d4fef91e9ef82f3a7bf934081acb1e0bc32d128b",
+        "pixels_sha256": "5119e3e2fd9f9fc6993a939408942fe1f198907eeb3d2ce4b7d687a8dfb5f5bd"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/70x31-f90b48c2eb6a5e5b6e07b4e7ac4d1a626a9ca32b562cd1ba2da0a2f1a2b5f248.png",
+          "sha256": "cbd2c8964e4dd3b19884322a14be7d7576d71eff74a8203ecd665adb3c7760bc",
+          "pixels_sha256": "f90b48c2eb6a5e5b6e07b4e7ac4d1a626a9ca32b562cd1ba2da0a2f1a2b5f248",
+          "trim": [
+            35,
+            158,
+            105,
+            189
+          ],
+          "coverage": {
+            "path": "coverage/188x262-6bb04cc60aa405ad164f6ec06776f6b9c2289e2327b30b756944c2ed0b0915f9.png",
+            "sha256": "76c0a695b5c3d4a11cb93c6d4cf9a6992a67536261ec9bfb8248590acd83462d",
+            "pixels_sha256": "6bb04cc60aa405ad164f6ec06776f6b9c2289e2327b30b756944c2ed0b0915f9"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-815551374333e5e9cbbf5276a50f6efdda4f49b5b1c72f26297f9612fc48cae7.png",
+        "sha256": "266eb9e61d9691a12ea9de4cbc4f54e7ee7100e2916f1dfe9fef745bf7bb0af8",
+        "pixels_sha256": "815551374333e5e9cbbf5276a50f6efdda4f49b5b1c72f26297f9612fc48cae7"
+      },
+      "outline": {
+        "path": "layers/188x262-5119e3e2fd9f9fc6993a939408942fe1f198907eeb3d2ce4b7d687a8dfb5f5bd.png",
+        "sha256": "c95e32f94edf8c3b26201f87d4fef91e9ef82f3a7bf934081acb1e0bc32d128b",
+        "pixels_sha256": "5119e3e2fd9f9fc6993a939408942fe1f198907eeb3d2ce4b7d687a8dfb5f5bd"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/70x31-88fe331aded70cde54c333177d2c757136412de6016f13f0f628facd5ded78f6.png",
+          "sha256": "4a5a523bd9d88c5e5d445ead079e21750982121b16e378ba90668fd55ac8825b",
+          "pixels_sha256": "88fe331aded70cde54c333177d2c757136412de6016f13f0f628facd5ded78f6",
+          "trim": [
+            35,
+            158,
+            105,
+            189
+          ],
+          "coverage": {
+            "path": "coverage/188x262-6bb04cc60aa405ad164f6ec06776f6b9c2289e2327b30b756944c2ed0b0915f9.png",
+            "sha256": "76c0a695b5c3d4a11cb93c6d4cf9a6992a67536261ec9bfb8248590acd83462d",
+            "pixels_sha256": "6bb04cc60aa405ad164f6ec06776f6b9c2289e2327b30b756944c2ed0b0915f9"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-815551374333e5e9cbbf5276a50f6efdda4f49b5b1c72f26297f9612fc48cae7.png",
+        "sha256": "266eb9e61d9691a12ea9de4cbc4f54e7ee7100e2916f1dfe9fef745bf7bb0af8",
+        "pixels_sha256": "815551374333e5e9cbbf5276a50f6efdda4f49b5b1c72f26297f9612fc48cae7"
+      },
+      "outline": {
+        "path": "layers/188x262-5119e3e2fd9f9fc6993a939408942fe1f198907eeb3d2ce4b7d687a8dfb5f5bd.png",
+        "sha256": "c95e32f94edf8c3b26201f87d4fef91e9ef82f3a7bf934081acb1e0bc32d128b",
+        "pixels_sha256": "5119e3e2fd9f9fc6993a939408942fe1f198907eeb3d2ce4b7d687a8dfb5f5bd"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/70x31-46495b21686de96fe279c4b43e4cc0a14846fa265caa9300c822dcced781d02b.png",
+          "sha256": "ee26c8c8d5f7098f1f2461ef59fe2ca4891493545f315d51724ee46d50d7fa67",
+          "pixels_sha256": "46495b21686de96fe279c4b43e4cc0a14846fa265caa9300c822dcced781d02b",
+          "trim": [
+            35,
+            158,
+            105,
+            189
+          ],
+          "coverage": {
+            "path": "coverage/188x262-6bb04cc60aa405ad164f6ec06776f6b9c2289e2327b30b756944c2ed0b0915f9.png",
+            "sha256": "76c0a695b5c3d4a11cb93c6d4cf9a6992a67536261ec9bfb8248590acd83462d",
+            "pixels_sha256": "6bb04cc60aa405ad164f6ec06776f6b9c2289e2327b30b756944c2ed0b0915f9"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-e904486d54e8c406be59a0de7210e70407da351c6281bf7b63d135dd432e9dbf.png",
+        "sha256": "8ce21c5e70eee0aa044b6689d9f58a3c36d9686cf70aed52e8c5d2770faa07de",
+        "pixels_sha256": "e904486d54e8c406be59a0de7210e70407da351c6281bf7b63d135dd432e9dbf"
+      },
+      "outline": {
+        "path": "layers/188x262-b9b3a9a41a7b4de41894ee7fbc2203f3956e9b3f1e9f947b9cb6c44a69a21bf9.png",
+        "sha256": "c7cdb6da23d71844468f230b1a0e4e8d7b970499bcf27c645593f83d93afdf83",
+        "pixels_sha256": "b9b3a9a41a7b4de41894ee7fbc2203f3956e9b3f1e9f947b9cb6c44a69a21bf9"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/72x32-2c97bd454586d40329a57b0bd27ba6567f28b43e4bc295edcbf51a2006bc74c3.png",
+          "sha256": "a1dd849e2a0dd10cada2c7ca1e19e1a12a9a4206b1a62192ff010ea1f756b91b",
+          "pixels_sha256": "2c97bd454586d40329a57b0bd27ba6567f28b43e4bc295edcbf51a2006bc74c3",
+          "trim": [
+            83,
+            157,
+            155,
+            189
+          ],
+          "coverage": {
+            "path": "coverage/188x262-8d938f4fc698974140f047e4fb1ff76aed6ac58f9ceb61f393eac9ab7a2660e6.png",
+            "sha256": "37135ebb8c0867ad20ab4eff22d9f73fcc896c78c988d5b7be5165ca69ca2f25",
+            "pixels_sha256": "8d938f4fc698974140f047e4fb1ff76aed6ac58f9ceb61f393eac9ab7a2660e6"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-e904486d54e8c406be59a0de7210e70407da351c6281bf7b63d135dd432e9dbf.png",
+        "sha256": "8ce21c5e70eee0aa044b6689d9f58a3c36d9686cf70aed52e8c5d2770faa07de",
+        "pixels_sha256": "e904486d54e8c406be59a0de7210e70407da351c6281bf7b63d135dd432e9dbf"
+      },
+      "outline": {
+        "path": "layers/188x262-b9b3a9a41a7b4de41894ee7fbc2203f3956e9b3f1e9f947b9cb6c44a69a21bf9.png",
+        "sha256": "c7cdb6da23d71844468f230b1a0e4e8d7b970499bcf27c645593f83d93afdf83",
+        "pixels_sha256": "b9b3a9a41a7b4de41894ee7fbc2203f3956e9b3f1e9f947b9cb6c44a69a21bf9"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/72x32-4a3e76357d74ec95b0550598ffb2b3c0e33c6cee5b1f9b5824c8bb92b0e83bea.png",
+          "sha256": "a70e7cda273e2ce0e3c5a4c1ee13310d6d9ac05152bc8037c964f625e1d4edc8",
+          "pixels_sha256": "4a3e76357d74ec95b0550598ffb2b3c0e33c6cee5b1f9b5824c8bb92b0e83bea",
+          "trim": [
+            83,
+            157,
+            155,
+            189
+          ],
+          "coverage": {
+            "path": "coverage/188x262-8d938f4fc698974140f047e4fb1ff76aed6ac58f9ceb61f393eac9ab7a2660e6.png",
+            "sha256": "37135ebb8c0867ad20ab4eff22d9f73fcc896c78c988d5b7be5165ca69ca2f25",
+            "pixels_sha256": "8d938f4fc698974140f047e4fb1ff76aed6ac58f9ceb61f393eac9ab7a2660e6"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-e904486d54e8c406be59a0de7210e70407da351c6281bf7b63d135dd432e9dbf.png",
+        "sha256": "8ce21c5e70eee0aa044b6689d9f58a3c36d9686cf70aed52e8c5d2770faa07de",
+        "pixels_sha256": "e904486d54e8c406be59a0de7210e70407da351c6281bf7b63d135dd432e9dbf"
+      },
+      "outline": {
+        "path": "layers/188x262-b9b3a9a41a7b4de41894ee7fbc2203f3956e9b3f1e9f947b9cb6c44a69a21bf9.png",
+        "sha256": "c7cdb6da23d71844468f230b1a0e4e8d7b970499bcf27c645593f83d93afdf83",
+        "pixels_sha256": "b9b3a9a41a7b4de41894ee7fbc2203f3956e9b3f1e9f947b9cb6c44a69a21bf9"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/72x32-ff5a1ceadfdac087f56b3e3ac3fdd155311e9596b89ba32b4e4f8164f2e83805.png",
+          "sha256": "6d90eddbbf28fd22ef181948b20c51d41432773367ecac2b53848ba7dac60df7",
+          "pixels_sha256": "ff5a1ceadfdac087f56b3e3ac3fdd155311e9596b89ba32b4e4f8164f2e83805",
+          "trim": [
+            83,
+            157,
+            155,
+            189
+          ],
+          "coverage": {
+            "path": "coverage/188x262-8d938f4fc698974140f047e4fb1ff76aed6ac58f9ceb61f393eac9ab7a2660e6.png",
+            "sha256": "37135ebb8c0867ad20ab4eff22d9f73fcc896c78c988d5b7be5165ca69ca2f25",
+            "pixels_sha256": "8d938f4fc698974140f047e4fb1ff76aed6ac58f9ceb61f393eac9ab7a2660e6"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-2cb60a0380a5661b3baa6d205518f49d9c88da785555353c80545cd4505555ed.png",
+        "sha256": "52eca64871c715ceb96fe8de99fe06b5ffadab8cfb752ecbcc69b1886e04ecac",
+        "pixels_sha256": "2cb60a0380a5661b3baa6d205518f49d9c88da785555353c80545cd4505555ed"
+      },
+      "outline": {
+        "path": "layers/188x262-c53a4c45fc0bbccc32f1f6e6f00159776d032cf3c9655a412e462d576fe30e43.png",
+        "sha256": "4feae923492d6c7720d71b74c21b17a82d32a06ea1f3aa214f927cca6a1a1604",
+        "pixels_sha256": "c53a4c45fc0bbccc32f1f6e6f00159776d032cf3c9655a412e462d576fe30e43"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/44x38-64cfa0ab48909503f35d68d4dfd9ee14474976490ddba6ab3575489ab395969d.png",
+          "sha256": "febc0c1293c925aa16027314d471605de26138b11cdf23e737133330f74b3dc3",
+          "pixels_sha256": "64cfa0ab48909503f35d68d4dfd9ee14474976490ddba6ab3575489ab395969d",
+          "trim": [
+            33,
+            113,
+            77,
+            151
+          ],
+          "coverage": {
+            "path": "coverage/188x262-e2132c58785149c223f1d3727184d12a32f047fa4e91ae3687173e346e229d4c.png",
+            "sha256": "5c3998a927865d26591aecca9320135f9d23d29fa6f4680642da63f4e95939c9",
+            "pixels_sha256": "e2132c58785149c223f1d3727184d12a32f047fa4e91ae3687173e346e229d4c"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-2cb60a0380a5661b3baa6d205518f49d9c88da785555353c80545cd4505555ed.png",
+        "sha256": "52eca64871c715ceb96fe8de99fe06b5ffadab8cfb752ecbcc69b1886e04ecac",
+        "pixels_sha256": "2cb60a0380a5661b3baa6d205518f49d9c88da785555353c80545cd4505555ed"
+      },
+      "outline": {
+        "path": "layers/188x262-c53a4c45fc0bbccc32f1f6e6f00159776d032cf3c9655a412e462d576fe30e43.png",
+        "sha256": "4feae923492d6c7720d71b74c21b17a82d32a06ea1f3aa214f927cca6a1a1604",
+        "pixels_sha256": "c53a4c45fc0bbccc32f1f6e6f00159776d032cf3c9655a412e462d576fe30e43"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/44x38-64cfa0ab48909503f35d68d4dfd9ee14474976490ddba6ab3575489ab395969d.png",
+          "sha256": "febc0c1293c925aa16027314d471605de26138b11cdf23e737133330f74b3dc3",
+          "pixels_sha256": "64cfa0ab48909503f35d68d4dfd9ee14474976490ddba6ab3575489ab395969d",
+          "trim": [
+            33,
+            113,
+            77,
+            151
+          ],
+          "coverage": {
+            "path": "coverage/188x262-e2132c58785149c223f1d3727184d12a32f047fa4e91ae3687173e346e229d4c.png",
+            "sha256": "5c3998a927865d26591aecca9320135f9d23d29fa6f4680642da63f4e95939c9",
+            "pixels_sha256": "e2132c58785149c223f1d3727184d12a32f047fa4e91ae3687173e346e229d4c"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-2cb60a0380a5661b3baa6d205518f49d9c88da785555353c80545cd4505555ed.png",
+        "sha256": "52eca64871c715ceb96fe8de99fe06b5ffadab8cfb752ecbcc69b1886e04ecac",
+        "pixels_sha256": "2cb60a0380a5661b3baa6d205518f49d9c88da785555353c80545cd4505555ed"
+      },
+      "outline": {
+        "path": "layers/188x262-c53a4c45fc0bbccc32f1f6e6f00159776d032cf3c9655a412e462d576fe30e43.png",
+        "sha256": "4feae923492d6c7720d71b74c21b17a82d32a06ea1f3aa214f927cca6a1a1604",
+        "pixels_sha256": "c53a4c45fc0bbccc32f1f6e6f00159776d032cf3c9655a412e462d576fe30e43"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/44x38-64cfa0ab48909503f35d68d4dfd9ee14474976490ddba6ab3575489ab395969d.png",
+          "sha256": "febc0c1293c925aa16027314d471605de26138b11cdf23e737133330f74b3dc3",
+          "pixels_sha256": "64cfa0ab48909503f35d68d4dfd9ee14474976490ddba6ab3575489ab395969d",
+          "trim": [
+            33,
+            113,
+            77,
+            151
+          ],
+          "coverage": {
+            "path": "coverage/188x262-e2132c58785149c223f1d3727184d12a32f047fa4e91ae3687173e346e229d4c.png",
+            "sha256": "5c3998a927865d26591aecca9320135f9d23d29fa6f4680642da63f4e95939c9",
+            "pixels_sha256": "e2132c58785149c223f1d3727184d12a32f047fa4e91ae3687173e346e229d4c"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-00e1a907e8c4ba7a02260d9ab2ddf79e2746d8046b6d2fa1e8944d181d9d6e1c.png",
+        "sha256": "b7776eb147ba691b8c49f71b6d130af1fd3869b18eaf0b4e5d4e497710f25ab6",
+        "pixels_sha256": "00e1a907e8c4ba7a02260d9ab2ddf79e2746d8046b6d2fa1e8944d181d9d6e1c"
+      },
+      "outline": {
+        "path": "layers/188x262-b2b8c8060851964a727fb03270b979e065bf113f9cdfb186c3012c54ee72fed1.png",
+        "sha256": "010d726a377048369107818d8b7feb953b4ea26e762b3be58917a9d1793c6d63",
+        "pixels_sha256": "b2b8c8060851964a727fb03270b979e065bf113f9cdfb186c3012c54ee72fed1"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/43x37-cf3dd355989fe7f9a14d91a4f549dd58815a33badfb0a0e92147e3c1efb96cf2.png",
+          "sha256": "46c59d3bacf3108a28989ade7607814ca72ade5c4a0d4e9b7558811d963959e8",
+          "pixels_sha256": "cf3dd355989fe7f9a14d91a4f549dd58815a33badfb0a0e92147e3c1efb96cf2",
+          "trim": [
+            111,
+            114,
+            154,
+            151
+          ],
+          "coverage": {
+            "path": "coverage/188x262-3b4aad3806cfdc02fa616bc6f0437242440aa3a48d19f2ee71fed3ff84dee64c.png",
+            "sha256": "2371c27e6152a0e399a04e629f69f156253e38fd54331a6de46f549995c8684e",
+            "pixels_sha256": "3b4aad3806cfdc02fa616bc6f0437242440aa3a48d19f2ee71fed3ff84dee64c"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-00e1a907e8c4ba7a02260d9ab2ddf79e2746d8046b6d2fa1e8944d181d9d6e1c.png",
+        "sha256": "b7776eb147ba691b8c49f71b6d130af1fd3869b18eaf0b4e5d4e497710f25ab6",
+        "pixels_sha256": "00e1a907e8c4ba7a02260d9ab2ddf79e2746d8046b6d2fa1e8944d181d9d6e1c"
+      },
+      "outline": {
+        "path": "layers/188x262-b2b8c8060851964a727fb03270b979e065bf113f9cdfb186c3012c54ee72fed1.png",
+        "sha256": "010d726a377048369107818d8b7feb953b4ea26e762b3be58917a9d1793c6d63",
+        "pixels_sha256": "b2b8c8060851964a727fb03270b979e065bf113f9cdfb186c3012c54ee72fed1"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/43x37-33c91062b0bd6252d5fd2d2249fc04006c602c0398107c604f93d3b6004a8a20.png",
+          "sha256": "8ccb9ad656fe0a81d0a636c1171788a2352199e540a400d941f0c53632a9b0ca",
+          "pixels_sha256": "33c91062b0bd6252d5fd2d2249fc04006c602c0398107c604f93d3b6004a8a20",
+          "trim": [
+            111,
+            114,
+            154,
+            151
+          ],
+          "coverage": {
+            "path": "coverage/188x262-3b4aad3806cfdc02fa616bc6f0437242440aa3a48d19f2ee71fed3ff84dee64c.png",
+            "sha256": "2371c27e6152a0e399a04e629f69f156253e38fd54331a6de46f549995c8684e",
+            "pixels_sha256": "3b4aad3806cfdc02fa616bc6f0437242440aa3a48d19f2ee71fed3ff84dee64c"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "layers/188x262-00e1a907e8c4ba7a02260d9ab2ddf79e2746d8046b6d2fa1e8944d181d9d6e1c.png",
+        "sha256": "b7776eb147ba691b8c49f71b6d130af1fd3869b18eaf0b4e5d4e497710f25ab6",
+        "pixels_sha256": "00e1a907e8c4ba7a02260d9ab2ddf79e2746d8046b6d2fa1e8944d181d9d6e1c"
+      },
+      "outline": {
+        "path": "layers/188x262-b2b8c8060851964a727fb03270b979e065bf113f9cdfb186c3012c54ee72fed1.png",
+        "sha256": "010d726a377048369107818d8b7feb953b4ea26e762b3be58917a9d1793c6d63",
+        "pixels_sha256": "b2b8c8060851964a727fb03270b979e065bf113f9cdfb186c3012c54ee72fed1"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "layers/43x37-14bcb4c605bc3def628b7fdb7aea5b9ddd3ad5c0b57923bad40077c9d3a46ba1.png",
+          "sha256": "39a5b83be76c869e80994e8bd1aafda97bf23fedb88f4e6a5ef7b1a3fd6e280c",
+          "pixels_sha256": "14bcb4c605bc3def628b7fdb7aea5b9ddd3ad5c0b57923bad40077c9d3a46ba1",
+          "trim": [
+            111,
+            114,
+            154,
+            151
+          ],
+          "coverage": {
+            "path": "coverage/188x262-3b4aad3806cfdc02fa616bc6f0437242440aa3a48d19f2ee71fed3ff84dee64c.png",
+            "sha256": "2371c27e6152a0e399a04e629f69f156253e38fd54331a6de46f549995c8684e",
+            "pixels_sha256": "3b4aad3806cfdc02fa616bc6f0437242440aa3a48d19f2ee71fed3ff84dee64c"
+          }
+        }
+      ]
+    }
+  ]
+}

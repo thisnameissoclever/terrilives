@@ -186,7 +186,7 @@ def generated_files(batch,historical_count):
 
 
 def load_historical_extensions(config, existing_names=frozenset()):
-    """Load only pinned, reviewed static catalogs after the frozen prefix."""
+    """Load pinned reviewed imports after the immutable released prefix."""
     from offline_props import load_props
     result = []
     names = set(existing_names)
@@ -198,7 +198,14 @@ def load_historical_extensions(config, existing_names=frozenset()):
         data = json.loads(path.read_text())
         canonical = json.dumps(data, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
         assert hashlib.sha256(canonical).hexdigest() == extension['canonicalSha256'], 'architecture extension catalog changed'
-        sprites, _, _, _ = load_props(path, existing_names=names)
+        if extension.get('kind', 'static') == 'covered-bunk':
+            from offline_covered_bunk import load_covered_bunk, records
+            sprites = records(load_covered_bunk(path))
+            assert not names.intersection(row[0] for row in sprites), 'duplicate covered-bunk records'
+        elif extension.get('kind', 'static') == 'static':
+            sprites, _, _, _ = load_props(path, existing_names=names)
+        else:
+            raise ValueError('Unknown reviewed atlas extension kind')
         result.extend(sprites)
         names.update(sprite[0] for sprite in sprites)
     return result

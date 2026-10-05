@@ -3,19 +3,19 @@
 <script type="module">
 import {initDevice} from '../src/render/device.ts';
 import {SpriteRenderer} from '../src/render/sprites.ts';
-import {ATLAS_WIDTH,ATLAS_HEIGHT,BED_CATALOG,BED_LAYERS,SPRITES,spriteIndex} from '../src/render/atlas.ts';
+import {ATLAS_WIDTH,ATLAS_HEIGHT,ATLAS_PAGE_FILES,BED_CATALOG,BED_LAYERS,SPRITES,spriteIndex} from '../src/render/atlas.ts';
 import {writeInstance} from '../src/render/instances.ts';
 const canvas=document.createElement('canvas');canvas.width=240;canvas.height=220;
 const gpu=await initDevice(canvas);
 try {
  gpu.device.pushErrorScope('validation');
  const scene=BED_CATALOG[spriteIndex('offlineDoubleBed')][27];
- const texture=gpu.device.createTexture({size:[ATLAS_WIDTH,ATLAS_HEIGHT],format:'rgba8unorm',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});
+ const texture=gpu.device.createTexture({size:[ATLAS_WIDTH,ATLAS_HEIGHT,ATLAS_PAGE_FILES.length],format:'rgba8unorm',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});
  const colours=[[20,0,0,128],[0,20,0,128],[0,0,20,128],[0,0,0,0]];
  for(const [term,index] of BED_LAYERS[scene.sprite].entries()) {
   const sprite=SPRITES[index],data=new Uint8Array(sprite.w*sprite.h*4);
   for(let at=0;at<data.length;at+=4)data.set(colours[term],at);
-  gpu.device.queue.writeTexture({texture,origin:[sprite.x,sprite.y]},data,{bytesPerRow:sprite.w*4},[sprite.w,sprite.h]);
+  gpu.device.queue.writeTexture({texture,origin:[sprite.x,sprite.y,sprite.page??0]},data,{bytesPerRow:sprite.w*4},[sprite.w,sprite.h]);
  }
  // The JS fixture supplies a numeric texture to the production constructor.
  // No shader math or pipeline behavior is replaced by the test.

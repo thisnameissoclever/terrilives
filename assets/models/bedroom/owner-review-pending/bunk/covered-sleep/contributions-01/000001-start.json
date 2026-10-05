@@ -1,0 +1,35 @@
+{
+  "state": "running",
+  "pid": 76848,
+  "pilot": false,
+  "signature": {
+    "scripts": {
+      "covered_bunk_sleep.py": "7b550b2c65d503e917658032f5a4fa5ee67f5d4b7b8a03de193c96086e32d342",
+      "bunk_sleep_cloth.py": "7a67ac6cc53ce40f71da5124a9e9aa8ccb5dd0323398b2f24174dd464cb48f22",
+      "covered_bunk_contact.py": "4a74498b5780dc040f2674a4dab8deb0bdf02ee2e6fa38c229aadafad151d977",
+      "bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+      "double_bed_sleep.py": "719d9d69dbdace0b3772dfd2f46f3c3ce5f2f701d62ebd1b7b94ef36ee759138",
+      "double-bed-sleep-pose.json": "53bd65cc4c42ee60a3e68e5710e8da827e160f19c026da64237d58720eb31058",
+      "double_bed_receipt.py": "6698f880b13ec55524d4076c7e495a69f73c153cf0138269473dc1a4d6635fef",
+      "double_bed_witnesses.py": "38339f24de047763fe3bef083de3c70d235512ed9104e5f71d81caaf1c1e310d",
+      "covered_bunk_batch.py": "b56f0e4431c661c8f586ec9999898547d7e370566890734a1db6c042f1e557b3",
+      "render_covered_bunk_sleep.py": "732760c36ea61f9d7a46df243b0f7d926a925d2506a251fd5299f339d6f72bb8"
+    },
+    "source_sha256": "10b507a6dfcbbec05457cf7c9c857ee1f3fc08b80915967b743cace15b9fa9fa",
+    "blender_version": "4.5.14 LTS",
+    "blender_build": "62c1db4208e8",
+    "physical_canvas": [
+      1280,
+      1408
+    ],
+    "logical_canvas": [
+      160,
+      176
+    ],
+    "pixel_density": 8,
+    "static": true
+  },
+  "renders": [],
+  "surface_witnesses": {},
+  "contact_samples": []
+}

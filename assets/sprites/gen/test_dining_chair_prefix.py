@@ -6,6 +6,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 
 class DiningChairPrefixTests(unittest.TestCase):
@@ -16,11 +17,11 @@ class DiningChairPrefixTests(unittest.TestCase):
                          ['offlineDiningChair', 'offlineDiningChairNW',
                           'offlineDiningChairSW', 'offlineDiningChairNE'])
         digest = hashlib.sha256()
-        with Image.open(root/'web/public/atlas.png') as image:
+        with AtlasPages(root) as image:
             for row in rows[:1250]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), 'e1bb3a60a41c7f8aa0859f3a443210f22f93c4999987a5da6c5861ae4ec32305')
         for row in rows[1250:1254]:
             self.assertEqual((row['w'], row['h'], row['pixel_density']), (192, 240, 2))

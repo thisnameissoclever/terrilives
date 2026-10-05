@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   ATLAS_CONTENT_SHA256,
   ATLAS_FILE_NAME,
+  ATLAS_PAGE_FILES,
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
   SPRITES,
@@ -43,6 +44,7 @@ interface ManifestSprite {
   w: number;
   h: number;
   pixel_density?: number;
+  page?: number;
 }
 
 function readManifest(): {
@@ -72,6 +74,7 @@ function readManifest(): {
         w: Number(field('w')),
         h: Number(field('h')),
         pixel_density: Number(block[1].match(/^pixel_density = (\d+)/m)?.[1] ?? 1),
+        page: Number(field('page')),
       };
     },
   );
@@ -104,6 +107,7 @@ describe('the atlas manifest', () => {
       SPRITES.map((s) => [s.x, s.y, s.w, s.h]),
     ).toEqual(manifest.sprites.map((s) => [s.x, s.y, s.w, s.h]));
     expect(SPRITES.map(s => s.pixel_density ?? 1)).toEqual(manifest.sprites.map(s => s.pixel_density));
+    expect(SPRITES.map(s => s.page ?? 0)).toEqual(manifest.sprites.map(s => s.page));
     expect([ATLAS_WIDTH, ATLAS_HEIGHT]).toEqual([
       manifest.width,
       manifest.height,
@@ -153,6 +157,14 @@ describe('the atlas manifest', () => {
     // Compare bytes directly; recursive object equality scales poorly for large buffers.
     expect(readFileSync(`public/${ATLAS_FILE_NAME}`).equals(png)).toBe(true);
     expect(atlasTextureUrl('/terrilives/')).toBe(`/terrilives/${ATLAS_FILE_NAME}`);
+    expect(ATLAS_PAGE_FILES.length).toBeGreaterThan(1);
+    for (const [page, filename] of ATLAS_PAGE_FILES.entries()) {
+      const bytes = readFileSync(`public/${filename}`);
+      const digest = createHash('sha256').update(bytes).digest('hex');
+      expect(filename).toBe(`atlas-${digest}.png`);
+      expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([ATLAS_WIDTH, ATLAS_HEIGHT]);
+      expect(atlasTextureUrl('/terrilives/', page)).toBe(`/terrilives/${filename}`);
+    }
   });
 
   it('holds the three sprites the shell draws itself, and the sim', () => {
@@ -175,6 +187,8 @@ describe('the atlas manifest', () => {
     // sprite. Nothing else would catch a packer that mis-measured.
     let checked = 0;
     for (const sprite of SPRITES) {
+      expect(sprite.page).toBeGreaterThanOrEqual(0);
+      expect(sprite.page).toBeLessThan(ATLAS_PAGE_FILES.length);
       expect(sprite.w).toBeGreaterThan(0);
       expect(sprite.h).toBeGreaterThan(0);
       expect(sprite.x + sprite.w).toBeLessThanOrEqual(ATLAS_WIDTH);

@@ -11,6 +11,7 @@ import tomllib
 import unittest
 
 from PIL import Image, ImageChops
+from atlas_pixels import AtlasPages
 
 from build import LEGACY_SIM_BODY, fill_padded_bounds, sim_body_indices
 
@@ -48,9 +49,9 @@ class ShippedAtlasTests(unittest.TestCase):
         bounds = {int(index): box for index, box in shipped_table("SPRITE_CONTENT_BOUNDS").items()}
         sim_bodies = shipped_sim_bodies(records)
         padded, missing = [], []
-        with Image.open(ROOT / "web/public/atlas.png") as atlas:
+        with AtlasPages(ROOT) as atlas:
             for index, row in enumerate(records):
-                crop = atlas.crop((row["x"], row["y"], row["x"] + row["w"], row["y"] + row["h"]))
+                crop = atlas.crop(row)
                 art = crop.getchannel("A").getbbox()
                 if art is None or art[1] == 0 or index in sim_bodies:
                     continue
@@ -71,12 +72,13 @@ class ShippedAtlasTests(unittest.TestCase):
         bed_layers = {int(index): layers for index, layers in shipped_table("BED_LAYERS").items()}
         pair_coverage = {int(index) for index in shipped_table("SPRITE_PAIR_COVERAGE")}
         pairs = {int(index): layers for index, layers in shipped_table("SPRITE_PAIRS").items()}
+        trims = {int(index): offset for index, offset in shipped_table("BED_LAYER_TRIMS").items()}
         wrong = []
-        with Image.open(ROOT / "web/public/atlas.png") as atlas:
+        with AtlasPages(ROOT) as atlas:
             for index, box in bounds.items():
                 row = records[index]
                 density = row.get("pixel_density", 1)
-                crop = atlas.crop((row["x"], row["y"], row["x"] + row["w"], row["y"] + row["h"]))
+                crop = atlas.crop(row)
                 if index in bed_layers or index in pair_coverage:
                     # A scene alias reuses furniture texels but draws all visible layers.
                     # Independently union their alpha support rather than inspecting only furniture.
@@ -86,8 +88,11 @@ class ShippedAtlasTests(unittest.TestCase):
                         if layer < 0:
                             continue
                         term = records[layer]
-                        pixels = atlas.crop((term["x"], term["y"], term["x"] + term["w"], term["y"] + term["h"]))
-                        alpha = ImageChops.lighter(alpha, pixels.getchannel("A"))
+                        pixels = atlas.crop(term)
+                        contribution = Image.new('L', alpha.size)
+                        offset = [round(value*term.get('pixel_density', 1)) for value in trims.get(layer, (0, 0))]
+                        contribution.paste(pixels.getchannel('A'), tuple(offset))
+                        alpha = ImageChops.lighter(alpha, contribution)
                     crop.putalpha(alpha)
                 art = crop.getchannel("A").getbbox()
                 if art is None or box[1] != art[1] / density:

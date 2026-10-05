@@ -6,6 +6,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 from test_lamp_prefix import EXPECTED_METADATA, canonical_digest, preserved_table
 
 
@@ -16,11 +17,11 @@ class TrashcanPrefixTests(unittest.TestCase):
         self.assertEqual([row['name'] for row in rows[1362:1366]],
                          ['offlineTrashcan'+turn for turn in ('', 'NW', 'SW', 'NE')])
         digest = hashlib.sha256()
-        with Image.open(root/'web/public/atlas.png') as image:
+        with AtlasPages(root) as image:
             for row in rows[:1362]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), '29e2939094325705caceda38e912a45f989f16d1f13ae3e89b1abab74b30adca')
         for row in rows[1362:1366]:
             self.assertEqual((row['w'], row['h'], row['pixel_density']), (192, 240, 2))

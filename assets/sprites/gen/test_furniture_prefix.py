@@ -6,6 +6,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 ROOT = Path(__file__).resolve().parents[3]
 # HD/legacy records 0..835 from 857c549, architecture 836..848 from
@@ -20,11 +21,11 @@ def prefix_digest():
     if len(records) != PREFIX_COUNT:
         raise ValueError("missing preserved atlas prefix")
     digest = hashlib.sha256()
-    with Image.open(ROOT / "web/public/atlas.png") as atlas:
+    with AtlasPages(ROOT) as atlas:
         for row in records:
             metadata = [row["name"], row["w"], row["h"], row.get("pixel_density", 1)]
             digest.update(json.dumps(metadata, separators=(",", ":")).encode())
-            digest.update(atlas.crop((row["x"], row["y"], row["x"] + row["w"], row["y"] + row["h"])).tobytes())
+            digest.update(atlas.crop(row).tobytes())
     return digest.hexdigest()
 
 

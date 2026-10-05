@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import * as atlas from '../src/render/atlas.js';
 import { TILE_HALF_HEIGHT } from '../src/render/iso.js';
-import { packSpriteTable } from '../src/render/sprites.js';
+import { packSpriteTable, FLOATS_PER_SPRITE } from '../src/render/sprites.js';
 import { pickSprite, type PickSource } from '../src/input.js';
 
 describe('reviewed kitchen sprites', () => {
@@ -12,7 +12,7 @@ describe('reviewed kitchen sprites', () => {
       for (const [offset, suffix] of ['', 'NW', 'SW', 'NE'].entries()) {
         const index = atlas.spriteIndex(`${name}${suffix}`);
         expect(index).toBe(firstIndex + offset);
-        expect([...table.slice(index * 8 + 4, index * 8 + 6)]).toEqual([96, 120]);
+        expect([...table.slice(index * FLOATS_PER_SPRITE + 4, index * FLOATS_PER_SPRITE + 6)]).toEqual([96, 120]);
         expect(atlas.SPRITES[index].pixel_density).toBe(2);
         expect(atlas.SPRITE_ANCHORS[index][1]).toBeCloseTo(116.000437, 4);
         const source: PickSource = {
@@ -36,7 +36,7 @@ describe('reviewed kitchen sprites', () => {
     for (const [offset, suffix] of ['', 'NW', 'SW', 'NE'].entries()) {
       const index = atlas.spriteIndex(`offlineStove${suffix}`);
       expect(index).toBe(1093 + offset);
-      expect([...table.slice(index * 8 + 4, index * 8 + 6)]).toEqual([96, 120]);
+      expect([...table.slice(index * FLOATS_PER_SPRITE + 4, index * FLOATS_PER_SPRITE + 6)]).toEqual([96, 120]);
       expect(atlas.SPRITES[index].pixel_density).toBe(2);
       expect(atlas.SPRITE_ANCHORS[index][1]).toBeCloseTo(116.000437, 4);
       const source: PickSource = {
@@ -76,7 +76,7 @@ describe('reviewed kitchen sprites', () => {
       expect(index).toBe(1089 + offset);
       const sprite = atlas.SPRITES[index];
       expect([sprite.w, sprite.h, sprite.pixel_density]).toEqual([192, 240, 2]);
-      expect([...table.slice(index * 8 + 4, index * 8 + 6)]).toEqual([96, 120]);
+      expect([...table.slice(index * FLOATS_PER_SPRITE + 4, index * FLOATS_PER_SPRITE + 6)]).toEqual([96, 120]);
       const anchor = atlas.SPRITE_ANCHORS[index];
       // frame.ts contributes height-anchorY; the shader contributes 21-height.
       // The source origin at logical y=95 must consequently land on world y=0.

@@ -1,0 +1,12 @@
+{
+  "occupancy": 1,
+  "facing": "NW",
+  "palettes": [
+    "red",
+    "green"
+  ],
+  "sample": 0,
+  "owner": "furniture",
+  "path": "covered-bunk-1-NW-red-0-furniture.png",
+  "sha256": "7902513927dffcd4a998f01f16a8d0012f33762ab67974a9a170c289671998ab"
+}

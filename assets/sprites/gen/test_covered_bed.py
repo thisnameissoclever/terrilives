@@ -8,6 +8,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 from offline_double_bed import load_covered_bed, scene_key
 from test_lamp_prefix import canonical_digest, preserved_table
 
@@ -19,11 +20,11 @@ class CoveredBedTests(unittest.TestCase):
     def test_preserves_all_1700_published_sprite_pixels_and_dimensions(self):
         rows = tomllib.loads((ROOT / 'assets/sprites/atlas.toml').read_text())['sprite']
         digest = hashlib.sha256()
-        with Image.open(ROOT / 'web/public/atlas.png') as image:
+        with AtlasPages(ROOT) as image:
             for row in rows[:1700]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), 'a96852795c4f5f02f483fab6f58f854a492a81491286a7fa23759c84a693f22c')
         self.assertGreaterEqual(len(rows), 1833)
 

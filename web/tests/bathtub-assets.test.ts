@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as atlas from '../src/render/atlas.js';
-import { packSpriteTable } from '../src/render/sprites.js';
+import { packSpriteTable, FLOATS_PER_SPRITE } from '../src/render/sprites.js';
 import { pickSprite, type PickSource } from '../src/input.js';
 
 describe('registered two-tile bathtub views', () => {
@@ -8,7 +8,7 @@ describe('registered two-tile bathtub views', () => {
     const index = atlas.spriteIndex(`offlineBathtub${suffix}`);
     expect(index).toBe(1121 + ['', 'NW', 'SW', 'NE'].indexOf(suffix));
     const table = packSpriteTable();
-    expect([...table.slice(index * 8 + 4, index * 8 + 6)]).toEqual([160, 176]);
+    expect([...table.slice(index * FLOATS_PER_SPRITE + 4, index * FLOATS_PER_SPRITE + 6)]).toEqual([160, 176]);
     expect(atlas.SPRITES[index].pixel_density).toBe(2);
     expect(atlas.SPRITE_ANCHORS[index][0]).toBeCloseTo(80, 4);
     expect(atlas.SPRITE_ANCHORS[index][1]).toBeCloseTo(144.000437, 4);

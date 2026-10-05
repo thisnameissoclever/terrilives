@@ -5,6 +5,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 from activity_icons import ICONS, icon_image, render_icons
 
@@ -42,13 +43,12 @@ class ActivityIconTests(unittest.TestCase):
         self.assertEqual([row['name'] for row in records[1370:1392]],
                          [row[0] for row in render_icons()])
         digest = hashlib.sha256()
-        with Image.open(root / 'web/public/atlas.png') as atlas:
+        with AtlasPages(root) as atlas:
             for row in records[:1370]:
                 digest.update(row['name'].encode() + b'\0')
                 for key in ('w', 'h', 'pixel_density'):
                     digest.update(str(row.get(key, 1)).encode() + b'\0')
-                digest.update(atlas.crop((row['x'], row['y'], row['x'] + row['w'],
-                                         row['y'] + row['h'])).tobytes())
+                digest.update(atlas.crop(row).tobytes())
             for row in records[1370:1392]:
                 self.assertEqual(row['pixel_density'], 2)
         self.assertEqual(digest.hexdigest(),

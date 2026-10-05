@@ -115,7 +115,7 @@ export async function diningTableProof() {
             if(handless[p+3]>0&&handPixels[p+3]>=250){handless.fill(0,p,p+4);removed++;}
           }
           try{
-            gpu.device.queue.writeTexture({texture,origin:[bodySprite.x,bodySprite.y]},handless,
+            gpu.device.queue.writeTexture({texture,origin:[bodySprite.x,bodySprite.y,bodySprite.page??0]},handless,
               {bytesPerRow:160*4},[160,224]);
             renderer.draw(data,4,2);await gpu.device.queue.onSubmittedWorkDone();ctx.drawImage(canvas,0,0);
             const missingHands=compare(ctx.getImageData(0,0,width,height).data,true);
@@ -123,7 +123,7 @@ export async function diningTableProof() {
             if(removed===0||missingHands.max<=32)
               throw new Error('Hand coverage mutation escaped the contact comparison: '+JSON.stringify(records.at(-1)));
           }finally{gpu.device.queue.copyExternalImageToTexture({source:originalBody},
-            {texture,origin:[bodySprite.x,bodySprite.y]},[160,224]);originalBody.close();}
+            {texture,origin:[bodySprite.x,bodySprite.y,bodySprite.page??0]},[160,224]);originalBody.close();}
         }finally{gpu.device.queue.writeBuffer(renderer.diningBuffer,0,supportTable);renderer.draw(data,4,2);}
       }
     }
