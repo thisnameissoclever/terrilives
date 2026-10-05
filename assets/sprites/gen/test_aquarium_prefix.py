@@ -31,7 +31,8 @@ class AquariumPrefixTests(unittest.TestCase):
         self.assertIsNotNone(match)
         value = json.loads(match.group(1))
         base = value.pop('baseSpriteId')
-        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32)
+        # Neutral seating appends 300 texture records and 240 scene aliases.
+        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32 + 300 + 240)
         for index, row in enumerate(value['sprites']):
             self.assertEqual(row.pop('id'), base + index)
         digest = hashlib.sha256(json.dumps(value, sort_keys=True,

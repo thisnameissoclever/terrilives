@@ -204,6 +204,10 @@ def load_historical_extensions(config, existing_names=frozenset()):
             assert not names.intersection(row[0] for row in sprites), 'duplicate covered-bunk records'
         elif extension.get('kind', 'static') == 'static':
             sprites, _, _, _ = load_props(path, existing_names=names)
+        elif extension['kind'] == 'neutral-seating':
+            from offline_seating import load_neutral_seats, records
+            sprites = records(load_neutral_seats(path))
+            assert not names.intersection(row[0] for row in sprites), 'duplicate neutral seating records'
         else:
             raise ValueError('Unknown reviewed atlas extension kind')
         result.extend(sprites)

@@ -11,8 +11,10 @@ export interface InteractionProfile {
   readonly action: number;
   readonly halfCycleTicks: number;
   readonly frames: Readonly<Record<ShirtVariant, readonly number[]>>;
+  readonly facingFrames?: Readonly<Record<number, Readonly<Record<ShirtVariant, readonly number[]>>>>;
 }
 export type InteractionCatalog = Readonly<Record<number, InteractionProfile>>;
+export type ActionInteractionCatalog = Readonly<Record<number, Readonly<Record<number, InteractionProfile>>>>;
 
 export interface InteractionColumns {
   readonly count: number;
@@ -21,6 +23,7 @@ export interface InteractionColumns {
   readonly sprites: Uint32Array;
   readonly actions: Uint32Array | null;
   readonly activities: Uint32Array;
+  readonly facings?: Uint32Array;
   readonly targets?: Uint32Array;
   readonly simIds?: Uint32Array;
   readonly sleepingBeds?: Uint32Array;
@@ -35,6 +38,7 @@ export interface InteractionSource {
   sprites(): Uint32Array;
   visualActions?(): Uint32Array;
   activities(): Uint32Array;
+  facings?(): Uint32Array;
   interactionTargets?(): Uint32Array;
   simIds?(): Uint32Array;
   sleepingBeds?(): Uint32Array;
@@ -67,10 +71,16 @@ export class InteractionSelection {
     private readonly catalog: InteractionCatalog,
     private readonly shirtVariant: (simId?: number) => ShirtVariant,
     private readonly beds: BedCatalog = {},
+    private readonly actionCatalog: ActionInteractionCatalog = {},
   ) {}
 
   ownerForTarget(row: number): number {
     return this.owners[row] ?? -1;
+  }
+
+  private profileFor(sprite: number, action: number): InteractionProfile | undefined {
+    const profile = this.actionCatalog[sprite]?.[action] ?? this.catalog[sprite];
+    return profile?.action === action ? profile : undefined;
   }
 
   private indexRows(ids: Uint32Array, count: number): void {
@@ -115,6 +125,7 @@ export class InteractionSelection {
     this.columns.sprites = source.sprites();
     this.columns.actions = source.visualActions?.() ?? null;
     this.columns.activities = source.activities();
+    this.columns.facings = source.facings?.();
     this.columns.targets = source.interactionTargets?.();
     this.columns.simIds = source.simIds?.();
     this.columns.sleepingBeds = source.sleepingBeds?.();
@@ -196,16 +207,18 @@ export class InteractionSelection {
       if (this.bedPlaces[row] >= 0 || kinds[row] !== KIND_AGENT || activities[row] === ACTIVITY_AT_WORK || targets[row] === 0xffffffff) continue;
       const target = this.findRow(targets[row]);
       if (target === undefined || kinds[target] === KIND_AGENT || activities[target] === ACTIVITY_AT_WORK) continue;
-      const profile = this.catalog[sprites[target]];
-      if (!profile || profile.action !== actions[row]) continue;
+      const profile = this.profileFor(sprites[target], actions[row]);
+      if (!profile) continue;
       const owner = this.owners[target];
       if (owner < 0 || ids[row] < ids[owner]) this.owners[target] = row;
     }
     for (let target = 0; target < count; target++) {
       const row = this.owners[target];
       if (row < 0) continue;
-      const profile = this.catalog[sprites[target]];
-      const frames = profile.frames[this.shirtVariant(simIds?.[row])];
+      const profile = this.profileFor(sprites[target], actions[row]);
+      if (!profile) throw new Error('Owned interaction lost its exact action profile');
+      const variant = this.shirtVariant(simIds?.[row]);
+      const frames = (profile.facingFrames?.[columns.facings?.[row] ?? 0] ?? profile.frames)[variant];
       const sample = tickAnimationFrame(tick, ids[row] % profile.halfCycleTicks,
         frames.length, 2 * profile.halfCycleTicks / frames.length, reducedMotion);
       this.bodies[row] = frames[sample];

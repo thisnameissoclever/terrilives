@@ -17,6 +17,39 @@ function columns() {
 }
 
 describe('exact registered interaction selection', () => {
+  it('uses a symmetric seat facing without rotating the saved furniture sprite', () => {
+    const frames={green:[700,701,702,703],blue:[800,801,802,803],red:[900,901,902,903]};
+    const west={green:[710,711,712,713],blue:[810,811,812,813],red:[910,911,912,913]};
+    const extra={104:{8:{action:8,halfCycleTicks:12,frames,facingFrames:{2:west}}}};
+    const selected=new InteractionSelection(catalog,variant,{},extra);
+    const cols={...columns(),facings:new Uint32Array([1,0,2,0])};
+    cols.actions[2]=8;
+    selected.update(cols,0,false);
+    expect(selected.bodies[2]).toBe(910);
+    expect(cols.sprites[3]).toBe(104);
+    cols.facings[2]=3;
+    selected.update(cols,0,false);
+    expect(selected.bodies[2]).toBe(900);
+  });
+  it('adds a neutral seat action without replacing the accepted reading profile', () => {
+    const extra = {104:{8:{action:8,halfCycleTicks:12,
+      frames:{green:[700,701,702,703],blue:[800,801,802,803],red:[900,901,902,903]}}}};
+    const selected = new InteractionSelection(catalog, variant, {}, extra);
+    const cols = columns();
+    selected.update(cols,0,false);
+    expect(selected.bodies[2]).toBe(414);
+    cols.actions[2]=8;
+    selected.update(cols,0,false);
+    expect(selected.bodies[2]).toBe(900);
+    selected.update(cols,6,false);
+    expect(selected.bodies[2]).toBe(901);
+    selected.update(cols,6,true);
+    expect(selected.bodies[2]).toBe(900);
+    cols.actions[2]=3;
+    selected.update(cols,0,false);
+    expect(selected.bodies[2]).toBe(414);
+    expect(selected.bodies[0]).toBe(300);
+  });
   it('uses entity IDs, target profiles and household palette, not row or proximity', () => {
     const selected = new InteractionSelection(catalog, variant);
     selected.update(columns(), 0, false);

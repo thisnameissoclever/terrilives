@@ -2,7 +2,7 @@
 // Logical suffix after the complete historical atlas; separate texture coordinates.
 export const ARCHITECTURE = {
   "schema": 1,
-  "baseSpriteId": 2515,
+  "baseSpriteId": 3055,
   "width": 2048,
   "height": 3037,
   "resources": {
@@ -314,7 +314,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2515
+      "id": 3055
     },
     {
       "kind": "window",
@@ -374,7 +374,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2516
+      "id": 3056
     },
     {
       "kind": "window",
@@ -434,7 +434,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2517
+      "id": 3057
     },
     {
       "kind": "window",
@@ -494,7 +494,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2518
+      "id": 3058
     },
     {
       "kind": "window",
@@ -554,7 +554,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2519
+      "id": 3059
     },
     {
       "kind": "window",
@@ -614,7 +614,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2520
+      "id": 3060
     },
     {
       "kind": "window",
@@ -674,7 +674,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2521
+      "id": 3061
     },
     {
       "kind": "window",
@@ -734,7 +734,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2522
+      "id": 3062
     },
     {
       "kind": "window",
@@ -794,7 +794,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2523
+      "id": 3063
     },
     {
       "kind": "window",
@@ -854,7 +854,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2524
+      "id": 3064
     },
     {
       "kind": "window",
@@ -914,7 +914,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2525
+      "id": 3065
     },
     {
       "kind": "window",
@@ -974,7 +974,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2526
+      "id": 3066
     },
     {
       "kind": "window",
@@ -1034,7 +1034,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2527
+      "id": 3067
     },
     {
       "kind": "window",
@@ -1094,7 +1094,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2528
+      "id": 3068
     },
     {
       "kind": "window",
@@ -1154,7 +1154,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2529
+      "id": 3069
     },
     {
       "kind": "window",
@@ -1214,7 +1214,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2530
+      "id": 3070
     },
     {
       "kind": "window",
@@ -1274,7 +1274,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2531
+      "id": 3071
     },
     {
       "kind": "window",
@@ -1334,7 +1334,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2532
+      "id": 3072
     },
     {
       "kind": "window",
@@ -1394,7 +1394,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2533
+      "id": 3073
     },
     {
       "kind": "window",
@@ -1454,7 +1454,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2534
+      "id": 3074
     },
     {
       "kind": "window",
@@ -1514,7 +1514,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2535
+      "id": 3075
     },
     {
       "kind": "window",
@@ -1574,7 +1574,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2536
+      "id": 3076
     },
     {
       "kind": "window",
@@ -1634,7 +1634,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2537
+      "id": 3077
     },
     {
       "kind": "window",
@@ -1694,7 +1694,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2538
+      "id": 3078
     },
     {
       "kind": "window",
@@ -1754,7 +1754,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2539
+      "id": 3079
     },
     {
       "kind": "window",
@@ -1814,7 +1814,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2540
+      "id": 3080
     },
     {
       "kind": "window",
@@ -1874,7 +1874,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2541
+      "id": 3081
     },
     {
       "kind": "window",
@@ -1934,7 +1934,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2542
+      "id": 3082
     },
     {
       "kind": "window",
@@ -1994,7 +1994,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2543
+      "id": 3083
     },
     {
       "kind": "window",
@@ -2054,7 +2054,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2544
+      "id": 3084
     },
     {
       "kind": "window",
@@ -2114,7 +2114,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2545
+      "id": 3085
     },
     {
       "kind": "window",
@@ -2174,7 +2174,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2546
+      "id": 3086
     },
     {
       "kind": "window",
@@ -2234,7 +2234,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2547
+      "id": 3087
     },
     {
       "kind": "window",
@@ -2294,7 +2294,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2548
+      "id": 3088
     },
     {
       "kind": "window",
@@ -2354,7 +2354,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2549
+      "id": 3089
     },
     {
       "kind": "window",
@@ -2414,7 +2414,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2550
+      "id": 3090
     },
     {
       "kind": "window",
@@ -2474,7 +2474,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2551
+      "id": 3091
     },
     {
       "kind": "window",
@@ -2534,7 +2534,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2552
+      "id": 3092
     },
     {
       "kind": "window",
@@ -2594,7 +2594,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2553
+      "id": 3093
     },
     {
       "kind": "window",
@@ -2654,7 +2654,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2554
+      "id": 3094
     },
     {
       "kind": "window",
@@ -2714,7 +2714,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2555
+      "id": 3095
     },
     {
       "kind": "window",
@@ -2774,7 +2774,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2556
+      "id": 3096
     },
     {
       "kind": "window",
@@ -2834,7 +2834,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2557
+      "id": 3097
     },
     {
       "kind": "window",
@@ -2894,7 +2894,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2558
+      "id": 3098
     },
     {
       "kind": "window",
@@ -2954,7 +2954,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2559
+      "id": 3099
     },
     {
       "kind": "window",
@@ -3014,7 +3014,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2560
+      "id": 3100
     },
     {
       "kind": "window",
@@ -3074,7 +3074,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2561
+      "id": 3101
     },
     {
       "kind": "window",
@@ -3134,7 +3134,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2562
+      "id": 3102
     },
     {
       "kind": "window",
@@ -3194,7 +3194,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2563
+      "id": 3103
     },
     {
       "kind": "window",
@@ -3254,7 +3254,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2564
+      "id": 3104
     },
     {
       "kind": "window",
@@ -3314,7 +3314,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2565
+      "id": 3105
     },
     {
       "kind": "window",
@@ -3374,7 +3374,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2566
+      "id": 3106
     },
     {
       "kind": "window",
@@ -3434,7 +3434,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2567
+      "id": 3107
     },
     {
       "kind": "window",
@@ -3494,7 +3494,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2568
+      "id": 3108
     },
     {
       "kind": "window",
@@ -3554,7 +3554,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2569
+      "id": 3109
     },
     {
       "kind": "window",
@@ -3614,7 +3614,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2570
+      "id": 3110
     },
     {
       "kind": "window",
@@ -3674,7 +3674,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2571
+      "id": 3111
     },
     {
       "kind": "window",
@@ -3734,7 +3734,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2572
+      "id": 3112
     },
     {
       "kind": "window",
@@ -3794,7 +3794,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2573
+      "id": 3113
     },
     {
       "kind": "window",
@@ -3854,7 +3854,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2574
+      "id": 3114
     },
     {
       "kind": "window",
@@ -3914,7 +3914,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2575
+      "id": 3115
     },
     {
       "kind": "window",
@@ -3974,7 +3974,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2576
+      "id": 3116
     },
     {
       "kind": "window",
@@ -4034,7 +4034,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2577
+      "id": 3117
     },
     {
       "kind": "window",
@@ -4094,7 +4094,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2578
+      "id": 3118
     },
     {
       "kind": "window",
@@ -4154,7 +4154,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2579
+      "id": 3119
     },
     {
       "kind": "window",
@@ -4214,7 +4214,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2580
+      "id": 3120
     },
     {
       "kind": "window",
@@ -4274,7 +4274,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2581
+      "id": 3121
     },
     {
       "kind": "window",
@@ -4334,7 +4334,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2582
+      "id": 3122
     },
     {
       "kind": "window",
@@ -4394,7 +4394,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2583
+      "id": 3123
     },
     {
       "kind": "window",
@@ -4454,7 +4454,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2584
+      "id": 3124
     },
     {
       "kind": "window",
@@ -4514,7 +4514,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2585
+      "id": 3125
     },
     {
       "kind": "window",
@@ -4574,7 +4574,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2586
+      "id": 3126
     },
     {
       "kind": "window",
@@ -4634,7 +4634,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2587
+      "id": 3127
     },
     {
       "kind": "window",
@@ -4694,7 +4694,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2588
+      "id": 3128
     },
     {
       "kind": "window",
@@ -4754,7 +4754,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2589
+      "id": 3129
     },
     {
       "kind": "window",
@@ -4814,7 +4814,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2590
+      "id": 3130
     },
     {
       "kind": "window",
@@ -4874,7 +4874,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2591
+      "id": 3131
     },
     {
       "kind": "window",
@@ -4934,7 +4934,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2592
+      "id": 3132
     },
     {
       "kind": "window",
@@ -4994,7 +4994,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2593
+      "id": 3133
     },
     {
       "kind": "window",
@@ -5054,7 +5054,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2594
+      "id": 3134
     },
     {
       "kind": "window",
@@ -5114,7 +5114,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2595
+      "id": 3135
     },
     {
       "kind": "window",
@@ -5174,7 +5174,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2596
+      "id": 3136
     },
     {
       "kind": "window",
@@ -5234,7 +5234,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2597
+      "id": 3137
     },
     {
       "kind": "window",
@@ -5294,7 +5294,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2598
+      "id": 3138
     },
     {
       "kind": "window",
@@ -5354,7 +5354,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2599
+      "id": 3139
     },
     {
       "kind": "window",
@@ -5414,7 +5414,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2600
+      "id": 3140
     },
     {
       "kind": "window",
@@ -5474,7 +5474,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2601
+      "id": 3141
     },
     {
       "kind": "window",
@@ -5534,7 +5534,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2602
+      "id": 3142
     },
     {
       "kind": "window",
@@ -5594,7 +5594,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2603
+      "id": 3143
     },
     {
       "kind": "window",
@@ -5654,7 +5654,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2604
+      "id": 3144
     },
     {
       "kind": "window",
@@ -5714,7 +5714,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2605
+      "id": 3145
     },
     {
       "kind": "window",
@@ -5774,7 +5774,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2606
+      "id": 3146
     },
     {
       "kind": "window",
@@ -5834,7 +5834,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2607
+      "id": 3147
     },
     {
       "kind": "window",
@@ -5894,7 +5894,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2608
+      "id": 3148
     },
     {
       "kind": "window",
@@ -5954,7 +5954,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2609
+      "id": 3149
     },
     {
       "kind": "window",
@@ -6014,7 +6014,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2610
+      "id": 3150
     },
     {
       "kind": "window",
@@ -6074,7 +6074,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2611
+      "id": 3151
     },
     {
       "kind": "window",
@@ -6134,7 +6134,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2612
+      "id": 3152
     },
     {
       "kind": "window",
@@ -6194,7 +6194,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2613
+      "id": 3153
     },
     {
       "kind": "window",
@@ -6254,7 +6254,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2614
+      "id": 3154
     },
     {
       "kind": "window",
@@ -6314,7 +6314,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2615
+      "id": 3155
     },
     {
       "kind": "window",
@@ -6374,7 +6374,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2616
+      "id": 3156
     },
     {
       "kind": "window",
@@ -6434,7 +6434,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2617
+      "id": 3157
     },
     {
       "kind": "window",
@@ -6494,7 +6494,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2618
+      "id": 3158
     },
     {
       "kind": "window",
@@ -6554,7 +6554,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2619
+      "id": 3159
     },
     {
       "kind": "window",
@@ -6614,7 +6614,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2620
+      "id": 3160
     },
     {
       "kind": "window",
@@ -6674,7 +6674,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2621
+      "id": 3161
     },
     {
       "kind": "window",
@@ -6734,7 +6734,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2622
+      "id": 3162
     },
     {
       "kind": "window",
@@ -6794,7 +6794,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2623
+      "id": 3163
     },
     {
       "kind": "window",
@@ -6854,7 +6854,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2624
+      "id": 3164
     },
     {
       "kind": "window",
@@ -6914,7 +6914,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2625
+      "id": 3165
     },
     {
       "kind": "window",
@@ -6974,7 +6974,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2626
+      "id": 3166
     },
     {
       "kind": "window",
@@ -7034,7 +7034,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2627
+      "id": 3167
     },
     {
       "kind": "window",
@@ -7094,7 +7094,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2628
+      "id": 3168
     },
     {
       "kind": "window",
@@ -7154,7 +7154,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2629
+      "id": 3169
     },
     {
       "kind": "window",
@@ -7214,7 +7214,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2630
+      "id": 3170
     },
     {
       "kind": "window",
@@ -7274,7 +7274,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2631
+      "id": 3171
     },
     {
       "kind": "window",
@@ -7334,7 +7334,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2632
+      "id": 3172
     },
     {
       "kind": "window",
@@ -7394,7 +7394,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2633
+      "id": 3173
     },
     {
       "kind": "window",
@@ -7454,7 +7454,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2634
+      "id": 3174
     },
     {
       "kind": "window",
@@ -7514,7 +7514,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2635
+      "id": 3175
     },
     {
       "kind": "window",
@@ -7574,7 +7574,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2636
+      "id": 3176
     },
     {
       "kind": "window",
@@ -7634,7 +7634,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2637
+      "id": 3177
     },
     {
       "kind": "window",
@@ -7694,7 +7694,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2638
+      "id": 3178
     },
     {
       "kind": "window",
@@ -7754,7 +7754,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2639
+      "id": 3179
     },
     {
       "kind": "window",
@@ -7814,7 +7814,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2640
+      "id": 3180
     },
     {
       "kind": "window",
@@ -7874,7 +7874,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2641
+      "id": 3181
     },
     {
       "kind": "window",
@@ -7934,7 +7934,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2642
+      "id": 3182
     },
     {
       "kind": "window",
@@ -7994,7 +7994,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2643
+      "id": 3183
     },
     {
       "kind": "window",
@@ -8054,7 +8054,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2644
+      "id": 3184
     },
     {
       "kind": "window",
@@ -8114,7 +8114,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2645
+      "id": 3185
     },
     {
       "kind": "window",
@@ -8174,7 +8174,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2646
+      "id": 3186
     },
     {
       "kind": "window",
@@ -8234,7 +8234,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2647
+      "id": 3187
     },
     {
       "kind": "window",
@@ -8294,7 +8294,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2648
+      "id": 3188
     },
     {
       "kind": "window",
@@ -8354,7 +8354,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2649
+      "id": 3189
     },
     {
       "kind": "window",
@@ -8414,7 +8414,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2650
+      "id": 3190
     },
     {
       "kind": "window",
@@ -8474,7 +8474,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2651
+      "id": 3191
     },
     {
       "kind": "window",
@@ -8534,7 +8534,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2652
+      "id": 3192
     },
     {
       "kind": "window",
@@ -8594,7 +8594,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2653
+      "id": 3193
     },
     {
       "kind": "window",
@@ -8654,7 +8654,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2654
+      "id": 3194
     },
     {
       "kind": "window",
@@ -8714,7 +8714,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2655
+      "id": 3195
     },
     {
       "kind": "window",
@@ -8774,7 +8774,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2656
+      "id": 3196
     },
     {
       "kind": "window",
@@ -8834,7 +8834,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2657
+      "id": 3197
     },
     {
       "kind": "window",
@@ -8894,7 +8894,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2658
+      "id": 3198
     },
     {
       "kind": "straight",
@@ -8953,7 +8953,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2659
+      "id": 3199
     },
     {
       "kind": "straight",
@@ -9012,7 +9012,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2660
+      "id": 3200
     },
     {
       "kind": "straight",
@@ -9071,7 +9071,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2661
+      "id": 3201
     },
     {
       "kind": "straight",
@@ -9130,7 +9130,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2662
+      "id": 3202
     },
     {
       "kind": "straight",
@@ -9189,7 +9189,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2663
+      "id": 3203
     },
     {
       "kind": "straight",
@@ -9248,7 +9248,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2664
+      "id": 3204
     },
     {
       "kind": "straight",
@@ -9307,7 +9307,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2665
+      "id": 3205
     },
     {
       "kind": "straight",
@@ -9366,7 +9366,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2666
+      "id": 3206
     },
     {
       "kind": "doorway",
@@ -9425,7 +9425,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2667
+      "id": 3207
     },
     {
       "kind": "doorway",
@@ -9484,7 +9484,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2668
+      "id": 3208
     },
     {
       "kind": "doorway",
@@ -9543,7 +9543,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2669
+      "id": 3209
     },
     {
       "kind": "doorway",
@@ -9602,7 +9602,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2670
+      "id": 3210
     },
     {
       "kind": "doorway",
@@ -9661,7 +9661,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2671
+      "id": 3211
     },
     {
       "kind": "doorway",
@@ -9720,7 +9720,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2672
+      "id": 3212
     },
     {
       "kind": "doorway",
@@ -9779,7 +9779,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2673
+      "id": 3213
     },
     {
       "kind": "doorway",
@@ -9838,7 +9838,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2674
+      "id": 3214
     },
     {
       "kind": "junction",
@@ -9903,7 +9903,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2675
+      "id": 3215
     },
     {
       "kind": "junction",
@@ -9968,7 +9968,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2676
+      "id": 3216
     },
     {
       "kind": "junction",
@@ -10033,7 +10033,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2677
+      "id": 3217
     },
     {
       "kind": "junction",
@@ -10098,7 +10098,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2678
+      "id": 3218
     },
     {
       "kind": "junction",
@@ -10163,7 +10163,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2679
+      "id": 3219
     },
     {
       "kind": "junction",
@@ -10228,7 +10228,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2680
+      "id": 3220
     },
     {
       "kind": "junction",
@@ -10293,7 +10293,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2681
+      "id": 3221
     },
     {
       "kind": "junction",
@@ -10358,7 +10358,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2682
+      "id": 3222
     },
     {
       "kind": "junction",
@@ -10423,7 +10423,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2683
+      "id": 3223
     },
     {
       "kind": "junction",
@@ -10488,7 +10488,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2684
+      "id": 3224
     },
     {
       "kind": "junction",
@@ -10553,7 +10553,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2685
+      "id": 3225
     },
     {
       "kind": "junction",
@@ -10618,7 +10618,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2686
+      "id": 3226
     },
     {
       "kind": "junction",
@@ -10683,7 +10683,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2687
+      "id": 3227
     },
     {
       "kind": "junction",
@@ -10748,7 +10748,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2688
+      "id": 3228
     },
     {
       "kind": "junction",
@@ -10813,7 +10813,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2689
+      "id": 3229
     },
     {
       "kind": "junction",
@@ -10878,7 +10878,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2690
+      "id": 3230
     },
     {
       "kind": "junction",
@@ -10943,7 +10943,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2691
+      "id": 3231
     },
     {
       "kind": "junction",
@@ -11008,7 +11008,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2692
+      "id": 3232
     },
     {
       "kind": "junction",
@@ -11073,7 +11073,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2693
+      "id": 3233
     },
     {
       "kind": "junction",
@@ -11138,7 +11138,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2694
+      "id": 3234
     },
     {
       "kind": "junction",
@@ -11203,7 +11203,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2695
+      "id": 3235
     },
     {
       "kind": "junction",
@@ -11268,7 +11268,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2696
+      "id": 3236
     },
     {
       "kind": "junction",
@@ -11333,7 +11333,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2697
+      "id": 3237
     },
     {
       "kind": "junction",
@@ -11398,7 +11398,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2698
+      "id": 3238
     },
     {
       "kind": "junction",
@@ -11463,7 +11463,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2699
+      "id": 3239
     },
     {
       "kind": "junction",
@@ -11528,7 +11528,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2700
+      "id": 3240
     },
     {
       "kind": "junction",
@@ -11593,7 +11593,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2701
+      "id": 3241
     },
     {
       "kind": "junction",
@@ -11658,7 +11658,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2702
+      "id": 3242
     },
     {
       "kind": "junction",
@@ -11723,7 +11723,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2703
+      "id": 3243
     },
     {
       "kind": "junction",
@@ -11788,7 +11788,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2704
+      "id": 3244
     },
     {
       "kind": "junction",
@@ -11853,7 +11853,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2705
+      "id": 3245
     },
     {
       "kind": "junction",
@@ -11918,7 +11918,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2706
+      "id": 3246
     },
     {
       "kind": "junction",
@@ -11983,7 +11983,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2707
+      "id": 3247
     },
     {
       "kind": "junction",
@@ -12048,7 +12048,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2708
+      "id": 3248
     },
     {
       "kind": "junction",
@@ -12113,7 +12113,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2709
+      "id": 3249
     },
     {
       "kind": "junction",
@@ -12178,7 +12178,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2710
+      "id": 3250
     },
     {
       "kind": "junction",
@@ -12243,7 +12243,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2711
+      "id": 3251
     },
     {
       "kind": "junction",
@@ -12308,7 +12308,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2712
+      "id": 3252
     },
     {
       "kind": "junction",
@@ -12373,7 +12373,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2713
+      "id": 3253
     },
     {
       "kind": "junction",
@@ -12438,7 +12438,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2714
+      "id": 3254
     },
     {
       "kind": "junction",
@@ -12503,7 +12503,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2715
+      "id": 3255
     },
     {
       "kind": "junction",
@@ -12568,7 +12568,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2716
+      "id": 3256
     },
     {
       "kind": "junction",
@@ -12633,7 +12633,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2717
+      "id": 3257
     },
     {
       "kind": "junction",
@@ -12698,7 +12698,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2718
+      "id": 3258
     },
     {
       "kind": "junction",
@@ -12763,7 +12763,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2719
+      "id": 3259
     },
     {
       "kind": "junction",
@@ -12828,7 +12828,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2720
+      "id": 3260
     },
     {
       "kind": "junction",
@@ -12893,7 +12893,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2721
+      "id": 3261
     },
     {
       "kind": "junction",
@@ -12958,7 +12958,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2722
+      "id": 3262
     },
     {
       "kind": "junction",
@@ -13023,7 +13023,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2723
+      "id": 3263
     },
     {
       "kind": "junction",
@@ -13088,7 +13088,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2724
+      "id": 3264
     },
     {
       "kind": "junction",
@@ -13153,7 +13153,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2725
+      "id": 3265
     },
     {
       "kind": "junction",
@@ -13218,7 +13218,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2726
+      "id": 3266
     },
     {
       "kind": "junction",
@@ -13283,7 +13283,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2727
+      "id": 3267
     },
     {
       "kind": "junction",
@@ -13348,7 +13348,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2728
+      "id": 3268
     },
     {
       "kind": "junction",
@@ -13413,7 +13413,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2729
+      "id": 3269
     },
     {
       "kind": "junction",
@@ -13478,7 +13478,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2730
+      "id": 3270
     },
     {
       "kind": "junction",
@@ -13543,7 +13543,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2731
+      "id": 3271
     },
     {
       "kind": "junction",
@@ -13608,7 +13608,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2732
+      "id": 3272
     },
     {
       "kind": "junction",
@@ -13673,7 +13673,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2733
+      "id": 3273
     },
     {
       "kind": "junction",
@@ -13738,7 +13738,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2734
+      "id": 3274
     },
     {
       "kind": "junction",
@@ -13803,7 +13803,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2735
+      "id": 3275
     },
     {
       "kind": "junction",
@@ -13868,7 +13868,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2736
+      "id": 3276
     },
     {
       "kind": "junction",
@@ -13933,7 +13933,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2737
+      "id": 3277
     },
     {
       "kind": "junction",
@@ -13998,7 +13998,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2738
+      "id": 3278
     },
     {
       "kind": "junction",
@@ -14063,7 +14063,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2739
+      "id": 3279
     },
     {
       "kind": "junction",
@@ -14128,7 +14128,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2740
+      "id": 3280
     },
     {
       "kind": "junction",
@@ -14193,7 +14193,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2741
+      "id": 3281
     },
     {
       "kind": "junction",
@@ -14258,7 +14258,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2742
+      "id": 3282
     },
     {
       "kind": "junction",
@@ -14323,7 +14323,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2743
+      "id": 3283
     },
     {
       "kind": "junction",
@@ -14388,7 +14388,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2744
+      "id": 3284
     },
     {
       "kind": "junction",
@@ -14453,7 +14453,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2745
+      "id": 3285
     },
     {
       "kind": "junction",
@@ -14518,7 +14518,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2746
+      "id": 3286
     },
     {
       "kind": "junction",
@@ -14583,7 +14583,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2747
+      "id": 3287
     },
     {
       "kind": "junction",
@@ -14648,7 +14648,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2748
+      "id": 3288
     },
     {
       "kind": "junction",
@@ -14713,7 +14713,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2749
+      "id": 3289
     },
     {
       "kind": "junction",
@@ -14778,7 +14778,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2750
+      "id": 3290
     },
     {
       "kind": "junction",
@@ -14843,7 +14843,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2751
+      "id": 3291
     },
     {
       "kind": "junction",
@@ -14908,7 +14908,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2752
+      "id": 3292
     },
     {
       "kind": "junction",
@@ -14973,7 +14973,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2753
+      "id": 3293
     },
     {
       "kind": "junction",
@@ -15038,7 +15038,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2754
+      "id": 3294
     },
     {
       "kind": "junction",
@@ -15103,7 +15103,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2755
+      "id": 3295
     },
     {
       "kind": "junction",
@@ -15168,7 +15168,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2756
+      "id": 3296
     },
     {
       "kind": "junction",
@@ -15233,7 +15233,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2757
+      "id": 3297
     },
     {
       "kind": "junction",
@@ -15298,7 +15298,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2758
+      "id": 3298
     },
     {
       "kind": "junction",
@@ -15363,7 +15363,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2759
+      "id": 3299
     },
     {
       "kind": "junction",
@@ -15428,7 +15428,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2760
+      "id": 3300
     },
     {
       "kind": "junction",
@@ -15493,7 +15493,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2761
+      "id": 3301
     },
     {
       "kind": "junction",
@@ -15558,7 +15558,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2762
+      "id": 3302
     },
     {
       "kind": "junction",
@@ -15623,7 +15623,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2763
+      "id": 3303
     },
     {
       "kind": "junction",
@@ -15688,7 +15688,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2764
+      "id": 3304
     },
     {
       "kind": "junction",
@@ -15753,7 +15753,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2765
+      "id": 3305
     },
     {
       "kind": "junction",
@@ -15818,7 +15818,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2766
+      "id": 3306
     },
     {
       "kind": "junction",
@@ -15883,7 +15883,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2767
+      "id": 3307
     },
     {
       "kind": "junction",
@@ -15948,7 +15948,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2768
+      "id": 3308
     },
     {
       "kind": "junction",
@@ -16013,7 +16013,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2769
+      "id": 3309
     },
     {
       "kind": "junction",
@@ -16078,7 +16078,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2770
+      "id": 3310
     },
     {
       "kind": "junction",
@@ -16143,7 +16143,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2771
+      "id": 3311
     },
     {
       "kind": "junction",
@@ -16208,7 +16208,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2772
+      "id": 3312
     },
     {
       "kind": "junction",
@@ -16273,7 +16273,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2773
+      "id": 3313
     },
     {
       "kind": "junction",
@@ -16338,7 +16338,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2774
+      "id": 3314
     },
     {
       "kind": "junction",
@@ -16403,7 +16403,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2775
+      "id": 3315
     },
     {
       "kind": "junction",
@@ -16468,7 +16468,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2776
+      "id": 3316
     },
     {
       "kind": "junction",
@@ -16533,7 +16533,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2777
+      "id": 3317
     },
     {
       "kind": "junction",
@@ -16598,7 +16598,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2778
+      "id": 3318
     },
     {
       "kind": "junction",
@@ -16663,7 +16663,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2779
+      "id": 3319
     },
     {
       "kind": "junction",
@@ -16728,7 +16728,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2780
+      "id": 3320
     },
     {
       "kind": "junction",
@@ -16793,7 +16793,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2781
+      "id": 3321
     },
     {
       "kind": "junction",
@@ -16858,7 +16858,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2782
+      "id": 3322
     },
     {
       "kind": "junction",
@@ -16923,7 +16923,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2783
+      "id": 3323
     },
     {
       "kind": "junction",
@@ -16988,7 +16988,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2784
+      "id": 3324
     },
     {
       "kind": "junction",
@@ -17053,7 +17053,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2785
+      "id": 3325
     },
     {
       "kind": "junction",
@@ -17118,7 +17118,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2786
+      "id": 3326
     },
     {
       "kind": "junction",
@@ -17183,7 +17183,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2787
+      "id": 3327
     },
     {
       "kind": "junction",
@@ -17248,7 +17248,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2788
+      "id": 3328
     },
     {
       "kind": "junction",
@@ -17313,7 +17313,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2789
+      "id": 3329
     },
     {
       "kind": "junction",
@@ -17378,7 +17378,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2790
+      "id": 3330
     },
     {
       "kind": "junction",
@@ -17443,7 +17443,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2791
+      "id": 3331
     },
     {
       "kind": "junction",
@@ -17508,7 +17508,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2792
+      "id": 3332
     },
     {
       "kind": "junction",
@@ -17573,7 +17573,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2793
+      "id": 3333
     },
     {
       "kind": "junction",
@@ -17638,7 +17638,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2794
+      "id": 3334
     },
     {
       "kind": "junction",
@@ -17703,7 +17703,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2795
+      "id": 3335
     },
     {
       "kind": "junction",
@@ -17768,7 +17768,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2796
+      "id": 3336
     },
     {
       "kind": "junction",
@@ -17833,7 +17833,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2797
+      "id": 3337
     },
     {
       "kind": "junction",
@@ -17898,7 +17898,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2798
+      "id": 3338
     },
     {
       "kind": "junction",
@@ -17963,7 +17963,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2799
+      "id": 3339
     },
     {
       "kind": "junction",
@@ -18028,7 +18028,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2800
+      "id": 3340
     },
     {
       "kind": "junction",
@@ -18093,7 +18093,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2801
+      "id": 3341
     },
     {
       "kind": "junction",
@@ -18158,7 +18158,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2802
+      "id": 3342
     },
     {
       "kind": "junction",
@@ -18223,7 +18223,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2803
+      "id": 3343
     },
     {
       "kind": "junction",
@@ -18288,7 +18288,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2804
+      "id": 3344
     },
     {
       "kind": "junction",
@@ -18353,7 +18353,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2805
+      "id": 3345
     },
     {
       "kind": "junction",
@@ -18418,7 +18418,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2806
+      "id": 3346
     },
     {
       "kind": "junction",
@@ -18483,7 +18483,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2807
+      "id": 3347
     },
     {
       "kind": "junction",
@@ -18548,7 +18548,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2808
+      "id": 3348
     },
     {
       "kind": "junction",
@@ -18613,7 +18613,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2809
+      "id": 3349
     },
     {
       "kind": "junction",
@@ -18678,7 +18678,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2810
+      "id": 3350
     },
     {
       "kind": "junction",
@@ -18743,7 +18743,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2811
+      "id": 3351
     },
     {
       "kind": "junction",
@@ -18808,7 +18808,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2812
+      "id": 3352
     },
     {
       "kind": "junction",
@@ -18873,7 +18873,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2813
+      "id": 3353
     },
     {
       "kind": "junction",
@@ -18938,7 +18938,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2814
+      "id": 3354
     },
     {
       "kind": "junction",
@@ -19003,7 +19003,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2815
+      "id": 3355
     },
     {
       "kind": "junction",
@@ -19068,7 +19068,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2816
+      "id": 3356
     },
     {
       "kind": "junction",
@@ -19133,7 +19133,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2817
+      "id": 3357
     },
     {
       "kind": "junction",
@@ -19198,7 +19198,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2818
+      "id": 3358
     },
     {
       "kind": "junction",
@@ -19263,7 +19263,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2819
+      "id": 3359
     },
     {
       "kind": "junction",
@@ -19328,7 +19328,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2820
+      "id": 3360
     },
     {
       "kind": "junction",
@@ -19393,7 +19393,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2821
+      "id": 3361
     },
     {
       "kind": "junction",
@@ -19458,7 +19458,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2822
+      "id": 3362
     },
     {
       "kind": "junction",
@@ -19523,7 +19523,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2823
+      "id": 3363
     },
     {
       "kind": "junction",
@@ -19588,7 +19588,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2824
+      "id": 3364
     },
     {
       "kind": "junction",
@@ -19653,7 +19653,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2825
+      "id": 3365
     },
     {
       "kind": "junction",
@@ -19718,7 +19718,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2826
+      "id": 3366
     },
     {
       "kind": "junction",
@@ -19783,7 +19783,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2827
+      "id": 3367
     },
     {
       "kind": "junction",
@@ -19848,7 +19848,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2828
+      "id": 3368
     },
     {
       "kind": "junction",
@@ -19913,7 +19913,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2829
+      "id": 3369
     },
     {
       "kind": "junction",
@@ -19978,7 +19978,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2830
+      "id": 3370
     },
     {
       "kind": "junction",
@@ -20043,7 +20043,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2831
+      "id": 3371
     },
     {
       "kind": "junction",
@@ -20108,7 +20108,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2832
+      "id": 3372
     },
     {
       "kind": "junction",
@@ -20173,7 +20173,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2833
+      "id": 3373
     },
     {
       "kind": "junction",
@@ -20238,7 +20238,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2834
+      "id": 3374
     },
     {
       "kind": "junction",
@@ -20303,7 +20303,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2835
+      "id": 3375
     },
     {
       "kind": "junction",
@@ -20368,7 +20368,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2836
+      "id": 3376
     },
     {
       "kind": "junction",
@@ -20433,7 +20433,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2837
+      "id": 3377
     },
     {
       "kind": "junction",
@@ -20498,7 +20498,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2838
+      "id": 3378
     },
     {
       "kind": "junction",
@@ -20563,7 +20563,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2839
+      "id": 3379
     },
     {
       "kind": "junction",
@@ -20628,7 +20628,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2840
+      "id": 3380
     },
     {
       "kind": "junction",
@@ -20693,7 +20693,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2841
+      "id": 3381
     },
     {
       "kind": "junction",
@@ -20758,7 +20758,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2842
+      "id": 3382
     },
     {
       "kind": "junction",
@@ -20823,7 +20823,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2843
+      "id": 3383
     },
     {
       "kind": "junction",
@@ -20888,7 +20888,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2844
+      "id": 3384
     },
     {
       "kind": "junction",
@@ -20953,7 +20953,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2845
+      "id": 3385
     },
     {
       "kind": "junction",
@@ -21018,7 +21018,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2846
+      "id": 3386
     },
     {
       "kind": "junction",
@@ -21083,7 +21083,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2847
+      "id": 3387
     },
     {
       "kind": "junction",
@@ -21148,7 +21148,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2848
+      "id": 3388
     },
     {
       "kind": "junction",
@@ -21213,7 +21213,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2849
+      "id": 3389
     },
     {
       "kind": "junction",
@@ -21278,7 +21278,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2850
+      "id": 3390
     },
     {
       "kind": "junction",
@@ -21343,7 +21343,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2851
+      "id": 3391
     },
     {
       "kind": "junction",
@@ -21408,7 +21408,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2852
+      "id": 3392
     },
     {
       "kind": "junction",
@@ -21473,7 +21473,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2853
+      "id": 3393
     },
     {
       "kind": "junction",
@@ -21538,7 +21538,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2854
+      "id": 3394
     },
     {
       "kind": "junction",
@@ -21603,7 +21603,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2855
+      "id": 3395
     },
     {
       "kind": "junction",
@@ -21668,7 +21668,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2856
+      "id": 3396
     },
     {
       "kind": "junction",
@@ -21733,7 +21733,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2857
+      "id": 3397
     },
     {
       "kind": "junction",
@@ -21798,7 +21798,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2858
+      "id": 3398
     },
     {
       "kind": "junction",
@@ -21863,7 +21863,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2859
+      "id": 3399
     },
     {
       "kind": "junction",
@@ -21928,7 +21928,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2860
+      "id": 3400
     },
     {
       "kind": "junction",
@@ -21993,7 +21993,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2861
+      "id": 3401
     },
     {
       "kind": "junction",
@@ -22058,7 +22058,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2862
+      "id": 3402
     },
     {
       "kind": "junction",
@@ -22123,7 +22123,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2863
+      "id": 3403
     },
     {
       "kind": "junction",
@@ -22188,7 +22188,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2864
+      "id": 3404
     },
     {
       "kind": "junction",
@@ -22253,7 +22253,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2865
+      "id": 3405
     },
     {
       "kind": "junction",
@@ -22318,7 +22318,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2866
+      "id": 3406
     },
     {
       "kind": "junction",
@@ -22383,7 +22383,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2867
+      "id": 3407
     },
     {
       "kind": "junction",
@@ -22448,7 +22448,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2868
+      "id": 3408
     },
     {
       "kind": "junction",
@@ -22513,7 +22513,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2869
+      "id": 3409
     },
     {
       "kind": "junction",
@@ -22578,7 +22578,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2870
+      "id": 3410
     },
     {
       "kind": "junction",
@@ -22643,7 +22643,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2871
+      "id": 3411
     },
     {
       "kind": "junction",
@@ -22708,7 +22708,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2872
+      "id": 3412
     },
     {
       "kind": "junction",
@@ -22773,7 +22773,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2873
+      "id": 3413
     },
     {
       "kind": "junction",
@@ -22838,7 +22838,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2874
+      "id": 3414
     },
     {
       "kind": "junction",
@@ -22903,7 +22903,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2875
+      "id": 3415
     },
     {
       "kind": "junction",
@@ -22968,7 +22968,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2876
+      "id": 3416
     },
     {
       "kind": "junction",
@@ -23033,7 +23033,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2877
+      "id": 3417
     },
     {
       "kind": "junction",
@@ -23098,7 +23098,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2878
+      "id": 3418
     },
     {
       "kind": "junction",
@@ -23163,7 +23163,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2879
+      "id": 3419
     },
     {
       "kind": "junction",
@@ -23228,7 +23228,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2880
+      "id": 3420
     },
     {
       "kind": "junction",
@@ -23293,7 +23293,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2881
+      "id": 3421
     },
     {
       "kind": "junction",
@@ -23358,7 +23358,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2882
+      "id": 3422
     },
     {
       "kind": "junction",
@@ -23423,7 +23423,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2883
+      "id": 3423
     },
     {
       "kind": "junction",
@@ -23488,7 +23488,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2884
+      "id": 3424
     },
     {
       "kind": "junction",
@@ -23553,7 +23553,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2885
+      "id": 3425
     },
     {
       "kind": "junction",
@@ -23618,7 +23618,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2886
+      "id": 3426
     },
     {
       "kind": "junction",
@@ -23683,7 +23683,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2887
+      "id": 3427
     },
     {
       "kind": "junction",
@@ -23748,7 +23748,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2888
+      "id": 3428
     },
     {
       "kind": "junction",
@@ -23813,7 +23813,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2889
+      "id": 3429
     },
     {
       "kind": "junction",
@@ -23878,7 +23878,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2890
+      "id": 3430
     },
     {
       "kind": "floor-patch",
@@ -23945,7 +23945,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2891
+      "id": 3431
     },
     {
       "kind": "floor-patch",
@@ -24012,7 +24012,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2892
+      "id": 3432
     },
     {
       "kind": "floor-patch",
@@ -24079,7 +24079,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2893
+      "id": 3433
     },
     {
       "kind": "floor-patch",
@@ -24146,7 +24146,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2894
+      "id": 3434
     },
     {
       "kind": "floor-patch",
@@ -24213,7 +24213,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2895
+      "id": 3435
     },
     {
       "kind": "floor-patch",
@@ -24280,7 +24280,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2896
+      "id": 3436
     },
     {
       "kind": "floor-patch",
@@ -24347,7 +24347,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2897
+      "id": 3437
     },
     {
       "kind": "floor-patch",
@@ -24414,7 +24414,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2898
+      "id": 3438
     },
     {
       "kind": "floor-patch",
@@ -24481,7 +24481,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2899
+      "id": 3439
     },
     {
       "kind": "floor-patch",
@@ -24548,7 +24548,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2900
+      "id": 3440
     },
     {
       "kind": "floor-patch",
@@ -24615,7 +24615,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2901
+      "id": 3441
     },
     {
       "kind": "floor-patch",
@@ -24682,7 +24682,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2902
+      "id": 3442
     },
     {
       "kind": "floor-patch",
@@ -24749,7 +24749,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2903
+      "id": 3443
     },
     {
       "kind": "floor-patch",
@@ -24816,7 +24816,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2904
+      "id": 3444
     },
     {
       "kind": "floor-patch",
@@ -24883,7 +24883,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2905
+      "id": 3445
     },
     {
       "kind": "floor-patch",
@@ -24950,7 +24950,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2906
+      "id": 3446
     },
     {
       "kind": "floor-patch",
@@ -25017,7 +25017,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2907
+      "id": 3447
     },
     {
       "kind": "floor-patch",
@@ -25084,7 +25084,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2908
+      "id": 3448
     },
     {
       "kind": "floor-patch",
@@ -25151,7 +25151,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2909
+      "id": 3449
     },
     {
       "kind": "floor-patch",
@@ -25218,7 +25218,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2910
+      "id": 3450
     },
     {
       "kind": "floor-patch",
@@ -25285,7 +25285,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2911
+      "id": 3451
     },
     {
       "kind": "floor-patch",
@@ -25352,7 +25352,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2912
+      "id": 3452
     },
     {
       "kind": "floor-patch",
@@ -25419,7 +25419,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2913
+      "id": 3453
     },
     {
       "kind": "floor-patch",
@@ -25486,7 +25486,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2914
+      "id": 3454
     },
     {
       "kind": "floor-patch",
@@ -25553,7 +25553,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2915
+      "id": 3455
     },
     {
       "kind": "floor-patch",
@@ -25620,7 +25620,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2916
+      "id": 3456
     },
     {
       "kind": "floor-patch",
@@ -25687,7 +25687,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2917
+      "id": 3457
     },
     {
       "kind": "floor-patch",
@@ -25754,7 +25754,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2918
+      "id": 3458
     },
     {
       "kind": "floor-patch",
@@ -25821,7 +25821,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2919
+      "id": 3459
     },
     {
       "kind": "floor-patch",
@@ -25888,7 +25888,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2920
+      "id": 3460
     },
     {
       "kind": "floor-patch",
@@ -25955,7 +25955,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2921
+      "id": 3461
     },
     {
       "kind": "floor-patch",
@@ -26022,7 +26022,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2922
+      "id": 3462
     },
     {
       "kind": "floor-patch",
@@ -26089,7 +26089,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2923
+      "id": 3463
     },
     {
       "kind": "floor-patch",
@@ -26156,7 +26156,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2924
+      "id": 3464
     },
     {
       "kind": "floor-patch",
@@ -26223,7 +26223,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2925
+      "id": 3465
     },
     {
       "kind": "floor-patch",
@@ -26290,7 +26290,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2926
+      "id": 3466
     },
     {
       "kind": "floor-patch",
@@ -26357,7 +26357,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2927
+      "id": 3467
     },
     {
       "kind": "floor-patch",
@@ -26424,7 +26424,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2928
+      "id": 3468
     },
     {
       "kind": "floor-patch",
@@ -26491,7 +26491,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2929
+      "id": 3469
     },
     {
       "kind": "floor-patch",
@@ -26558,7 +26558,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2930
+      "id": 3470
     },
     {
       "kind": "floor-patch",
@@ -26625,7 +26625,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2931
+      "id": 3471
     },
     {
       "kind": "floor-patch",
@@ -26692,7 +26692,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2932
+      "id": 3472
     },
     {
       "kind": "floor-patch",
@@ -26759,7 +26759,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2933
+      "id": 3473
     },
     {
       "kind": "floor-patch",
@@ -26826,7 +26826,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2934
+      "id": 3474
     },
     {
       "kind": "floor-patch",
@@ -26893,7 +26893,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2935
+      "id": 3475
     },
     {
       "kind": "floor-patch",
@@ -26960,7 +26960,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2936
+      "id": 3476
     },
     {
       "kind": "floor-patch",
@@ -27027,7 +27027,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2937
+      "id": 3477
     },
     {
       "kind": "floor-patch",
@@ -27094,7 +27094,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2938
+      "id": 3478
     },
     {
       "kind": "floor-patch",
@@ -27161,7 +27161,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2939
+      "id": 3479
     },
     {
       "kind": "floor-patch",
@@ -27228,7 +27228,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2940
+      "id": 3480
     },
     {
       "kind": "floor-patch",
@@ -27295,7 +27295,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2941
+      "id": 3481
     },
     {
       "kind": "floor-patch",
@@ -27362,7 +27362,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2942
+      "id": 3482
     },
     {
       "kind": "floor-patch",
@@ -27429,7 +27429,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2943
+      "id": 3483
     },
     {
       "kind": "floor-patch",
@@ -27496,7 +27496,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2944
+      "id": 3484
     },
     {
       "kind": "floor-patch",
@@ -27563,7 +27563,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2945
+      "id": 3485
     },
     {
       "kind": "floor-patch",
@@ -27630,7 +27630,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2946
+      "id": 3486
     },
     {
       "kind": "floor-patch",
@@ -27697,7 +27697,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2947
+      "id": 3487
     },
     {
       "kind": "floor-patch",
@@ -27764,7 +27764,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2948
+      "id": 3488
     },
     {
       "kind": "floor-patch",
@@ -27831,7 +27831,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2949
+      "id": 3489
     },
     {
       "kind": "floor-patch",
@@ -27898,7 +27898,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2950
+      "id": 3490
     },
     {
       "kind": "floor-patch",
@@ -27965,7 +27965,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2951
+      "id": 3491
     },
     {
       "kind": "floor-patch",
@@ -28032,7 +28032,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2952
+      "id": 3492
     },
     {
       "kind": "floor-patch",
@@ -28099,7 +28099,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2953
+      "id": 3493
     },
     {
       "kind": "floor-patch",
@@ -28166,7 +28166,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2954
+      "id": 3494
     },
     {
       "kind": "floor-patch",
@@ -28233,7 +28233,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2955
+      "id": 3495
     },
     {
       "kind": "floor-patch",
@@ -28300,7 +28300,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2956
+      "id": 3496
     },
     {
       "kind": "floor-patch",
@@ -28367,7 +28367,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2957
+      "id": 3497
     },
     {
       "kind": "floor-patch",
@@ -28434,7 +28434,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2958
+      "id": 3498
     },
     {
       "kind": "floor-patch",
@@ -28501,7 +28501,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2959
+      "id": 3499
     },
     {
       "kind": "floor-patch",
@@ -28568,7 +28568,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2960
+      "id": 3500
     },
     {
       "kind": "floor-patch",
@@ -28635,7 +28635,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2961
+      "id": 3501
     },
     {
       "kind": "floor-patch",
@@ -28702,7 +28702,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2962
+      "id": 3502
     },
     {
       "kind": "floor-patch",
@@ -28769,7 +28769,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2963
+      "id": 3503
     },
     {
       "kind": "floor-patch",
@@ -28836,7 +28836,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2964
+      "id": 3504
     },
     {
       "kind": "floor-patch",
@@ -28903,7 +28903,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2965
+      "id": 3505
     },
     {
       "kind": "floor-patch",
@@ -28970,7 +28970,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2966
+      "id": 3506
     },
     {
       "kind": "floor-patch",
@@ -29037,7 +29037,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2967
+      "id": 3507
     },
     {
       "kind": "floor-patch",
@@ -29104,7 +29104,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2968
+      "id": 3508
     },
     {
       "kind": "floor-patch",
@@ -29171,7 +29171,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2969
+      "id": 3509
     },
     {
       "kind": "floor-patch",
@@ -29238,7 +29238,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2970
+      "id": 3510
     },
     {
       "kind": "floor-patch",
@@ -29305,7 +29305,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2971
+      "id": 3511
     },
     {
       "kind": "floor-patch",
@@ -29372,7 +29372,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2972
+      "id": 3512
     },
     {
       "kind": "floor-patch",
@@ -29439,7 +29439,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2973
+      "id": 3513
     },
     {
       "kind": "floor-patch",
@@ -29506,7 +29506,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2974
+      "id": 3514
     },
     {
       "kind": "floor-patch",
@@ -29573,7 +29573,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2975
+      "id": 3515
     },
     {
       "kind": "floor-patch",
@@ -29640,7 +29640,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2976
+      "id": 3516
     },
     {
       "kind": "floor-patch",
@@ -29707,7 +29707,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2977
+      "id": 3517
     },
     {
       "kind": "floor-patch",
@@ -29774,7 +29774,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2978
+      "id": 3518
     },
     {
       "kind": "floor-patch",
@@ -29841,7 +29841,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2979
+      "id": 3519
     },
     {
       "kind": "floor-patch",
@@ -29908,7 +29908,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2980
+      "id": 3520
     },
     {
       "kind": "floor-patch",
@@ -29975,7 +29975,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2981
+      "id": 3521
     },
     {
       "kind": "floor-patch",
@@ -30042,7 +30042,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2982
+      "id": 3522
     },
     {
       "kind": "floor-patch",
@@ -30109,7 +30109,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2983
+      "id": 3523
     },
     {
       "kind": "floor-patch",
@@ -30176,7 +30176,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2984
+      "id": 3524
     },
     {
       "kind": "floor-patch",
@@ -30243,7 +30243,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2985
+      "id": 3525
     },
     {
       "kind": "floor-patch",
@@ -30310,7 +30310,7 @@ export const ARCHITECTURE = {
         ],
         "pixel_density": 2
       },
-      "id": 2986
+      "id": 3526
     }
   ]
 } as const;

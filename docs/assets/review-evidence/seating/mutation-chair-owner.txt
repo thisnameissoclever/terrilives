@@ -1,0 +1,19 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.32s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+
+thread 'seating::tests::media_lease_cannot_share_a_chair_with_an_ordinary_sitter' (92052) panicked at crates\terri-sim\src\seating\tests.rs:552:5:
+assertion failed: !crate::media::valid_lease(sim.world(), lease)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test seating::tests::media_lease_cannot_share_a_chair_with_an_ordinary_sitter ... FAILED
+
+failures:
+
+failures:
+    seating::tests::media_lease_cannot_share_a_chair_with_an_ordinary_sitter
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 930 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -95,7 +95,7 @@ it('restores rendered colours immediately without draining a saved edit', () => 
   } finally { handle.free(); }
 });
 
-it('identifies target-bound sitting without claiming a seated body pose', () => {
+it('identifies target-bound sitting with its fitted seated body pose', () => {
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
@@ -106,8 +106,8 @@ it('identifies target-bound sitting without claiming a seated body pose', () => 
       const first = sim.actionQueueOf(34)[0];
       if (sim.activityOf(34) === 11 && first === 'Sit down: Chesterfield Regret') {
         const row = Array.from(sim.ids()).indexOf(34);
-        expect(sim.visualActions()[row]).toBe(0);
-        expect(sim.interactionTargets()[row]).toBe(0xffffffff);
+        expect(sim.visualActions()[row]).toBe(8);
+        expect(sim.interactionTargets()[row]).toBe(18);
         found = true;
         break;
       }

@@ -64,6 +64,10 @@ assets/models/living/owner-review-pending/aquarium/swimming-01/**/*.json -text w
 docs/lessons-learned.md merge=union
 docs/alpha-feel-notes.md merge=union
 
+# Neutral seating proofs and dependencies bind exact bytes across hosts.
+assets/models/seating/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/seating/*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
 # Architecture receipts bind exact exporter and receipt bytes.
 assets/models/bedroom/export/bunk-covered/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/architecture/render_review.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

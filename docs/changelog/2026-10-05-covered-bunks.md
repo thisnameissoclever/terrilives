@@ -1,12 +1,20 @@
-# Covered bunk beds and swimming fish
+# Covered beds, swimming fish and seated evenings
 
-Housemates can settle into bunk beds beneath a single blanket, while aquarium
-fish swim with gentler, more continuous motion.
+Housemates can settle beneath bunk-bed blankets, watch television or listen
+to the radio from nearby seats, and sit properly on the ottoman. Aquarium fish
+swim with gentler, more continuous motion.
+
+## Improved
+
+- Housemates watching television or listening to the radio choose an available, reachable seat within seven tiles in front of the device. They stand facing it when no suitable seat is available.
+- A seat used for television or radio remains occupied until its user finishes, leaves or cancels the action.
 
 ## Art
 
 - Bunk-bed sleepers have relaxed legs and covered feet, with consistent views from all four directions.
 - Aquarium fish drift and flex their tails independently in every view. Pause freezes the motion, and reduced motion holds a quiet pose.
+- Seated viewers and listeners have fitted idle poses on dining chairs, desk chairs, reading chairs, armchairs, sofas and ottomans, with matching views and shirt colours.
+- Sit down on an ottoman now shows a seated pose rather than a standing housemate.
 
 ## Fixed
 

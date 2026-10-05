@@ -3762,7 +3762,7 @@ mod tests {
     }
 
     #[test]
-    fn every_shipped_interaction_projects_its_exact_activity_without_inventing_body_art() {
+    fn every_shipped_interaction_projects_its_exact_activity_and_supported_body_pose() {
         use crate::render_buffer::{activity, visual_action};
         use terri_core::Target;
 
@@ -3786,9 +3786,9 @@ mod tests {
                 "television",
                 "watch_tv",
                 activity::WATCHING_TV,
-                visual_action::NONE,
+                visual_action::WATCH,
             ),
-            ("sofa", "lounge", activity::SITTING, visual_action::NONE),
+            ("sofa", "lounge", activity::SITTING, visual_action::SIT),
             (
                 "sink",
                 "wash_hands",
@@ -3829,7 +3829,7 @@ mod tests {
                 "radio",
                 "listen",
                 activity::LISTENING_RADIO,
-                visual_action::NONE,
+                visual_action::WATCH,
             ),
             (
                 "double_bed",

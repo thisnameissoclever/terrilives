@@ -10186,3 +10186,93 @@ before treating an old source-art record as a restriction on gameplay.
 **Verify.** The dining README now distinguishes its historical static proof
 from the domestic seated-meal workflow. Check current action selection and
 occupied-scene rendering alongside their existing behavioral regressions.
+
+## [L-patches-use-current-formatted-source] Refresh patch context after formatting
+
+**What happened.** Repeated patch attempts could not match function signatures
+and expressions that a formatter had rearranged. A separate edit also used
+an inaccurately remembered sentence as its anchor.
+
+**Root cause.** Edits were prepared from remembered or pre-formatting text
+rather than the current file. Failed patches were harmless, but repeated
+guesses wasted work and could have matched another declaration.
+
+**Prevention.** Read the exact owning function immediately before editing it.
+Use local, function-owned patch context. Separate fixture construction changes
+from new tests. Discard the old text snapshot after formatting.
+
+**Verify.** Fresh-context review identified the actual multiline signatures.
+The source-based patches preserved existing fixtures and passed all media
+front, cone, availability and route tests.
+
+## [L-independent-float-reference] Keep comparison references independent of storage
+
+**What happened.** Dark seated scenes failed the comparison limit even though
+the floating-point layer sum matched the original render. The reference had
+been rounded through the production image encoding before comparison.
+
+**Root cause.** Quantizing both the reference and the tested output introduced
+different rounding errors. That measured the reference conversion as if it
+were a rendering defect.
+
+**Prevention.** Filter the original full-scene reference in floating-point,
+premultiplied colour. Apply the display conversion once. Keep the production
+storage conversion only on the output being tested.
+
+**Verify.** Test literal dark colours and transparent pixels independently.
+Retain the same comparison limits and check every exported palette and facing.
+
+## [L-placement-fixture-grid] Build placement fixtures with coherent collision occupancy
+
+**What happened.** A new occupied-chair move test received UnsupportedLayout
+before it reached the ownership check. Changing the saved wall resource did
+not resolve the failure.
+
+**Root cause.** Dynamic object spawning intentionally does not block footprint
+tiles. The placement validator requires the live grid to match the complete
+furniture and architecture inventory; an empty wall resource was already the
+fixture's default.
+
+**Prevention.** Use the lot constructor for placement policy fixtures. Keep
+low-level geometry fixtures separate. Prove that idle move and sale succeed
+before expecting the occupied version of those operations to fail.
+
+**Verify.** The constructor-backed media fixture accepts idle movement and
+sale, then returns InUse during both travel and active seated use.
+
+## [L-gpu-reference-scope] Match the renderer's reference and capture semantics
+
+**What happened.** A seating graphics check disagreed at faint silhouette
+pixels and a subsequent canvas snapshot stalled.
+
+**Root cause.** The reference drew coverage that the production shader discards
+below half opacity. It also filtered display colours instead of linear,
+premultiplied contributions. The capture yielded before copying the transient
+canvas attachment, contrary to the established buffer-readback procedure.
+
+**Prevention.** Keep independent original-beauty reconstruction and decoded-layer
+shader fidelity as separately named gates. Model sampling, opacity discard and
+background composition in the shader reference. Submit a full texture copy
+before yielding. Reject out-of-frame references and non-finite measurements.
+
+**Verify.** Compare complete frames without removing edge pixels. Retain the
+original error limits. A texel-aligned shader check does not establish numerical
+fidelity at fractional zoom or a final-pixel comparison against original beauty.
+
+## [L-validation-fixture-layout] Exercise the layout branch that owns the guard
+
+**What happened.** Removing a standing-media save guard left its regression
+green. The fixture used a legacy layout that did not run wall-aware contact
+validation.
+
+**Root cause.** The test reached the save API but not the specific validator
+whose behavior it claimed to protect.
+
+**Prevention.** Construct a coherent wall-aware lot when testing wall-aware
+restoration. Assert a non-perimeter route endpoint so ordinary contact cannot
+accidentally satisfy the check. Remove the consumer's validation calls, not
+only the helper under test.
+
+**Verify.** The corrected fixture restores both travel and active use. Deleting
+the standing-contact consumer calls rejects its travel save. Restoring the
+calls returns the test to green without modifying runtime behavior.
