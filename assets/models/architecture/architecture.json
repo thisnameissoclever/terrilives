@@ -12,6 +12,10 @@
       "kind": "covered-bunk",
       "catalog": "assets/models/bedroom/covered-bunk-reviewed.json",
       "canonicalSha256": "34a06565cf5e0d68c5a62a78a1e85d07410a9cc50ee45ef62d6c722468ee3f5a"
+    },
+    {
+      "catalog": "assets/models/static-props-06.json",
+      "canonicalSha256": "d7f45174e6c422ba30fa961b0bcf522aaed4891fa5cee0bbdf6a60cabb0d8a63"
     }
   ],
   "historicalFiles": {

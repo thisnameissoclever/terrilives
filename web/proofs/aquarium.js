@@ -1,10 +1,10 @@
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.ts';
-import { buildInstances, instanceCount, objectBodySprite } from '../src/frame.ts';
+import { buildInstances, instanceCount, objectBodySprite, AQUARIUM_SWIM_FRAME_TICKS } from '../src/frame.ts';
 import { initDevice } from '../src/render/device.ts';
 import { SpriteRenderer } from '../src/render/sprites.ts';
 import { FLOATS_PER_INSTANCE, writeInstance } from '../src/render/instances.ts';
-import { spriteIndex, ATLAS_FILE_NAME } from '../src/render/atlas.ts';
+import { spriteIndex, ATLAS_PAGE_FILES } from '../src/render/atlas.ts';
 import { buildLightField, sampleLight, emissiveForSprite } from '../src/render/lighting.ts';
 import { ambientFor, AMBIENT_NEUTRAL } from '../src/render/daylight.ts';
 
@@ -40,9 +40,9 @@ export async function aquariumProof() {
       const drawn = isolated ? instances.slice(row*FLOATS_PER_INSTANCE, (row+1)*FLOATS_PER_INSTANCE) : instances;
       renderer.draw(drawn, isolated ? 1 : instanceCount(sim, selected, undefined, preview), scale,
         night ? ambientFor(0, 1340) : AMBIENT_NEUTRAL);
-      await gpu.device.queue.onSubmittedWorkDone();
       const copy = document.createElement('canvas'); copy.width = 400; copy.height = 340;
       copy.getContext('2d').drawImage(canvas, 0, 0);
+      await gpu.device.queue.onSubmittedWorkDone();
       const section = document.createElement('section'), title = document.createElement('div');
       title.textContent = label; section.style.width = '400px'; copy.style.display = 'block';
       section.append(title, copy); board.append(section);
@@ -67,8 +67,10 @@ export async function aquariumProof() {
       sim.flushCommands();
       if (sim.lastPlacementResult()?.reason) throw new Error('Aquarium rotation rejected');
       if (!sim.loadBytes(sim.saveBytes())) throw new Error('Save round trip failed');
-      await capture(`${name}: frame 0`, false, null, true);
-      await capture(`${name}: frame 1`, false, null, true, 24);
+      for (let frame = 0; frame < 8; frame++) {
+        await capture(`${name}: swimming sample ${frame}`, false, null, true,
+          frame*AQUARIUM_SWIM_FRAME_TICKS);
+      }
       await capture(`${name}: midnight room`, true);
     }
     sim.placeObject(27, x, y, 0); sim.flushCommands();
@@ -83,6 +85,6 @@ export async function aquariumProof() {
     document.body.replaceChildren(board); document.body.style.margin = '0';
     const validation = await gpu.device.popErrorScope();
     return { pass: !validation && !errors.length, validation: validation?.message ?? null,
-      errors, atlas: ATLAS_FILE_NAME, records, interactionLabels: sim.interactionLabels(27) };
+      errors, atlasPages: ATLAS_PAGE_FILES, records, interactionLabels: sim.interactionLabels(27) };
   } finally { handle.free(); gpu.device.destroy(); }
 }

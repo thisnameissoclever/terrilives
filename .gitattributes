@@ -37,6 +37,7 @@ assets/models/bedroom/export/double-bed-covered/*.json -text whitespace=blank-at
 # Armchair receipts also bind exact JSON bytes, not normalized text.
 assets/models/living/armchair-export/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/living/owner-review-pending/armchair/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/living/owner-review-pending/aquarium/swimming-01/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
 # **Append-only prose, merged by keeping BOTH sides.**
 #

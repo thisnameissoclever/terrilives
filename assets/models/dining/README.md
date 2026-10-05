@@ -3,7 +3,9 @@
 Continue the accepted offline-model-to-sprite process without changing the
 existing furniture's prices, footprints, positions, actions or save identities.
 The replacements are the one-tile wooden dining chair and two-tile oak table.
-Seated meal animation is separate work; empty furniture does not establish body fit.
+This static-furniture procedure does not establish body fit. The current seated
+meal animation and table dishes use the separate contribution workflow in
+[`../domestic/README.md`](../domestic/README.md).
 
 `chair_layout.py` defines four feet, continuous rear posts, equal back rails,
 seat, aprons and stretchers. Its physical front is local -X. The unchanged
@@ -48,9 +50,9 @@ contacts, equal leg dimensions, correct rotated spans and eight rejected
 damaged copies. `assets/models/bathroom/review_wide_static.py` produces the
 four-facing board without repairing pixels.
 
-`web/proofs/dining-table.js` exercises actual WASM placements through the real
-frame builder and GPU, then captures a terminal dinner. The meal stays attached
-to the Sim's hand anchors. This table replacement adds neither seated eating
-nor table-resting dishes. Test both default placement and save/load after all
+`web/proofs/dining-table.js` is the historical static-table graphics proof.
+The table-only replacement did not add seated eating or table-resting dishes;
+the later domestic contribution workflow supplies those current features.
+Test both default placement and save/load after all
 four rotations. Preserve all earlier atlas records and decoded pixels even
 when the existing packer selects a wider atlas.

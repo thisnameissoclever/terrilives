@@ -274,6 +274,36 @@ Candidate 01's source and runtime evidence is recorded in
 
 ## Aquarium
 
+The current fish loop uses `aquarium_swim.py` and `render_aquarium_swim.py`.
+The eight samples preserve the accepted `aquarium_model.py` geometry and
+materials while translating each complete fish and flexing its attached tail.
+The two-frame source procedure below is historical; do not overwrite its
+published images, saved models or receipts.
+
+1. Run the living-model tests before rendering a new absolute candidate
+   directory with hidden background Blender and `render_aquarium_swim.py`.
+2. Require all eight `proof.json` receipts to report complete and four facings.
+3. Reopen every saved sample with `check_aquarium_swim.py`. Require complete
+   evaluated contacts, contained fish and zero lid-blocked vertices. These
+   final-camera checks supply the projected fish envelopes.
+4. Run `review_aquarium_swim.py DIR` to create the unedited reduced motion board
+   and four preview loops. Inspect originals and previews independently.
+5. Append accepted proofs and byte-hashed scene checks in a new tail catalogue.
+   Preserve the architecture's original prefix and pin the catalogue as a
+   reviewed historical extension. Never insert new images before published ones.
+6. Run the sprite generator. `validate_swimming_catalog` checks distinct
+   samples, fixed alpha and unchanged pixels outside the three fish envelopes,
+   including comparison with the released tank. Do not expand envelopes to
+   conceal changes to glass, plants or the cabinet.
+7. Check `/proofs/aquarium.js` with the actual renderer, then play normal game
+   controls. Verify all samples, Pause, reduced motion, lighting, colours,
+   rotation, picking and unchanged saves. Close owned contexts afterward.
+
+The runtime holds each sample for six simulation ticks in a 48-tick loop.
+Keep the existing watching body and activity unchanged.
+
+### Historical two-frame source
+
 `aquarium_layout.py` and `aquarium_model.py` define the wood cabinet, glass
 panes, opaque lid, substrate, rocks, plants and three fish. Bake the same
 -90 degree child correction used by the coat rack: the aquarium's legacy SE

@@ -31,7 +31,7 @@ class AquariumPrefixTests(unittest.TestCase):
         self.assertIsNotNone(match)
         value = json.loads(match.group(1))
         base = value.pop('baseSpriteId')
-        self.assertEqual(base, BASELINE['count'] + 8 + 30)
+        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32)
         for index, row in enumerate(value['sprites']):
             self.assertEqual(row.pop('id'), base + index)
         digest = hashlib.sha256(json.dumps(value, sort_keys=True,

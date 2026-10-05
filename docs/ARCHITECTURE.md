@@ -895,9 +895,11 @@ without widening the bridge. `reference_shelf.watch_fish`, whose historical
 object id remains a Save V1 persistence key, authors
 `watch / object / toward_anchor`. It stays on the adjacent path tile, faces the
 aquarium footprint centre, emits visual action 7 and activity 10, and uses a
-slow four-pose watching cycle. The aquarium object itself swaps between two
-same-envelope generated frames with only the fish moving; reduced motion pins
-both object and body frame zero.
+slow four-pose watching cycle. The aquarium object samples an eight-pose
+swimming loop with independently phased fish bodies and tails. Each sample
+holds for six simulation ticks; the cabinet, glass and registration remain
+fixed. Reduced motion holds the quiet first object and body samples. The
+historical two-frame aquarium records remain unchanged in the atlas.
 
 `moving_box.use_exercise_bike`, likewise retaining its historical persistence
 id, authors `exercise / object_socket / socket`. It reuses the socket

@@ -10169,3 +10169,20 @@ submitted. Reuse the established capture procedure instead of adding waits.
 **Verify.** Require the expected opaque pixel, a discriminating negative control
 and exact restoration. Retain failed capture results separately from product
 rendering failures.
+
+## [L-static-proof-is-not-current-activity-scope] Date static-art limitations
+
+**What happened.** The dining-furniture instructions said the table replacement
+added neither seated eating nor table dishes, after a later domestic feature
+had implemented both. That statement could misdirect a new animation task.
+
+**Root cause.** A source-art checkpoint's exclusions were left phrased as current
+runtime limitations after another workflow extended the same furniture.
+
+**Prevention.** Label checkpoint-specific exclusions as historical. Link the
+current interaction workflow. Inspect the live action and projection consumers
+before treating an old source-art record as a restriction on gameplay.
+
+**Verify.** The dining README now distinguishes its historical static proof
+from the domestic seated-meal workflow. Check current action selection and
+occupied-scene rendering alongside their existing behavioral regressions.

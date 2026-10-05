@@ -375,10 +375,13 @@ const AQUARIUM_FRAME_ZERO_SPRITE = spriteIndex('bookcaseClosedWide');
 const AQUARIUM_FRAME_ONE_SPRITE = spriteIndex('aquariumCabinet1');
 const AQUARIUM_ALTERNATE_FRAMES = new Map([
   [AQUARIUM_FRAME_ZERO_SPRITE, AQUARIUM_FRAME_ONE_SPRITE],
-  ...['', 'NW', 'SW', 'NE'].map(suffix => [
-    spriteIndex('offlineAquarium' + suffix), spriteIndex('offlineAquariumFrame1' + suffix),
-  ] as [number, number]),
 ]);
+/** Eight swimming samples retain the historical 48-tick complete cycle. */
+export const AQUARIUM_SWIM_FRAME_TICKS = 6;
+const AQUARIUM_SWIM_FRAMES = new Map(['', 'NW', 'SW', 'NE'].map(suffix => [
+  spriteIndex('offlineAquarium' + suffix),
+  Array.from({ length: 8 }, (_, frame) => spriteIndex(`offlineAquariumSwim${frame}` + suffix)),
+]));
 
 function validFacing(facing: number): boolean {
   return Number.isInteger(facing) && facing >= FACING_POSITIVE_X && facing <= FACING_NEGATIVE_Y;
@@ -440,6 +443,11 @@ export function objectBodySprite(
   simulationTick: number,
   reducedMotion: boolean,
 ): number {
+  const samples = AQUARIUM_SWIM_FRAMES.get(sourceSprite);
+  if (samples) {
+    return samples[tickAnimationFrame(simulationTick, 0, samples.length,
+      AQUARIUM_SWIM_FRAME_TICKS, reducedMotion)];
+  }
   const alternate = AQUARIUM_ALTERNATE_FRAMES.get(sourceSprite);
   if (alternate === undefined || reducedMotion) {
     return sourceSprite;
