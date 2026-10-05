@@ -10040,3 +10040,13 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Stop source-dependent work after a cleanup failure. Restore a verified original snapshot and compare every bound input before continuing. Preserve partial-run failures separately from a later passing run.
 
 **Verify.** Compare exact source bytes and render-input hashes, require restored controls to pass, and never report unrecorded mutant outcomes as completed evidence.
+
+### [L-wasm-build-import-target] Build the package the application imports
+
+**What happened.** A simulation rebuild completed in an unused output directory. Type checking, web tests and the running game still loaded older generated files and reported missing methods.
+
+**Root cause.** The build command used a remembered output path instead of the application's current import path.
+
+**Prevention.** Inspect the application import and the repository's build command before rebuilding generated packages. Use that exact output directory before starting dependent checks.
+
+**Verify.** Confirm the generated declaration and binary are in the imported directory. Run type checking and the web suite, then reload the game and check that it starts without missing-method errors.

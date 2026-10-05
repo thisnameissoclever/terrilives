@@ -30,13 +30,12 @@ import {
 } from '../src/render/iso.js';
 
 describe('clampZoom', () => {
-  it('pins the band the design chose', () => {
-    // Golden per [L5]: the band is a design decision (0.5x fits the lot
-    // with margin, 2.5x counts a sim's buttons), not a free parameter,
-    // and the picking, the statics and the shader all assume the scale
-    // stays finite and positive.
-    expect(MIN_ZOOM).toBe(0.5);
-    expect(MAX_ZOOM).toBe(2.5);
+  it('allows close views up to 4x without changing the minimum zoom', () => {
+    expect(clampZoom(0.1)).toBe(0.5);
+    expect(clampZoom(1)).toBe(1);
+    expect(clampZoom(3.5)).toBe(3.5);
+    expect(clampZoom(4)).toBe(4);
+    expect(clampZoom(9)).toBe(4);
   });
 
   it('clamps both ends and passes the interior through', () => {
@@ -55,6 +54,13 @@ describe('clampZoom', () => {
 });
 
 describe('wheelZoom', () => {
+  it('zooms past the former limit and stops at 4x', () => {
+    expect(wheelZoom(2.5, -100)).toBeCloseTo(2.818742, 5);
+    expect(wheelZoom(3.5, -500)).toBe(4);
+    expect(wheelZoom(4, -100)).toBe(4);
+    expect(wheelZoom(4, 100)).toBeCloseTo(3.547682, 5);
+  });
+
   it('zooms in on wheel-up and out on wheel-down', () => {
     // Wheel-up is negative deltaY. Getting the sign backwards matches
     // no map the player has ever scrolled, and no other test notices.
@@ -92,6 +98,13 @@ describe('wheelZoom', () => {
 });
 
 describe('pinchZoom', () => {
+  it('uses the full 4x band for a phone-sized pinch', () => {
+    expect(pinchZoom(2.5, 100, 140)).toBe(3.5);
+    expect(pinchZoom(2.5, 100, 160)).toBe(4);
+    expect(pinchZoom(2.5, 100, 200)).toBe(4);
+    expect(pinchZoom(4, 160, 100)).toBe(2.5);
+  });
+
   it('scales by the spread ratio from the gesture start', () => {
     // Fingers twice as far apart as when the pinch began is twice the
     // zoom the pinch began at - the ratio, not the absolute distance,
@@ -148,6 +161,8 @@ describe('zoomAnchoredOrigin', () => {
       for (const [oldScale, newScale] of [
         [1, 2],
         [2, 0.8],
+        [2.5, 4],
+        [4, 2.5],
       ]) {
         const originX = 400;
         const originY = 180;
@@ -166,7 +181,7 @@ describe('zoomAnchoredOrigin', () => {
         checked += 1;
       }
     }
-    expect(checked).toBe(6);
+    expect(checked).toBe(12);
   });
 
   it('is the identity at an unchanged scale', () => {
@@ -200,7 +215,7 @@ describe('lotExtent and clampOrigin', () => {
     expect(EXTENT.top).toBe(0.5 * TILE_HALF_HEIGHT - 99);
     expect(EXTENT.bottom).toBe(23 * TILE_HALF_HEIGHT);
     // And it scales as one shape: a zoomed lot is the same box times
-    // the zoom, which is what keeps the clamp band honest at 2.5x.
+    // the zoom, including close views at the maximum scale.
     const doubled = lotExtent(14, 10, 99, 99, 2);
     expect(doubled.left).toBe(EXTENT.left * 2);
     expect(doubled.bottom).toBe(EXTENT.bottom * 2);
