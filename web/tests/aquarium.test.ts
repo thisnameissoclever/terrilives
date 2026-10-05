@@ -37,16 +37,23 @@ it('loads an actual released-main save and changes only the aquarium artwork', (
 it.each(['', 'NW', 'SW', 'NE'])('keeps fish timing and the picking envelope for facing %s', suffix => {
   const zero = atlas.spriteIndex('offlineAquarium' + suffix);
   const one = atlas.spriteIndex('offlineAquariumFrame1' + suffix);
-  for (const [tick, wanted] of [[0, zero], [23, zero], [24, one], [47, one], [48, zero]]) {
-    expect(objectBodySprite(zero, tick, false)).toBe(wanted);
-    expect(objectBodySprite(one, tick, false)).toBe(one);
-    expect(objectBodySprite(zero, tick, true)).toBe(zero);
+  const frames = Array.from({ length: 8 }, (_, frame) => atlas.spriteIndex(`offlineAquariumSwim${frame}` + suffix));
+  for (let frame = 0; frame < 8; frame++) {
+    for (const tick of [frame*6, frame*6+5]) {
+      expect(objectBodySprite(zero, tick, false)).toBe(frames[frame]);
+      expect(objectBodySprite(zero, tick+48, false)).toBe(frames[frame]);
+    }
+    expect(objectBodySprite(one, frame*6, false)).toBe(one);
+    expect(objectBodySprite(zero, frame*6, true)).toBe(frames[0]);
   }
+  expect(objectBodySprite(zero, 48, false)).toBe(frames[0]);
   expect(atlas.SPRITE_ANCHORS[zero]).toEqual(atlas.SPRITE_ANCHORS[one]);
   expect(atlas.SPRITE_CONTENT_BOUNDS[zero]).toEqual(atlas.SPRITE_CONTENT_BOUNDS[one]);
-  for (const index of [zero, one]) {
+  for (const index of [zero, one, ...frames]) {
     expect(atlas.SPRITES[index]).toMatchObject({ w: 192, h: 240, pixel_density: 2 });
     expect(emissiveForSprite(index)).toBe(0);
+    expect(atlas.SPRITE_ANCHORS[index]).toEqual(atlas.SPRITE_ANCHORS[zero]);
+    expect(atlas.SPRITE_CONTENT_BOUNDS[index]).toEqual(atlas.SPRITE_CONTENT_BOUNDS[zero]);
   }
   const source: PickSource = { count: 1, positions: () => new Float32Array([0, 0]),
     kinds: () => new Uint32Array([1]), ids: () => new Uint32Array([27]),

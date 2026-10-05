@@ -1,0 +1,529 @@
+{
+  "state": "passed",
+  "parts": 44,
+  "contacts": [
+    {
+      "parts": [
+        "Cabinet body",
+        "Cabinet plinth"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Cabinet top",
+        "Cabinet body"
+      ],
+      "crossings": 8,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank base",
+        "Cabinet top"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Substrate",
+        "Tank base"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "left cabinet door",
+        "Cabinet body"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "left door handle",
+        "left cabinet door"
+      ],
+      "crossings": 24,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "right cabinet door",
+        "Cabinet body"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "right door handle",
+        "right cabinet door"
+      ],
+      "crossings": 24,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Amber fish eye -1",
+        "Amber fish body"
+      ],
+      "crossings": 56,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Amber fish eye 1",
+        "Amber fish body"
+      ],
+      "crossings": 56,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Amber fish tail",
+        "Amber fish body"
+      ],
+      "crossings": 14,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Blue fish eye -1",
+        "Blue fish body"
+      ],
+      "crossings": 56,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Blue fish eye 1",
+        "Blue fish body"
+      ],
+      "crossings": 56,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Blue fish tail",
+        "Blue fish body"
+      ],
+      "crossings": 14,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Coral fish eye -1",
+        "Coral fish body"
+      ],
+      "crossings": 56,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Coral fish eye 1",
+        "Coral fish body"
+      ],
+      "crossings": 56,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Coral fish tail",
+        "Coral fish body"
+      ],
+      "crossings": 14,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass end -0.401",
+        "Tank base"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass end -0.401",
+        "Tank lid"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass end 0.401",
+        "Tank base"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass end 0.401",
+        "Tank lid"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass long -0.341",
+        "Tank base"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass long -0.341",
+        "Tank lid"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass long 0.341",
+        "Tank base"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Glass long 0.341",
+        "Tank lid"
+      ],
+      "crossings": 1,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 0 blade 0",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 0 blade 1",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 0 blade 2",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 0 blade 3",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 0 blade 4",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 1 blade 0",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 1 blade 1",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 1 blade 2",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 1 blade 3",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Plant 1 blade 4",
+        "Substrate"
+      ],
+      "crossings": 16,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Rock 0",
+        "Substrate"
+      ],
+      "crossings": 32,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Rock 1",
+        "Substrate"
+      ],
+      "crossings": 32,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Rock 2",
+        "Substrate"
+      ],
+      "crossings": 32,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Rock 3",
+        "Substrate"
+      ],
+      "crossings": 32,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner -0.401 -0.341",
+        "Tank base"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner -0.401 -0.341",
+        "Tank lid"
+      ],
+      "crossings": 8,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner -0.401 0.341",
+        "Tank base"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner -0.401 0.341",
+        "Tank lid"
+      ],
+      "crossings": 8,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner 0.401 -0.341",
+        "Tank base"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner 0.401 -0.341",
+        "Tank lid"
+      ],
+      "crossings": 8,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner 0.401 0.341",
+        "Tank base"
+      ],
+      "crossings": 20,
+      "contained_point": null
+    },
+    {
+      "parts": [
+        "Tank corner 0.401 0.341",
+        "Tank lid"
+      ],
+      "crossings": 8,
+      "contained_point": null
+    }
+  ],
+  "visibility": [
+    {
+      "facing": "SE",
+      "fish": "Amber fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        295.58008575439453,
+        421.8211555480957,
+        342.8291015625,
+        466.1065864562988
+      ]
+    },
+    {
+      "facing": "SE",
+      "fish": "Blue fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        428.56329345703125,
+        531.5261363983154,
+        474.6790466308594,
+        576.555233001709
+      ]
+    },
+    {
+      "facing": "SE",
+      "fish": "Coral fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        343.34129333496094,
+        457.6269721984863,
+        395.87059020996094,
+        498.4472465515137
+      ]
+    },
+    {
+      "facing": "NW",
+      "fish": "Amber fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        425.1711730957031,
+        515.388879776001,
+        472.4202117919922,
+        559.6743392944336
+      ]
+    },
+    {
+      "facing": "NW",
+      "fish": "Blue fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        293.32120513916016,
+        434.10655975341797,
+        339.43700408935547,
+        479.135684967041
+      ]
+    },
+    {
+      "facing": "NW",
+      "fish": "Coral fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        372.1297073364258,
+        474.0806007385254,
+        424.6589813232422,
+        514.9009037017822
+      ]
+    },
+    {
+      "facing": "SW",
+      "fish": "Amber fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        427.2192077636719,
+        424.52688217163086,
+        476.54319763183594,
+        467.4505805969238
+      ]
+    },
+    {
+      "facing": "SW",
+      "fish": "Blue fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        287.9557342529297,
+        530.8541107177734,
+        338.4129867553711,
+        573.034143447876
+      ]
+    },
+    {
+      "facing": "SW",
+      "fish": "Coral fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        371.105712890625,
+        451.38633728027344,
+        415.1494445800781,
+        497.7752494812012
+      ]
+    },
+    {
+      "facing": "NE",
+      "fish": "Amber fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        291.4570770263672,
+        514.0448570251465,
+        340.78108978271484,
+        556.9686126708984
+      ]
+    },
+    {
+      "facing": "NE",
+      "fish": "Blue fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        429.5873107910156,
+        437.6276206970215,
+        480.04454040527344,
+        479.8077392578125
+      ]
+    },
+    {
+      "facing": "NE",
+      "fish": "Coral fish",
+      "lid_blocked_vertices": 0,
+      "total_vertices": 1452,
+      "pixel_bounds": [
+        352.850830078125,
+        474.7525978088379,
+        396.8945617675781,
+        521.1415386199951
+      ]
+    }
+  ],
+  "model_sha256": "2560193fe2e3641e0e6d9096acdc7574a4c493266464a788df3b86fbe2b55ef1"
+}

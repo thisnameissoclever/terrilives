@@ -1366,6 +1366,17 @@ def main():
     covered_bunk = load_covered_bunk(os.path.join(ROOT, 'assets/models/bedroom/covered-bunk-reviewed.json'))
     bed_trims = append_covered_bunk(covered_bunk, sprites, anchors, densities, bounds,
                                    bed_catalog, bed_layers, bed_coverage)
+    swim_catalog = os.path.join(ROOT, 'assets/models/static-props-06.json')
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        swim_catalog, existing_names={sprite[0] for sprite in sprites})
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
+    from aquarium_motion import validate_swimming_catalog
+    validate_swimming_catalog(sprites, swim_catalog)
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     sync_generated_architecture(sprites, check=args.check)
