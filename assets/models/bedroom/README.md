@@ -145,6 +145,35 @@ invariance before runtime integration and played release verification.
 
 ## Bunk
 
+### Covered lower-bunk authoring
+
+`covered_bunk_sleep.py` is the object-local authoring path for a relaxed lower
+sleeper under one continuous duvet. It pins the near-ladder source and approved
+double-bed pose recipe, centers the sleeping-only scaled rig, and keeps the
+shared rig and frame unchanged. It is not yet the production bunk importer.
+
+Run `check_covered_bunk_scene.py ABSOLUTE_NEW_RESULT_JSON` through pinned
+background Blender before rendering a source probe. The checker evaluates
+support, the complete body against frame bounds, and the cloth after its
+thickness modifier. It requires four deliberate displacement failures and an
+identical restored positive result.
+
+Run `render_covered_bunk_probe.py ABSOLUTE_NEW_DIRECTORY` through Blender
+4.5.14 LTS build `62c1db4208e8` in background mode. Place the script arguments
+after `--`. The probe uses two render threads and the registered 1280x1408
+canvas. It records frozen inputs, physical measurements, six source images and
+one immutable terminal receipt. Observe the actual worker exit before reading
+the receipt. A Windows Store launcher exiting is not worker completion.
+
+Inspect both uncovered diagnostics and all four covered views. The diagnostics
+hide upper objects so the whole sleeping posture remains visible. Keep those
+diagnostics distinct from game artwork. Require independent appearance review,
+then complete contribution export and runtime verification before replacing
+the released sprites. See the dated
+[source evidence](../../../docs/assets/review-evidence/bedroom/covered-bunk-sleep-2026-10-04.md).
+
+### Released bunk source
+
 Candidate 02 replaces the old split bunk with the same registered composite
 mechanism as the bike and reading chair. The existing one-slot sleep action,
 centered socket, 2x1 footprint and Sim rig are unchanged. A rigid translation

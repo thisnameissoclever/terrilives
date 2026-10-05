@@ -10097,3 +10097,25 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Distinguish oversized rectangles, true padded-area exhaustion and policy infeasibility. Preserve successful existing placements, then try a bounded deterministic alternative for admissible input. Do not raise hardware limits or reduce accepted artwork to hide optimizer incompleteness.
 
 **Verify.** Retain the actual size fixture, require bounds and padded non-overlap, and remove the alternative policy to reproduce the failure. Check successful prior layouts exactly and prove all released pixels and registration survive full generation.
+
+## [L-inset-cloth-needs-evaluated-clearance] Check the thickness inside a cloth hem
+
+**What happened.** An occupied bunk preview looked valid, but its evaluated
+duvet crossed the mattress. Raising the inset side hems removed those crossings;
+the foot hem still crossed because the thickness extended inward from the
+visible cloth surface.
+
+**Root cause.** Generated vertex bounds described the outside surface only.
+The inset sides could not hang below the mattress top, and the foot wrap did
+not reserve space for its inward thickness.
+
+**Prevention.** Establish whether each hem rests on the mattress or wraps
+outside it. Reserve thickness on the correct side of each surface. Check the
+evaluated cloth against the body, bedding and frame after every modifier.
+Keep visual acceptance separate from physical-clearance acceptance.
+
+**Verify.** Require zero evaluated cloth triangle crossings. Displace the cloth
+into the body and require failure. Retain rejected geometry evidence and add
+regression tests for side support and inward foot thickness. The dated
+[covered-bunk source evidence](assets/review-evidence/bedroom/covered-bunk-sleep-2026-10-04.md)
+records the measured failures and correction.
