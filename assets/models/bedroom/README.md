@@ -57,10 +57,10 @@ different surfaces, not one maximum-height value. The runtime centers the
 unchanged 2x2 footprint half a tile from its placed origin on each world axis;
 do not add another model offset.
 
-The existing double-bed action has two slots but no sleeping pose or foreground.
-This artwork does not fix that animation gap. A future two-sleeper implementation
-needs distinct body positions and correct occlusion. One shared sleep socket
-or the current single-owner composite path would overlap both occupants.
+The released double-bed action has two assigned sleeping places and a covered
+static presentation with separate body positions and visible-owner masks.
+The occupied export and its renderer are described below. Do not use one
+shared sleep socket or the bunk's single-owner path for both occupants.
 
 `probe_sim_height.py MODEL NEW_RESULT_JSON` measures the immutable idle Sim
 without saving it. `sim-height-reference.json` records a 2.07411 sole-to-hair

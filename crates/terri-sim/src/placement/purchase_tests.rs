@@ -224,22 +224,15 @@ fn exactly_the_price_is_enough_and_one_less_is_not() {
 
 #[test]
 fn a_purchase_is_refused_for_each_reason_in_the_order_the_design_lists() {
-    let mut sim = house(1_000, vec![]);
     let chair_index = index("chair");
     let base = pack().objects[chair_index as usize].base_facing;
-    // A priced object and a direction its art does not have.
-    let (turnless, unsupported) = pack()
-        .objects
-        .iter()
-        .enumerate()
-        .filter(|(_, object)| object.price.is_some())
-        .find_map(|(index, object)| {
-            terri_core::Facing::ALL
-                .into_iter()
-                .find(|&f| !object.supports(f))
-                .map(|f| (index as u32, f))
-        })
-        .expect("some priced object lacks a direction");
+    // Author the missing direction in this fixture. Shipped art now supports
+    // all four facings and must not supply an accidental refusal prerequisite.
+    let turnless = index("reference_shelf");
+    let unsupported = terri_core::Facing::NorthEast;
+    let mut sim = house_with(1_000, vec![], |pack| {
+        pack.objects[turnless as usize].facing_sprites.0[unsupported.code() as usize] = None;
+    });
     let buy = |definition: u32, x: u32, y: u32, facing| Purchase {
         definition,
         x,

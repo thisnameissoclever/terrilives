@@ -271,3 +271,51 @@ family. Persistence ID `bookshelf` remains the standing-reading object;
 
 Candidate 01's source and runtime evidence is recorded in
 `../../../docs/assets/review-evidence/living/bookcase.md`.
+
+## Aquarium
+
+`aquarium_layout.py` and `aquarium_model.py` define the wood cabinet, glass
+panes, opaque lid, substrate, rocks, plants and three fish. Bake the same
+-90 degree child correction used by the coat rack: the aquarium's legacy SE
+doors face game +Y. Keep persistence ID `reference_shelf`, entity 27 at
+(6, 10), price 220, the one-tile footprint and Watch the fish unchanged.
+
+1. Run the living-model tests, then hidden background Blender with
+   `render_aquarium.py -- NEW_ABSOLUTE_DIR`. It creates two separate frames,
+   each with four 768x960 RGBA originals, an editable model and hashed proof.
+   Construction and fish-to-lid sightline checks run before each batch.
+2. Run `check_aquarium_scene.py -- ABSOLUTE_MODEL NEW_RESULT` against each
+   saved model. Require 44 parts, 47 evaluated contacts, a grounded plinth,
+   fish inside the glass and zero lid-blocked vertices across all four
+   directions. Glass panes are deliberate single sheets; all other mesh
+   parts must be closed and connected.
+3. Run `prove_aquarium_checks.py -- ABSOLUTE_MODEL NEW_RESULT`. All six damaged
+   copies and five deleted guards must fail, and saved-model bytes must stay
+   unchanged. Those checks prove their named constraints, not readability.
+4. Generate a review board for each frame with
+   `../kitchen/review_fridge.py FRAME_DIR LABEL`. Inspect the eight originals
+   and reduced views independently. The back-facing panes provide an opaque
+   aqua background so the water survives the runtime alpha threshold. This
+   is stylized sprite shading, not physical refraction.
+5. Append both accepted frame proofs to `../static-props-05.json`. The atlas
+   guard in `assets/sprites/gen/aquarium_motion.py` requires identical alpha,
+   unchanged RGBA outside three reviewed fish regions and visible motion from
+   each fish. Derive those regions from the saved `scene-check.json` bounds,
+   including outline/filter padding. Embedded pre-render `model_checks`
+   bounds precede final camera registration and must not be used for masks.
+6. Run `aquariumProof()` from `web/proofs/aquarium.js` in the isolated proof
+   document. Check both frames in all directions, midnight lighting, restored
+   colourways and Build preview. Source emission remains zero. Object frames
+   hold for 24 simulation ticks in a 48-tick cycle, without an entity phase;
+   reduced motion pins frame zero. Do not change the existing Sim watch rig.
+7. Separately rotate through production Build controls, compare the paused
+   save after four turns, use Watch the fish through the visible menu, and
+   inspect normal playback and room scale. The standing action uses visual 7,
+   activity 10 and an adjacent ordinary tile, not a furniture body socket.
+   Close owned browser contexts and stop owned preview servers afterward.
+
+Source, graphics-rendering and played acceptance are recorded in
+`../../../docs/assets/review-evidence/living/aquarium-2026-10-04.md`.
+See `aquarium.md` beside that record for earlier checkpoints and the per-object
+`owner-review-pending/aquarium/attempts.md` journal for rejected candidates.
+Do not infer publication from a candidate folder or local check.

@@ -9001,6 +9001,33 @@ random-value row kept a 150px slider without horizontal overflow. The manual
 value 100 retained a 102px by 44px slider and accepted keyboard input. The
 fixture changes only the fieldset font size; it is separate from the shipped
 page and is not a claim about browser or operating-system text scaling.
+## [L-contained-fish-can-still-be-invisible] Measure sightlines before rerendering
+
+**What happened.** Three aquarium candidates kept hiding fish beneath an
+opaque lid in at least one rotation. Taller glass, stronger colours and small
+height changes improved individual pictures without solving all four views.
+
+**Root cause.** The layout tests proved that fish fit inside the water, not
+that the fixed downward-looking camera could see their complete silhouettes.
+Far-side positions need more clearance than centre positions. Transparency
+also has to survive the runtime's alpha threshold, not merely a PNG viewer.
+
+**Prevention.** After repeated similar failures, obtain fresh-context review
+and measure the missing invariant. Trace sightlines from the evaluated body,
+tail and eyes through every camera direction before rendering another batch.
+Keep the selected exterior where possible; reposition the contents only after
+checking whole-body clearance, separation and the other interior objects.
+
+**Verify.** The rejected third candidate must fail the lid-ray diagnostic.
+Require both new frames to clear it, then inspect reduced sprites and actual
+GPU output. Compare all RGBA channels outside fish-motion regions. Geometry
+checks do not establish rendered readability or owner approval.
+
+Record which camera stage produced projected coordinates. The aquarium's
+embedded pre-render checks run before final canvas registration. Their clear
+lid sightlines remain valid because the view direction is unchanged, but
+their pixel bounds cannot define runtime motion masks. Reopen the saved,
+registered scene and require the masks to match those final projections.
 
 ## [L-bed-pending-focus] Preserve focus before disabling command controls
 
@@ -10050,3 +10077,23 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Inspect the application import and the repository's build command before rebuilding generated packages. Use that exact output directory before starting dependent checks.
 
 **Verify.** Confirm the generated declaration and binary are in the imported directory. Run type checking and the web suite, then reload the game and check that it starts without missing-method errors.
+
+## [L-frozen-prefix-versus-generated-offset] Preserve historical artwork without freezing derived table offsets
+
+**What happened.** An accepted furniture batch could not enter the current generator because architecture used one base length both to freeze released pixels and to assign drawing IDs.
+
+**Root cause.** The preservation boundary and the current combined texture-table length represented different contracts but shared one value.
+
+**Prevention.** Keep the released prefix count and digest immutable. Validate new records through explicitly pinned, reviewed extension catalogs. Generate architecture drawing IDs after the combined base while retaining stable saved model identities. Reject mismatched offsets before resource loading.
+
+**Verify.** Change a frozen pixel or extension catalog digest and require failure. Compare all prior registration tables and decoded sprite pixels. Compare architecture descriptors after removing only drawing IDs, then exercise the real renderer and load a save from the released build.
+
+## [L-packing-fragmentation-versus-capacity] A failed placement policy does not prove a full texture
+
+**What happened.** Adding eight unchanged aquarium frames made the existing rectangle policy fail despite sufficient padded area. A bottom-left policy fit the same rectangles without overlaps or artwork changes.
+
+**Root cause.** One placement heuristic fragmented the remaining free space. Its failure was reported as a texture-height failure.
+
+**Prevention.** Distinguish oversized rectangles, true padded-area exhaustion and policy infeasibility. Preserve successful existing placements, then try a bounded deterministic alternative for admissible input. Do not raise hardware limits or reduce accepted artwork to hide optimizer incompleteness.
+
+**Verify.** Retain the actual size fixture, require bounds and padded non-overlap, and remove the alternative policy to reproduce the failure. Check successful prior layouts exactly and prove all released pixels and registration survive full generation.

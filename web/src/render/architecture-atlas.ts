@@ -1,4 +1,4 @@
-import type { AtlasSprite } from './atlas.js';
+import { SPRITES, type AtlasSprite } from './atlas.js';
 import { ARCHITECTURE } from './architecture-data.js';
 import { prepareArchitectureFinishes, type ActiveFinishes, type FinishCatalogue,
   type PatternResource } from './architecture-finishes.js';
@@ -89,9 +89,23 @@ export interface ArchitectureLoadOptions {
   readonly baseUrl?: string;
 }
 
+/** Reject stale generated offsets before loading textures or uploading tables. */
+export function validateArchitectureSpriteBoundary(descriptor: {
+  readonly baseSpriteId: number;
+  readonly sprites: readonly { readonly id: number }[];
+}, baseCount: number): void {
+  if (descriptor.baseSpriteId !== baseCount) {
+    throw new Error('Architecture sprite boundary does not match the base atlas');
+  }
+  if (descriptor.sprites.some((sprite, index) => sprite.id !== baseCount + index)) {
+    throw new Error('Architecture sprite IDs are not a contiguous suffix');
+  }
+}
+
 /** Call before emitting rows with finish slots. The returned selection owns their indices. */
 export async function loadArchitectureAtlas(limits: GPUDevice['limits'],
   options: ArchitectureLoadOptions = {}): Promise<ArchitectureAtlas> {
+  validateArchitectureSpriteBoundary(ARCHITECTURE, SPRITES.length);
   const resources: Readonly<Record<string, PatternResource>> = options.patternResources ?? ARCHITECTURE.patterns;
   const finishes = prepareArchitectureFinishes(options.finishKeys ?? [], limits, options.catalogue, resources);
   const base = options.baseUrl ?? import.meta.env.BASE_URL;

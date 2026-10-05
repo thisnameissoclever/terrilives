@@ -37,6 +37,7 @@ from offline_sims import load_export, runtime_tables, trim_clip_envelopes  # noq
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
 from offline_props import load_props                           # noqa: E402
+from aquarium_motion import validate_aquarium_motion            # noqa: E402
 from offline_armchair import load_reviewed_armchair             # noqa: E402
 from offline_architecture import sync_generated_architecture    # noqa: E402
 from offline_double_bed import append_layers, append_scene_records
@@ -1340,6 +1341,18 @@ def main():
         densities[len(sprites)] = 2
         sprites.append(meal_sprite)
     dining_meals = meal_tables(occupied, sprites, pair_masks)
+    # Aquarium frames append after every released sprite, including dining.
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        os.path.join(ROOT, 'assets', 'models', 'static-props-05.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
+    validate_aquarium_motion(sprites)
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     sync_generated_architecture(sprites, check=args.check)

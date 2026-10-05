@@ -17,9 +17,14 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
-function fixture() {
+function fixture(singleFacing = false) {
   const handle = SimHandle.from_lot();
   const source = new SimBridge(handle, memory);
+  if (singleFacing) {
+    const catalogue = source.catalogue();
+    vi.spyOn(source, 'catalogue').mockReturnValue(catalogue.map((item, index) =>
+      index === 0 ? { ...item, facings: 1 << item.baseFacing } : item));
+  }
   const hooks = { changed() {} };
   const furniture = new FurnitureBuilder(source,
     new OverlayPauseController({ setSpeed() {} }, () => {}, 1), { ...hooks, enter() {}, exit() {} });
@@ -97,9 +102,20 @@ describe('context actions use the active controller', () => {
       expect(f.source.saveBytes()).toEqual(saved);
       model.actions.find(a => a.id === 'cancel')!.invoke();
       expect(contextModel(f.tools)).toBeNull();
+    } finally { f.handle.free(); }
+  });
+
+  it('disables both rotation controls for an explicitly single-facing catalogue item', () => {
+    const f = fixture(true);
+    try {
+      f.buy.enter();
       const fixed = f.buy.items.find(item => (item.facings & (item.facings - 1)) === 0)!;
-      f.buy.choose(fixed.definition); model = contextModel(f.tools)!;
-      expect(model.actions.filter(a => a.id === 'left' || a.id === 'right').every(a => !a.enabled)).toBe(true);
+      expect(fixed).toBeDefined();
+      expect(fixed.facings).toBe(1 << fixed.baseFacing);
+      f.buy.choose(fixed.definition);
+      const rotations = contextModel(f.tools)!.actions.filter(a => a.id === 'left' || a.id === 'right');
+      expect(rotations).toHaveLength(2);
+      expect(rotations.every(action => !action.enabled)).toBe(true);
     } finally { f.handle.free(); }
   });
 

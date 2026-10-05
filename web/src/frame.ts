@@ -372,6 +372,12 @@ export const AQUARIUM_FRAME_TICKS = 24;
 
 const AQUARIUM_FRAME_ZERO_SPRITE = spriteIndex('bookcaseClosedWide');
 const AQUARIUM_FRAME_ONE_SPRITE = spriteIndex('aquariumCabinet1');
+const AQUARIUM_ALTERNATE_FRAMES = new Map([
+  [AQUARIUM_FRAME_ZERO_SPRITE, AQUARIUM_FRAME_ONE_SPRITE],
+  ...['', 'NW', 'SW', 'NE'].map(suffix => [
+    spriteIndex('offlineAquarium' + suffix), spriteIndex('offlineAquariumFrame1' + suffix),
+  ] as [number, number]),
+]);
 
 function validFacing(facing: number): boolean {
   return Number.isInteger(facing) && facing >= FACING_POSITIVE_X && facing <= FACING_NEGATIVE_Y;
@@ -425,21 +431,20 @@ export function walkingFrame(
 /**
  * Resolves ambient object motion without changing the content-owned sprite.
  *
- * The historical aquarium index remains the compiled source and picking
- * envelope. Its appended frame has the exact same dimensions and anchor.
+ * Each facing keeps its content-owned frame-zero picking envelope. Alternate
+ * frames share its dimensions, anchor and bounds. The legacy pair still works.
  */
 export function objectBodySprite(
   sourceSprite: number,
   simulationTick: number,
   reducedMotion: boolean,
 ): number {
-  if (sourceSprite !== AQUARIUM_FRAME_ZERO_SPRITE || reducedMotion) {
+  const alternate = AQUARIUM_ALTERNATE_FRAMES.get(sourceSprite);
+  if (alternate === undefined || reducedMotion) {
     return sourceSprite;
   }
   const frame = Math.floor(simulationTick / AQUARIUM_FRAME_TICKS) & 1;
-  return frame === 0
-    ? AQUARIUM_FRAME_ZERO_SPRITE
-    : AQUARIUM_FRAME_ONE_SPRITE;
+  return frame === 0 ? sourceSprite : alternate;
 }
 
 /**

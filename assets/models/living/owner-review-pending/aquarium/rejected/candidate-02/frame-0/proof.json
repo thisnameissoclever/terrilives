@@ -1,0 +1,140 @@
+{
+  "state": "complete",
+  "object": "aquarium-frame-0",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_aquarium.py": "f383f377b6c9c37a2c7c28672b1150af029802d6d8adbc5c35f5ebe27a21f21d",
+    "living/aquarium_model.py": "b6b757b29da6f394a915b2635ac6866dbce2733c1869724365aeb3dafa5eed95",
+    "living/aquarium_layout.py": "0d175e797bb2e9d90ca01e5e0db56eb2e965e7f2263e6ee27d62add1a9a4b187",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "2f2bdf663aa00cbdeae6790972e9256caf0c5b6c8f01f530d2b4e04d2c9376b3"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "703a8655661c8b04aa3cad1d5fa611ce3af70eb36315c8bb99b7df7934db284e"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "770c7d6a749ffd3495043abf25d6b2a94b455fc9f8c8cb51ff2c7bfd90c7c1b6"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "6ddca84ea6aee61a2a616a49b0ffec3aaae3cb2cb4c8b47ccfc113c950721fbf"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "base_footprint": [
+      1,
+      1
+    ],
+    "front": "-Y",
+    "maximum_height": 1.61,
+    "fish_count": 3,
+    "fish_frame": 0,
+    "watch_animation_unchanged": true
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Amber fish body",
+    "Amber fish eye -1",
+    "Amber fish eye 1",
+    "Amber fish tail",
+    "Blue fish body",
+    "Blue fish eye -1",
+    "Blue fish eye 1",
+    "Blue fish tail",
+    "Cabinet body",
+    "Cabinet plinth",
+    "Cabinet top",
+    "Coral fish body",
+    "Coral fish eye -1",
+    "Coral fish eye 1",
+    "Coral fish tail",
+    "Glass end -0.401",
+    "Glass end 0.401",
+    "Glass long -0.341",
+    "Glass long 0.341",
+    "left cabinet door",
+    "left door handle",
+    "Plant 0 blade 0",
+    "Plant 0 blade 1",
+    "Plant 0 blade 2",
+    "Plant 0 blade 3",
+    "Plant 0 blade 4",
+    "Plant 1 blade 0",
+    "Plant 1 blade 1",
+    "Plant 1 blade 2",
+    "Plant 1 blade 3",
+    "Plant 1 blade 4",
+    "right cabinet door",
+    "right door handle",
+    "Rock 0",
+    "Rock 1",
+    "Rock 2",
+    "Rock 3",
+    "Substrate",
+    "Tank base",
+    "Tank corner -0.401 -0.341",
+    "Tank corner -0.401 0.341",
+    "Tank corner 0.401 -0.341",
+    "Tank corner 0.401 0.341",
+    "Tank lid"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "3150a3c75c8e575d6c2978739320cdd5689d899416ffbdedd2de2cb94f4754e6"
+}

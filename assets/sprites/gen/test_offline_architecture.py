@@ -3,7 +3,8 @@ import json
 import unittest
 from PIL import Image
 from offline_architecture import (SOURCE,load_reviewed_architecture,validate_manifest,
-                                  validate_pixels,generated_files,ArchitectureExport)
+                                  validate_pixels,generated_files,ArchitectureExport,
+                                  load_historical_extensions)
 
 
 class ArchitectureImport(unittest.TestCase):
@@ -116,10 +117,11 @@ class ArchitectureImport(unittest.TestCase):
     def test_generated_ids_follow_the_complete_historical_prefix(self):
         batch=load_reviewed_architecture()
         config=json.loads((SOURCE/'architecture.json').read_text())
-        files=generated_files(batch,config['historicalCount'])
+        count = config['historicalCount'] + len(load_historical_extensions(config))
+        files=generated_files(batch,count)
         ts=next(value.decode() for path,value in files.items() if path.suffix=='.ts')
-        self.assertIn(f'"baseSpriteId": {config["historicalCount"]}',ts)
-        self.assertIn(f'"id": {config["historicalCount"]+len(self.data["sprites"])-1}',ts)
+        self.assertIn(f'"baseSpriteId": {count}',ts)
+        self.assertIn(f'"id": {count+len(self.data["sprites"])-1}',ts)
 
 
 if __name__=='__main__': unittest.main()

@@ -1,0 +1,52 @@
+{
+  "state": "passed",
+  "model_sha256": "aaac96316d14220f8cc097b629c5696ea34e13d10ca9dac4060afaae8545e859",
+  "damaged_scenes": [
+    {
+      "case": "shifted root",
+      "rejection": "Root registration changed"
+    },
+    {
+      "case": "floating plinth",
+      "rejection": "Cabinet floats"
+    },
+    {
+      "case": "detached handle",
+      "rejection": "left door handle detached from left cabinet door"
+    },
+    {
+      "case": "floating plant",
+      "rejection": "Plant 0 blade 0 detached from Substrate"
+    },
+    {
+      "case": "fish outside water",
+      "rejection": "Fish escapes glass"
+    },
+    {
+      "case": "fish under lid",
+      "rejection": "Lid blocks fish"
+    }
+  ],
+  "deleted_guards": [
+    {
+      "deleted_guard": "Root registration changed",
+      "rejection": "Damaged scene passed: shifted root"
+    },
+    {
+      "deleted_guard": "Cabinet floats",
+      "rejection": "Damaged scene passed: floating plinth"
+    },
+    {
+      "deleted_guard": "detached from",
+      "rejection": "Damaged scene passed: detached handle"
+    },
+    {
+      "deleted_guard": "Fish escapes glass",
+      "rejection": "fish outside water failed for wrong reason: Lid blocks fish"
+    },
+    {
+      "deleted_guard": "Lid blocks fish",
+      "rejection": "Damaged scene passed: fish under lid"
+    }
+  ]
+}

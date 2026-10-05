@@ -2,20 +2,34 @@
 
 
 def pack_rectangles(sizes, width, ceiling, padding):
-    """Split maximal free rectangles and choose the tightest short-side fit."""
+    """Preserve successful short-side fits; try bottom-left for fragmented space."""
     padded = [(w+padding, h+padding) for w, h in sizes]
     if any(w > width or h > ceiling for w, h in padded):
         raise ValueError('sprite exceeds texture dimension limit')
     if sum(w*h for w, h in padded) > width*ceiling:
         raise ValueError('sprite area exceeds texture dimension limit')
+    for policy in ('short-side', 'bottom-left'):
+        try:
+            return _place_rectangles(padded, width, ceiling, policy)
+        except _PlacementInfeasible:
+            continue
+    raise ValueError('rectangles exceed texture dimension limit')
+
+
+class _PlacementInfeasible(Exception):
+    """One deterministic placement policy could not use the remaining space."""
+
+
+def _place_rectangles(padded, width, ceiling, policy):
     free = [(0, 0, width, ceiling)]
     placed = {}
     for index in sorted(range(len(padded)), key=lambda i: (-padded[i][0]*padded[i][1], -max(padded[i]), i)):
         w, h = padded[index]
-        candidates = [(min(fw-w, fh-h), max(fw-w, fh-h), y, x)
+        candidates = [((min(fw-w, fh-h), max(fw-w, fh-h), y, x)
+                       if policy == 'short-side' else (y+h, x, y, x))
                       for x, y, fw, fh in free if fw >= w and fh >= h]
         if not candidates:
-            raise ValueError('rectangles exceed texture dimension limit')
+            raise _PlacementInfeasible()
         _, _, y, x = min(candidates)
         placed[index] = (x, y)
         remaining = []

@@ -185,14 +185,43 @@ def generated_files(batch,historical_count):
     return result
 
 
-def sync_generated_architecture(historical_sprites, *, check):
-    config=json.loads((SOURCE/'architecture.json').read_text())
-    # The complete prefix is frozen, including pixels, names, dimensions and IDs.
+def load_historical_extensions(config, existing_names=frozenset()):
+    """Load only pinned, reviewed static catalogs after the frozen prefix."""
+    from offline_props import load_props
+    result = []
+    names = set(existing_names)
+    catalogs = set()
+    for extension in config.get('historicalExtensions', []):
+        path = inside(ROOT, extension['catalog'])
+        assert path not in catalogs, 'duplicate architecture extension catalog'
+        catalogs.add(path)
+        data = json.loads(path.read_text())
+        canonical = json.dumps(data, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+        assert hashlib.sha256(canonical).hexdigest() == extension['canonicalSha256'], 'architecture extension catalog changed'
+        sprites, _, _, _ = load_props(path, existing_names=names)
+        result.extend(sprites)
+        names.update(sprite[0] for sprite in sprites)
+    return result
+
+
+def validate_historical_sprites(sprites, config, extensions):
+    """Keep the released prefix exact and require an independently reviewed tail."""
+    count = config['historicalCount']
+    assert len(sprites) == count + len(extensions), 'complete historical atlas length changed'
     prefix=hashlib.sha256()
-    for name,image,w,h in historical_sprites:
+    for name,image,w,h in sprites[:count]:
         prefix.update(name.encode()+b'\0'+struct.pack('<II',w,h)+image.tobytes())
     assert prefix.hexdigest()==config['historicalPrefixSha256'], 'complete historical atlas prefix changed'
-    assert len(historical_sprites)==config['historicalCount'], 'complete historical atlas length changed'
+    for actual, expected in zip(sprites[count:], extensions):
+        assert (actual[0], actual[2], actual[3], actual[1].mode, actual[1].tobytes()) == (
+            expected[0], expected[2], expected[3], expected[1].mode, expected[1].tobytes()), 'reviewed atlas extension changed'
+
+
+def sync_generated_architecture(historical_sprites, *, check):
+    config=json.loads((SOURCE/'architecture.json').read_text())
+    extensions = load_historical_extensions(config,
+        {sprite[0] for sprite in historical_sprites[:config['historicalCount']]})
+    validate_historical_sprites(historical_sprites, config, extensions)
     batch=load_reviewed_architecture()
     for path,want in generated_files(batch,len(historical_sprites)).items():
         if check:

@@ -88,6 +88,8 @@ assets/models/living/owner-review-pending/armchair/candidate-01/*.blend
 assets/models/living/owner-review-pending/armchair/candidate-02/*.blend
 # Full-size reciprocal passes remain local; track their receipt and runtime export.
 assets/models/living/owner-review-pending/armchair/candidate-03/contributions-01/*.png
+# Rejected aquarium models stay local; retain rejected images and receipts.
+assets/models/living/owner-review-pending/aquarium/rejected/**/*.blend
 
 # Full-resolution dining bakes; runtime frames and receipts are tracked.
 assets/models/domestic/dining/*/*.png
