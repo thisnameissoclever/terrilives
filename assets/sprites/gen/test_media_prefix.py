@@ -6,6 +6,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 
 class MediaPrefixTests(unittest.TestCase):
@@ -16,11 +17,11 @@ class MediaPrefixTests(unittest.TestCase):
                          [base+turn for base in ('offlineTelevision', 'offlineRadio')
                           for turn in ('', 'NW', 'SW', 'NE')])
         digest = hashlib.sha256()
-        with Image.open(root/'web/public/atlas.png') as image:
+        with AtlasPages(root) as image:
             for row in rows[:1262]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), 'a573c237c978642df26f5cc057fd2541085129c5a5be43535e9130df4db91ea1')
         for row in rows[1262:1270]:
             self.assertEqual((row['w'], row['h'], row['pixel_density']), (192, 240, 2))

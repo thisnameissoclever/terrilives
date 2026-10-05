@@ -150,7 +150,7 @@ invariance before runtime integration and played release verification.
 `covered_bunk_sleep.py` is the object-local authoring path for a relaxed lower
 sleeper under one continuous duvet. It pins the near-ladder source and approved
 double-bed pose recipe, centers the sleeping-only scaled rig, and keeps the
-shared rig and frame unchanged. It is not yet the production bunk importer.
+shared rig and frame unchanged.
 
 Run `check_covered_bunk_scene.py ABSOLUTE_NEW_RESULT_JSON` through pinned
 background Blender before rendering a source probe. The checker evaluates
@@ -172,9 +172,31 @@ then complete contribution export and runtime verification before replacing
 the released sprites. See the dated
 [source evidence](../../../docs/assets/review-evidence/bedroom/covered-bunk-sleep-2026-10-04.md).
 
-### Released bunk source
+### Covered lower-bunk export
 
-Candidate 02 replaces the old split bunk with the same registered composite
+Run `render_covered_bunk_sleep.py ABSOLUTE_NEW_RAW_DIRECTORY` through the same
+pinned background Blender build. The finite batch covers four facings, empty
+occupancy and three clothing palettes. Reciprocal holdouts identify visible
+furniture and body pixels; one shared ink pass supplies the outline.
+
+Observe the actual worker exit. Run `python assets/models/bedroom/export_covered_bunk_sleep.py
+RAW_DIRECTORY ABSOLUTE_NEW_EXPORT_DIRECTORY --writer-exited` afterward. Require
+all raw keys, independent ownership witnesses, accepted physical-fit equality,
+reconstruction checks and original grayscale owner coverage. Protect signed
+JSON bytes from Git newline conversion.
+
+The strict production importer is `assets/sprites/gen/offline_covered_bunk.py`.
+Its separately pinned catalogue preserves the old empty sprites, appends new
+occupied contributions and registers one visible owner. Sparse bodies keep
+their full-scene offsets and sampling borders. The runtime selects covered
+scenes from the actual sleeping-bed assignment before its legacy pair fallback.
+The static presentation does not claim breathing or an upper sleeping place.
+See [texture pages](../../../docs/atlas-pages.md) and the dated
+[release evidence](../../../docs/assets/review-evidence/bedroom/covered-bunk-release-2026-10-05.md).
+
+### Historical folded source
+
+Candidate 02 replaced the old split bunk with the same registered composite
 mechanism as the bike and reading chair. The existing one-slot sleep action,
 centered socket, 2x1 footprint and Sim rig are unchanged. A rigid translation
 of the whole sleeping rig centers its folded pose on the mattress. This is

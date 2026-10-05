@@ -5,6 +5,7 @@ from pathlib import Path
 import tomllib
 import unittest
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -39,11 +40,11 @@ class OfficePrefixTests(unittest.TestCase):
         ]
         self.assertEqual(len(rows), 1141)
         digest = hashlib.sha256()
-        with Image.open(ROOT/'web/public/atlas.png') as image:
+        with AtlasPages(ROOT) as image:
             for index, row in rows:
                 digest.update(json.dumps([index, row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), '12c76daaaec022e850baa092eb8a4bca739e44173ca717f33556c7e784101b42')
 
 

@@ -7,6 +7,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 
 EXPECTED_METADATA = {
@@ -65,11 +66,11 @@ class ArmchairPrefixTests(unittest.TestCase):
         self.assertEqual([row['name'] for row in rows[1270:1274]],
                          ['offlineArmchair'+turn for turn in ('', 'NW', 'SW', 'NE')])
         digest = hashlib.sha256()
-        with Image.open(root/'web/public/atlas.png') as image:
+        with AtlasPages(root) as image:
             for row in rows[:1270]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), '99d9ccb1b3ae74c3a3e8a2a41618c4ca26a0e7fdf69e7f3ed9ccb4d8a3dabbe2')
         for row in rows[1270:1346]:
             self.assertTrue(row['name'].startswith('offlineArmchair'))

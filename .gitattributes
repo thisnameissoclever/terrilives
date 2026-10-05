@@ -64,6 +64,7 @@ docs/lessons-learned.md merge=union
 docs/alpha-feel-notes.md merge=union
 
 # Architecture receipts bind exact exporter and receipt bytes.
+assets/models/bedroom/export/bunk-covered/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/architecture/render_review.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/assets/review-evidence/architecture/room-01/trial/**/render-proof.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 

@@ -1,0 +1,12 @@
+{
+  "occupancy": 1,
+  "facing": "SE",
+  "palettes": [
+    "green",
+    "green"
+  ],
+  "sample": 0,
+  "owner": "sim0",
+  "path": "covered-bunk-1-SE-green-0-sim0.png",
+  "sha256": "febad42efae102d0619a45013e45352555c2a5ddf238ca7e25cc6e779aa36f02"
+}

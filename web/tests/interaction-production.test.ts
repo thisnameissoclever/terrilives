@@ -8,6 +8,8 @@ import { pickSprite } from '../src/input.js';
 import { screenX, screenY, TILE_HALF_HEIGHT } from '../src/render/iso.js';
 import { INTERACTION_SPRITES, SPRITES, SPRITE_ANCHORS, SPRITE_PAIRS,
   SPRITE_CONTENT_BOUNDS, spriteIndex } from '../src/render/atlas.js';
+import { BED_CATALOG, BED_COVERAGE } from '../src/render/atlas.js';
+import { bedSceneKey, sampleBedCoverage } from '../src/render/bed-sprites.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -44,7 +46,7 @@ it('contains all registered production facings, palettes and samples after the s
 });
 
 it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3], ['bed', 'offlineBunk', 9], ['armchair', 'offlineArmchair', 8]] as const)(
-  'compiled %s selects its exact occupied pair and restores the empty body', (object, sprite, action) => {
+  'compiled %s selects its exact occupied presentation and restores the empty body', (object, sprite, action) => {
     const handle = new SimHandle(16, 16);
     const source = new SimBridge(handle, memory);
     try {
@@ -65,23 +67,39 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
         expect(data[0]).toBe(-1e6);
         const body = data[FLOATS_PER_INSTANCE + 3];
         const profile = INTERACTION_SPRITES[spriteIndex(sprite)];
-        expect(profile.frames[simShirtVariant(source.simIds()[1])]).toContain(body);
+        const variant = simShirtVariant(source.simIds()[1]);
+        const bed = action === 9 ? BED_CATALOG[spriteIndex(sprite)][bedSceneKey(1,
+          ['green', 'blue', 'red'].indexOf(variant), 0)] : undefined;
+        if (bed) expect(body).toBe(bed.sprite);
+        else expect(profile.frames[variant]).toContain(body);
         // Every active occupied interaction has a bubble.
         expect(instanceCount(source, null)).toBe(3);
         if (action === 9 || action === 8) {
           const [left,top,right,bottom] = SPRITE_CONTENT_BOUNDS[body];
           const [anchorX,anchorY] = SPRITE_ANCHORS[body];
           const [wx,wy] = source.positions();
+          let pixelX = (left+right)/2, pixelY = (top+bottom)/2;
+          if (bed) {
+            const owner = bed.owners[0]!;
+            const coverage = BED_COVERAGE[owner.coverage];
+            let witness: [number, number] | undefined;
+            for (let y=coverage.box[1]; y<coverage.box[3] && !witness; y++)
+              for (let x=coverage.box[0]; x<coverage.box[2]; x++)
+                if (sampleBedCoverage(coverage,x,y)>.99) { witness=[x,y]; break; }
+            expect(witness).toBeDefined();
+            pixelX = witness![0]/2;
+            pixelY = witness![1]/2;
+          }
           expect(pickSprite(source,
-            screenX(wx,wy,0)+(left+right)/2-anchorX,
-            screenY(wx,wy,0)+TILE_HALF_HEIGHT+(top+bottom)/2-anchorY,0,0,
+            screenX(wx,wy,0)+pixelX-anchorX,
+            screenY(wx,wy,0)+TILE_HALF_HEIGHT+pixelY-anchorY,0,0,
           )).toEqual({entity:agentId,isAgent:true});
           const before = Array.from(data.slice(0, instanceCount(source,null)*FLOATS_PER_INSTANCE));
           // No simulation tick while paused must leave the exact drawn sample unchanged.
           expect(Array.from(buildInstances(source,1,0,0,16,null,1,false,source.clockTick())
             .slice(0,before.length))).toEqual(before);
           const still = buildInstances(source,1,0,0,16,null,1,true,source.clockTick());
-          expect(still[FLOATS_PER_INSTANCE+3]).toBe(profile.frames[simShirtVariant(source.simIds()[1])][0]);
+          expect(still[FLOATS_PER_INSTANCE+3]).toBe(bed?.sprite ?? profile.frames[variant][0]);
           const saved = source.saveBytes();
           for (let step=0; step<20; step++) source.tick();
           expect(source.loadBytes(saved)).toBe(true);

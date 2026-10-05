@@ -15,6 +15,7 @@ import {
   screenX,
   screenY,
   TILE_HALF_WIDTH,
+  TILE_HALF_HEIGHT,
 } from './render/iso.js';
 import {
   ACTIVITY_AT_WORK,
@@ -1384,7 +1385,7 @@ export function buildInstanceBatch(
       scratch,
       slot++,
       screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
-      screenY(wx, wy, originY, scale) + (bedOwner ? bedOwner.marker[1] - 6 : 0) * scale,
+      screenY(wx, wy, originY, scale) + (bedOwner ? bedOwner.marker[1] + TILE_HALF_HEIGHT : 0) * scale,
       layeredDepth(wx, wy, gridSize, bedOwner ? LAYER_FOREGROUND : LAYER_PROP)
         - (bedOwner ? INDICATOR_DEPTH_NUDGE : 0),
       SELECTION_RING_SPRITE,

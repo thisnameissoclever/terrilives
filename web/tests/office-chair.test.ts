@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import * as atlas from '../src/render/atlas.js';
-import { packSpriteTable } from '../src/render/sprites.js';
+import { packSpriteTable, FLOATS_PER_SPRITE } from '../src/render/sprites.js';
 import { pickSprite, type PickSource } from '../src/input.js';
 
 let memory: WebAssembly.Memory;
@@ -14,7 +14,7 @@ beforeAll(async () => {
 it.each(['', 'NW', 'SW', 'NE'])('registers the desk chair without pickable blank margins: %s', suffix => {
   const index = atlas.spriteIndex(`offlineDeskChair${suffix}`);
   expect(index).toBe(1246 + ['', 'NW', 'SW', 'NE'].indexOf(suffix));
-  expect([...packSpriteTable().slice(index * 8 + 4, index * 8 + 6)]).toEqual([96, 120]);
+  expect([...packSpriteTable().slice(index * FLOATS_PER_SPRITE + 4, index * FLOATS_PER_SPRITE + 6)]).toEqual([96, 120]);
   expect(atlas.SPRITES[index].pixel_density).toBe(2);
   expect(atlas.SPRITE_ANCHORS[index][0]).toBeCloseTo(48, 4);
   expect(atlas.SPRITE_ANCHORS[index][1]).toBeCloseTo(116.000437, 4);

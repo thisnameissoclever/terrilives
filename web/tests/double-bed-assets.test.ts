@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import * as atlas from '../src/render/atlas.js';
-import { packSpriteTable } from '../src/render/sprites.js';
+import { packSpriteTable, FLOATS_PER_SPRITE } from '../src/render/sprites.js';
 import { pickSprite, type PickSource } from '../src/input.js';
 
 describe('double-width bed views', () => {
   it.each(['', 'NW', 'SW', 'NE'])('keeps registration and transparent picking margins for %s', (suffix) => {
     const index = atlas.spriteIndex(`offlineDoubleBed${suffix}`);
     expect(index).toBe(1133 + ['', 'NW', 'SW', 'NE'].indexOf(suffix));
-    expect([...packSpriteTable().slice(index * 8 + 4, index * 8 + 6)]).toEqual([160, 176]);
+    expect([...packSpriteTable().slice(index * FLOATS_PER_SPRITE + 4, index * FLOATS_PER_SPRITE + 6)]).toEqual([160, 176]);
     expect(atlas.SPRITES[index].pixel_density).toBe(2);
     expect(atlas.SPRITE_ANCHORS[index][0]).toBeCloseTo(80, 4);
     expect(atlas.SPRITE_ANCHORS[index][1]).toBeCloseTo(144.000437, 4);

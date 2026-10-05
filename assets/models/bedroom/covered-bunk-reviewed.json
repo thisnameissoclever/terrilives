@@ -1,0 +1,15 @@
+{
+  "review_status": "accepted-independent-review",
+  "manifest": {
+    "path": "export/bunk-covered/manifest.json",
+    "sha256": "0d0e567ff39f8dcb1f85e04161ff536778e74d77e5b9a6f96cc552cc7ba024c4"
+  },
+  "source_receipt": {
+    "path": "owner-review-pending/bunk/covered-sleep/contributions-01/status.json",
+    "sha256": "0585bbbf8a01487473c80f463673d6cf3e72f58fec8c3bb53adcaf61d8f71533"
+  },
+  "comparison": {
+    "path": "export/bunk-covered/comparison.json",
+    "sha256": "721fc779297baf26f9667f99b4c51505e173c4ce1f86dab478403691e63419be"
+  }
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { packSpriteTable, validateAtlasDimensions, loadAtlasTexture } from '../src/render/sprites.js';
+import { packSpriteTable, validateAtlasDimensions, loadAtlasTexture, FLOATS_PER_SPRITE } from '../src/render/sprites.js';
 import { SPRITES, ATLAS_WIDTH } from '../src/render/atlas.js';
 
 describe('texture density boundary', () => {
@@ -12,9 +12,9 @@ describe('texture density boundary', () => {
     const index = SPRITES.findIndex(sprite => sprite.pixel_density === 2);
     expect(index).toBeGreaterThanOrEqual(0);
     const sprite = SPRITES[index];
-    expect(table[index * 8 + 4]).toBe(sprite.w / 2);
-    expect(table[index * 8 + 5]).toBe(sprite.h / 2);
-    expect(table[index * 8 + 2]).toBeCloseTo((sprite.x + sprite.w) / ATLAS_WIDTH);
+    expect(table[index * FLOATS_PER_SPRITE + 4]).toBe(sprite.w / 2);
+    expect(table[index * FLOATS_PER_SPRITE + 5]).toBe(sprite.h / 2);
+    expect(table[index * FLOATS_PER_SPRITE + 2]).toBeCloseTo((sprite.x + sprite.w) / ATLAS_WIDTH);
   });
 
   it('rejects either dimension above baseline or actual device limit', () => {

@@ -1,0 +1,34 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Referenced depth page control</title><body><pre id="result">Checking independent pages...</pre>
+<script type="module">
+import { initDevice } from '../src/render/device.ts';
+import { SpriteRenderer, packSpriteTable, FLOATS_PER_SPRITE } from '../src/render/sprites.ts';
+import { SPRITES, ATLAS_PAGE_FILES, ATLAS_WIDTH, ATLAS_HEIGHT } from '../src/render/atlas.ts';
+import { writeInstance, SURFACE_DEPTH_PROJECTION } from '../src/render/instances.ts';
+const canvas=document.createElement('canvas');canvas.width=320;canvas.height=240;document.body.append(canvas);
+const gpu=await initDevice(canvas);
+gpu.context.configure({device:gpu.device,format:gpu.format,alphaMode:'premultiplied',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});
+try {
+ gpu.device.pushErrorScope('validation');
+ const renderer=await SpriteRenderer.create(gpu),texture=renderer.ownedTextures[0],table=packSpriteTable();
+ const color=0,surface=1,backdrop=2,page=SPRITES[color].page,other=(page+1)%ATLAS_PAGE_FILES.length;
+ const rect=SPRITES[color],width=rect.w,height=rect.h;
+ function upload(x,y,p,color){const bytes=new Uint8Array(width*height*4);for(let at=0;at<bytes.length;at+=4)bytes.set(color,at);
+  gpu.device.queue.writeTexture({texture,origin:[x,y,p]},bytes,{bytesPerRow:width*4},[width,height]);}
+ upload(rect.x,rect.y,page,[64,0,0,255]);upload(rect.x,rect.y,other,[192,0,0,255]);upload(1000,1000,page,[0,0,255,255]);
+ const base=surface*FLOATS_PER_SPRITE,bg=backdrop*FLOATS_PER_SPRITE;
+ table.set(table.slice(0,8),base);table[base+10]=other;
+ table.set([1000/ATLAS_WIDTH,1000/ATLAS_HEIGHT,(1000+width)/ATLAS_WIDTH,(1000+height)/ATLAS_HEIGHT,width,height,0,0,0,0,page,0],bg);
+ const instances=new Float32Array(32);writeInstance(instances,0,160,150,.45,backdrop);writeInstance(instances,1,160,150,.5,color);
+ instances[24]=SURFACE_DEPTH_PROJECTION;instances[25]=.1;instances[26]=surface;instances[27]=0;
+ const readback=gpu.device.createBuffer({size:320*240*4,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+ async function pixel(){gpu.device.queue.writeBuffer(renderer.spriteBuffer,0,table);renderer.draw(instances,2,1);
+  const encoder=gpu.device.createCommandEncoder();encoder.copyTextureToBuffer({texture:gpu.context.getCurrentTexture()},{buffer:readback,bytesPerRow:320*4},[320,240]);gpu.device.queue.submit([encoder.finish()]);
+  await readback.mapAsync(GPUMapMode.READ);const bytes=new Uint8Array(readback.getMappedRange()),at=(150*320+160)*4;
+  const rgba=gpu.format.startsWith('bgra')?[bytes[at+2],bytes[at+1],bytes[at],bytes[at+3]]:Array.from(bytes.slice(at,at+4));readback.unmap();return rgba;}
+ const actual=await pixel();table[base+10]=page;const negative=await pixel();table[base+10]=other;const restored=await pixel();
+ const expected=[64,0,0,255],expectedNegative=[0,0,255,255],validation=await gpu.device.popErrorScope();
+ document.querySelector('#result').textContent=JSON.stringify({pass:!validation&&actual.every((v,i)=>v===expected[i])&&negative.every((v,i)=>v===expectedNegative[i])&&restored.every((v,i)=>v===expected[i]),actual,expected,negative,expectedNegative,restored,page,other,validation:validation?.message??null});
+ readback.destroy();
+}catch(error){document.querySelector('#result').textContent=JSON.stringify({pass:false,error:String(error)});}
+finally{gpu.device.destroy();}
+</script></body></html>

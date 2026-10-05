@@ -6,6 +6,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 from test_lamp_prefix import EXPECTED_METADATA, canonical_digest, preserved_table
 
 
@@ -16,11 +17,11 @@ class CoatRackPrefixTests(unittest.TestCase):
         self.assertEqual([row['name'] for row in rows[1350:1354]],
                          ['offlineCoatRack'+turn for turn in ('', 'NW', 'SW', 'NE')])
         digest = hashlib.sha256()
-        with Image.open(root/'web/public/atlas.png') as image:
+        with AtlasPages(root) as image:
             for row in rows[:1350]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), '1009056971762c537c044fda941938285e8661d038650059866905e7d60c4bd8')
         for row in rows[1350:1354]:
             self.assertEqual((row['w'], row['h'], row['pixel_density']), (192, 240, 2))

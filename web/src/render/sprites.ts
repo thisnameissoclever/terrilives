@@ -1,15 +1,18 @@
 /// <reference types="vite/client" />
 import { packBedLayers } from './bed-sprites.js';
 import { packDiningSupport } from './dining-support.js';
+import { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
+export { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 
 import {
-  ATLAS_FILE_NAME,
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
   SPRITES,
   SPRITE_PAIRS,
   SPRITE_ANCHORS,
   BED_LAYERS,
+  BED_LAYER_TRIMS,
+  ATLAS_PAGE_FILES,
   SPRITE_DINING_SUPPORT,
   type AtlasSprite,
 } from './atlas.js';
@@ -34,9 +37,6 @@ import { architecturePatternShader } from './architecture-finishes.js';
 
 const INITIAL_CAPACITY = 4096;
 
-/** Floats per entry of the `Atlas` uniform array: `uv` plus `size`. */
-const FLOATS_PER_SPRITE = 8;
-
 /**
  * Returns the content-addressed public URL for the generated texture.
  *
@@ -45,8 +45,11 @@ const FLOATS_PER_SPRITE = 8;
  * content-addressed pathname, a returning browser can load a new atlas
  * manifest beside an older cached PNG and abort on the size check.
  */
-export function atlasTextureUrl(baseUrl: string): string {
-  return `${baseUrl}${ATLAS_FILE_NAME}`;
+export function atlasTextureUrl(baseUrl: string, page = 0): string {
+  if (!Number.isInteger(page) || page < 0 || page >= ATLAS_PAGE_FILES.length) {
+    throw new Error('atlas page index is out of range');
+  }
+  return `${baseUrl}${ATLAS_PAGE_FILES[page]}`;
 }
 
 /**
@@ -61,6 +64,7 @@ export function packSpriteTable(
   height = ATLAS_HEIGHT,
   pairs: Readonly<Record<number, { readonly furniture: number; readonly outline: number }>> = SPRITE_PAIRS,
   anchors: Readonly<Record<number, readonly [number, number]>> = SPRITE_ANCHORS,
+  trims: Readonly<Record<number, readonly [number, number]>> = sprites === SPRITES ? BED_LAYER_TRIMS : {},
 ): Float32Array<ArrayBuffer> {
   // Sized by what the atlas holds. There is no cap to check against any
   // more: the shader's array is runtime-sized, so an atlas of any length
@@ -82,6 +86,7 @@ export function packSpriteTable(
       throw new Error('paired sprite index is out of range');
     }
     for (const i of references) {
+      if (trims[i]) throw new Error('trim registration cannot overlap a legacy pair role');
       if (sprites[i].w !== sprites[body].w || sprites[i].h !== sprites[body].h ||
           (sprites[i].pixel_density ?? 1) !== (sprites[body].pixel_density ?? 1) ||
           !anchors[i] || !anchors[body] || anchors[i][0] !== anchors[body][0] || anchors[i][1] !== anchors[body][1]) {
@@ -90,7 +95,18 @@ export function packSpriteTable(
     }
   }
   const table = new Float32Array(sprites.length * FLOATS_PER_SPRITE);
+  for (const [key, offset] of Object.entries(trims)) {
+    const index = Number(key);
+    if (!Number.isInteger(index) || index < 0 || index >= sprites.length
+        || offset.length !== 2 || offset.some(value => !Number.isFinite(value) || value < 0)) {
+      throw new Error('trim registration is invalid');
+    }
+  }
   sprites.forEach((sprite, index) => {
+    const page = sprite.page ?? 0;
+    if (!Number.isInteger(page) || page < 0 || page >= ATLAS_PAGE_FILES.length) {
+      throw new Error('sprite page index is out of range');
+    }
     const base = index * FLOATS_PER_SPRITE;
     table[base + 0] = sprite.x / width;
     table[base + 1] = sprite.y / height;
@@ -102,6 +118,12 @@ export function packSpriteTable(
       table[base + 6] = pairs[index].furniture + 1;
       table[base + 7] = pairs[index].outline + 1;
     }
+    table[base + 10] = page;
+    if (trims[index]) {
+      table[base + 8] = trims[index][0];
+      table[base + 9] = trims[index][1];
+      table[base + 11] = 1;
+    }
   });
   return table;
 }
@@ -111,6 +133,13 @@ export function validateAtlasDimensions(width: number, height: number, deviceLim
   const limit = Math.min(8192, deviceLimit);
   if (width > limit || height > limit) {
     throw new Error(`atlas ${width}x${height} exceeds texture dimension limit ${limit}`);
+  }
+}
+
+export function validateAtlasPageCount(count: number, deviceLimit: number): void {
+  if (!Number.isInteger(count) || count < 1 || !Number.isInteger(deviceLimit)
+      || deviceLimit < 1 || count > deviceLimit) {
+    throw new Error(`atlas array layer count ${count} exceeds array layer limit ${deviceLimit}`);
   }
 }
 
@@ -126,56 +155,58 @@ export function validateAtlasDimensions(width: number, height: number, deviceLim
  */
 export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
   validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
-  // Generated under `web/public/` and served at the app's own base. Not a
-  // bundler import: the atlas is a build output of the whole project, and
-  // importing it from outside the Vite root made the dev server hand out a
-  // `/@fs/<absolute path>` URL that exists only in dev. The digest in the
-  // pathname is load-bearing because Pages ignores query strings in its edge
-  // cache key.
-  const url = atlasTextureUrl(import.meta.env.BASE_URL);
-  let response: Response;
+  validateAtlasPageCount(ATLAS_PAGE_FILES.length, device.limits.maxTextureArrayLayers);
+  let texture: GPUTexture | undefined;
   try {
-    response = await fetch(url);
-  } catch (cause) {
-    // A bare `TypeError: Failed to fetch` names neither the URL nor the
-    // reason, and the two reasons need opposite fixes: the dev server is
-    // not running, or the file is not where the build put it.
-    throw new Error(
-      `could not reach the sprite atlas at ${url} - if this is the dev ` +
-        `server, check it is still running and reachable from this device`,
-      { cause },
-    );
+    for (let page = 0; page < ATLAS_PAGE_FILES.length; page++) {
+      const url = atlasTextureUrl(import.meta.env.BASE_URL, page);
+      let response: Response;
+      try {
+        response = await fetch(url);
+      } catch (cause) {
+        throw new Error(
+          `could not reach the sprite atlas at ${url} - check the server and device connection`,
+          { cause },
+        );
+      }
+      if (!response.ok) {
+        throw new Error(`the sprite atlas at ${url} returned ${response.status}`);
+      }
+      const bitmap = await createImageBitmap(await response.blob(), {
+        premultiplyAlpha: 'none',
+        colorSpaceConversion: 'none',
+      });
+      try {
+        if (bitmap.width !== ATLAS_WIDTH || bitmap.height !== ATLAS_HEIGHT) {
+          throw new Error(
+            `${ATLAS_PAGE_FILES[page]} is ${bitmap.width}x${bitmap.height} but atlas.ts says ` +
+              `${ATLAS_WIDTH}x${ATLAS_HEIGHT}; every sprite rect would be wrong`,
+          );
+        }
+        texture ??= device.createTexture({
+          size: {
+            width: bitmap.width,
+            height: bitmap.height,
+            depthOrArrayLayers: ATLAS_PAGE_FILES.length,
+          },
+          format: 'rgba8unorm',
+          usage: GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+        device.queue.copyExternalImageToTexture(
+          { source: bitmap },
+          { texture, origin: [0, 0, page] },
+          { width: bitmap.width, height: bitmap.height },
+        );
+      } finally {
+        bitmap.close();
+      }
+    }
+    return texture!;
+  } catch (error) {
+    texture?.destroy();
+    throw error;
   }
-  if (!response.ok) {
-    throw new Error(
-      `the sprite atlas at ${url} returned ${response.status}`,
-    );
-  }
-  const bitmap = await createImageBitmap(await response.blob(), {
-    premultiplyAlpha: 'none',
-    colorSpaceConversion: 'none',
-  });
-  if (bitmap.width !== ATLAS_WIDTH || bitmap.height !== ATLAS_HEIGHT) {
-    throw new Error(
-      `${ATLAS_FILE_NAME} is ${bitmap.width}x${bitmap.height} but atlas.ts says ` +
-        `${ATLAS_WIDTH}x${ATLAS_HEIGHT}; every sprite rect would be wrong`,
-    );
-  }
-  const texture = device.createTexture({
-    size: { width: bitmap.width, height: bitmap.height },
-    format: 'rgba8unorm',
-    usage:
-      GPUTextureUsage.TEXTURE_BINDING |
-      GPUTextureUsage.COPY_DST |
-      GPUTextureUsage.RENDER_ATTACHMENT,
-  });
-  device.queue.copyExternalImageToTexture(
-    { source: bitmap },
-    { texture },
-    { width: bitmap.width, height: bitmap.height },
-  );
-  bitmap.close();
-  return texture;
 }
 
 /**
@@ -310,7 +341,7 @@ export class SpriteRenderer {
       { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
       { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
-      { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+      { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
       { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float' } },
       { binding: 5, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
       { binding: 6, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'uint' } },
@@ -489,7 +520,7 @@ export class SpriteRenderer {
         },
         // The bind group keeps the texture alive, so nothing here holds
         // a second reference to it.
-        { binding: 3, resource: atlasTexture.createView() },
+        { binding: 3, resource: atlasTexture.createView({ dimension: '2d-array' }) },
         { binding: 4, resource: architectureDepth.createView() },
         { binding: 5, resource: architectureColor.createView({ dimension: '2d-array' }) },
         { binding: 6, resource: roles.createView() },

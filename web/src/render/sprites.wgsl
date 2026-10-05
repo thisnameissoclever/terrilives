@@ -79,6 +79,8 @@ struct Sprite {
   // Logical width/height; z and w hold furniture/outline indices plus one.
   // Both are zero for an ordinary straight-alpha sprite.
   size: vec4<f32>,
+  // Body crop origin in logical pixels, texture page, and crop-present flag.
+  registration: vec4<f32>,
 };
 
 // A RUNTIME-SIZED array in a storage buffer, not a fixed-size uniform one.
@@ -102,7 +104,7 @@ struct Atlas {
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read> atlas: Atlas;
 @group(0) @binding(2) var atlasSampler: sampler;
-@group(0) @binding(3) var atlasTexture: texture_2d<f32>;
+@group(0) @binding(3) var atlasTexture: texture_2d_array<f32>;
 @group(0) @binding(4) var architectureDepth: texture_2d<f32>;
 @group(0) @binding(5) var architectureColor: texture_2d_array<f32>;
 @group(0) @binding(6) var architectureRoles: texture_2d<u32>;
@@ -156,6 +158,7 @@ struct VertexOut {
   @location(7) @interpolate(flat) colourway: vec4<f32>,
   @location(11) @interpolate(flat) registration: vec4f,
   @location(12) @interpolate(flat) groundOrigin: vec2f,
+  @location(13) @interpolate(flat) page: u32,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -228,6 +231,7 @@ fn vs(
   out.wall = wall;
   out.colourway = colourway;
   out.registration = registration;
+  out.page = u32(sprite.registration.z);
   let groundScreen = (instance.xy - u.scale.yz) / scale;
   out.groundOrigin = vec2f((groundScreen.y / 21.0 + groundScreen.x / 32.0) * 0.5,
     (groundScreen.y / 21.0 - groundScreen.x / 32.0) * 0.5);
@@ -307,13 +311,18 @@ fn linearToSrgb(rgb: vec3f) -> vec3f {
     rgb * 12.92, rgb <= vec3f(0.0031308));
 }
 
-fn bedLayer(reference: u32, corner: vec2f) -> vec4f {
+fn bedLayer(reference: u32, corner: vec2f, sceneSize: vec2f) -> vec4f {
   if (reference == 0u) { return vec4f(0.0); }
   let sprite = atlas.sprites[reference - 1u];
+  var sampleCorner = corner;
+  if (sprite.registration.w > 0.0) {
+    sampleCorner = (corner * sceneSize - sprite.registration.xy) / sprite.size.xy;
+    if (any(sampleCorner < vec2f(0.0)) || any(sampleCorner > vec2f(1.0))) { return vec4f(0.0); }
+  }
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
-  let uv = clamp(mix(sprite.uv.xy, sprite.uv.zw, corner),
+  let uv = clamp(mix(sprite.uv.xy, sprite.uv.zw, sampleCorner),
     sprite.uv.xy + halfTexel, sprite.uv.zw - halfTexel);
-  return textureSampleLevel(atlasTexture, atlasSampler, uv, 0.0);
+  return textureSampleLevel(atlasTexture, atlasSampler, uv, i32(sprite.registration.z), 0.0);
 }
 
 @fragment
@@ -326,7 +335,7 @@ fn fs(in: VertexOut) -> FragmentOut {
       let mask = atlas.sprites[in.supportMask - 1u];
       let halfTexel = 0.5 / vec2f(textureDimensions(atlasTexture));
       let uv = clamp(mix(mask.uv.xy, mask.uv.zw, in.supportUv), mask.uv.xy + halfTexel, mask.uv.zw - halfTexel);
-      supported = textureSampleLevel(atlasTexture, atlasSampler, uv, 0.0).a >= 0.5;
+      supported = textureSampleLevel(atlasTexture, atlasSampler, uv, i32(mask.registration.z), 0.0).a >= 0.5;
     }
     if (supported == (in.wall.x == DINING_BACKGROUND)) { discard; }
   }
@@ -334,7 +343,7 @@ fn fs(in: VertexOut) -> FragmentOut {
   // the transparent atlas gutter darkens every panel seam at fractional zoom.
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
-  var colour = textureSample(atlasTexture, atlasSampler, uv);
+  var colour = textureSample(atlasTexture, atlasSampler, uv, i32(in.page));
   let architectureFloor = isArchitectureFloor(in.wall.x);
   let architecture = isArchitecture(in.wall.x);
   var architecturePixel = vec2i(0);
@@ -378,14 +387,15 @@ fn fs(in: VertexOut) -> FragmentOut {
     }
   }
   if (in.bed.x > 0u) {
-    var furniture = bedLayer(in.bed.x, in.corner);
+    let sceneSize = atlas.sprites[in.bed.x - 1u].size.xy;
+    var furniture = bedLayer(in.bed.x, in.corner, sceneSize);
     if (furniture.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
       let rgb = recolour(linearToSrgb(furniture.rgb / furniture.a), in.colourway);
       furniture = vec4f(srgbToLinear(rgb) * furniture.a, furniture.a);
     }
     // Fills already include shared-ink attenuation before export filtering.
-    colour = furniture + bedLayer(in.bed.y, in.corner)
-      + bedLayer(in.bed.z, in.corner) + bedLayer(in.bed.w, in.corner);
+    colour = furniture + bedLayer(in.bed.y, in.corner, sceneSize)
+      + bedLayer(in.bed.z, in.corner, sceneSize) + bedLayer(in.bed.w, in.corner, sceneSize);
   } else if (in.pair.x > 0u) {
     let furniture = atlas.sprites[in.pair.x - 1u];
     let outline = atlas.sprites[in.pair.y - 1u];
@@ -396,12 +406,12 @@ fn fs(in: VertexOut) -> FragmentOut {
     // Explicit LOD avoids derivative-uniformity restrictions in this branch.
     // The furniture layer is premultiplied; only it takes the colourway of
     // the object the sim is using, never the sim or the ink over it.
-    let layer = textureSampleLevel(atlasTexture, atlasSampler, furnitureUv, 0.0);
+    let layer = textureSampleLevel(atlasTexture, atlasSampler, furnitureUv, i32(furniture.registration.z), 0.0);
     var prop = layer;
     if (layer.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
       prop = vec4f(recolour(layer.rgb / layer.a, in.colourway) * layer.a, layer.a);
     }
-    let ink = textureSampleLevel(atlasTexture, atlasSampler, outlineUv, 0.0);
+    let ink = textureSampleLevel(atlasTexture, atlasSampler, outlineUv, i32(outline.registration.z), 0.0);
     let sum = colour + prop;
     colour = ink + sum * (1.0 - ink.a);
   }
@@ -464,7 +474,7 @@ fn fs(in: VertexOut) -> FragmentOut {
     let surface = atlas.sprites[u32(in.wall.z)];
     let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
       surface.uv.xy + halfTexel, surface.uv.zw - halfTexel);
-    let sample = textureSampleLevel(atlasTexture, atlasSampler, depthUv, 0.0);
+    let sample = textureSampleLevel(atlasTexture, atlasSampler, depthUv, i32(surface.registration.z), 0.0);
     // Lossless RG16 encodes the model's game-space X+Y in [-2, 2].
     let sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0 - in.wall.w;
     out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);

@@ -20,6 +20,8 @@ it('checks direct caller texture, array, sampling and storage limits before GPU 
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxTextureArrayLayers: 1 }, 1700)).toThrow(/layer/);
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxSampledTexturesPerShaderStage: 4 }, 1700)).toThrow(/sampled/);
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBufferBindingSize: 65536 }, 1700)).toThrow(/storage/);
+  // 2,172 sprite records need 104,256 bytes; the old 32-byte estimate was 69,504.
+  expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBufferBindingSize: 100000 }, 1700)).toThrow(/storage/);
 });
 
 it('rejects device limits before allocating or fetching any architecture resource', async () => {

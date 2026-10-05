@@ -10119,3 +10119,53 @@ into the body and require failure. Retain rejected geometry evidence and add
 regression tests for side support and inward foot thickness. The dated
 [covered-bunk source evidence](assets/review-evidence/bedroom/covered-bunk-sleep-2026-10-04.md)
 records the measured failures and correction.
+
+## [L-paged-references-own-their-page] Route every referenced image independently
+
+**What happened.** The first paged renderer sampled a door's depth rectangle
+from its colour page. Existing door pairs happened to share a page, so ordinary
+tests did not expose the incorrect assumption. A storage guard also retained
+the old record byte size after the table layout grew.
+
+**Root cause.** Colour/depth co-placement was treated as a contract, and the
+storage budget duplicated a layout constant rather than sharing its definition.
+
+**Prevention.** Read page identity from every sampled reference. Share the
+record stride between packing and allocation checks. Preserve signed export
+bytes through Git attributes before testing a clean checkout.
+
+**Verify.** Place colour and depth controls on different pages. Require distinct
+positive, page-only negative and restored outputs. Revert the shader reference
+and require failure. Test a device budget between the old and new byte totals.
+
+## [L-owner-overlay-needs-registered-body-drop] Project overlays into the visible owner's space
+
+**What happened.** A selected lower-bunk sleeper's diamond surrounded the empty
+upper pillow. The owner marker was correct, but its draw position omitted the
+registered body drop and included an unrelated upward offset.
+
+**Root cause.** The overlay used ground-projection coordinates while its
+visible-owner marker was derived from registered sprite pixels.
+
+**Prevention.** Apply the same body-registration transform to owner overlays.
+Keep intentional activity-bubble lift separate from selection placement.
+
+**Verify.** Assert the visible-owner centre at fractional scale. Inspect both
+bunk and double-bed selections after shared placement changes.
+
+## [L-gpu-readback-before-yield] Copy the current canvas attachment before waiting
+
+**What happened.** A depth fixture returned transparent 2D snapshots even though
+the attached WebGPU canvas visibly rendered its control. Adding an animation
+frame wait did not establish capture ownership.
+
+**Root cause.** The capture yielded before copying a transient presented canvas
+texture. The repository already had an explicit GPU-buffer readback procedure.
+
+**Prevention.** Configure copy-source usage in the fixture. Submit the texture
+copy immediately after drawing. Await buffer mapping only after the copy is
+submitted. Reuse the established capture procedure instead of adding waits.
+
+**Verify.** Require the expected opaque pixel, a discriminating negative control
+and exact restoration. Retain failed capture results separately from product
+rendering failures.

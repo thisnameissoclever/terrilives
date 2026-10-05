@@ -5,10 +5,11 @@ import { buildStaticInstances } from '../src/render/tiles.ts';
 import { FLOATS_PER_INSTANCE, writeInstance } from '../src/render/instances.ts';
 import { layeredDepth, LAYER_PROP, LAYER_SIM } from '../src/render/iso.ts';
 import { simBodySprite, VISUAL_ACTION_WALK, buildInstances, instanceCount } from '../src/frame.ts';
-import { spriteIndex, SPRITES, SPRITE_PAIRS } from '../src/render/atlas.ts';
+import { spriteIndex, SPRITES, SPRITE_PAIRS, ATLAS_PAGE_FILES } from '../src/render/atlas.ts';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.ts';
 export async function wallOcclusionProof({ show = false, flatWalls = false, wide = false, indicators = false } = {}) {
-    const atlas = await createImageBitmap(await (await fetch(atlasTextureUrl('/'))).blob());
+    const atlas = await Promise.all(ATLAS_PAGE_FILES.map(async (_, page) =>
+        createImageBitmap(await (await fetch(atlasTextureUrl('/', page))).blob())));
     const canvas = document.createElement('canvas');
     canvas.width = 400;
     canvas.height = 440;
@@ -103,7 +104,7 @@ export async function wallOcclusionProof({ show = false, flatWalls = false, wide
                 const mc = mask.getContext('2d');
                 const drawMask = (index) => {
                     const s = SPRITES[index], d = s.pixel_density ?? 1;
-                    mc.drawImage(atlas, s.x, s.y, s.w, s.h,
+                    mc.drawImage(atlas[s.page ?? 0], s.x, s.y, s.w, s.h,
                         prop[maskRow * FLOATS_PER_INSTANCE] - s.w / d / 2 * scale,
                         prop[maskRow * FLOATS_PER_INSTANCE + 1] + (21 - s.h / d) * scale,
                         s.w / d * scale, s.h / d * scale);
@@ -144,7 +145,7 @@ export async function wallOcclusionProof({ show = false, flatWalls = false, wide
         return { pass: !error && results.length > 0 && results.every(r => r.pass), error: error?.message ?? null, results };
     }
     finally {
-        atlas.close();
+        for (const page of atlas) page.close();
         gpu.device.destroy();
     }
 }

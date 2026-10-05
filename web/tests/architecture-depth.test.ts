@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { validateArchitectureAtlas, type ArchitectureAtlas } from '../src/render/architecture-atlas.js';
 import { ARCHITECTURE_DEPTH, ARCHITECTURE_FLOOR, FLOATS_PER_INSTANCE, writeArchitectureDepth, writeArchitectureFloor, writeInstance } from '../src/render/instances.js';
-import { packSpriteTable } from '../src/render/sprites.js';
+import { packSpriteTable, FLOATS_PER_SPRITE } from '../src/render/sprites.js';
 import { SPRITES } from '../src/render/atlas.js';
 
 const directory='../docs/assets/review-evidence/architecture/room-01/trial/candidate-08/';
@@ -51,8 +51,8 @@ describe('opt-in architecture depth',()=>{
     const old=packSpriteTable();
     const trial=packSpriteTable(manifest.sprites,manifest.width,manifest.height,{},{});
     const combined=new Float32Array(old.length+trial.length); combined.set(old);combined.set(trial,old.length);
-    expect([...combined.slice(0,SPRITES.length*8)]).toEqual([...old]);
-    expect(trial.length).toBe(29*8);
+    expect([...combined.slice(0,SPRITES.length * FLOATS_PER_SPRITE)]).toEqual([...old]);
+    expect(trial.length).toBe(29 * FLOATS_PER_SPRITE);
     expect([...trial.slice(4,6)]).toEqual([manifest.sprites[0].w/2,manifest.sprites[0].h/2]);
   });
   it('retains the exact completed Blender exports and measured projection',()=>{
@@ -89,7 +89,7 @@ describe('combined shader interstage contract', () => {
   }
   function check(source: string): void {
     const output = fields(source);
-    expect(output).toHaveLength(13);
+    expect(output).toHaveLength(14);
     expect(new Set(output.map(field => field.location)).size).toBe(output.length);
     // The portable pipeline has sixteen interstage locations and sixty scalar components.
     expect(output.every(field => field.location >= 0 && field.location < 16)).toBe(true);
@@ -98,8 +98,8 @@ describe('combined shader interstage contract', () => {
   it('assigns distinct locations to architecture, covered beds and dining support', () => {
     check(shader);
     const byName = Object.fromEntries(fields(shader).map(field => [field.name, field.location]));
-    expect([byName.bed, byName.supportUv, byName.supportMask, byName.registration, byName.groundOrigin])
-      .toEqual([8, 9, 10, 11, 12]);
+    expect([byName.bed, byName.supportUv, byName.supportMask, byName.registration, byName.groundOrigin, byName.page])
+      .toEqual([8, 9, 10, 11, 12, 13]);
     expect(shader).toMatch(/fn vs\([\s\S]*?\) -> VertexOut/);
     expect(shader).toContain('fn fs(in: VertexOut)');
   });

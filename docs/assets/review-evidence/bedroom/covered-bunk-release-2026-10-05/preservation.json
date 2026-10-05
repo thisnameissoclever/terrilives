@@ -1,0 +1,91 @@
+{
+  "passed": true,
+  "base": "c83e32d70db6ef664e8829e85f8195bfa74e8bff",
+  "preserved_sprites": 2453,
+  "atlas_pages": {
+    "atlas-7983d26635b5e0041656946f99a2306a5f7ffdf00cd0a260d20a2e19d14512c3.png": "7983d26635b5e0041656946f99a2306a5f7ffdf00cd0a260d20a2e19d14512c3",
+    "atlas-f95f1c0eecf6980d3bbecd284a401f8e0a19fd326e212bd516c0a0e1dace4c28.png": "f95f1c0eecf6980d3bbecd284a401f8e0a19fd326e212bd516c0a0e1dace4c28",
+    "atlas-da9a4d6a4a32df431ffc193e9887a686d1d79d78f49a166f5f9b343da2e97af0.png": "da9a4d6a4a32df431ffc193e9887a686d1d79d78f49a166f5f9b343da2e97af0",
+    "atlas-484f5d2d534e88f0933d3ae9308b3b88c2a0ba6f5dde6b60c081e67df5fcb77a.png": "484f5d2d534e88f0933d3ae9308b3b88c2a0ba6f5dde6b60c081e67df5fcb77a",
+    "atlas-858e0634981369ab96f8fb0223fa5582c47a7dd3f3d24e697d5f2b1089d1a4dd.png": "858e0634981369ab96f8fb0223fa5582c47a7dd3f3d24e697d5f2b1089d1a4dd",
+    "atlas-672e008a1f9558289a0c50f0c324338c9850f70acbcdc0bfbee8b14fefce00ee.png": "672e008a1f9558289a0c50f0c324338c9850f70acbcdc0bfbee8b14fefce00ee",
+    "atlas-c594b416a25365bb7855695a6b2e72c5ca77c33564af2ea0f60b205611090143.png": "c594b416a25365bb7855695a6b2e72c5ca77c33564af2ea0f60b205611090143",
+    "atlas-305f6acc3df461bfaa86a481c048088e3d3d347ce918dbdec36ceba1241d73e9.png": "305f6acc3df461bfaa86a481c048088e3d3d347ce918dbdec36ceba1241d73e9",
+    "atlas-c3a506fd6a13e4fef958cde57b2a85452d69690a77c77724b4b5e4898aa838ca.png": "c3a506fd6a13e4fef958cde57b2a85452d69690a77c77724b4b5e4898aa838ca",
+    "atlas-a58e03082064fc40cd7665a86023449b9cdd56b2e87a5df67ec7b8a4bf09d2a2.png": "a58e03082064fc40cd7665a86023449b9cdd56b2e87a5df67ec7b8a4bf09d2a2",
+    "atlas-3d4440309e7edcfde3e80f2d40c20cfe53e4b380c0f2343ab9bb2e9f85443c52.png": "3d4440309e7edcfde3e80f2d40c20cfe53e4b380c0f2343ab9bb2e9f85443c52",
+    "atlas-04a7edc3bc89f84dbd9bd15571d1dd4b6ea978a6ec157180a77984241a8da498.png": "04a7edc3bc89f84dbd9bd15571d1dd4b6ea978a6ec157180a77984241a8da498",
+    "atlas-9d4448a3543d1b8c82c4f5dc0c906b56060c98d4d63c3bc47a80e8461546c161.png": "9d4448a3543d1b8c82c4f5dc0c906b56060c98d4d63c3bc47a80e8461546c161",
+    "atlas-0394e0d903725646cba8ca3f5ef6947db604d36d34936bbb3f6832a86301dbfc.png": "0394e0d903725646cba8ca3f5ef6947db604d36d34936bbb3f6832a86301dbfc",
+    "atlas-b7313ab2b34fc9dc5164e00a8dffc53280e847191096b28cad7e6b83ffa6efb2.png": "b7313ab2b34fc9dc5164e00a8dffc53280e847191096b28cad7e6b83ffa6efb2",
+    "atlas-ff607d4c37745834a2bf5099d5fbb7fa6603e84f8b2c022d43c69ed70d8b4616.png": "ff607d4c37745834a2bf5099d5fbb7fa6603e84f8b2c022d43c69ed70d8b4616",
+    "atlas-35988f66b69a259bb8c9f88159695dc8633a588441d238abccd7406b4dce6ff5.png": "35988f66b69a259bb8c9f88159695dc8633a588441d238abccd7406b4dce6ff5"
+  },
+  "metadata": [
+    {
+      "name": "SPRITE_ANCHORS",
+      "preserved_entries": 1941,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_CONTENT_TOPS",
+      "preserved_entries": 1436,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_CONTENT_BOUNDS",
+      "preserved_entries": 886,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_PAIRS",
+      "preserved_entries": 336,
+      "additional_entries": []
+    },
+    {
+      "name": "INTERACTION_SPRITES",
+      "preserved_entries": 20,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_HAND_ANCHORS",
+      "preserved_entries": 48,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_HAND_FOREGROUND",
+      "preserved_entries": 48,
+      "additional_entries": []
+    },
+    {
+      "name": "RIGGED_SIM_CLIPS",
+      "preserved_entries": 19,
+      "additional_entries": []
+    },
+    {
+      "name": "RIGGED_SIM_VARIANTS",
+      "preserved_entries": 3,
+      "additional_entries": []
+    },
+    {
+      "name": "SURFACE_LAYOUTS",
+      "preserved_entries": 16,
+      "additional_entries": []
+    },
+    {
+      "name": "BED_CATALOG",
+      "preserved_entries": 4,
+      "additional_entries": [
+        "1137",
+        "1138",
+        "1139",
+        "1140"
+      ]
+    },
+    {
+      "name": "BED_LAYERS",
+      "preserved_entries": 64,
+      "additional_entries": []
+    }
+  ]
+}

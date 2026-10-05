@@ -45,12 +45,25 @@ class ArchitectureExtensions(unittest.TestCase):
 
     def test_loads_only_the_pinned_reviewed_aquarium_catalog(self):
         config = json.loads((offline_architecture.SOURCE / 'architecture.json').read_text())
+        config['historicalExtensions'] = [config['historicalExtensions'][0]]
         sprites = offline_architecture.load_historical_extensions(config)
         self.assertEqual([sprite[0] for sprite in sprites], [
             prefix + suffix for prefix in ('offlineAquarium', 'offlineAquariumFrame1')
             for suffix in ('', 'NW', 'SW', 'NE')])
         self.assertTrue(all(image.mode == 'RGBA' and (width, height) == (192, 240)
                             for _, image, width, height in sprites))
+        changed = copy.deepcopy(config)
+        changed['historicalExtensions'][0]['canonicalSha256'] = '0' * 64
+        with self.assertRaisesRegex(AssertionError, 'architecture extension catalog changed'):
+            offline_architecture.load_historical_extensions(changed)
+
+    def test_loads_the_separately_pinned_covered_bunk_extension(self):
+        config = json.loads((offline_architecture.SOURCE / 'architecture.json').read_text())
+        config['historicalExtensions'] = [config['historicalExtensions'][1]]
+        sprites = offline_architecture.load_historical_extensions(config)
+        self.assertEqual(len(sprites), 30)
+        self.assertEqual(sum(row[0].startswith('coveredBunkLayer_') for row in sprites), 18)
+        self.assertEqual(sum(row[0].startswith('coveredBunkScene_') for row in sprites), 12)
         changed = copy.deepcopy(config)
         changed['historicalExtensions'][0]['canonicalSha256'] = '0' * 64
         with self.assertRaisesRegex(AssertionError, 'architecture extension catalog changed'):

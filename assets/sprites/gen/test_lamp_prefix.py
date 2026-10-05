@@ -7,6 +7,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 
 EXPECTED_METADATA = {
     'SPRITE_ANCHORS': (936, '5529c2c7a057261f6145300e4ac95fe462c17383a1e7ed297f549486fad47352'),
@@ -52,11 +53,11 @@ class LampPrefixTests(unittest.TestCase):
         self.assertEqual([row['name'] for row in rows[1346:1350]],
                          ['offlineFloorLamp'+turn for turn in ('', 'NW', 'SW', 'NE')])
         digest = hashlib.sha256()
-        with Image.open(root/'web/public/atlas.png') as image:
+        with AtlasPages(root) as image:
             for row in rows[:1346]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), '5bb69041d92d148d77878a4ee007148f8341ed0e42cccb46e14df30d1a8d2cf1')
         for row in rows[1346:1350]:
             self.assertEqual((row['w'], row['h'], row['pixel_density']), (192, 240, 2))

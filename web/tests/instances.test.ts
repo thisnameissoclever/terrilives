@@ -272,7 +272,7 @@ describe('sprites.wgsl contract', () => {
     expect(shader).toContain('out.uvBounds = sprite.uv;');
     expect(shader).toContain('vec2f(0.5) / vec2f(textureDimensions(atlasTexture))');
     expect(shader).toContain('clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel)');
-    expect(shader).toContain('textureSample(atlasTexture, atlasSampler, uv)');
+    expect(shader).toContain('textureSample(atlasTexture, atlasSampler, uv, i32(in.page))');
   });
 });
 

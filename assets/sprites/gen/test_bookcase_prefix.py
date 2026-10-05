@@ -6,6 +6,7 @@ import tomllib
 import unittest
 
 from PIL import Image
+from atlas_pixels import AtlasPages
 from test_lamp_prefix import EXPECTED_METADATA, canonical_digest, preserved_table
 
 
@@ -16,11 +17,11 @@ class BookcasePrefixTests(unittest.TestCase):
         self.assertEqual([row['name'] for row in rows[1366:1370]],
                          ['offlineBookcase'+turn for turn in ('', 'NW', 'SW', 'NE')])
         digest = hashlib.sha256()
-        with Image.open(root/'web/public/atlas.png') as image:
+        with AtlasPages(root) as image:
             for row in rows[:1366]:
                 digest.update(json.dumps([row['name'], row['w'], row['h'], row.get('pixel_density', 1)],
                                          separators=(',', ':')).encode())
-                digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
+                digest.update(image.crop(row).tobytes())
         self.assertEqual(digest.hexdigest(), '2a6bf2ccd83cb1236e365f7ed3fee82e4fedf427a858ab362fa40ec948c527cd')
         for row in rows[1366:1370]:
             self.assertEqual((row['w'], row['h'], row['pixel_density']), (192, 240, 2))

@@ -37,7 +37,8 @@ function source(facing = 'SE', order = [0, 1, 2]) {
 describe('covered double-bed scenes and owner coverage', () => {
   it('retains all 64 facing, occupancy and joint shirt combinations with registered layers', () => {
     let count = 0;
-    for (const catalog of Object.values(BED_CATALOG)) {
+    for (const facing of ['SE', 'NW', 'SW', 'NE']) {
+      const catalog = BED_CATALOG[spriteIndex('offlineDoubleBed' + (facing === 'SE' ? '' : facing))];
       expect(Object.keys(catalog)).toHaveLength(16);
       for (let mask = 0; mask < 4; mask++) {
         for (let a = 0; a < (mask & 1 ? 3 : 1); a++) for (let b = 0; b < (mask & 2 ? 3 : 1); b++) {
@@ -149,6 +150,8 @@ describe('covered double-bed scenes and owner coverage', () => {
     expect(data[2 * FLOATS_PER_INSTANCE]).toBe(-1e6);
     expect(data[3 * FLOATS_PER_INSTANCE]).not.toBe(data[4 * FLOATS_PER_INSTANCE]);
     const ring = (batch.count - 1) * FLOATS_PER_INSTANCE;
+    const marker = selection.bedScenes[2]!.owners[1]!.marker;
+    expect(data[ring + 1]).toBeCloseTo(180 + marker[1] + 21, 4);
     expect(data[ring + 2]).toBeLessThan(data[2]);
     const first = Array.from(data.slice(ring, ring + 3));
     const other = buildInstanceBatch(rows, 1, 200, 180, 32, 91, 1, false, 0, null, selection);
