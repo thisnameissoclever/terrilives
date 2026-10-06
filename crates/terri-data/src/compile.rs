@@ -572,6 +572,7 @@ pub fn compile(
     // [SK-content]: skills key on the same tags as traits, and nothing
     // resolves against them at compile time.
     let skills = compile_skills(skills, &known_tags)?;
+    check_skill_ladders(&skills, tuning.skill_level_cost, tuning.skill_level_growth)?;
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
     let careers = compile_careers(careers, &tuning)?;
@@ -1406,13 +1407,17 @@ const SKILL_LEVELS_MAX: u8 = 100;
 /// Validates `content/skills.toml` - [SK-content] in
 /// `docs/specs/2026-10-05-skills.md`. Each skill has a unique id, a label
 /// and a description, a tag some activity carries, a ladder of 1 to 100
-/// levels, and a finite practice step in `(0, 1]`. File order is kept,
-/// because the Overview sheet lists skills in it.
+/// levels, and a finite practice step in `(0, 1]`. No two skills share a
+/// tag, because the fumble roll reads the one skill with a capability's tag
+/// ([SK-capability]). File order is kept, because the Overview sheet lists
+/// skills in it.
 pub fn compile_skills(
     file: SkillsFile,
     known_tags: &BTreeSet<String>,
 ) -> Result<Vec<CompiledSkill>, ContentError> {
     let mut seen = BTreeSet::new();
+    // Tag to the id of the first skill that claimed it.
+    let mut tags: BTreeMap<String, String> = BTreeMap::new();
     let mut compiled = Vec::with_capacity(file.skill.len());
     for def in file.skill {
         if !seen.insert(def.id.clone()) {
@@ -1429,6 +1434,14 @@ pub fn compile_skills(
                 tag: def.tag,
             });
         }
+        if let Some(first) = tags.get(&def.tag) {
+            return Err(ContentError::SkillTagShared {
+                first: first.clone(),
+                second: def.id,
+                tag: def.tag,
+            });
+        }
+        tags.insert(def.tag.clone(), def.id.clone());
         if !(1..=SKILL_LEVELS_MAX).contains(&def.levels) {
             return Err(ContentError::SkillFieldOutOfRange {
                 id: def.id,
@@ -1452,6 +1465,30 @@ pub fn compile_skills(
         });
     }
     Ok(compiled)
+}
+
+/// Refuses a skill whose whole ladder costs more practice than an f32 can
+/// hold - [SK-model]. Level 1 costs `cost` and each later level costs
+/// `growth` times the one before, summed rung by rung in ascending order
+/// in f32: the arithmetic `terri_sim::skills::Ladder::cumulative` uses, so
+/// the top of every shipped ladder is a finite number in the simulation.
+fn check_skill_ladders(
+    skills: &[CompiledSkill],
+    cost: f32,
+    growth: f32,
+) -> Result<(), ContentError> {
+    for skill in skills {
+        let mut total = 0.0f32;
+        for rung in 1..=skill.levels {
+            total += cost * growth.powi(i32::from(rung) - 1);
+        }
+        if !total.is_finite() {
+            return Err(ContentError::SkillLadderOverflows {
+                id: skill.id.clone(),
+            });
+        }
+    }
+    Ok(())
 }
 
 /// Validates `content/social.toml` and compiles the interactions every sim
@@ -8256,34 +8293,183 @@ mod tests {
             ),
             Err(ContentError::DuplicateSkill(_))
         ));
-        for (levels, practice) in [
-            (0u8, 0.015f32),
-            (10, 0.0),
-            (10, -0.1),
-            (10, f32::NAN),
-            (10, 1.5),
+        for (levels, practice, field) in [
+            (0u8, 0.015f32, "levels"),
+            (101, 0.015, "levels"),
+            (10, 0.0, "practice_per_attempt"),
+            (10, -0.1, "practice_per_attempt"),
+            (10, f32::NAN, "practice_per_attempt"),
+            (10, 1.5, "practice_per_attempt"),
+            (10, f32::INFINITY, "practice_per_attempt"),
         ] {
             let bad = SkillDef {
                 levels,
                 practice_per_attempt: practice,
                 ..good("cooking")
             };
-            assert!(
-                matches!(
-                    compile_skills(SkillsFile { skill: vec![bad] }, &known),
-                    Err(ContentError::SkillFieldOutOfRange { .. })
-                ),
+            assert_eq!(
+                compile_skills(SkillsFile { skill: vec![bad] }, &known).unwrap_err(),
+                ContentError::SkillFieldOutOfRange {
+                    id: "cooking".into(),
+                    field,
+                },
                 "levels {levels} practice {practice}"
             );
         }
-        let blank = SkillDef {
-            label: String::new(),
+        // The boundaries on the accepted side: one rung, a hundred rungs,
+        // and a single attempt worth a whole unit of practice.
+        for (levels, practice) in [(1u8, 0.015f32), (100, 0.015), (10, 1.0)] {
+            let edge = SkillDef {
+                levels,
+                practice_per_attempt: practice,
+                ..good("cooking")
+            };
+            assert!(
+                compile_skills(SkillsFile { skill: vec![edge] }, &known).is_ok(),
+                "levels {levels} practice {practice} is in range"
+            );
+        }
+        let unlabelled = SkillDef {
+            label: " \t".into(),
             ..good("cooking")
         };
-        assert!(matches!(
-            compile_skills(SkillsFile { skill: vec![blank] }, &known),
-            Err(ContentError::EmptySkillText { .. })
-        ));
+        assert_eq!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![unlabelled]
+                },
+                &known
+            )
+            .unwrap_err(),
+            ContentError::EmptySkillText {
+                id: "cooking".into(),
+                field: "label",
+            }
+        );
+        let undescribed = SkillDef {
+            description: String::new(),
+            ..good("cooking")
+        };
+        assert_eq!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![undescribed]
+                },
+                &known
+            )
+            .unwrap_err(),
+            ContentError::EmptySkillText {
+                id: "cooking".into(),
+                field: "description",
+            }
+        );
+    }
+
+    /// [SK-capability]: the fumble roll reads the one skill with the
+    /// trait's tag, so two skills on one tag would leave the second learnt
+    /// and never read. Two skills on different tags stay legal.
+    #[test]
+    fn skills_reject_two_skills_on_one_tag() {
+        let known: BTreeSet<String> = ["cooking".to_string(), "baking".to_string()]
+            .into_iter()
+            .collect();
+        let skill = |id: &str, tag: &str| SkillDef {
+            id: id.into(),
+            label: "Cooking".into(),
+            description: "Turns food into dinner.".into(),
+            tag: tag.into(),
+            levels: 10,
+            practice_per_attempt: 0.015,
+        };
+        assert_eq!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![skill("cooking", "cooking"), skill("chef", "cooking")]
+                },
+                &known
+            )
+            .unwrap_err(),
+            ContentError::SkillTagShared {
+                first: "cooking".into(),
+                second: "chef".into(),
+                tag: "cooking".into(),
+            }
+        );
+        assert!(compile_skills(
+            SkillsFile {
+                skill: vec![skill("cooking", "cooking"), skill("baking", "baking")]
+            },
+            &known
+        )
+        .is_ok());
+    }
+
+    /// [SK-model]: the top of every ladder has to be a finite amount of
+    /// practice, summed the way the simulation sums it.
+    #[test]
+    fn skill_ladders_must_stay_finite() {
+        let skill = |levels: u8| CompiledSkill {
+            id: "climbing".into(),
+            label: "Climbing".into(),
+            description: "Going up.".into(),
+            tag: "climbing".into(),
+            levels,
+            practice_per_attempt: 0.015,
+        };
+        // 0.1 * 3^99 is far beyond f32::MAX.
+        assert_eq!(
+            check_skill_ladders(&[skill(10), skill(100)], 0.1, 3.0).unwrap_err(),
+            ContentError::SkillLadderOverflows {
+                id: "climbing".into()
+            }
+        );
+        assert!(check_skill_ladders(&[skill(10)], 0.1, 3.0).is_ok());
+        // The shipped ladder at the most rungs a skill may have.
+        assert!(check_skill_ladders(&[skill(100)], 0.1, 1.25).is_ok());
+        // The rungs are summed, so a ladder whose top rung alone is finite
+        // can still overflow: 3e38 + 3e38 * 1.0 is infinite.
+        assert!(check_skill_ladders(&[skill(1)], 3.0e38, 1.0).is_ok());
+        assert!(check_skill_ladders(&[skill(2)], 3.0e38, 1.0).is_err());
+
+        // And `compile` runs the check against the pack's tuning.
+        let with_skill = |levels: u8, growth: f32| {
+            let mut snack_object = snack();
+            snack_object.tags = vec!["snacking".into()];
+            compile(
+                full_needs(),
+                one_object(snack_object),
+                bare_lot(),
+                test_atlas(),
+                tuning_where(|t| t.skill_level_growth = growth),
+                PersonalitiesFile { archetype: vec![] },
+                HouseholdFile { sim: vec![] },
+                SocialFile {
+                    interaction: vec![],
+                },
+                TraitsFile { trait_def: vec![] },
+                CareersFile { career: vec![] },
+                ChainsFile { chain: vec![] },
+                VoiceFile { clip: vec![] },
+                vec![],
+                SkillsFile {
+                    skill: vec![SkillDef {
+                        id: "snacking".into(),
+                        label: "Snacking".into(),
+                        description: "Eating between meals.".into(),
+                        tag: "snacking".into(),
+                        levels,
+                        practice_per_attempt: 0.015,
+                    }],
+                },
+            )
+        };
+        assert_eq!(
+            with_skill(100, 3.0).unwrap_err(),
+            ContentError::SkillLadderOverflows {
+                id: "snacking".into()
+            }
+        );
+        assert_eq!(with_skill(10, 3.0).expect("finite").skills.len(), 1);
     }
 
     /// One trait, worn once - the review finding: `Traits` keys state

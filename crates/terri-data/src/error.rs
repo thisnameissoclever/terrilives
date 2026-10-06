@@ -868,6 +868,19 @@ pub enum ContentError {
         id: String,
         field: &'static str,
     },
+    /// Two skills keyed on one tag. A capability's fumble roll reads the
+    /// one skill with its tag, so the second would be practised and never
+    /// read - [SK-capability].
+    SkillTagShared {
+        first: String,
+        second: String,
+        tag: String,
+    },
+    /// A skill whose whole ladder, under the tuning's cost and growth,
+    /// costs more practice than an f32 can hold - [SK-model].
+    SkillLadderOverflows {
+        id: String,
+    },
     /// `skill_level_cost` not finite or not above 0. A free first level
     /// would put a person past it before any practice.
     SkillLevelCostOutOfRange {
@@ -1980,6 +1993,18 @@ impl fmt::Display for ContentError {
             ContentError::EmptySkillText { id, field } => write!(
                 f,
                 "skill '{id}' needs a {field} in skills.toml"
+            ),
+            ContentError::SkillTagShared { first, second, tag } => write!(
+                f,
+                "skills '{first}' and '{second}' both key on tag '{tag}'; \
+                 one skill per tag, because a capability's fumble reads the \
+                 skill with its tag"
+            ),
+            ContentError::SkillLadderOverflows { id } => write!(
+                f,
+                "skill '{id}' has a ladder whose total cost is not a finite \
+                 number under skill_level_cost and skill_level_growth; use \
+                 fewer levels or a smaller growth"
             ),
             ContentError::SkillLevelCostOutOfRange { value } => write!(
                 f,
