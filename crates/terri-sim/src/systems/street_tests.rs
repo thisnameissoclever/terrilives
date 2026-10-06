@@ -192,8 +192,10 @@ fn a_saved_worker_is_judged_on_the_exit_within_a_hundredth_on_each_axis() {
     for (case, x, y, expected) in [
         ("x inside", 18.995, 2.0, Err(crate::SaveError::InvalidGrid)),
         ("y inside", 19.0, 2.005, Err(crate::SaveError::InvalidGrid)),
-        ("x outside", 18.98, 2.0, Ok(())),
-        ("y outside", 19.0, 2.02, Ok(())),
+        ("x outside below", 18.98, 2.0, Ok(())),
+        ("x outside above", 19.02, 2.0, Ok(())),
+        ("y outside below", 19.0, 1.98, Ok(())),
+        ("y outside above", 19.0, 2.02, Ok(())),
     ] {
         let mut moved = saved.clone();
         let position = moved
