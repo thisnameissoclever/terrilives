@@ -33,10 +33,13 @@ export interface SkillsPanelSurface {
 
 const UNAVAILABLE: SkillsPanelState = { kind: 'unavailable' };
 
-/** "Level 2 of 10, 50% to the next level", or "Level 10 of 10" at the top. */
+/**
+ * "Level 2 of 10, 50% to the next level", or "Level 10 of 10" at the top.
+ * Floored, so a person still on the lower level never reads 100%.
+ */
 function standingText(standing: SkillStanding, levels: number): string {
   if (standing.level === levels) return `Level ${levels} of ${levels}`;
-  return `Level ${standing.level} of ${levels}, ${Math.round(standing.progress * 100)}% to the next level`;
+  return `Level ${standing.level} of ${levels}, ${Math.floor(standing.progress * 100)}% to the next level`;
 }
 
 export function skillsPanelState(source: SkillsPanelSource, library: SkillLibrary): SkillsPanelState {

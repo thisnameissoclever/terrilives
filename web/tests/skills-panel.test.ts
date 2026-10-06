@@ -60,11 +60,18 @@ describe('skillsPanelState', () => {
     expect(source.asked).toEqual([7]);
   });
 
-  it('rounds progress to a whole percentage and reads each skill against its own ladder', () => {
+  it('floors progress to a whole percentage and reads each skill against its own ladder', () => {
     const source = new Source();
-    source.value = [standing(3, 0.254, 0.3254), standing(0, 0.996, 0.0996), standing(4, 0, 1)];
+    source.value = [standing(3, 0.259, 0.3259), standing(0, 0.996, 0.0996), standing(4, 0, 1)];
     expect(ready(skillsPanelState(source, { ...LIBRARY, levels: [10, 10, 4] })).map(skill => skill.standing))
-      .toEqual(['Level 3 of 10, 25% to the next level', 'Level 0 of 10, 100% to the next level', 'Level 4 of 4']);
+      .toEqual(['Level 3 of 10, 25% to the next level', 'Level 0 of 10, 99% to the next level', 'Level 4 of 4']);
+  });
+
+  it('never reads 100% while the person is still on the lower level', () => {
+    const source = new Source();
+    source.value = [standing(5, 0.995, 0.5995), standing(9, 0.99999994, 0.99999994), standing(10, 0, 1)];
+    expect(ready(skillsPanelState(source, LIBRARY)).map(skill => skill.standing)).toEqual([
+      'Level 5 of 10, 99% to the next level', 'Level 9 of 10, 99% to the next level', 'Level 10 of 10']);
   });
 
   it('is unavailable when the library columns do not line up', () => {
@@ -220,7 +227,7 @@ describe('the Skills disclosure in the page', () => {
   });
 
   it('ships closed directly after the personal details inside Overview', () => {
-    expect(INDEX_HTML).toContain('</details><details id="skills-block"><summary class="summary-label">Skills</summary>'
+    expect(INDEX_HTML).toContain('</details><details id="skills-block"><summary>Skills</summary>'
       + '<p id="skills-empty">Select a person to see their skills.</p><ul id="skill-list" hidden></ul></details></section>');
     const overview = INDEX_HTML.slice(INDEX_HTML.indexOf('id="sim-overview"'), INDEX_HTML.indexOf('id="sim-queue"'));
     expect(overview.indexOf('id="personal-details"')).toBeGreaterThan(-1);
