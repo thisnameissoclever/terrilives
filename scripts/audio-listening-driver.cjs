@@ -8,22 +8,43 @@ const FORBIDDEN_BACKGROUND_FLAGS = [
   '--disable-renderer-backgrounding',
 ];
 
+// Each cue names the Web Audio node kind it plays through: procedural cues
+// start oscillators, recordings start buffer sources. The last field is extra
+// real time for a recording that loads on first demand: the first sleep event
+// of a session only fetches the snores, the next one plays, and snores start
+// at least six real seconds apart.
 const ACTIVITY_LISTENING_SCENARIOS = [
-  ["conversation","Chat","talkTo",1,4,"conversation"],
-  ["eating","Grab a snack","useObject",2,3,"eating"],
-  ["reading","Read a book","useObject",4,8,"page-turn"],
-  ["exercise","Use the exercise bike","useObject",6,9,"exercise"],
-  ["sleep","Sleep","useObject",9,5,"sleep-breath"],
+  ["conversation","Chat","talkTo",1,4,"conversation","buffer-source",0],
+  ["eating","Grab a snack","useObject",2,3,"eating","oscillator",0],
+  ["reading","Read a book","useObject",4,8,"page-turn","oscillator",0],
+  ["exercise","Use the exercise bike","useObject",6,9,"exercise","oscillator",0],
+  ["sleep","Sleep","useObject",9,5,"sleep-breath","buffer-source",15000],
 ].map(
-  ([id, label, command, expectedVisualAction, expectedActivity, cue]) => ({
+  ([
     id,
     label,
     command,
     expectedVisualAction,
     expectedActivity,
     cue,
+    node,
+    firstDemandAllowanceMs,
+  ]) => ({
+    id,
+    label,
+    command,
+    expectedVisualAction,
+    expectedActivity,
+    cue,
+    node,
+    firstDemandAllowanceMs,
   }),
 );
+
+const NODE_KIND_COUNTS = {
+  oscillator: 'createdOscillators',
+  'buffer-source': 'createdBufferSources',
+};
 
 function parseArgs(argv) {
   const result = {
@@ -143,6 +164,9 @@ class WebAudioMonitor {
       createdOscillators: this.created.filter((entry) =>
         entry.nodeType.toLowerCase().includes('oscillator'),
       ).length,
+      createdBufferSources: this.created.filter((entry) =>
+        entry.nodeType.toLowerCase().includes('buffersource'),
+      ).length,
       activeOscillators: this.activeOscillators.size,
       maxActiveOscillators: this.maxActiveOscillators,
       contextStates: [...this.contextStates.values()],
@@ -167,7 +191,13 @@ function everyContextIs(states, expectedState) {
 function hasCompleteActivityEvidence(evidence) {
   return evidence.observedRenderState !== null &&
     evidence.expectedCueDelta > 0 &&
-    evidence.oscillatorDelta > 0;
+    evidence.expectedNodeDelta > 0;
+}
+
+function createdNodeCount(audio, node) {
+  const field = NODE_KIND_COUNTS[node];
+  if (field === undefined) throw new Error(`unknown Web Audio node kind: ${node}`);
+  return audio[field];
 }
 
 async function waitForGame(page) {
@@ -380,13 +410,14 @@ async function waitForActivityEvidence(page, monitor, scenario, setup, before, t
         audio,
         expectedCueDelta:
           cuePlayCounts[scenario.cue] - before.cuePlayCounts[scenario.cue],
-        oscillatorDelta:
-          audio.createdOscillators - before.audio.createdOscillators,
+        expectedNodeDelta:
+          createdNodeCount(audio, scenario.node) -
+          createdNodeCount(before.audio, scenario.node),
       };
     },
     hasCompleteActivityEvidence,
     timeoutMs,
-    `${scenario.id} action, ${scenario.cue} cue, and oscillator`,
+    `${scenario.id} action, ${scenario.cue} cue, and ${scenario.node} node`,
   );
 }
 
@@ -396,6 +427,9 @@ async function runActivityScenario(page, monitor, scenario, mechanicalOnly) {
     cuePlayCounts: await readCuePlayCounts(page),
     audio: monitor.snapshot(),
   };
+  if (typeof before.cuePlayCounts[scenario.cue] !== 'number') {
+    throw new Error(`the game reports no ${scenario.cue} cue count`);
+  }
   const setup = await stageActivityScenario(page, scenario);
   const evidence = await waitForActivityEvidence(
     page,
@@ -403,7 +437,7 @@ async function runActivityScenario(page, monitor, scenario, mechanicalOnly) {
     scenario,
     setup,
     before,
-    mechanicalOnly ? 12_000 : 30_000,
+    (mechanicalOnly ? 12_000 : 30_000) + scenario.firstDemandAllowanceMs,
   );
   if (!mechanicalOnly) {
     await page.waitForTimeout(scenario.id === 'sleep' ? 6_500 : 4_000);
@@ -688,7 +722,7 @@ async function runHumanWorkflow(browserSession, page, monitor) {
         name: `${scenario.id[0].toUpperCase()}${scenario.id.slice(1)} cue`,
         instructions:
           scenario.id === 'sleep'
-            ? 'One Sim will use the lower bunk. Listen for quiet, sparse breathing that reads as sleep without becoming a repeated thud or a continuous loop.'
+            ? 'One Sim will use the lower bunk. The first sleep moment only loads the recordings, so the first snore comes a few seconds later. Listen for a quiet recorded snore, at most one every six seconds, that reads as sleep without becoming a continuous loop.'
             : `One exact ${scenario.id} action will run at 1x. The sound should identify the action without masking the rest of the game or becoming tiring at its normal cadence.`,
         run: () => runActivityScenario(page, monitor, scenario, false),
       })),
@@ -947,6 +981,11 @@ async function main() {
   if (!report.pass) process.exitCode = 1;
 }
 
-module.exports = { everyContextIs, hasCompleteActivityEvidence };
+module.exports = {
+  ACTIVITY_LISTENING_SCENARIOS,
+  createdNodeCount,
+  everyContextIs,
+  hasCompleteActivityEvidence,
+};
 
 if (require.main === module) void main();

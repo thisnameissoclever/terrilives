@@ -6441,7 +6441,10 @@ as gain alone even though retained cadence is also presentation state.
 **Prevention rule.** An activity-listening fixture must discover Sims and
 interactions from fresh bridge views, stage one exact command, observe the
 intended entity's exact visual action and activity, require the named semantic
-cue counter to increase, and require Chrome to report a new oscillator. Reset
+cue counter to increase, and require Chrome to report a new node of the kind
+that cue plays through: an oscillator for a procedural cue, a buffer source for
+a recording. A recording that loads on first demand needs a wait long enough
+for the load and the next event. Reset
 every cadence scheduler on both edges of master mute and Effects zero so the
 first audible tick describes the action currently on screen. Keep acoustic
 isolation as a separate claim until the harness can prove it.
