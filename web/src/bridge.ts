@@ -608,6 +608,15 @@ export class SimBridge {
     return this.handle.day_ticks();
   }
 
+  /**
+   * The weekday of the current tick, 0 (Monday) to 6 (Sunday), as the
+   * simulation works it out. The shell never derives one from the day
+   * number, because only the simulation knows which weekday day 1 is.
+   */
+  weekdayIndex(): number {
+    return this.handle.weekday_index();
+  }
+
   /** Versioned simulation bytes for browser-owned storage. */
   saveBytes(): Uint8Array {
     return this.handle.save_bytes();
@@ -1735,6 +1744,21 @@ export class SimBridge {
     if (!isU32(entityIndex)) return null;
     const label = this.handle.career_of(entityIndex);
     return label === '' ? null : label;
+  }
+
+  /**
+   * The working days and shift hours of the sim's career, or null for the
+   * unemployed and for everything that is not a sim. `workingDays` is a
+   * mask with bit 0 for Monday through bit 6 for Sunday; the two times are
+   * ticks of the day clock.
+   */
+  careerScheduleOf(
+    entityIndex: number,
+  ): { workingDays: number; shiftStart: number; shiftTicks: number } | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.career_schedule_of(entityIndex);
+    if (values.length !== 3) return null;
+    return { workingDays: values[0], shiftStart: values[1], shiftTicks: values[2] };
   }
 
   /**

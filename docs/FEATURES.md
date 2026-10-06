@@ -19,7 +19,7 @@ their original save versions, sprite counts and measurements describe those rele
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
 | Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration, overdoing an activity and feeling sick from overeating, and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
 | Grief duration | 10 game days for neutral acquaintances to 60 for closest affinity, with a linear fade; PR #141 | Longer-term play balance remains subject to feedback |
-| Careers and money | One scheduled office job, wages, purchase costs and sale proceeds | Player-directed career paths, skills, bills, recurring costs and a ledger |
+| Careers and money | One office job working Monday to Friday, its days and hours shown in Sim details, wages, purchase costs and sale proceeds; working days shipped 2026-10-06 | Player-directed career paths, skills, bills, recurring costs, a ledger, and the dates bills and pay days need |
 | Art and audio | Shared rigged Sim with shirt variants, reviewed furniture replacements, action-specific animation and the audio foundation | Appearance variety, remaining action poses, sound content and recorded owner/device acceptance checks |
 
 Completed slices are complete even when their larger system remains partial.
@@ -435,6 +435,8 @@ Edit Sims [B-edit-sims] shipped on 2026-10-05; see `specs/2026-09-30-edit-sims.m
 The first skills slice [S-skills] shipped on 2026-10-05: Cooking, Fitness and Reading grow with every completed attempt, set the fumble chance of the matching capability trait, and are listed in Sim details; see `specs/2026-10-05-skills.md`. Better outcomes, unlocks, career performance and any fuller skills panel remain open.
 
 Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an activity past saturation adds an `Overdoing {activity}` moodlet that grows with each further use, and too much food adds a temporary `Feeling sick` moodlet; need delivery is unchanged, appeal never falls below its floor but stays there until decay brings the value back below saturation, and decay clears both. Novelty from purchases, part two, remains open; see `specs/2026-10-06-overdoing-it.md`.
+
+The first calendar slice [S-calendar] shipped on 2026-10-06: the clock names the weekday, a new game starts on a Monday, each career lists its working days, and the office job rests on Saturday and Sunday. The Career row in Sim details shows the job's days and hours. Dates, seasons, pay days and scheduled events remain open; see `specs/2026-10-06-calendar.md`.
 
 Remaining acceptance work runs separately from this build priority: owner art and
 sound review where still recorded as open, physical-phone touch/safe-area/daylight

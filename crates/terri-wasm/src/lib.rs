@@ -13,6 +13,8 @@ mod save_before_voice;
 #[cfg(test)]
 mod bed_assignment_tests;
 #[cfg(test)]
+mod calendar_boundary_tests;
+#[cfg(test)]
 mod placement_tests;
 #[cfg(test)]
 mod save_before_voice_tests;
@@ -524,6 +526,20 @@ impl SimHandle {
     /// `sim_tick` so the shell never hardcodes the content calendar.
     pub fn day_ticks(&self) -> u32 {
         self.sim.world().resource::<Content>().0.tuning.day_ticks
+    }
+
+    /// The weekday of the current tick, 0 (Monday) to 6 (Sunday) - [CAL-week]
+    /// in `docs/specs/2026-10-06-calendar.md`. Derived from the tick and
+    /// content through `terri_core::clock::weekday`, the definition the
+    /// careers schedule against, so the shell never works out a weekday of
+    /// its own. Nothing about it is saved.
+    pub fn weekday_index(&self) -> u32 {
+        let tuning = &self.sim.world().resource::<Content>().0.tuning;
+        u32::from(terri_core::clock::weekday(
+            self.sim_tick(),
+            tuning.day_ticks,
+            tuning.first_weekday,
+        ))
     }
 
     /// Saved legacy wall cells, interleaved `[x0, y0, x1, y1, ...]`.
@@ -2350,6 +2366,25 @@ impl SimHandle {
         self.sim
             .career_of(entity_index)
             .map(str::to_string)
+            .unwrap_or_default()
+    }
+
+    /// The schedule of the career held by the sim carrying `entity_index`,
+    /// as `[working_days, shift_start, shift_ticks]` - [CAL-hud]. The mask
+    /// has bit 0 for Monday through bit 6 for Sunday; the two times are
+    /// ticks of the day clock. Empty for the unemployed and for anything
+    /// that is not a living person: an object, a retired index, or a
+    /// number past the last entity.
+    pub fn career_schedule_of(&self, entity_index: u32) -> Vec<u32> {
+        self.sim
+            .career_definition_of(entity_index)
+            .map(|career| {
+                vec![
+                    u32::from(career.working_days),
+                    career.shift_start,
+                    career.shift_ticks,
+                ]
+            })
             .unwrap_or_default()
     }
 

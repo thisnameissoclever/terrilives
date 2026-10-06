@@ -6,6 +6,9 @@ Status: implementation evidence for `2026-10-06-calendar.md`. Each guard-deletio
 
 - [Shift tests](#shift-tests)
 - [Guard deletions](#guard-deletions)
+- [Boundary and HUD tests](#boundary-and-hud-tests)
+- [Displayed browser](#displayed-browser)
+- [Delivery](#delivery)
 
 ## Shift tests
 
@@ -32,3 +35,41 @@ In the save test the source world is itself loaded once at tick 0 before it runs
 | The `first_weekday` term in `terri_core::clock::weekday` in `crates/terri-core/src/clock.rs`, `+ first_weekday as u64`, deleted | `weekday_counts_whole_days_of_any_length`, `first_weekday_six_moves_the_first_shift_to_day_two` | `weekday(0, 1440, 6)` read left `0`, right `6`; departures left `[3, 33]`, right `[33]` | `a8ee4301e00f70d00b149de125021e1cf0faae53`, unchanged |
 | The weekday range check in `CompiledCareer::works_on`, `weekday < terri_core::clock::WEEKDAY_COUNT &&`, deleted | `works_on_refuses_a_weekday_past_sunday` | `assertion failed: !career.works_on(7)`: a mask of `0xFF` read its eighth bit for weekday 7 | `342ad37934c9a4f3910236cab63af5b3ed0a8413`, unchanged |
 | The reduction of the day index before the offset in `terri_core::clock::weekday`, `tick / day_ticks as u64 % week + first_weekday as u64`, replaced by `tick / day_ticks as u64 + first_weekday as u64` | `weekday_counts_whole_days_of_any_length` | `attempt to add with overflow` on `weekday(u64::MAX, 1, 6)` | `a8ee4301e00f70d00b149de125021e1cf0faae53`, unchanged |
+
+## Boundary and HUD tests
+
+These tests cover [CAL-evidence] item 5. The wasm boundary tests are in `crates/terri-wasm/src/calendar_boundary_tests.rs` and ran in both the debug and the release profile (`cargo test -p terri-wasm --release calendar_boundary`).
+
+| Test | What it proves |
+|---|---|
+| `weekday_index_starts_on_monday_and_turns_over_with_the_day` | On the shipped lot `weekday_index` is 0 at tick 0 and still 0 after `day_ticks - 1` real ticks; one more tick makes it 1. |
+| `weekday_index_reaches_sunday_and_wraps_to_monday` | With the clock set directly, the first and last ticks of day 7 read 6 and the first tick of day 8 reads 0; `u64::MAX` reads what `terri_core::clock::weekday` returns; the read leaves the save bytes unchanged. |
+| `career_schedule_of_reports_working_days_and_hours` | Tim's schedule is `[31, 360, 480]`, the same three numbers as the compiled office job; Bill, who has no job, reads `[]`; the reads leave the save bytes and the world hash unchanged. |
+| `career_schedule_of_rejects_non_people_in_release` | Index 0, a placed object, `u32::MAX` and `u32::MAX - 1` all read `[]`, and the save bytes and world hash are unchanged. |
+
+The web tests are in `web/tests/game-hud.test.ts` and `web/tests/bridge.test.ts`. `formatSimTime(0, 1440, 0)` is `Day 1, Monday, 00:00`, `formatSimTime(1440 * 6, 1440, 6)` is `Day 7, Sunday, 00:00`, and a weekday of -1, 7, 1.5, NaN or infinity gives `Day and time unavailable`. The clock prints the weekday it is given rather than counting one from the day number, so `formatSimTime(1440 * 6, 1440, 5)` is `Day 7, Saturday, 00:00`. `formatCareerSchedule` gives `Office clerk, Monday to Friday, 06:00 to 14:00` for mask 31, `Office clerk, Monday, Sunday, 06:00 to 14:00` for `0b1000001`, `every day` for all seven days, a single day name for one day, and the label alone for a missing or malformed schedule. A shift past midnight ends on the next day's time, for example `22:00 to 06:00`. The assembled HUD shows the clock and the Career row together, asks for a schedule only for the selected person, and reads the tick and the weekday once per refresh. The bridge test reads weekday 0 and Tim's schedule through the release wasm artifact, and returns null for an object, a negative, fractional, NaN or out-of-range index.
+
+## Displayed browser
+
+Code checked: the working tree of `twcl/calendar` on top of `63e3142b`, with this task's changes, before they were committed. The bundle `assets/index-BwR1pszi.js` was built with `npm run build` after `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, and served with `npx vite preview --port 4173 --strictPort` from `web/` at `https://localhost:4173/`.
+
+The in-app browser pane loaded the bundle but was hidden and delivered no animation frames in two seconds, so the check used the Playwright plugin's Chromium (Chrome 154 on Windows, with `navigator.gpu` present), which ran 58 frames a second. Sound was muted before the game ran by setting `terrilives.audio-preferences.v1` to `{"version":1,"muted":true,"effectsLevel":0,"voicesLevel":0}` and reloading; the Options flyout showed `Sound: off`. The first-run Help was already dismissed in that browser profile.
+
+That profile held another session's saved household (3488 bytes, SHA-256 `1b47dbca...2a3eec`). It was copied to a backup file in the same browser storage, `New game` then `Start over` gave the shipped lot, and after the check the backup was written back over the save, compared byte for byte and found equal, with the same SHA-256, and the backup removed. The page was closed on Day 1 at 12:17, before the next day's autosave.
+
+Tim was selected and Sim details opened on Overview.
+
+1. [Desktop, 1280 by 800](../assets/review-evidence/calendar/desktop-clock.png): the clock reads `Day 1, Monday, 03:02` and the Career row reads `Office clerk, Monday to Friday, 06:00 to 14:00`.
+2. [Phone, 375 by 812](../assets/review-evidence/calendar/phone-clock.png): the clock reads `Day 1, Monday, 10:03`, Tim's activity reads `At work`, and the Career row shows the same text on one line. The document's scroll width equalled its 375-pixel client width.
+
+The clock wraps inside the household panel without overflowing it or splitting a word. Measured by setting the clock text in place: on desktop, where the panel is 144 pixels wide, `Day 1, Monday, 00:00` takes two lines and `Day 13, Wednesday, 23:59` three; on the phone viewport the panel is wider, and they take one and two lines. The panel therefore grows by one line on the days with longer names.
+
+Console, across the three page loads: 57 entries, all periodic frame-timing logs except one error, the 404 for `favicon.ico`. No warnings.
+
+Cleanup: the viewport was reset to 1280 by 800, the Playwright page was closed, the in-app pane's only tab was closed, the preview server was stopped, and `Get-NetTCPConnection -LocalPort 4173 -State Listen` then returned nothing.
+
+Not checked: a weekend day in the browser (the shift tests and the boundary tests cover it); a physical phone; the phone check used a resized desktop viewport without a mobile user agent or touch input; light and dark theme variants.
+
+## Delivery
+
+The implementation and this record are on branch `twcl/calendar`. Push, merge and deployment are recorded separately in the delivery report.

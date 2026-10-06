@@ -65,7 +65,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-emergencies] | Fires, emergencies, and disasters | Not started | None |
 | [S-town] | Town, neighbours, and other households | Not started | None |
 | [S-ghosts] | Ghosts shared between players | Not started | None |
-| [S-calendar] | Calendar and weekly schedules | Not started | Daily clock only; no weekly calendar |
+| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends and working days |
 | [S-action-animation] | Action animation coverage | Partial | Walking, conversation, eating, sitting, reading, fish, cycling and bunk sleep |
 | [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
 | [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
@@ -418,7 +418,7 @@ Also missing: more social actions than chat, group conversations (the content al
 
 **Status: Partial.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
 
-**What exists.** Tim holds the one office job, leaves through the front door and across the yard to the street, returns after the shift and receives 120 Funds. The job runs daily with fixed hours, need costs and a satisfaction reward. The HUD names it; there is no career-management panel or player-directed job choice yet.
+**What exists.** Tim holds the one office job, leaves through the front door and across the yard to the street, returns after the shift and receives 120 Funds. Each career names its working days; the office job runs Monday to Friday with fixed hours, need costs and a satisfaction reward, and Tim stays home on weekends. The Career row in Sim details shows the job with its working days and hours; there is no career-management panel or player-directed job choice yet.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 
@@ -438,7 +438,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 **Already written down elsewhere.** `[B-jobs-careers]` in [FEATURES.md](FEATURES.md) lists the same scope in one paragraph, and `[D15]` plans workplaces the player can watch, with colleagues who are stable characters.
 
-**Depends on.** [S-skills] first, because applications, performance, and promotion all read skills. [S-calendar] for working days and pay days. [F-notifications] for job offers, promotions, and warnings. [P-services] or an equivalent object for the job search. [S-money] is the other half of this system and the two should be designed together.
+**Depends on.** [S-skills] first, because applications, performance, and promotion all read skills. [S-calendar] for pay days and days off; working days already come from its weekdays. [F-notifications] for job offers, promotions, and warnings. [P-services] or an equivalent object for the job search. [S-money] is the other half of this system and the two should be designed together.
 
 ### [S-create-a-sim] Create-a-sim and appearance
 
@@ -474,7 +474,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Not started.** The HUD shows "Day N" and a time. There are no weekdays, weekends, dates, or seasons. A job runs every single day. Weekends, bill due dates, birthdays, bin day, and scheduled visits all need a calendar. It is cheap to build and many other systems need it.
+**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; dates, seasons and scheduled events open.** The clock shows the day number, the weekday and the time, and a new game starts on a Monday. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. There are no dates, months or seasons. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
 
 ### [S-communal-activities] Prefer activities with liked housemates
 
@@ -621,8 +621,9 @@ infrastructure. FEATURES.md owns the same current priority.
 3. **[S-skills] consequences and [S-sim-details].** The first skills slice
    shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
    existing and newly added values in the details panel.
-4. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
-   channels and mutes. Buying, selling and their Funds changes are already done.
+4. **[S-calendar] and [F-notifications].** Weekdays and working days shipped on
+   2026-10-06. Dates, pay days and a history with channels and mutes remain.
+   Buying, selling and their Funds changes are already done.
 5. **[S-acclimation] part two.** Part one, negative mood from overdoing
    activities and feeling sick from overeating, shipped on 2026-10-06. A fading
    novelty boost from purchases remains; purchase and sale mechanisms no longer
