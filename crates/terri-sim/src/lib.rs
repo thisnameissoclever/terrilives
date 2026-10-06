@@ -5239,25 +5239,43 @@ mod determinism_tests {
 
     /// [OA-values], Review focus 4: a person holding 0.0 for every kind
     /// hashes as one with no `Affinities` component, so a world where
-    /// nobody holds a value hashes as it did before affinities. The guard:
-    /// the same component with one value moves the digest, so the equality
-    /// is not a hash that never reads the component.
+    /// nobody holds a value hashes as it did before affinities. The
+    /// shipped household is built twice, once with every person at all
+    /// zeros (the state a save with an empty affinity list restores) and
+    /// once with the component removed from everyone. The guard: one
+    /// value on one person moves the digest, so the equality is not a hash
+    /// that never reads the component.
     #[test]
     fn a_world_with_no_affinity_values_hashes_as_before() {
-        let mut sim = build_scenario();
-        let agent = lowest_indexed_agent(&sim);
-        assert!(sim.world().get::<terri_core::Affinities>(agent).is_none());
-        let without = sim.world_hash();
-        sim.world_mut()
-            .entity_mut(agent)
-            .insert(terri_core::Affinities::from_values(vec![0.0; 4]));
-        assert_eq!(sim.world_hash(), without, "all zeros hashes as none");
-        sim.world_mut()
+        let household = |zeros: bool| {
+            let mut sim = Sim::new_from_shipped_lot();
+            let people: Vec<Entity> = sim
+                .world_mut()
+                .query_filtered::<Entity, With<Agent>>()
+                .iter(sim.world())
+                .collect();
+            assert!(!people.is_empty());
+            for person in people {
+                let mut person = sim.world_mut().entity_mut(person);
+                if zeros {
+                    person.insert(terri_core::Affinities::from_values(vec![0.0; 4]));
+                } else {
+                    person.remove::<terri_core::Affinities>();
+                }
+            }
+            sim
+        };
+        let without = household(false).world_hash();
+        let mut zeros = household(true);
+        assert_eq!(zeros.world_hash(), without, "all zeros hashes as none");
+        let agent = lowest_indexed_agent(&zeros);
+        zeros
+            .world_mut()
             .entity_mut(agent)
             .insert(terri_core::Affinities::from_values(vec![
                 0.0, 0.0, 0.5, 0.0,
             ]));
-        assert_ne!(sim.world_hash(), without, "one value is seen");
+        assert_ne!(zeros.world_hash(), without, "one value is seen");
     }
 
     /// [OA-values]: the digest sees a value to the last bit, which kind it

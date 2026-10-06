@@ -81,21 +81,32 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         let mut completions = 0;
         let mut resumed = false;
         let mut toilet_finished = false;
+        let mut housemate_completions = 0;
         let toilet_def = terri_data::pack().find("toilet").unwrap();
         let at_toilet = |sim: &Sim, who: Entity| {
             sim.world()
                 .get::<Eating>(who)
                 .is_some_and(|e| e.object == toilet_def)
         };
+        let housemates_at_toilet = |sim: &Sim| -> Vec<Entity> {
+            people
+                .iter()
+                .copied()
+                .filter(|&person| person != actor && at_toilet(sim, person))
+                .collect()
+        };
         for _ in 0..1800 {
-            // A housemate's own later visit is a real completion too, but
-            // not the actor's: it is the one the housemate stood at the
-            // toilet for on the tick before, while the actor did not.
-            let housemate_visit = !at_toilet(&sim, actor)
-                && people
-                    .iter()
-                    .any(|&person| person != actor && at_toilet(&sim, person));
+            let actor_was_at_toilet = at_toilet(&sim, actor);
+            let housemates_were_at_toilet = housemates_at_toilet(&sim);
             sim.tick();
+            // A housemate's own visit is a real completion, but not the
+            // actor's. Attribute to it only the completion on the tick its
+            // toilet use ends while the actor was not at the toilet; the
+            // count of these is asserted below so nothing else can hide here.
+            let housemate_finished = !actor_was_at_toilet
+                && housemates_were_at_toilet
+                    .iter()
+                    .any(|&person| !at_toilet(&sim, person));
             if let Some(loaded) = restored.as_mut() {
                 let loaded: &mut Sim = loaded;
                 loaded.tick();
@@ -115,12 +126,15 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 assert_eq!(loaded.world_hash(), sim.world_hash());
                 restored = Some(loaded);
             }
-            if !housemate_visit {
-                completions += sim
-                    .completion_sounds()
-                    .chunks_exact(2)
-                    .filter(|pair| pair[1] == toilet.index_u32())
-                    .count();
+            let toilet_sounds = sim
+                .completion_sounds()
+                .chunks_exact(2)
+                .filter(|pair| pair[1] == toilet.index_u32())
+                .count();
+            if housemate_finished {
+                housemate_completions += toilet_sounds;
+            } else {
+                completions += toilet_sounds;
             }
             if restored.is_some()
                 && !toilet_finished
@@ -152,6 +166,14 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         }
         assert!(restored.is_some(), "interrupted action must save and load");
         assert_eq!(completions, 1, "one real toilet completion");
+        // On the shipped lot one housemate visits the toilet after the
+        // actor's meal resumes; the cleanup finishes before any housemate
+        // visit, so that run attributes nothing to a housemate.
+        let housemate_visits = usize::from(!cleanup);
+        assert_eq!(
+            housemate_completions, housemate_visits,
+            "only a housemate's own visit may complete the toilet besides the actor"
+        );
         assert!(resumed, "the suspended work must resume");
         assert!(
             sim.world()

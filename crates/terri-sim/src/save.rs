@@ -2140,10 +2140,10 @@ mod tests {
         // **A fixed seed, not the shipped one.** Whether a walk over to
         // talk falls inside 2 000 ticks depends on the generator: the four
         // affinity draws each person takes at spawn ([OA-values]) moved the
-        // shipped seed's run to one without a walk to talk. Seeds 2 to 6
-        // all reach both arms below, measured when the draws were added;
-        // the coverage assertions at the end still decide whether this one
-        // does.
+        // shipped seed's run to one without a walk to talk. Pinning a seed
+        // keeps the run independent of the shipped one; the coverage
+        // assertions at the end decide whether this seed still reaches
+        // both arms.
         let mut sim = Sim::new_from_shipped_lot_with_seed(2);
         // **Start the household hungry rather than waiting for it to get
         // there.** The two arms below need a sim to use a chain station
