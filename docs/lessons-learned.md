@@ -1,5 +1,39 @@
 # Lessons Learned
 
+## [L-conditional-needs-and-first-friendships] Separate company from furniture rewards
+
+**What happened.** Solo media and empty-table sitting refilled Social through
+ordinary advertisements. Removing those benefits also removed a useful route
+for lonely strangers to establish their first friendship. An initial future
+friendship score then depended on an unsaved compatibility cache.
+
+**Root cause.** Authored need amounts were treated as unconditional delivery,
+participation and relationship development were conflated, and a derived cache
+was read before its restoration-time rebuild. Secondary seats also did not
+imply shared device ownership.
+Compatibility additionally treated valid recipe preference addresses as
+ordinary-action indices; resolve each address in its actual vocabulary.
+
+**Prevention.** Evaluate conditional positive rewards from actual simultaneous
+participation and the receiver's directional feeling. Preserve authored costs.
+Keep friendship development separate from immediate need delivery. Rebuild
+every derived input before its first scoring consumer, including after loading.
+Count travelling commitments against shared capacity and reserve distinct
+destinations before deferred commands flush. Do not infer active participation
+from a reservation or a valid travelling lease alone.
+
+Shared devices and tables define these groups; do not add room or proximity
+restrictions intended for passive affinity effects to an approved participation
+rule.
+
+**Verification.** Compare solo and communal rewards, asymmetric feelings,
+valid shared use across room boundaries, travelling partners, seated and standing diners, and
+partial overlap through terminal completion. Reject invalid shared ownership
+transactionally. Compare first-tick utility as well as world hashes after
+restoring idle compatible strangers with nonpositive affinity. Delete each
+load-bearing gate and require the relevant assertion to fail, then restore
+byte-identical source. Evidence: `docs/evidence/social-needs/`.
+
 ## [L-proof-test-discovery] Check runner discovery when adding standalone proof tests
 
 **What happened.** A proof helper's Node test passed when run directly, but its
@@ -10276,3 +10310,50 @@ only the helper under test.
 **Verify.** The corrected fixture restores both travel and active use. Deleting
 the standing-contact consumer calls rejects its travel save. Restoring the
 calls returns the test to green without modifying runtime behavior.
+
+## [L-contextual-need-benefits] Decisions and delivery must use the same physical conditions
+
+**What happened.** Media reserved a seat without paying its Comfort, meals
+paid Comfort regardless of posture, and sink washing could replace bathing.
+Adding contextual alternatives also made an unrelated Energy substitution
+read private-room state that exists only during movement.
+Using prospective offers for friendship readiness also made failed sharing
+appear helpful and omitted actual chair Comfort during meals.
+
+**Root cause.** Need delivery and decisions read only the primary action's
+advertisements. Physical claims and partial cleaning were separate facts.
+The alternative search checked privacy before determining effective benefits.
+Future offers and current activity help were treated as the same information.
+
+**Prevention.** Calculate conditional benefits from actual participation and
+planned physical ownership. Use the same rules for scoring, urgency, privacy
+alternatives and waiting. Filter relevant benefits before reading temporary
+privacy state. Keep food, seat, company and cleanliness effects distinct.
+Separate prospective offers from current activity help. Rebuild participation
+inside consumers that also support direct calls outside the tick schedule.
+
+**Verify.** Assert real meter changes for solo and shared use, distinct seats,
+standing eating, both sinks, interruption and the first restored tick. Delete
+the caps, food checks and company guards separately. Require the corresponding
+tests to fail and restore byte-identical sources. Preserve the direct cleanup
+substitution regression outside the movement phase.
+Require failed sharing to leave critical loneliness unhelped and real meal
+seating to help critical Comfort. Remove the consumer's refresh to prove its
+ownership, without refreshing the fixture immediately before the call.
+
+## [L-type-scoped-field-edits] Scope field additions to their owning type
+
+**What happened.** A broad edit added a tuning field after similarly named
+relationship fields in saved entity records. Compilation caught the invalid
+fields. The content compiler's build-script imports also needed the new type.
+
+**Root cause.** A field-name match was used as a substitute for identifying
+the type's constructors and its separate build-script compilation path.
+
+**Prevention.** Scan references to the owning type before changing its shape.
+Edit its constructors explicitly. Inspect each changed file and shared source
+module import. Append serialized fields without moving established slots.
+
+**Verify.** Check every target, inspect the final diff, and preserve explicit
+serialization fixtures. Prove that balance metadata changes do not change
+the save compatibility fingerprint.

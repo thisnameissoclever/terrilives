@@ -303,6 +303,21 @@ impl Occupancy {
         let Some(interaction) = object.interactions.get(target.interaction as usize) else {
             return Vec::new();
         };
+        if crate::seating::media_kind(object, interaction).is_some() {
+            let occupants: Vec<_> = self
+                .targets
+                .iter()
+                .filter(|(owner, known, _)| *owner != agent && known.object == target.object)
+                .collect();
+            return (!self.orphaned_markers.contains(&target.object)
+                && occupants
+                    .iter()
+                    .all(|(_, known, _)| known.interaction == target.interaction)
+                && occupants.len() < interaction.slots as usize)
+                .then_some(Admission::Exclusive)
+                .into_iter()
+                .collect();
+        }
         if pack.sleep_tag.is_empty() || !interaction.tags.contains(&pack.sleep_tag) {
             return self
                 .exclusive_available(agent, target.object)

@@ -154,6 +154,7 @@ pub fn object_sized(
 ) -> CompiledObject {
     CompiledObject {
         sleep_places: Vec::new(),
+        seat_comfort_per_tick: 0.,
         id: id.to_string(),
         name: id.to_string(),
         presentation: None,

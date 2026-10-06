@@ -18,10 +18,19 @@ seconds for a meal and 8.5 seconds for a snack. The existing duration variance
 changes actual step lengths. Every tick also advances one game minute.
 Walking, occupied stations and gathering for a shared meal add time.
 Snacks remain the faster hunger remedy.
-The meal grants hunger and comfort only after eating; intermediate work does
-not feed a Sim. Cooking competence can reduce the whole meal's food benefit,
+The meal grants Hunger only after eating; intermediate work does not feed a
+Sim. Comfort comes from the occupied chair during eating. Standing eating
+costs two Comfort points per ninety actual eating minutes, including a smaller
+proportional cost for snacks. Food quality scales Hunger, rather than chair
+Comfort or companionship. Social is separate: it arrives during simultaneous eating by
+liked Sims seated in chairs facing the same table. A nominal 90-minute eating
+interval offers 11 Social points; only eligible overlap receives the benefit.
+Standing, tableless, solitary meals and empty-table sitting offer none.
+Cooking competence can reduce the whole meal's food benefit,
 including friends' portions. Cooking practice occurs at the cooking step.
 The cook's cooking hobby and condition still compose with activity satisfaction.
+See [the needs interaction reference](../NEEDS-INTERACTIONS.md) for rates,
+modifiers and the justification for each need effect.
 
 The fridge retains its existing snack command index. Its meal label reads
 Cook breakfast before 11:00, Cook lunch from 11:00 through 16:59, and Cook dinner

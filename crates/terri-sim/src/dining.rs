@@ -488,6 +488,26 @@ pub(crate) fn advance(world: &mut World) {
     }
 }
 
+/// Eating at a real chair facing the claimed table, rather than standing nearby.
+pub(crate) fn seated_at_table(world: &World, person: Entity) -> bool {
+    let Some(diner) = claim(world, person.index_u32()) else {
+        return false;
+    };
+    let Some(table) = entity(world, diner.station) else {
+        return false;
+    };
+    let Some(chair) = diner.chair.and_then(|c| entity(world, c)) else {
+        return false;
+    };
+    role(world, table, "meal_table")
+        && setting_for(world, table, chair).map(|(setting, _)| setting) == diner.setting
+        && diner.setting.is_some()
+        && world
+            .get::<Position>(person)
+            .is_some_and(|p| (p.x.round() as i32, p.y.round() as i32) == diner.endpoint)
+        && projection(world, person).is_some()
+}
+
 pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketActionProjection> {
     if world.get::<StepWork>(person).is_none()
         || world.get::<Eating>(person).is_some()

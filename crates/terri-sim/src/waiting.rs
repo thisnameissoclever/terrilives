@@ -17,6 +17,19 @@ pub(crate) fn advertised_needs(object: Entity, advertises: &[(u8, f32)]) -> Wait
     )
 }
 
+pub(crate) fn effective_needs(
+    object: Entity,
+    advertisements: &[(u8, f32)],
+    social_available: bool,
+) -> WaitingNeeds {
+    let effective: Vec<_> = advertisements
+        .iter()
+        .copied()
+        .filter(|&(n, d)| crate::social_company::effective_delta(n, d, social_available))
+        .collect();
+    advertised_needs(object, &effective)
+}
+
 pub(crate) fn clear(world: &mut World) {
     let people: Vec<_> = world
         .query_filtered::<Entity, With<WaitingNeeds>>()
@@ -203,6 +216,8 @@ mod tests {
 
     #[test]
     fn waiting_for_a_person_does_not_claim_to_be_waiting_for_an_item() {
+        let mut friendship = terri_core::Relationships::default();
+        friendship.bump(terri_core::SimId(99), 0.5);
         use crate::test_content as tc;
         let pack = tc::pack_with_social(
             vec![tc::object("item", &[(NeedId::Hunger, 40.0)], 10)],
@@ -212,7 +227,12 @@ mod tests {
         let mut sim = tc::sim_with(8, 8, pack);
         let person = sim
             .world_mut()
-            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Needs::all_at(0.0)))
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Needs::all_at(0.0),
+                friendship,
+            ))
             .id();
         sim.world_mut().spawn((
             Position { x: 2.0, y: 1.0 },

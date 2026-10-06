@@ -5,11 +5,13 @@
 # The numbers are a balance decision, not a port detail. Two properties
 # the next person to rebalance should preserve:
 #
-# 1. No two durations and no two deltas are equal, and that is
+# 1. Durations and deltas normally differ, and that is
 #    load-bearing rather than flavour. `select_action` looks a delta up
 #    by need index and an interaction up by position, and no test can
 #    tell one slot from another if two slots hold the same value. See
 #    [L26] and [L29] for the two recorded instances of exactly that bug.
+#    The approved exception is bunk Comfort and radio Social at five points.
+#    Their need identities have separate causal assertions.
 # 2. A delta may be NEGATIVE, and one of them is: a shower costs energy.
 #    Scoring weighs a cost by the cube of the deficit of the need it
 #    drains, so an already-exhausted sim refuses a shower that a rested
@@ -124,7 +126,7 @@ sprite = "offlineBunk"
   id = "sleep"
   activity = "sleeping"
   label = "Sleep"
-  advertises = { energy = 100.0 }
+  advertises = { energy = 100.0, comfort = 5.0 }
   duration_ticks = 180
   slots = 1
   # The tag the circadian sleep drive keys on - [ML-tag]. One entry in
@@ -193,15 +195,16 @@ sprite = "offlineTelevision"
   # watching; keep it weaker than the floor lamp until object state crosses the
   # render boundary.
 
-  # Two slots, so it does not become contended when households grow past
-  # one sim. More fun per tick than either the sofa or the bookshelf, and
+  # Two slots admit two viewers while each reserves a distinct seat or standing
+  # position. More fun per tick than either the sofa or the bookshelf, and
   # no comfort at all, which is what the sofa trades against.
   #
-  # THE `social` DELTA IS A PLACEHOLDER, and saying so here is the point.
-  # `social` is meant to be satisfied by other sims, which is M2; until
-  # then this is the one object in the house where a lone sim can plausibly
-  # be kept company, and its two slots are also where two sims will watch
-  # together.
+  # Social is conditional: another Sim must actively watch this same device,
+  # and the receiver must like that participant.
+  # The measurements below describe the historical solo-refill configuration.
+  # In the early single-Sim alpha, this Social delta was a temporary solo
+  # refill because no actual company existed. The following measurements
+  # explain that historical tuning; they do not describe the current rule.
   #
   # It exists because the alternative was worse. Until M1c's close-out no
   # object advertised `social` at all: it drained at 0.035 a tick, hit zero
@@ -281,21 +284,14 @@ name = "Chesterfield Regret"
 price = 200
 sprite = "offlineOttoman"
 
-  # Two advertised needs, deliberately. [D6]'s scoring SUMS across
-  # advertised deltas, and this is the first object in shipped content
-  # where that is observable in the running game rather than only in a
-  # test: neither 18 fun nor 34 comfort would beat the television's 30
-  # fun on its own, and together they can.
-  # "Sink into it" is the comfort delta and the object's name at once: the
-  # Chesterfield Regret is the thing you meant to get up from. Physical
-  # rather than clever, so it still reads as an instruction.
+  # Sitting relieves physical discomfort. Entertainment comes from an activity.
   [[object.interaction]]
   id = "lounge"
   activity = "sitting"
   label = "Sit down"
   # `lounging` is what the couch_averse trait keys on ([TL-library]).
   tags = ["lounging"]
-  advertises = { fun = 18.0, comfort = 34.0 }
+  advertises = { comfort = 34.0 }
   duration_ticks = 50
   slots = 2
 
@@ -305,43 +301,8 @@ name = "Basin Basic"
 price = 80
 sprite = "offlineBathroomSink"
 
-  # The quick partial fix for hygiene, and its whole reason for existing
-  # is to give the shower something to lose to: a short action with no
-  # energy cost against 45 ticks and a 12-energy cost. Which one wins
-  # depends on how tired the sim is rather than on a threshold.
-  #
-  # **This was the worst-clipped interaction in the game and the reason the
-  # alpha pass raised all three.** At 8 ticks its entire sampled band was
-  # 4.8 to 11.2, which sits wholly below `min_interaction_ticks`, so every
-  # single one of its interactions ran for exactly 12 ticks - measured, 6 of
-  # 6 over 12 000 ticks, min and max both 12 - and it delivered 12/8 = 1.5x
-  # its advertised hygiene, 33 rather than 22. `duration_variance` did
-  # nothing at all for it.
-  #
-  # 21 is above the clipping line of 20 (`min_interaction_ticks / (1 -
-  # duration_variance)`) with a tick of margin, so the floor is a safety net
-  # again rather than the thing setting the length. It is still less than
-  # half the shower's 45, which is the trade this object exists to offer.
-  #
-  # **THE DELTA WENT UP WITH THE DURATION, AND THAT IS NOT A COINCIDENCE -
-  # 22 WOULD HAVE KILLED THIS OBJECT.** Raising the duration alone moved this
-  # interaction's score denominator from `4*distance + 9` to
-  # `4*distance + 22`, a factor of 0.69 at typical range, while its only
-  # competitor - the shower - kept its 45 and lost nothing. Measured over
-  # 12 000 ticks: sink usage fell from 6 interactions to **1**, which is
-  # within a rounding error of the bookshelf's zero ([C6]). Fixing a duration
-  # by making an object furniture is not a fix.
-  #
-  # 32 restores the ratio the duration change cost it: the two now score
-  # within about 2% of each other at the observed mid-run need levels, so
-  # which one a sim picks genuinely turns on how tired it is - which is the
-  # sentence at the top of this comment, finally true rather than merely
-  # intended. At the softmax temperature in content/tuning.toml a gap that
-  # small is close to a coin toss, and that is the correct reading of "it
-  # depends".
-  #
-  # 32 and not 33: rule 1 at the top of this file. 34 is the sofa's comfort
-  # and 30 is the television's fun.
+  # Washing hands restores partial Hygiene without a Comfort cost.
+  # The need-interaction ceiling prevents a sink from replacing bathing.
   [[object.interaction]]
   id = "wash_hands"
   activity = "washing_hands"
@@ -475,23 +436,8 @@ sprite = "offlineSink"
 # tile and a one-counter lot still compiles.
 roles = ["prep_surface", "dish_sink"]
 
-  # **The chore.** 20 hygiene is the smallest of the four hygiene deltas - a
-  # third of the shower's 70 - and it costs 6 comfort, which makes this the
-  # only object in the house that a sim can be talked out of by being
-  # uncomfortable rather than by being busy.
-  #
-  # That is deliberate, and it is the same mechanism the shower's energy cost
-  # uses: scoring weighs a cost by the CUBE of the deficit of the need it
-  # drains, so a sim whose comfort is already low refuses to do the washing
-  # up, and a sim fresh off the sofa gets on with it. The joke is that this is
-  # exactly how people behave.
-  #
-  # It is a bad way to get clean and it is meant to be - the bathroom sink
-  # gives 32 for 21 ticks. What this offers is proximity: it is in the
-  # kitchen, on the far side of the house from the bathroom, so a sim that is
-  # only slightly grubby and already standing by the fridge has a local
-  # option. That is the same "cheap rival on the far side of the lot"
-  # argument the bathroom sink was introduced with, applied one level down.
+  # Washing hands restores partial Hygiene without a Comfort cost.
+  # The need-interaction ceiling prevents a sink from replacing bathing.
   [[object.interaction]]
   id = "wash_up"
   activity = "washing_hands"
@@ -508,7 +454,7 @@ roles = ["prep_surface", "dish_sink"]
   # 23 rather than 19, which was tried first: `min_interaction_ticks` is 12 and
   # `duration_variance` is 0.4, so 19 samples down to 11.4 and the bottom of
   # the band gets clipped by the floor. 23 * 0.6 = 13.8 clears it.
-  advertises = { hygiene = 20.0, comfort = -6.0 }
+  advertises = { hygiene = 20.0 }
   duration_ticks = 23
   slots = 1
 
@@ -526,9 +472,9 @@ roles = ["eating_surface", "meal_table"]
   # long sofa's 0.597, the ottoman sofa's 0.667 and the armchair's 0.707. So
   # it is the joint-worst seat in the house by a small margin rather than by
   # half, which is the whole of what the second balance pass changed - see
-  # below. What it has on top is 11 social, which no other seat advertises at
-  # all, so a sim that is both uncomfortable and lonely comes here and a sim
-  # that is merely uncomfortable does not.
+  # below. Sitting here restores comfort only. Social belongs to real eating
+  # with a liked diner seated in another chair facing this same table;
+  # the meal chains author that conditional benefit.
   #
   # **37 rather than the 23 this shipped with for one trace, and the 44 before
   # that.** [B6] halved every new comfort delta to stop comfort being
@@ -540,14 +486,14 @@ roles = ["eating_surface", "meal_table"]
   #
   # Two slots, so two sims can sit down together. That is this object's real
   # job once there is a household: it is the only piece of furniture in the
-  # house whose social value is the point rather than a side effect, and it
-  # is where the cooking chain's meal ends up.
+  # house where seated meals can provide company, and it is where the cooking
+  # chain's meal ends up. This standalone sitting action does not provide Social.
   #
   [[object.interaction]]
   id = "sit_properly"
   activity = "sitting"
   label = "Sit down to eat"
-  advertises = { comfort = 37.0, social = 11.0 }
+  advertises = { comfort = 37.0 }
   duration_ticks = 62
   slots = 2
 
@@ -556,6 +502,7 @@ id = "chair"
 name = "Chair, Standard Issue"
 price = 40
 sprite = "offlineDiningChair"
+seat_comfort_per_tick = 0.5967742
 
   # No interactions. A chair at a table is where a sim sits when it uses the
   # TABLE; it is not a separate thing to sit on. Modelling it as one would put
@@ -589,7 +536,7 @@ footprint = { width = 2, depth = 1 }
   # can be at once, so this is where they will end up - which is where they
   # should end up.
   #
-  # 43 comfort, 13 fun - the smallest fun delta in the file - and 9 energy,
+  # 43 comfort and 9 energy,
   # which is the only POSITIVE energy delta outside the two beds. Lying on the
   # sofa is genuinely restful and genuinely not sleep: 9 against the double
   # bed's 108 means it can take the edge off tiredness without ever being a
@@ -613,7 +560,7 @@ footprint = { width = 2, depth = 1 }
   label = "Lie down"
   # `lounging` is what the couch_averse trait keys on ([TL-library]).
   tags = ["lounging"]
-  advertises = { comfort = 43.0, fun = 13.0, energy = 9.0 }
+  advertises = { comfort = 43.0, energy = 9.0 }
   duration_ticks = 72
   slots = 3
 
@@ -666,20 +613,20 @@ sprite = "offlineRadio"
   # habituation decides between them rather than raw score - which gives the
   # least-used corner of the house something to rotate with.
   #
-  # The social is the smallest delta in the file, and it is honest: the radio
-  # is company in the way the television is company, which is to say barely.
+  # Social is a small benefit of listening together with a liked Sim.
+  # The broadcast itself provides fun and never substitutes for company.
   #
   # **5 rather than 7, and the reason is the rule the television's comment
   # states**: the desk advertises `energy = -7.0`, so a mutation dropping that
   # negation would produce a 7.0 identical to this one and no test could tell
   # the two slots apart. No |value| appears in both signs anywhere in the
   # file, and this was the one pair that broke it.
-  # Both are placeholders for other sims and both should lose to a real one
-  # the moment sims can satisfy each other.
+  # Neither media interaction provides Social to a lone listener or viewer.
   [[object.interaction]]
   id = "listen"
   activity = "listening_radio"
   label = "Listen to the radio"
+  # Social requires simultaneous listening to this device with a liked Sim.
   advertises = { fun = 22.0, social = 5.0 }
   duration_ticks = 38
   slots = 2
@@ -736,9 +683,7 @@ footprint = { width = 2, depth = 2 }
   # 108 energy against the bunk's 100, over 210 ticks against its 180. The
   # bunk is therefore the better rate and this is the better night, which is
   # the same shape as the fridge-and-stove pair: the quick option wins until
-  # habituation wears it down. 10 comfort on top, which the bunk does not
-  # offer at all, so this is also what a sim picks when it is not especially
-  # tired but wants to lie down.
+  # habituation wears it down. Its 10 Comfort is twice the bunk's 5.
   #
   # **10 and not the 27 this shipped with for one trace.** At 27, eight nights
   # of sleep supplied 216 of the 298 comfort points delivered in 12 000 ticks,
@@ -853,6 +798,7 @@ id = "desk_chair"
 name = "Ergonomic, Allegedly"
 price = 60
 sprite = "offlineDeskChair"
+seat_comfort_per_tick = 0.5967742
 
   # No interactions, for the same reason as the dining chairs.
 
@@ -868,7 +814,7 @@ sprite = "offlineChair"
   y = 0.0
   facing = "SE"
 
-  # 15 comfort and 16 fun. Both numbers are middling on purpose: this is the
+  # 15 Comfort and 19 Fun. Both numbers are middling on purpose: this is the
   # object that wins when a sim is moderately short of two things at once, and
   # loses to anything that is the best answer to one of them.
   #

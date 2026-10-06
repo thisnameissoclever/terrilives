@@ -1,0 +1,68 @@
+[
+  {
+    "name": "need-tuning-boundary",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-data",
+      "--lib",
+      "-j",
+      "1",
+      "need_and_seat_rules_are_validated",
+      "--",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "6b2043c2c245fa61f57a7b775b184d703f552fce1a2af78f2708fe36e8101cd4",
+    "baseline_seconds": 0.16983659996185452,
+    "timeout_seconds": 120,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "seat-number-boundary",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-data",
+      "--lib",
+      "-j",
+      "1",
+      "need_and_seat_rules_are_validated",
+      "--",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "6b2043c2c245fa61f57a7b775b184d703f552fce1a2af78f2708fe36e8101cd4",
+    "baseline_seconds": 3.348908100044355,
+    "timeout_seconds": 120,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "meal-frame",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "--lib",
+      "-j",
+      "1",
+      "meal_social_requires_liked",
+      "--",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "80c89ff6ba7f798fe7933c5b4231d80aa15b1a7899b747e69ef6c2f6fbc826c6",
+    "baseline_seconds": 5.720518699963577,
+    "timeout_seconds": 120,
+    "restored_byte_identical": true
+  }
+]

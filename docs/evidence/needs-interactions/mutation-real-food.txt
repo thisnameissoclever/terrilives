@@ -1,0 +1,30 @@
+
+running 1 test
+test need_interactions::tests::standing_food_cost_requires_consumption_without_travel_preparation_or_gathering ... FAILED
+
+failures:
+
+failures:
+    need_interactions::tests::standing_food_cost_requires_consumption_without_travel_preparation_or_gathering
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+warning: unused variable: `food`
+  --> crates\terri-sim\src\need_interactions.rs:95:14
+   |
+95 |     let Some(food) = chain
+   |              ^^^^ help: if this is intentional, prefix it with an underscore: `_food`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.64s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'need_interactions::tests::standing_food_cost_requires_consumption_without_travel_preparation_or_gathering' (77608) panicked at crates\terri-sim\src\need_interactions\tests.rs:115:5:
+assertion `left == right` failed
+  left: Needs([30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 29.955555])
+ right: Needs([30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 29.977777])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

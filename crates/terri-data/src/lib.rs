@@ -6,8 +6,10 @@
 
 pub mod compile;
 pub mod error;
+mod need_tuning;
 pub mod pack;
 mod relationship_tuning;
+pub use need_tuning::NeedInteractionTuning;
 pub use relationship_tuning::RelationshipTuning;
 pub mod schema;
 
@@ -2449,15 +2451,18 @@ mod tests {
     fn the_shipped_pack_carries_a_multi_need_advert_and_a_negative_one() {
         let p = pack();
 
-        let sofa = p.object(p.find("sofa").expect("objects.toml declares a sofa"));
+        let sofa = p.object(
+            p.find("long_sofa")
+                .expect("objects.toml declares a long sofa"),
+        );
         let lounge = &sofa.interactions[0];
         assert_eq!(
             lounge.advertises,
             vec![
-                (terri_core::NeedId::Fun.index() as u8, 18.0),
-                (terri_core::NeedId::Comfort.index() as u8, 34.0),
+                (terri_core::NeedId::Energy.index() as u8, 9.0),
+                (terri_core::NeedId::Comfort.index() as u8, 43.0),
             ],
-            "the sofa must advertise two needs, index-ordered"
+            "reclining advertises Energy and Comfort, index-ordered"
         );
 
         let shower = p.object(p.find("shower").expect("objects.toml declares a shower"));
@@ -2996,6 +3001,13 @@ mod tests {
 
         deltas.sort_unstable();
         for pair in deltas.windows(2) {
+            // The owner chose half the double bed's Comfort for bunks.
+            // Their five points intentionally equal the radio's conditional Social.
+            if pair[0].1 == "bed/sleep (comfort)" && pair[1].1 == "radio/listen (social)" {
+                assert_eq!(f32::from_bits(pair[0].0), 5.);
+                assert_eq!(f32::from_bits(pair[1].0), 5.);
+                continue;
+            }
             assert_ne!(
                 pair[0].0,
                 pair[1].0,

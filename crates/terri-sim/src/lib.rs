@@ -20,6 +20,7 @@ pub mod household;
 mod media;
 mod mood;
 pub mod mortality;
+mod need_interactions;
 pub mod placement;
 pub mod portals;
 mod privacy;
@@ -33,6 +34,7 @@ mod room_regions;
 mod save;
 mod seating;
 mod shyness;
+mod social_company;
 pub mod systems;
 #[cfg(test)]
 pub mod test_content;
@@ -1093,6 +1095,7 @@ impl Sim {
         world.insert_resource(completion_sounds::CompletionSounds::default());
         world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
+        world.insert_resource(social_company::SocialCompany::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -1275,7 +1278,12 @@ impl Sim {
                 // and `select_action`, which both skip a commuting or
                 // working sim outright. After `advance_clock`, because
                 // the day clock it reads must be THIS tick's.
-                (systems::career::start_shift, media::maintain).chain(),
+                (
+                    systems::career::start_shift,
+                    media::maintain,
+                    social_company::refresh,
+                )
+                    .chain(),
                 // Strictly before selection, because a player-issued
                 // intent overrides autonomy rather than competing with
                 // it - [D-3]. Running it first means the object is
@@ -1292,6 +1300,8 @@ impl Sim {
                     systems::action::serve_intents,
                     crate::relationship_effects::reset,
                     domestic::tick,
+                    social_company::refresh,
+                    relationship_dynamics::refresh_profiles,
                     systems::interpersonal::prepare,
                     systems::action::select_action,
                 )
@@ -1312,6 +1322,7 @@ impl Sim {
                 // to wait a tick would read as a hesitation.
                 systems::idle::wander,
                 (
+                    social_company::refresh,
                     privacy::route,
                     systems::interpersonal::refresh_routes,
                     systems::movement::follow_path,
@@ -1325,8 +1336,13 @@ impl Sim {
                 // reused). Handles clock-in, the countdown, and the
                 // paid return.
                 systems::career::commute_and_work,
-                systems::interact::tick_interactions,
-                domestic::gather_diners,
+                (
+                    domestic::gather_diners,
+                    social_company::tick_meals,
+                    need_interactions::tick,
+                    systems::interact::tick_interactions,
+                )
+                    .chain(),
                 // Beside tick_interactions because it is the same job
                 // for chain steps: run the clock at the station, and
                 // pay - whole, terminal-only - when the last one ends.
@@ -3584,6 +3600,7 @@ mod lot_tests {
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
                 sleep_places: Vec::new(),
+                seat_comfort_per_tick: 0.,
                 id: format!("object_{index}"),
                 name: format!("Object {index}"),
                 presentation: None,

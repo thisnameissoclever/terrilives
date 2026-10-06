@@ -1,0 +1,195 @@
+{
+  "date": "2026-10-06",
+  "base": "1a138df6",
+  "branch": "twcx/social-company-needs-fa6c",
+  "files": [
+    {
+      "path": "content/chains.toml",
+      "sha256": "2bd184f491e95ee3650f658d23170d4f5b75deba5ab8e033ae62c89b6c534932"
+    },
+    {
+      "path": "content/objects.toml",
+      "sha256": "3a4b9a1dd1a38526ccc1091b0bb6fdaf555405a647ba314b1f051a2a3525c783"
+    },
+    {
+      "path": "content/social.toml",
+      "sha256": "f10965dba9b9aa8a71ff29c463aa107de94640b6540fc8cb2231273a57e0e5f9"
+    },
+    {
+      "path": "content/tuning.toml",
+      "sha256": "f9979582cb394a2723df4045ba2a22a9aa879b19cf5c708bc74bbd91669cc560"
+    },
+    {
+      "path": "crates/terri-data/build.rs",
+      "sha256": "19953b4cb69df73144faa83ea486b5a752434f8d2efc93b7e99b4719d9c62831"
+    },
+    {
+      "path": "crates/terri-data/src/compile.rs",
+      "sha256": "6b2043c2c245fa61f57a7b775b184d703f552fce1a2af78f2708fe36e8101cd4"
+    },
+    {
+      "path": "crates/terri-data/src/error.rs",
+      "sha256": "b2e95ed9f7a5893b4fbc887a51a0a1c9047c235ad8d0c545e11a258357cc4697"
+    },
+    {
+      "path": "crates/terri-data/src/lib.rs",
+      "sha256": "29746975f123b6162e6521d64899ecb6189385b265830ea979176791ef75c56a"
+    },
+    {
+      "path": "crates/terri-data/src/need_tuning.rs",
+      "sha256": "99a41339738813a6c322038033e769ec2a6810727e7ee0537a24ce19905ee9d7"
+    },
+    {
+      "path": "crates/terri-data/src/pack.rs",
+      "sha256": "ec161945eba547f3b3a7c6af696899b2f04c729eb7ee3b50a53be5306bdd318f"
+    },
+    {
+      "path": "crates/terri-data/src/schema.rs",
+      "sha256": "992bb36bd406c3dc06b272486a868740bd9ca841d1354b223db24e9fde759a50"
+    },
+    {
+      "path": "crates/terri-sim/src/beds.rs",
+      "sha256": "b79974c9ddf4ca5e2f53224c5b69407830bd07460b17075d5825f10b4f825116"
+    },
+    {
+      "path": "crates/terri-sim/src/compatibility.rs",
+      "sha256": "16cad7ce8365a6b099a6e4cbb82e3d99c305e25f4de34b2c786fe923cfe3eda6"
+    },
+    {
+      "path": "crates/terri-sim/src/dining.rs",
+      "sha256": "7f4e66fc07efc2b2b6f6df6a3953dce5652d3116b0cc4112c24d3f1720791258"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/tests.rs",
+      "sha256": "3c9c930c9a9f9b4cb31f1c0c36c688e097a498832394dbd614e934b0f2afa2cb"
+    },
+    {
+      "path": "crates/terri-sim/src/lib.rs",
+      "sha256": "73711f194d3de1297bd897d7dc8c5e28fe3b7551d2e96e854327215fc72fa481"
+    },
+    {
+      "path": "crates/terri-sim/src/media.rs",
+      "sha256": "a60081bb28a0b9c68dcf944b6c41b7ed221ef8e2126b0363a0d8157968283903"
+    },
+    {
+      "path": "crates/terri-sim/src/need_interactions.rs",
+      "sha256": "80bbbfb6a9ede6d3a88bf498ee3a7c4ea1b58014aa1540c8e48812c3d401352d"
+    },
+    {
+      "path": "crates/terri-sim/src/need_interactions/tests.rs",
+      "sha256": "26c42fdc9d05d5bf22930c6fc7f9e7b0cec2c232393e38c98297eaed61e429a1"
+    },
+    {
+      "path": "crates/terri-sim/src/privacy.rs",
+      "sha256": "77873daaf784bb08fe6951526b0b238a51a8cd2d9477570df8771dfc324b409e"
+    },
+    {
+      "path": "crates/terri-sim/src/relationship_dynamics.rs",
+      "sha256": "6c9594942e32ad10beaf4f3c94d98c81a352fc9c9255252914bd97d1ed1bfff4"
+    },
+    {
+      "path": "crates/terri-sim/src/room_regions.rs",
+      "sha256": "74f635bbe73fbd1f2ca77cea01a8ffe85aba1ca8ad14071ff5b6b0841ff2dd6d"
+    },
+    {
+      "path": "crates/terri-sim/src/save.rs",
+      "sha256": "f5e4d89174fd933b03e68d27e54cc69783c4eb2d6c968d0136952b87d05319cd"
+    },
+    {
+      "path": "crates/terri-sim/src/save/architecture.rs",
+      "sha256": "c8a8de32fc5b8f874e9971b49377bd9c24b2ea72eb5dc531880b6d954f31035a"
+    },
+    {
+      "path": "crates/terri-sim/src/seating.rs",
+      "sha256": "a7a462b12a8c27d3e5b27d5c153b419598d1724e23a8580f869ddd12b7eae0b4"
+    },
+    {
+      "path": "crates/terri-sim/src/seating/tests.rs",
+      "sha256": "eb0c32855b07a65cd53e5f31922c6565b9433aa2816b3382dab76107270639fa"
+    },
+    {
+      "path": "crates/terri-sim/src/social_company.rs",
+      "sha256": "80c89ff6ba7f798fe7933c5b4231d80aa15b1a7899b747e69ef6c2f6fbc826c6"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/action.rs",
+      "sha256": "6f3724da4d9f7a5ee8d035d33cd4b58d790a6f7890bf27d9eae6c70f270c1e81"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/chain.rs",
+      "sha256": "0dc1ff6b30f918f6baea88ff153b9d723d12fe055a93a4147e0ce533a554d10b"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interact.rs",
+      "sha256": "022732ab2127b7cab996ccaf7e7a09428a24c243c71c46f8980d548d7c55f8a0"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interpersonal.rs",
+      "sha256": "9abe78a266e3ca84b629884b33aa7b0f659352901e62b92ff6a1c45bd5f7a82d"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/social.rs",
+      "sha256": "f87d074cfc051a17c5cc71e685b5e2388fadf8d2f03f408ec15d191b0ea27751"
+    },
+    {
+      "path": "crates/terri-sim/src/test_content.rs",
+      "sha256": "3e8a35e44a80f7d3071a033ed174c655bc0a7ea3b4a1d005875af590042ecdf0"
+    },
+    {
+      "path": "crates/terri-sim/src/waiting.rs",
+      "sha256": "ea365767c24aae69b41b9418ad6f12e630f576ec1929e10d88740cc25f7ca372"
+    },
+    {
+      "path": "docs/GAME-SYSTEMS.md",
+      "sha256": "e773f7f9327e072d3f6916296d548cf20deee38d1fa109be7461b8c3861698c7"
+    },
+    {
+      "path": "docs/NEEDS-INTERACTIONS.md",
+      "sha256": "c82b2020c96c767294d79eb98fb2a8f366fb64719bed53b255d3327b551639c6"
+    },
+    {
+      "path": "docs/SIM-RELATIONSHIPS.md",
+      "sha256": "de5411a87bb79f834190046bb9e3cdb1ff5ede716e064c153a15a653eb63ddf9"
+    },
+    {
+      "path": "docs/changelog/2026-10-06-needs-and-company.md",
+      "sha256": "07d3d4a62bdce11849238a926d7ba914524f096fffba0270573a3414c514ca23"
+    },
+    {
+      "path": "docs/evidence/needs-interactions/2026-10-06-verification.md",
+      "sha256": "56ed15df2144f5b597ec308a968724275a42b2795fe79ca9a32268f64a90b81a"
+    },
+    {
+      "path": "docs/evidence/needs-interactions/check_boundaries.py",
+      "sha256": "d1d9899cbdaeb97996b2e700b61db060287106f2dd1afb2c93cabe9ddaa2512b"
+    },
+    {
+      "path": "docs/evidence/needs-interactions/check_guards.py",
+      "sha256": "a2945f033913a8ef925e425f7b5eb5455c93072e0585d012a263444fe755ad92"
+    },
+    {
+      "path": "docs/evidence/social-needs/2026-10-05-need-audit.md",
+      "sha256": "35b3ba1f1f88e9e0ff2df233dc4170e568c84a71b98053fc9082c3b7be360c15"
+    },
+    {
+      "path": "docs/evidence/social-needs/check_guards.py",
+      "sha256": "c877f619274fb3ee9f767e2f308e983d1ef7e511bae40dd6261b0ffb6619c10a"
+    },
+    {
+      "path": "docs/evidence/social-needs/verification.md",
+      "sha256": "a5f0e12ce8e9f316832262e556bb320a62f923f7022cec418fa048fc3e813812"
+    },
+    {
+      "path": "docs/lessons-learned.md",
+      "sha256": "c348d6405f19125a63f1bd49deb76bd60c97f1cdfac7934ed3921ce3bb71832f"
+    },
+    {
+      "path": "docs/specs/2026-09-30-meals-and-cleanup.md",
+      "sha256": "34dfac6a2fd553057caab6b1a31e6aa3b1e9a0494fb115c48b8e443913a7fce0"
+    },
+    {
+      "path": "docs/specs/2026-09-30-relationship-development.md",
+      "sha256": "b84f21fba8f4ae211dba1a5448e728a35274e6d13caa8b5ca91b9adff7783ae3"
+    }
+  ]
+}

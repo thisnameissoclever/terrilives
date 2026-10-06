@@ -9,6 +9,7 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    InvalidNeedInteractionTuning,
     InvalidSleepPlaces {
         object: String,
         reason: String,
@@ -1161,6 +1162,7 @@ pub enum ContentError {
 impl fmt::Display for ContentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ContentError::InvalidNeedInteractionTuning => write!(f, "need-interaction tuning has an invalid Hygiene ceiling or participation rate"),
             ContentError::InvalidSleepPlaces { object, reason } => write!(
                 f, "object '{object}' has invalid sleep places: {reason}"
             ),

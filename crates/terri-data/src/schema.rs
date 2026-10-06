@@ -265,6 +265,8 @@ pub struct TuningFile {
     pub shyness_wander_reconsider_strength: f32,
     #[serde(default)]
     pub relationships: crate::RelationshipTuning,
+    #[serde(default)]
+    pub need_interactions: crate::NeedInteractionTuning,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -406,6 +408,9 @@ pub struct ObjectDef {
     /// Ordered sleeping-place access, in base-facing footprint coordinates.
     #[serde(default)]
     pub sleep_place: Vec<crate::pack::SleepPlaceAccess>,
+    /// Comfort per occupied minute for seats without a standalone sitting action.
+    #[serde(default)]
+    pub seat_comfort_per_tick: f32,
 }
 
 /// A named presentation point in object-local lot coordinates.

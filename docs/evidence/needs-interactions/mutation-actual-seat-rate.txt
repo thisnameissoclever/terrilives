@@ -1,0 +1,19 @@
+
+running 1 test
+test seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy ... FAILED
+
+failures:
+
+failures:
+    seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.06s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.65s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy' (73804) panicked at crates\terri-sim\src\seating\tests.rs:118:9:
+armchair
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

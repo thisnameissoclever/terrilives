@@ -34,6 +34,12 @@ A positive change in A's opinion requires B's hygiene above the low-need thresho
 
 Pleasant proximity gains 0.062 per eligible simulated hour. Recognized shared activity pays ten times that rate before compatibility scaling, replaces the proximity reward and suspends incompatibility friction for the pair during that activity. Recognition requires simultaneous matching `shared_activity` metadata on different objects, with neither person disliking the activity and neither attempt having failed. Initial supported groups are reading, exercise and aquarium watching. Matching room occupancy alone does not qualify.
 
+Eligible shared activities separately restore 0.12 Social per simulated minute
+for receivers who like the other participant. Same-room contact within four
+tiles, actual concurrent use and both activity preferences still apply. This
+need reward does not replace the affinity change. See
+[the needs interaction reference](../NEEDS-INTERACTIONS.md).
+
 A conversation keeps one completion reward, with a calibrated base of 0.17. The conversation pair does not also earn proximity or shared-activity rewards. Need delivery, sampled duration and hobby satisfaction remain governed by their existing rules. An unmet critical need can prevent a positive completion reward even though the conversation still delivers its ordinary benefits. The strongest incompatibility friction is 0.0075 per eligible hour.
 
 The existing symmetric drift toward neutral applies at 0.000005 per tick. Both unattended friendships and grudges last twice as long as at the previous rate; this does not schedule recovery from an incident. Affinity continues through existing social scoring, nearby-relationship mood and mood-driven satisfaction. Household mess has its separate cleanliness-scaled directional penalty, `0.0003 + 0.0027 * cleanliness`, while its noticing, mood and cleanup rules remain governed by the domestic system. There is no duplicate satisfaction charge and no automatic forgiveness timer.
@@ -58,6 +64,6 @@ The report retains per-layout variation, recovery tails, outstanding chains and 
 
 ## Remaining work outside this slice
 
-Shared meals and meal invitations are implemented by the [domestic system](2026-09-30-meals-and-cleanup.md). They do not yet qualify for the shared-activity affinity bonus. Shared televisions and general coordinated groups still need participation and reservation support. Object-waiting affinity, fights, relationship-triggered invitations and extroversion thresholds remain planned.
+Shared meals and meal invitations are implemented by the [domestic system](2026-09-30-meals-and-cleanup.md). They do not yet qualify for the shared-activity affinity bonus. Television and radio now admit concurrent users with distinct seats or standing destinations. Their Social benefit requires actual same-device participation with a liked Sim; real seated meals use the same-table rule in [Sim interpersonal relations](../SIM-RELATIONSHIPS.md). Room/proximity rules remain specific to affinity development. General coordinated groups, object-waiting affinity, fights, relationship-triggered invitations and extroversion thresholds remain planned.
 
 Hostility presentation is tracked as [B-hostility-expression](../FEATURES.md#b-hostility-expression-make-interpersonal-hostility-visible): directional visual indicators, accessible reactions and possible animations, plus mild avoidance of activities in a disliked person's room. That future avoidance must yield to needs and player orders and trigger a new pacing check when it reduces contact.

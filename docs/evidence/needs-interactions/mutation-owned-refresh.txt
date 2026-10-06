@@ -1,0 +1,21 @@
+
+running 1 test
+test need_interactions::tests::critical_social_relationship_help_requires_actual_successful_sharing ... FAILED
+
+failures:
+
+failures:
+    need_interactions::tests::critical_social_relationship_help_requires_actual_successful_sharing
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.54s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'need_interactions::tests::critical_social_relationship_help_requires_actual_successful_sharing' (78580) panicked at crates\terri-sim\src\need_interactions\tests.rs:360:9:
+assertion `left == right` failed: Failed sharing cannot claim to relieve critical Social
+  left: false
+ right: true
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

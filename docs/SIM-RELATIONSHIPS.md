@@ -36,6 +36,46 @@ and its creator, not to an omniscient account of why it was left.
 
 ## Domestic support and friction
 
+Social refill requires simultaneous participation with somebody the receiving
+Sim likes. Affinity must be strictly above zero in that direction; the other
+Sim need not return the feeling. Watching TV or listening to the radio counts
+only while another Sim actively uses the same device.
+Travelling toward it, standing nearby or using another device does not count.
+Device capacity and each chair or standing destination remain exclusive to
+their admitted owners.
+The shared device or table defines communal participation. General room and
+four-tile proximity rules affect affinity; they do not cancel otherwise valid
+communal Social benefits.
+
+Meals provide Social only while both Sims actually eat seated in separate chairs
+facing the same table. They can eat food from different cooking batches.
+Standing, tableless meals, preparation, gathering and empty-table sitting provide
+no Social. The nominal meal benefit is 11 points over 90 eating minutes, scaled
+by personality. Food quality affects the food rewards rather than the value of
+the company. Rewards stop when eligible participation stops
+and do not multiply with the number of other diners.
+
+Chat Social also requires positive affinity toward the partner. Neutral chats
+can still establish friendship; critical loneliness alone does not block that
+completion reward or cause an inconvenience penalty. Actual Social delivery and
+friendship development are separate effects. A lonely Sim can autonomously seek
+a first friendship: selection estimates the chats needed to become positively
+inclined, then values the subsequent chat that could actually refill Social.
+Unavailable relationship rewards contribute no such future value.
+Privacy routing and emergency checks use conditional benefits too: solo media
+and meal preparation cannot claim to relieve critical loneliness. A media
+alternative requires a valid proposed destination and active liked company
+using the same device.
+Waiting frustration counts Social only when the requested activity could
+provide that company; an empty promise does not increase the need penalty.
+Passive proximity retains its affinity effect without directly refilling Social.
+Simultaneous reading, exercise and aquarium watching on different objects also
+provide 0.12 Social per game minute when both Sims accept the activity, share
+a room within four tiles, and the receiver likes the other participant.
+Failed actions, travel and interruptions do not count.
+The [needs interaction reference](NEEDS-INTERACTIONS.md) covers every reward,
+cost, condition and justification.
+
 The [meal and cleanup spec](specs/2026-09-30-meals-and-cleanup.md) defines the
 new domestic interactions. A cook with a strong positive relationship can
 prepare an extra plate for a hungry friend, up to three friends per meal.
@@ -98,7 +138,8 @@ suspend incompatibility friction. Conversations receive one completion reward.
 Shared meals and TV currently do not earn this recognition bonus.
 
 Compatibility uses personality interaction preferences, disposition traits and
-hobbies, with each activity tag counted once. Scores are directional. Capability,
+hobbies, with each activity tag counted once. Recipe preferences use the recipe's
+step tags rather than an ordinary-action index. Scores are directional. Capability,
 conditions, skill deficiencies and shyness do not create incompatibility. Strongly
 opposing preferences below -0.2 produce friction. Positive rewards scale with
 compatibility. No timer automatically forgives an incident; ordinary interaction

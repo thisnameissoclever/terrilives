@@ -1,0 +1,37 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.99s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 28 tests
+test systems::social::tests::a_talk_command_refuses_self_stale_object_and_out_of_range_inputs ... ok
+test systems::social::tests::a_talk_order_releases_the_reservation_the_sim_was_walking_toward ... ok
+test systems::social::tests::a_sim_whose_company_is_all_spoken_for_waits_instead_of_wandering ... ok
+test systems::social::tests::mutual_talk_commands_form_exactly_one_conversation ... ok
+test systems::social::tests::a_sim_claimed_this_tick_does_not_choose_anything_of_its_own ... ok
+test systems::social::tests::a_cancel_mid_directed_conversation_removes_the_talk_and_frees_the_partner ... ok
+test systems::social::tests::a_talk_command_starts_a_conversation_autonomy_never_would ... ok
+test systems::social::tests::a_friend_outranks_a_stranger_at_equal_distance ... ok
+test systems::social::tests::full_social_retains_company_appeal_while_loneliness_increases_it ... ok
+test systems::social::tests::a_talk_order_waits_out_a_partners_stroll ... ok
+test systems::social::tests::a_partner_pulled_away_by_a_command_ends_the_conversation_unremembered ... ok
+test systems::social::tests::a_reserved_sim_stands_still_instead_of_wandering_off ... ok
+test systems::social::tests::a_talk_command_waits_for_a_busy_partner_instead_of_dropping ... ok
+test systems::social::tests::neutral_lonely_chat_builds_friendship_before_it_refills_social ... ok
+test systems::social::tests::an_unserved_order_survives_a_different_conversations_completion ... ok
+test systems::social::tests::a_talk_that_ends_removes_the_target_it_owns_and_no_other ... ok
+test systems::social::tests::a_talk_order_at_a_sim_already_spoken_for_waits_its_turn ... ok
+test systems::social::tests::a_plain_talk_order_goes_ahead_of_the_queue_and_the_queued_order_resumes ... ok
+test systems::social::tests::a_lonely_sim_talks_to_its_housemate_and_both_sides_remember_it ... ok
+test systems::social::tests::a_directed_talk_that_finishes_while_a_blocked_front_order_waits_is_popped_once ... ok
+test systems::social::tests::social_interactions_resolve_ties_to_the_earlier_and_wins_to_the_better ... ok
+test systems::social::tests::a_directed_conversation_completes_once_and_pops_the_order ... ok
+test systems::social::tests::social_choices_survive_below_at_and_above_the_old_threshold ... ok
+test systems::social::tests::social_satisfaction_weights_company_without_excluding_it ... ok
+test systems::social::tests::an_unattended_friendship_cools_tick_by_tick ... ok
+test systems::social::tests::a_command_during_a_conversation_preempts_it_instead_of_bricking_the_sim ... ok
+test systems::social::tests::delivery_fills_a_warm_initiator_by_the_relationship_scale ... ok
+test systems::social::tests::a_run_of_queued_chat_orders_runs_as_that_many_separate_conversations_in_sequence ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 909 filtered out; finished in 0.20s
+

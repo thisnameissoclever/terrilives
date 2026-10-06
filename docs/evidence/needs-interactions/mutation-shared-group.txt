@@ -1,0 +1,21 @@
+
+running 1 test
+test need_interactions::tests::differing_or_failed_activities_do_not_supply_shared_social ... FAILED
+
+failures:
+
+failures:
+    need_interactions::tests::differing_or_failed_activities_do_not_supply_shared_social
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.74s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'need_interactions::tests::differing_or_failed_activities_do_not_supply_shared_social' (2404) panicked at crates\terri-sim\src\need_interactions\tests.rs:161:5:
+assertion `left == right` failed
+  left: 30.12
+ right: 30.0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`
