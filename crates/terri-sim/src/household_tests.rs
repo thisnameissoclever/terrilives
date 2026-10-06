@@ -625,10 +625,14 @@ fn a_staged_move_in_is_held_to_the_saved_size_limits() {
 fn self_preservation_seed_precedes_household_draws_and_legacy_move_in() {
     let mut sim = Sim::new_from_shipped_lot_with_seed(0x1234_5678_9abc_def0);
     let mut reference = terri_core::SimRng::from_seed(0x1234_5678_9abc_def0);
+    let pack = terri_data::pack();
     let values = sim.save_snapshot_v5().self_preservation;
     assert_eq!(values.len(), 3);
     for (_, value) in values {
         assert_eq!(usize::from(value), reference.range(101));
+        // Each person's affinity draws follow their instinct ([OA-values]);
+        // how many is the same whatever they wear.
+        crate::affinity::draw(&mut reference, pack, None);
     }
     assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
     let ann = move_in(&mut sim, "Ann", 0, &[]).sim.unwrap();
@@ -639,7 +643,148 @@ fn self_preservation_seed_precedes_household_draws_and_legacy_move_in() {
             .0 as usize,
         reference.range(101)
     );
+    crate::affinity::draw(&mut reference, pack, None);
     assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
+}
+
+/// [OA-values]: a spawned person's values are the four draws directly after
+/// the instinct's, and a person whose instinct is chosen takes the four
+/// draws all the same, with a worn television trait replacing only its own
+/// kind's value.
+#[test]
+fn spawn_member_draws_affinities_right_after_the_instinct() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<Content>().0;
+    let devotee = content
+        .traits
+        .iter()
+        .position(|definition| definition.id == "television_devotee")
+        .unwrap() as u32;
+    let television = content
+        .affinities
+        .iter()
+        .position(|kind| kind.id == "television")
+        .unwrap();
+    sim.world_mut()
+        .insert_resource(terri_core::SimRng::from_seed(4242));
+    let mut reference = terri_core::SimRng::from_seed(4242);
+    let spawn = |sim: &mut Sim, instinct: Option<u8>, traits: &[u32]| {
+        spawn_member(
+            sim.world_mut(),
+            &content.personalities,
+            &content.traits,
+            Member {
+                name: "Ann".into(),
+                personality: 0,
+                position: Position { x: 1.0, y: 1.0 },
+                needs: [NEED_MAX; NEED_COUNT],
+                hobbies: Vec::new(),
+                traits,
+                career: None,
+                instinct,
+            },
+        )
+    };
+    let values = |sim: &Sim, who: Entity| {
+        sim.world()
+            .get::<terri_core::Affinities>(who)
+            .expect("every spawned person holds values")
+            .clone()
+    };
+
+    let ann = spawn(&mut sim, None, &[]);
+    let instinct = reference.range(101) as u8;
+    let expected = crate::affinity::draw(&mut reference, content, None);
+    assert_eq!(
+        sim.world().get::<terri_core::SelfPreservation>(ann),
+        Some(&terri_core::SelfPreservation(instinct))
+    );
+    assert_eq!(values(&sim, ann), expected);
+    assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
+
+    let bob = spawn(&mut sim, Some(50), &[devotee]);
+    let mut plain = reference.clone();
+    let drawn = crate::affinity::draw(&mut plain, content, None);
+    let worn = Traits::from_entries(vec![(devotee, 0.0)]);
+    let expected = crate::affinity::draw(&mut reference, content, Some(&worn));
+    assert_eq!(values(&sim, bob), expected);
+    assert_eq!(values(&sim, bob).value(television as u32), 0.8);
+    assert_ne!(drawn.value(television as u32), 0.8);
+    for (index, value) in values(&sim, bob).values().iter().enumerate() {
+        if index != television {
+            assert_eq!(*value, drawn.values()[index], "kind {index}");
+        }
+    }
+    assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
+    assert_eq!(reference, plain, "four draws with or without the trait");
+}
+
+/// [OA-evidence] item 2: the shipped household draws its values in entity
+/// order, each person's four right after their instinct, two worlds built
+/// from one seed agree, and Bill, who wears Television devotee, holds
+/// exactly 0.8 for television.
+#[test]
+fn the_shipped_household_draws_affinities_in_entity_order_after_each_instinct() {
+    const SEED: u64 = 0x0a1f_1e5e_ed00;
+    let sim = Sim::new_from_shipped_lot_with_seed(SEED);
+    let pack = sim.world().resource::<Content>().0;
+    let television = pack
+        .affinities
+        .iter()
+        .position(|kind| kind.id == "television")
+        .unwrap() as u32;
+    let mut people: Vec<_> = sim
+        .world()
+        .try_query::<(Entity, &SimName, &Traits, &terri_core::Affinities)>()
+        .unwrap()
+        .iter(sim.world())
+        .map(|(entity, name, worn, values)| {
+            (
+                entity.index_u32(),
+                name.0.clone(),
+                worn.clone(),
+                values.clone(),
+            )
+        })
+        .collect();
+    people.sort_by_key(|row| row.0);
+    assert_eq!(people.len(), 3);
+    let mut reference = terri_core::SimRng::from_seed(SEED);
+    for (index, name, worn, values) in &people {
+        reference.range(101);
+        let expected = crate::affinity::draw(&mut reference, pack, Some(worn));
+        assert_eq!(values, &expected, "{name} at {index}");
+    }
+    assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
+    let bill = people.iter().find(|row| row.1 == "Bill").unwrap();
+    assert_eq!(bill.3.value(television), 0.8, "Television devotee");
+    let aquarium = pack
+        .affinities
+        .iter()
+        .position(|kind| kind.id == "aquarium")
+        .unwrap() as u32;
+    assert_eq!(bill.3.value(aquarium), 0.4, "Fish watcher likes, mildly");
+    for (_, name, _, values) in &people {
+        if name != "Bill" {
+            assert_ne!(values.value(television).abs(), 0.8, "{name}");
+            assert_ne!(values.value(aquarium).abs(), 0.4, "{name}");
+        }
+    }
+
+    let twin = Sim::new_from_shipped_lot_with_seed(SEED);
+    let values = |sim: &Sim| {
+        let mut rows: Vec<_> = sim
+            .world()
+            .try_query::<(Entity, &terri_core::Affinities)>()
+            .unwrap()
+            .iter(sim.world())
+            .map(|(entity, values)| (entity.index_u32(), values.values().to_vec()))
+            .collect();
+        rows.sort_by_key(|row| row.0);
+        rows
+    };
+    assert_eq!(values(&twin), values(&sim));
+    assert_eq!(twin.world_hash(), sim.world_hash());
 }
 
 #[test]
@@ -700,6 +845,10 @@ fn self_preservation_override_preserves_zero_and_refuses_invalid_before_draws() 
             .get::<terri_core::SelfPreservation>(entity(&sim, ann)),
         Some(&terri_core::SelfPreservation(0))
     );
+    // A chosen instinct takes no draw; the affinity draws are taken all
+    // the same ([OA-values]), and nothing else.
+    let mut rng = rng;
+    crate::affinity::draw(&mut rng, terri_data::pack(), None);
     assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
 }
 

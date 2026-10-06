@@ -112,6 +112,11 @@ mod tests {
             .iter()
             .map(|row| (row.0, 30 + reference.range(41) as u8))
             .collect();
+        // Then each person's affinity values, one draw per kind
+        // ([OA-values]), which no envelope before V5 carries either.
+        for _ in 0..expected.len() * terri_data::pack().affinities.len() {
+            reference.next_f32();
+        }
         for version in 1..=4 {
             let mut loaded = Sim::new_from_shipped_lot_with_seed(777);
             match version {

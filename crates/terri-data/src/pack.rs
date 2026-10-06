@@ -804,6 +804,51 @@ pub struct Tuning {
     /// `docs/specs/2026-10-06-calendar.md`. Read through
     /// `terri_core::clock::weekday`. Appended, per the rule above.
     pub first_weekday: u8,
+    /// The starting value a disposition trait sets for its affinity kind,
+    /// in `(0, 1]`: this for a trait that loves the kind, its negative for
+    /// one that hates it - [OA-values] in
+    /// `docs/specs/2026-10-06-object-affinities.md`. Appended, per the rule
+    /// above, with the six knobs after it.
+    pub affinity_from_trait: f32,
+    /// Below this magnitude an affinity value gives no moodlet, in
+    /// `[0, 1)` ([OA-presence]).
+    pub affinity_presence_threshold: f32,
+    /// The mood one object of a presence kind gives at a value of 1.0, not
+    /// negative.
+    pub affinity_presence_points: f32,
+    /// The mood each further object of the kind adds at 1.0, up to the cap,
+    /// not negative.
+    pub affinity_presence_extra_points: f32,
+    /// How many further objects count. Any value, including 0.
+    pub affinity_presence_extra_cap: u32,
+    /// The mood each other person using a use kind costs at a value of
+    /// -1.0, not negative - [OA-use].
+    pub affinity_use_points: f32,
+    /// How much a bothered person's feeling toward the user falls per game
+    /// hour at -1.0, not negative - [OA-use].
+    pub affinity_use_feeling_per_hour: f32,
+    /// The score multiplier at or above which a disposition trait loves its
+    /// tag, above 1 - [TL-affinity] in
+    /// `docs/specs/2026-09-21-trait-library-and-traits-panel.md`. The
+    /// compiler also reads it to word each disposition's description; the
+    /// simulation reads it at spawn, where a worn trait that loves an
+    /// affinity kind's trait tag sets that kind's value ([OA-values]).
+    /// Appended, per the rule above.
+    pub affinity_loves_from: f32,
+    /// The score multiplier at or below which a disposition trait hates its
+    /// tag, in `[0, 1)` - [TL-affinity], read at spawn as the line above.
+    pub affinity_hates_to: f32,
+    /// At or above this an affinity value reads "Loves", at or below its
+    /// negative "Hates" - [OA-hud]. In `(affinity_band_likes, 1]`.
+    /// Appended, per the rule above, with the two knobs after it.
+    pub affinity_band_loves: f32,
+    /// At or above this a value reads "Likes", at or below its negative
+    /// "Dislikes", strictly between "Indifferent" - [OA-hud]. Above 0.
+    pub affinity_band_likes: f32,
+    /// The starting value a disposition trait between the verb bands sets:
+    /// this for one that likes its kind, its negative for one that dislikes
+    /// it - [OA-values]. Above 0 and below `affinity_from_trait`.
+    pub affinity_from_mild_trait: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -937,6 +982,32 @@ pub struct CompiledSkill {
     pub levels: u8,
     /// Practice one completed tagged attempt adds, in `(0, 1]`.
     pub practice_per_attempt: f32,
+}
+
+/// How an affinity kind reaches people - [OA-kinds] in
+/// `docs/specs/2026-10-06-object-affinities.md`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AffinityReach {
+    /// The kind's objects in the room move mood ([OA-presence]).
+    Presence,
+    /// Somebody else using one of the kind's objects bothers a person who
+    /// hates the kind ([OA-use]).
+    Use,
+}
+
+/// One kind of thing a person can love or hate, compiled - [OA-kinds]. Its
+/// place in [`ContentPack::affinities`] is the place of its value in every
+/// person's list; a save names it by `id`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledAffinityKind {
+    pub id: String,
+    /// What a player reads, in lower case so it fits inside a sentence.
+    pub label: String,
+    pub reach: AffinityReach,
+    /// Indices into `ContentPack::objects`, ascending, none repeated.
+    pub objects: Vec<u32>,
+    /// The activity tag whose disposition traits set the starting value.
+    pub trait_tag: Option<String>,
 }
 
 /// One member of the authored household - [H2].
@@ -1080,8 +1151,14 @@ pub struct ContentPack {
     /// The skills a person practises, in content order - [SK-content] in
     /// `docs/specs/2026-10-05-skills.md`. Empty in most test packs. Saves
     /// name a skill by id, and the content fingerprint does not read this.
-    /// Appended at the pack tail.
+    /// It was last until the affinity kinds arrived.
     pub skills: Vec<CompiledSkill>,
+    /// The kinds of thing a person can love or hate, in content order -
+    /// [OA-kinds] in `docs/specs/2026-10-06-object-affinities.md`. Every
+    /// person's affinity values are listed in this order. Empty in most test
+    /// packs, and the content fingerprint does not read this. Appended at
+    /// the pack tail.
+    pub affinities: Vec<CompiledAffinityKind>,
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -1205,6 +1282,17 @@ impl ContentPack {
             .iter()
             .enumerate()
             .filter_map(|(index, object)| Some((ObjectDefId(index as u32), object, object.price?)))
+    }
+
+    /// The index of the affinity kind covering the object at index `object`
+    /// in [`ContentPack::objects`], if any - [OA-kinds]. A linear search over
+    /// a list of a handful of kinds; the compiler lets no object belong to
+    /// two.
+    pub fn affinity_kind_of(&self, object: u32) -> Option<u32> {
+        self.affinities
+            .iter()
+            .position(|kind| kind.objects.contains(&object))
+            .map(|kind| kind as u32)
     }
 
     pub fn find(&self, id: &str) -> Option<ObjectDefId> {
@@ -1495,6 +1583,18 @@ mod tests {
             sick_threshold: 2.75,
             sick_penalty: 22.5,
             first_weekday: 4,
+            affinity_from_trait: 0.6875,
+            affinity_presence_threshold: 0.296875,
+            affinity_presence_points: 10.5,
+            affinity_presence_extra_points: 3.125,
+            affinity_presence_extra_cap: 27,
+            affinity_use_points: 14.5,
+            affinity_use_feeling_per_hour: 0.0234375,
+            affinity_loves_from: 1.46875,
+            affinity_hates_to: 0.28125,
+            affinity_band_loves: 0.5625,
+            affinity_band_likes: 0.1875,
+            affinity_from_mild_trait: 0.34375,
         }
     }
 
@@ -1795,6 +1895,26 @@ mod tests {
                 levels: 7,
                 practice_per_attempt: 0.046875,
             }],
+            // Both reaches, objects listed out of the fixture's object order
+            // across the two kinds, and one trait tag, so a field dropped
+            // from the encoding or an enum read as its neighbour fails the
+            // round trip.
+            affinities: vec![
+                CompiledAffinityKind {
+                    id: "cold_things".to_string(),
+                    label: "cold things".to_string(),
+                    reach: AffinityReach::Use,
+                    objects: vec![0, 2],
+                    trait_tag: Some("chilling".to_string()),
+                },
+                CompiledAffinityKind {
+                    id: "beds".to_string(),
+                    label: "beds".to_string(),
+                    reach: AffinityReach::Presence,
+                    objects: vec![1],
+                    trait_tag: None,
+                },
+            ],
         }
     }
 
@@ -2115,6 +2235,24 @@ mod tests {
         );
     }
 
+    /// [OA-kinds]: an object index maps to the kind that lists it, wherever
+    /// in that kind's list it sits, and to nothing when no kind lists it. The
+    /// fixture's first kind lists objects 0 and 2 and its second lists 1, so
+    /// an answer of "the first kind" or "the object's own index" fails here.
+    #[test]
+    fn affinity_kind_of_finds_the_kind_listing_an_object() {
+        let pack = three_objects();
+        assert_eq!(pack.affinity_kind_of(0), Some(0));
+        assert_eq!(pack.affinity_kind_of(1), Some(1));
+        assert_eq!(pack.affinity_kind_of(2), Some(0));
+        assert_eq!(pack.affinity_kind_of(3), None);
+        let none = ContentPack {
+            affinities: Vec::new(),
+            ..three_objects()
+        };
+        assert_eq!(none.affinity_kind_of(0), None);
+    }
+
     /// [CAL-careers]: `works_on` reads bit `weekday` of the mask, Monday
     /// first. Monday, Wednesday and Sunday are asymmetric under reversal, so
     /// a mask read from the wrong end fails here.
@@ -2160,7 +2298,11 @@ mod tests {
     /// and `wander_radius_tiles` the byte before that; the skill ladder
     /// ([SK-model]) is the eight bytes before the five overdoing knobs
     /// ([OD-content]), which are the twenty before `first_weekday`
-    /// ([CAL-week]), the final byte; every established field stays put.
+    /// ([CAL-week]), the byte before the seven affinity knobs ([OA-values]),
+    /// which are the twenty-five before the two trait bands ([TL-affinity]),
+    /// the eight before the word bands and the mild trait value
+    /// ([OA-hud], [OA-values]), the final twelve; every established field
+    /// stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2174,9 +2316,136 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // [CAL-week]: `first_weekday` is a u8, so it is one raw byte and
-        // the last one.
-        let weekday = before.len() - 1;
+        // [OA-hud], [OA-values]: the two word bands and the mild trait value
+        // are the last twelve bytes, three floats in declaration order. Each
+        // changed float differs from the fixture's only in its third byte.
+        let words = before.len() - 12;
+        let expected: Vec<u8> = [0.5625f32, 0.1875, 0.34375]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(before[words..], expected);
+        for (offset, after) in [
+            (
+                2,
+                Tuning {
+                    affinity_band_loves: 0.59375,
+                    ..a_tuning()
+                },
+            ),
+            (
+                6,
+                Tuning {
+                    affinity_band_likes: 0.203125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                10,
+                Tuning {
+                    affinity_from_mild_trait: 0.359375,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![words + offset], "word {offset}");
+        }
+        // [TL-affinity]: the two trait bands are the eight bytes before them,
+        // two floats in declaration order. Each changed float differs from
+        // the fixture's only in its third byte.
+        let bands = words - 8;
+        let expected: Vec<u8> = [1.46875f32, 0.28125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(before[bands..words], expected);
+        for (offset, after) in [
+            (
+                2,
+                Tuning {
+                    affinity_loves_from: 1.53125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                6,
+                Tuning {
+                    affinity_hates_to: 0.3125,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![bands + offset], "band {offset}");
+        }
+        // [OA-values], [OA-presence], [OA-use]: the seven affinity knobs, in
+        // declaration order, are the twenty-five bytes before the bands:
+        // four floats, the cap as a one-byte varint, and two more floats.
+        // Each changed float differs from the fixture's only in its third
+        // byte.
+        let affinity = bands - 25;
+        let expected: Vec<u8> = [0.6875f32, 0.296875, 10.5, 3.125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .chain([27])
+            .chain([14.5f32, 0.0234375].into_iter().flat_map(f32::to_le_bytes))
+            .collect();
+        assert_eq!(before[affinity..bands], expected);
+        for (offset, after) in [
+            (
+                2,
+                Tuning {
+                    affinity_from_trait: 0.71875,
+                    ..a_tuning()
+                },
+            ),
+            (
+                6,
+                Tuning {
+                    affinity_presence_threshold: 0.3125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                10,
+                Tuning {
+                    affinity_presence_points: 11.5,
+                    ..a_tuning()
+                },
+            ),
+            (
+                14,
+                Tuning {
+                    affinity_presence_extra_points: 3.375,
+                    ..a_tuning()
+                },
+            ),
+            (
+                16,
+                Tuning {
+                    affinity_presence_extra_cap: 28,
+                    ..a_tuning()
+                },
+            ),
+            (
+                19,
+                Tuning {
+                    affinity_use_points: 15.5,
+                    ..a_tuning()
+                },
+            ),
+            (
+                23,
+                Tuning {
+                    affinity_use_feeling_per_hour: 0.02734375,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![affinity + offset], "{offset}");
+        }
+        // [CAL-week]: `first_weekday` is a u8, so it is one raw byte, just
+        // before the affinity knobs.
+        let weekday = affinity - 1;
         assert_eq!(before[weekday], 4);
         assert_eq!(
             changed(Tuning {

@@ -900,6 +900,54 @@ pub enum ContentError {
     SkillLevelGrowthBelowOne {
         value: f32,
     },
+    /// `objects.toml` declares the same affinity kind id twice. Saves name a
+    /// kind by id, so two would be one value with two meanings - [OA-kinds].
+    DuplicateAffinityKind(String),
+    /// An affinity kind with a blank id or label. The Overview sheet prints
+    /// the label, and a save records the id.
+    EmptyAffinityText {
+        id: String,
+        field: &'static str,
+    },
+    /// An affinity kind whose `reach` is neither `presence` nor `use`.
+    UnknownAffinityReach {
+        id: String,
+        reach: String,
+    },
+    /// An affinity kind listing an object id no object has.
+    AffinityObjectUnknown {
+        id: String,
+        object: String,
+    },
+    /// One object listed by two affinity kinds, or twice by one. An object
+    /// belongs to at most one kind, so a person has one feeling about it.
+    AffinityObjectShared {
+        first: String,
+        second: String,
+        object: String,
+    },
+    /// An affinity kind covering no object: a feeling about nothing.
+    AffinityObjectEmpty {
+        id: String,
+    },
+    /// A `use` affinity kind covering an object with no interaction, which
+    /// nobody could ever be seen using - [OA-use].
+    UseAffinityWithoutInteractions {
+        id: String,
+        object: String,
+    },
+    /// An affinity kind whose `trait_tag` no activity carries, so no
+    /// disposition trait could ever set its starting value - [D9]'s
+    /// dangling reference.
+    AffinityTraitTagAboutNothing {
+        id: String,
+        tag: String,
+    },
+    /// An affinity tuning knob outside its range, named by `key` -
+    /// [OA-values], [OA-presence] and [OA-use].
+    AffinityTuningOutOfRange {
+        key: &'static str,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -2046,6 +2094,61 @@ impl fmt::Display for ContentError {
                 f,
                 "skill_level_growth is {value}; must be finite and at least 1, \
                  so a later level never costs less than the one before"
+            ),
+            ContentError::DuplicateAffinityKind(id) => write!(
+                f,
+                "affinity kind '{id}' is declared twice in objects.toml; saves \
+                 name a kind by its id"
+            ),
+            ContentError::EmptyAffinityText { id, field } => write!(
+                f,
+                "affinity kind '{id}' needs a {field} in objects.toml"
+            ),
+            ContentError::UnknownAffinityReach { id, reach } => write!(
+                f,
+                "affinity kind '{id}' has reach '{reach}'; the reaches are \
+                 presence and use"
+            ),
+            ContentError::AffinityObjectUnknown { id, object } => write!(
+                f,
+                "affinity kind '{id}' lists object '{object}', which \
+                 objects.toml does not declare"
+            ),
+            ContentError::AffinityObjectShared {
+                first,
+                second,
+                object,
+            } => write!(
+                f,
+                "affinity kinds '{first}' and '{second}' both list object \
+                 '{object}'; an object belongs to at most one kind, and a kind \
+                 lists it once"
+            ),
+            ContentError::AffinityObjectEmpty { id } => write!(
+                f,
+                "affinity kind '{id}' lists no objects; list at least one"
+            ),
+            ContentError::UseAffinityWithoutInteractions { id, object } => write!(
+                f,
+                "affinity kind '{id}' reaches people by use, but object \
+                 '{object}' has no interaction, so nobody could be seen using it"
+            ),
+            ContentError::AffinityTraitTagAboutNothing { id, tag } => write!(
+                f,
+                "affinity kind '{id}' names trait tag '{tag}', which no \
+                 interaction or chain step in the pack carries, so no trait \
+                 could set its starting value"
+            ),
+            ContentError::AffinityTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: \
+                 affinity_from_trait must be above 0 and at most 1; \
+                 affinity_presence_threshold at least 0 and below 1; \
+                 affinity_presence_points, affinity_presence_extra_points, \
+                 affinity_use_points and affinity_use_feeling_per_hour finite \
+                 and not negative; affinity_band_likes above 0 and below \
+                 affinity_band_loves, which is at most 1; \
+                 affinity_from_mild_trait above 0 and below affinity_from_trait"
             ),
             ContentError::UnknownSimTrait { sim, trait_id } => write!(
                 f,

@@ -24,8 +24,8 @@ pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
 pub use components::ObjectFacing;
 pub use components::{
-    Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, ConversationVoice, Eating,
-    Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Path, Personality, Position,
+    Affinities, Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, ConversationVoice,
+    Eating, Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Path, Personality, Position,
     Relationships, Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName,
     Skills, SleepPlace, SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target,
     Traits, Wander,

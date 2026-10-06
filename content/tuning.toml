@@ -184,7 +184,9 @@ resale_fraction = 0.5
 # start to read as more than a preference. 0.5 halves what the activity
 # offers before the soft choice, while its walk still costs in full: a strong
 # push away but not a refusal, so the sim still does it when the need is
-# pressing enough.
+# pressing enough. The spawn draw reads both lines too: a worn disposition
+# at or beyond either one sets the starting value of the affinity kind its
+# tag names ([OA-values] in docs/specs/2026-10-06-object-affinities.md).
 affinity_loves_from = 1.5
 affinity_hates_to = 0.5
 
@@ -421,6 +423,36 @@ sick_threshold = 2.5
 # The mood "Feeling sick" costs, once per person. Must be finite and not
 # negative.
 sick_penalty = 25.0
+
+# Object affinities - [OA-values], [OA-presence] and [OA-use] in
+# docs/specs/2026-10-06-object-affinities.md.
+#
+# Starting value a disposition trait sets for its kind: this for a trait that
+# loves, its negative for one that hates. In (0, 1].
+affinity_from_trait = 0.8
+# Below this magnitude a value gives no moodlet. In [0, 1).
+affinity_presence_threshold = 0.2
+# Mood for one object of a presence kind at a value of 1.0. Finite, not negative.
+affinity_presence_points = 10.0
+# Mood each further object adds at 1.0, up to the cap. Finite, not negative.
+affinity_presence_extra_points = 3.0
+# How many further objects count.
+affinity_presence_extra_cap = 3
+# Mood each other person using a use kind costs at a value of -1.0. Finite, not negative.
+affinity_use_points = 15.0
+# How much a bothered person's feeling toward the user falls per game hour at -1.0. Finite, not negative.
+affinity_use_feeling_per_hour = 0.03
+# The word Sim details shows for a value ([OA-hud]): at or above
+# affinity_band_loves "Loves", at or below its negative "Hates"; at or above
+# affinity_band_likes "Likes", at or below its negative "Dislikes"; strictly
+# between "Indifferent". 0 < affinity_band_likes < affinity_band_loves <= 1.
+affinity_band_loves = 0.6
+affinity_band_likes = 0.2
+# Starting value a disposition trait between the verb bands sets for its kind
+# ([OA-values]): this for a trait that likes (multiplier above 1 and below
+# affinity_loves_from), its negative for one that dislikes (below 1 and above
+# affinity_hates_to). Finite, above 0 and below affinity_from_trait.
+affinity_from_mild_trait = 0.4
 
 # Seed for fixed-seed constructors and tests. Browser new games supply fresh
 # cryptographic entropy. Saves persist the complete live generator state.

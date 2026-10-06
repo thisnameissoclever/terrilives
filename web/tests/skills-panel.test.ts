@@ -228,7 +228,7 @@ describe('the Skills disclosure in the page', () => {
 
   it('ships closed directly after the personal details inside Overview', () => {
     expect(INDEX_HTML).toContain('</details><details id="skills-block"><summary>Skills</summary>'
-      + '<p id="skills-empty">Select a person to see their skills.</p><ul id="skill-list" hidden></ul></details></section>');
+      + '<p id="skills-empty">Select a person to see their skills.</p><ul id="skill-list" hidden></ul></details><details id="affinities-block">');
     const overview = INDEX_HTML.slice(INDEX_HTML.indexOf('id="sim-overview"'), INDEX_HTML.indexOf('id="sim-queue"'));
     expect(overview.indexOf('id="personal-details"')).toBeGreaterThan(-1);
     expect(overview.indexOf('id="skills-block"')).toBeGreaterThan(overview.indexOf('id="personal-details"'));
