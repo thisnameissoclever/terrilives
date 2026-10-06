@@ -17,6 +17,8 @@ import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
  * a sim the player had since changed, or on one that had despawned.
  */
 export type MenuAction =
+  | {readonly kind:'chore';readonly choreKind:number;readonly target:number}
+  | { readonly kind: 'clean'; readonly surface: number; readonly dishes: readonly number[] | null }
   | {
       readonly kind: 'use';
       readonly object: number;
@@ -124,6 +126,43 @@ export function menuEntries(
   }));
   entries.push(NOTHING);
   return details ? { title, entries, details } : { title, entries };
+}
+
+export interface SurfaceMenuSource {
+  tableActions?(entity:number):Uint32Array;
+  choreOptions?(entity:number):Uint32Array;
+  entityName(entity: number): string;
+  interactionLabels(entity: number): readonly string[];
+  objectDetails?(entity: number): ObjectDetails | undefined;
+  dishPiles?(): Uint32Array;
+}
+
+/** Pointer and keyboard target selection use the same dirty-surface actions. */
+export function surfaceMenuEntries(source: SurfaceMenuSource, entity: number): Menu {
+  if (source.dishPiles?.().some((value, i) => i % 3 === 0 && value === entity)) return {
+    title: source.entityName(entity), details: source.objectDetails?.(entity),
+    entries: [{ label: 'Clean up', action: { kind: 'clean', surface: entity, dishes: null } }, NOTHING],
+  };
+    let menu=menuEntries(source.entityName(entity), source.interactionLabels(entity), entity, source.objectDetails?.(entity));
+    const table=source.tableActions?.(entity);
+    if(table?.length===2) {
+      menu={...menu,entries:[...(table[0]?[{label:'Sit',action:{kind:'use' as const,object:entity,interaction:0}}]:[]),
+        ...(table[1]?[{label:'Eat prepared food',action:{kind:'use' as const,object:entity,interaction:1}}]:[]),NOTHING]};
+    }
+  const options=source.choreOptions?.(entity);
+  const entries=menu.entries.slice(0,-1);
+  if(options)for(let i=0;i+1<options.length;i+=2)entries.push(choreEntry(options[i],options[i+1]));
+  entries.push(NOTHING);return {...menu,entries};
+}
+
+  export const CHORE_LABELS=['Do dishes','Clean floor','Wipe surface','Empty bin','Wipe counter surfaces','Wipe table surfaces'] as const;
+export function choreEntry(choreKind:number,target:number):MenuEntry {
+  return {label:CHORE_LABELS[choreKind]??'Unavailable chore',action:{kind:'chore',choreKind,target}};
+}
+export function floorMenuEntries(kind:number,target:number):Menu{return {title:'Floor',entries:[choreEntry(kind,target),NOTHING]};}
+
+export function dishMenuEntries(surface: number, dishes: readonly number[]): Menu {
+  return { title: 'Dishes', entries: [{ label: 'Do dishes', action: { kind: 'clean', surface, dishes } }, NOTHING] };
 }
 
 /**

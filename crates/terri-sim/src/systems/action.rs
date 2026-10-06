@@ -537,12 +537,14 @@ fn record_directed_chain(
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn serve_intents(
     mut commands: Commands,
+    scoped: Option<Res<terri_core::save::SavedTargetedCleanup>>,
     grid: Res<TileGrid>,
     content: Res<Content>,
     social_company: Res<crate::social_company::SocialCompany>,
     positions: Query<(&Position, Option<&Path>), With<Agent>>,
     need_levels: Query<&Needs>,
     beds: BedState,
+    chore_state: Option<Res<terri_core::chores::SavedChores>>,
     mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
     identities: Query<&SimId>,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
@@ -627,6 +629,33 @@ pub fn serve_intents(
             continue;
         };
 
+        let owns_scope = scoped.as_deref().is_some_and(|state| {
+            state
+                .orders
+                .iter()
+                .any(|order| order.person == agent.index_u32() && order.queue_position.is_none())
+        });
+        let queued_chain = objects
+            .get(intent.object)
+            .ok()
+            .and_then(|(_, _, placed, _, _)| {
+                super::chain::ordered_chain(content.0, placed.0, intent.interaction)
+            });
+        let owns_chore = chore_state.as_deref().is_some_and(|state| {
+            state
+                .tasks
+                .iter()
+                .any(|task| task.person == agent.index_u32() && task.directed && !task.suspended)
+        });
+        let generic_cleanup_waits = owns_scope
+            && queued_chain.is_some_and(|chain| {
+                content.0.chains[chain as usize].id == crate::domestic::CLEANUP
+            });
+        if (owns_scope && (intent.cleanup.is_some() || generic_cleanup_waits))
+            || (owns_chore && (intent.cleanup.is_some() || queued_chain.is_some()))
+        {
+            continue;
+        }
         // **An agent the player has directed is not an agent with
         // nothing to do.** `select_action` is the only writer of
         // `Restless` and it skips directed agents entirely, so a marker
@@ -649,6 +678,20 @@ pub fn serve_intents(
         // path through this loop that does not wait.
         commands.entity(agent).remove::<Blocked>();
 
+        if let Some(id) = intent.chore {
+            commands.queue(move |world: &mut World| crate::chores::activate(world, agent, id));
+            queue.pop();
+            claimed.push(agent);
+            continue;
+        }
+        if let Some(id) = intent.cleanup {
+            commands.queue(move |world: &mut World| {
+                crate::targeted_cleanup::activate(world, agent, id)
+            });
+            queue.pop();
+            claimed.push(agent);
+            continue;
+        }
         // Already serving this exact intent, so there is nothing to do
         // and re-pathing would be actively wrong: `find_path` starts
         // from the agent's ROUNDED tile, and an agent a quarter of the
@@ -665,6 +708,14 @@ pub fn serve_intents(
         // different interaction is a legitimate move and must not be
         // mistaken for contention with somebody else.
         let held_here = target.is_some_and(|t| t.object == intent.object);
+        if crate::chores::object_claimed(
+            chore_state.as_deref(),
+            intent.object.index_u32(),
+            agent.index_u32(),
+        ) {
+            commands.entity(agent).insert(Blocked);
+            continue;
+        }
 
         let Ok((_, object_pos, placed, _, facing)) = objects.get(intent.object) else {
             // **Not an object - perhaps a PERSON.** A TalkTo intent
@@ -759,6 +810,31 @@ pub fn serve_intents(
                 ));
             continue;
         };
+        if content.0.object(placed.0).id == "dining_table" && intent.interaction == 1 {
+            let table = intent.object;
+            commands.queue(move |world: &mut World| {
+                crate::dining::take_prepared_food(world, agent, table);
+            });
+            queue.pop();
+            claimed.push(agent);
+            continue;
+        }
+        if content.0.object(placed.0).id == "dining_table"
+            && intent.interaction == 0
+            && !objects.iter().any(|(_, pos, o, _, f)| {
+                content.0.object(o.0).id == "chair"
+                    && crate::dining::setting_at(
+                        *object_pos,
+                        facing.map_or(content.0.object(placed.0).base_facing, |f| f.0),
+                        *pos,
+                        f.map_or(content.0.object(o.0).base_facing, |f| f.0),
+                    )
+                    .is_some()
+            })
+        {
+            queue.pop();
+            continue;
+        }
         // **The rows past the interactions are the object's CHAINS** -
         // [K5]'s flyout mapping, which is what keeps the command wire
         // untouched: `UseObject`'s existing index addresses a chain by
@@ -790,6 +866,9 @@ pub fn serve_intents(
                 // hunger or bladder turns critical, neither of which is
                 // what "Clean dishes" orders, so it is restarted below
                 // as a directed task over every dish.
+                if owns_scope && chain.id == crate::domestic::CLEANUP {
+                    continue;
+                }
                 let adoptable = chain.id != crate::domestic::CLEANUP
                     || crate::domestic::cleaning_under_orders(domestic.as_deref(), agent);
                 if adoptable && chain_state.is_some_and(|state| state.chain == global) {
@@ -1059,6 +1138,7 @@ pub fn select_action(
     mut rng: ResMut<SimRng>,
     mortality: Res<terri_core::save::SavedMortality>,
     beds: BedState,
+    chore_state: Option<Res<terri_core::chores::SavedChores>>,
     agents: Query<
         (
             Entity,
@@ -1082,6 +1162,7 @@ pub fn select_action(
             Without<terri_core::AtWork>,
             Without<terri_core::Commuting>,
             Without<terri_core::ChainState>,
+            Without<terri_core::chores::ChoreWork>,
         ),
     >,
     people: Query<
@@ -1204,6 +1285,19 @@ pub fn select_action(
             },
         )
         .collect();
+    let unseatable: std::collections::HashSet<_> = placed_objects
+        .iter()
+        .filter(|(_, pos, o, _, _, facing)| {
+            content.0.object(o.0).id == "dining_table"
+                && !placed_objects
+                    .iter()
+                    .any(|(_, chair, definition, _, _, front)| {
+                        content.0.object(definition.0).id == "chair"
+                            && crate::dining::setting_at(*pos, *facing, *chair, *front).is_some()
+                    })
+        })
+        .map(|(e, ..)| *e)
+        .collect();
 
     let mut company: Vec<(Entity, Position, SimId, bool, Needs)> = people
         .iter()
@@ -1260,6 +1354,16 @@ pub fn select_action(
 
         for (object, object_pos, placed, reserved, footprint, facing) in &placed_objects {
             let object = *object;
+            if unseatable.contains(&object) {
+                continue;
+            }
+            if crate::chores::object_claimed(
+                chore_state.as_deref(),
+                object.index_u32(),
+                agent.index_u32(),
+            ) {
+                continue;
+            }
             let contested = *reserved || claimed.contains(&object);
             let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
             let Some(field) = distances else {
@@ -2054,6 +2158,8 @@ mod intent_tests {
     /// case is the normal one rather than an edge case.
     fn queue_intent(sim: &mut Sim, agent: Entity, object: Entity, interaction: u32) {
         let intent = Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction,
         };
@@ -2308,6 +2414,8 @@ mod intent_tests {
         assert_eq!(
             queue_of(&sim, agent).front(),
             Some(Intent {
+                cleanup: None,
+                chore: None,
                 object: bed,
                 interaction: 0,
             }),

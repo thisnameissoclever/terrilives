@@ -78,3 +78,31 @@ checks were not repeated. The affected audio, cue and snore tests passed:
 18 files, 442 tests. Type checking, production build, changelog validation
 and document IDs also passed with exit zero after this pull. Both
 contributors' notes and the published filename remain intact.
+
+## Household chores integration
+
+Main advanced again to `305965f0` before delivery. Fetching and pulling that
+revision preserved targeted dish cleanup, household chores, grime, save
+validation and the shared changelog. Ordinary table sitting keeps main's
+real-chair route and Sit label, with Comfort only. Actual meals keep their
+separate chair and same-table company requirements. Chores introduce no
+direct need refill or additional need cost; their grime, mood and commitment
+effects are documented in the needs reference.
+
+Chores and targeted cleanup run before company and relationship refresh.
+Both sets of ownership checks remain in transactional save restoration.
+Three media-order fixtures now specify the incoming optional cleanup and
+chore fields. Independent review found no further direct need mismatches.
+
+The combined chores snapshot passed formatting, all-target clippy with
+warnings denied, 1,773 workspace library tests, the optimized browser module
+build, TypeScript checking and production build. The full web run passed
+2,125 assertions; three atlas tests exceeded the default five-second timeout
+while reading source images. A focused rerun with a bounded 30-second timeout
+passed all 14 atlas tests in 1.50 seconds, completing coverage of all 2,128
+web tests. No assertion or repository timeout was changed.
+
+Changelog generation and all 12 changelog tests passed. Document IDs and
+whitespace checks excluding raw evidence logs passed. Incoming raw logs retain
+their original whitespace. Results are in the adjacent `chores-*.txt` files;
+all final passing commands returned zero.

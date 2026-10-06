@@ -1,0 +1,45 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+warning: unreachable expression
+   --> crates\terri-sim\src\chores\mod.rs:315:9
+    |
+314 |       state.dish_started.retain(|(person, _)| { return true;
+    |                                                 ----------- any code following this expression is unreachable
+315 | /         crate::dining::entity(world, *person)
+316 | |             .is_some_and(|e| world.get::<terri_core::Agent>(e).is_some())
+317 | |             && world
+318 | |                 .get_resource::<terri_core::save::SavedDomestic>()
+319 | |                 .is_some_and(|s| s.cleanup.iter().any(|t| t.person == *person))
+    | |_______________________________________________________________________________^ unreachable expression
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `person`
+   --> crates\terri-sim\src\chores\mod.rs:314:33
+    |
+314 |     state.dish_started.retain(|(person, _)| { return true;
+    |                                 ^^^^^^ help: if this is intentional, prefix it with an underscore: `_person`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 2 warnings (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.39s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records ... FAILED
+
+failures:
+
+---- chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records stdout ----
+
+thread 'chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records' (37624) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:188:5:
+assertion failed: sim.world().resource::<SavedChores>().dish_started.is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 934 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

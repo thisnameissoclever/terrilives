@@ -1,0 +1,6 @@
+warning: in the working copy of 'crates/terri-sim/src/systems/chain.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/terri-wasm/src/lib.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/terri-wasm/src/save_v3_tests.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'web/index.html', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'web/src/main.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'web/tests/bridge.test.ts', CRLF will be replaced by LF the next time Git touches it

@@ -1,0 +1,262 @@
+{
+  "state": "complete",
+  "model_sha256": "fcc6c30bd25dd64f2d6ddef2a46e8ccbd83182663f4be1d350b8202cc188cb9f",
+  "checks": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945426024496555,
+      "maximum_skin_radius": 0.01726209931075573
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925475776195526,
+      "maximum_skin_radius": 0.02830810844898224
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945345930755138,
+      "maximum_skin_radius": 0.01725591905415058
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925328627228737,
+      "maximum_skin_radius": 0.028386050835251808
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945091679692268,
+      "maximum_skin_radius": 0.017253205180168152
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925554007291794,
+      "maximum_skin_radius": 0.028335390612483025
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945284463465214,
+      "maximum_skin_radius": 0.017236901447176933
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.02392556332051754,
+      "maximum_skin_radius": 0.028327804058790207
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.01494542695581913,
+      "maximum_skin_radius": 0.01726209558546543
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925477638840675,
+      "maximum_skin_radius": 0.028308112174272537
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945345930755138,
+      "maximum_skin_radius": 0.01725591905415058
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925326764583588,
+      "maximum_skin_radius": 0.02838604710996151
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945091679692268,
+      "maximum_skin_radius": 0.0172532070428133
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925554007291794,
+      "maximum_skin_radius": 0.028335390612483025
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.01494528353214264,
+      "maximum_skin_radius": 0.017236899584531784
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.02392556332051754,
+      "maximum_skin_radius": 0.028327804058790207
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945426024496555,
+      "maximum_skin_radius": 0.01726209558546543
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925477638840675,
+      "maximum_skin_radius": 0.028308112174272537
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945229515433311,
+      "maximum_skin_radius": 0.017224464565515518
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925675079226494,
+      "maximum_skin_radius": 0.028288861736655235
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945091679692268,
+      "maximum_skin_radius": 0.01725320890545845
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925555869936943,
+      "maximum_skin_radius": 0.028335388749837875
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945500530302525,
+      "maximum_skin_radius": 0.01726851612329483
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.02392537146806717,
+      "maximum_skin_radius": 0.02842544950544834
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.01494542695581913,
+      "maximum_skin_radius": 0.01726209931075573
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925475776195526,
+      "maximum_skin_radius": 0.02830810658633709
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945229515433311,
+      "maximum_skin_radius": 0.017224464565515518
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925676941871643,
+      "maximum_skin_radius": 0.028288865461945534
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945090748369694,
+      "maximum_skin_radius": 0.01725320890545845
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.023925555869936943,
+      "maximum_skin_radius": 0.028335388749837875
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "hand": "L",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.014945500530302525,
+      "maximum_skin_radius": 0.01726851612329483
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "hand": "R",
+      "covered_degrees": 360,
+      "minimum_skin_radius": 0.02392537146806717,
+      "maximum_skin_radius": 0.028425445780158043
+    }
+  ]
+}

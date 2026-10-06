@@ -5,6 +5,7 @@ mod action_queue;
 mod activity_tests;
 pub mod affinity;
 pub mod beds;
+pub mod chores;
 mod compatibility;
 #[cfg(test)]
 mod completion_sound_tests;
@@ -39,6 +40,7 @@ mod shyness;
 pub mod skills;
 mod social_company;
 pub mod systems;
+mod targeted_cleanup;
 #[cfg(test)]
 pub mod test_content;
 mod waiting;
@@ -158,6 +160,7 @@ struct RenderRow {
     colourway: u32,
     activity: u32,
     visual_action: u32,
+    chore_progress: u32,
     interaction_target: u32,
     meal_table: u32,
     sleeping_bed: u32,
@@ -998,6 +1001,12 @@ impl Sim {
             domestic: domestic::snapshot(&self.world),
             dining: dining::snapshot(&self.world),
             skills: save::skills::capture(&self.world, content),
+            targeted_cleanup: targeted_cleanup::snapshot(&self.world),
+            chores: chores::snapshot(&self.world),
+            grime: self
+                .world
+                .get_resource::<terri_core::grime::SavedGrime>()
+                .cloned(),
             affinities: save::affinities::capture(&self.world, content),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
@@ -1329,6 +1338,8 @@ impl Sim {
                     systems::action::serve_intents,
                     crate::relationship_effects::reset,
                     domestic::tick,
+                    targeted_cleanup::tick,
+                    chores::tick,
                     social_company::refresh,
                     relationship_dynamics::refresh_profiles,
                     systems::interpersonal::prepare,
@@ -1397,7 +1408,7 @@ impl Sim {
                 // tick_social, where the completion-only rule already
                 // lives.
                 systems::satisfaction::bleed_neglect,
-                mortality::tick,
+                (mortality::tick, chores::prune).chain(),
                 (mood::accrue_satisfaction, privacy::maintain).chain(),
             )
                 .chain(),
@@ -1712,6 +1723,11 @@ impl Sim {
         &self.world
     }
 
+    /// Surface, visual setting and stable dish identity for every visible pile.
+    pub fn dish_piles(&self) -> Vec<u32> {
+        targeted_cleanup::piles(&self.world)
+    }
+
     pub fn world_mut(&mut self) -> &mut World {
         &mut self.world
     }
@@ -1791,6 +1807,7 @@ impl Sim {
         self.render.ids.clear();
         self.render.activities.clear();
         self.render.visual_actions.clear();
+        self.render.chore_progress.clear();
         self.render.interaction_targets.clear();
         self.render.meal_tables.clear();
         self.render.sleeping_beds.clear();
@@ -1801,6 +1818,9 @@ impl Sim {
         self.render.carrying.clear();
         self.render.dirty_dishes.clear();
         self.render.dirty_settings.clear();
+        self.render.surface_grime.clear();
+        self.render.bin_waste.clear();
+        self.render.floor_grime.clear();
         self.render.carried_dishes.clear();
         self.render.meal_portions.clear();
         self.render.voice_firsts.clear();
@@ -2014,8 +2034,15 @@ impl Sim {
             } else {
                 None
             };
+            let chore_visual = if is_agent && !socially_active && !at_work {
+                chores::presentation::projection(&self.world, entity)
+            } else {
+                None
+            };
             let station_visual = if is_agent && !socially_active && !at_work {
-                dining::projection(&self.world, entity)
+                chore_visual
+                    .map(|p| p.0)
+                    .or_else(|| dining::projection(&self.world, entity))
                     .or_else(|| media::projection(&self.world, entity))
                     .or_else(|| seating::ordinary_projection(&self.world, entity))
                     .or_else(|| cooking_projection(&self.world, entity))
@@ -2161,6 +2188,8 @@ impl Sim {
                         )
                     })
                     .unwrap_or(render_buffer::activity::USING_OBJECT)
+            } else if chore_visual.is_some() {
+                chore_visual.unwrap().0.activity
             } else if path.is_some() {
                 render_buffer::activity::WALKING
             } else if reserved
@@ -2210,6 +2239,7 @@ impl Sim {
                     .map_or(0, |colourway| colourway.0),
                 activity,
                 visual_action,
+                chore_progress: chore_visual.map_or(0, |p| p.1),
                 interaction_target: station_visual
                     .or(socket_action_visual)
                     .filter(|_| socket_projected)
@@ -2219,7 +2249,11 @@ impl Sim {
                 meal_table: station_visual
                     .filter(|projection| {
                         socket_projected
-                            && projection.visual_action == render_buffer::visual_action::SEATED_EAT
+                            && matches!(
+                                projection.visual_action,
+                                render_buffer::visual_action::SEATED_EAT
+                                    | render_buffer::visual_action::SIT
+                            )
                     })
                     .and_then(|_| dining::claim(&self.world, entity.index_u32()))
                     .map_or(render_buffer::NO_INTERACTION_TARGET, |diner| diner.station),
@@ -2254,8 +2288,23 @@ impl Sim {
         rows.sort_by_key(|row| row.index);
 
         let domestic_items = domestic::surface_items(&self.world);
+        let chore_state = self.world.get_resource::<terri_core::chores::SavedChores>();
+        if let Some(state) = chore_state {
+            self.render.floor_grime.extend(
+                state
+                    .floors
+                    .iter()
+                    .flat_map(|(cell, amount)| [*cell, u32::from(*amount)]),
+            );
+        }
         let carried_dishes = domestic::carried_dishes(&self.world);
         for row in &rows {
+            self.render
+                .surface_grime
+                .push(chore_state.map_or(0, |s| u32::from(chores::value(&s.surfaces, row.index))));
+            self.render
+                .bin_waste
+                .push(chore_state.map_or(0, |s| u32::from(chores::value(&s.bins, row.index))));
             self.render
                 .carried_dishes
                 .push(carried_dishes.get(&row.index).copied().unwrap_or(0));
@@ -2286,6 +2335,21 @@ impl Sim {
             self.render.ids.push(row.index);
             self.render.activities.push(row.activity);
             self.render.visual_actions.push(row.visual_action);
+            let bin_progress = self
+                .world
+                .get_resource::<terri_core::chores::SavedChores>()
+                .and_then(|state| {
+                    state.tasks.iter().find(|task| {
+                        task.key.kind == terri_core::chores::ChoreKind::Bins
+                            && task.key.target == row.index
+                    })
+                })
+                .and_then(|task| dining::entity(&self.world, task.person))
+                .and_then(|actor| chores::presentation::projection(&self.world, actor))
+                .map_or(0, |p| p.1);
+            self.render
+                .chore_progress
+                .push(row.chore_progress.max(bin_progress));
             self.render.interaction_targets.push(row.interaction_target);
             self.render.meal_tables.push(row.meal_table);
             self.render.sleeping_beds.push(row.sleeping_bed);
@@ -2637,6 +2701,9 @@ impl Sim {
     /// `None` when it is not on one. Composed here rather than in the
     /// shell because every word of it is pack content.
     pub fn chain_status_of(&self, index: u32) -> Option<String> {
+        if let Some(status) = chores::status(&self.world, index) {
+            return Some(status);
+        }
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self.world.try_query::<(
             Entity,
@@ -2951,6 +3018,16 @@ impl Sim {
                 )
                 .collect(),
         )
+    }
+
+    pub fn table_action_rows(&self, index: u32) -> Vec<u32> {
+        let selected = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Selected>>()
+            .and_then(|mut q| q.iter(&self.world).next())
+            .map(|e| e.index_u32());
+        dining::table_actions(&self.world, index, selected)
+            .map_or_else(Vec::new, |(sit, eat)| vec![u32::from(sit), u32::from(eat)])
     }
 
     /// One label per entry in the pack's SOCIAL vocabulary, in index
@@ -3429,6 +3506,52 @@ impl Sim {
             for command in commands.as_slice() {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
+                    CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
+                        if matches!(command, CleanChoreFirst { .. }) {
+                            26
+                        } else {
+                            25
+                        },
+                        *agent as u64,
+                        key.kind as u64,
+                        key.target as u64,
+                    ],
+                    SetChoreProfile {
+                        agent,
+                        responsibility,
+                        preferences,
+                    } => {
+                        let mut v = vec![27, *agent as u64, *responsibility as u64];
+                        v.extend(preferences.iter().map(|x| *x as i64 as u64));
+                        v
+                    }
+                    SetChoreBoard { enabled } => vec![28, u64::from(*enabled)],
+                    CleanDishes {
+                        agent,
+                        surface,
+                        dishes,
+                    }
+                    | CleanDishesFirst {
+                        agent,
+                        surface,
+                        dishes,
+                    } => {
+                        let mut fields = vec![
+                            if matches!(command, CleanDishesFirst { .. }) {
+                                24
+                            } else {
+                                23
+                            },
+                            *agent as u64,
+                            *surface as u64,
+                            u64::from(dishes.is_some()),
+                        ];
+                        if let Some(ids) = dishes {
+                            fields.push(ids.len() as u64);
+                            fields.extend(ids.iter().map(|id| *id as u64));
+                        }
+                        fields
+                    }
                     SetDeathEnabled(enabled) => vec![17, u64::from(*enabled)],
                     SetBedAssignment { agent, place } => match place {
                         Some((bed, ordinal)) => {
@@ -3791,6 +3914,13 @@ impl Sim {
         }
         domestic::hash(&self.world, &mut hasher);
         dining::hash(&self.world, &mut hasher);
+        targeted_cleanup::hash(&self.world, &mut hasher);
+        if let Some(grime) = self.world.get_resource::<terri_core::grime::SavedGrime>() {
+            grime.hash_into(&mut hasher);
+        }
+        if let Some(state) = chores::snapshot(&self.world) {
+            state.hash_into(&mut hasher);
+        }
         hasher.finish()
     }
 }
@@ -4765,10 +4895,14 @@ mod overlay_read_tests {
         let mut queue = IntentQueue::default();
         let fridge = sim.world_mut().spawn(()).id();
         queue.push(Intent {
+            cleanup: None,
+            chore: None,
             object: fridge,
             interaction: 0,
         });
         queue.push(Intent {
+            cleanup: None,
+            chore: None,
             object: fridge,
             interaction: 1,
         });
@@ -5826,7 +5960,12 @@ mod determinism_tests {
         // Staged snack work and domestic state now compose with varied autonomy.
         // This fridge-only fixture cannot prepare snacks without a counter;
         // eligibility excludes that action and changes the selection draws.
-        const GOLDEN: u64 = 0x21c21e6232f46614;
+        // Usage-driven grime adds its independent random stream and patch state;
+        // passive dirt aging is removed. Household chores add scoped queue flags, persistent grime, profiles,
+        // assignments, daily decisions and a separate seeded stream to the digest.
+        // Board autonomy can also select real floor work in this fixture.
+        // Native assertion measured this encoding and behavior change.
+        const GOLDEN: u64 = 8890656731713008279;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

@@ -1,0 +1,54 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.87s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 5 tests
+test chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records ... FAILED
+test chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move ... FAILED
+test chores::lifecycle_tests::suspended_bin_sale_preserves_waste_and_removes_invalid_work ... FAILED
+test chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells ... FAILED
+test chores::lifecycle_tests::unsupported_dish_task_and_remote_object_contact_are_rejected_before_adoption ... FAILED
+
+failures:
+
+---- chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records stdout ----
+
+thread 'chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records' (66556) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:103:5:
+assertion failed: sim.world().resource::<SavedChores>().dish_started.is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move stdout ----
+
+thread 'chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move' (102176) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:89:5:
+assertion `left != right` failed
+  left: 21
+ right: 21
+
+---- chores::lifecycle_tests::suspended_bin_sale_preserves_waste_and_removes_invalid_work stdout ----
+
+thread 'chores::lifecycle_tests::suspended_bin_sale_preserves_waste_and_removes_invalid_work' (43004) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:60:5:
+assertion `left == right` failed
+  left: 0
+ right: 500
+
+---- chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells stdout ----
+
+thread 'chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells' (67208) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:141:5:
+assertion failed: sim.world().resource::<SavedChores>().tasks.is_empty()
+
+---- chores::lifecycle_tests::unsupported_dish_task_and_remote_object_contact_are_rejected_before_adoption stdout ----
+
+thread 'chores::lifecycle_tests::unsupported_dish_task_and_remote_object_contact_are_rejected_before_adoption' (14880) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:42:9:
+assertion failed: loaded.load_snapshot_v5(snapshot).is_err()
+
+
+failures:
+    chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records
+    chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move
+    chores::lifecycle_tests::suspended_bin_sale_preserves_waste_and_removes_invalid_work
+    chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells
+    chores::lifecycle_tests::unsupported_dish_task_and_remote_object_contact_are_rejected_before_adoption
+
+test result: FAILED. 0 passed; 5 failed; 0 ignored; 0 measured; 927 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

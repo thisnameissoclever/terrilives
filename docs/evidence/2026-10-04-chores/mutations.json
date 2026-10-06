@@ -1,0 +1,72 @@
+[
+  {
+    "name": "cancelled-dish-start",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "70a00d45f3cbd825b6d822c042e775fa18a102c4dbab2092058448554779fbc2"
+  },
+  {
+    "name": "dead-dish-start",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "7291cb9488380f164f7c04cc17c8e04ea2250a0947a11f21b63b5da38fa3a8f6"
+  },
+  {
+    "name": "room-plan",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "70a00d45f3cbd825b6d822c042e775fa18a102c4dbab2092058448554779fbc2"
+  },
+  {
+    "name": "object-contact",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "70a00d45f3cbd825b6d822c042e775fa18a102c4dbab2092058448554779fbc2"
+  },
+  {
+    "name": "bin-conservation",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "7291cb9488380f164f7c04cc17c8e04ea2250a0947a11f21b63b5da38fa3a8f6"
+  },
+  {
+    "name": "saved-task-kind",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "0d56c63c0ef691154c396909e034c353c03dfc7681f87ca920ce1012067884ed"
+  },
+  {
+    "name": "saved-task-contact",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "0d56c63c0ef691154c396909e034c353c03dfc7681f87ca920ce1012067884ed"
+  },
+  {
+    "name": "midnight-dishes",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "209cdec28074482d0ca241068598598b31d74390f9e5d0d707be03b9ccec65d5"
+  },
+  {
+    "name": "chore-hash",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "7ec1f348d59199ec93e367654180ba00a73c458dee3fe384476409f6d7bf2742"
+  },
+  {
+    "name": "chore-persistence",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "7ec1f348d59199ec93e367654180ba00a73c458dee3fe384476409f6d7bf2742"
+  }
+]

@@ -1,3 +1,4 @@
+import {cleaningBinSprite} from './frame.js';
 import { sampleBedCoverage } from './render/bed-sprites.js';
 /**
  * Pointer input: a click on the canvas becomes a serialised player command.
@@ -36,6 +37,9 @@ import { SPRITES, INTERACTION_SPRITES, BED_CATALOG, BED_COVERAGE, SPRITE_CONTENT
   SEATING_SPRITES, SEATING_COVERAGE, SEATING_MASKS } from './render/atlas.js';
 import { visibleSceneOwner } from './render/visible-scene-coverage.js';
 import { sampleDiningSupport } from './render/dining-support.js';
+import { sampleDishCoverage } from './render/dish-coverage.js';
+import { sampleBodyCoverage } from './render/body-coverage.js';
+import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteWidth, spriteHeight } from './render/sprite-size.js';
@@ -65,6 +69,9 @@ import {
 import {
   NOTHING_MENU,
   menuEntries,
+  surfaceMenuEntries,
+  dishMenuEntries,
+  floorMenuEntries,
   socialMenuEntries,
   type MenuAction,
   type Menu,
@@ -92,6 +99,12 @@ export interface PickSource {
   simIds?(): Uint32Array;
   carrying?(): Uint32Array;
   carriedDishes?(): Uint32Array;
+  choreProgress?(): Uint32Array;
+  dirtyDishes?(): Uint32Array;
+  dirtySettings?(): Uint32Array;
+  mealPortions?(): Uint32Array;
+  /** Surface, visible place and stable dish identity triples. */
+  dishPiles?(): Uint32Array;
   itemKinds?(): readonly string[];
   /** Exact validated object entity ID, never a proximity match. */
   interactionTargets?(): Uint32Array;
@@ -132,6 +145,7 @@ export interface ViewRect {
 export interface Pick {
   readonly entity: number;
   readonly isAgent: boolean;
+  readonly cleanup?: { readonly surface: number; readonly dishes: readonly number[] };
 }
 
 /**
@@ -139,6 +153,7 @@ export interface Pick {
  * clicking an object with nothing selected has nothing to direct.
  */
 export type ClickAction =
+  | { readonly kind: 'clean'; readonly agent: number; readonly surface: number; readonly dishes: readonly number[]; readonly placement: OrderPlacement }
   | { readonly kind: 'select'; readonly entity: number | null }
   | {
       readonly kind: 'use';
@@ -318,11 +333,10 @@ export function clientToWorld(
  *
  * # What this does not do
  *
- * The hit box is a **rectangle**, not the sprite's opaque pixels, so a click
- * in the transparent corner beside a bed's headboard still selects the bed.
- * The shader discards those fragments, so the player sees floor there. The
- * imprecision is in the player's favour: it makes things easier to hit, and a
- * rectangle is a large improvement on a 32-pixel-tall diamond.
+ * Ordinary furniture uses a content rectangle, so its edges remain forgiving.
+ * Sims use their rendered alpha; transparent corners pass clicks through to
+ * visible furniture and dishes. Coupled furniture/body and covered-bed masks
+ * preserve their existing ownership rules. Dish piles also use rendered alpha.
  *
  * What the rectangle is comes from `SPRITE_CONTENT_BOUNDS`, which the atlas
  * generator fills from the art's alpha, because tall empty space above a
@@ -361,6 +375,8 @@ export function pickSprite(
   interactions: InteractionSelection = pickInteractions,
   contentBounds: Readonly<Record<number, readonly [number, number, number, number]>> = SPRITE_CONTENT_BOUNDS,
 ): Pick | null {
+  // This owned projection can allocate in WASM; read it before zero-copy views.
+  const piles = source.dishPiles?.();
   const count = source.count;
   const positions = source.positions();
   const kinds = source.kinds();
@@ -374,6 +390,7 @@ export function pickSprite(
   const simIds = source.simIds?.();
   const carrying = source.carrying?.();
   const carriedDishes = source.carriedDishes?.();
+  const choreProgress = source.choreProgress?.();
   const dinnerKind = source.itemKinds?.().indexOf('dinner') ?? -1;
   const widths = source.footprintWidths?.(), depths = source.footprintDepths?.();
   const nearnessAt = (row: number): number => {
@@ -428,8 +445,9 @@ export function pickSprite(
             simIds?.[row],
             carriedDishes?.[row],
             carrying?.[row] === dinnerKind && activities[row] <= 2,
+            choreProgress?.[row],
           )
-        : spriteIndices[row];
+        : cleaningBinSprite(spriteIndices[row], choreProgress?.[row] ?? 0, reducedMotion);
     const sprite = SPRITES[displayedSprite];
     // A row whose sprite index is out of range would otherwise throw on
     // `.w`. It cannot happen from compiled content, and a click is not the
@@ -496,6 +514,10 @@ export function pickSprite(
         if (coverage <= 0) continue;
       }
     }
+    if (kinds[row] === KIND_AGENT && !pairCoverage && !bed) {
+      const alpha = sampleBodyCoverage(displayedSprite, (px - left) / scale, (py - top) / scale);
+      if (alpha !== null && alpha < .5) continue;
+    }
     const bedTarget = bed ? interactions.targetRows[row] : -1;
     const supportOwner = pairedOwner >= 0 ? pairedOwner : row;
     const support = SPRITE_DINING_SUPPORT[displayedSprite];
@@ -527,6 +549,39 @@ export function pickSprite(
       bestPlace = place;
       bestDrawRow = drawRow;
       best = { entity: ids[row], isAgent: kinds[row] === KIND_AGENT };
+    }
+  }
+  const dirty = source.dirtyDishes?.(), settings = source.dirtySettings?.(), food = source.mealPortions?.();
+  if (piles && dirty) for (let row = 0; row < count; row++) {
+    if (kinds[row] === KIND_AGENT || interactions.suppressed[row]) continue;
+    const layout = surfaceLayout(spriteIndices[row]);
+    if (!layout || layout.kind === 'stove') continue;
+    const items = surfaceItemCount(layout, dirty[row], food?.[row] ?? 0, settings?.[row]);
+    for (let item = 0; item < items; item++) {
+      const slot = surfacePointIndex(layout, dirty[row], item, settings?.[row]);
+      const visualSlot = layout.kind === 'counter' ? 4 : slot;
+      if (layout.kind === 'counter' && (dirty[row] === 0 || item !== 0)) continue;
+      const dishes: number[] = [];
+      for (let i = 0; i + 2 < piles.length; i += 3) {
+        if (piles[i] === ids[row] && piles[i + 1] === visualSlot) dishes.push(piles[i + 2]);
+      }
+      if (dishes.length === 0) continue;
+      const prop = surfaceItemSprite(layout, dirty[row], item, settings?.[row]);
+      const point = layout.points[slot];
+      const left = screenX(positions[row * 2], positions[row * 2 + 1], originX, scale)
+        + (spriteDrawOffsetX(prop) + point[0] - spriteWidth(prop) / 2) * scale;
+      const top = screenY(positions[row * 2], positions[row * 2 + 1], originY, scale)
+        + (TILE_HALF_HEIGHT + spriteDrawOffsetY(prop) + point[1] - spriteHeight(prop)) * scale;
+      const bounds = contentBounds[prop];
+      if (px < left + (bounds?.[0] ?? 0) * scale || px > left + (bounds?.[2] ?? spriteWidth(prop)) * scale
+        || py < top + (bounds?.[1] ?? 0) * scale || py > top + (bounds?.[3] ?? spriteHeight(prop)) * scale) continue;
+      if (sampleDishCoverage(prop, (px - left) / scale, (py - top) / scale) < .5) continue;
+      const near = nearnessAt(row), drawRow = count * 2 + row * 5 + item;
+      if (near > bestNearness || (near === bestNearness && LAYER_FOREGROUND > bestLayer)
+        || (near === bestNearness && LAYER_FOREGROUND === bestLayer && drawRow < bestDrawRow)) {
+        bestNearness = near; bestLayer = LAYER_FOREGROUND; bestDrawRow = drawRow;
+        best = { entity: ids[row], isAgent: false, cleanup: { surface: ids[row], dishes } };
+      }
     }
   }
   return best;
@@ -657,6 +712,7 @@ export function resolveLeftClick(
   if (pick === null) return { kind: 'select', entity: null };
   if (pick.isAgent) return { kind: 'select', entity: pick.entity };
   if (selected === null) return { kind: 'none' };
+  if (pick.cleanup) return { kind: 'clean', agent: selected, ...pick.cleanup, placement: additive ? 'back' : 'front' };
   return {
     kind: 'use',
     agent: selected,
@@ -679,6 +735,9 @@ const LEFT_CLICK_INTERACTION = 0;
 
 /** The subset of `SimBridge` the click handler dispatches through. */
 export interface CommandSink {
+  cleanChore?(person:number,kind:number,target:number,first:boolean):boolean;
+  cleanDishes?(agent: number, surface: number, dishes: readonly number[] | null): boolean;
+  cleanDishesFirst?(agent: number, surface: number, dishes: readonly number[] | null): boolean;
   select(entityIndex: number | null): boolean;
   /**
    * `interaction` is required, matching `SimBridge.useObject`. A default of
@@ -710,6 +769,8 @@ export interface CommandSink {
  */
 export function dispatch(sink: CommandSink, action: ClickAction): boolean | null {
   switch (action.kind) {
+    case 'clean':
+      return sendClean(sink, action.agent, action.surface, action.dishes, action.placement);
     case 'select':
       return sink.select(action.entity);
     case 'use':
@@ -730,6 +791,10 @@ function sendUse(
   return placement === 'front'
     ? sink.useObjectFirst(agent, object, interaction)
     : sink.useObject(agent, object, interaction);
+}
+
+function sendClean(sink: CommandSink, agent: number, surface: number, dishes: readonly number[] | null, placement: OrderPlacement): boolean {
+  return (placement === 'front' ? sink.cleanDishesFirst?.(agent, surface, dishes) : sink.cleanDishes?.(agent, surface, dishes)) ?? false;
 }
 
 /** `talkToFirst` or `talkTo`, by placement. */
@@ -755,6 +820,8 @@ export type InputTarget = CommandSink & PickSource;
  * with nothing to offer.
  */
 export interface InteractionSource {
+  choreOptions?(entity:number):Uint32Array;
+  floorChoreAt?(x:number,y:number):Uint32Array;
   interactionLabels(entity: number): readonly string[];
   /**
    * What to call the thing under the pointer, for the flyout's heading.
@@ -831,7 +898,7 @@ export function handleLeftClick(
   );
   const action = resolveLeftClick(pick, target.selectedIndex(), additive);
   if (action.kind === 'none') return { kind: 'none' };
-  if (action.kind === 'use') onOrderAttempt();
+  if (action.kind === 'use' || action.kind === 'clean') onOrderAttempt();
   const accepted = dispatch(target, action) === true;
   return action.kind === 'select'
     ? { kind: 'selection', accepted }
@@ -945,7 +1012,10 @@ export function resolveRightClick(
           scale,
           reducedMotion,
         );
-  if (pick === null) return NOTHING_MENU;
+  if (pick === null) {
+    if(point&&target.floorChoreAt){const [x,y]=screenToWorld(point.x,point.y,originX,originY,scale);const floor=target.floorChoreAt(Math.round(x),Math.round(y));if(floor.length===2)return floorMenuEntries(floor[0],floor[1]);}
+    return NOTHING_MENU;
+  }
   if (pick.isAgent) {
     // The selected sim itself: nothing to do but close. A DIFFERENT
     // sim: the social vocabulary - "walk over and chat" - which is the
@@ -959,12 +1029,8 @@ export function resolveRightClick(
       pick.entity,
     );
   }
-  return menuEntries(
-    target.entityName(pick.entity),
-    target.interactionLabels(pick.entity),
-    pick.entity,
-    target.objectDetails?.(pick.entity),
-  );
+  if (pick.cleanup) return dishMenuEntries(pick.cleanup.surface, pick.cleanup.dishes);
+  return surfaceMenuEntries(target, pick.entity);
 }
 
 /**
@@ -1051,6 +1117,9 @@ export function dispatchMenuAction(
   if (agent === null) return false;
   if (action.kind !== 'cancel') onOrderAttempt();
   switch (action.kind) {
+    case 'chore':return sink.cleanChore?.(agent,action.choreKind,action.target,placement==='front')??false;
+    case 'clean':
+      return sendClean(sink, agent, action.surface, action.dishes, placement);
     case 'use':
       return sendUse(sink, agent, action.object, action.interaction, placement);
     case 'talk':

@@ -1,0 +1,1224 @@
+{
+  "schema_version": 1,
+  "width": 38,
+  "height": 88,
+  "anchor": [
+    19.00001358985901,
+    100.00043803453445
+  ],
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "variant": "green",
+  "pixel_density": 2,
+  "clips": {
+    "mop": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 8,
+      "sample_fps": 4,
+      "loop": true,
+      "source_action": "mop"
+    },
+    "wipe_counter": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 6,
+      "sample_fps": 4,
+      "loop": true,
+      "source_action": "wipe_counter"
+    },
+    "wipe_table": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 6,
+      "sample_fps": 4,
+      "loop": true,
+      "source_action": "wipe_table"
+    },
+    "empty_bin": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 8,
+      "sample_fps": 4,
+      "loop": false,
+      "source_action": "empty_bin"
+    }
+  },
+  "frames": [
+    {
+      "name": "rigSimMopSE0",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 0,
+      "path": "mop-SE-0.png",
+      "sha256": "ae1e9297b9302f2becf4250d76a02166e88c9dd466c53807313af0788b4827f1",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSE1",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 1,
+      "path": "mop-SE-1.png",
+      "sha256": "8e3ce3230a23f14aa67d1e4f711330eb0334e9dea3a656c9c312dfab2e6cdb16",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSE2",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 2,
+      "path": "mop-SE-2.png",
+      "sha256": "1bb54f292d63a7f8b792743701d638baa0cbdfea408e5e374bf147512b2e2444",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSE3",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 3,
+      "path": "mop-SE-3.png",
+      "sha256": "0435cefe5c05617b2d0832e9daab4b1c9a6b2a5d3f25f1135d9c6a7858b5224d",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSE4",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 4,
+      "path": "mop-SE-4.png",
+      "sha256": "d65ae556d48640b7bcd1ad98c914d383a25bfa77fac8c723b821c12e32575ab8",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSE5",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 5,
+      "path": "mop-SE-5.png",
+      "sha256": "cdd436b602c75c4b617623b3f904b749b26ed350425c9e404496e3515248140e",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSE6",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 6,
+      "path": "mop-SE-6.png",
+      "sha256": "85477ed3015a381ef7b42399a3b2d2b675f94c5d934937405b4fab12c80adfe8",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSE7",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 7,
+      "path": "mop-SE-7.png",
+      "sha256": "f2ba5a01cbf4d2159ef2c2f568e9430a7f0b59a7fa492d0f6e60afd644ee6576",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopNW0",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 0,
+      "path": "mop-NW-0.png",
+      "sha256": "4e083a6e5b636cd15ae7b426debf75cf1930e083071ec8602352c776a4353141"
+    },
+    {
+      "name": "rigSimMopNW1",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 1,
+      "path": "mop-NW-1.png",
+      "sha256": "2e14e8493b35b50540b7b6dca78f36c142748bc972600fff87540242bf7ab82b"
+    },
+    {
+      "name": "rigSimMopNW2",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 2,
+      "path": "mop-NW-2.png",
+      "sha256": "f8ac0baa3d81653edc9944b2a38c6803d947c5109d68ce5a16e5bb3d555fa875"
+    },
+    {
+      "name": "rigSimMopNW3",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 3,
+      "path": "mop-NW-3.png",
+      "sha256": "a4533586ed25f50c8678aeb3924527480914f48a5f1ce7517f79bd9856278f88"
+    },
+    {
+      "name": "rigSimMopNW4",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 4,
+      "path": "mop-NW-4.png",
+      "sha256": "9abab42a140c06c3187040fa27b16e87559a1c0129ce58cb4d79d67d5a0cec6a"
+    },
+    {
+      "name": "rigSimMopNW5",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 5,
+      "path": "mop-NW-5.png",
+      "sha256": "2a7f51288353dc76285a78e33ce3f41fad3be85c142883a4d869a19e561ae6b7"
+    },
+    {
+      "name": "rigSimMopNW6",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 6,
+      "path": "mop-NW-6.png",
+      "sha256": "7c2ae96c0348828cec646c476c0b711d2d5929b878da23f795f2c44a7a5fb2b8"
+    },
+    {
+      "name": "rigSimMopNW7",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 7,
+      "path": "mop-NW-7.png",
+      "sha256": "c457b5ca682ad1928fe11eb2dae0964c059a3631dcae3e1b215108e508cb2864"
+    },
+    {
+      "name": "rigSimMopSW0",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 0,
+      "path": "mop-SW-0.png",
+      "sha256": "41ae9f6642cb862e2b8addbbcb38bdb157cbf004772d3636e542c222d26b8d00",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSW1",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 1,
+      "path": "mop-SW-1.png",
+      "sha256": "4d4f2f2963456563fa616c24706faa6aa6600f95a333d7387a66e89fcd49387f",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSW2",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 2,
+      "path": "mop-SW-2.png",
+      "sha256": "5c32acc79fff434b4d8c743543ff88a8e225ca93acc174732dac7a25a7de3f69",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSW3",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 3,
+      "path": "mop-SW-3.png",
+      "sha256": "b89bd101135933feeed78c201a1aa9d4cbae2414fd80fed5073bf89a56c9fcc7",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSW4",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 4,
+      "path": "mop-SW-4.png",
+      "sha256": "e28fd84747d3173d036a74ba2d5121544ee69a0a23a6563cb2626e3b8f2cee78",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSW5",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 5,
+      "path": "mop-SW-5.png",
+      "sha256": "eeed0cdf50295a4524325285c9ac045f733f3ebf3230064c1753b7517d4f27b7",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSW6",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 6,
+      "path": "mop-SW-6.png",
+      "sha256": "34824f034b481387e910e30a4ed83cd1dca296142c4dce1ebc710f71d4e9cd2b",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopSW7",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 7,
+      "path": "mop-SW-7.png",
+      "sha256": "2118e88f32464aa15b0a358b2f8dcdc7a59b082461471e883e982999d20dd8c6",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimMopNE0",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 0,
+      "path": "mop-NE-0.png",
+      "sha256": "6b41d64ce755bf35dbcf596d574f74a1f695684f5f92db2bcaa9ae3131af086f"
+    },
+    {
+      "name": "rigSimMopNE1",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 1,
+      "path": "mop-NE-1.png",
+      "sha256": "551ae2c2aca3c0e870e2cda801d007331ab7b1f7a6de5f851634b6d3a22f51bd"
+    },
+    {
+      "name": "rigSimMopNE2",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 2,
+      "path": "mop-NE-2.png",
+      "sha256": "425706c2a50e3bb30dcf22cfe09b8a78c3c91dd27e44dc3dc96b08c2440339ba"
+    },
+    {
+      "name": "rigSimMopNE3",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 3,
+      "path": "mop-NE-3.png",
+      "sha256": "cdc3d639bcad61d399e16d4da3c554cb3b644eec1ac39f76c57ea4df1822ac92"
+    },
+    {
+      "name": "rigSimMopNE4",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 4,
+      "path": "mop-NE-4.png",
+      "sha256": "bba1e4277c8524d376a4b8a7a5c41af6d46eb7b55a317dede144e43d3785cc8f"
+    },
+    {
+      "name": "rigSimMopNE5",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 5,
+      "path": "mop-NE-5.png",
+      "sha256": "57c67341f4f84b2f8ba258bd5afa4fe4eb88f5b5dd1d9d1d4e468a2b9c10a2b2"
+    },
+    {
+      "name": "rigSimMopNE6",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 6,
+      "path": "mop-NE-6.png",
+      "sha256": "2bd213c4544e30d781fd2144821325a9d0f0327f037be1f2f6f321e6736e936f"
+    },
+    {
+      "name": "rigSimMopNE7",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 7,
+      "path": "mop-NE-7.png",
+      "sha256": "ee90f7afb6f8aa51b3a21879f2066a61ed3e389b19fc7d54e360ff5e67ac4307"
+    },
+    {
+      "name": "rigSimWipeCounterSE0",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 0,
+      "path": "wipe_counter-SE-0.png",
+      "sha256": "388a2dcf40addf75a26d77de16073d0c132567907b6d3c6badd75ad2f912b36e"
+    },
+    {
+      "name": "rigSimWipeCounterSE1",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 1,
+      "path": "wipe_counter-SE-1.png",
+      "sha256": "88c94442dea541438ded23cccd6c930c12b39b5ef80522ff0bd601b6df0537dc"
+    },
+    {
+      "name": "rigSimWipeCounterSE2",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 2,
+      "path": "wipe_counter-SE-2.png",
+      "sha256": "f333f2afefdba2a8dd389af30f3dc746219b6f098f9695f89664637d212763cc"
+    },
+    {
+      "name": "rigSimWipeCounterSE3",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 3,
+      "path": "wipe_counter-SE-3.png",
+      "sha256": "d49c287ffd6b6901a301357ca66c43f0b0a54b8dd28130ec82285d4a4b8c0200"
+    },
+    {
+      "name": "rigSimWipeCounterSE4",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 4,
+      "path": "wipe_counter-SE-4.png",
+      "sha256": "e3f7ecc0a7c795f0f056bab86464ab87f032e579076646728ee9511f4237f18d"
+    },
+    {
+      "name": "rigSimWipeCounterSE5",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 5,
+      "path": "wipe_counter-SE-5.png",
+      "sha256": "af1c43d6a7246445f385ca38d1ca421d1b35f51c43085f7506b6f13216c51f01"
+    },
+    {
+      "name": "rigSimWipeCounterNW0",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 0,
+      "path": "wipe_counter-NW-0.png",
+      "sha256": "6cce26c002f43212b1b4b551c7daab817794abe11d474db6c37ca1ffe45f9b9a"
+    },
+    {
+      "name": "rigSimWipeCounterNW1",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 1,
+      "path": "wipe_counter-NW-1.png",
+      "sha256": "86276aa418bf2a965b55c13df8b0b1fa0d0b20db5ba6a6cb99d1df7f8c54b807"
+    },
+    {
+      "name": "rigSimWipeCounterNW2",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 2,
+      "path": "wipe_counter-NW-2.png",
+      "sha256": "c294945bafa3faa4d44064d9007c88129c62f114fa031e94bb3636469efb3fc3"
+    },
+    {
+      "name": "rigSimWipeCounterNW3",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 3,
+      "path": "wipe_counter-NW-3.png",
+      "sha256": "0ce068d6d888882376b1786db0e057017f3d436bf8b8d98d8a1cc529cf4d03d0"
+    },
+    {
+      "name": "rigSimWipeCounterNW4",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 4,
+      "path": "wipe_counter-NW-4.png",
+      "sha256": "d8a955b7ddfe9765441e91c1765b44a8205468c1020378993c2e120d94d60fc9"
+    },
+    {
+      "name": "rigSimWipeCounterNW5",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 5,
+      "path": "wipe_counter-NW-5.png",
+      "sha256": "4f3b5082cdc5f8c18b0529614e2179c9290121c64a94af637b2d6a446e8bbbef"
+    },
+    {
+      "name": "rigSimWipeCounterSW0",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 0,
+      "path": "wipe_counter-SW-0.png",
+      "sha256": "d74461950949e745499a57873f03885b93b449241781cee011f1030838d9b85b"
+    },
+    {
+      "name": "rigSimWipeCounterSW1",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 1,
+      "path": "wipe_counter-SW-1.png",
+      "sha256": "442ac365173a4ecde714134fba59a0c572d6e8cb58c2527659403cf9df815702"
+    },
+    {
+      "name": "rigSimWipeCounterSW2",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 2,
+      "path": "wipe_counter-SW-2.png",
+      "sha256": "c97ae398fc351ca9175145a1753b96a6fe7fe78ecb0dff0dd1ef68aeac9cb767"
+    },
+    {
+      "name": "rigSimWipeCounterSW3",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 3,
+      "path": "wipe_counter-SW-3.png",
+      "sha256": "ac8ab1722ba208d3be536fe1d055f32f312a053c22af8d3d8a8cf652b265d8da"
+    },
+    {
+      "name": "rigSimWipeCounterSW4",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 4,
+      "path": "wipe_counter-SW-4.png",
+      "sha256": "5a4565a825490bcf0a198cf0e15cf10b3aabf6bd38d2c3c2c359fe2c2b7bc6bb"
+    },
+    {
+      "name": "rigSimWipeCounterSW5",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 5,
+      "path": "wipe_counter-SW-5.png",
+      "sha256": "ba761ffc23c59761dcbe391451a41f27c86eae7738b2a7d8574d7925ddfd49ed"
+    },
+    {
+      "name": "rigSimWipeCounterNE0",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 0,
+      "path": "wipe_counter-NE-0.png",
+      "sha256": "273bab2e964f9be0ed2f5485ec95390a9aae66839e0d1de7bb5844ee4a3ed16b"
+    },
+    {
+      "name": "rigSimWipeCounterNE1",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 1,
+      "path": "wipe_counter-NE-1.png",
+      "sha256": "f22c72191bd1d554b492d94dfa1cf5698b47eac3d493a34901a12e8a4de578c9"
+    },
+    {
+      "name": "rigSimWipeCounterNE2",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 2,
+      "path": "wipe_counter-NE-2.png",
+      "sha256": "4d8a0db07503e49283767b45182914b5dbe48fbf55859f9954afccacb67a6d34"
+    },
+    {
+      "name": "rigSimWipeCounterNE3",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 3,
+      "path": "wipe_counter-NE-3.png",
+      "sha256": "970aaf64d2a409f5ad38af278ce34f632799be69dea955be747840831ef6f2e0"
+    },
+    {
+      "name": "rigSimWipeCounterNE4",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 4,
+      "path": "wipe_counter-NE-4.png",
+      "sha256": "d4290a081198d17de340501a6ae67950b935aa297e7db5ef91720879e7ccf145"
+    },
+    {
+      "name": "rigSimWipeCounterNE5",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 5,
+      "path": "wipe_counter-NE-5.png",
+      "sha256": "8d1de5662a64d00c1596189c51d27ab1b70ed3c05220604d37bdd40f47d76500"
+    },
+    {
+      "name": "rigSimWipeTableSE0",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 0,
+      "path": "wipe_table-SE-0.png",
+      "sha256": "77cf4e2164d44943767edfa8348e8ae30b157a729ccae19040fdf1db4e898d9e"
+    },
+    {
+      "name": "rigSimWipeTableSE1",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 1,
+      "path": "wipe_table-SE-1.png",
+      "sha256": "449db632c334d13b01225394af9f08733167f48cecca4103b84b59855f046a93"
+    },
+    {
+      "name": "rigSimWipeTableSE2",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 2,
+      "path": "wipe_table-SE-2.png",
+      "sha256": "f0c71b9643114250c9759d3773915c26357fd04397d72988a3ec848d692fea2e"
+    },
+    {
+      "name": "rigSimWipeTableSE3",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 3,
+      "path": "wipe_table-SE-3.png",
+      "sha256": "4000deaf1ee9fc8c7225f0839168fe7e6f4c96d4c5d15aaaeccf3059f03c8d34"
+    },
+    {
+      "name": "rigSimWipeTableSE4",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 4,
+      "path": "wipe_table-SE-4.png",
+      "sha256": "cc1b6c9d9513a27c5e8795b1b667c994596dd3014807dd63ec48a34a4331db83"
+    },
+    {
+      "name": "rigSimWipeTableSE5",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 5,
+      "path": "wipe_table-SE-5.png",
+      "sha256": "06c568365b96743ab023f5a78440757118e5e4f88b14f746788f303260b8df01"
+    },
+    {
+      "name": "rigSimWipeTableNW0",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 0,
+      "path": "wipe_table-NW-0.png",
+      "sha256": "cff8967ba4fea05f7d25164161a3a6a7188e553bd1236897cea8f03ab00bb676"
+    },
+    {
+      "name": "rigSimWipeTableNW1",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 1,
+      "path": "wipe_table-NW-1.png",
+      "sha256": "611b7f582d3a96b09f679b3dd496427482284eacd7a269cae1209081a2e18684"
+    },
+    {
+      "name": "rigSimWipeTableNW2",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 2,
+      "path": "wipe_table-NW-2.png",
+      "sha256": "21096dd4bddd975833050134c8555d35a95aada2cb03337bfcdf61c44d4f29a0"
+    },
+    {
+      "name": "rigSimWipeTableNW3",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 3,
+      "path": "wipe_table-NW-3.png",
+      "sha256": "4fae0867d68878ab7b32015f6a02668cb9e942a6a1d74799c504530725e4ed57"
+    },
+    {
+      "name": "rigSimWipeTableNW4",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 4,
+      "path": "wipe_table-NW-4.png",
+      "sha256": "1cbcba1d2970cebae06fa3bf0d6ef709b40d4fe34803c9387f5862403672c3ee"
+    },
+    {
+      "name": "rigSimWipeTableNW5",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 5,
+      "path": "wipe_table-NW-5.png",
+      "sha256": "0bd7139aa139829c3f1b3cc242bd86e236a62ca10f5237acea481a68bf7c538c"
+    },
+    {
+      "name": "rigSimWipeTableSW0",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 0,
+      "path": "wipe_table-SW-0.png",
+      "sha256": "fe6d3cf0555d6c4fb29971b18860642ac9a6288bd963696d13fd35eb3d08069f"
+    },
+    {
+      "name": "rigSimWipeTableSW1",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 1,
+      "path": "wipe_table-SW-1.png",
+      "sha256": "16a759286ea033441e45702f4c1807e63a07e1be38b571cfa791f9127ae43613"
+    },
+    {
+      "name": "rigSimWipeTableSW2",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 2,
+      "path": "wipe_table-SW-2.png",
+      "sha256": "1cdd89a24258fbac1694139d7b6ee418ac773a584144564210bc455dab4484dc"
+    },
+    {
+      "name": "rigSimWipeTableSW3",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 3,
+      "path": "wipe_table-SW-3.png",
+      "sha256": "27f02ae7715d5ea788a9e62a55cdeb4a211f8794db22bc53d3f5380ab99a8b00"
+    },
+    {
+      "name": "rigSimWipeTableSW4",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 4,
+      "path": "wipe_table-SW-4.png",
+      "sha256": "7269ed074f23d07972375599ca3a66eaabfe33217bf827e92711010d197084ef"
+    },
+    {
+      "name": "rigSimWipeTableSW5",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 5,
+      "path": "wipe_table-SW-5.png",
+      "sha256": "bd56c87f1ebe62fee2841b7b4707372a276ee66cd95de4f5bea945b6f5b0b73b"
+    },
+    {
+      "name": "rigSimWipeTableNE0",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 0,
+      "path": "wipe_table-NE-0.png",
+      "sha256": "0bf51edf2d8cba1bfd013447a0af2558678c16d50ba9a8d34deee1490fe433ee"
+    },
+    {
+      "name": "rigSimWipeTableNE1",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 1,
+      "path": "wipe_table-NE-1.png",
+      "sha256": "1e61d3ca20db627d621af51c0be9152a620078a2321c00f3da72eaaeca5ab23a"
+    },
+    {
+      "name": "rigSimWipeTableNE2",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 2,
+      "path": "wipe_table-NE-2.png",
+      "sha256": "9d4144dacee5d7ad1359f14a23f300a4e817583c0d0d4ac70f62b4d67102566b"
+    },
+    {
+      "name": "rigSimWipeTableNE3",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 3,
+      "path": "wipe_table-NE-3.png",
+      "sha256": "4eae5732c32c8e8c0fbbb6d8c83261589d0103320b424a34c1317f2a45ee6152"
+    },
+    {
+      "name": "rigSimWipeTableNE4",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 4,
+      "path": "wipe_table-NE-4.png",
+      "sha256": "1d28e7ae8f687cd92e3ecc2cf44fc0b97b5bdf8e03c78abbf57b1e753ed79a84"
+    },
+    {
+      "name": "rigSimWipeTableNE5",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 5,
+      "path": "wipe_table-NE-5.png",
+      "sha256": "8ad14310b18dddd1513ef6a9fc69f94542d3e98e8140c37ce23c0ae1a3e50674"
+    },
+    {
+      "name": "rigSimEmptyBinSE0",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 0,
+      "path": "empty_bin-SE-0.png",
+      "sha256": "6024cd80739076ab56fdfd5a483d33d636fab42105f18cab847b9b14d19a6c96"
+    },
+    {
+      "name": "rigSimEmptyBinSE1",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 1,
+      "path": "empty_bin-SE-1.png",
+      "sha256": "21cc75b71a9cf0393b8b674e19c20be69e3ffa4bb076d2ed7fa20b8874ebba7c"
+    },
+    {
+      "name": "rigSimEmptyBinSE2",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 2,
+      "path": "empty_bin-SE-2.png",
+      "sha256": "5f7427a407df310193d006f8b0038b8fc4f29545bc766d59ed40d15dbd447b26"
+    },
+    {
+      "name": "rigSimEmptyBinSE3",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 3,
+      "path": "empty_bin-SE-3.png",
+      "sha256": "0ddd729da02dcc14a9cd066724e1bc229cfd467c0bc7680cae06888256661bda"
+    },
+    {
+      "name": "rigSimEmptyBinSE4",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 4,
+      "path": "empty_bin-SE-4.png",
+      "sha256": "5f344047227a1cafd6b7e519237cc1cc0cec492cb1529e33d71083eb7c8af761"
+    },
+    {
+      "name": "rigSimEmptyBinSE5",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 5,
+      "path": "empty_bin-SE-5.png",
+      "sha256": "278198e6965906c58489ce8f2395fac65f61e264d7cec301ecc4759041f3c409"
+    },
+    {
+      "name": "rigSimEmptyBinSE6",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 6,
+      "path": "empty_bin-SE-6.png",
+      "sha256": "ece1b1f643669c56039f34e0588e7c0243908f2178356ede60b7f08218c3e1a0"
+    },
+    {
+      "name": "rigSimEmptyBinSE7",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 7,
+      "path": "empty_bin-SE-7.png",
+      "sha256": "cc41d7c1a0a93c4aca4ae5e302fcdee6a775905a0fd80df3f6994036e0cfed24"
+    },
+    {
+      "name": "rigSimEmptyBinNW0",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 0,
+      "path": "empty_bin-NW-0.png",
+      "sha256": "00b79a5b7e3388caf39b26574c2943e321ec749bfe41cc16794f7dbabda4d4eb"
+    },
+    {
+      "name": "rigSimEmptyBinNW1",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 1,
+      "path": "empty_bin-NW-1.png",
+      "sha256": "f4ea5299edd5e1f4dcb4ad09902a9c5069a01ab883751b8f9649b0a660d5da89"
+    },
+    {
+      "name": "rigSimEmptyBinNW2",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 2,
+      "path": "empty_bin-NW-2.png",
+      "sha256": "14ab4aac8db416e92eeaec061699e371e8f6e64895d83120d745e6c58f886d53"
+    },
+    {
+      "name": "rigSimEmptyBinNW3",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 3,
+      "path": "empty_bin-NW-3.png",
+      "sha256": "fbd3ef1a85c7160e113ec2fe9809f77387586516b70c5c4ce919ae237ebfe24c"
+    },
+    {
+      "name": "rigSimEmptyBinNW4",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 4,
+      "path": "empty_bin-NW-4.png",
+      "sha256": "dec1caf9d2944832035373e4f8862f249e66584d3d3a65d400ec49e2d5d610ff"
+    },
+    {
+      "name": "rigSimEmptyBinNW5",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 5,
+      "path": "empty_bin-NW-5.png",
+      "sha256": "483b6abd4a4a9f5cc0222e9784e3b8be483ea109d17d10855e4a4b6c4fe7d875"
+    },
+    {
+      "name": "rigSimEmptyBinNW6",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 6,
+      "path": "empty_bin-NW-6.png",
+      "sha256": "10ce8feafe0a12bec9dab61d1fedfac1b05cb51085504e53fc08b3e1f3f71bcd"
+    },
+    {
+      "name": "rigSimEmptyBinNW7",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 7,
+      "path": "empty_bin-NW-7.png",
+      "sha256": "d3abb06b8129ffb4b91418de109ed9a654e82691db4f43cdb212da7a15a72c09"
+    },
+    {
+      "name": "rigSimEmptyBinSW0",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 0,
+      "path": "empty_bin-SW-0.png",
+      "sha256": "f196f8bb2063b8b2ddce5da04d21ca7f0cc52fd479f57a3930018e8198287d89"
+    },
+    {
+      "name": "rigSimEmptyBinSW1",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 1,
+      "path": "empty_bin-SW-1.png",
+      "sha256": "9cdaa37ffb77f8cff1877f9dac79eb0405b3c634df86c93cbdec8277ecfe46a0"
+    },
+    {
+      "name": "rigSimEmptyBinSW2",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 2,
+      "path": "empty_bin-SW-2.png",
+      "sha256": "49d5afb0a162d36c9631e1c055ddadf8687d7405bdbfca7d138bed6f4456078a"
+    },
+    {
+      "name": "rigSimEmptyBinSW3",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 3,
+      "path": "empty_bin-SW-3.png",
+      "sha256": "c112112bc641847847fe727c1e403ccc7fdfeabbba27bdbcfdb061ec7d64aa08"
+    },
+    {
+      "name": "rigSimEmptyBinSW4",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 4,
+      "path": "empty_bin-SW-4.png",
+      "sha256": "c7af9d6733bc2aa248167f073ad5656b166e5a5cadd9a58c7f2e99c7d7725437"
+    },
+    {
+      "name": "rigSimEmptyBinSW5",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 5,
+      "path": "empty_bin-SW-5.png",
+      "sha256": "0ca8e48e2ea17bfc0c39861e5e2d781a7ac53969619c54c35431e93b79aa019e"
+    },
+    {
+      "name": "rigSimEmptyBinSW6",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 6,
+      "path": "empty_bin-SW-6.png",
+      "sha256": "9801778d0b745259747c6d4a6b60571164a219f063220de52b86fde28a001d06"
+    },
+    {
+      "name": "rigSimEmptyBinSW7",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 7,
+      "path": "empty_bin-SW-7.png",
+      "sha256": "cfc21002b6cb6c34c7cbc12e6736c94960cbea4c2e72471c87a24374c8b1b1c1"
+    },
+    {
+      "name": "rigSimEmptyBinNE0",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 0,
+      "path": "empty_bin-NE-0.png",
+      "sha256": "fa9fb612cc03f32e0dc6e6ba45ec7f91f34c8a45ee2afe2028146e9849087fcd"
+    },
+    {
+      "name": "rigSimEmptyBinNE1",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 1,
+      "path": "empty_bin-NE-1.png",
+      "sha256": "cc31b2ce663130742adfdbe6129489a5c2b6643f0e428ce9fa45a931c15b5d3d"
+    },
+    {
+      "name": "rigSimEmptyBinNE2",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 2,
+      "path": "empty_bin-NE-2.png",
+      "sha256": "ee6c60e87cbf293c7fdeffeecc15bb0434d9bcee44116d7e820d2cdc612e6ad6"
+    },
+    {
+      "name": "rigSimEmptyBinNE3",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 3,
+      "path": "empty_bin-NE-3.png",
+      "sha256": "1079b8ec972a6461f28dad2875a30ea4a8ccd673d0d68c50bed4eab565257224"
+    },
+    {
+      "name": "rigSimEmptyBinNE4",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 4,
+      "path": "empty_bin-NE-4.png",
+      "sha256": "9e326b1778d869a3c3ff60db621a1811569df2426178f3bf5837ded50178df2f"
+    },
+    {
+      "name": "rigSimEmptyBinNE5",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 5,
+      "path": "empty_bin-NE-5.png",
+      "sha256": "bc544f9f3d859bf08b211f080c323237fc17650864c092c06a789ba4974e814a"
+    },
+    {
+      "name": "rigSimEmptyBinNE6",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 6,
+      "path": "empty_bin-NE-6.png",
+      "sha256": "58cc3b3cde1f624409e01a8059b1e1783601260a4b077f3633e6672b514794e9"
+    },
+    {
+      "name": "rigSimEmptyBinNE7",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 7,
+      "path": "empty_bin-NE-7.png",
+      "sha256": "bdc13eaec9cc25db7f7c53a79b29876c3f46c2aca7980193faa3b7d99be4d8e2"
+    }
+  ]
+}

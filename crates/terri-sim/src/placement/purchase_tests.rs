@@ -345,6 +345,8 @@ fn a_purchase_sees_the_orders_issued_before_it_and_not_those_after() {
                 Agent,
                 Position { x: 3.0, y: 1.0 },
                 terri_core::IntentQueue::from_intents(vec![terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: 0,
                 }]),

@@ -69,6 +69,11 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
     if world.get::<Reserved>(entity).is_some()
         || crate::dining::object_in_use(world, object)
         || crate::domestic::surface_in_use(world, object)
+        || crate::chores::object_claimed(
+            world.get_resource::<terri_core::chores::SavedChores>(),
+            object,
+            u32::MAX,
+        )
         || people.iter(world).any(|person| {
             person.get::<Target>().is_some_and(|t| t.object == entity)
                 || person

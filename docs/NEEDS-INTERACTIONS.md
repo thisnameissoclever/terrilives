@@ -47,14 +47,17 @@ only during active eating or shared use.
 | Ottoman: sit | 50 minutes | Comfort +34 | Sitting relieves physical discomfort without an active pastime. |
 | Long sofa: lie down | 72 minutes | Comfort +43, Energy +9 | Reclining is physically restful, with a small Energy benefit that is much weaker than sleep. Plain reclining provides no Fun. |
 | Armchair: sit | 41 minutes | Comfort +29 | Supported sitting relieves discomfort. |
-| Dining table: sit down to eat, without food | 62 minutes | Comfort +37; no Hunger or Social | The existing standalone sitting action represents rest at the table. It does not create food or company. Its availability is separate from the real meal-chain rules. |
+| Dining table: Sit | 62 minutes | Comfort +37; no Hunger or Social | Resting at the table requires a real chair. It creates neither food nor company. Eat is offered separately when a prepared portion is available. |
 | Bookshelf: read | 34 minutes | Fun +26; conditional shared-activity Social | Reading is an engaging pastime. Eligible simultaneous reading supplies mild company. |
 | Reading chair: read | 46 minutes | Comfort +15, Fun +19; conditional shared-activity Social | The chair provides comfort while the book provides entertainment. |
 | Exercise bike: exercise | 83 minutes | Fun +28, Energy -8, Hygiene -5; conditional shared-activity Social | Exercise is an active pastime. Exertion costs Energy, and sweat reduces cleanliness. |
 | Desk: correspondence | 58 minutes | Fun +36, Energy -7 | The game treats correspondence as engaging desk work with a small effort cost. It is not a conversation with another household Sim and provides no Social. |
 | Aquarium: watch fish | 67 minutes | Fun +25, Comfort +21; conditional shared-activity Social | Watching fish entertains and relaxes the viewer. Eligible shared watching also provides mild company. |
 | Chat | 67-minute authored rate; actual length follows the chosen voice clips | Social +50.25 and Fun +10.05 over 67 minutes; Social requires positive receiver affinity | Conversation entertains and provides satisfying company. Each participant's own feeling controls their Social reward. |
-| Clean dishes | Two 25-minute working steps, plus travel | No direct need reward | Cleaning removes environmental mess and its mood consequences. It does not clean the Sim's body or refill a need. |
+| Clean dishes, including a targeted pile or surface | Collection and washing work, plus travel | No direct need reward | Cleaning removes dishes and their environmental mood consequences. It does not wash the Sim's body or refill a need. |
+| Clean floor | 24 work minutes per patch, plus travel | No direct need reward or additional need cost | Work removes actual grime and its mood effect; normal need decay accounts for time spent working. |
+| Wipe surface | 45 work minutes, plus travel | No direct need reward or additional need cost | Wiping cleans furniture rather than the Sim. Grime, mood and commitment credit change separately. |
+| Empty bin | 60 work minutes, plus travel | No direct need reward or additional need cost | Waste removal changes the household environment and commitment outcomes; it does not refill a bodily need. |
 
 Objects without actions or a secondary seating role do not refill needs.
 Decoration can affect presentation or the environment without becoming a
@@ -94,7 +97,9 @@ costs approximately 0.778. The cost applies to real food consumption, including
 tableless eating. Gathering diners, preparing food, carrying a plate, waiting
 and walking do not incur it. This cost is additional to normal Comfort decay.
 Snacks currently do not claim dining chairs, so they provide no chair Comfort
-or communal meal Social. The full meal chains own dining-chair selection.
+or communal meal Social. The full meal chains own food consumption at dining chairs. Standalone table
+sitting also claims a real chair, but receives only its own authored Comfort
+and no secondary-seat or Social bonus.
 
 ## Hand washing's limit
 

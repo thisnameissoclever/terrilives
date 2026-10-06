@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/targeted-dishes.test.ts tests/keyboard-target.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  19:59:55
+   Duration  760ms (transform 472ms, setup 0ms, import 559ms, tests 10ms, environment 0ms)
+

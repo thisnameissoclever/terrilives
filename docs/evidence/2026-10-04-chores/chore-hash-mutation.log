@@ -1,0 +1,33 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+warning: unused variable: `state`
+    --> crates\terri-sim\src\lib.rs:3574:21
+     |
+3574 |         if let Some(state) = chores::snapshot(&self.world) {
+     |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+     |
+     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.55s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::tests::chore_hash_observes_grime_and_independent_personality_values_at_the_same_tick ... FAILED
+
+failures:
+
+---- chores::tests::chore_hash_observes_grime_and_independent_personality_values_at_the_same_tick stdout ----
+
+thread 'chores::tests::chore_hash_observes_grime_and_independent_personality_values_at_the_same_tick' (48884) panicked at crates\terri-sim\src\chores\tests.rs:285:9:
+assertion `left != right` failed
+  left: 16205700675540473065
+ right: 16205700675540473065
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::tests::chore_hash_observes_grime_and_independent_personality_values_at_the_same_tick
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 934 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

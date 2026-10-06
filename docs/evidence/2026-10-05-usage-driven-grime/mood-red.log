@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 55.60s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::grime_tests::grime_mood_scales_with_opacity_even_without_dirty_floors ... FAILED
+
+failures:
+
+---- chores::grime_tests::grime_mood_scales_with_opacity_even_without_dirty_floors stdout ----
+
+thread 'chores::grime_tests::grime_mood_scales_with_opacity_even_without_dirty_floors' (85788) panicked at crates\terri-sim\src\chores\grime_tests.rs:115:95:
+dirty surfaces matter with a clean floor
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::grime_tests::grime_mood_scales_with_opacity_even_without_dirty_floors
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 979 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

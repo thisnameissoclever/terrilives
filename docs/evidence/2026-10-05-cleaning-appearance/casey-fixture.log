@@ -1,0 +1,5 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6m 09s
+     Running `target\debug\examples\chores_review.exe web/public/.tmp/grime-casey.sav 1000 2`

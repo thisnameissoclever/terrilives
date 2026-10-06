@@ -609,14 +609,20 @@ mod tests {
                 .entity_mut(survivor)
                 .insert(IntentQueue::from_intents(vec![
                     Intent {
+                        cleanup: None,
+                        chore: None,
                         object: dead,
                         interaction: 0,
                     },
                     Intent {
+                        cleanup: None,
+                        chore: None,
                         object: unrelated,
                         interaction: 0,
                     },
                     Intent {
+                        cleanup: None,
+                        chore: None,
                         object: dead,
                         interaction: 1,
                     },
@@ -629,6 +635,8 @@ mod tests {
             assert_eq!(
                 sim.world().get::<IntentQueue>(survivor).unwrap().as_slice(),
                 &[Intent {
+                    cleanup: None,
+                    chore: None,
                     object: unrelated,
                     interaction: 0
                 }]

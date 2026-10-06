@@ -443,6 +443,7 @@ pub fn follow_path(
             continue;
         }
 
+        let grime_from = (pos.x.round() as i32, pos.y.round() as i32);
         if dist <= SPEED {
             pos.x = tx as f32;
             pos.y = ty as f32;
@@ -450,6 +451,12 @@ pub fn follow_path(
         } else {
             pos.x += dx / dist * SPEED;
             pos.y += dy / dist * SPEED;
+        }
+        let grime_to = (pos.x.round() as i32, pos.y.round() as i32);
+        if grime_from != grime_to {
+            commands.queue(move |world: &mut World| {
+                crate::chores::grime::footstep(world, entity, grime_from, grime_to)
+            });
         }
         interpersonal.moved(entity, *pos, content.0.tuning.bathroom_privacy_penalty);
     }

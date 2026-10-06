@@ -47,9 +47,10 @@ pub const CHAIN_STEP: u32 = u32::MAX;
 /// pre-expanded intents): the nearest free table when the plate is
 /// ready, not when the fridge was opened. All stations reserved means
 /// WAIT, the standing [C3] answer, with `Blocked` saying why.
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn advance_chains(
     mut commands: Commands,
+    scoped: Option<Res<terri_core::save::SavedTargetedCleanup>>,
     grid: Res<TileGrid>,
     content: Res<Content>,
     idle: Query<
@@ -80,6 +81,7 @@ pub fn advance_chains(
         Option<&terri_core::ObjectFacing>,
     )>,
     mut domestic: Option<ResMut<terri_core::save::SavedDomestic>>,
+    chore_state: Option<Res<terri_core::chores::SavedChores>>,
     occupants: Query<
         (
             Entity,
@@ -100,13 +102,22 @@ pub fn advance_chains(
         // hand the sim two walks at once. The running chain's OWN order
         // is not one: it sits at the front for as long as the chain
         // runs ([D-3]) and is exactly what the resume is carrying out.
-        .filter(|(_, _, queue, state, ..)| {
-            !outranked(content.0, *queue, state.chain, |object| {
-                stations
-                    .get(object)
-                    .ok()
-                    .map(|(_, _, placed, _, _)| placed.0)
-            })
+        .filter(|(person, _, queue, state, ..)| {
+            let queued_scope_waits = queue
+                .and_then(IntentQueue::front)
+                .is_some_and(|intent| intent.cleanup.is_some())
+                && scoped.as_deref().is_some_and(|saved| {
+                    saved.orders.iter().any(|order| {
+                        order.person == person.index_u32() && order.queue_position.is_none()
+                    })
+                });
+            queued_scope_waits
+                || !outranked(content.0, *queue, state.chain, |object| {
+                    stations
+                        .get(object)
+                        .ok()
+                        .map(|(_, _, placed, _, _)| placed.0)
+                })
         })
         .map(|(entity, ..)| entity)
         .collect();
@@ -156,6 +167,18 @@ pub fn advance_chains(
         }
         let step = &chain.steps[chain_state.step as usize];
         let cleanup = chain.id == crate::domestic::CLEANUP;
+        if cleanup
+            && chain_state.step == 0
+            && domestic.as_ref().is_some_and(|state| {
+                state
+                    .cleanup
+                    .iter()
+                    .any(|t| t.person == sim.index_u32() && t.dishes.is_empty())
+            })
+        {
+            commands.entity(sim).insert(Blocked);
+            continue;
+        }
         if cleanup
             && domestic.as_ref().is_none_or(|state| {
                 state
@@ -230,6 +253,12 @@ pub fn advance_chains(
                 continue;
             }
             any_station = true;
+            let reserved = reserved
+                || crate::chores::object_claimed(
+                    chore_state.as_deref(),
+                    station.index_u32(),
+                    sim.index_u32(),
+                );
             let to = (station_pos.x.round() as i32, station_pos.y.round() as i32);
             // The ORIENTED rectangle: a station the player has turned is
             // approached where it now lies.
@@ -614,7 +643,13 @@ pub(crate) fn outranked(
 /// neither has one restored from a save written while chain orders were
 /// still spent at the start.
 pub(crate) fn settle_order(world: &mut World, sim: Entity, chain: u32) {
+    // The active scoped order owns this wash; a queued sink-wide order does not.
     let pack = world.resource::<Content>().0;
+    if pack.chains[chain as usize].id == crate::domestic::CLEANUP
+        && crate::targeted_cleanup::has_active(world, sim.index_u32())
+    {
+        return;
+    }
     let Some(queue) = world.get::<IntentQueue>(sim) else {
         return;
     };

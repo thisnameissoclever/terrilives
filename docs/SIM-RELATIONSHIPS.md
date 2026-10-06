@@ -168,6 +168,17 @@ needs another pacing check because it will reduce contact.
 
 ## Rules for every new interpersonal effect
 
+Household chore episodes identify an owner and the actual performer. Real
+completion applies a small positive feeling toward the performer from each
+other living housemate. A helper covering a consciously skipped duty also
+receives a small negative feeling toward its owner. Midnight settlement applies
+neglect once only when work was needed and the owner had an opportunity;
+unavailable owners and no-work days are exempt. Active work retains its original
+day across midnight. Settled episodes cannot receive another reaction.
+Chore preferences separately generate enjoyment or dislike moodlets; those do
+not directly rewrite another Sim's affinity. See the
+[chores specification](specs/2026-10-04-chores-and-weekly-board.md).
+
 1. Identify the subject, source, responsible Sim, and direction of the effect.
 2. Separate need changes, mood reasons, sustained satisfaction, affinity, family
    classification and activity rewards. Record how they compose.
