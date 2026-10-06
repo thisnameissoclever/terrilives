@@ -407,6 +407,66 @@ fn the_world_hash_sees_a_staged_move_in_by_its_ids() {
     );
 }
 
+/// [ES-atomic]: the digest sees a staged edit's person, personality, traits
+/// and ties, and not the name.
+#[test]
+fn the_world_hash_sees_a_staged_edit_by_its_ids_and_ignores_its_name() {
+    use terri_core::layout::Relation;
+    let edit = |name: &str,
+                personality: Option<u32>,
+                traits: Vec<u32>,
+                ties: Vec<(u32, Option<Relation>)>| {
+        let mut sim = Sim::new_from_shipped_lot();
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::EditHousemate {
+                sim: 0,
+                name: name.to_string(),
+                personality,
+                traits,
+                ties,
+            });
+        sim.world_hash()
+    };
+    let base = edit("Ann", Some(1), vec![0], vec![(1, Some(Relation::Parent))]);
+    assert_eq!(
+        base,
+        edit("Bob", Some(1), vec![0], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", None, vec![0], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", Some(2), vec![0], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", Some(1), vec![1], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", Some(1), vec![0], vec![(1, Some(Relation::Child))])
+    );
+    assert_ne!(base, edit("Ann", Some(1), vec![0], vec![(1, None)]));
+    assert_ne!(
+        base,
+        edit("Ann", Some(1), vec![0], vec![(2, Some(Relation::Parent))])
+    );
+    assert_ne!(base, edit("Ann", Some(1), vec![0], vec![]));
+    assert_ne!(
+        edit("Ann", None, vec![], vec![]),
+        edit("Ann", Some(900), vec![], vec![]),
+        "a kept personality and an unknown one differ by the marker"
+    );
+    assert_eq!(
+        edit("Ann", Some(900), vec![900], vec![]),
+        edit("Ann", Some(u32::MAX), vec![u32::MAX], vec![]),
+        "indices naming nothing hash alike on both sides of a Load"
+    );
+}
+
 #[test]
 fn a_personality_is_labelled_by_its_id_in_words() {
     assert_eq!(personality_label("the_correspondent"), "The correspondent");

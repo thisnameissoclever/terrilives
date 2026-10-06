@@ -3391,6 +3391,42 @@ impl Sim {
                         }));
                         row
                     }
+                    // [ES-atomic]: as a move-in, by the personality's and
+                    // the traits' ids with the name in no row. A kept
+                    // personality and an unknown one differ by the marker.
+                    EditHousemate {
+                        sim,
+                        personality,
+                        traits,
+                        ties,
+                        ..
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        let mut row = vec![
+                            22,
+                            u64::from(*sim),
+                            u64::from(personality.is_some()),
+                            personality.map_or(u64::MAX, |index| {
+                                content
+                                    .and_then(|content| content.0.personalities.get(index as usize))
+                                    .map_or(u64::MAX, |personality| id_digest(&personality.id))
+                            }),
+                            traits.len() as u64,
+                        ];
+                        row.extend(traits.iter().map(|&index| {
+                            content
+                                .and_then(|content| content.0.traits.get(index as usize))
+                                .map_or(u64::MAX, |worn| id_digest(&worn.id))
+                        }));
+                        row.push(ties.len() as u64);
+                        for (relative, relation) in ties {
+                            row.push(u64::from(*relative));
+                            row.push(
+                                relation.map_or(u64::MAX, |relation| u64::from(relation.code())),
+                            );
+                        }
+                        row
+                    }
                     // A purchase as `BuyObject` hashes it, then its
                     // colourway as `SetColourway` hashes one.
                     BuyObjectInColourway {

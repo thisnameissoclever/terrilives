@@ -7354,11 +7354,13 @@ mod boundary_tests {
             // `SellObject` with no object, `[0x0C, 0x00]` a `SetColourway`
             // with no colourway, `[0x0D, 0x00]` a truncated
             // `BuyObjectInColourway`, and `[0x0E, 0x00]` an `AddHousemate`
-            // with an empty name and nothing after it.
+            // with an empty name and nothing after it. `[0x0F, 0x00]` then
+            // became a truncated `SetFloor`, as each later append moved the
+            // edge on to 23.
             (
-                "variant index 15, one past the fifteen SimCommand declares; \
+                "variant index 23, one past the twenty-three SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x0F, 0x00],
+                vec![23, 0x00],
             ),
             (
                 "AddHousemate missing its traits",

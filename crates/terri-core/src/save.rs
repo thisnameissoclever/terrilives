@@ -409,8 +409,22 @@ mod wire_tests {
                 },
                 vec![18, 1, b'a', 1, 1, b'b', 1, 1, 1, b'c', 100],
             ),
+            (
+                SavedCommand::EditHousemate {
+                    sim: 3,
+                    name: "Ann".to_string(),
+                    personality: Some(Some("the_settled".to_string())),
+                    traits: vec![Some("bookworm".to_string()), None],
+                    ties: vec![(5, Some(Relation::Parent)), (7, None)],
+                },
+                vec![
+                    22, 3, 3, b'A', b'n', b'n', 1, 1, 11, b't', b'h', b'e', b'_', b's', b'e', b't',
+                    b't', b'l', b'e', b'd', 2, 1, 8, b'b', b'o', b'o', b'k', b'w', b'o', b'r',
+                    b'm', 0, 2, 5, 1, 1, 7, 0,
+                ],
+            ),
         ];
-        assert_eq!(cases.len(), 19);
+        assert_eq!(cases.len(), 20);
         for (command, bytes) in cases {
             assert_eq!(
                 postcard::to_allocvec(&command).unwrap(),
@@ -747,6 +761,17 @@ pub enum SavedCommand {
         axis: crate::layout::EdgeAxis,
         x: u32,
         y: u32,
+    },
+    /// Saved form of `SimCommand::EditHousemate`: authored IDs instead of
+    /// pack indices. `personality` is `None` to keep, `Some(Some(id))` to
+    /// adopt an archetype, and `Some(None)` when the index was unknown at
+    /// capture, which the drain then refuses. Wire code 22, append-only.
+    EditHousemate {
+        sim: u32,
+        name: String,
+        personality: Option<Option<String>>,
+        traits: Vec<Option<String>>,
+        ties: Vec<(u32, Option<crate::layout::Relation>)>,
     },
 }
 
