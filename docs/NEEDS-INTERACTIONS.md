@@ -111,7 +111,7 @@ unchanged apart from normal decay.
 
 ## Social requires actual, liked company
 
-Affinity is a directional feeling between -1 and +1. The receiver must have
+Relationship affinity is a directional feeling between -1 and +1. The receiver must have
 a value strictly above zero toward at least one eligible participant. One-way
 liking can therefore restore one Sim's Social without restoring the other's.
 More participants do not multiply the rate.
@@ -159,7 +159,15 @@ Habituation, which makes repetition less appealing, activity preferences,
 hobbies and sleep rhythm affect action choice. They are not extra need
 payments. Hobbies also scale completion-based life satisfaction. Conversations
 scale positive need delivery by `1 + affinity * 0.5`; direct chat Social still
-requires strictly positive affinity.
+requires strictly positive relationship affinity.
+
+Skills improve through completed attempts and influence capability-linked
+fumble chances through mastery; practice itself refills no need. Repetition
+above the ordinary appeal range can create Overdoing and Feeling sick
+moodlets. Those affect mood and life satisfaction, without changing the
+need-delivery rates. Object likes and dislikes also affect mood, and annoyance
+at another Sim's media use can lower the relationship feeling that permits
+Social. They do not directly refill needs or replace relationship affinity.
 
 Autonomous scoring, private-room alternatives, urgent-need decisions and
 waiting frustration use effects available at the planned destination. They
@@ -181,7 +189,8 @@ Every need also decays throughout ordinary life:
 
 Personality multiplies each decay rate. Sleeping multiplies decay by 0.4;
 being at work multiplies it by 0.5. Commuting uses normal decay. Work provides
-no direct need reward. Normal decay can make a meter fall during an action
+no direct need reward. The calendar and career working days determine when
+that work modifier applies; days off retain normal decay. Normal decay can make a meter fall during an action
 whose positive rate is too small to offset it.
 
 ## Systems that are not need refills

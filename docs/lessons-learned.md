@@ -10357,3 +10357,55 @@ module import. Append serialized fields without moving established slots.
 **Verify.** Check every target, inspect the final diff, and preserve explicit
 serialization fixtures. Prove that balance metadata changes do not change
 the save compatibility fingerprint.
+## [L-pinned-hash-search-includes-strings] Search for a moved hash in every written form
+
+**What happened.** Hashing personality effects moved the world hash of a released-main save that a web test loads. A search for pinned hash values matched only numeric and bigint literals, so it missed that test, which compares the hash as a decimal string, and the implementer reported that no web test pinned a moved value. The web suite failed on that test until the pin was updated.
+
+**Root cause.** The search assumed every pinned hash is written as a number literal. A test can also pin a hash as a quoted decimal string.
+
+**Prevention.** When a change can move a hash, record the old value from a run before the change and search the repository for its exact text in decimal and hexadecimal, inside or outside quotes. Run every suite that loads a pinned save against a rebuilt package before claiming no pin moved.
+
+**Verify.** The search for the old value returns each pin, and each suite that loads a saved fixture passes against the rebuilt package.
+
+## [L-one-mutation-writer-per-worktree] Run one source-mutating agent per worktree at a time
+
+**What happened.** Two implementers worked in one worktree at once, and each ran guard-deletion checks that rewrote `crates/terri-sim/src/lib.rs` and restored its saved bytes afterwards. One agent's backups in the shared scratchpad replaced the other agent's mutation script, and the second agent had to wait until the source files matched HEAD before it could compile or mutate anything.
+
+**Root cause.** A save-and-restore mutation harness assumes it is the only writer of the file and of its scratch directory. A second agent in the same worktree breaks both assumptions: a restore can write back bytes that hold the other agent's mutation, and one crate build compiles both agents' changes into each other's test runs.
+
+**Prevention.** Allow one agent at a time to write source files in a worktree, including mutation harnesses. Give parallel implementers separate worktrees, and give each harness its own scratch directory.
+
+**Verify.** Before a mutation run, confirm that `git status` shows only your own changes and record `git hash-object` for each target file. After restoring, confirm the hash matches the recorded value and that no other process changed the file during the run.
+
+## [L-per-completion-effect-needs-mid-activity-read] Read a per-completion effect while the activity runs
+
+**What happened.** The first test of learning from a conversation recorded the first tick on which either participant's practice rose and asserted that it equalled one attempt. Review showed that a `practise` call moved into the per-tick delivery would also raise practice by exactly one attempt on that first tick, so the test passed for the wrong code. The rewritten test reads practice while the chat runs and again after it ends.
+
+**Root cause.** A site that runs every tick and a site that runs once at completion produce the same value on the first tick that changes anything. A first-change read cannot tell them apart.
+
+**Prevention.** For an effect that must happen once per completed activity, assert the value mid-activity, while the activity is still under way, and again at a fixed tick after it ends, against an exact count of completions. Prove the test by moving the call into the per-tick path and to the activity's first tick, and confirm that each move fails it.
+
+**Verify.** `a_social_completion_teaches_both_participants` in `crates/terri-sim/src/skills_tests.rs` reads practice at tick 28 during the chat and at tick 60 after it. Moving the call into the per-tick delivery fails it with `nothing learned while the chat runs`, as recorded in `docs/specs/2026-10-05-skills-verification.md`.
+
+
+## [L-household-replay-control] Separate the rule from a household replay count
+
+**What happened.** Integrating needs changes moved a seed-specific sickness
+ordinal, removed an incidental toilet visit, and let a bystander carry the
+dish excluded from a cleaner's conservation assertion. No dish was lost:
+the trace showed four with the actor and one with a separate valid claim.
+
+**Root cause.** Household choices share the duration generator. Balance changes
+can change its later draws. Tests also counted one carrier while permitting
+other cleaners, or assumed an unrelated action would happen autonomously.
+
+**Prevention.** Keep exact replay observations as dated evidence. Test the
+threshold and measured accumulation independently. Order an unrelated
+completion explicitly when attribution needs a nonempty control. Isolate
+other cleaners through supported readiness rules when testing one owner.
+Repetition decay precedes the mood projection that drives life satisfaction.
+
+**Verify.** Assert the per-completion recurrence, threshold, refill and healing
+behavior. Match events to actual completion counters, retain save/load
+equality, and keep foreign-pile and quantity assertions. Verify the
+fixture's bystander constraint each tick.

@@ -129,6 +129,92 @@ fn secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy() {
 }
 
 #[test]
+fn nuisance_crossing_zero_stops_social_that_minute_but_keeps_chair_comfort() {
+    use terri_core::{Affinities, NeedId, Needs, Personality, Relationships, SimId};
+    let (mut sim, first, device, _) = fixture_at("television", 5., 3., Facing::SouthWest);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.relationships.proximity_per_hour = 0.;
+    pack.tuning.relationships.friction_per_hour = 0.;
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    sim.world_mut()
+        .entity_mut(first)
+        .insert(Personality::neutral());
+    for _ in 0..120 {
+        sim.tick();
+        if sim.world().get::<Eating>(first).is_some() {
+            break;
+        }
+    }
+    assert!(crate::seating::claim(sim.world(), first.index_u32()).is_some());
+    let second = crate::household::spawn_member(
+        sim.world_mut(),
+        &pack.personalities,
+        &pack.traits,
+        crate::household::Member {
+            name: "Co-viewer".into(),
+            personality: 0,
+            position: Position { x: 3., y: 3. },
+            needs: [100.; 7],
+            hobbies: vec![],
+            traits: &[],
+            career: None,
+            instinct: Some(50),
+        },
+    );
+    sim.world_mut().entity_mut(second).insert((
+        Personality::neutral(),
+        Affinities::from_values(vec![0.; pack.affinities.len()]),
+        Target {
+            object: device,
+            interaction: 0,
+        },
+        Eating {
+            object: pack.find("television").unwrap(),
+            interaction: 0,
+            remaining_ticks: 1000,
+        },
+    ));
+    let other = *sim.world().get::<SimId>(second).unwrap();
+    let mut feelings = Relationships::default();
+    feelings.bump(other, 0.0001);
+    let mut likes = vec![0.; pack.affinities.len()];
+    let television = pack
+        .affinities
+        .iter()
+        .position(|a| a.id == "television")
+        .unwrap();
+    likes[television] = -1.;
+    sim.world_mut().entity_mut(first).insert((
+        feelings,
+        Affinities::from_values(likes),
+        Needs::all_at(30.),
+    ));
+    sim.tick();
+    assert!(
+        sim.world()
+            .get::<Relationships>(first)
+            .unwrap()
+            .feeling(other)
+            < 0.,
+        "Nuisance must really cross zero"
+    );
+    let needs = sim.world().get::<Needs>(first).unwrap();
+    assert!(
+        (needs.get(NeedId::Social) - (30. - pack.decay_per_tick[NeedId::Social.index()])).abs()
+            < 0.00001,
+        "Social uses the current feeling after nuisance"
+    );
+    assert!(
+        (needs.get(NeedId::Comfort)
+            - (30. - pack.decay_per_tick[NeedId::Comfort.index()] + 29. / 41.))
+            .abs()
+            < 0.00001,
+        "The chair remains physically comfortable"
+    );
+}
+
+#[test]
 fn solo_media_does_not_refill_social() {
     for kind in ["television", "radio"] {
         let (mut sim, person, _, _) = fixture_at(kind, 5., 3., Facing::SouthWest);

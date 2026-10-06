@@ -72,6 +72,8 @@ pub(crate) fn restore_v5(
         shyness,
         boundaries,
         dining,
+        skills,
+        affinities,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -153,6 +155,12 @@ pub(crate) fn restore_v5(
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
     super::self_preservation::restore(&mut candidate.world, self_preservation)?;
     super::chronotype::restore(&mut candidate.world, chronotype_offsets)?;
+    // [SK-save]: a present field installs every person's practice; a
+    // missing one seeds it once from the worn capabilities' saved states.
+    super::skills::restore(&mut candidate.world, content, skills)?;
+    // [OA-values]: a present field installs every person's values; a
+    // missing one draws them once from the saved world generator.
+    super::affinities::restore(&mut candidate.world, content, affinities)?;
     // Domestic validation needs exact standing claims for table-free meals.
     if let Some(state) = &dining {
         candidate.world.insert_resource(state.clone());

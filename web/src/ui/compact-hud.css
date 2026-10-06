@@ -19,6 +19,15 @@
 #household-summary .summary-row { gap: 4px; }
 #household-summary .summary-label { font-size: 10px; }
 #household-summary .summary-value { font-size: 12px; overflow-wrap: anywhere; }
+/* The clock is always two lines, day and weekday then time, so the panel keeps one height. */
+#clock-value { white-space: pre-line; }
+/* In the 144-pixel desktop panel the Time label sits above the clock, so the
+   clock has the panel's full inner width and keeps two lines on every day.
+   The wider compact and Build panels keep the label beside it. */
+@media (min-width: 601px) and (min-height: 481px) and (not (any-pointer: coarse)) {
+  body:not([data-building='true']) #clock-row { flex-direction: column; align-items: stretch; gap: 0; }
+  body:not([data-building='true']) #clock-row .summary-value { text-align: left; }
+}
 #hud-status { margin-top: 2px; }
 #world-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 #world-actions #builder-desktop { padding: 0; }
@@ -113,6 +122,23 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #personal-details th:first-child { text-align: left; }
 #personal-details tbody th { font-weight: 400; }
 .personal-details-note { color: var(--hud-muted); font-size: 12px; }
+/* [SK-hud]: the Skills disclosure under the personal details. The sheet scrolls, so the list has no fixed height. */
+#skills-block { border-top: 1px solid var(--hud-edge); margin-top: 10px; padding-top: 2px; }
+#skills-block summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; }
+#skills-block summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#skill-list { display: grid; gap: 5px; margin: 0 0 6px; padding: 0; list-style: none; }
+#skill-list[hidden] { display: none; }
+.skill-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; }
+.skill-label { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.skill-standing { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#skill-list .skill-description { margin: 0; color: var(--hud-muted); font-size: 12px; overflow-wrap: anywhere; }
+/* [OA-hud]: the Likes and dislikes disclosure under Skills, one short line per kind. */
+#affinities-block { border-top: 1px solid var(--hud-edge); margin-top: 10px; padding-top: 2px; }
+#affinities-block summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; }
+#affinities-block summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#affinity-list { display: grid; gap: 3px; margin: 0 0 6px; padding: 0; list-style: none; }
+#affinity-list[hidden] { display: none; }
+.affinity-row { overflow-wrap: anywhere; }
 .bed-assignment { min-width: 0; margin: 12px 0 0; padding: 8px; border: 1px solid var(--hud-edge); }
 .bed-assignment fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
 .bed-assignment:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }

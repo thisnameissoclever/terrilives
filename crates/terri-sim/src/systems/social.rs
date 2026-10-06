@@ -65,6 +65,7 @@ pub fn tick_social(
         Option<&terri_core::Hobbies>,
         Option<&mut terri_core::Traits>,
     )>,
+    mut skills: Query<&mut terri_core::Skills>,
 ) {
     let tuning = content.0.tuning;
 
@@ -180,6 +181,11 @@ pub fn tick_social(
                 if let Some(mut traits) = traits {
                     super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
                 }
+            }
+            // Practice does not depend on the satisfaction ledger: every
+            // participant learns from a completed talk ([SK-learning]).
+            if let Ok(mut skills) = skills.get_mut(me) {
+                crate::skills::practise(&mut skills, content.0, &act.tags);
             }
         }
         for (me, other) in [(initiator, partner), (partner, initiator)] {

@@ -17,20 +17,21 @@ pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::SleepPlaceAccess;
 pub use pack::{
-    CompiledActionSocket, CompiledActivity, CompiledCareer, CompiledChain, CompiledChainStep,
-    CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
-    CompiledPlacement, CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge,
-    CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
-    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
-    ContentPack, DomesticTuning, Footprint, ObjectDefId, Tuning,
+    AffinityReach, CompiledActionSocket, CompiledActivity, CompiledAffinityKind, CompiledCareer,
+    CompiledChain, CompiledChainStep, CompiledHouseholdMember, CompiledInteraction, CompiledLot,
+    CompiledObject, CompiledPersonality, CompiledPlacement, CompiledPlacementSocket,
+    CompiledPortal, CompiledPortalHinge, CompiledSkill, CompiledSocketFacing, CompiledSoundAction,
+    CompiledTrait, CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
+    CompiledVisualFacing, CompiledVoiceClip, ContentPack, DomesticTuning, Footprint, ObjectDefId,
+    Tuning,
 };
 pub use pack::{Facing, FacingSprites};
 pub use schema::{
-    ActionSocketDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, FrontDoorDef,
-    FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile, NeedDef,
-    NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile, PlacementDef, PortalEntryDef, TraitDef,
-    TraitsFile, TuningFile, VisualDef, VoiceClipDef, VoiceFile, WallDef, MAX_HOUSEHOLD_SIZE,
-    TRAIT_KINDS,
+    ActionSocketDef, AffinityKindDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef,
+    FrontDoorDef, FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile,
+    NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile, PlacementDef, PortalEntryDef,
+    SkillDef, SkillsFile, TraitDef, TraitsFile, TuningFile, VisualDef, VoiceClipDef, VoiceFile,
+    WallDef, MAX_HOUSEHOLD_SIZE, TRAIT_KINDS, WEEKDAY_NAMES,
 };
 
 use std::sync::OnceLock;
@@ -701,6 +702,141 @@ mod tests {
         assert_eq!((count(0), count(1), count(2)), (9, 3, 3));
     }
 
+    /// [SK-content]: three skills, one per capability tag, in a fixed order,
+    /// on the ladder [SK-model] names.
+    #[test]
+    fn the_shipped_skills_cover_the_three_capability_tags_in_a_fixed_order() {
+        let pack = pack();
+        let ids: Vec<&str> = pack.skills.iter().map(|skill| skill.id.as_str()).collect();
+        assert_eq!(ids, ["cooking", "exercise", "reading"]);
+        for skill in &pack.skills {
+            assert_eq!(skill.levels, 10, "{}", skill.id);
+            assert!(
+                skill.practice_per_attempt > 0.0 && skill.practice_per_attempt <= 0.1,
+                "{}",
+                skill.id
+            );
+            assert!(!skill.label.is_empty() && !skill.description.is_empty());
+            assert!(skill.description.len() <= 80, "{}", skill.id);
+        }
+        let tags: Vec<&str> = pack.skills.iter().map(|skill| skill.tag.as_str()).collect();
+        assert_eq!(tags, ["cooking", "exercise", "reading"]);
+        for worn in pack
+            .traits
+            .iter()
+            .filter(|t| matches!(t.kind, CompiledTraitKind::Capability { .. }))
+        {
+            assert!(
+                tags.contains(&worn.tag.as_str()),
+                "capability {} has a skill",
+                worn.id
+            );
+        }
+        assert!((pack.tuning.skill_level_cost - 0.1).abs() < f32::EPSILON);
+        // A flat ladder until the owner tunes it: every level costs the same.
+        assert_eq!(pack.tuning.skill_level_growth, 1.0);
+    }
+
+    /// [OD-content]: the shipped overdoing knobs, exactly as the spec names
+    /// them.
+    #[test]
+    fn the_shipped_overdoing_tuning_matches_the_spec() {
+        let tuning = pack().tuning;
+        assert_eq!(tuning.habituation_max, 3.0);
+        assert_eq!(tuning.overdoing_threshold, 1.0);
+        assert_eq!(tuning.overdoing_penalty, 20.0);
+        assert_eq!(tuning.sick_threshold, 2.5);
+        assert_eq!(tuning.sick_penalty, 25.0);
+    }
+
+    /// [CAL-week] and [CAL-careers]: a new game starts on a Monday, and the
+    /// office job works Monday to Friday, so days 6 and 7 are its first
+    /// weekend.
+    #[test]
+    fn the_shipped_calendar_content_matches_the_spec() {
+        let pack = pack();
+        assert_eq!(pack.tuning.first_weekday, 0);
+        let office = pack
+            .careers
+            .iter()
+            .find(|career| career.id == "office_job")
+            .expect("the shipped pack declares the office job");
+        assert_eq!(office.working_days, 0b0011111);
+    }
+
+    /// [OA-kinds]: the four shipped kinds, in the order every person's values
+    /// are listed in, each with its reach, its one object and, for the
+    /// aquarium and the television, a trait tag.
+    #[test]
+    fn the_shipped_pack_has_four_affinity_kinds() {
+        let pack = pack();
+        let ids: Vec<&str> = pack.affinities.iter().map(|k| k.id.as_str()).collect();
+        assert_eq!(ids, ["plants", "aquarium", "television", "radio"]);
+        let labels: Vec<&str> = pack.affinities.iter().map(|k| k.label.as_str()).collect();
+        assert_eq!(labels, ["plants", "aquarium", "television", "radio"]);
+        let reaches: Vec<AffinityReach> = pack.affinities.iter().map(|k| k.reach).collect();
+        assert_eq!(
+            reaches,
+            [
+                AffinityReach::Presence,
+                AffinityReach::Presence,
+                AffinityReach::Use,
+                AffinityReach::Use
+            ]
+        );
+        let tags: Vec<Option<&str>> = pack
+            .affinities
+            .iter()
+            .map(|k| k.trait_tag.as_deref())
+            .collect();
+        assert_eq!(tags, [None, Some("aquarium"), Some("television"), None]);
+
+        let index = |id: &str| pack.find(id).expect("a shipped object").0;
+        for (kind, object) in ["potted_plant", "reference_shelf", "television", "radio"]
+            .into_iter()
+            .enumerate()
+        {
+            assert_eq!(pack.affinities[kind].objects, [index(object)], "{object}");
+            assert_eq!(
+                pack.affinity_kind_of(index(object)),
+                Some(kind as u32),
+                "{object}"
+            );
+        }
+        assert_eq!(pack.affinity_kind_of(index("sofa")), None);
+    }
+
+    /// [OA-values], [OA-presence], [OA-use]: the shipped affinity knobs,
+    /// exactly as the plan names them.
+    #[test]
+    fn the_shipped_affinity_tuning_matches_the_spec() {
+        let tuning = pack().tuning;
+        assert_eq!(tuning.affinity_from_trait, 0.8);
+        assert_eq!(tuning.affinity_presence_threshold, 0.2);
+        assert_eq!(tuning.affinity_presence_points, 10.0);
+        assert_eq!(tuning.affinity_presence_extra_points, 3.0);
+        assert_eq!(tuning.affinity_presence_extra_cap, 3);
+        assert_eq!(tuning.affinity_use_points, 15.0);
+        assert_eq!(tuning.affinity_use_feeling_per_hour, 0.03);
+        assert_eq!(tuning.affinity_band_loves, 0.6);
+        assert_eq!(tuning.affinity_band_likes, 0.2);
+        assert_eq!(tuning.affinity_from_mild_trait, 0.4);
+    }
+
+    /// [SK-learning]: learning left the capability trait for the skill.
+    #[test]
+    fn capabilities_no_longer_carry_a_learning_rate() {
+        let pack = pack();
+        let cook = pack.traits.iter().find(|t| t.id == "cannot_cook").unwrap();
+        assert_eq!(
+            cook.kind,
+            CompiledTraitKind::Capability {
+                start_level: 0.25,
+                fail_delta_scale: 0.0
+            }
+        );
+    }
+
     /// "Avoids the couch" says sofas and armchairs, so every seat of that kind
     /// has to carry the tag the trait keys on. The reading chair is an
     /// armchair too, and was missed the first time.
@@ -732,9 +868,10 @@ mod tests {
         }
     }
 
-    /// [L26]/[L29] applied to traits.toml: a multiplier pasted into a learning
-    /// rate has to change some test's answer, and it cannot while two slots
-    /// hold the same number.
+    /// [L26]/[L29] applied to traits.toml: a multiplier pasted into a start
+    /// level has to change some test's answer, and it cannot while two slots
+    /// hold the same number. A capability carries two numbers since its
+    /// learning rate moved to the skill with its tag ([SK-learning]).
     #[test]
     fn the_trait_library_numbers_are_pairwise_distinct() {
         let mut numbers: Vec<(f32, String)> = Vec::new();
@@ -746,11 +883,9 @@ mod tests {
                 CompiledTraitKind::Capability {
                     start_level,
                     fail_delta_scale,
-                    learn_per_attempt,
                 } => {
                     numbers.push((start_level, format!("{}.start_level", t.id)));
                     numbers.push((fail_delta_scale, format!("{}.fail_delta_scale", t.id)));
-                    numbers.push((learn_per_attempt, format!("{}.learn_per_attempt", t.id)));
                 }
                 CompiledTraitKind::Condition {
                     accrual_scale,
@@ -766,7 +901,7 @@ mod tests {
                 }
             }
         }
-        assert_eq!(numbers.len(), 9 + 3 * 3 + 3 * 3);
+        assert_eq!(numbers.len(), 9 + 3 * 2 + 3 * 3);
         for (index, (value, name)) in numbers.iter().enumerate() {
             for (other_value, other_name) in &numbers[index + 1..] {
                 assert_ne!(
@@ -1339,7 +1474,6 @@ mod tests {
             CompiledTraitKind::Disposition { .. } => CompiledTraitKind::Capability {
                 start_level: 0.0,
                 fail_delta_scale: 1.0,
-                learn_per_attempt: 0.1,
             },
             CompiledTraitKind::Capability { .. } | CompiledTraitKind::Condition { .. } => {
                 CompiledTraitKind::Disposition {
@@ -1357,8 +1491,8 @@ mod tests {
         match &mut retuned.traits[0].kind {
             CompiledTraitKind::Disposition { score_multiplier } => *score_multiplier += 0.01,
             CompiledTraitKind::Capability {
-                learn_per_attempt, ..
-            } => *learn_per_attempt += 0.01,
+                fail_delta_scale, ..
+            } => *fail_delta_scale += 0.01,
             CompiledTraitKind::Condition {
                 manage_per_completion,
                 ..
@@ -1368,6 +1502,17 @@ mod tests {
             base,
             content_fingerprint(&retuned),
             "numbers inside one trait kind are balance"
+        );
+
+        // [SK-save]: saved practice names its skill by id, so adding,
+        // removing or retuning a skill cannot reinterpret a save.
+        assert!(!original.skills.is_empty(), "the fixture needs a skill");
+        let mut without_skills = original.clone();
+        without_skills.skills.clear();
+        assert_eq!(
+            base,
+            content_fingerprint(&without_skills),
+            "skills are not part of the content fingerprint"
         );
     }
 

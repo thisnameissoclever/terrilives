@@ -1,9 +1,12 @@
 # Contextual needs verification
 
-Verified locally on 2026-10-06 in `twcx/social-company-needs-fa6c`, based on
-`1a138df6`. This record covers the Social correction and the subsequent needs
-corrections. The changes are uncommitted and unpublished. No remote checks,
-deployment or manual browser play are claimed.
+Pre-integration local verification captured on 2026-10-06 in
+`twcx/social-company-needs-fa6c`, based on `1a138df6`, before commit `10fc5aa3`.
+This record covers the Social correction and subsequent needs corrections.
+The patch was uncommitted and unpublished when these checks ran. Later
+integration and delivery are recorded in
+[the combined verification record](2026-10-06-integration.md).
+No remote checks, deployment or manual browser play are claimed here.
 
 ## Implemented behavior
 

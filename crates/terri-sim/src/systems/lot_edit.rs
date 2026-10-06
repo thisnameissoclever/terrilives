@@ -110,6 +110,25 @@ pub fn drain_commands(world: &mut World) {
                     Some(instinct),
                 );
             }
+            SimCommand::EditHousemate {
+                sim,
+                name,
+                personality,
+                traits,
+                ties,
+            } => {
+                flush_ordinary(world);
+                crate::edit::commit(
+                    world,
+                    &crate::edit::Edit {
+                        sim,
+                        name: &name,
+                        personality,
+                        traits: &traits,
+                        ties: &ties,
+                    },
+                );
+            }
             SimCommand::BuyObjectInColourway {
                 definition,
                 x,

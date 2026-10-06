@@ -3,6 +3,7 @@
 mod action_queue;
 #[cfg(test)]
 mod activity_tests;
+pub mod affinity;
 pub mod beds;
 mod compatibility;
 #[cfg(test)]
@@ -13,6 +14,7 @@ mod dining;
 pub mod domestic;
 #[cfg(test)]
 mod ecs_lifecycle_tests;
+pub mod edit;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
@@ -34,6 +36,7 @@ mod room_regions;
 mod save;
 mod seating;
 mod shyness;
+pub mod skills;
 mod social_company;
 pub mod systems;
 #[cfg(test)]
@@ -45,7 +48,7 @@ use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
 
 pub use mood::{MoodSnapshot, Moodlet};
-pub use save::SaveError;
+pub use save::{SaveError, MAX_TEXT_BYTES};
 
 /// The content pack, as a resource so systems can resolve object ids and
 /// decay rates. Holds a `&'static` because the pack is embedded at build
@@ -889,6 +892,11 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -989,6 +997,8 @@ impl Sim {
                 .collect(),
             domestic: domestic::snapshot(&self.world),
             dining: dining::snapshot(&self.world),
+            skills: save::skills::capture(&self.world, content),
+            affinities: save::affinities::capture(&self.world, content),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -1019,6 +1029,11 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1033,6 +1048,11 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1073,6 +1093,11 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1203,6 +1228,10 @@ impl Sim {
         // through `try_query`.
         world.register_component::<terri_core::Traits>();
         world.register_component::<terri_core::Fumbled>();
+        // [SK-model]: `traits_of` and `skills_of` read practice through
+        // `try_query`, which needs the component registered to report
+        // absence rather than no query at all.
+        world.register_component::<terri_core::Skills>();
         // A-11's facing carrier. In `sync_render_buffer`'s query (a
         // plain `World::query`, which self-registers) rather than the
         // digest's `try_query`, so this line is for the determinism
@@ -1328,6 +1357,10 @@ impl Sim {
                     systems::movement::follow_path,
                     systems::interpersonal::apply,
                     relationship_dynamics::tick,
+                    // Directly after ordinary company, in the same pass:
+                    // a person bothered by another's use loses feeling
+                    // toward the user once per tick ([OA-use]).
+                    affinity::bother,
                 )
                     .chain(),
                 // Directly after movement, because arrival at the door
@@ -1353,16 +1386,13 @@ impl Sim {
                 // begins delivering on the tick after arrival, exactly
                 // as a meal does.
                 systems::social::tick_social,
-                // Last two, and their positions are genuinely free - unlike
-                // every other line here. Each reads and writes one component
-                // per agent, shares no state, and nothing else reads its
-                // component on a tick it writes: `select_action` ran earlier
-                // and saw the previous tick's values. See `decay_habituation`.
+                // Decay after completion rewards and before the later mood
+                // projection. Mood-derived satisfaction reads both repetition
+                // and relationship state, so those values must already be current.
                 systems::habituation::decay_habituation,
                 systems::social::decay_relationships,
-                // Third of the genuinely-free family: reads Needs (which
-                // nothing later writes) and writes Satisfaction (which
-                // nothing else reads mid-tick). The hobby PAYOUT is not
+                // Neglect uses the current Needs before mood adds its separate
+                // contribution to Satisfaction. The hobby PAYOUT is not
                 // here - completions pay inside tick_interactions and
                 // tick_social, where the completion-only rule already
                 // lives.
@@ -2389,16 +2419,60 @@ impl Sim {
     }
 
     /// The worn traits of the sim carrying `index`, as (pack trait
-    /// index, live state) pairs in key order - the [E3] overlay read.
+    /// index, value) pairs in key order - the [E3] overlay read. The value
+    /// is a condition's live severity, a disposition's 0, and for a
+    /// capability the mastery of the skill with its tag ([SK-hud]); a
+    /// capability whose tag no skill carries reports its own state.
     /// `None` for objects, stale indices, and bare agents, the same
     /// contract as every scan here; the shell resolves the indices
     /// against the pack's labels, which it reads once.
     pub fn traits_of(&self, index: u32) -> Option<Vec<(u32, f32)>> {
-        let mut state = self.world.try_query::<(Entity, &terri_core::Traits)>()?;
+        let pack = self.world.resource::<Content>().0;
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Traits, Option<&terri_core::Skills>)>()?;
         state
             .iter(&self.world)
-            .find(|(entity, _)| entity.index_u32() == index)
-            .map(|(_, worn)| worn.entries().to_vec())
+            .find(|(entity, ..)| entity.index_u32() == index)
+            .map(|(_, worn, skills)| {
+                worn.entries()
+                    .iter()
+                    .map(|&(trait_index, value)| {
+                        let def = &pack.traits[trait_index as usize];
+                        let value = match def.kind {
+                            terri_data::CompiledTraitKind::Capability { .. } => {
+                                skills::mastery_for_tag(skills, pack, &def.tag).unwrap_or(value)
+                            }
+                            _ => value,
+                        };
+                        (trait_index, value)
+                    })
+                    .collect()
+            })
+    }
+
+    /// Where the person carrying `index` stands in every content skill, in
+    /// pack order - [SK-hud]. `None` for anything that is not a living
+    /// person. A person with no practice in a skill stands at level 0.
+    pub fn skills_of(&self, index: u32) -> Option<Vec<skills::Standing>> {
+        let pack = self.world.resource::<Content>().0;
+        let mut people = self
+            .world
+            .try_query::<(Entity, &terri_core::Agent, Option<&terri_core::Skills>)>()?;
+        let (_, _, held) = people
+            .iter(&self.world)
+            .find(|(entity, ..)| entity.index_u32() == index)?;
+        let ladder = skills::Ladder::from_tuning(&pack.tuning);
+        Some(
+            pack.skills
+                .iter()
+                .enumerate()
+                .map(|(skill_index, skill)| {
+                    let practice = held.map_or(0.0, |held| held.practice(skill_index as u32));
+                    skills::standing(&ladder, skill.levels, practice)
+                })
+                .collect(),
+        )
     }
 
     /// One label per entry in the pack's trait list, in pack order -
@@ -2452,6 +2526,98 @@ impl Sim {
                         terri_data::CompiledTraitKind::Capability { .. } => "capability",
                         terri_data::CompiledTraitKind::Condition { .. } => "condition",
                     })
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// One label per content skill, in pack order - what
+    /// [`Sim::skills_of`]'s rows resolve against ([SK-hud]). Borrowed from
+    /// the `&'static` pack like [`Sim::trait_labels`].
+    pub fn skill_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .skills
+                    .iter()
+                    .map(|skill| skill.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// One plain sentence per content skill, aligned with
+    /// [`Sim::skill_labels`].
+    pub fn skill_descriptions(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .skills
+                    .iter()
+                    .map(|skill| skill.description.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The number of rungs on each content skill's ladder, aligned with
+    /// [`Sim::skill_labels`]: the top level a person can reach.
+    pub fn skill_levels(&self) -> Vec<u8> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| content.0.skills.iter().map(|skill| skill.levels).collect())
+            .unwrap_or_default()
+    }
+
+    /// The value the person carrying `index` holds for every affinity
+    /// kind, in pack order, each in -1.0..=1.0 - [OA-hud]. `None` for
+    /// anything that is not a living person. A person spawned without the
+    /// component (a bare agent) reads 0.0, indifferent, for every kind.
+    pub fn affinities_of(&self, index: u32) -> Option<Vec<f32>> {
+        let pack = self.world.resource::<Content>().0;
+        let mut people = self
+            .world
+            .try_query::<(Entity, &terri_core::Agent, Option<&terri_core::Affinities>)>()?;
+        let (_, _, held) = people
+            .iter(&self.world)
+            .find(|(entity, ..)| entity.index_u32() == index)?;
+        Some(
+            (0..pack.affinities.len() as u32)
+                .map(|kind| held.map_or(0.0, |held| held.value(kind)))
+                .collect(),
+        )
+    }
+
+    /// The word for each of the person's affinity values, in pack order -
+    /// `Loves`, `Likes`, `Indifferent`, `Dislikes` or `Hates`, from the
+    /// edges in tuning ([OA-hud], [`affinity::band`]). `None` for anything
+    /// that is not a living person, as [`Sim::affinities_of`].
+    pub fn affinity_words_of(&self, index: u32) -> Option<Vec<&'static str>> {
+        let tuning = &self.world.resource::<Content>().0.tuning;
+        Some(
+            self.affinities_of(index)?
+                .into_iter()
+                .map(|value| affinity::band(value, tuning))
+                .collect(),
+        )
+    }
+
+    /// One label per affinity kind, in pack order - what
+    /// [`Sim::affinities_of`]'s values resolve against ([OA-hud]).
+    /// Borrowed from the `&'static` pack like [`Sim::skill_labels`].
+    pub fn affinity_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .affinities
+                    .iter()
+                    .map(|kind| kind.label.as_str())
                     .collect()
             })
             .unwrap_or_default()
@@ -2606,12 +2772,21 @@ impl Sim {
     /// read. The label rather than the index, because the pack lookup
     /// is a query over content this crate owns.
     pub fn career_of(&self, index: u32) -> Option<&'static str> {
+        self.career_definition_of(index)
+            .map(|career| career.label.as_str())
+    }
+
+    /// The compiled career held by the sim carrying `index`, or `None`
+    /// for the unemployed and everything else. The Career row reads its
+    /// working days and shift hours from it ([CAL-hud] in
+    /// `docs/specs/2026-10-06-calendar.md`).
+    pub fn career_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledCareer> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;
         state
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)
-            .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
+            .map(|(_, career)| &pack.careers[career.0 as usize])
     }
 
     /// The primary type, or legacy name, of a smart object. Includes decorative
@@ -2838,6 +3013,15 @@ impl Sim {
         Some(shyness::of(&self.world, entity).value())
     }
 
+    /// The archetype the editor may preselect for the person at this entity
+    /// index, or `None` for "Keep current personality".
+    pub fn personality_archetype_of(&self, index: u32) -> Option<u32> {
+        let entity = bevy_ecs::entity::EntityIndex::from_raw_u32(index)
+            .map(|index| self.world().entities().resolve_from_index(index))?;
+        self.world().get_entity(entity).ok()?;
+        edit::archetype_of(self.world(), entity)
+    }
+
     /// Hashes all simulation-visible state. Entities are sorted by index
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
@@ -2874,11 +3058,11 @@ impl Sim {
         // worlds hash identically.
         //
         // `SimName` is presentation: a rename must not diverge a replay.
-        // Personality multipliers and dispositions retain their historical
-        // exclusion while they are immutable during play. Runtime editing
-        // must add them to the digest. Chronotype is hashed in a sparse
-        // suffix below: historical people can have zero while new people
-        // receive authored offsets, even when both came from the same pack.
+        // Personality multipliers and dispositions are hashed in the sparse
+        // `personality-effects-v1` suffix below, because [ES-personality]
+        // edits them during play. Chronotype is hashed in its own sparse
+        // suffix: historical people can have zero while new people receive
+        // authored offsets, even when both came from the same pack.
         //
         // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
         // wraps a u32 allocated monotonically from 0, so u64::MAX is
@@ -3407,6 +3591,42 @@ impl Sim {
                         }));
                         row
                     }
+                    // [ES-atomic]: as a move-in, by the personality's and
+                    // the traits' ids with the name in no row. A kept
+                    // personality and an unknown one differ by the marker.
+                    EditHousemate {
+                        sim,
+                        personality,
+                        traits,
+                        ties,
+                        ..
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        let mut row = vec![
+                            22,
+                            u64::from(*sim),
+                            u64::from(personality.is_some()),
+                            personality.map_or(u64::MAX, |index| {
+                                content
+                                    .and_then(|content| content.0.personalities.get(index as usize))
+                                    .map_or(u64::MAX, |personality| id_digest(&personality.id))
+                            }),
+                            traits.len() as u64,
+                        ];
+                        row.extend(traits.iter().map(|&index| {
+                            content
+                                .and_then(|content| content.0.traits.get(index as usize))
+                                .map_or(u64::MAX, |worn| id_digest(&worn.id))
+                        }));
+                        row.push(ties.len() as u64);
+                        for (relative, relation) in ties {
+                            row.push(u64::from(*relative));
+                            row.push(
+                                relation.map_or(u64::MAX, |relation| u64::from(relation.code())),
+                            );
+                        }
+                        row
+                    }
                     // A purchase as `BuyObject` hashes it, then its
                     // colourway as `SetColourway` hashes one.
                     BuyObjectInColourway {
@@ -3499,6 +3719,64 @@ impl Sim {
             for (index, offset) in offsets {
                 hasher.write_u64(u64::from(index));
                 hasher.write_u64(offset as i64 as u64);
+            }
+        }
+        // [ES-personality]: effects are runtime-editable now, so every
+        // behavior-bearing field is in the digest. Sparse, like the
+        // chronotype block, so worlds without personalities hash as before.
+        // Exact bits, as `domestic::hash` writes cleanliness: these are
+        // stored multipliers, not accumulated positions, so a one-step
+        // change is a real difference and must not fall inside a 1e-4
+        // `write_f32` bucket.
+        let effects = edit::personality_rows(&self.world);
+        if !effects.is_empty() {
+            hasher.write_bytes(b"personality-effects-v1");
+            hasher.write_u64(effects.len() as u64);
+            for (index, personality) in effects {
+                hasher.write_u64(u64::from(index));
+                for value in personality.drain {
+                    hasher.write_u64(u64::from(value.to_bits()));
+                }
+                for value in personality.satisfaction {
+                    hasher.write_u64(u64::from(value.to_bits()));
+                }
+                let dispositions = personality.dispositions();
+                hasher.write_u64(dispositions.len() as u64);
+                for &(object, interaction, weight) in dispositions {
+                    hasher.write_u64(u64::from(object.0));
+                    hasher.write_u64(u64::from(interaction));
+                    hasher.write_u64(u64::from(weight.to_bits()));
+                }
+            }
+        }
+        // [SK-save]: every person's practice, keyed on entity index and the
+        // skill's id. Sparse, like the blocks above, so a world where nobody
+        // holds any practice hashes as it did before skills. Exact bits:
+        // practice is stored, and one f32 step can cross a level boundary.
+        let rows = skills::hash_rows(&self.world);
+        if !rows.is_empty() {
+            let content = self.world.resource::<Content>().0;
+            hasher.write_bytes(b"skills-v1");
+            hasher.write_u64(rows.len() as u64);
+            for (entity, skill, practice) in rows {
+                hasher.write_u64(u64::from(entity));
+                hasher.write_u64(id_digest(&content.skills[skill as usize].id));
+                hasher.write_u64(u64::from(practice.to_bits()));
+            }
+        }
+        // [OA-values]: every person's affinity values, keyed on entity
+        // index and kind index. Sparse, like the blocks above, so a world
+        // where nobody holds a value other than 0.0 hashes as it did before
+        // affinities. Exact bits, as for practice: the values are stored,
+        // not accumulated, so a one-step change is a real difference.
+        let rows = affinity::hash_rows(&self.world);
+        if !rows.is_empty() {
+            hasher.write_bytes(b"affinities-v1");
+            hasher.write_u64(rows.len() as u64);
+            for (entity, kind, value) in rows {
+                hasher.write_u64(u64::from(entity));
+                hasher.write_u64(u64::from(kind));
+                hasher.write_u64(u64::from(value.to_bits()));
             }
         }
         privacy::hash(&self.world, &mut hasher);
@@ -5025,6 +5303,96 @@ mod determinism_tests {
             .unwrap()
             .set(NeedId::Hunger, hunger + 1.0);
         assert_ne!(baseline, sim.world_hash(), "world_hash ignores Needs");
+    }
+
+    /// [OA-values], Review focus 4: a person holding 0.0 for every kind
+    /// hashes as one with no `Affinities` component, so a world where
+    /// nobody holds a value hashes as it did before affinities. The
+    /// shipped household is built twice, once with every person at all
+    /// zeros (the state a save with an empty affinity list restores) and
+    /// once with the component removed from everyone. The guard: one
+    /// value on one person moves the digest, so the equality is not a hash
+    /// that never reads the component.
+    #[test]
+    fn a_world_with_no_affinity_values_hashes_as_before() {
+        let household = |zeros: bool| {
+            let mut sim = Sim::new_from_shipped_lot();
+            let people: Vec<Entity> = sim
+                .world_mut()
+                .query_filtered::<Entity, With<Agent>>()
+                .iter(sim.world())
+                .collect();
+            assert!(!people.is_empty());
+            for person in people {
+                let mut person = sim.world_mut().entity_mut(person);
+                if zeros {
+                    person.insert(terri_core::Affinities::from_values(vec![0.0; 4]));
+                } else {
+                    person.remove::<terri_core::Affinities>();
+                }
+            }
+            sim
+        };
+        let without = household(false).world_hash();
+        let mut zeros = household(true);
+        assert_eq!(zeros.world_hash(), without, "all zeros hashes as none");
+        let agent = lowest_indexed_agent(&zeros);
+        zeros
+            .world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::Affinities::from_values(vec![
+                0.0, 0.0, 0.5, 0.0,
+            ]));
+        assert_ne!(zeros.world_hash(), without, "one value is seen");
+    }
+
+    /// [OA-values]: the digest sees a value to the last bit, which kind it
+    /// is for, and whose it is.
+    #[test]
+    fn the_hash_sees_an_affinity_value_and_its_owner() {
+        let mut sim = build_scenario();
+        let first = lowest_indexed_agent(&sim);
+        let second = {
+            let mut state = sim
+                .world()
+                .try_query_filtered::<Entity, With<Agent>>()
+                .unwrap();
+            state
+                .iter(sim.world())
+                .filter(|entity| *entity != first)
+                .min_by_key(|entity| entity.index_u32())
+                .unwrap()
+        };
+        let set = |sim: &mut Sim, who: Entity, values: Vec<f32>| {
+            sim.world_mut()
+                .entity_mut(who)
+                .insert(terri_core::Affinities::from_values(values));
+        };
+        let base = sim.world_hash();
+        let value = 0.625f32;
+        set(&mut sim, first, vec![0.0, value, 0.0, 0.0]);
+        let held = sim.world_hash();
+        assert_ne!(held, base, "a value");
+        set(
+            &mut sim,
+            first,
+            vec![0.0, f32::from_bits(value.to_bits() + 1), 0.0, 0.0],
+        );
+        assert_ne!(sim.world_hash(), held, "one f32 step of a value");
+        set(&mut sim, first, vec![0.0, -value, 0.0, 0.0]);
+        assert_ne!(sim.world_hash(), held, "the sign of a value");
+        set(&mut sim, first, vec![0.0, 0.0, value, 0.0]);
+        let other_kind = sim.world_hash();
+        assert_ne!(other_kind, held, "the same value for another kind");
+        set(&mut sim, first, vec![0.0, value, 0.0, 0.0]);
+        assert_eq!(sim.world_hash(), held, "restored");
+
+        set(&mut sim, first, vec![0.0; 4]);
+        assert_eq!(sim.world_hash(), base);
+        set(&mut sim, second, vec![0.0, value, 0.0, 0.0]);
+        let moved = sim.world_hash();
+        assert_ne!(moved, base);
+        assert_ne!(moved, held, "the same value held by someone else");
     }
 
     #[test]

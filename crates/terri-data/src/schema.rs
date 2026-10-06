@@ -134,6 +134,22 @@ pub struct TuningFile {
     /// to. In `(0, 1]`; 1 disables the effect, and 0 is rejected because
     /// it would make an interaction permanently worthless.
     pub habituation_floor: f32,
+    /// The highest habituation one use can reach - [OD-model] in
+    /// `docs/specs/2026-10-06-overdoing-it.md`. Finite and above 1; the part
+    /// above 1 is overdoing.
+    pub habituation_max: f32,
+    /// The habituation above which a repeated activity costs mood. Finite,
+    /// at least 1 and below `habituation_max` - [OD-content].
+    pub overdoing_threshold: f32,
+    /// The mood an activity at `habituation_max` costs. Finite and not
+    /// negative - [OD-content].
+    pub overdoing_penalty: f32,
+    /// The habituation on a food activity at which a person feels sick.
+    /// Finite, above `overdoing_threshold` and at most `habituation_max` -
+    /// [OD-content].
+    pub sick_threshold: f32,
+    /// The mood feeling sick costs. Finite and not negative - [OD-content].
+    pub sick_penalty: f32,
     /// Seed for the simulation PRNG.
     pub rng_seed: u64,
     /// Maximum waiting player orders per sim; zero means unlimited.
@@ -175,6 +191,9 @@ pub struct TuningFile {
     /// ([E4]). At least 1; the shipped value makes a day a number a
     /// designer chose rather than a constant buried in a system.
     pub day_ticks: u32,
+    /// The weekday of the first day, 0 (Monday) to 6 (Sunday) - [CAL-week]
+    /// in `docs/specs/2026-10-06-calendar.md`.
+    pub first_weekday: u8,
     /// Need name to how much of that need drains per tick.
     ///
     /// A decay rate is a system-wide balance knob rather than part of a
@@ -263,6 +282,46 @@ pub struct TuningFile {
     pub shyness_annoyance_strength: f32,
     pub boundary_wander_reconsider_chance: f32,
     pub shyness_wander_reconsider_strength: f32,
+    /// The practice level 1 of every skill costs, finite and above 0 -
+    /// [SK-model] in `docs/specs/2026-10-05-skills.md`.
+    pub skill_level_cost: f32,
+    /// What each later level costs, as a multiple of the one before; finite
+    /// and at least 1, so a later level never costs less - [SK-model].
+    pub skill_level_growth: f32,
+    /// The starting value a disposition trait sets for its affinity kind, in
+    /// `(0, 1]`: this for a trait that loves the kind, its negative for one
+    /// that hates it - [OA-values] in
+    /// `docs/specs/2026-10-06-object-affinities.md`.
+    pub affinity_from_trait: f32,
+    /// Below this magnitude an affinity value gives no moodlet, in `[0, 1)` -
+    /// [OA-presence].
+    pub affinity_presence_threshold: f32,
+    /// The mood one object of a presence kind gives at a value of 1.0.
+    /// Finite and not negative - [OA-presence].
+    pub affinity_presence_points: f32,
+    /// The mood each further object of the kind adds at 1.0, up to
+    /// `affinity_presence_extra_cap`. Finite and not negative.
+    pub affinity_presence_extra_points: f32,
+    /// How many further objects count. Any value is legal, including 0.
+    pub affinity_presence_extra_cap: u32,
+    /// The mood each other person using a use kind costs at a value of -1.0.
+    /// Finite and not negative - [OA-use].
+    pub affinity_use_points: f32,
+    /// How much a bothered person's feeling toward the user falls per game
+    /// hour at -1.0. Finite and not negative - [OA-use].
+    pub affinity_use_feeling_per_hour: f32,
+    /// At or above this a value reads "Loves", at or below its negative
+    /// "Hates" - [OA-hud]. Above `affinity_band_likes`, at most 1.
+    pub affinity_band_loves: f32,
+    /// At or above this a value reads "Likes", at or below its negative
+    /// "Dislikes", and strictly between the two "Indifferent" - [OA-hud].
+    /// Above 0.
+    pub affinity_band_likes: f32,
+    /// The starting value a disposition trait between the verb bands sets
+    /// for its affinity kind: this for a trait that likes the kind, its
+    /// negative for one that dislikes it - [OA-values]. Finite, above 0 and
+    /// below `affinity_from_trait`.
+    pub affinity_from_mild_trait: f32,
     #[serde(default)]
     pub relationships: crate::RelationshipTuning,
     #[serde(default)]
@@ -293,6 +352,31 @@ pub struct ObjectsFile {
     /// `docs/specs/2026-09-22-colourways.md`. Absent means none.
     #[serde(default)]
     pub colourway: Vec<ColourwayDef>,
+    /// The kinds of thing a person can love or hate, in file order -
+    /// [OA-kinds] in `docs/specs/2026-10-06-object-affinities.md`. Absent
+    /// means none.
+    #[serde(default)]
+    pub affinity: Vec<AffinityKindDef>,
+}
+
+/// One affinity kind: a name a player reads and the objects it covers -
+/// [OA-kinds]. An object no kind lists carries no affinity.
+#[derive(Debug, Clone, Deserialize)]
+pub struct AffinityKindDef {
+    /// What a save records for the kind.
+    pub id: String,
+    /// What a player reads, in lower case so it fits inside a sentence.
+    pub label: String,
+    /// `presence` (the objects in the room move mood) or `use` (somebody
+    /// else using one bothers a person who hates the kind).
+    pub reach: String,
+    /// The object ids the kind covers: at least one, each covered by no
+    /// other kind.
+    pub objects: Vec<String>,
+    /// The activity tag whose disposition traits set a strong starting
+    /// value, if any.
+    #[serde(default)]
+    pub trait_tag: Option<String>,
 }
 
 /// One colourway: a colour shift the shader applies to an object's art.
@@ -797,10 +881,6 @@ pub struct TraitDef {
     /// advertised benefit, usually 0.
     #[serde(default)]
     pub fail_delta_scale: Option<f32>,
-    /// capability only: how much every attempt (pass or fail) raises the
-    /// level, toward 1.
-    #[serde(default)]
-    pub learn_per_attempt: Option<f32>,
     /// condition only: what the satisfaction ACCRUAL is multiplied by at
     /// full severity; the effective scale interpolates toward 1 as
     /// severity falls.
@@ -817,6 +897,36 @@ pub struct TraitDef {
 
 /// The three legal trait kinds, in the order the design names them.
 pub const TRAIT_KINDS: [&str; 3] = ["disposition", "capability", "condition"];
+
+/// Mirrors `content/skills.toml` - [SK-content] in
+/// `docs/specs/2026-10-05-skills.md`. Defaulted so a project with no skills
+/// parses, as a project with no traits does.
+#[derive(Debug, Default, Deserialize)]
+pub struct SkillsFile {
+    #[serde(default)]
+    pub skill: Vec<SkillDef>,
+}
+
+/// One skill: practice a person gains by doing tagged activities -
+/// [SK-model]. Level and progress are derived from practice through the
+/// ladder in `tuning.toml`, so nothing here names a cost.
+#[derive(Debug, Deserialize)]
+pub struct SkillDef {
+    /// What a save names the skill by.
+    pub id: String,
+    /// What the UI calls it. Required and non-blank.
+    pub label: String,
+    /// One plain sentence saying what the skill is. Required and non-blank.
+    pub description: String,
+    /// The activity tag this skill keys on - the same tag space traits and
+    /// hobbies use, resolved against the pack's activities at compile time.
+    pub tag: String,
+    /// How many levels the ladder has, from 1 to 100.
+    pub levels: u8,
+    /// How much practice one completed tagged attempt adds, pass or fail,
+    /// in `(0, 1]`.
+    pub practice_per_attempt: f32,
+}
 
 /// Mirrors `content/chains.toml` - the multi-step interactions, [K1]
 /// in docs/specs/2026-08-01-m2f-multi-step-working-design.md.
@@ -941,7 +1051,18 @@ pub struct CareerDef {
     /// drains a LIFE is a condition's business, not a paycheck's,
     /// which keeps [S1]'s writer list honest.
     pub satisfaction: f32,
+    /// The weekdays the shift runs, by name from [`WEEKDAY_NAMES`]: at
+    /// least one, none repeated - [CAL-careers] in
+    /// `docs/specs/2026-10-06-calendar.md`. Required, with no default, so
+    /// a career cannot quietly work a week nobody chose.
+    pub working_days: Vec<String>,
 }
+
+/// The weekday names `working_days` accepts, Monday first. A name's index
+/// is its weekday number and its bit in a compiled career's mask, and the
+/// count is the clock's week.
+pub const WEEKDAY_NAMES: [&str; terri_core::clock::WEEKDAY_COUNT as usize] =
+    ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
 /// The M1 household ceiling. Kept beside the authored schema so content
 /// validation, tests and any future household editor share one contract.
@@ -1086,7 +1207,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 70] = [
+    const TUNING_LINES: [(&str, &str); 88] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1107,6 +1228,11 @@ mod tests {
         ("habituation_per_use", "0.3125"),
         ("habituation_decay_per_tick", "0.0625"),
         ("habituation_floor", "0.625"),
+        ("habituation_max", "3.25"),
+        ("overdoing_threshold", "1.125"),
+        ("overdoing_penalty", "17.5"),
+        ("sick_threshold", "2.75"),
+        ("sick_penalty", "22.5"),
         ("min_interaction_ticks", "3"),
         ("rng_seed", "300"),
         ("max_queued_intents", "7"),
@@ -1121,6 +1247,7 @@ mod tests {
         ("at_work_decay_scale", "0.4"),
         ("neglect_bleed_per_tick", "0.0009765625"),
         ("day_ticks", "17"),
+        ("first_weekday", "4"),
         ("asleep_decay_scale", "0.6"),
         ("wander_radius_tiles", "29"),
         ("resale_fraction", "0.40625"),
@@ -1159,6 +1286,18 @@ mod tests {
         ("shyness_annoyance_strength", "0.25"),
         ("boundary_wander_reconsider_chance", "0.10"),
         ("shyness_wander_reconsider_strength", "0.15"),
+        ("skill_level_cost", "0.0859375"),
+        ("skill_level_growth", "1.34375"),
+        ("affinity_from_trait", "0.6875"),
+        ("affinity_presence_threshold", "0.296875"),
+        ("affinity_presence_points", "10.5"),
+        ("affinity_presence_extra_points", "3.125"),
+        ("affinity_presence_extra_cap", "27"),
+        ("affinity_use_points", "14.5"),
+        ("affinity_use_feeling_per_hour", "0.0234375"),
+        ("affinity_band_loves", "0.5625"),
+        ("affinity_band_likes", "0.1875"),
+        ("affinity_from_mild_trait", "0.34375"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -1215,6 +1354,11 @@ mod tests {
         assert_eq!(parsed.habituation_per_use, 0.3125);
         assert_eq!(parsed.habituation_decay_per_tick, 0.0625);
         assert_eq!(parsed.habituation_floor, 0.625);
+        assert_eq!(parsed.habituation_max, 3.25);
+        assert_eq!(parsed.overdoing_threshold, 1.125);
+        assert_eq!(parsed.overdoing_penalty, 17.5);
+        assert_eq!(parsed.sick_threshold, 2.75);
+        assert_eq!(parsed.sick_penalty, 22.5);
         assert_eq!(parsed.min_interaction_ticks, 3);
         assert_eq!(parsed.rng_seed, 300);
         assert_eq!(parsed.max_queued_intents, 7);
@@ -1229,6 +1373,7 @@ mod tests {
         assert_eq!(parsed.at_work_decay_scale, 0.4);
         assert_eq!(parsed.neglect_bleed_per_tick, 0.0009765625);
         assert_eq!(parsed.day_ticks, 17);
+        assert_eq!(parsed.first_weekday, 4);
         assert_eq!(parsed.wander_radius_tiles, 29);
         assert_eq!(parsed.resale_fraction, 0.40625);
         assert_eq!(parsed.affinity_loves_from, 1.46875);
@@ -1237,6 +1382,18 @@ mod tests {
         assert_eq!(parsed.housemate_max_traits, 5);
         assert_eq!(parsed.interior_daylight_shade, 0.15625);
         assert_eq!(parsed.daylight_reach_per_tile, 0.21875);
+        assert_eq!(parsed.skill_level_cost, 0.0859375);
+        assert_eq!(parsed.skill_level_growth, 1.34375);
+        assert_eq!(parsed.affinity_from_trait, 0.6875);
+        assert_eq!(parsed.affinity_presence_threshold, 0.296875);
+        assert_eq!(parsed.affinity_presence_points, 10.5);
+        assert_eq!(parsed.affinity_presence_extra_points, 3.125);
+        assert_eq!(parsed.affinity_presence_extra_cap, 27);
+        assert_eq!(parsed.affinity_use_points, 14.5);
+        assert_eq!(parsed.affinity_band_loves, 0.5625);
+        assert_eq!(parsed.affinity_band_likes, 0.1875);
+        assert_eq!(parsed.affinity_from_mild_trait, 0.34375);
+        assert_eq!(parsed.affinity_use_feeling_per_hour, 0.0234375);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {
@@ -1314,6 +1471,35 @@ mod tests {
         }
     }
 
+    /// [CAL-careers]: `working_days` is required. A career written before
+    /// the week existed must fail to parse rather than default to a mask
+    /// nobody chose, and the error names the missing key.
+    #[test]
+    fn a_career_without_working_days_does_not_parse() {
+        let career = r#"
+            [[career]]
+            id = "office_job"
+            label = "Office clerk"
+            shift_start = 360
+            shift_ticks = 480
+            pay = 120
+            energy_cost = 15.0
+            satisfaction = 1.0
+            "#;
+        let err = toml::from_str::<CareersFile>(career)
+            .expect_err("a career without working_days must not parse");
+        assert!(err.to_string().contains("working_days"), "{err}");
+
+        let parsed: CareersFile =
+            toml::from_str(&format!("{career}working_days = [\"sun\", \"mon\"]\n"))
+                .expect("the same career with working days parses");
+        assert_eq!(
+            parsed.career[0].working_days,
+            vec!["sun".to_string(), "mon".to_string()],
+            "the authored list reaches the schema in declared order"
+        );
+    }
+
     #[test]
     fn parses_a_needs_file() {
         let parsed: NeedsFile = toml::from_str(
@@ -1361,6 +1547,51 @@ mod tests {
         assert_eq!(act.advertises.get("hunger"), Some(&35.0));
         assert_eq!(act.advertises.len(), 1, "advert must stay sparse");
         assert_eq!(act.duration_ticks, 15);
+        assert!(
+            parsed.affinity.is_empty(),
+            "a file without [[affinity]] tables declares no kinds"
+        );
+    }
+
+    /// [OA-kinds]: `[[affinity]]` tables reach the schema in file order, with
+    /// their objects in authored order, and `trait_tag` is optional.
+    #[test]
+    fn parses_affinity_kinds_in_file_order() {
+        let parsed: ObjectsFile = toml::from_str(
+            r#"
+            [[object]]
+            id = "radio"
+            name = "Radio"
+            sprite = "radio"
+            interaction = []
+
+            [[affinity]]
+            id = "sound"
+            label = "sound"
+            reach = "use"
+            objects = ["radio", "television"]
+            trait_tag = "listening"
+
+            [[affinity]]
+            id = "greenery"
+            label = "greenery"
+            reach = "presence"
+            objects = ["potted_plant"]
+            "#,
+        )
+        .expect("valid objects toml");
+        let [first, second] = parsed.affinity.as_slice() else {
+            panic!("two kinds, got {:?}", parsed.affinity);
+        };
+        assert_eq!(first.id, "sound");
+        assert_eq!(first.label, "sound");
+        assert_eq!(first.reach, "use");
+        assert_eq!(first.objects, ["radio", "television"]);
+        assert_eq!(first.trait_tag.as_deref(), Some("listening"));
+        assert_eq!(second.id, "greenery");
+        assert_eq!(second.reach, "presence");
+        assert_eq!(second.objects, ["potted_plant"]);
+        assert_eq!(second.trait_tag, None);
     }
 
     /// Both halves of `#[serde(default)]` on `label`.

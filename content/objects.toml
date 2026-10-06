@@ -993,3 +993,37 @@ name = "Rich"
 hue = 0.0
 strength = 1.4
 lightness = -0.04
+
+# Kinds of thing a person can love or hate - [OA-kinds] in
+# docs/specs/2026-10-06-object-affinities.md. `reach` is "presence" (the
+# objects in the room move mood) or "use" (somebody else using one bothers a
+# person who hates the kind). `trait_tag` names the activity tag whose
+# disposition traits set the starting value: strong for a trait that loves or
+# hates, mild for one that likes or dislikes. Order is kept: every
+# person's values are listed in it. Saves name a kind by id, not position.
+
+[[affinity]]
+id = "plants"
+label = "plants"
+reach = "presence"
+objects = ["potted_plant"]
+
+[[affinity]]
+id = "aquarium"
+label = "aquarium"
+reach = "presence"
+objects = ["reference_shelf"]
+trait_tag = "aquarium"
+
+[[affinity]]
+id = "television"
+label = "television"
+reach = "use"
+objects = ["television"]
+trait_tag = "television"
+
+[[affinity]]
+id = "radio"
+label = "radio"
+reach = "use"
+objects = ["radio"]

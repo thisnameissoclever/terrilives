@@ -644,6 +644,17 @@
       .housemate-option-name { font-weight: 600; }
       .housemate-option-text { color: var(--hud-muted); }
       #housemate-status:empty { display: none; }
+      /* [ES-form]: edit mode hides creation's family row, whose display:
+         contents would otherwise outrank the hidden attribute. Each relation
+         row wraps on a phone, and its select is a full touch target. */
+      #housemate-family[hidden] { display: none; }
+      #housemate-ties label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+      #housemate-ties select {
+        min-height: 44px; min-width: 0; max-width: 100%; font: inherit;
+        color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
+        border-radius: 4px;
+      }
+      #housemate-removal-note { margin: 8px 0 0; color: var(--hud-muted); }
       #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
       #load-game-dialog menu,
@@ -933,9 +944,9 @@
          they read all the time. -->
     <div id="hud">
       <section id="household-summary" aria-label="Household status">
-        <div class="summary-row">
+        <div id="clock-row" class="summary-row">
           <span class="summary-label">Time</span>
-          <strong id="clock-value" class="summary-value">Day 1, 00:00</strong>
+          <strong id="clock-value" class="summary-value">Day 1, Monday&#10;00:00</strong>
         </div>
         <div class="summary-row">
           <span class="summary-label">Funds</span>
@@ -1029,6 +1040,7 @@
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
         <div id="sim-identity"><strong id="needs-caption">Select a person</strong><span id="dock-activity"></span><span id="dock-critical"></span></div>
+        <button id="edit-housemate" class="hud-button" type="button" disabled>Edit</button>
         <div id="dock-wellbeing">
           <section id="mood-block" aria-label="Mood">
             <p id="mood-empty">Select a person to see their mood.</p>
@@ -1091,7 +1103,7 @@
           <summary>Personality, habits and bed</summary>
           <p id="personal-details-empty">Select a person to see their personality and habits.</p>
           <div id="personal-details-content" hidden></div>
-        </details></section>
+        </details><details id="skills-block"><summary>Skills</summary><p id="skills-empty">Select a person to see their skills.</p><ul id="skill-list" hidden></ul></details><details id="affinities-block"><summary>Likes and dislikes</summary><p id="affinities-empty">Select a person to see their likes and dislikes.</p><ul id="affinity-list" hidden></ul></details></section>
           <section id="sim-queue" data-sim-panel="queue" aria-label="Queue" hidden>
             <div class="queue-controls"><button
           id="queue-mode"
@@ -1259,6 +1271,9 @@
           <input id="housemate-name" type="text" autocomplete="off">
           <fieldset id="housemate-personality">
             <legend>Personality</legend>
+            <!-- [ES-personality]: Edit mode's "Keep current personality",
+                 outside the scrolling list so it stays in view. -->
+            <div id="housemate-keep-personality" hidden></div>
             <div id="housemate-personality-list"></div>
           </fieldset>
           <menu>
@@ -1280,6 +1295,10 @@
             <label for="housemate-relative">of</label>
             <select id="housemate-relative"></select>
           </div>
+          <!-- [ES-form] in docs/specs/2026-09-30-edit-sims.md: edit mode's
+               relation to each other household member, built by the view. -->
+          <div id="housemate-ties" hidden></div>
+          <p id="housemate-removal-note" hidden>Removing a condition forgets its severity. Skills are kept.</p>
           <menu>
             <button id="housemate-back" class="hud-button" type="button">Back</button>
             <button id="housemate-confirm" class="hud-button" type="button">Move in</button>

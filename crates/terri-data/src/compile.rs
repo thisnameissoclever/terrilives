@@ -6,6 +6,7 @@
 //! "every `NeedId` appears exactly once" are not shapes.
 
 use crate::error::ContentError;
+use crate::pack::{AffinityReach, CompiledAffinityKind};
 use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledActionSocket, CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement,
@@ -13,11 +14,11 @@ use crate::pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, ObjectDefId, Tuning,
 };
-use crate::pack::{CompiledColourway, CompiledCovering, Facing, FacingSprites};
+use crate::pack::{CompiledColourway, CompiledCovering, CompiledSkill, Facing, FacingSprites};
 use crate::schema::{
-    AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile, InteractionDef, LotFile,
-    NeedsFile, ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef,
-    VoiceFile,
+    AffinityKindDef, AtlasFile, CareerDef, CareersFile, ChainsFile, ColourwayDef, HouseholdFile,
+    InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile,
+    TraitsFile, TuningFile, VisualDef, VoiceFile, WEEKDAY_NAMES,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::layout::{EdgeAxis, WallEdge};
@@ -80,10 +81,10 @@ fn check_number(value: f32, context: &str) -> Result<(), ContentError> {
 ///
 /// One parameter per content file, deliberately, and the clippy arity
 /// lint is answered rather than obeyed: a `ContentSources` struct would
-/// hold the same eight names one level down, turn every call site's
+/// hold the same names one level down, turn every call site's
 /// compile-time "you forgot the new file" error into field-init noise,
 /// and buy nothing else. The parameter list IS the manifest of what a
-/// pack is made from.
+/// pack is made from, `skills.toml` last because it arrived last.
 #[allow(clippy::too_many_arguments)]
 pub fn compile(
     needs: NeedsFile,
@@ -104,11 +105,15 @@ pub fn compile(
     // headers and this validates what it found. Splitting it that way also
     // means a test can state a clip length without owning an audio file.
     voice_clip_ticks: Vec<u32>,
+    skills: SkillsFile,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     // Colourways ride in objects.toml but apply to every object; they are
     // validated last, on their own.
     let colourway_defs = objects.colourway.clone();
+    // Affinity kinds ride in objects.toml too and resolve against the
+    // compiled objects and the activity tags, so they wait for both.
+    let affinity_kind_defs = objects.affinity.clone();
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
         sprite: SIM_SPRITE.to_string(),
     })? as u32;
@@ -569,7 +574,17 @@ pub fn compile(
     // interaction is retired. After the lot (the coverage rule needs
     // the placements) and after tuning (steps obey the clipped rule).
     let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
-    let traits = compile_traits(traits, &compiled, &social, &chains, affinity)?;
+    // One tag universe for every definition that keys on an activity, so a
+    // trait and a skill cannot disagree about what exists.
+    let known_tags = activity_tags(&compiled, &social, &chains);
+    let traits = compile_traits(traits, &known_tags, affinity)?;
+    // [SK-content]: skills key on the same tags as traits, and nothing
+    // resolves against them at compile time.
+    let skills = compile_skills(skills, &known_tags)?;
+    check_skill_ladders(&skills, tuning.skill_level_cost, tuning.skill_level_growth)?;
+    // [OA-kinds]: affinity kinds list objects by id and name a trait tag
+    // from the same universe as traits and skills.
+    let affinities = compile_affinities(&affinity_kind_defs, &compiled, &known_tags)?;
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
     let careers = compile_careers(careers, &tuning)?;
@@ -611,6 +626,8 @@ pub fn compile(
         portals,
         colourways,
         coverings,
+        skills,
+        affinities,
     })
 }
 
@@ -1150,6 +1167,7 @@ fn compile_careers(
                 value: def.satisfaction,
             });
         }
+        let working_days = compile_working_days(def)?;
         compiled.push(crate::pack::CompiledCareer {
             id: def.id.clone(),
             label: def.label.clone(),
@@ -1158,9 +1176,39 @@ fn compile_careers(
             pay: def.pay,
             energy_cost: def.energy_cost,
             satisfaction: def.satisfaction,
+            working_days,
         });
     }
     Ok(compiled)
+}
+
+/// Compiles a career's `working_days` names into the Monday-first mask
+/// `CompiledCareer::works_on` reads - [CAL-careers]. Names match
+/// [`WEEKDAY_NAMES`] exactly, so `Tue` is refused. The list must name at
+/// least one day and no day twice; a repeat is refused rather than merged
+/// because it is almost always a typo for a missing day.
+fn compile_working_days(def: &CareerDef) -> Result<u8, ContentError> {
+    if def.working_days.is_empty() {
+        return Err(ContentError::EmptyWorkingDays { id: def.id.clone() });
+    }
+    let mut mask = 0u8;
+    for day in &def.working_days {
+        let Some(weekday) = WEEKDAY_NAMES.iter().position(|name| name == day) else {
+            return Err(ContentError::UnknownWorkingDay {
+                id: def.id.clone(),
+                day: day.clone(),
+            });
+        };
+        let bit = 1u8 << weekday;
+        if mask & bit != 0 {
+            return Err(ContentError::RepeatedWorkingDay {
+                id: def.id.clone(),
+                day: day.clone(),
+            });
+        }
+        mask |= bit;
+    }
+    Ok(mask)
 }
 
 /// Validates `content/traits.toml` - [E3]'s three mechanisms, one file.
@@ -1221,23 +1269,30 @@ fn affinity_verb(multiplier: f32, bands: AffinityBands) -> Option<&'static str> 
     }
 }
 
-fn compile_traits(
-    traits: TraitsFile,
+/// Every activity tag the pack carries: object interactions, social
+/// interactions and chain steps. Traits and skills both resolve their tag
+/// against this set.
+fn activity_tags(
     objects: &[CompiledObject],
     social: &[CompiledInteraction],
     chains: &[crate::pack::CompiledChain],
-    affinity: AffinityBands,
-) -> Result<Vec<crate::pack::CompiledTrait>, ContentError> {
-    use crate::pack::{CompiledTrait, CompiledTraitKind};
-
-    let known_tags: BTreeSet<&str> = objects
+) -> BTreeSet<String> {
+    objects
         .iter()
         .flat_map(|object| &object.interactions)
         .chain(social)
         .flat_map(|act| &act.tags)
         .chain(chains.iter().flat_map(|c| &c.steps).flat_map(|s| &s.tags))
-        .map(String::as_str)
-        .collect();
+        .cloned()
+        .collect()
+}
+
+fn compile_traits(
+    traits: TraitsFile,
+    known_tags: &BTreeSet<String>,
+    affinity: AffinityBands,
+) -> Result<Vec<crate::pack::CompiledTrait>, ContentError> {
+    use crate::pack::{CompiledTrait, CompiledTraitKind};
 
     let mut seen = BTreeSet::new();
     let mut compiled = Vec::with_capacity(traits.trait_def.len());
@@ -1262,7 +1317,7 @@ fn compile_traits(
                 value: def.starting_satisfaction_offset,
             });
         }
-        if !known_tags.contains(def.tag.as_str()) {
+        if !known_tags.contains(&def.tag) {
             return Err(ContentError::TraitAboutNothing {
                 id: def.id.clone(),
                 tag: def.tag.clone(),
@@ -1323,7 +1378,6 @@ fn compile_traits(
                 }
                 forbid(def.start_level, "start_level")?;
                 forbid(def.fail_delta_scale, "fail_delta_scale")?;
-                forbid(def.learn_per_attempt, "learn_per_attempt")?;
                 forbid(def.accrual_scale, "accrual_scale")?;
                 forbid(def.manage_per_completion, "manage_per_completion")?;
                 forbid(def.start_severity, "start_severity")?;
@@ -1347,7 +1401,6 @@ fn compile_traits(
             "capability" => {
                 let start_level = unit(def.start_level, "start_level")?;
                 let fail_delta_scale = unit(def.fail_delta_scale, "fail_delta_scale")?;
-                let learn_per_attempt = unit(def.learn_per_attempt, "learn_per_attempt")?;
                 forbid(def.score_multiplier, "score_multiplier")?;
                 forbid(def.accrual_scale, "accrual_scale")?;
                 forbid(def.manage_per_completion, "manage_per_completion")?;
@@ -1355,7 +1408,6 @@ fn compile_traits(
                 CompiledTraitKind::Capability {
                     start_level,
                     fail_delta_scale,
-                    learn_per_attempt,
                 }
             }
             "condition" => {
@@ -1366,7 +1418,6 @@ fn compile_traits(
                 forbid(def.score_multiplier, "score_multiplier")?;
                 forbid(def.start_level, "start_level")?;
                 forbid(def.fail_delta_scale, "fail_delta_scale")?;
-                forbid(def.learn_per_attempt, "learn_per_attempt")?;
                 CompiledTraitKind::Condition {
                     accrual_scale,
                     manage_per_completion,
@@ -1391,6 +1442,187 @@ fn compile_traits(
         });
     }
 
+    Ok(compiled)
+}
+
+/// The most rungs a skill's ladder may have - [SK-model].
+const SKILL_LEVELS_MAX: u8 = 100;
+
+/// Validates `content/skills.toml` - [SK-content] in
+/// `docs/specs/2026-10-05-skills.md`. Each skill has a unique id, a label
+/// and a description, a tag some activity carries, a ladder of 1 to 100
+/// levels, and a finite practice step in `(0, 1]`. No two skills share a
+/// tag, because the fumble roll reads the one skill with a capability's tag
+/// ([SK-capability]). File order is kept, because the Overview sheet lists
+/// skills in it.
+pub fn compile_skills(
+    file: SkillsFile,
+    known_tags: &BTreeSet<String>,
+) -> Result<Vec<CompiledSkill>, ContentError> {
+    let mut seen = BTreeSet::new();
+    // Tag to the id of the first skill that claimed it.
+    let mut tags: BTreeMap<String, String> = BTreeMap::new();
+    let mut compiled = Vec::with_capacity(file.skill.len());
+    for def in file.skill {
+        if !seen.insert(def.id.clone()) {
+            return Err(ContentError::DuplicateSkill(def.id));
+        }
+        for (field, text) in [("label", &def.label), ("description", &def.description)] {
+            if text.trim().is_empty() {
+                return Err(ContentError::EmptySkillText { id: def.id, field });
+            }
+        }
+        if !known_tags.contains(&def.tag) {
+            return Err(ContentError::SkillAboutNothing {
+                id: def.id,
+                tag: def.tag,
+            });
+        }
+        if let Some(first) = tags.get(&def.tag) {
+            return Err(ContentError::SkillTagShared {
+                first: first.clone(),
+                second: def.id,
+                tag: def.tag,
+            });
+        }
+        tags.insert(def.tag.clone(), def.id.clone());
+        if !(1..=SKILL_LEVELS_MAX).contains(&def.levels) {
+            return Err(ContentError::SkillFieldOutOfRange {
+                id: def.id,
+                field: "levels",
+            });
+        }
+        // Written as the accepted range so NaN fails it; infinity is above 1.
+        if !(def.practice_per_attempt > 0.0 && def.practice_per_attempt <= 1.0) {
+            return Err(ContentError::SkillFieldOutOfRange {
+                id: def.id,
+                field: "practice_per_attempt",
+            });
+        }
+        compiled.push(CompiledSkill {
+            id: def.id,
+            label: def.label,
+            description: def.description,
+            tag: def.tag,
+            levels: def.levels,
+            practice_per_attempt: def.practice_per_attempt,
+        });
+    }
+    Ok(compiled)
+}
+
+/// Refuses a skill whose whole ladder costs more practice than an f32 can
+/// hold - [SK-model]. Level 1 costs `cost` and each later level costs
+/// `growth` times the one before, summed rung by rung in ascending order
+/// in f32: the arithmetic `terri_sim::skills::Ladder::cumulative` uses, so
+/// the top of every shipped ladder is a finite number in the simulation.
+fn check_skill_ladders(
+    skills: &[CompiledSkill],
+    cost: f32,
+    growth: f32,
+) -> Result<(), ContentError> {
+    for skill in skills {
+        let mut total = 0.0f32;
+        for rung in 1..=skill.levels {
+            total += cost * growth.powi(i32::from(rung) - 1);
+        }
+        if !total.is_finite() {
+            return Err(ContentError::SkillLadderOverflows {
+                id: skill.id.clone(),
+            });
+        }
+    }
+    Ok(())
+}
+
+/// Validates the affinity kinds declared in `content/objects.toml` -
+/// [OA-kinds] in `docs/specs/2026-10-06-object-affinities.md`. Each kind has a
+/// unique id and a label, a reach of `presence` or `use`, at least one object,
+/// and objects no other kind lists; a `use` kind's objects each have an
+/// interaction, and a trait tag, when present, is one some activity carries.
+/// File order is kept, because every person's values are listed in it; a
+/// kind's objects compile to ascending indices into `objects`.
+pub fn compile_affinities(
+    defs: &[AffinityKindDef],
+    objects: &[CompiledObject],
+    known_tags: &BTreeSet<String>,
+) -> Result<Vec<CompiledAffinityKind>, ContentError> {
+    let mut seen = BTreeSet::new();
+    // Object index to the id of the first kind that listed it.
+    let mut claimed: BTreeMap<u32, String> = BTreeMap::new();
+    let mut compiled = Vec::with_capacity(defs.len());
+    for def in defs {
+        let id = || def.id.clone();
+        if !seen.insert(def.id.as_str()) {
+            return Err(ContentError::DuplicateAffinityKind(id()));
+        }
+        for (field, text) in [("id", &def.id), ("label", &def.label)] {
+            if text.trim().is_empty() {
+                return Err(ContentError::EmptyAffinityText { id: id(), field });
+            }
+        }
+        let reach = match def.reach.as_str() {
+            "presence" => AffinityReach::Presence,
+            "use" => AffinityReach::Use,
+            _ => {
+                return Err(ContentError::UnknownAffinityReach {
+                    id: id(),
+                    reach: def.reach.clone(),
+                })
+            }
+        };
+        let mut indices = Vec::with_capacity(def.objects.len());
+        for object in &def.objects {
+            let Some(index) = objects.iter().position(|o| &o.id == object) else {
+                return Err(ContentError::AffinityObjectUnknown {
+                    id: id(),
+                    object: object.clone(),
+                });
+            };
+            let index = index as u32;
+            if let Some(first) = claimed.get(&index) {
+                return Err(ContentError::AffinityObjectShared {
+                    first: first.clone(),
+                    second: id(),
+                    object: object.clone(),
+                });
+            }
+            claimed.insert(index, id());
+            indices.push(index);
+        }
+        if indices.is_empty() {
+            return Err(ContentError::AffinityObjectEmpty { id: id() });
+        }
+        if reach == AffinityReach::Use {
+            // In authored order, so the first object the author wrote is the
+            // one reported.
+            if let Some(&index) = indices
+                .iter()
+                .find(|&&index| objects[index as usize].interactions.is_empty())
+            {
+                return Err(ContentError::UseAffinityWithoutInteractions {
+                    id: id(),
+                    object: objects[index as usize].id.clone(),
+                });
+            }
+        }
+        if let Some(tag) = &def.trait_tag {
+            if !known_tags.contains(tag) {
+                return Err(ContentError::AffinityTraitTagAboutNothing {
+                    id: id(),
+                    tag: tag.clone(),
+                });
+            }
+        }
+        indices.sort_unstable();
+        compiled.push(CompiledAffinityKind {
+            id: id(),
+            label: def.label.clone(),
+            reach,
+            objects: indices,
+            trait_tag: def.trait_tag.clone(),
+        });
+    }
     Ok(compiled)
 }
 
@@ -2328,6 +2560,97 @@ fn compile_household(
     Ok(compiled)
 }
 
+/// Checks the overdoing knobs for `compile_tuning`.
+///
+/// [OD-content] in `docs/specs/2026-10-06-overdoing-it.md`: the five
+/// overdoing knobs, each written as its accepted range so NaN fails it too.
+/// The refusal names the knob whose rule broke; for a relation between two
+/// knobs that is the one the rule constrains, so a threshold at the maximum
+/// names `overdoing_threshold`.
+fn check_overdoing_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
+    let max = tuning.habituation_max;
+    let threshold = tuning.overdoing_threshold;
+    let rules = [
+        ("habituation_max", max.is_finite() && max > 1.0),
+        (
+            "overdoing_threshold",
+            threshold.is_finite() && threshold >= 1.0 && threshold < max,
+        ),
+        (
+            "overdoing_penalty",
+            tuning.overdoing_penalty.is_finite() && tuning.overdoing_penalty >= 0.0,
+        ),
+        (
+            "sick_threshold",
+            tuning.sick_threshold.is_finite()
+                && tuning.sick_threshold > threshold
+                && tuning.sick_threshold <= max,
+        ),
+        (
+            "sick_penalty",
+            tuning.sick_penalty.is_finite() && tuning.sick_penalty >= 0.0,
+        ),
+    ];
+    match rules.into_iter().find(|(_, holds)| !holds) {
+        Some((key, _)) => Err(ContentError::InvalidOverdoingTuning { key }),
+        None => Ok(()),
+    }
+}
+
+/// Checks the affinity knobs for `compile_tuning`.
+///
+/// [OA-values], [OA-presence] and [OA-use] in
+/// `docs/specs/2026-10-06-object-affinities.md`: each rule is written as the
+/// accepted range so NaN fails it too. `affinity_presence_extra_cap` has no
+/// rule; any count of further objects, including none, is legal.
+fn check_affinity_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
+    let finite_and_not_negative = |value: f32| value.is_finite() && value >= 0.0;
+    let rules = [
+        (
+            "affinity_from_trait",
+            tuning.affinity_from_trait > 0.0 && tuning.affinity_from_trait <= 1.0,
+        ),
+        (
+            "affinity_presence_threshold",
+            tuning.affinity_presence_threshold >= 0.0 && tuning.affinity_presence_threshold < 1.0,
+        ),
+        (
+            "affinity_presence_points",
+            finite_and_not_negative(tuning.affinity_presence_points),
+        ),
+        (
+            "affinity_presence_extra_points",
+            finite_and_not_negative(tuning.affinity_presence_extra_points),
+        ),
+        (
+            "affinity_use_points",
+            finite_and_not_negative(tuning.affinity_use_points),
+        ),
+        (
+            "affinity_use_feeling_per_hour",
+            finite_and_not_negative(tuning.affinity_use_feeling_per_hour),
+        ),
+        (
+            "affinity_band_likes",
+            tuning.affinity_band_likes > 0.0 && tuning.affinity_band_likes < 1.0,
+        ),
+        (
+            "affinity_band_loves",
+            tuning.affinity_band_loves > tuning.affinity_band_likes
+                && tuning.affinity_band_loves <= 1.0,
+        ),
+        (
+            "affinity_from_mild_trait",
+            tuning.affinity_from_mild_trait > 0.0
+                && tuning.affinity_from_mild_trait < tuning.affinity_from_trait,
+        ),
+    ];
+    match rules.into_iter().find(|(_, holds)| !holds) {
+        Some((key, _)) => Err(ContentError::AffinityTuningOutOfRange { key }),
+        None => Ok(()),
+    }
+}
+
 /// Validates the system knobs from `content/tuning.toml`.
 ///
 /// Presence is serde's job - `TuningFile` defaults nothing, so a missing
@@ -2598,6 +2921,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             value: tuning.habituation_floor,
         });
     }
+    check_overdoing_tuning(&tuning)?;
     if !(0.0..1.0).contains(&tuning.duration_variance) {
         return Err(ContentError::DurationVarianceOutOfRange {
             value: tuning.duration_variance,
@@ -2693,6 +3017,19 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             value: tuning.hobby_multiplier,
         });
     }
+    // [SK-model]: a free first level puts everyone past it before any
+    // practice, and a shrinking ladder makes the top cheaper than the middle.
+    // Written as the accepted range so NaN fails it too.
+    if !(tuning.skill_level_cost.is_finite() && tuning.skill_level_cost > 0.0) {
+        return Err(ContentError::SkillLevelCostOutOfRange {
+            value: tuning.skill_level_cost,
+        });
+    }
+    if !(tuning.skill_level_growth.is_finite() && tuning.skill_level_growth >= 1.0) {
+        return Err(ContentError::SkillLevelGrowthBelowOne {
+            value: tuning.skill_level_growth,
+        });
+    }
     // The floor lives on the need scale. Above NEED_MAX every need is
     // neglected from tick one and the accumulator only ever falls,
     // which reads as a broken axis rather than as a knob set wrong.
@@ -2712,6 +3049,14 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.day_ticks == 0 {
         return Err(ContentError::ZeroDayTicks);
     }
+    // [CAL-week]: a weekday is 0 (Monday) to 6 (Sunday). Past that, the
+    // first day would name no weekday at all.
+    if tuning.first_weekday >= terri_core::clock::WEEKDAY_COUNT {
+        return Err(ContentError::FirstWeekdayOutOfRange {
+            value: tuning.first_weekday,
+        });
+    }
+    check_affinity_tuning(&tuning)?;
 
     // The circadian curve, if authored. Every rule here converts a shape
     // of failure that would otherwise be silent into a build error, which
@@ -2902,6 +3247,26 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             shyness_wander_reconsider_strength: tuning.shyness_wander_reconsider_strength,
             relationships: tuning.relationships,
             need_interactions: tuning.need_interactions,
+            skill_level_cost: tuning.skill_level_cost,
+            skill_level_growth: tuning.skill_level_growth,
+            habituation_max: tuning.habituation_max,
+            overdoing_threshold: tuning.overdoing_threshold,
+            overdoing_penalty: tuning.overdoing_penalty,
+            sick_threshold: tuning.sick_threshold,
+            sick_penalty: tuning.sick_penalty,
+            first_weekday: tuning.first_weekday,
+            affinity_from_trait: tuning.affinity_from_trait,
+            affinity_presence_threshold: tuning.affinity_presence_threshold,
+            affinity_presence_points: tuning.affinity_presence_points,
+            affinity_presence_extra_points: tuning.affinity_presence_extra_points,
+            affinity_presence_extra_cap: tuning.affinity_presence_extra_cap,
+            affinity_use_points: tuning.affinity_use_points,
+            affinity_use_feeling_per_hour: tuning.affinity_use_feeling_per_hour,
+            affinity_loves_from: affinity.loves_from,
+            affinity_hates_to: affinity.hates_to,
+            affinity_band_loves: tuning.affinity_band_loves,
+            affinity_band_likes: tuning.affinity_band_likes,
+            affinity_from_mild_trait: tuning.affinity_from_mild_trait,
         },
         circadian,
         tuning.sleep_tag,
@@ -3768,6 +4133,7 @@ mod tests {
             ChainsFile { chain: vec![] },
             VoiceFile { clip: vec![] },
             vec![],
+            SkillsFile::default(),
         )
     }
 
@@ -3778,7 +4144,7 @@ mod tests {
     use crate::schema::{
         ActionSocketDef, ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef,
         FrontDoorVisualDef, HouseholdSimDef, InteractionDef, NeedDef, ObjectDef, PlacementDef,
-        TraitDef, VisualDef, VoiceClipDef, WallDef,
+        SkillDef, TraitDef, VisualDef, VoiceClipDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -3874,6 +4240,49 @@ mod tests {
     /// The label is a DECLARED one rather than the id fallback - see
     /// `snack_advertising_three_needs` - so these bytes also pin that the
     /// author's wording, and not `grab_snack`, is what reaches the pack.
+    ///
+    /// **Skills moved it by nine bytes, both appended ([SK-model],
+    /// [SK-content] in `docs/specs/2026-10-05-skills.md`).** `Tuning` gained
+    /// `skill_level_cost` and `skill_level_growth` after `domestic`, so the
+    /// eight bytes `0, 0, 176, 61, 0, 0, 172, 63` (0.0859375 and 1.34375)
+    /// sit between the `domestic` byte and the nine empty fields before the
+    /// sleep tag; and `ContentPack` gained `skills`, the final empty byte.
+    /// Every byte before the ladder kept its offset. 480 bytes to 489.
+    ///
+    /// **Overdoing moved it by twenty bytes, all appended to `Tuning`
+    /// ([OD-content] in `docs/specs/2026-10-06-overdoing-it.md`).** The five
+    /// floats 3.25, 1.125, 17.5, 2.75 and 22.5 follow the ladder, on their
+    /// own row, in declaration order. Every byte up to and including the
+    /// ladder kept its offset. 489 bytes to 509.
+    ///
+    /// **The calendar moved it by one byte, appended to `Tuning`
+    /// ([CAL-week] in `docs/specs/2026-10-06-calendar.md`).** `first_weekday`
+    /// is a `u8`, one raw byte, and the fixture's 4 sits on its own row after
+    /// the overdoing floats. Careers add nothing here because the fixture
+    /// compiles none. Every byte up to and including the overdoing floats
+    /// kept its offset. 509 bytes to 510.
+    ///
+    /// **Object affinities moved it by twenty-six bytes, all appended
+    /// ([OA-kinds] and [OA-values] in
+    /// `docs/specs/2026-10-06-object-affinities.md`).** `Tuning` gained seven
+    /// knobs after `first_weekday`, on their own row: the floats 0.6875,
+    /// 0.296875, 10.5 and 3.125, the cap 27 as a one-byte varint, and the
+    /// floats 14.5 and 0.0234375. `ContentPack` gained `affinities` after
+    /// `skills`, the final empty byte; the fixture declares no kind. Every byte
+    /// up to and including `first_weekday` kept its offset. 510 bytes to 536.
+    ///
+    /// **The trait bands moved it by eight bytes, appended to `Tuning`
+    /// ([TL-affinity], read at spawn by [OA-values]).** `affinity_loves_from`
+    /// and `affinity_hates_to` follow the seven affinity knobs, on their own
+    /// row: the fixture's floats 1.46875 and 0.28125. Every byte up to and
+    /// including the affinity knobs kept its offset. 536 bytes to 544.
+    ///
+    /// **The word bands and the mild trait value moved it by twelve bytes,
+    /// appended to `Tuning` ([OA-hud] and [OA-values]).**
+    /// `affinity_band_loves`, `affinity_band_likes` and
+    /// `affinity_from_mild_trait` follow the trait bands, on their own row:
+    /// the fixture's floats 0.5625, 0.1875 and 0.34375. Every byte up to and
+    /// including the trait bands kept its offset. 544 bytes to 556.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Completion presentation appends None after activity in the sole interaction.
@@ -3903,8 +4312,12 @@ mod tests {
         0, 64, 205, 204, 76, 62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0,
         128, 62, 205, 204, 204, 61, 154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0,
         0, 0, 205, 204, 76, 190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10,
-        0, 0, 160, 64, 0, 0, 0, 32, 66, 97, 11, 182, 60, 143, 194, 245, 61, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
+        0, 0, 160, 64, 0, 0, 0, 176, 61, 0, 0, 172, 63, 0, 0, 80, 64, 0, 0, 144,
+        63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65, 4, 0, 0, 48, 63, 0, 0,
+        152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60, 0,
+        0, 188, 63, 0, 0, 144, 62, 0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62, 0,
+        0, 32, 66, 97, 11, 182, 60, 143, 194, 245, 61, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3992,6 +4405,7 @@ mod tests {
     fn three_objects() -> ObjectsFile {
         ObjectsFile {
             colourway: Vec::new(),
+            affinity: Vec::new(),
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
@@ -4083,6 +4497,16 @@ mod tests {
             habituation_per_use: 0.3125,
             habituation_decay_per_tick: 0.0025,
             habituation_floor: 0.625,
+            // [OD-content]'s five, distinct from every knob here and exact in
+            // binary32; the golden vector reads these bytes.
+            habituation_max: 3.25,
+            overdoing_threshold: 1.125,
+            overdoing_penalty: 17.5,
+            sick_threshold: 2.75,
+            sick_penalty: 22.5,
+            // [CAL-week]: a Friday, so a dropped field (0) is visible, and a
+            // number no integer knob here shares; the golden vector reads it.
+            first_weekday: 4,
             min_interaction_ticks: 3,
             contested_score_multiplier: 0.375,
             rng_seed: 300,
@@ -4133,6 +4557,23 @@ mod tests {
             shyness_annoyance_strength: 0.25,
             boundary_wander_reconsider_chance: 0.10,
             shyness_wander_reconsider_strength: 0.15,
+            // [SK-model]'s ladder, distinct from every knob above and exact
+            // in binary32; the golden vector reads these bytes.
+            skill_level_cost: 0.0859375,
+            skill_level_growth: 1.34375,
+            // [OA-values], [OA-presence] and [OA-use]: distinct from every
+            // knob above and exact in binary32; the golden vector reads these
+            // bytes.
+            affinity_from_trait: 0.6875,
+            affinity_presence_threshold: 0.296875,
+            affinity_presence_points: 10.5,
+            affinity_presence_extra_points: 3.125,
+            affinity_presence_extra_cap: 27,
+            affinity_use_points: 14.5,
+            affinity_use_feeling_per_hour: 0.0234375,
+            affinity_band_loves: 0.5625,
+            affinity_band_likes: 0.1875,
+            affinity_from_mild_trait: 0.34375,
 
             decay_per_tick: NeedId::ALL
                 .iter()
@@ -4304,6 +4745,7 @@ mod tests {
     fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
             colourway: Vec::new(),
+            affinity: Vec::new(),
             object: vec![ObjectDef {
                 sleep_place: Vec::new(),
                 seat_comfort_per_tick: 0.,
@@ -5305,6 +5747,7 @@ mod tests {
                     .collect(),
             },
             ticks,
+            SkillsFile::default(),
         )
     }
 
@@ -5323,19 +5766,96 @@ mod tests {
             !GOLDEN_PACK_BYTES.is_empty(),
             "an emptied vector would assert nothing"
         );
-        // The portal vector, then the colourway vector, then the floor
-        // coverings ([FL-content]), each empty here, are the three bytes
-        // appended after the established pack.
-        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 3;
+        // From the end: the empty affinity kinds vector ([OA-kinds]) and the
+        // empty skills vector ([SK-content]) before it; the voice clip,
+        // portal, colourway and floor covering vectors before those; the
+        // sleep tag, its length 5 and five letters; nine empty fields from
+        // personalities through circadian; the word bands and the mild trait
+        // value ([OA-hud], [OA-values]), the last twelve bytes of `Tuning`;
+        // the two trait bands ([TL-affinity]), the eight before them; the seven
+        // affinity knobs ([OA-values]), the twenty-five bytes before them;
+        // `first_weekday` ([CAL-week]), the byte before those; the five
+        // overdoing knobs ([OD-content]), the twenty bytes before that; and
+        // then the two ladder knobs. Everything before the ladder is the
+        // established pack.
+        let need_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let words_end = need_end - 12;
+        let bands_end = words_end - 12;
+        let affinity_end = bands_end - 8;
+        let affinity_start = affinity_end - 25;
+        let weekday = affinity_start - 1;
+        let overdoing_end = weekday;
+        let ladder_end = overdoing_end - 20;
+        let ladder_start = ladder_end - 8;
         assert_eq!(
-            &bytes[..established_prefix_len],
-            &GOLDEN_PACK_BYTES[..established_prefix_len],
-            "appending a vector to the pack must not move an established byte"
+            &bytes[..ladder_start],
+            &GOLDEN_PACK_BYTES[..ladder_start],
+            "appending to Tuning and to the pack must not move an established byte"
+        );
+        let ladder: Vec<u8> = [0.0859375f32, 1.34375]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[ladder_start..ladder_end],
+            ladder,
+            "the skill ladder precedes the overdoing knobs"
+        );
+        let overdoing: Vec<u8> = [3.25f32, 1.125, 17.5, 2.75, 22.5]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[ladder_end..overdoing_end],
+            overdoing,
+            "the overdoing knobs precede the first weekday"
         );
         assert_eq!(
-            &bytes[established_prefix_len..],
-            &[0, 0, 0],
-            "each empty appended vector costs exactly one byte"
+            bytes[weekday], 4,
+            "first_weekday precedes the affinity knobs"
+        );
+        let affinity: Vec<u8> = [0.6875f32, 0.296875, 10.5, 3.125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .chain([27])
+            .chain([14.5f32, 0.0234375].into_iter().flat_map(f32::to_le_bytes))
+            .collect();
+        assert_eq!(
+            &bytes[affinity_start..affinity_end],
+            affinity,
+            "the affinity knobs precede the trait bands"
+        );
+        let bands: Vec<u8> = [1.46875f32, 0.28125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[affinity_end..bands_end],
+            bands,
+            "the trait bands precede the word bands"
+        );
+        let words: Vec<u8> = [0.5625f32, 0.1875, 0.34375]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[bands_end..words_end],
+            words,
+            "the word bands and the mild trait value precede need-interaction tuning"
+        );
+        assert_eq!(
+            &bytes[bytes.len() - 6..],
+            &[0, 0, 0, 0, 0, 0],
+            "each empty vector at the pack tail costs exactly one byte"
+        );
+        let need_tuning: Vec<_> = [40.0f32, 2. / 90., 0.12]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[words_end..need_end],
+            need_tuning,
+            "need-interaction tuning appends without moving main's established slots"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
     }
@@ -5381,6 +5901,26 @@ mod tests {
         assert_eq!(tuning.neglect_bleed_per_tick, 0.0078125);
         assert_eq!(tuning.wander_radius_tiles, 29);
         assert_eq!(tuning.resale_fraction, 0.40625);
+        assert_eq!(tuning.skill_level_cost, 0.0859375);
+        assert_eq!(tuning.skill_level_growth, 1.34375);
+        assert_eq!(tuning.habituation_max, 3.25);
+        assert_eq!(tuning.overdoing_threshold, 1.125);
+        assert_eq!(tuning.overdoing_penalty, 17.5);
+        assert_eq!(tuning.sick_threshold, 2.75);
+        assert_eq!(tuning.sick_penalty, 22.5);
+        assert_eq!(tuning.first_weekday, 4);
+        assert_eq!(tuning.affinity_from_trait, 0.6875);
+        assert_eq!(tuning.affinity_presence_threshold, 0.296875);
+        assert_eq!(tuning.affinity_presence_points, 10.5);
+        assert_eq!(tuning.affinity_presence_extra_points, 3.125);
+        assert_eq!(tuning.affinity_presence_extra_cap, 27);
+        assert_eq!(tuning.affinity_use_points, 14.5);
+        assert_eq!(tuning.affinity_use_feeling_per_hour, 0.0234375);
+        assert_eq!(tuning.affinity_loves_from, 1.46875);
+        assert_eq!(tuning.affinity_hates_to, 0.28125);
+        assert_eq!(tuning.affinity_band_loves, 0.5625);
+        assert_eq!(tuning.affinity_band_likes, 0.1875);
+        assert_eq!(tuning.affinity_from_mild_trait, 0.34375);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -5434,6 +5974,48 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.hobby_multiplier = 1.0))
             .expect("1.0 is the legal disable");
         assert_eq!(pack.tuning.hobby_multiplier, 1.0);
+    }
+
+    /// [SK-model]: the first rung must cost something, or every attempt
+    /// would climb the whole ladder at once, and a later rung must not cost
+    /// less than the one before, or the top would arrive faster than the
+    /// middle.
+    #[test]
+    fn rejects_a_free_skill_ladder_and_a_shrinking_one() {
+        for bad in [0.0, -0.1] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.skill_level_cost = bad)).unwrap_err(),
+                ContentError::SkillLevelCostOutOfRange { value: bad },
+                "a skill_level_cost of {bad} makes level 1 free"
+            );
+        }
+        for bad in [0.9, 0.0] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.skill_level_growth = bad)).unwrap_err(),
+                ContentError::SkillLevelGrowthBelowOne { value: bad },
+                "a skill_level_growth of {bad} makes later levels cheaper"
+            );
+        }
+        for bad in [f32::NAN, f32::INFINITY] {
+            assert!(
+                matches!(
+                    compile_tuned(tuning_where(|t| t.skill_level_cost = bad)),
+                    Err(ContentError::SkillLevelCostOutOfRange { .. })
+                ),
+                "a skill_level_cost of {bad} is no ladder"
+            );
+            assert!(
+                matches!(
+                    compile_tuned(tuning_where(|t| t.skill_level_growth = bad)),
+                    Err(ContentError::SkillLevelGrowthBelowOne { .. })
+                ),
+                "a skill_level_growth of {bad} is no ladder"
+            );
+        }
+        // Exactly 1 is accepted: every level costs the same.
+        let pack = compile_tuned(tuning_where(|t| t.skill_level_growth = 1.0))
+            .expect("a flat ladder is legal");
+        assert_eq!(pack.tuning.skill_level_growth, 1.0);
     }
 
     #[test]
@@ -5707,6 +6289,112 @@ mod tests {
             let mut expected = baseline;
             set_pack(&mut expected);
             assert_eq!(actual, expected);
+        }
+    }
+
+    /// [OD-content]: every overdoing knob reaches its own compiled field.
+    /// The fixture's five values are pairwise distinct, so a knob copied
+    /// from a neighbour moves exactly one assertion.
+    #[test]
+    fn every_overdoing_knob_is_copied_to_its_own_compiled_field() {
+        type SetFile = fn(&mut TuningFile);
+        type SetPack = fn(&mut Tuning);
+        let setters: &[(SetFile, SetPack)] = &[
+            (
+                |t| t.habituation_max *= 0.875,
+                |t| t.habituation_max *= 0.875,
+            ),
+            (
+                |t| t.overdoing_threshold *= 0.9375,
+                |t| t.overdoing_threshold *= 0.9375,
+            ),
+            (
+                |t| t.overdoing_penalty *= 0.875,
+                |t| t.overdoing_penalty *= 0.875,
+            ),
+            (|t| t.sick_threshold *= 0.875, |t| t.sick_threshold *= 0.875),
+            (|t| t.sick_penalty *= 0.875, |t| t.sick_penalty *= 0.875),
+        ];
+        let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
+        for (set_file, set_pack) in setters {
+            let actual = compile_tuned(tuning_where(set_file)).unwrap().tuning;
+            let mut expected = baseline;
+            set_pack(&mut expected);
+            assert_eq!(actual, expected);
+        }
+    }
+
+    /// [OD-content]: each knob's accepted range, with the value on each
+    /// side of every boundary. A refusal names the knob whose rule broke.
+    #[test]
+    fn overdoing_tuning_rejects_each_knob_outside_its_range() {
+        let refused = |tuning: TuningFile, key: &'static str| {
+            assert_eq!(
+                compile_tuned(tuning).unwrap_err(),
+                ContentError::InvalidOverdoingTuning { key },
+                "{key}"
+            );
+        };
+        type Set = fn(&mut TuningFile, f32);
+        let setters: [(&'static str, Set); 5] = [
+            ("habituation_max", |t, v| t.habituation_max = v),
+            ("overdoing_threshold", |t, v| t.overdoing_threshold = v),
+            ("overdoing_penalty", |t, v| t.overdoing_penalty = v),
+            ("sick_threshold", |t, v| t.sick_threshold = v),
+            ("sick_penalty", |t, v| t.sick_penalty = v),
+        ];
+        for (key, set) in setters {
+            for value in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+                refused(tuning_where(|t| set(t, value)), key);
+            }
+        }
+
+        // The maximum must leave room above saturation.
+        refused(tuning_where(|t| t.habituation_max = 1.0), "habituation_max");
+        // The threshold is at least 1 and below the maximum.
+        refused(
+            tuning_where(|t| t.overdoing_threshold = 0.5),
+            "overdoing_threshold",
+        );
+        refused(
+            tuning_where(|t| t.overdoing_threshold = t.habituation_max),
+            "overdoing_threshold",
+        );
+        // Sickness starts above the threshold and at most at the maximum.
+        refused(
+            tuning_where(|t| t.sick_threshold = t.overdoing_threshold),
+            "sick_threshold",
+        );
+        refused(
+            tuning_where(|t| t.sick_threshold = t.overdoing_threshold - 0.0625),
+            "sick_threshold",
+        );
+        refused(
+            tuning_where(|t| t.sick_threshold = t.habituation_max + 0.0625),
+            "sick_threshold",
+        );
+        // Penalties cost mood, never pay it.
+        refused(
+            tuning_where(|t| t.overdoing_penalty = -0.0625),
+            "overdoing_penalty",
+        );
+        refused(tuning_where(|t| t.sick_penalty = -0.0625), "sick_penalty");
+
+        // The other side of every boundary is accepted.
+        for accepted in [
+            tuning_where(|t| t.overdoing_threshold = 1.0),
+            tuning_where(|t| t.sick_threshold = t.habituation_max),
+            tuning_where(|t| {
+                t.overdoing_penalty = 0.0;
+                t.sick_penalty = 0.0;
+            }),
+            tuning_where(|t| {
+                t.habituation_max = 1.0625;
+                t.overdoing_threshold = 1.0;
+                t.sick_threshold = 1.0625;
+            }),
+        ] {
+            compile_tuned(accepted).expect("inside every overdoing range");
         }
     }
 
@@ -6743,6 +7431,7 @@ mod tests {
     fn sized_objects(sized: &[(&str, u32, u32)]) -> ObjectsFile {
         ObjectsFile {
             colourway: Vec::new(),
+            affinity: Vec::new(),
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
@@ -6864,6 +7553,7 @@ mod tests {
             ChainsFile { chain: vec![] },
             VoiceFile { clip: vec![] },
             vec![],
+            SkillsFile::default(),
         )
     }
 
@@ -6879,6 +7569,9 @@ mod tests {
             pay: 130,
             energy_cost: 11.5,
             satisfaction: 2.25,
+            // Tuesday, Thursday and Saturday: neither the shipped Monday to
+            // Friday nor a mask a reversed bit order would also produce.
+            working_days: vec!["tue".to_string(), "thu".to_string(), "sat".to_string()],
         }
     }
 
@@ -6899,6 +7592,7 @@ mod tests {
         second.pay = 55;
         second.energy_cost = 8.75;
         second.satisfaction = 0.5;
+        second.working_days = vec!["mon".to_string()];
 
         let pack = compile_people_full(
             vec![archetype("the_settled")],
@@ -6917,6 +7611,8 @@ mod tests {
         assert_eq!(first.pay, 130);
         assert_eq!(first.energy_cost, 11.5);
         assert_eq!(first.satisfaction, 2.25);
+        assert_eq!(first.working_days, 0b0101010, "tue, thu and sat");
+        assert_eq!(pack.careers[1].working_days, 0b0000001, "mon alone");
 
         assert_eq!(
             pack.household[0].career,
@@ -6951,6 +7647,77 @@ mod tests {
             ContentError::EmptyCareerLabel {
                 id: "office_job".into()
             }
+        );
+    }
+
+    /// [CAL-careers]: an empty list, a repeated day and a name outside
+    /// `mon` to `sun` are each refused, and each error names the career and,
+    /// where there is one, the offending day. `Tue` is refused although
+    /// `tue` is legal: names match exactly.
+    #[test]
+    fn rejects_empty_repeated_and_unknown_working_days() {
+        let refused = |days: &[&str]| {
+            let mut career = a_career("office_job");
+            career.working_days = days.iter().map(|day| day.to_string()).collect();
+            compile_people_full(vec![], vec![], vec![], vec![career]).unwrap_err()
+        };
+
+        let empty = refused(&[]);
+        assert_eq!(
+            empty,
+            ContentError::EmptyWorkingDays {
+                id: "office_job".into()
+            }
+        );
+        assert!(empty.to_string().contains("'office_job'"), "{empty}");
+
+        let repeated = refused(&["mon", "wed", "mon"]);
+        assert_eq!(
+            repeated,
+            ContentError::RepeatedWorkingDay {
+                id: "office_job".into(),
+                day: "mon".into()
+            }
+        );
+        let message = repeated.to_string();
+        assert!(
+            message.contains("'office_job'") && message.contains("'mon'"),
+            "{message}"
+        );
+
+        let unknown = refused(&["mon", "Tue"]);
+        assert_eq!(
+            unknown,
+            ContentError::UnknownWorkingDay {
+                id: "office_job".into(),
+                day: "Tue".into()
+            }
+        );
+        let message = unknown.to_string();
+        assert!(
+            message.contains("'office_job'") && message.contains("'Tue'"),
+            "{message}"
+        );
+    }
+
+    /// [CAL-careers]: bit 0 is Monday and bit 6 is Sunday, and the order the
+    /// days are written in does not matter. Sunday is in the list so a mask
+    /// that stopped at Saturday, or numbered the week from 1, is visible.
+    #[test]
+    fn compiles_working_days_to_a_monday_first_mask() {
+        let mask_of = |days: &[&str]| {
+            let mut career = a_career("office_job");
+            career.working_days = days.iter().map(|day| day.to_string()).collect();
+            compile_people_full(vec![], vec![], vec![], vec![career])
+                .expect("a valid working-day list")
+                .careers[0]
+                .working_days
+        };
+        assert_eq!(mask_of(&["mon", "wed", "sun"]), 0b1000101);
+        assert_eq!(mask_of(&["sun", "mon", "wed"]), 0b1000101);
+        assert_eq!(
+            mask_of(&["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+            0b1111111
         );
     }
 
@@ -7557,6 +8324,7 @@ mod tests {
                 ChainsFile { chain: vec![] },
                 VoiceFile { clip: vec![] },
                 vec![],
+                SkillsFile::default(),
             )
         };
 
@@ -7582,6 +8350,17 @@ mod tests {
             ContentError::ZeroDayTicks
         );
         assert!(compile_tuned(tuning_where(|t| t.day_ticks = 1)).is_ok());
+    }
+
+    /// [CAL-week]: `first_weekday` names a weekday, 0 (Monday) to 6
+    /// (Sunday). 7 is refused and 6 accepted, separating `> 6` from `>= 6`.
+    #[test]
+    fn rejects_a_first_weekday_past_sunday() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.first_weekday = 7)).unwrap_err(),
+            ContentError::FirstWeekdayOutOfRange { value: 7 }
+        );
+        assert!(compile_tuned(tuning_where(|t| t.first_weekday = 6)).is_ok());
     }
 
     // ---- The circadian curve -------------------------------------------
@@ -7925,7 +8704,6 @@ mod tests {
             score_multiplier: Some(1.25),
             start_level: None,
             fail_delta_scale: None,
-            learn_per_attempt: None,
             accrual_scale: None,
             manage_per_completion: None,
             start_severity: None,
@@ -8128,6 +8906,654 @@ mod tests {
         assert_eq!(described.traits[0].description, "Likes the plain snack.");
     }
 
+    /// [SK-model]: a skill keys on a tag some activity carries, once per id,
+    /// with a ladder of at least one level and a practice step that moves it.
+    #[test]
+    fn skills_reject_unknown_tags_duplicates_and_bad_numbers() {
+        let known: BTreeSet<String> = ["cooking".to_string()].into_iter().collect();
+        let good = |id: &str| SkillDef {
+            id: id.into(),
+            label: "Cooking".into(),
+            description: "Turns food into dinner.".into(),
+            tag: "cooking".into(),
+            levels: 10,
+            practice_per_attempt: 0.015,
+        };
+        assert!(compile_skills(
+            SkillsFile {
+                skill: vec![good("cooking")]
+            },
+            &known
+        )
+        .is_ok());
+        let bad_tag = SkillDef {
+            tag: "knitting".into(),
+            ..good("knitting")
+        };
+        assert!(matches!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![bad_tag]
+                },
+                &known
+            ),
+            Err(ContentError::SkillAboutNothing { .. })
+        ));
+        assert!(matches!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![good("cooking"), good("cooking")]
+                },
+                &known
+            ),
+            Err(ContentError::DuplicateSkill(_))
+        ));
+        for (levels, practice, field) in [
+            (0u8, 0.015f32, "levels"),
+            (101, 0.015, "levels"),
+            (10, 0.0, "practice_per_attempt"),
+            (10, -0.1, "practice_per_attempt"),
+            (10, f32::NAN, "practice_per_attempt"),
+            (10, 1.5, "practice_per_attempt"),
+            (10, f32::INFINITY, "practice_per_attempt"),
+        ] {
+            let bad = SkillDef {
+                levels,
+                practice_per_attempt: practice,
+                ..good("cooking")
+            };
+            assert_eq!(
+                compile_skills(SkillsFile { skill: vec![bad] }, &known).unwrap_err(),
+                ContentError::SkillFieldOutOfRange {
+                    id: "cooking".into(),
+                    field,
+                },
+                "levels {levels} practice {practice}"
+            );
+        }
+        // The boundaries on the accepted side: one rung, a hundred rungs,
+        // and a single attempt worth a whole unit of practice.
+        for (levels, practice) in [(1u8, 0.015f32), (100, 0.015), (10, 1.0)] {
+            let edge = SkillDef {
+                levels,
+                practice_per_attempt: practice,
+                ..good("cooking")
+            };
+            assert!(
+                compile_skills(SkillsFile { skill: vec![edge] }, &known).is_ok(),
+                "levels {levels} practice {practice} is in range"
+            );
+        }
+        let unlabelled = SkillDef {
+            label: " \t".into(),
+            ..good("cooking")
+        };
+        assert_eq!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![unlabelled]
+                },
+                &known
+            )
+            .unwrap_err(),
+            ContentError::EmptySkillText {
+                id: "cooking".into(),
+                field: "label",
+            }
+        );
+        let undescribed = SkillDef {
+            description: String::new(),
+            ..good("cooking")
+        };
+        assert_eq!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![undescribed]
+                },
+                &known
+            )
+            .unwrap_err(),
+            ContentError::EmptySkillText {
+                id: "cooking".into(),
+                field: "description",
+            }
+        );
+    }
+
+    /// [SK-capability]: the fumble roll reads the one skill with the
+    /// trait's tag, so two skills on one tag would leave the second learnt
+    /// and never read. Two skills on different tags stay legal.
+    #[test]
+    fn skills_reject_two_skills_on_one_tag() {
+        let known: BTreeSet<String> = ["cooking".to_string(), "baking".to_string()]
+            .into_iter()
+            .collect();
+        let skill = |id: &str, tag: &str| SkillDef {
+            id: id.into(),
+            label: "Cooking".into(),
+            description: "Turns food into dinner.".into(),
+            tag: tag.into(),
+            levels: 10,
+            practice_per_attempt: 0.015,
+        };
+        assert_eq!(
+            compile_skills(
+                SkillsFile {
+                    skill: vec![skill("cooking", "cooking"), skill("chef", "cooking")]
+                },
+                &known
+            )
+            .unwrap_err(),
+            ContentError::SkillTagShared {
+                first: "cooking".into(),
+                second: "chef".into(),
+                tag: "cooking".into(),
+            }
+        );
+        assert!(compile_skills(
+            SkillsFile {
+                skill: vec![skill("cooking", "cooking"), skill("baking", "baking")]
+            },
+            &known
+        )
+        .is_ok());
+    }
+
+    /// [SK-model]: the top of every ladder has to be a finite amount of
+    /// practice, summed the way the simulation sums it.
+    #[test]
+    fn skill_ladders_must_stay_finite() {
+        let skill = |levels: u8| CompiledSkill {
+            id: "climbing".into(),
+            label: "Climbing".into(),
+            description: "Going up.".into(),
+            tag: "climbing".into(),
+            levels,
+            practice_per_attempt: 0.015,
+        };
+        // 0.1 * 3^99 is far beyond f32::MAX.
+        assert_eq!(
+            check_skill_ladders(&[skill(10), skill(100)], 0.1, 3.0).unwrap_err(),
+            ContentError::SkillLadderOverflows {
+                id: "climbing".into()
+            }
+        );
+        assert!(check_skill_ladders(&[skill(10)], 0.1, 3.0).is_ok());
+        // The shipped ladder at the most rungs a skill may have.
+        assert!(check_skill_ladders(&[skill(100)], 0.1, 1.25).is_ok());
+        // The rungs are summed, so a ladder whose top rung alone is finite
+        // can still overflow: 3e38 + 3e38 * 1.0 is infinite.
+        assert!(check_skill_ladders(&[skill(1)], 3.0e38, 1.0).is_ok());
+        assert!(check_skill_ladders(&[skill(2)], 3.0e38, 1.0).is_err());
+
+        // And `compile` runs the check against the pack's tuning.
+        let with_skill = |levels: u8, growth: f32| {
+            let mut snack_object = snack();
+            snack_object.tags = vec!["snacking".into()];
+            compile(
+                full_needs(),
+                one_object(snack_object),
+                bare_lot(),
+                test_atlas(),
+                tuning_where(|t| t.skill_level_growth = growth),
+                PersonalitiesFile { archetype: vec![] },
+                HouseholdFile { sim: vec![] },
+                SocialFile {
+                    interaction: vec![],
+                },
+                TraitsFile { trait_def: vec![] },
+                CareersFile { career: vec![] },
+                ChainsFile { chain: vec![] },
+                VoiceFile { clip: vec![] },
+                vec![],
+                SkillsFile {
+                    skill: vec![SkillDef {
+                        id: "snacking".into(),
+                        label: "Snacking".into(),
+                        description: "Eating between meals.".into(),
+                        tag: "snacking".into(),
+                        levels,
+                        practice_per_attempt: 0.015,
+                    }],
+                },
+            )
+        };
+        assert_eq!(
+            with_skill(100, 3.0).unwrap_err(),
+            ContentError::SkillLadderOverflows {
+                id: "snacking".into()
+            }
+        );
+        assert_eq!(with_skill(10, 3.0).expect("finite").skills.len(), 1);
+    }
+
+    // ---- Affinity kinds - [OA-kinds] ------------------------------------
+
+    /// An unplaced object for the affinity tests, drawn with art
+    /// `test_atlas` holds.
+    fn affinity_object(id: &str, interaction: Vec<InteractionDef>) -> ObjectDef {
+        ObjectDef {
+            seat_comfort_per_tick: 0.,
+            sleep_place: Vec::new(),
+            roles: vec![],
+            action_socket: vec![],
+            id: id.into(),
+            name: id.to_uppercase(),
+            presentation: None,
+            sprite: "couch_art".into(),
+            foreground_sprite: None,
+            base_facing: None,
+            footprint: Footprint::SINGLE,
+            interaction,
+            price: None,
+        }
+    }
+
+    /// A sofa, a potted plant with no interaction, a television whose one
+    /// interaction carries the `broadcast` tag, and a radio, at indices 0 to
+    /// 3. The tag is not an object id, so a trait tag that compiles was
+    /// checked against activity tags, not object ids. Only the `noise` kind
+    /// below lists the sofa; in every other kind no first object sits at
+    /// index 0 and none sits at the kind's own index.
+    fn affinity_objects(kinds: Vec<AffinityKindDef>) -> ObjectsFile {
+        let mut watch = snack();
+        watch.id = "watch".into();
+        watch.tags = vec!["broadcast".into()];
+        ObjectsFile {
+            colourway: Vec::new(),
+            affinity: kinds,
+            object: vec![
+                affinity_object("sofa", vec![snack()]),
+                affinity_object("potted_plant", vec![]),
+                affinity_object("television", vec![watch]),
+                affinity_object("radio", vec![snack()]),
+            ],
+        }
+    }
+
+    fn affinity_kind(id: &str, reach: &str, objects: &[&str]) -> AffinityKindDef {
+        AffinityKindDef {
+            id: id.into(),
+            label: id.replace('_', " "),
+            reach: reach.into(),
+            objects: objects.iter().map(|object| (*object).into()).collect(),
+            trait_tag: None,
+        }
+    }
+
+    fn compile_affinity_kinds(kinds: Vec<AffinityKindDef>) -> Result<ContentPack, ContentError> {
+        compile_objects(full_needs(), affinity_objects(kinds))
+    }
+
+    /// [OA-kinds]: kinds keep file order, each object id resolves to its
+    /// index in the compiled objects, and the reach and trait tag reach the
+    /// pack. A kind's indices are ascending whatever order the author wrote.
+    #[test]
+    fn compiles_affinity_kinds_in_file_order_with_object_indices() {
+        let television = AffinityKindDef {
+            trait_tag: Some("broadcast".into()),
+            ..affinity_kind("television", "use", &["television"])
+        };
+        let pack = compile_affinity_kinds(vec![
+            affinity_kind("plants", "presence", &["potted_plant"]),
+            television,
+        ])
+        .expect("two valid kinds");
+        assert_eq!(
+            pack.affinities,
+            vec![
+                CompiledAffinityKind {
+                    id: "plants".into(),
+                    label: "plants".into(),
+                    reach: AffinityReach::Presence,
+                    objects: vec![1],
+                    trait_tag: None,
+                },
+                CompiledAffinityKind {
+                    id: "television".into(),
+                    label: "television".into(),
+                    reach: AffinityReach::Use,
+                    objects: vec![2],
+                    trait_tag: Some("broadcast".into()),
+                },
+            ]
+        );
+        assert_eq!(pack.affinity_kind_of(2), Some(1), "the television");
+        assert_eq!(pack.affinity_kind_of(1), Some(0), "the potted plant");
+        assert_eq!(pack.affinity_kind_of(0), None, "the sofa");
+
+        let pack = compile_affinity_kinds(vec![affinity_kind(
+            "noise",
+            "use",
+            &["radio", "sofa", "television"],
+        )])
+        .expect("one valid kind");
+        assert_eq!(pack.affinities[0].objects, vec![0, 2, 3]);
+        assert_eq!(pack.affinities[0].label, "noise");
+
+        let pack = compile_affinity_kinds(vec![]).expect("no kinds is legal");
+        assert!(pack.affinities.is_empty());
+    }
+
+    /// [OA-kinds]: one case per refusal, each asserting the exact error and
+    /// the kind it names.
+    #[test]
+    fn rejects_bad_affinity_kinds() {
+        let refused = |kinds: Vec<AffinityKindDef>| compile_affinity_kinds(kinds).unwrap_err();
+        let plants = || affinity_kind("plants", "presence", &["potted_plant"]);
+
+        let duplicate = refused(vec![plants(), affinity_kind("plants", "use", &["radio"])]);
+        assert_eq!(
+            duplicate,
+            ContentError::DuplicateAffinityKind("plants".into())
+        );
+        assert!(duplicate.to_string().contains("'plants'"), "{duplicate}");
+
+        for (kind, field) in [
+            (
+                AffinityKindDef {
+                    label: " \t".into(),
+                    ..plants()
+                },
+                "label",
+            ),
+            (
+                AffinityKindDef {
+                    id: String::new(),
+                    ..plants()
+                },
+                "id",
+            ),
+        ] {
+            let id = kind.id.clone();
+            assert_eq!(
+                refused(vec![kind]),
+                ContentError::EmptyAffinityText { id, field }
+            );
+        }
+
+        let smell = refused(vec![affinity_kind("plants", "smell", &["potted_plant"])]);
+        assert_eq!(
+            smell,
+            ContentError::UnknownAffinityReach {
+                id: "plants".into(),
+                reach: "smell".into(),
+            }
+        );
+        assert!(smell.to_string().contains("'smell'"), "{smell}");
+
+        assert_eq!(
+            refused(vec![affinity_kind("plants", "presence", &["unicorn"])]),
+            ContentError::AffinityObjectUnknown {
+                id: "plants".into(),
+                object: "unicorn".into(),
+            }
+        );
+
+        let shared = refused(vec![
+            plants(),
+            affinity_kind("greenery", "presence", &["potted_plant"]),
+        ]);
+        assert_eq!(
+            shared,
+            ContentError::AffinityObjectShared {
+                first: "plants".into(),
+                second: "greenery".into(),
+                object: "potted_plant".into(),
+            }
+        );
+        let message = shared.to_string();
+        assert!(
+            message.contains("'plants'")
+                && message.contains("'greenery'")
+                && message.contains("'potted_plant'"),
+            "{message}"
+        );
+        assert_eq!(
+            refused(vec![affinity_kind(
+                "plants",
+                "presence",
+                &["potted_plant", "potted_plant"],
+            )]),
+            ContentError::AffinityObjectShared {
+                first: "plants".into(),
+                second: "plants".into(),
+                object: "potted_plant".into(),
+            },
+            "one kind listing an object twice"
+        );
+
+        assert_eq!(
+            refused(vec![affinity_kind("plants", "presence", &[])]),
+            ContentError::AffinityObjectEmpty {
+                id: "plants".into()
+            }
+        );
+
+        // The object with no interaction is reported even when it is not the
+        // first the kind lists.
+        for objects in [&["potted_plant"][..], &["radio", "potted_plant"][..]] {
+            assert_eq!(
+                refused(vec![affinity_kind("plants", "use", objects)]),
+                ContentError::UseAffinityWithoutInteractions {
+                    id: "plants".into(),
+                    object: "potted_plant".into(),
+                },
+                "{objects:?}"
+            );
+        }
+
+        let flying = refused(vec![AffinityKindDef {
+            trait_tag: Some("flying".into()),
+            ..affinity_kind("radio", "use", &["radio"])
+        }]);
+        assert_eq!(
+            flying,
+            ContentError::AffinityTraitTagAboutNothing {
+                id: "radio".into(),
+                tag: "flying".into(),
+            }
+        );
+        assert!(flying.to_string().contains("'flying'"), "{flying}");
+
+        // The shipped kind's tag, `television`, is here an object id and no
+        // activity's tag, so it is refused; the activity tag compiles.
+        let with_tag = |tag: &str| {
+            compile_affinity_kinds(vec![AffinityKindDef {
+                trait_tag: Some(tag.into()),
+                ..affinity_kind("television", "use", &["television"])
+            }])
+        };
+        assert_eq!(
+            with_tag("television").unwrap_err(),
+            ContentError::AffinityTraitTagAboutNothing {
+                id: "television".into(),
+                tag: "television".into(),
+            },
+            "an object id is not an activity tag"
+        );
+        let pack = with_tag("broadcast").expect("the television's activity tag");
+        assert_eq!(pack.affinities[0].trait_tag.as_deref(), Some("broadcast"));
+    }
+
+    /// [OA-values], [OA-presence], [OA-use]: every affinity knob, and both
+    /// trait bands ([TL-affinity]) the spawn draw reads, reaches its own
+    /// compiled field. The fixture's twelve values are pairwise distinct, so a
+    /// knob copied from a neighbour moves exactly one assertion.
+    #[test]
+    fn every_affinity_knob_is_copied_to_its_own_compiled_field() {
+        type SetFile = fn(&mut TuningFile);
+        type SetPack = fn(&mut Tuning);
+        let setters: &[(SetFile, SetPack)] = &[
+            (
+                |t| t.affinity_from_trait = 0.5,
+                |t| t.affinity_from_trait = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_threshold = 0.5,
+                |t| t.affinity_presence_threshold = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_points = 0.5,
+                |t| t.affinity_presence_points = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_extra_points = 0.5,
+                |t| t.affinity_presence_extra_points = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_extra_cap = 2,
+                |t| t.affinity_presence_extra_cap = 2,
+            ),
+            (
+                |t| t.affinity_use_points = 0.5,
+                |t| t.affinity_use_points = 0.5,
+            ),
+            (
+                |t| t.affinity_use_feeling_per_hour = 0.5,
+                |t| t.affinity_use_feeling_per_hour = 0.5,
+            ),
+            (
+                |t| t.affinity_loves_from = 2.0,
+                |t| t.affinity_loves_from = 2.0,
+            ),
+            (|t| t.affinity_hates_to = 0.5, |t| t.affinity_hates_to = 0.5),
+            (
+                |t| t.affinity_band_loves = 0.75,
+                |t| t.affinity_band_loves = 0.75,
+            ),
+            (
+                |t| t.affinity_band_likes = 0.25,
+                |t| t.affinity_band_likes = 0.25,
+            ),
+            (
+                |t| t.affinity_from_mild_trait = 0.125,
+                |t| t.affinity_from_mild_trait = 0.125,
+            ),
+        ];
+        let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
+        for (set_file, set_pack) in setters {
+            let actual = compile_tuned(tuning_where(set_file)).unwrap().tuning;
+            let mut expected = baseline;
+            set_pack(&mut expected);
+            assert_eq!(actual, expected);
+        }
+    }
+
+    /// [OA-values], [OA-presence], [OA-use]: each affinity knob's accepted
+    /// range, with the value on each side of every boundary. A refusal names
+    /// the knob whose rule broke, and the cap takes any count.
+    #[test]
+    fn rejects_affinity_tuning_out_of_range() {
+        let refused = |tuning: TuningFile, key: &'static str| {
+            let error = compile_tuned(tuning).unwrap_err();
+            assert_eq!(
+                error,
+                ContentError::AffinityTuningOutOfRange { key },
+                "{key}"
+            );
+            assert!(error.to_string().starts_with(key), "{error}");
+        };
+        type Set = fn(&mut TuningFile, f32);
+        let setters: [(&'static str, Set); 9] = [
+            ("affinity_from_trait", |t, v| t.affinity_from_trait = v),
+            ("affinity_presence_threshold", |t, v| {
+                t.affinity_presence_threshold = v
+            }),
+            ("affinity_presence_points", |t, v| {
+                t.affinity_presence_points = v
+            }),
+            ("affinity_presence_extra_points", |t, v| {
+                t.affinity_presence_extra_points = v
+            }),
+            ("affinity_use_points", |t, v| t.affinity_use_points = v),
+            ("affinity_use_feeling_per_hour", |t, v| {
+                t.affinity_use_feeling_per_hour = v
+            }),
+            ("affinity_band_loves", |t, v| t.affinity_band_loves = v),
+            ("affinity_band_likes", |t, v| t.affinity_band_likes = v),
+            ("affinity_from_mild_trait", |t, v| {
+                t.affinity_from_mild_trait = v
+            }),
+        ];
+        for (key, set) in setters {
+            for value in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, -0.0625] {
+                refused(tuning_where(|t| set(t, value)), key);
+            }
+        }
+
+        // A trait sets a value inside (0, 1].
+        refused(
+            tuning_where(|t| t.affinity_from_trait = 0.0),
+            "affinity_from_trait",
+        );
+        refused(
+            tuning_where(|t| t.affinity_from_trait = 1.5),
+            "affinity_from_trait",
+        );
+        // The threshold is a magnitude in [0, 1).
+        refused(
+            tuning_where(|t| t.affinity_presence_threshold = 1.0),
+            "affinity_presence_threshold",
+        );
+        refused(
+            tuning_where(|t| t.affinity_presence_threshold = -0.1),
+            "affinity_presence_threshold",
+        );
+        refused(
+            tuning_where(|t| t.affinity_use_points = f32::NAN),
+            "affinity_use_points",
+        );
+        // The word bands: 0 < likes < loves <= 1. The likes rule is checked
+        // first, so a likes value that breaks both names itself.
+        refused(
+            tuning_where(|t| t.affinity_band_loves = 1.0625),
+            "affinity_band_loves",
+        );
+        refused(
+            tuning_where(|t| t.affinity_band_loves = 0.1875),
+            "affinity_band_loves",
+        );
+        refused(
+            tuning_where(|t| t.affinity_band_likes = 0.0),
+            "affinity_band_likes",
+        );
+        // The mild value is above 0 and below the strong one.
+        refused(
+            tuning_where(|t| t.affinity_from_mild_trait = 0.0),
+            "affinity_from_mild_trait",
+        );
+        refused(
+            tuning_where(|t| t.affinity_from_mild_trait = 0.6875),
+            "affinity_from_mild_trait",
+        );
+
+        // The other side of every boundary is accepted.
+        for accepted in [
+            tuning_where(|t| t.affinity_from_trait = 1.0),
+            tuning_where(|t| {
+                t.affinity_from_trait = 0.0625;
+                t.affinity_from_mild_trait = 0.03125;
+            }),
+            tuning_where(|t| t.affinity_band_loves = 1.0),
+            tuning_where(|t| t.affinity_band_loves = 0.203125),
+            tuning_where(|t| t.affinity_band_likes = 0.0078125),
+            tuning_where(|t| t.affinity_from_mild_trait = 0.671875),
+            tuning_where(|t| t.affinity_presence_threshold = 0.0),
+            tuning_where(|t| t.affinity_presence_threshold = 0.9375),
+            tuning_where(|t| {
+                t.affinity_presence_points = 0.0;
+                t.affinity_presence_extra_points = 0.0;
+                t.affinity_use_points = 0.0;
+                t.affinity_use_feeling_per_hour = 0.0;
+            }),
+            tuning_where(|t| t.affinity_presence_extra_cap = 0),
+            tuning_where(|t| t.affinity_presence_extra_cap = u32::MAX),
+        ] {
+            compile_tuned(accepted).expect("inside every affinity range");
+        }
+    }
+
     /// One trait, worn once - the review finding: `Traits` keys state
     /// by index with a binary search, so a duplicate entry would sit
     /// stale behind every write. Two DIFFERENT traits stay legal, so
@@ -8298,6 +9724,7 @@ mod tests {
             ChainsFile { chain: vec![] },
             VoiceFile { clip: vec![] },
             vec![],
+            SkillsFile::default(),
         )
         .expect("two dispositions on two objects are valid");
 
@@ -8613,6 +10040,7 @@ mod tests {
             ChainsFile { chain: vec![] },
             VoiceFile { clip: vec![] },
             vec![],
+            SkillsFile::default(),
         )
         .unwrap_err();
         assert_eq!(
@@ -9145,6 +10573,7 @@ mod tests {
                 ChainsFile { chain: vec![] },
                 VoiceFile { clip: vec![] },
                 vec![],
+                SkillsFile::default(),
             );
             if doorway {
                 result.unwrap();
@@ -10146,6 +11575,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![reading_object()],
             },
         )
@@ -10199,6 +11629,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![object],
                 },
             )
@@ -10302,6 +11733,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![donor, reader],
                 }
             )
@@ -10437,6 +11869,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![reading_object()],
                 },
                 lot,
@@ -10498,6 +11931,7 @@ mod tests {
                     full_needs(),
                     ObjectsFile {
                         colourway: Vec::new(),
+                        affinity: Vec::new(),
                         object: vec![object],
                     },
                     bare_lot(),
@@ -10550,6 +11984,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![object],
                 },
                 lot,
@@ -10588,6 +12023,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![object],
             },
             lot,
@@ -10758,6 +12194,7 @@ mod tests {
                 ChainsFile { chain: vec![] },
                 VoiceFile { clip: vec![] },
                 vec![],
+                SkillsFile::default(),
             )
         };
 
@@ -10848,6 +12285,7 @@ mod tests {
                 ChainsFile { chain: vec![] },
                 VoiceFile { clip: vec![] },
                 vec![],
+                SkillsFile::default(),
             )
         };
 
@@ -10917,6 +12355,7 @@ mod tests {
                 ChainsFile { chain: vec![] },
                 VoiceFile { clip: vec![] },
                 vec![],
+                SkillsFile::default(),
             )
             .unwrap_err(),
             ContentError::FacingSpriteMissing {
@@ -10957,6 +12396,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0), ("sink", 3.0, 1.0)]),
@@ -10972,6 +12412,7 @@ mod tests {
             ChainsFile { chain },
             VoiceFile { clip: vec![] },
             vec![],
+            SkillsFile::default(),
         )
     }
 
@@ -11384,6 +12825,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0)]),
@@ -11401,6 +12843,7 @@ mod tests {
             },
             VoiceFile { clip: vec![] },
             vec![],
+            SkillsFile::default(),
         )
         .unwrap_err();
         assert_eq!(
@@ -11473,6 +12916,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![fridge],
                 },
             )
@@ -11515,6 +12959,7 @@ mod tests {
             ChainsFile { chain: vec![] },
             VoiceFile { clip: vec![] },
             vec![],
+            SkillsFile::default(),
         )
     }
 
