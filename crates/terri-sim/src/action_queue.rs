@@ -447,7 +447,9 @@ mod tests {
         // Called to work: the chain waits for the return, so its order
         // is listed beneath the commute.
         sim.world_mut().entity_mut(other).remove::<Socialising>();
-        sim.world_mut().entity_mut(person).insert(Commuting);
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(Commuting::Outbound);
         let labels = sim.action_queue_of(person.index_u32());
         assert_eq!(labels.len(), 3, "a commute interrupts the snack too");
         assert_eq!(labels[0], "Going to work");
