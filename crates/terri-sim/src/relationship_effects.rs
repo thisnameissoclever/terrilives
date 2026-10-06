@@ -14,6 +14,8 @@ pub enum RelationshipCause {
     Incompatibility,
     Decay,
     HouseholdMess,
+    /// Another person using something the affected person hates - [OA-use].
+    Nuisance,
 }
 
 #[derive(Debug, Clone, Copy)]

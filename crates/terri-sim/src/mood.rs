@@ -199,6 +199,8 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         });
     }
     moodlets.extend(overdoing_moodlets(pack, habituation));
+    moodlets.extend(crate::affinity::presence_moodlets(world, pack, subject));
+    moodlets.extend(crate::affinity::use_moodlets(world, pack, subject));
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)

@@ -1346,6 +1346,10 @@ impl Sim {
                     systems::movement::follow_path,
                     systems::interpersonal::apply,
                     relationship_dynamics::tick,
+                    // Directly after ordinary company, in the same pass:
+                    // a person bothered by another's use loses feeling
+                    // toward the user once per tick ([OA-use]).
+                    affinity::bother,
                 )
                     .chain(),
                 // Directly after movement, because arrival at the door
