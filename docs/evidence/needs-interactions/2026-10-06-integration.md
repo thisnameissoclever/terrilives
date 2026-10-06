@@ -118,3 +118,17 @@ IDs and the 12 changelog tests. All final commands returned zero. Logs are
 in the adjacent `commute-*.txt` files. The complete native and web suites
 above apply to the preceding chores integration; they were not repeated for
 this focused update. Hosted checks and automatic publication remain separate.
+
+## Final label-only refresh
+
+Main advanced to `b60df18b` during the final push. The incoming queue label
+change distinguishes Heading home from Going to work and leaves needs,
+commute mechanics and saved state unchanged. Its Rust source merged without
+conflicts; only the shared changelog summary required reconciliation.
+Both contributors' summaries and bullets remain represented.
+
+The unchanged incoming label source already had a passing full local Rust
+suite and all-target clippy recorded in pull request 224. Those duplicate
+checks were not repeated. The combined changelog tests and generator,
+document IDs and source whitespace checks passed after this pull. The
+needs checks and focused commute checks above remain the delivered evidence.
