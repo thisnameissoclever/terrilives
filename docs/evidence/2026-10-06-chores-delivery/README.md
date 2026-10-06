@@ -121,3 +121,21 @@ checks deliberately removed guards, observed failures and restored the source.
 Local focused mutation evidence does not establish completion of the full
 remote mutation sweep. Remote checks and automatic publication are reported
 separately at delivery; pending work is not marked passed.
+
+
+## Final main synchronization
+
+Main advanced to `0a1e36e8e838513afee997eaaca56e50741430f5` with the published
+recorded-snore update. This synchronization changed audio and documentation;
+it changed no Rust gameplay, persistence or cleaning pixels. The same-day
+changelog preserves both contributors' notes.
+
+`npm --prefix web test -- --maxWorkers=1 audio` passed 413 tests across 16 files
+with exit 0 (`audio-main-integration.log`). Type checking, production build,
+and the changelog tests and build passed again after that synchronization.
+Their logs use the `audio-main` suffix. Passing native and artwork checks were
+not repeated for this audio-only integration.
+
+The supplied private preview's final converter run also passed with exit 0
+(`private-migration-release.log`). It verifies state retention and 240 matching
+continuation ticks against direct semantic adoption.

@@ -1,7 +1,6 @@
 export type ProceduralCue =
   | 'rejected'
   | 'footstep'
-  | 'sleep-breath'
   | 'eating'
   | 'page-turn'
   | 'exercise'
@@ -68,13 +67,6 @@ const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
     startHz: 175,
     endHz: 130,
     oscillator: 'triangle',
-  },
-  'sleep-breath': {
-    durationSeconds: 0.42,
-    peakGain: 0.012,
-    startHz: 250,
-    endHz: 185,
-    oscillator: 'sine',
   },
   eating: {
     durationSeconds: 0.08,

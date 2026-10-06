@@ -1981,7 +1981,11 @@ describe('AudioController gesture and cue lifecycle', () => {
     'restarts %s cadence once on automatic recovery without catch-up bursts', async activity => {
       const context = new FakeContext();
       const controller = new AudioController(() => context, undefined);
+      const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
       await controller.unlockFromGesture();
+      // A snore needs its recordings decoded before the first sleep event.
+      if (activity === 'sleep') await controller.loadSnoreRecordings();
+      fetcher.mockRestore();
       const cue = activity === 'sleep' ? 'sleep-breath' : activity === 'reading' ? 'page-turn' : activity;
       activityFrame(controller, [[4, activity]]);
       expect(controller.cuePlayCounts()[cue]).toBe(1);
@@ -2078,7 +2082,7 @@ describe('AudioController gesture and cue lifecycle', () => {
         await controller.loadDoorRecordings();
         for (let interruption = 0; interruption < 2; interruption++) {
           activityFrame(controller, []);
-          activityFrame(controller, [[4, 'sleep']]);
+          activityFrame(controller, [[4, 'eating']]);
           portalFrame(controller, 1);
           portalFrame(controller, 0);
           const oscillator = context.oscillators.at(-1)!;
@@ -2104,7 +2108,7 @@ describe('AudioController gesture and cue lifecycle', () => {
           expect([oscillator.stops.length, door.stops.length]).toEqual(stops);
           const counts = [context.oscillators.length, context.bufferSources.length];
           context.state = 'running';
-          activityFrame(controller, [[4, 'sleep']]);
+          activityFrame(controller, [[4, 'eating']]);
           portalFrame(controller, 0);
           expect(context.oscillators).toHaveLength(counts[0] + 1);
           expect(context.bufferSources).toHaveLength(counts[1]);
@@ -2555,11 +2559,100 @@ describe('AudioController gesture and cue lifecycle', () => {
 
     activityFrame(controller, []);
     activityFrame(controller, [[9, 'sleep']]);
+    expect(context.oscillators).toHaveLength(0);
+  });
 
-    const [sleep] = context.oscillators;
-    expect(context.oscillators).toHaveLength(1);
-    expect(sleep?.type).toBe('sine');
-    expect(sleep?.stops[0]).toBeLessThanOrEqual(4.5);
+  it('plays a recorded snore at the action-sound level and never a tone while the clips load', async () => {
+    // The owner rejected every synthesized sleep tone as unlike a snore, so a
+    // missing recording means silence, not a stand-in.
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    const requested: string[] = [];
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      requested.push(String(url));
+      return new Response(new ArrayBuffer(16));
+    });
+    try {
+      await controller.unlockFromGesture();
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+      expect(context.oscillators).toHaveLength(0);
+      expect(context.bufferSources).toHaveLength(0);
+      expect(controller.cuePlayCounts()['sleep-breath']).toBe(0);
+      await controller.loadSnoreRecordings();
+      expect(requested.filter((url) => url.startsWith('audio/sleep/')))
+        .toEqual([1, 2, 3, 4, 5].map((index) => `audio/sleep/snore-${index}.wav`));
+
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 1 });
+      expect(context.oscillators).toHaveLength(0);
+      expect(context.bufferSources).toHaveLength(1);
+      const [snore] = context.bufferSources;
+      expect(snore?.buffer).not.toBeNull();
+      const gain = snore?.connections[0] as FakeGain;
+      const levels = gain.gain.calls.map((call) => call.value).filter((value): value is number => value !== undefined);
+      expect(Math.max(...levels)).toBe(0.05);
+      expect(controller.cuePlayCounts()['sleep-breath']).toBe(1);
+    } finally { fetcher.mockRestore(); }
+  });
+
+  it('spaces snores six real seconds apart at any game speed and rotates the clips', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
+    try {
+      await controller.unlockFromGesture();
+      await controller.loadSnoreRecordings();
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+      // Fast-forward makes household sleep events arrive sooner in real time.
+      context.currentTime += 2;
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 1 });
+      context.currentTime += 3.9;
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 2 });
+      expect(context.bufferSources).toHaveLength(1);
+      context.currentTime += 0.1;
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 3 });
+      expect(context.bufferSources).toHaveLength(2);
+      const [first, second] = context.bufferSources;
+      expect(first?.buffer).not.toBe(second?.buffer);
+      expect(controller.cuePlayCounts()['sleep-breath']).toBe(2);
+    } finally { fetcher.mockRestore(); }
+  });
+
+  it('plays installed snore clips without fetching and refuses invalid ones', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    expect(() => controller.installSnoreClips([])).toThrow();
+    expect(() => controller.installSnoreClips([{ duration: 9 }])).toThrow();
+    const clip = { duration: 2 };
+    controller.installSnoreClips([clip]);
+    expect(context.bufferSources).toHaveLength(0);
+    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+    expect(context.bufferSources[0]?.buffer).toBe(clip);
+    expect(controller.activeSnoreVoiceCount()).toBe(1);
+  });
+
+  it('silences a snore when the simulation pauses or the player mutes', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
+    try {
+      await controller.unlockFromGesture();
+      await controller.loadSnoreRecordings();
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+      expect(controller.activeSnoreVoiceCount()).toBe(1);
+      controller.setObjectSoundsPaused(true);
+      expect(context.bufferSources[0]?.disconnected).toBe(true);
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 1 });
+      expect(context.bufferSources).toHaveLength(1);
+
+      // Stopping clears the spacing, so the next sleeper snores at once.
+      controller.setObjectSoundsPaused(false);
+      controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 2 });
+      expect(context.bufferSources).toHaveLength(2);
+      controller.setMuted(true);
+      expect(context.bufferSources[1]?.disconnected).toBe(true);
+      expect(controller.activeSnoreVoiceCount()).toBe(0);
+    } finally { fetcher.mockRestore(); }
   });
 
   it('keeps eating, reading, and exercise distinct without a bassy exercise thud', async () => {
@@ -2712,16 +2805,16 @@ describe('AudioController gesture and cue lifecycle', () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
 
-    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
-    expect(controller.cuePlayCounts()['sleep-breath']).toBe(0);
+    controller.emit({ type: 'sim.page-turn', simId: 3, pageIndex: 0 });
+    expect(controller.cuePlayCounts()['page-turn']).toBe(0);
 
     await controller.unlockFromGesture();
-    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+    controller.emit({ type: 'sim.page-turn', simId: 3, pageIndex: 0 });
     controller.emit({ type: 'sim.eating', simId: 3, biteIndex: 0 });
 
     expect(controller.cuePlayCounts()).toMatchObject({
       eating: 1,
-      'sleep-breath': 1,
+      'page-turn': 1,
     });
     expect(context.oscillators).toHaveLength(2);
   });
