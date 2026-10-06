@@ -34,6 +34,7 @@ mod room_regions;
 mod save;
 mod seating;
 mod shyness;
+pub mod skills;
 pub mod systems;
 #[cfg(test)]
 pub mod test_content;
@@ -1045,11 +1046,14 @@ impl Sim {
     /// doorless until the next tick.
     ///
     /// A house saved before the yard grows into it first ([OS-migrate]), so
-    /// every loader passes through the same growth.
+    /// every loader passes through the same growth. Likewise every person
+    /// the save gave no practice is seeded from their worn capabilities'
+    /// saved states ([SK-save]).
     fn adopt(&mut self, mut restored: Sim) {
         let content = restored.world.resource::<Content>().0;
         save::yard::grow(&mut restored, content);
         save::self_preservation::migrate(&mut restored.world);
+        skills::seed_people_without_skills(&mut restored.world);
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -1201,6 +1205,10 @@ impl Sim {
         // through `try_query`.
         world.register_component::<terri_core::Traits>();
         world.register_component::<terri_core::Fumbled>();
+        // [SK-model]: `traits_of` and `skills_of` read practice through
+        // `try_query`, which needs the component registered to report
+        // absence rather than no query at all.
+        world.register_component::<terri_core::Skills>();
         // A-11's facing carrier. In `sync_render_buffer`'s query (a
         // plain `World::query`, which self-registers) rather than the
         // digest's `try_query`, so this line is for the determinism
@@ -2374,16 +2382,60 @@ impl Sim {
     }
 
     /// The worn traits of the sim carrying `index`, as (pack trait
-    /// index, live state) pairs in key order - the [E3] overlay read.
+    /// index, value) pairs in key order - the [E3] overlay read. The value
+    /// is a condition's live severity, a disposition's 0, and for a
+    /// capability the mastery of the skill with its tag ([SK-hud]); a
+    /// capability whose tag no skill carries reports its own state.
     /// `None` for objects, stale indices, and bare agents, the same
     /// contract as every scan here; the shell resolves the indices
     /// against the pack's labels, which it reads once.
     pub fn traits_of(&self, index: u32) -> Option<Vec<(u32, f32)>> {
-        let mut state = self.world.try_query::<(Entity, &terri_core::Traits)>()?;
+        let pack = self.world.resource::<Content>().0;
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Traits, Option<&terri_core::Skills>)>()?;
         state
             .iter(&self.world)
-            .find(|(entity, _)| entity.index_u32() == index)
-            .map(|(_, worn)| worn.entries().to_vec())
+            .find(|(entity, ..)| entity.index_u32() == index)
+            .map(|(_, worn, skills)| {
+                worn.entries()
+                    .iter()
+                    .map(|&(trait_index, value)| {
+                        let def = &pack.traits[trait_index as usize];
+                        let value = match def.kind {
+                            terri_data::CompiledTraitKind::Capability { .. } => {
+                                skills::mastery_for_tag(skills, pack, &def.tag).unwrap_or(value)
+                            }
+                            _ => value,
+                        };
+                        (trait_index, value)
+                    })
+                    .collect()
+            })
+    }
+
+    /// Where the person carrying `index` stands in every content skill, in
+    /// pack order - [SK-hud]. `None` for anything that is not a living
+    /// person. A person with no practice in a skill stands at level 0.
+    pub fn skills_of(&self, index: u32) -> Option<Vec<skills::Standing>> {
+        let pack = self.world.resource::<Content>().0;
+        let mut people = self
+            .world
+            .try_query::<(Entity, &terri_core::Agent, Option<&terri_core::Skills>)>()?;
+        let (_, _, held) = people
+            .iter(&self.world)
+            .find(|(entity, ..)| entity.index_u32() == index)?;
+        let ladder = skills::Ladder::from_tuning(&pack.tuning);
+        Some(
+            pack.skills
+                .iter()
+                .enumerate()
+                .map(|(skill_index, skill)| {
+                    let practice = held.map_or(0.0, |held| held.practice(skill_index as u32));
+                    skills::standing(&ladder, skill.levels, practice)
+                })
+                .collect(),
+        )
     }
 
     /// One label per entry in the pack's trait list, in pack order -

@@ -341,7 +341,8 @@ pub fn advance_chains(
 /// A fumble RIDES from the tagged step it was rolled at to the terminal
 /// delivery ([K4]): Casey serves the dinner she ruined, is fed almost
 /// nothing by it, paid nothing for it - and learned at the hob, where
-/// `learn_and_manage` fires on the tagged step's own completion.
+/// `crate::skills::practise` and `learn_and_manage` fire on the tagged
+/// step's own completion.
 #[allow(clippy::type_complexity)]
 pub fn tick_chain_steps(
     mut commands: Commands,
@@ -358,6 +359,7 @@ pub fn tick_chain_steps(
             Option<&Hobbies>,
             Option<&mut Satisfaction>,
             Option<&mut Traits>,
+            Option<&mut terri_core::Skills>,
             Option<&Carrying>,
             Option<&terri_core::SimId>,
         ),
@@ -378,6 +380,7 @@ pub fn tick_chain_steps(
             hobbies,
             satisfaction,
             mut traits,
+            skills,
             carrying,
             sim_id,
         )) = working.get_mut(sim)
@@ -432,6 +435,9 @@ pub fn tick_chain_steps(
         if !step.tags.is_empty() {
             if let Some(traits) = traits.as_deref_mut() {
                 super::trait_effects::learn_and_manage(traits, content.0, &step.tags);
+            }
+            if let Some(mut skills) = skills {
+                crate::skills::practise(&mut skills, content.0, &step.tags);
             }
         }
 
@@ -930,16 +936,16 @@ mod tests {
         let _ = table;
     }
 
-    /// The fumble rides IN the counter: a level-0 cook fumbles the
-    /// tagged step, the terminal delivery scales to nothing, no
+    /// The fumble rides IN the counter: a cook with no practice fumbles
+    /// the tagged step, the terminal delivery scales to nothing, no
     /// satisfaction lands - and the counter's record survives where
-    /// the transient marker would have been cleared.
+    /// the transient marker would have been cleared. The lesson lands in
+    /// the cooking skill ([SK-learning]).
     #[test]
-    #[ignore = "capability learning moves to skills in Task 2"]
     fn a_fumbled_step_ruins_the_terminal_delivery() {
         let (mut sim, agent, _pantry, _table) = chain_world();
-        // A hopeless cook: level 0, fail scale 0 - the roll cannot
-        // pass, so the test is about machinery rather than a seed.
+        // A hopeless cook: no cooking practice, fail scale 0 - the roll
+        // cannot pass, so the test is about machinery rather than a seed.
         let pack = sim
             .world()
             .get_resource::<crate::Content>()
@@ -957,12 +963,21 @@ mod tests {
                 },
                 description: String::new(),
             }],
+            skills: vec![terri_data::CompiledSkill {
+                id: "cooking".to_string(),
+                label: "Cooking".to_string(),
+                description: String::new(),
+                tag: "cooking".to_string(),
+                levels: 10,
+                practice_per_attempt: 0.015,
+            }],
             ..pack.clone()
         }));
         sim.world_mut().insert_resource(crate::Content(pack));
-        sim.world_mut()
-            .entity_mut(agent)
-            .insert(Traits::from_entries(vec![(0, 0.0)]));
+        sim.world_mut().entity_mut(agent).insert((
+            Traits::from_entries(vec![(0, 0.0)]),
+            terri_core::Skills::default(),
+        ));
         start_chain(&mut sim, agent);
 
         for _ in 0..200 {
@@ -987,9 +1002,9 @@ mod tests {
                     0.0,
                     "a ruined dinner feeds nobody's soul"
                 );
-                let level = world.get::<Traits>(agent).unwrap().state(0).expect("worn");
-                assert!(
-                    level > 0.0,
+                assert_eq!(
+                    world.get::<terri_core::Skills>(agent).unwrap().practice(0),
+                    0.015,
                     "and yet the tagged step taught at its own completion"
                 );
                 return;

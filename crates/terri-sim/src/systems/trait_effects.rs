@@ -10,7 +10,7 @@
 //! an exact existing point in the tick - a disposition applied anywhere
 //! but scoring is a different mechanic.
 
-use terri_core::{SimRng, Traits};
+use terri_core::{SimRng, Skills, Traits};
 use terri_data::{CompiledTrait, CompiledTraitKind, ContentPack};
 
 /// The product of every worn DISPOSITION whose tag the activity
@@ -58,26 +58,35 @@ pub fn condition_accrual_scale(traits: Option<&Traits>, pack: &ContentPack) -> f
 /// capabilities' `fail_delta_scale`s multiplied together in the rare
 /// case an activity needs two skills and both miss.
 ///
+/// The level rolled against is the mastery of the skill with the
+/// capability's tag ([SK-capability] in
+/// `docs/specs/2026-10-05-skills.md`); the trait's own state is read only
+/// when no skill keys on that tag. Wearing the trait is what makes the
+/// attempt fallible: a person without it never rolls.
+///
 /// One draw per matching capability, pass or fail, taken in the
 /// component's sorted order - PRNG consumption is a function of world
 /// state, never of the outcome, which is the same discipline
 /// `sample_duration` documents for its own draw.
 pub fn roll_fumble(
     traits: &Traits,
+    skills: Option<&Skills>,
     pack: &ContentPack,
     tags: &[String],
     rng: &mut SimRng,
 ) -> Option<f32> {
     let mut fumbled: Option<f32> = None;
-    for (index, level) in traits.entries() {
+    for (index, state) in traits.entries() {
         let def = &pack.traits[*index as usize];
         if let CompiledTraitKind::Capability {
             fail_delta_scale, ..
         } = def.kind
         {
             if tags.contains(&def.tag) {
+                let level =
+                    crate::skills::mastery_for_tag(skills, pack, &def.tag).unwrap_or(*state);
                 let roll = rng.next_f32();
-                if roll >= *level {
+                if roll >= level {
                     fumbled = Some(fumbled.unwrap_or(1.0) * fail_delta_scale);
                 }
             }
@@ -88,8 +97,9 @@ pub fn roll_fumble(
 
 /// A completion's trait consequences, pass or fail: every CONDITION whose
 /// tag the activity carries has its severity managed down by
-/// `manage_per_completion`. A CAPABILITY no longer learns here; practice
-/// belongs to the skill with the same tag ([SK-learning] in
+/// `manage_per_completion`. A CAPABILITY's state is not touched: practice
+/// belongs to the skill with the same tag, which each caller teaches with
+/// `crate::skills::practise` beside this call ([SK-learning] in
 /// `docs/specs/2026-10-05-skills.md`).
 pub fn learn_and_manage(traits: &mut Traits, pack: &ContentPack, tags: &[String]) {
     // Collected first: `set_state` borrows mutably and the entries
@@ -103,13 +113,13 @@ pub fn learn_and_manage(traits: &mut Traits, pack: &ContentPack, tags: &[String]
                 return None;
             }
             match def.kind {
-                // practice moves to skills in Task 2
-                CompiledTraitKind::Capability { .. } => None,
                 CompiledTraitKind::Condition {
                     manage_per_completion,
                     ..
                 } => Some((*index, state - manage_per_completion)),
-                CompiledTraitKind::Disposition { .. } => None,
+                CompiledTraitKind::Capability { .. } | CompiledTraitKind::Disposition { .. } => {
+                    None
+                }
             }
         })
         .collect();
@@ -178,6 +188,18 @@ mod tests {
         names.iter().map(|s| s.to_string()).collect()
     }
 
+    /// A ten-level cooking skill, 0.015 practice an attempt.
+    fn cooking_skill() -> terri_data::CompiledSkill {
+        terri_data::CompiledSkill {
+            id: "cooking".to_string(),
+            label: "Cooking".to_string(),
+            description: String::new(),
+            tag: "cooking".to_string(),
+            levels: 10,
+            practice_per_attempt: 0.015,
+        }
+    }
+
     #[test]
     fn dispositions_multiply_on_matching_tags_and_ignore_the_rest() {
         let pack = pack_with_traits(vec![
@@ -242,11 +264,11 @@ mod tests {
         let master = Traits::from_entries(vec![(0, 1.0)]);
         let mut rng = SimRng::from_seed(7);
         assert_eq!(
-            roll_fumble(&hopeless, pack, &tags(&["cooking"]), &mut rng),
+            roll_fumble(&hopeless, None, pack, &tags(&["cooking"]), &mut rng),
             Some(0.25)
         );
         assert_eq!(
-            roll_fumble(&master, pack, &tags(&["cooking"]), &mut rng),
+            roll_fumble(&master, None, pack, &tags(&["cooking"]), &mut rng),
             None
         );
         // An untagged activity draws NOTHING: two identical generators,
@@ -254,7 +276,7 @@ mod tests {
         let mut a = SimRng::from_seed(99);
         let mut b = SimRng::from_seed(99);
         assert_eq!(
-            roll_fumble(&master, pack, &tags(&["reading"]), &mut a),
+            roll_fumble(&master, None, pack, &tags(&["reading"]), &mut a),
             None
         );
         assert_eq!(a.next_u32(), b.next_u32(), "no draw may have been taken");
@@ -264,10 +286,11 @@ mod tests {
 
     /// A hopeless cook attempts anyway, fumbles, is fed almost nothing,
     /// paid nothing - and LEARNS. The whole may-attempt-may-fail loop
-    /// on one meal, with level 0 so the roll's outcome is certain and
-    /// the test is about the machinery rather than a seed.
+    /// on one meal, with no cooking practice so the roll's outcome is
+    /// certain and the test is about the machinery rather than a seed.
+    /// The lesson lands in the cooking skill; the capability's own state
+    /// is inert ([SK-learning], [SK-capability]).
     #[test]
-    #[ignore = "capability learning moves to skills in Task 2"]
     fn a_fumbled_meal_starves_the_soul_but_teaches_the_hands() {
         let mut cook_act =
             crate::test_content::interaction("cook", &[(terri_core::NeedId::Hunger, 40.0)], 20);
@@ -295,6 +318,7 @@ mod tests {
                 },
                 description: String::new(),
             }],
+            skills: vec![cooking_skill()],
             ..base.clone()
         }));
         let mut sim = crate::test_content::sim_with(8, 8, pack);
@@ -313,6 +337,7 @@ mod tests {
                 needs,
                 terri_core::Satisfaction::from_value(0.0),
                 Traits::from_entries(vec![(0, 0.0)]),
+                Skills::default(),
             ))
             .id();
 
@@ -329,8 +354,8 @@ mod tests {
                 .unwrap()
                 .get(terri_core::NeedId::Hunger);
             let done = sim.world().get::<terri_core::Eating>(agent).is_none();
-            let level = sim.world().get::<Traits>(agent).unwrap().state(0).unwrap();
-            if saw_fumble && done && level > 0.0 {
+            let practice = sim.world().get::<Skills>(agent).unwrap().practice(0);
+            if saw_fumble && done && practice > 0.0 {
                 assert!(
                     hungry_still < 25.0,
                     "a fail_delta_scale of 0 must deliver nothing of the                      meal; hunger read {hungry_still}"
@@ -343,7 +368,16 @@ mod tests {
                     0.0,
                     "a ruined meal feeds nobody's soul"
                 );
-                assert_eq!(level, 0.05, "and yet the attempt taught");
+                assert_eq!(
+                    practice,
+                    cooking_skill().practice_per_attempt,
+                    "and yet the attempt taught"
+                );
+                assert_eq!(
+                    sim.world().get::<Traits>(agent).unwrap().state(0),
+                    Some(0.0),
+                    "the capability's own state is inert"
+                );
                 assert!(
                     sim.world().get::<terri_core::Fumbled>(agent).is_none(),
                     "the fumble closes with the attempt"
@@ -727,18 +761,31 @@ mod tests {
         panic!("no conversation began");
     }
 
+    /// A completion teaches the skill with its tag and manages the
+    /// condition with its tag; the capability's own state no longer moves
+    /// ([SK-learning]). `learn_and_manage` and `practise` run side by side
+    /// at every completion site, so they are exercised together here.
     #[test]
-    #[ignore = "capability learning moves to skills in Task 2"]
     fn completion_teaches_capabilities_and_manages_conditions() {
-        let pack = pack_with_traits(vec![
+        let base = pack_with_traits(vec![
             capability("cooking", 0.0),
             condition("cooking", 0.4, 0.02),
             disposition("cooking", 1.5),
         ]);
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            skills: vec![cooking_skill()],
+            ..base.clone()
+        }));
+        let complete = |worn: &mut Traits, skills: &mut Skills, names: &[&str]| {
+            learn_and_manage(worn, pack, &tags(names));
+            crate::skills::practise(skills, pack, &tags(names));
+        };
         let mut worn = Traits::from_entries(vec![(0, 0.25), (1, 0.6), (2, 0.0)]);
+        let mut skills = Skills::default();
 
-        learn_and_manage(&mut worn, pack, &tags(&["cooking"]));
-        assert_eq!(worn.state(0), Some(0.3), "the capability learned");
+        complete(&mut worn, &mut skills, &["cooking"]);
+        assert_eq!(skills.practice(0), 0.015, "the cooking skill learned");
+        assert_eq!(worn.state(0), Some(0.25), "the capability state is inert");
         assert!(
             (worn.state(1).unwrap() - 0.58).abs() < 1e-6,
             "the condition was managed down"
@@ -750,14 +797,16 @@ mod tests {
         );
 
         // An untagged completion moves nothing.
-        learn_and_manage(&mut worn, pack, &tags(&["reading"]));
-        assert_eq!(worn.state(0), Some(0.3));
+        complete(&mut worn, &mut skills, &["reading"]);
+        assert_eq!(skills.practice(0), 0.015);
 
-        // And both clamps hold: learning tops out at 1, management
-        // floors at 0.
+        // And both clamps hold: practice tops out at the ladder's top,
+        // management floors at 0.
+        let top = crate::skills::Ladder::from_tuning(&pack.tuning).max_practice(10);
         let mut extremes = Traits::from_entries(vec![(0, 0.98), (1, 0.01)]);
-        learn_and_manage(&mut extremes, pack, &tags(&["cooking"]));
-        assert_eq!(extremes.state(0), Some(1.0));
+        let mut expert = Skills::from_entries(vec![(0, top - 0.005)]);
+        complete(&mut extremes, &mut expert, &["cooking"]);
+        assert_eq!(expert.practice(0), top);
         assert_eq!(extremes.state(1), Some(0.0));
     }
 }

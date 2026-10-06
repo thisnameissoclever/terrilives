@@ -27,8 +27,8 @@ pub use components::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, ConversationVoice, Eating,
     Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Path, Personality, Position,
     Relationships, Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName,
-    SleepPlace, SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target, Traits,
-    Wander,
+    Skills, SleepPlace, SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target,
+    Traits, Wander,
 };
 pub use components::{Colourway, SelfPreservation};
 pub use facing::Facing;

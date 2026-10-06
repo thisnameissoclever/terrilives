@@ -6,7 +6,7 @@
 use bevy_ecs::prelude::*;
 use terri_core::layout::{FamilyTies, Relation};
 use terri_core::save::SavedDomestic;
-use terri_core::{Agent, Personality, SimId, SimName, Traits};
+use terri_core::{Agent, Personality, SimId, SimName, Skills, Traits};
 
 use crate::household::{
     authored_trait_state, personality_from, validate_name, validate_traits, HousemateRefusal,
@@ -109,8 +109,9 @@ pub fn validate(world: &World, edit: &Edit) -> Result<(Entity, String), EditRefu
 }
 
 /// Applies an accepted edit: the trimmed name, the kept or replaced
-/// personality, the new trait set with retained states, and the submitted
-/// tie pairs. Everything else about the person is untouched.
+/// personality, the new trait set with retained states, practice raised
+/// for any newly worn capability, and the submitted tie pairs. Everything
+/// else about the person is untouched.
 fn apply(world: &mut World, entity: Entity, name: String, edit: &Edit) {
     let content = world.resource::<Content>().0;
     if let Some(mut current) = world.get_mut::<SimName>(entity) {
@@ -153,9 +154,13 @@ fn apply(world: &mut World, entity: Entity, name: String, edit: &Edit) {
             (index, state)
         })
         .collect();
-    world
-        .entity_mut(entity)
-        .insert(Traits::from_entries(entries));
+    let worn = Traits::from_entries(entries);
+    // A newly worn capability raises its skill to the trait's start level;
+    // nothing here lowers practice, and a removed trait leaves its skill
+    // where it is ([SK-capability]).
+    let mut skills = world.get::<Skills>(entity).cloned().unwrap_or_default();
+    crate::skills::seed_from_capabilities(&mut skills, &worn, content);
+    world.entity_mut(entity).insert((worn, skills));
     if !edit.ties.is_empty() {
         if world.get_resource::<FamilyTies>().is_none() {
             world.insert_resource(FamilyTies::default());

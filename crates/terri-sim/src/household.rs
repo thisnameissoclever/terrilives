@@ -39,6 +39,25 @@ pub(crate) fn spawn_member(
     let instinct = member
         .instinct
         .unwrap_or_else(|| world.resource_mut::<terri_core::SimRng>().range(101) as u8);
+    // Worn traits open at their content-defined states: a capability at
+    // its start_level, a condition at its start_severity, a disposition
+    // stateless at 0 ([E3]).
+    let worn = terri_core::Traits::from_entries(
+        member
+            .traits
+            .iter()
+            .map(|&index| (index, authored_trait_state(&traits[index as usize])))
+            .collect(),
+    );
+    // Every person carries practice from the start, seeded so each worn
+    // capability's start_level is reached as skill mastery ([SK-capability]).
+    let mut skills = terri_core::Skills::default();
+    crate::skills::seed_from_capability_defs(
+        &mut skills,
+        &worn,
+        traits,
+        world.resource::<crate::Content>().0,
+    );
     let mut spawned = world.spawn((
         terri_core::SelfPreservation(instinct),
         Agent,
@@ -50,16 +69,8 @@ pub(crate) fn spawn_member(
         personality,
         starting_satisfaction(traits, member.traits),
         terri_core::Hobbies(member.hobbies),
-        // Worn traits open at their content-defined states: a
-        // capability at its start_level, a condition at its
-        // start_severity, a disposition stateless at 0 ([E3]).
-        terri_core::Traits::from_entries(
-            member
-                .traits
-                .iter()
-                .map(|&index| (index, authored_trait_state(&traits[index as usize])))
-                .collect(),
-        ),
+        worn,
+        skills,
     ));
     // The job rides only on the employed, the SpriteVariant
     // pattern: every jobless sim - and every fixture - has no
