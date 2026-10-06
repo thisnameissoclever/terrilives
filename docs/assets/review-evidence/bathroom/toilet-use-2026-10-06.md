@@ -43,7 +43,10 @@ sum of pairwise overlaps. The frozen producer `contact_surface.py` is unchanged.
 `test_bathroom_export_contract.py` accepts the authentic receipt and rejects
 exact and displaced double winding, a denormal displacement, a spike, a
 reversal, a clockwise cell, a zero-area sliver, two full cells, two copies of
-one half, overlapping three-quarter halves and two hundred thin strips.
+one half, overlapping three-quarter halves and a hundred thin strips whose
+float areas sum to the cell while each pairwise overlap stays under the
+tolerance; a companion test shows that forgery passing every other check
+when the exact bound is disabled.
 
 ## Renderer and picking
 

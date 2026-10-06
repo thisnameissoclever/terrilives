@@ -158,18 +158,34 @@ class BathroomExportContractTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate_contacts(self.half_cell_partition(self.rows(), polygon))
 
-    def test_many_thin_overlapping_strips_cannot_hide_a_hole(self):
+    def thin_strip_rows(self):
+        # One hundred strips whose areas sum to the whole cell within 1e-12 square metres,
+        # each overlapping its neighbour by just under the 1e-12 pairwise tolerance. The
+        # union therefore leaves a hole of about 9.8e-11 square metres on the right that
+        # only the exact cover bound can see.
         rows = self.rows()
         cell = rows[0]['curved_support']['continuous_cells'][0]
         ix, iy = cell['cell']
         x, y, d = ix*.003, -.1+iy*.003, .003
-        count, width, overlap = 200, .003*.9/200, 1e-12/.003
+        count, width, overlap = 100, .003/100, .99e-12/.003
         cert = cell['mirrored_pair'][0]
         cert['partitions'] = [dict(body_triangle=0, seat_triangle=0,
-            polygon_xy=[[x+i*width, y], [x+(i+1)*width+overlap, y], [x+(i+1)*width+overlap, y+d], [x+i*width, y+d]],
+            polygon_xy=[[x+i*(width-overlap), y], [x+i*(width-overlap)+width, y],
+                        [x+i*(width-overlap)+width, y+d], [x+i*(width-overlap), y+d]],
             gaps=[cert['min_gap'], cert['max_gap']]*2) for i in range(count)]
+        return rows
+
+    def test_many_thin_overlapping_strips_cannot_hide_a_hole(self):
         with self.assertRaises(ValueError):
-            validate_contacts(rows)
+            validate_contacts(self.thin_strip_rows())
+
+    def test_only_the_exact_cover_bound_sees_the_thin_strip_hole(self):
+        # The pairwise overlap and area-sum checks accept this forgery; disabling the
+        # exact bound must make it pass, which pins the mechanism the previous test relies on.
+        import bathroom_export_contract as contract
+        from unittest import mock
+        with mock.patch.object(contract, 'uncertified_cell_area', lambda bounds, polygons: 0):
+            validate_contacts(self.thin_strip_rows())
 
     def test_two_full_cells_and_overlapping_three_quarter_halves_reject(self):
         full = lambda x, y, rectangle: [[x,y],[x+.003,y],[x+.003,y+.003],[x,y+.003]]
