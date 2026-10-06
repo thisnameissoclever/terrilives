@@ -127,12 +127,12 @@ mod tests {
         assert_eq!(weekday(1440, 1440, 6), 0);
         assert_eq!(weekday(99, 100, 0), 0);
         assert_eq!(weekday(100, 100, 0), 1);
-        assert_eq!(
-            weekday(u64::MAX, 1440, 3),
-            ((u64::MAX / 1440 + 3) % 7) as u8
-        );
-        // A one-tick day near the top of the range: adding the offset
-        // before the modulo would overflow.
-        assert_eq!(weekday(u64::MAX, 1, 6), ((u64::MAX % 7 + 6) % 7) as u8);
+        // u64::MAX / 1440 is 12810238940076077, and that plus 3 is
+        // 6 mod 7.
+        assert_eq!(weekday(u64::MAX, 1440, 3), 6);
+        // A one-tick day at the top of the range: u64::MAX is 1 mod 7, and
+        // 1 plus 6 is 0 mod 7. Adding the offset before the modulo would
+        // overflow.
+        assert_eq!(weekday(u64::MAX, 1, 6), 0);
     }
 }

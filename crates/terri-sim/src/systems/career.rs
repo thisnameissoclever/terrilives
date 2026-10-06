@@ -663,6 +663,72 @@ mod tests {
         assert!(presented.world().get::<Commuting>(worker).is_none());
     }
 
+    /// [CAL-evidence] 3 on the shipped lot: the employed Sim leaves for the
+    /// shipped office job on day 1, a Monday, and stays home for the whole
+    /// of day 6, a Saturday, with the household's money unchanged. The
+    /// departure and the pay are observed within day 1 rather than
+    /// predicted ([L-career-tests-follow-events-not-guessed-ticks]); every
+    /// loop counts ticks and asserts the clock
+    /// ([L-a-test-that-waits-must-be-bounded]).
+    #[test]
+    fn the_shipped_worker_leaves_on_day_one_and_stays_home_on_day_six() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let content = sim.world().resource::<Content>().0;
+        let day_ticks = content.tuning.day_ticks as u64;
+        let worker = {
+            let mut workers = sim
+                .world_mut()
+                .query_filtered::<Entity, (With<Agent>, With<Career>)>();
+            workers
+                .iter(sim.world())
+                .next()
+                .expect("the shipped household has an employed Sim")
+        };
+        let career = &content.careers[sim.world().get::<Career>(worker).unwrap().0 as usize];
+        let (shift_start, pay) = (career.shift_start as u64, career.pay as i64);
+        assert_eq!(today(&sim), 0, "day 1 is a Monday");
+
+        let mut left_at = None;
+        let mut paid_at = None;
+        for tick in 1..day_ticks {
+            sim.tick();
+            if away(&sim, worker) {
+                assert!(
+                    tick >= shift_start,
+                    "nobody leaves before the shift starts, tick {tick}"
+                );
+                left_at.get_or_insert(tick);
+            }
+            if sim.funds() == pay {
+                paid_at.get_or_insert(tick);
+            }
+        }
+        assert_eq!(clock(&sim), day_ticks - 1, "one tick per Sim::tick");
+        assert!(left_at.is_some(), "the worker leaves for work during day 1");
+        assert!(paid_at.is_some(), "and the shift pays before day 1 ends");
+
+        for tick in day_ticks..5 * day_ticks {
+            sim.tick();
+            assert_eq!(clock(&sim), tick, "one tick per Sim::tick");
+        }
+        assert_eq!(today(&sim), 4, "the last tick before day 6 is a Friday");
+        assert!(
+            !away(&sim, worker),
+            "Friday's shift is over before Saturday begins"
+        );
+        let funds = sim.funds();
+        for tick in 5 * day_ticks..6 * day_ticks {
+            sim.tick();
+            assert_eq!(clock(&sim), tick, "one tick per Sim::tick");
+            assert_eq!(today(&sim), 5, "tick {tick} is on Saturday");
+            assert!(
+                !away(&sim, worker),
+                "the worker stays home on Saturday, tick {tick}"
+            );
+            assert_eq!(sim.funds(), funds, "nothing pays on Saturday, tick {tick}");
+        }
+    }
+
     #[test]
     fn a_visible_return_starts_at_the_boundary_plane_without_reversing_outward() {
         let pack = career_pack_with_portal();
@@ -1376,12 +1442,15 @@ mod tests {
         assert_eq!(sim.funds(), 4 * pay, "Friday's pay has not landed yet");
 
         let mut paid_on = None;
+        let mut was_away = away(&sim, worker);
         for tick in 150..=209u64 {
             sim.tick();
+            let is_away = away(&sim, worker);
             assert!(
-                !(away(&sim, worker) && paid_on.is_some()),
-                "no weekend shift after the return, tick {tick}"
+                was_away || !is_away,
+                "no departure on the weekend, tick {tick}"
             );
+            was_away = is_away;
             if paid_on.is_none() && sim.funds() == 5 * pay {
                 paid_on = Some((tick, today(&sim)));
             }
@@ -1501,8 +1570,9 @@ mod tests {
         );
     }
 
-    /// Review focus 4: with `first_weekday` 6, day 0 is a Sunday, so a
-    /// Monday to Friday career first leaves on day 1 at tick 33.
+    /// Review focus 4: with `first_weekday` 6, day one (day index 0) is a
+    /// Sunday, so a Monday to Friday career first leaves on day two (day
+    /// index 1) at tick 33.
     #[test]
     fn first_weekday_six_moves_the_first_shift_to_day_two() {
         let pack = pack_with_career(
