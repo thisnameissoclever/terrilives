@@ -39,7 +39,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | ID | System | Status | Shipped scope |
 |---|---|---|---|
 | [S-sensitivities] | Sensory and social sensitivities | Not started | None |
-| [S-acclimation] | Overdoing it, novelty, and acclimation | Partial | Action habituation only |
+| [S-acclimation] | Overdoing it, novelty, and acclimation | Partial | Action habituation; part one, overdoing and feeling sick, shipped on 2026-10-06 |
 | [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
 | [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
 | [S-advanced-controls] | An advanced controls toggle | Not started | None |
@@ -298,9 +298,11 @@ A more sensitive Sim is annoyed more, keeps a greater distance from the source, 
 
 ### [S-acclimation] Overdoing it, novelty, and acclimation
 
-**Status: Partial.**
+**Status: Partial: part one shipped on 2026-10-06; part two (novelty from purchases) open.**
 
-**What exists.** Repeating the same action on the same object pays less each time. Each completed use lowers the benefit, the benefit recovers with time away, and it never falls below 45% of its full value. This is tracked separately for each Sim and each action on each kind of object, so two identical chairs count as one. It never turns negative, it covers actions only, and nothing in the game is new or old.
+**What exists.** Repeating the same action on the same object makes it less appealing each time autonomy chooses. Each completed use lowers the appeal, the appeal recovers with time away, and it never falls below 45% of its full value. This is tracked separately for each Sim and each action on each kind of object, so two identical chairs count as one.
+
+Part one, specified in [OD-model] and [OD-moodlets] of `docs/specs/2026-10-06-overdoing-it.md`, lets repetition keep building past that saturation point. Each action above it shows an `Overdoing {activity}` moodlet that costs more mood with each further use, and a Sim who keeps eating shows `Feeling sick` for a few hours; the effect on the need is unchanged, and time away clears both moodlets. Autonomy does not yet read mood, so a Sim can still choose an action it is overdoing; that feedback is [P-mood-feedback] work. Nothing in the game is new or old yet.
 
 **Owner direction, part one: overdoing it.** The 45% floor goes away for mood. A Sim who keeps repeating an action, even one they once liked, eventually loses happiness from it, and loses more the longer they keep going.
 
@@ -588,7 +590,7 @@ A phone or computer through which the household orders food, hires a cleaner, a 
 
 People and pets can get sick or hurt, from neglect, from events, or by chance. Illness lowers needs faster, blocks some actions, and needs rest, medicine, or a paid visit. It is the step between "needs are low" and [S-death], and gives death a visible warning period.
 
-**Owner direction, 2026-09-21.** The game needs a health and medical system. Feeling sick from overeating, described in [S-acclimation], is the first cause. The medical half covers medicine, rest, a doctor or vet visit that costs money, and help for a despondent Sim in a household where nobody has the empathy to give it.
+**Owner direction, 2026-09-21.** The game needs a health and medical system. Feeling sick from overeating, described in [S-acclimation], is the first cause. The medical half covers medicine, rest, a doctor or vet visit that costs money, and help for a despondent Sim in a household where nobody has the empathy to give it. The first cause now exists as the temporary `Feeling sick` moodlet from [S-acclimation], shipped on 2026-10-06; it has no illness state, symptoms or treatment, and decay alone ends it.
 
 ### [P-room-quality] Room quality
 
@@ -621,8 +623,10 @@ infrastructure. FEATURES.md owns the same current priority.
    existing and newly added values in the details panel.
 4. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
    channels and mutes. Buying, selling and their Funds changes are already done.
-5. **[S-acclimation].** Negative mood from overdoing activities and a fading
-   novelty boost. Purchase and sale mechanisms no longer block this work.
+5. **[S-acclimation] part two.** Part one, negative mood from overdoing
+   activities and feeling sick from overeating, shipped on 2026-10-06. A fading
+   novelty boost from purchases remains; purchase and sale mechanisms no longer
+   block it.
 6. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
    Mood already affects satisfaction. Behaviour, performance and despondency
    remain, with empathy and recovery rules designed before implementation.

@@ -1610,7 +1610,8 @@ fn every_historical_fixture_loads_and_seeds_practice_once() {
 
 /// [OD-model]: an overdone habituation value, above 1 and up to
 /// `habituation_max`, loads through the public boundary and round-trips
-/// exactly; a value above the maximum is refused and changes nothing.
+/// exactly; a value above the maximum, whether just above or well above,
+/// is refused and changes nothing.
 #[test]
 fn overdone_habituation_loads_through_the_public_boundary() {
     let mut handle = SimHandle::from_lot();
@@ -1641,9 +1642,14 @@ fn overdone_habituation_loads_through_the_public_boundary() {
 
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
-    assert!(!handle.load_bytes(&v5_bytes(&with_value(max + 0.001))));
-    assert_eq!(handle.save_bytes(), bytes, "a refused load changes nothing");
-    assert_eq!(handle.world_hash(), hash, "a refused load changes nothing");
+    for refused in [max + 0.001, 3.5] {
+        assert!(
+            !handle.load_bytes(&v5_bytes(&with_value(refused))),
+            "{refused} is above the maximum {max}"
+        );
+        assert_eq!(handle.save_bytes(), bytes, "a refused load changes nothing");
+        assert_eq!(handle.world_hash(), hash, "a refused load changes nothing");
+    }
 
     let overdone = with_value(2.0);
     assert!(handle.load_bytes(&v5_bytes(&overdone)));

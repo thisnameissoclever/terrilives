@@ -1504,11 +1504,13 @@ mod tests {
         let first_overdoing = first_overdoing.expect("snacking reaches overdoing");
         let first_sick = first_sick.expect("snacking makes Tim sick");
         assert!(capped, "snacking reaches the cap within the bound");
-        assert!(
-            first_overdoing >= 4,
-            "three snacks in a row are not overdoing; first at {first_overdoing}"
+        // The sim is deterministic, so the counts are exact: back-to-back
+        // snacks net about 0.25 each because decay runs during each chain.
+        assert_eq!(
+            first_overdoing, 4,
+            "three snacks in a row are not overdoing; the fourth is"
         );
-        assert!(first_sick > first_overdoing);
+        assert_eq!(first_sick, 10, "the tenth snack in a row makes Tim sick");
         assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
         assert!(
             refills.iter().all(|refill| *refill == refills[0]),

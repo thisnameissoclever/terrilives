@@ -99,7 +99,9 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | Term | Means |
 | --- | --- |
 | **habituation** | Doing the same thing makes it worth less. Each completion adds 0.34 (to a max of 3.0) against that exact (object, interaction) pair, and every entry decays 0.0011 per tick. Appeal and the repetition meter read at most 1.0 and need delivery ignores it; the part above 1.0 is overdoing. |
-| **habituation floor** | The worst it can get: a fully habituated interaction is still worth 45% of its advertised benefit. It never becomes worthless - a sim sick of eating still eats. |
+| **habituation floor** | The lowest appeal can fall: a fully habituated interaction is still worth 45% of its advertised benefit when autonomy chooses, and need delivery is unchanged. Mood has no such floor: above saturation each further use costs mood as overdoing, and too much food makes a Sim feel sick for a while. |
+| **overdoing** | A habituation entry above 1.0. Each such entry adds an `Overdoing {activity}` moodlet whose penalty grows from 0 just above 1.0 to 20 at the 3.0 maximum. Decay is the timer: with no further use it clears in about 30 game hours from the maximum. The rule lives in [OD-moodlets] of `docs/specs/2026-10-06-overdoing-it.md`. |
+| **feeling sick** | The `Feeling sick` moodlet (-25), shown once per Sim while any food entry (an action that raises Hunger) is at or above 2.5. With no further eating it clears in about seven and a half game hours from the maximum. The rule lives in [OD-moodlets]. |
 
 It scales **benefits only, never costs**: a fourth shower is less refreshing but not less tiring.
 

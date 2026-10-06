@@ -21,3 +21,50 @@ Status: implementation evidence for `2026-10-06-overdoing-it.md`. Each table row
 | The once-per-person rule in `overdoing_moodlets`: the single `Feeling sick` after the loop replaced by one pushed for each qualifying food row | `feeling_sick_appears_once_per_person_and_only_for_food` | `assertion left == right failed: two food rows at the threshold make one person sick once`, left `["Overdoing Grab a snack", "Feeling sick", "Overdoing Cook dinner", "Feeling sick"]` | `0aca63a6b32c3acac6f23d8abbfe7ba5f42ee319`, unchanged |
 | The append position in `derive_mood`, `moodlets.extend(overdoing_moodlets(pack, habituation))` after the `Dirty dishes` block, moved before it | `new_moodlets_come_after_every_existing_one_in_habituation_order` | `assertion left == right failed: the new moodlets come last, in habituation order, then Feeling sick`, left `[]` | `0aca63a6b32c3acac6f23d8abbfe7ba5f42ee319`, unchanged |
 | The range in `overdoing_score`, `/ (tuning.habituation_max - tuning.overdoing_threshold)`, replaced by `/ tuning.habituation_max` | `overdoing_score_grows_linearly_to_the_penalty_at_the_cap` | `assertion left == right failed`, left `-3.3333333`, right `-5.0` | `0aca63a6b32c3acac6f23d8abbfe7ba5f42ee319`, unchanged |
+
+## Public save boundary
+
+`overdone_habituation_loads_through_the_public_boundary` in `crates/terri-wasm/src/save_v3_tests.rs` builds a V5 save whose first household member holds a fridge `Grab a snack` habituation row. Through `SimHandle::load_bytes`, a value of 2.0 loads, the restored snapshot equals the one written, and `save_bytes` returns the same bytes. Values of 3.001 (just above `habituation_max`) and 3.5 are refused, and `save_bytes` and the world hash are unchanged after each refusal. The test passes in a debug build and with `cargo test -p terri-wasm --release overdone_habituation`.
+
+## Played snack counts
+
+`repeated_snacks_make_a_person_sick_and_decay_heals_them` in `crates/terri-sim/src/mood.rs` orders Tim to grab a snack again each time the previous snack chain ends. Because the simulation is deterministic, it pins the counts exactly: `Overdoing Grab a snack` first appears after the fourth snack and `Feeling sick` after the tenth.
+
+## Displayed browser
+
+Commit checked: the game code of `c8224d85` on `twcl/acclimation`. The bundle `assets/index-JMIc4X4Z.js` was built with `npm run build` after `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, and served with `npx vite preview --port 4173 --strictPort` from `web/` at `https://localhost:4173/`. The working tree also held this task's uncommitted test and documentation edits, which do not change the built game.
+
+The in-app browser pane loaded the game but did not run frames continuously while it was hidden: `requestAnimationFrame` delivered no frames over two seconds, and the clock advanced only when a screenshot was taken. The check therefore used the Playwright plugin's Chromium (Chrome 154 on Windows, with `navigator.gpu` present) at a 1280 by 800 viewport, which ran about 57 frames a second. Sound was muted before the game loaded by setting `terrilives.audio-preferences.v1` to `{"version":1,"muted":true,"effectsLevel":0,"voicesLevel":0}` and reloading; the Options flyout showed `Sound: off`. The first-run Help was already dismissed in that browser profile.
+
+That profile held another session's saved household. Its save file was copied to a backup in the same browser storage, `New game` then `Start over` gave the shipped lot, and after the check the original save was written back byte for byte (3488 bytes, same checksum) and the backup removed.
+
+Casey, whose Sim details show no career, was selected and Sim details was opened on Overview. Snacks were ordered one at a time from the fridge's action menu (`Grab a snack`), each as soon as the previous snack chain ended, at 3x speed. Readings from the Overview mood list after each snack:
+
+| Snack | Game time | `Overdoing Grab a snack` | `Feeling sick` |
+|---|---|---|---|
+| 1 to 3 | Day 1, 03:35 to 06:22 | absent | absent |
+| 4 | Day 1, 08:11 | -0.6 | absent |
+| 5 | Day 1, 09:33 | -3.1 | absent |
+| 6 | Day 1, 11:33 | -5.1 | absent |
+| 7 | Day 1, 12:52 | -4.3 | absent |
+| 8 | Day 1, 14:40 | -9.9 | absent |
+| 9 | Day 1, 16:37 | -12 | absent |
+| 10 | Day 1, 18:02 | -14.5 | absent |
+| 11 | Day 1, 19:53 | -16.6 | -25 |
+
+The penalty fell after snack 7, so that snack most likely ended without completing: no use was added while decay continued. The run did not record why it ended. In the browser `Feeling sick` arrived after the eleventh snack rather than the tenth, because each order waited for the previous chain to end and Casey walked between the fridge and the counter; the deterministic test above orders without that delay. Both rows sat last in the list, after `Dirty dishes`, with their signed scores, and the overall mood read `Miserable`.
+
+1. [Desktop, 1280 by 800](../assets/review-evidence/overdoing/desktop-mood.png): the game paused at Day 1, 19:55 with Sim details open on Overview; the mood list shows `Overdoing Grab a snack` at -16.6 and `Feeling sick` at -25.
+2. [Phone, 375 by 812](../assets/review-evidence/overdoing/phone-mood.png): the same state after closing and reopening Sim details; both rows are visible without scrolling. The document's scroll width equalled its 375-pixel client width, and no element extended past the right edge.
+
+Console: 89 entries, all periodic frame-timing logs except one error, the 404 for `favicon.ico`. No warnings.
+
+Cleanup: the Playwright page was closed, the in-app pane's only tab was closed, the preview server was stopped, and `Get-NetTCPConnection -LocalPort 4173 -State Listen` then returned nothing.
+
+Not checked: decay clearing both moodlets in the browser (the deterministic test covers it); a physical phone; the phone check used a resized desktop viewport without a mobile user agent or touch input; light and dark theme variants of the panel.
+
+One existing behaviour was observed and is recorded rather than changed here. With Queue mode on, eleven `Grab a snack` orders queued while paused were consumed within about ten game minutes of unpausing, and only one snack chain was seen running. The likely cause is in `serve_intents` in `crates/terri-sim/src/systems/action.rs`: a chain order is removed from the queue when its chain begins, so the next queued snack becomes the front order and is served at once, replacing the running chain. This branch does not touch that file, so queued snack orders cannot be used to overdo snacking until it is fixed.
+
+## Delivery
+
+The implementation and this record are on branch `twcl/acclimation`. Push, merge and deployment are recorded separately in the delivery report.
