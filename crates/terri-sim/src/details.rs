@@ -12,6 +12,8 @@ pub struct RepeatedActivity {
     pub object_label: &'static str,
     pub activity_label: &'static str,
     /// Recent repetition in 0..=1, shared by objects of the same definition.
+    /// Habituation above 1 is overdoing ([OD-model]), which this meter does
+    /// not show, so it reads 1.
     pub repetition: f32,
 }
 
@@ -57,7 +59,7 @@ impl Sim {
                     interaction,
                     object_label: definition.display_name(),
                     activity_label,
-                    repetition,
+                    repetition: repetition.min(1.0),
                 })
             })
             .collect();
@@ -141,8 +143,9 @@ mod tests {
         let definition = &pack.objects[object];
         let chain_row = definition.interactions.len() as u32;
         let mut habits = Habituation::default();
-        habits.bump(ObjectDefId(object as u32), chain_row, 0.62);
-        habits.bump(ObjectDefId(object as u32), 0, 0.34);
+        let cap = pack.tuning.habituation_max;
+        habits.bump(ObjectDefId(object as u32), chain_row, 0.62, cap);
+        habits.bump(ObjectDefId(object as u32), 0, 0.34, cap);
         sim.world_mut().entity_mut(entity).insert(habits);
         // Reading history needs a definition, not a surviving placed instance.
         let placed = sim
@@ -190,11 +193,12 @@ mod tests {
     #[test]
     fn zero_repetition_and_missing_content_rows_are_omitted_without_hiding_valid_history() {
         let mut sim = Sim::new_from_shipped_lot();
+        let cap = sim.world().resource::<Content>().0.tuning.habituation_max;
         let mut habits = Habituation::default();
-        habits.bump(ObjectDefId(2), 0, 0.0);
-        habits.bump(ObjectDefId(3), 0, 0.25);
-        habits.bump(ObjectDefId(3), u32::MAX, 0.5);
-        habits.bump(ObjectDefId(u32::MAX), 0, 0.5);
+        habits.bump(ObjectDefId(2), 0, 0.0, cap);
+        habits.bump(ObjectDefId(3), 0, 0.25, cap);
+        habits.bump(ObjectDefId(3), u32::MAX, 0.5, cap);
+        habits.bump(ObjectDefId(u32::MAX), 0, 0.5, cap);
         let person = sim
             .world_mut()
             .spawn((Agent, Personality::neutral(), habits))
@@ -205,5 +209,24 @@ mod tests {
             (rows[0].object, rows[0].interaction, rows[0].repetition),
             (3, 0, 0.25)
         );
+    }
+
+    /// [OD-model]: the repetition meter reads at most 100%. Habituation
+    /// above 1 is overdoing, which the meter does not show.
+    #[test]
+    fn repetition_above_one_reports_a_full_meter() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let cap = sim.world().resource::<Content>().0.tuning.habituation_max;
+        assert!(cap >= 2.0, "the fixture needs room for 2.0");
+        let mut habits = Habituation::default();
+        habits.bump(ObjectDefId(3), 0, 2.0, cap);
+        assert_eq!(habits.get(ObjectDefId(3), 0), 2.0);
+        let person = sim
+            .world_mut()
+            .spawn((Agent, Personality::neutral(), habits))
+            .id();
+        let rows = sim.details_of(person.index_u32()).unwrap().repeated;
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].repetition, 1.0);
     }
 }

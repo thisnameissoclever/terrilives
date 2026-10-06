@@ -98,7 +98,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 
 | Term | Means |
 | --- | --- |
-| **habituation** | Doing the same thing makes it worth less. Each completion adds 0.34 (to a max of 1.0) against that exact (object, interaction) pair, and every entry decays 0.0011 per tick. |
+| **habituation** | Doing the same thing makes it worth less. Each completion adds 0.34 (to a max of 3.0) against that exact (object, interaction) pair, and every entry decays 0.0011 per tick. Appeal and the repetition meter read at most 1.0 and need delivery ignores it; the part above 1.0 is overdoing. |
 | **habituation floor** | The worst it can get: a fully habituated interaction is still worth 45% of its advertised benefit. It never becomes worthless - a sim sick of eating still eats. |
 
 It scales **benefits only, never costs**: a fourth shower is less refreshing but not less tiring.

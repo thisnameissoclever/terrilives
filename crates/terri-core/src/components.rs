@@ -317,24 +317,30 @@ impl IntentQueue {
 pub struct Habituation(Vec<(ObjectDefId, u32, f32)>);
 
 impl Habituation {
-    /// How habituated this sim is to one interaction, in `0.0..=1.0`. An
-    /// interaction never performed reads 0.
+    /// How habituated this sim is to one interaction, from 0 up to the cap
+    /// [`Self::bump`] was given. An interaction never performed reads 0.
+    /// Above 1 is overdoing ([OD-model] in
+    /// `docs/specs/2026-10-06-overdoing-it.md`): appeal and the details meter
+    /// read at most 1 and need delivery ignores habituation, so the part
+    /// above 1 is for mood ([OD-moodlets]).
     pub fn get(&self, object: ObjectDefId, interaction: u32) -> f32 {
         match self.find(object, interaction) {
             Ok(i) => self.0[i].2,
             Err(_) => 0.0,
         }
     }
-    /// Raises one interaction's habituation by `amount`, capped at 1.
+    /// Raises one interaction's habituation by `amount`, capped at `cap`.
+    /// Every simulation caller passes the tuned `habituation_max`, so the
+    /// cap lives in content rather than here.
     ///
     /// Inserting at the searched position is what keeps the Vec sorted, and the
     /// sort is what makes `world_hash` reproducible.
-    pub fn bump(&mut self, object: ObjectDefId, interaction: u32, amount: f32) {
+    pub fn bump(&mut self, object: ObjectDefId, interaction: u32, amount: f32, cap: f32) {
         match self.find(object, interaction) {
-            Ok(i) => self.0[i].2 = (self.0[i].2 + amount).min(1.0),
+            Ok(i) => self.0[i].2 = (self.0[i].2 + amount).min(cap),
             Err(i) => self
                 .0
-                .insert(i, (object, interaction, amount.clamp(0.0, 1.0))),
+                .insert(i, (object, interaction, amount.clamp(0.0, cap))),
         }
     }
     /// Decays every entry by `amount`, dropping any that reach zero.

@@ -281,6 +281,15 @@ pub enum ContentError {
     HabituationFloorOutOfRange {
         value: f32,
     },
+    /// [OD-content]: an overdoing knob outside its range, named by `key`.
+    /// Each rule guards a value that would fail quietly: a maximum of 1
+    /// leaves no room to overdo anything, a threshold below 1 charges mood
+    /// for ordinary appeal-level repetition, a sickness threshold outside
+    /// the overdoing range is never reached or reached before overdoing, and
+    /// a negative penalty pays mood for repetition.
+    InvalidOverdoingTuning {
+        key: &'static str,
+    },
     /// Zero attempts is not "wander less"; it is a sim that can never
     /// roll a destination and therefore never wanders at all, which is
     /// exactly the standing-still behaviour [D-5] exists to remove -
@@ -1426,6 +1435,10 @@ impl fmt::Display for ContentError {
             ContentError::HabituationFloorOutOfRange { value } => write!(
                 f,
                 "habituation_floor is {value}; must be in (0, 1]. It is a                  MULTIPLIER, so 1 disables the effect and 0 would make a fully                  habituated interaction permanently worthless"
+            ),
+            ContentError::InvalidOverdoingTuning { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: habituation_max must be finite and above 1; overdoing_threshold finite, at least 1 and below habituation_max; sick_threshold finite, above overdoing_threshold and at most habituation_max; overdoing_penalty and sick_penalty finite and not negative"
             ),
             ContentError::ZeroInteractionFloor => write!(
                 f,

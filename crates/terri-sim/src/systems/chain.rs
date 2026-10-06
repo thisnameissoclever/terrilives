@@ -488,14 +488,15 @@ pub fn tick_chain_steps(
         commands.queue({
             let advertiser = chain.advertised_by;
             let per_use = content.0.tuning.habituation_per_use;
+            let cap = content.0.tuning.habituation_max;
             // Insert-if-absent, the tick_interactions rule: an agent
             // gains the component the first time it finishes anything,
             // and a fresh sim's first dinner must leave a record too.
             move |world: &mut World| match world.get_mut::<terri_core::Habituation>(sim) {
-                Some(mut habituation) => habituation.bump(advertiser, row, per_use),
+                Some(mut habituation) => habituation.bump(advertiser, row, per_use, cap),
                 None => {
                     let mut fresh = terri_core::Habituation::default();
-                    fresh.bump(advertiser, row, per_use);
+                    fresh.bump(advertiser, row, per_use, cap);
                     if let Ok(mut entity) = world.get_entity_mut(sim) {
                         entity.insert(fresh);
                     }
@@ -1193,7 +1194,12 @@ mod tests {
             )],
         );
         let mut habituation = terri_core::Habituation::default();
-        habituation.bump(terri_data::ObjectDefId(0), target_row, habituation_seed);
+        habituation.bump(
+            terri_data::ObjectDefId(0),
+            target_row,
+            habituation_seed,
+            test_content::tuning().habituation_max,
+        );
         let agent = sim
             .world_mut()
             .spawn((

@@ -235,13 +235,14 @@ pub fn tick_interactions(
             // special-case it - but the component has to be INSERTED here for
             // the first entry to exist at all.
             let amount = content.0.tuning.habituation_per_use;
+            let cap = content.0.tuning.habituation_max;
             match habituation {
                 Some(mut habituation) => {
-                    habituation.bump(eating.object, eating.interaction, amount)
+                    habituation.bump(eating.object, eating.interaction, amount, cap)
                 }
                 None => {
                     let mut fresh = Habituation::default();
-                    fresh.bump(eating.object, eating.interaction, amount);
+                    fresh.bump(eating.object, eating.interaction, amount, cap);
                     commands.entity(entity).insert(fresh);
                 }
             }
