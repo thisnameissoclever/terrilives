@@ -20,10 +20,15 @@ Status: implementation evidence for `2026-10-05-skills.md`. Each table row names
 | The load seed in `Sim::adopt` in `crates/terri-sim/src/lib.rs`, `skills::seed_people_without_skills(&mut restored.world)` | `a_load_seeds_practice_from_saved_capability_states` | `assertion failed: (mastery(&loaded, casey, "cooking") - 0.7).abs() < 1e-5` |
 | The same seed | `chronotype_current_save_preserves_exact_offset_and_continuation` | `assertion left == right failed`, left `9404890780546724070`, right `1474489006602711699`: the loaded world's people rolled against no practice and the replay diverged |
 | The mastery read for a capability in `Sim::traits_of`, replaced by the trait's own state | `traits_of_reports_mastery_for_capabilities_and_state_for_the_rest` | `assertion left == right failed: mastery, not the inert state`, left `0.9`, right `0.0` |
+| The `practise` call in `tick_social` moved from the completion into the per-tick delivery, ahead of the countdown | `a_social_completion_teaches_both_participants` | `assertion left == right failed: nothing learned while the chat runs`, left `(0.40000004, 0.40000004)`, right `(0.0, 0.0)` |
+| The `practise` call in `tick_social` moved to the talk's first tick, when `remaining_ticks` still equals the duration | `an_interrupted_conversation_teaches_neither_participant` | `assertion left == right failed`, left `(0.02, 0.02)`, right `(0.0, 0.0)`: the chat ended by an order to the partner taught both sides |
+| The `practise` call in `tick_chain_steps` moved to the step's first tick of work, when `remaining_ticks` still equals the step's duration | `a_cancelled_chain_step_teaches_nothing` | `assertion left == right failed`, left `0.015`, right `0.0`: the cancelled Cook step taught |
 
 ## Restoration
 
 A script read each file's bytes, wrote the mutated text, ran `cargo test -p terri-sim --lib -- <filters>` with its output saved to a log, and wrote the original bytes back in a `finally` block. `git hash-object` on the file before the mutation and after the restoration matched for every row: `crates/terri-sim/src/skills.rs` was `48eb1cdedb11d5fd6a07a0bfa087132fff0efd49`, `crates/terri-sim/src/systems/trait_effects.rs` was `0bbb5294d80dd1dbaae3a0cbcb399c8b88363456`, `crates/terri-sim/src/systems/interact.rs` was `496c2dde290016ebab46dd5bbf3a4df7b945397b`, `crates/terri-sim/src/systems/chain.rs` was `a638b032cd2ec1ab26a8a5e09decf3c01d651bab`, `crates/terri-sim/src/systems/social.rs` was `56f06f9c8a5958387a942f906e58644046e237ed` and `crates/terri-sim/src/lib.rs` was `62a9ec9ad18ca0ea2d6353b0fd38b48594357273`.
+
+For the three rows that move a `practise` call, the same script method applied each move, ran `cargo test -p terri-sim --lib -- --exact <test>` with its output saved to a log, and restored the original bytes in a `finally` block. `git hash-object` before and after matched: `crates/terri-sim/src/systems/social.rs` was `56f06f9c8a5958387a942f906e58644046e237ed` and `crates/terri-sim/src/systems/chain.rs` was `a638b032cd2ec1ab26a8a5e09decf3c01d651bab`.
 
 ## Delivery
 

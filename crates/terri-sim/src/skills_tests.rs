@@ -449,54 +449,211 @@ fn a_tagged_chain_step_teaches_each_participant_once() {
     );
 }
 
+/// The Cook step in `chain_pack` is under way, its work counting down, from
+/// tick 17 until it completes on tick 32 when the cook is fed.
+const MID_COOK_STEP: u64 = 24;
+/// Past the Cook step's completion tick.
+const AFTER_COOK_STEP: u64 = 40;
+
+/// A chain cancelled with `CancelIntents` while its tagged step is under
+/// way adds no practice. Catches `practise` moved to the step's start (where
+/// `follow_path` inserts the step's work) or ahead of the countdown in
+/// `tick_chain_steps`.
 #[test]
-fn a_social_completion_teaches_both_participants() {
-    const TICKS: u64 = 200;
-    const CHAT_PRACTICE: f32 = 0.02;
+fn a_cancelled_chain_step_teaches_nothing() {
+    let pack = chain_pack();
+    let mut sim = crate::test_content::sim_with(12, 8, pack);
+    // No fridge: with nothing advertising the dinner, autonomy cannot open
+    // a fresh one at the pantry the moment the cancel ends this one.
+    for (id, x) in [("pantry", 4.0), ("table", 8.0)] {
+        let definition = pack.find(id).expect("fixture");
+        sim.world_mut().spawn((
+            terri_core::Position { x, y: 1.0 },
+            terri_core::SmartObject(definition),
+        ));
+    }
+    let cook = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            terri_core::Position { x: 2.0, y: 4.0 },
+            terri_core::Needs::all_at(terri_core::NEED_MAX),
+            terri_core::Satisfaction::from_value(0.0),
+            Skills::default(),
+        ))
+        .id();
+    sim.world_mut()
+        .entity_mut(cook)
+        .insert(terri_core::ChainState::begin(0));
+    tick_to(&mut sim, MID_COOK_STEP);
+    assert_eq!(
+        sim.world()
+            .get::<terri_core::ChainState>(cook)
+            .map(|state| state.step),
+        Some(0)
+    );
+    assert!(
+        sim.world().get::<terri_core::StepWork>(cook).is_some(),
+        "the tagged step is under way"
+    );
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CancelIntents {
+            agent: cook.index_u32(),
+        });
+    tick_to(&mut sim, AFTER_COOK_STEP);
+    assert!(sim.world().get::<terri_core::ChainState>(cook).is_none());
+    assert!(sim.world().get::<terri_core::StepWork>(cook).is_none());
+    assert_eq!(cooking_practice(&sim, cook), 0.0);
+}
+
+/// Practice one completed chat adds in `talk_world`.
+const CHAT_PRACTICE: f32 = 0.02;
+/// The ordered chat in `talk_world` is under way after this many ticks: the
+/// initiator walks over and the talk opens on tick 9.
+const TALK_UNDER_WAY: u64 = 9;
+/// A tick in the middle of the ordered chat, which completes on tick 48.
+const MID_TALK: u64 = 28;
+/// A fixed count past the ordered chat's completion on tick 48, and short of
+/// any later chat's: the next one autonomy opens starts on tick 107.
+const AFTER_TALK: u64 = 60;
+
+/// Two people with every need at 90, so autonomy leaves them alone, and a
+/// lamp to send one of them to. The first is ordered to chat with the
+/// second; the 40-tick chat is tagged socialising, with no duration
+/// variance, and a socialising skill keys on it. Returns the world, the
+/// initiator, the partner and the lamp.
+fn talk_world() -> (Sim, Entity, Entity, Entity) {
     let mut chat =
         crate::test_content::interaction("chat", &[(terri_core::NeedId::Social, 30.0)], 40);
     chat.tags = tags(&["socialising"]);
     chat.satisfaction = 2.0;
-    let base =
-        crate::test_content::pack_with_social(vec![], vec![chat], crate::test_content::tuning());
+    let lamp = crate::test_content::object("lamp", &[(terri_core::NeedId::Fun, 10.0)], 30);
+    let base = crate::test_content::pack_with_social(
+        vec![lamp],
+        vec![chat],
+        terri_data::Tuning {
+            duration_variance: 0.0,
+            ..crate::test_content::tuning()
+        },
+    );
     let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
         skills: vec![skill("socialising", CHAT_PRACTICE)],
         ..base.clone()
     }));
     let mut sim = crate::test_content::sim_with(8, 8, pack);
-    let mut spawn = |id: u32, x: f32, social: f32| {
+    let lamp = sim
+        .world_mut()
+        .spawn((
+            terri_core::Position { x: 6.0, y: 5.0 },
+            terri_core::SmartObject(pack.find("lamp").expect("fixture")),
+        ))
+        .id();
+    let mut spawn = |id: u32, x: f32| {
         sim.world_mut()
             .spawn((
                 terri_core::Agent,
                 terri_core::SimId(id),
                 terri_core::Position { x, y: 1.0 },
-                terri_core::Needs::with(terri_core::NeedId::Social, social),
+                terri_core::Needs::all_at(90.0),
                 terri_core::Satisfaction::from_value(0.0),
                 Skills::default(),
             ))
             .id()
     };
-    let lonely = spawn(0, 1.0, 20.0);
-    let listener = spawn(1, 4.0, 60.0);
+    let initiator = spawn(0, 1.0);
+    let partner = spawn(1, 4.0);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::TalkTo {
+            agent: initiator.index_u32(),
+            target: partner.index_u32(),
+            interaction: 0,
+        });
+    (sim, initiator, partner, lamp)
+}
 
-    let practice = |sim: &Sim, who: Entity| sim.world().get::<Skills>(who).unwrap().practice(0);
-    let mut talked = false;
-    let mut at_first_completion = None;
-    for _ in 0..TICKS {
+/// Both participants' socialising practice.
+fn talk_practice(sim: &Sim, initiator: Entity, partner: Entity) -> (f32, f32) {
+    let practice = |who: Entity| sim.world().get::<Skills>(who).unwrap().practice(0);
+    (practice(initiator), practice(partner))
+}
+
+/// Ticks until the clock reads `tick`, then checks that it does.
+fn tick_to(sim: &mut Sim, tick: u64) {
+    for _ in clock(sim)..tick {
         sim.tick();
-        talked |= sim.world().get::<terri_core::Socialising>(lonely).is_some();
-        let both = (practice(&sim, lonely), practice(&sim, listener));
-        if at_first_completion.is_none() && (both.0 > 0.0 || both.1 > 0.0) {
-            at_first_completion = Some(both);
-        }
     }
-    assert_eq!(clock(&sim), TICKS);
-    assert!(talked, "a conversation began");
-    assert_eq!(
-        at_first_completion,
-        Some((CHAT_PRACTICE, CHAT_PRACTICE)),
-        "both sides learned one attempt's practice on the same tick"
+    assert_eq!(clock(sim), tick);
+}
+
+/// One completed chat adds exactly one attempt's practice to each side, and
+/// nothing while it runs. Catches `practise` moved into the per-tick
+/// delivery loop of `tick_social`: the mid-talk reading would then be above
+/// zero and the final one many attempts high.
+#[test]
+fn a_social_completion_teaches_both_participants() {
+    let (mut sim, initiator, partner, _lamp) = talk_world();
+    let before = talk_practice(&sim, initiator, partner);
+    assert_eq!(before, (0.0, 0.0));
+    tick_to(&mut sim, MID_TALK);
+    assert!(
+        sim.world()
+            .get::<terri_core::Socialising>(initiator)
+            .is_some(),
+        "the chat is under way at tick {MID_TALK}"
     );
+    assert_eq!(
+        talk_practice(&sim, initiator, partner),
+        before,
+        "nothing learned while the chat runs"
+    );
+    tick_to(&mut sim, AFTER_TALK);
+    assert!(
+        sim.world()
+            .get::<terri_core::Socialising>(initiator)
+            .is_none(),
+        "the chat completed before tick {AFTER_TALK}"
+    );
+    assert_eq!(
+        talk_practice(&sim, initiator, partner),
+        (before.0 + CHAT_PRACTICE, before.1 + CHAT_PRACTICE),
+        "each side learned exactly one attempt's practice"
+    );
+}
+
+/// A chat ended by a player order to the partner teaches neither side.
+/// Catches `practise` moved ahead of the disturbed check in `tick_social`,
+/// or to the talk's start: either would credit the interrupted chat.
+#[test]
+fn an_interrupted_conversation_teaches_neither_participant() {
+    let (mut sim, initiator, partner, lamp) = talk_world();
+    tick_to(&mut sim, TALK_UNDER_WAY + 1);
+    assert!(sim
+        .world()
+        .get::<terri_core::Socialising>(initiator)
+        .is_some());
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObject {
+            agent: partner.index_u32(),
+            object: lamp.index_u32(),
+            interaction: 0,
+        });
+    tick_to(&mut sim, TALK_UNDER_WAY + 2);
+    assert!(
+        sim.world()
+            .get::<terri_core::Socialising>(initiator)
+            .is_none(),
+        "the order ended the chat"
+    );
+    // Past the tick the chat would have completed on.
+    tick_to(&mut sim, AFTER_TALK);
+    assert!(sim
+        .world()
+        .get::<terri_core::Socialising>(initiator)
+        .is_none());
+    assert_eq!(talk_practice(&sim, initiator, partner), (0.0, 0.0));
 }
 
 // ---- The roll -------------------------------------------------------
