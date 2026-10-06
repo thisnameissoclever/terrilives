@@ -200,17 +200,22 @@ pub(crate) fn personality_rows(world: &World) -> Vec<(u32, Personality)> {
 }
 
 /// [ES-personality]: the one archetype whose complete current effects equal
-/// this person's. `None` when the person is custom, legacy (historical zero
-/// chronotype), rebalanced away from content, ambiguous, or not a person.
+/// this person's: the `Personality` component, chronotype included, and the
+/// cleanliness score. `None` when the person is custom, legacy (historical
+/// zero chronotype), rebalanced away from content, ambiguous, or not a
+/// person.
 pub fn archetype_of(world: &World, entity: Entity) -> Option<u32> {
     let personality = world.get::<Personality>(entity)?;
     world.get::<Agent>(entity)?;
+    let cleanliness = crate::domestic::cleanliness(world, entity);
     let content = world.resource::<Content>().0;
     let mut matches = content
         .personalities
         .iter()
         .enumerate()
-        .filter(|(_, compiled)| &personality_from(compiled) == personality)
+        .filter(|(_, compiled)| {
+            &personality_from(compiled) == personality && compiled.cleanliness == cleanliness
+        })
         .map(|(index, _)| index as u32);
     let first = matches.next()?;
     matches.next().is_none().then_some(first)

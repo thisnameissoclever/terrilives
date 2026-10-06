@@ -3534,6 +3534,10 @@ impl Sim {
         // [ES-personality]: effects are runtime-editable now, so every
         // behavior-bearing field is in the digest. Sparse, like the
         // chronotype block, so worlds without personalities hash as before.
+        // Exact bits, as `domestic::hash` writes cleanliness: these are
+        // stored multipliers, not accumulated positions, so a one-step
+        // change is a real difference and must not fall inside a 1e-4
+        // `write_f32` bucket.
         let effects = edit::personality_rows(&self.world);
         if !effects.is_empty() {
             hasher.write_bytes(b"personality-effects-v1");
@@ -3541,17 +3545,17 @@ impl Sim {
             for (index, personality) in effects {
                 hasher.write_u64(u64::from(index));
                 for value in personality.drain {
-                    hasher.write_f32(value);
+                    hasher.write_u64(u64::from(value.to_bits()));
                 }
                 for value in personality.satisfaction {
-                    hasher.write_f32(value);
+                    hasher.write_u64(u64::from(value.to_bits()));
                 }
                 let dispositions = personality.dispositions();
                 hasher.write_u64(dispositions.len() as u64);
                 for &(object, interaction, weight) in dispositions {
                     hasher.write_u64(u64::from(object.0));
                     hasher.write_u64(u64::from(interaction));
-                    hasher.write_f32(weight);
+                    hasher.write_u64(u64::from(weight.to_bits()));
                 }
             }
         }

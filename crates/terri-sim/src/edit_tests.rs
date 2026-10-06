@@ -904,6 +904,23 @@ fn the_world_hash_observes_each_personality_effect_and_not_the_name() {
         "restoring the weight restores the hash"
     );
 
+    // One f32 step, far inside a 1e-4 rounding bucket, is still a change.
+    let original = sim.world().get::<Personality>(entity).unwrap().drain[2];
+    replace_personality(&mut sim, entity, |p| {
+        p.drain[2] = f32::from_bits(original.to_bits() + 1);
+        p.clone()
+    });
+    assert_ne!(sim.world_hash(), base, "a one-step drain change is hashed");
+    replace_personality(&mut sim, entity, |p| {
+        p.drain[2] = original;
+        p.clone()
+    });
+    assert_eq!(
+        sim.world_hash(),
+        base,
+        "restoring the step restores the hash"
+    );
+
     sim.world_mut().get_mut::<SimName>(entity).unwrap().0 = "Somebody Else".to_string();
     assert_eq!(sim.world_hash(), base, "names stay out of the hash");
 }
@@ -925,7 +942,12 @@ fn the_archetype_is_derived_only_from_a_complete_exact_match() {
     assert_eq!(archetype_of(sim.world(), entity), Some(correspondent));
 
     // A legacy person whose chronotype stayed at the historical zero is not
-    // the archetype, even though every multiplier matches.
+    // the archetype, even though every multiplier matches. That only tests
+    // something while the archetype's authored offset is nonzero.
+    assert_ne!(
+        content.personalities[correspondent as usize].chronotype_offset_ticks, 0,
+        "the archetype has an authored chronotype"
+    );
     replace_personality(&mut sim, entity, |p| {
         p.chronotype_offset_ticks = 0;
         p.clone()
@@ -1028,5 +1050,213 @@ fn two_archetypes_with_identical_effects_match_neither() {
         archetype_of(sim.world(), not_a_person),
         None,
         "a personality without a person matches nothing"
+    );
+}
+
+/// Replaces the person's dispositions with exactly `rows`, keeping every
+/// other effect.
+fn set_dispositions(sim: &mut Sim, entity: Entity, rows: Vec<(terri_core::ObjectDefId, u32, f32)>) {
+    replace_personality(sim, entity, |p| {
+        let mut next = Personality::with_dispositions(p.drain, p.satisfaction, rows);
+        next.chronotype_offset_ticks = p.chronotype_offset_ticks;
+        next
+    });
+}
+
+#[test]
+fn the_world_hash_observes_each_disposition_key() {
+    use terri_core::ObjectDefId;
+    let mut sim = Sim::new_from_shipped_lot();
+    let entity = person(&sim, 0);
+    let authored = sim
+        .world()
+        .get::<Personality>(entity)
+        .unwrap()
+        .dispositions()
+        .to_vec();
+    let base = sim.world_hash();
+
+    // One row each time, same weight, so only the key differs.
+    set_dispositions(&mut sim, entity, vec![(ObjectDefId(0), 0, 2.0)]);
+    let first = sim.world_hash();
+    set_dispositions(&mut sim, entity, vec![(ObjectDefId(0), 1, 2.0)]);
+    let other_interaction = sim.world_hash();
+    set_dispositions(&mut sim, entity, vec![(ObjectDefId(1), 0, 2.0)]);
+    let other_object = sim.world_hash();
+    assert_ne!(
+        first, other_interaction,
+        "a disposition's interaction is hashed"
+    );
+    assert_ne!(first, other_object, "a disposition's object is hashed");
+
+    set_dispositions(&mut sim, entity, authored);
+    assert_eq!(
+        sim.world_hash(),
+        base,
+        "restoring the dispositions restores the hash"
+    );
+}
+
+/// A personality with no chronotype offset, so the chronotype block (which
+/// writes entity indices of its own) stays absent.
+fn offsetless_personality(drain: f32) -> Personality {
+    Personality::with_dispositions(
+        [drain; terri_core::NEED_COUNT],
+        [0.75; terri_core::NEED_COUNT],
+        vec![(terri_core::ObjectDefId(0), 0, 1.5)],
+    )
+}
+
+/// An empty fixture world with no content-driven people.
+fn empty_world() -> Sim {
+    crate::test_content::sim_with(
+        8,
+        8,
+        crate::test_content::pack_tuned(Vec::new(), crate::test_content::tuning()),
+    )
+}
+
+#[test]
+fn the_world_hash_keys_personality_effects_by_person() {
+    let mut sim = empty_world();
+    let first = sim
+        .world_mut()
+        .spawn((terri_core::Agent, offsetless_personality(1.25)))
+        .id();
+    let second = sim.world_mut().spawn(terri_core::Agent).id();
+    let before = sim.world_hash();
+    assert_eq!(crate::edit::personality_rows(sim.world()).len(), 1);
+
+    // The same effects, the same row count, on a different person.
+    let moved = sim
+        .world_mut()
+        .entity_mut(first)
+        .take::<Personality>()
+        .unwrap();
+    sim.world_mut().entity_mut(second).insert(moved);
+    assert_eq!(crate::edit::personality_rows(sim.world()).len(), 1);
+    assert_ne!(
+        sim.world_hash(),
+        before,
+        "the person's entity index is hashed"
+    );
+}
+
+/// Two people with different effects, spawned in index order. With
+/// `perturb`, the lower-indexed person is moved into the other's archetype
+/// after it, so the query yields the higher index first.
+fn two_people(perturb: bool) -> (Sim, Entity, Entity) {
+    let mut sim = empty_world();
+    let low = if perturb {
+        sim.world_mut()
+            .spawn((terri_core::Agent, offsetless_personality(1.25)))
+            .id()
+    } else {
+        sim.world_mut()
+            .spawn((
+                terri_core::Agent,
+                offsetless_personality(1.25),
+                terri_core::Selected,
+            ))
+            .id()
+    };
+    let high = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            offsetless_personality(1.5),
+            terri_core::Selected,
+        ))
+        .id();
+    if perturb {
+        sim.world_mut().entity_mut(low).insert(terri_core::Selected);
+    }
+    (sim, low, high)
+}
+
+/// Entity indices in the order the ECS yields people with personalities.
+fn raw_personality_order(sim: &Sim) -> Vec<u32> {
+    sim.world()
+        .try_query::<(Entity, &terri_core::Agent, &Personality)>()
+        .unwrap()
+        .iter(sim.world())
+        .map(|(entity, _, _)| entity.index_u32())
+        .collect()
+}
+
+#[test]
+fn personality_effects_hash_in_entity_index_order_whatever_the_table_order() {
+    let (sorted, low, high) = two_people(false);
+    let (perturbed, perturbed_low, perturbed_high) = two_people(true);
+    assert_eq!(
+        (low, high),
+        (perturbed_low, perturbed_high),
+        "same entities in both worlds"
+    );
+    assert_eq!(
+        raw_personality_order(&sorted),
+        vec![low.index_u32(), high.index_u32()]
+    );
+    assert_eq!(
+        raw_personality_order(&perturbed),
+        vec![high.index_u32(), low.index_u32()],
+        "the fixture really yields the higher index first"
+    );
+    assert_eq!(
+        crate::edit::personality_rows(perturbed.world()),
+        crate::edit::personality_rows(sorted.world())
+    );
+    assert_eq!(
+        perturbed.world_hash(),
+        sorted.world_hash(),
+        "table order does not reach the hash"
+    );
+}
+
+#[test]
+fn a_changed_cleanliness_score_breaks_the_match_until_an_explicit_edit() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<crate::Content>().0;
+    let correspondent = content
+        .personalities
+        .iter()
+        .position(|p| p.id == "the_correspondent")
+        .unwrap() as u32;
+    let entity = person(&sim, 0);
+    assert_eq!(archetype_of(sim.world(), entity), Some(correspondent));
+    let authored = content.personalities[correspondent as usize].cleanliness;
+    assert_ne!(authored, 0.123);
+
+    // A stored score that is not the archetype's, every other effect equal.
+    if sim.world().get_resource::<SavedDomestic>().is_none() {
+        sim.world_mut().insert_resource(SavedDomestic::default());
+    }
+    {
+        let mut domestic = sim.world_mut().resource_mut::<SavedDomestic>();
+        let index = entity.index_u32();
+        match domestic.cleanliness.iter_mut().find(|row| row.0 == index) {
+            Some(row) => row.1 = 0.123,
+            None => {
+                domestic.cleanliness.push((index, 0.123));
+                domestic.cleanliness.sort_unstable_by_key(|row| row.0);
+            }
+        }
+    }
+    assert_eq!(crate::domestic::cleanliness(sim.world(), entity), 0.123);
+    assert_eq!(
+        sim.personality_archetype_of(entity.index_u32()),
+        None,
+        "a different cleanliness score breaks the match"
+    );
+
+    // Choosing the archetype explicitly rewrites the score.
+    assert_eq!(
+        edit(&mut sim, 0, "Tim", Some(correspondent), &[], &[]).reason,
+        None
+    );
+    assert_eq!(crate::domestic::cleanliness(sim.world(), entity), authored);
+    assert_eq!(
+        sim.personality_archetype_of(entity.index_u32()),
+        Some(correspondent)
     );
 }

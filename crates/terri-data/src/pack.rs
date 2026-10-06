@@ -851,8 +851,10 @@ pub struct CompiledPersonality {
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,
     /// What this personality is like, for the New housemate form -
-    /// [CS-personality]. Last, because it was appended; personalities are
-    /// in no save and not in the save digest.
+    /// [CS-personality]. Last, because it was appended. This text is
+    /// presentation: no save stores it and the world hash does not read
+    /// it, unlike the effects above, which saves store per person and the
+    /// world hash covers.
     pub description: String,
 }
 
