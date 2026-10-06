@@ -125,7 +125,7 @@ Pet accidents, breakages, visitors, bills, and emergencies all need one schedule
 
 ### [F-object-state] Objects and tiles that carry state
 
-**Status: Partial.** Meals and snacks leave attributed dish piles on counters and tables. Prepared portions, cleanup claims and room visits are saved and hashed. General wear, breakage and floor messes remain unbuilt. See [MC-dishes].
+**Status: Partial.** Meals and snacks leave attributed dish piles on counters and tables. Prepared portions, cleanup claims and room visits are saved and hashed. Usage-driven floor and surface grime and bin waste have scoped chores and weekly assignments. General wear and breakage remain unbuilt. See [MC-dishes].
 
 Messes on the floor, a litter box that fills, a food bowl that empties, a sink that breaks, and a bin that overflows all need mutable state on objects or tiles. That state must be saved and hashed like everything else.
 
@@ -229,7 +229,7 @@ Paid services through [P-services]: a cleaner, a repair person, a dog walker. Re
 
 **Status: Partial.**
 
-**What exists.** 30 object types, all of them placed in the starting house. 19 have an action of their own. 17 of those offer one action. The fridge offers a snack and a meal whose label follows the time of day; the kitchen sink offers washing hands and cleaning dishes. Of the other 11, the stove and the counter are working stations in the cooking activity, and 9 are decorative. 13 objects use the newer reviewed 3D-modelled art, plus the bunk, the exercise bike, and the reading chair. The original plan called for about 40 interactive objects at this stage.
+**What exists.** The starting house places the shipped object types. The fridge offers a snack and a meal whose label follows the time of day; the kitchen sink offers washing hands and cleaning dishes. Dirty counters and tables offer Clean up, and individual visible dish piles offer Do dishes. The stove and counter also serve as stations in cooking activities. Decorative furniture and reviewed modelled art remain part of the catalogue. The original plan called for about 40 interactive objects at this stage.
 
 **What is missing.** Volume, in several directions. More objects per need, at several quality and price tiers, so that buying a better bed means something. Several actions per object as the normal case. Objects for every new system: pet bowls, pet beds, a litter box, a lead hook, skill objects such as an easel or a workbench, a phone, outdoor furniture.
 
@@ -513,7 +513,7 @@ alone does not establish a convincing seated pose.
 
 ### [S-action-animation] Action animation coverage
 
-**Status: Partial.** Walking, food transport, talking, standing and seated eating, cooking, washing dishes, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, using the toilet, showering, watching television, and ordinary standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
+**Status: Partial.** Walking, food transport, talking, standing and seated eating, cooking, washing dishes, mopping floors, wiping counters and tables, emptying bins, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, using the toilet, showering, watching television, and ordinary standing idle are static poses. Further systems need their own motion, including walking a dog, petting a cat and repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
 
 ### [S-object-facing] Object facing and layered depth
 
@@ -550,7 +550,23 @@ Objects get dirty with use and break with a chance that rises with wear. A dirty
 
 ### [P-chores] Chores and who does them
 
-Once there are messes, dishes, litter boxes, and dog walks, the question of who does them becomes the comedy. People should differ in how readily they notice and take on a chore, driven by a trait such as tidiness. One person doing all the chores should resent the others, through the relationship system that already exists. The player should be able to assign a standing duty, such as "Casey walks the dog". This fits the game's dark-comedy tone unusually well.
+Indoor floor grime, table and counter grime, dirty dishes and food-preparation
+waste create actual chores. Player orders clean a fixed dish pile, a continuing
+dish surface, one room's reachable dirty floor tiles, a surface, or a bin.
+The Chores panel on the main bottom bar shows weekly assignments and saved daily
+outcomes. Wiping duties group counter or table surfaces within each room and
+follow build-mode changes. Automatic assignments default to enabled. Assignment
+balances work and chore preference; responsibility, commitment history,
+cleanliness, mood and needs govern daily willingness. Enjoyment remains a
+separate consequence of each chore preference.
+
+Completion credits the actual performer. Housemates can appreciate fulfilled
+duties or resent avoidable neglect through bounded directional relationship
+effects. Unavailable owners and clean days do not incur neglect penalties.
+Profiles, assignments, decisions and active work survive save/load. See the
+[chores specification](specs/2026-10-04-chores-and-weekly-board.md).
+Pet chores, laundry, player-selected standing assignments and paid services
+remain extensions.
 
 ### [P-mood-feedback] Mood that changes behaviour
 

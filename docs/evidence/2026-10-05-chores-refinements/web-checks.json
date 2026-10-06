@@ -1,0 +1,65 @@
+[
+  {
+    "check": "web",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "test",
+      "--",
+      "--maxWorkers=1"
+    ],
+    "exit": 0,
+    "seconds": 48.47
+  },
+  {
+    "check": "typecheck",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "typecheck"
+    ],
+    "exit": 0,
+    "seconds": 5.97
+  },
+  {
+    "check": "changelog-tests",
+    "command": [
+      "node",
+      "--test",
+      "scripts/build-changelog.test.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.33
+  },
+  {
+    "check": "changelog-build",
+    "command": [
+      "node",
+      "scripts/build-changelog.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.08
+  },
+  {
+    "check": "doc-ids",
+    "command": [
+      "python",
+      "check-doc-ids.py"
+    ],
+    "exit": 0,
+    "seconds": 0.08
+  },
+  {
+    "check": "diff",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.33
+  }
+]

@@ -20,6 +20,7 @@ STEMS = {
     "carry_walk": "CarryWalk", "carry_idle": "CarryIdle",
     "food_walk": "FoodWalk", "food_idle": "FoodIdle",
     "seated_eat": "SeatedEat", "cook_v2": "CookV2",
+    "mop": "Mop", "wipe_counter": "WipeCounter", "wipe_table": "WipeTable", "empty_bin": "EmptyBin",
 }
 
 

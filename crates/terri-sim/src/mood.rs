@@ -40,7 +40,29 @@ impl Sim {
     }
 }
 
+/// Board decisions hold the chore resource outside the world while updating it.
+/// Borrow that current state so their mood includes the same causes as the HUD.
+pub(crate) fn score(
+    world: &World,
+    index: u32,
+    chores: &terri_core::chores::SavedChores,
+) -> Option<f32> {
+    derive_mood_with_chores(world, index, Some(chores)).map(|m| m.overall_score)
+}
+
 fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
+    derive_mood_with_chores(
+        world,
+        index,
+        world.get_resource::<terri_core::chores::SavedChores>(),
+    )
+}
+
+fn derive_mood_with_chores(
+    world: &World,
+    index: u32,
+    chores: Option<&terri_core::chores::SavedChores>,
+) -> Option<MoodSnapshot> {
     let pack = world.get_resource::<Content>()?.0;
     let mut subject_query = world.try_query_filtered::<(
         Entity,
@@ -55,6 +77,9 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         .find(|(entity, ..)| entity.index_u32() == index)?;
 
     let mut moodlets = Vec::new();
+    if let Some(chores) = chores {
+        moodlets.extend(crate::chores::moodlets_in(world, subject, chores));
+    }
     for need in NeedId::ALL {
         let level = needs.get(need);
         let (low_label, critical_label) = need_labels(need);
@@ -1374,7 +1399,7 @@ mod tests {
     /// threshold, with the score the formula gives and a penalty that grows
     /// with each use, and `Feeling sick` exactly when the row is at or above
     /// the sick threshold. While both stand his satisfaction falls; with no
-    /// further orders, decay removes both within the tick count the tuning
+    /// further snack use, decay removes both within the tick count the tuning
     /// implies. Every snack fills hunger by the same amount, because need
     /// delivery never reads repetition.
     #[test]
@@ -1550,13 +1575,62 @@ mod tests {
             satisfaction(&sim)
         );
 
-        // With no further orders, decay from at most the cap reaches the
-        // threshold within this many ticks.
+        // Recovery measures decay with no further snack use. An empty order
+        // queue still permits exploratory snacks, even at full hunger. Rest
+        // through normal bed orders and cancel any snack already under way.
+        let bed = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| pack.object(object.0).id == "bed")
+            .expect("the shipped lot has a bed")
+            .0;
+        let (_, sleep) = shipped_row("bed", "sleep");
+        if sim
+            .world()
+            .get::<ChainState>(tim)
+            .is_some_and(|state| state.chain == snack_chain)
+        {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::CancelIntents {
+                    agent: tim.index_u32(),
+                });
+            sim.flush_commands();
+        }
+        assert!(sim
+            .world()
+            .get::<ChainState>(tim)
+            .is_none_or(|state| state.chain != snack_chain));
+        // From at most the cap, no further use reaches the threshold within
+        // this many ticks. Check every tick for a renewed use as well.
         let heal =
             ((tuning.habituation_max - tuning.overdoing_threshold) / decay).ceil() as u64 + 1;
         let start = clock(&sim);
         for _ in 0..heal {
+            if sim
+                .world()
+                .get::<terri_core::IntentQueue>(tim)
+                .is_none_or(|queue| queue.is_empty())
+            {
+                sim.world_mut()
+                    .resource_mut::<CommandQueue>()
+                    .push(SimCommand::UseObjectFirst {
+                        agent: tim.index_u32(),
+                        object: bed.index_u32(),
+                        interaction: sleep,
+                    });
+            }
+            let before = value(&sim);
             sim.tick();
+            let after = value(&sim);
+            assert!(
+                after <= before,
+                "healing restarted snack use at tick {}: {before} to {after}; chain {:?}; hunger {}",
+                clock(&sim),
+                sim.world().get::<ChainState>(tim),
+                sim.world().get::<Needs>(tim).unwrap().get(NeedId::Hunger)
+            );
         }
         assert_eq!(clock(&sim), start + heal);
         let snapshot = mood(&sim, tim);

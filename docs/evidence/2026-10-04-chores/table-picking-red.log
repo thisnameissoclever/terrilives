@@ -1,0 +1,39 @@
+
+> test
+> vitest run --maxWorkers=1 tests/targeted-dishes.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+ ❯ tests/targeted-dishes.test.ts (13 tests | 1 failed) 13ms
+     × keeps exposed table wood clickable beside a nearby selected Sim 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/targeted-dishes.test.ts > targeted dish input > keeps exposed table wood clickable beside a nearby selected Sim
+AssertionError: expected [ 'Nothing' ] to deeply equal [ 'Clean up', 'Nothing' ]
+
+- Expected
++ Received
+
+  [
+-   "Clean up",
+    "Nothing",
+  ]
+
+ ❯ tests/targeted-dishes.test.ts:56:87
+     54|     try {
+     55|       expect(resolveRightClick(source,{x:30,y:-24},0,0)!.entries.map(e…
+     56|       expect(resolveRightClick(overlapped,{x:30,y:-24},0,0)!.entries.m…
+       |                                                                                       ^
+     57|     } finally {setBodyCoverage(body,new Uint8Array(alpha.length).fill(…
+     58|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  06:52:35
+   Duration  677ms (transform 476ms, setup 0ms, import 563ms, tests 13ms, environment 0ms)
+

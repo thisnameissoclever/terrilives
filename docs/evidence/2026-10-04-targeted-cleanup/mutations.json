@@ -1,0 +1,37 @@
+[
+  {
+    "name": "surface-scope",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "434ad208e706e05f286f3a23a52bb6a1c4457c6034ecc6711aab3055228a294e"
+  },
+  {
+    "name": "fixed-identities",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "434ad208e706e05f286f3a23a52bb6a1c4457c6034ecc6711aab3055228a294e"
+  },
+  {
+    "name": "saved-target",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "01f8fe76104b2806a1eca1b04a545999974829793780f5695a1fc225d47bb7ce"
+  },
+  {
+    "name": "repeat-collection",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "434ad208e706e05f286f3a23a52bb6a1c4457c6034ecc6711aab3055228a294e"
+  },
+  {
+    "name": "causal-hash",
+    "killed": true,
+    "exit": 101,
+    "restored": true,
+    "sha256": "01f8fe76104b2806a1eca1b04a545999974829793780f5695a1fc225d47bb7ce"
+  }
+]

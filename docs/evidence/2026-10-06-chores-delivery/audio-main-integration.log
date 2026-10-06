@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 audio
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+
+ Test Files  16 passed (16)
+      Tests  413 passed (413)
+   Start at  10:36:53
+   Duration  8.55s (transform 1.87s, setup 0ms, import 3.15s, tests 3.33s, environment 1ms)
+

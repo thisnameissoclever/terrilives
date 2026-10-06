@@ -85,6 +85,10 @@ pub struct SaveSnapshotV5 {
     /// only in a payload written before affinities existed, and the loader
     /// then draws every person's values once from the saved world generator.
     pub affinities: Option<SavedAffinities>,
+    /// Scoped orders and active surface cleanup, appended after published records.
+    pub targeted_cleanup: Option<SavedTargetedCleanup>,
+    pub chores: Option<crate::chores::SavedChores>,
+    pub grime: Option<crate::grime::SavedGrime>,
 }
 
 /// Saved affinity values: `(entity index, kind id, value)` rows, strictly
@@ -103,6 +107,25 @@ pub struct SavedAffinities {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct SavedSkills {
     pub rows: Vec<(u32, String, f32)>,
+}
+
+#[derive(
+    bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize,
+)]
+pub struct SavedTargetedCleanup {
+    pub next_order: u32,
+    pub orders: Vec<SavedCleanupOrder>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedCleanupOrder {
+    pub id: u32,
+    pub person: u32,
+    pub surface: u32,
+    /// None keeps clearing the surface; Some captures a fixed visible pile.
+    pub dishes: Option<Vec<u32>>,
+    /// Position in the complete intent queue; None identifies an active chore.
+    pub queue_position: Option<u32>,
 }
 
 #[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
@@ -223,6 +246,9 @@ impl LocalBedSnapshotV5 {
             dining: None,
             skills: None,
             affinities: None,
+            targeted_cleanup: None,
+            chores: None,
+            grime: None,
         }
     }
 }
@@ -804,6 +830,32 @@ pub enum SavedCommand {
         personality: Option<Option<String>>,
         traits: Vec<Option<String>>,
         ties: Vec<(u32, Option<crate::layout::Relation>)>,
+    },
+    CleanDishes {
+        agent: u32,
+        surface: u32,
+        dishes: Option<Vec<u32>>,
+    },
+    CleanDishesFirst {
+        agent: u32,
+        surface: u32,
+        dishes: Option<Vec<u32>>,
+    },
+    CleanChore {
+        agent: u32,
+        key: crate::chores::ChoreKey,
+    },
+    CleanChoreFirst {
+        agent: u32,
+        key: crate::chores::ChoreKey,
+    },
+    SetChoreProfile {
+        agent: u32,
+        responsibility: u8,
+        preferences: [i8; 4],
+    },
+    SetChoreBoard {
+        enabled: bool,
     },
 }
 

@@ -1,0 +1,74 @@
+[
+  {
+    "file": "cleaning-counter-1.sav",
+    "original_sha256": "f4dc24403c0a47d53ac45d0445a1ad4ea6edc5c14fe6ce930ba1aeb89e072649",
+    "current_sha256": "e50192dfc621d281da56bfad5668ef6f22a898c45de2d3a0488324a4335cebc5",
+    "result": "Migrated 862 bytes to 933 bytes; tick 661; world hash 11728747723109983108."
+  },
+  {
+    "file": "cleaning-counter-2.sav",
+    "original_sha256": "4bcb826b9078d3d37e70b46c08e88f1c11c185fdbfe17c683054f91d17a2df68",
+    "current_sha256": "d32567f14231947a7800eaa84db7740bd4c5596366eed29334450975a398956f",
+    "result": "Migrated 862 bytes to 933 bytes; tick 661; world hash 8898759420121827613."
+  },
+  {
+    "file": "cleaning-counter-3.sav",
+    "original_sha256": "2c5df00150b01e859e0de0b01cf45fb76f779967070343f2d2a17691acf9a568",
+    "current_sha256": "e17d08515e6711c27fdc4e1d13e6939652734a56fa34e589d6b16028af6e97bd",
+    "result": "Migrated 862 bytes to 933 bytes; tick 661; world hash 8942201682551319332."
+  },
+  {
+    "file": "cleaning-counter-4.sav",
+    "original_sha256": "5d09f139d0c7f94c4f026d89acaba74e9423dfd48d7517921fcf382552069991",
+    "current_sha256": "ff7735f0cc301437e5957b61822b78202b3ae00a3647fa2b2fa1a4e265f756c7",
+    "result": "Migrated 862 bytes to 933 bytes; tick 661; world hash 12995152293461919874."
+  },
+  {
+    "file": "cleaning-dining_table-1.sav",
+    "original_sha256": "34307f8a8a30a5b42efedde85a6fef4a5095ee855d81efaa82e022c3bc058caf",
+    "current_sha256": "1454385df3b1144ff2f1463f44f094a7775576c1057f8765531685651ce30978",
+    "result": "Migrated 867 bytes to 938 bytes; tick 661; world hash 18043029152217400058."
+  },
+  {
+    "file": "cleaning-dining_table-2.sav",
+    "original_sha256": "a012b8410a4c4cec36ebf34e3a7b83963eebaf27d79b772775f42ee3b9743a6a",
+    "current_sha256": "b9d1ef1127c14a97784c7b96d236f6c8e5adb60feb77612d7f5a2b4ca10d52c0",
+    "result": "Migrated 867 bytes to 938 bytes; tick 661; world hash 1041075636712304890."
+  },
+  {
+    "file": "cleaning-dining_table-3.sav",
+    "original_sha256": "04104c766005bd4e23184bc69f97402263fcfe768f009900b8dd0291d8a70e16",
+    "current_sha256": "4c802d2ff851ccc7f1b3a9c70d75c203591b337f1d27675ee79fdf766d90bf9b",
+    "result": "Migrated 867 bytes to 938 bytes; tick 661; world hash 15606299584846521690."
+  },
+  {
+    "file": "cleaning-dining_table-4.sav",
+    "original_sha256": "6e8b92a165386ee344a4bc9ebc1c8b46e5a0424aeada9a69bd49769cfc14438d",
+    "current_sha256": "4788f010151abba05fe340a5e01ef9c82789c61f44bfa4f7de8275f0508382fd",
+    "result": "Migrated 867 bytes to 938 bytes; tick 661; world hash 3717129070267778844."
+  },
+  {
+    "file": "cleaning-trashcan-1.sav",
+    "original_sha256": "ac92e1809e71983cab0562cdb0dada29fa602510c7e9cdc2876ffb9dcfad5d68",
+    "current_sha256": "196b01b8845d3d6edb1acc946a5bd444d7c380b1b25556a585c88589fa319274",
+    "result": "Migrated 863 bytes to 934 bytes; tick 661; world hash 5953422977766820519."
+  },
+  {
+    "file": "cleaning-trashcan-2.sav",
+    "original_sha256": "8ced603a84e8bf588951cbfc09855a614d7e36b6203806b38a52c1e0ba4aba94",
+    "current_sha256": "849cdefeee4a4e1ccef2a1cb9e52d9db5bfcf6dd61e65c03dd7b114120a56a82",
+    "result": "Migrated 863 bytes to 934 bytes; tick 661; world hash 7592306032609088670."
+  },
+  {
+    "file": "cleaning-trashcan-3.sav",
+    "original_sha256": "b6729db84887b1da6cd48ae3a32be4fe2e7db7aa5d944c19badd193d85a5232f",
+    "current_sha256": "7bc939351087762dc91862ba0d0fb3d2f9b0e594f9621041e6a9c20600b37b75",
+    "result": "Migrated 863 bytes to 934 bytes; tick 661; world hash 14522589089829632071."
+  },
+  {
+    "file": "cleaning-trashcan-4.sav",
+    "original_sha256": "06319241fdf1a5ccbf9c780a93d96695bb521954079d0708e80a4204727c2695",
+    "current_sha256": "36b546003963eafa44ea61a85176467cf37ef2a76edd7dbd35482a4695b142ee",
+    "result": "Migrated 863 bytes to 934 bytes; tick 661; world hash 6791762264529502097."
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "base": "1a138df6438d5e984f6190956b46aaf9a69f4dc9",
+  "state": "local uncommitted candidate",
+  "files": [
+    {
+      "path": "crates/terri-core/src/grime.rs",
+      "sha256": "00a523642f850146968381e49378459e74d01c50245210779b1aa009517249ae"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/grime.rs",
+      "sha256": "be931bb596a7e1e2c5da5dde22dcb4818642a4eade40af261c245287a17906e5"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/patches.rs",
+      "sha256": "5d8d6ad571d32d85c48983adf0f9c9deaf3d7c1638558f291a0f8198a6f9938f"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/work.rs",
+      "sha256": "ac2a4fb4bb43797ae4fdf8c0ee94590bbb03e04376c2840c6e13845921a87c8f"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interact.rs",
+      "sha256": "f18b3010df401e2765db60cc06949908745162f453539123685263170feb2f77"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/movement.rs",
+      "sha256": "9e90efc64a75921828ef183caed382af10b33ed0c56d3aef13cc7ddc6a2c2894"
+    },
+    {
+      "path": "crates/terri-sim/src/lib.rs",
+      "sha256": "8f3ea7e3053cb5d9876eef5951c36afd65ff780c11c4b27c1f1ded7e7d420519"
+    },
+    {
+      "path": "crates/terri-wasm/src/lib.rs",
+      "sha256": "d7eb22481f5e0ebfadef12136a726223d08dccad6fcfc70c75a335379bbabf84"
+    },
+    {
+      "path": "web/src/render/grime-decals.ts",
+      "sha256": "d97ca6ff5332c1fcea0b71b34b11be03145809c7a01c918a99aa907433cba407"
+    },
+    {
+      "path": "web/src/render/sprites.ts",
+      "sha256": "eae71b79d9dcb1136689c4424db7c7b0fbc52c9b4036cffefcb2aab3597d61e0"
+    },
+    {
+      "path": "web/src/render/sprites.wgsl",
+      "sha256": "0410a0725ea5efea82e6fa8a937dc2169a44a23203e76613623201b5e05689c1"
+    },
+    {
+      "path": "crates/terri-wasm/examples/chores_review.rs",
+      "sha256": "cd4c2f4fa8c972a6b93c3331f0e0e4e2daf5ebb2b9712e8fd7f68e1164a0739a"
+    }
+  ]
+}

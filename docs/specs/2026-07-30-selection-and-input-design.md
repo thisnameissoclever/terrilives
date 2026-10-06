@@ -101,6 +101,12 @@ one.
 
 ## [I3] Click redirects, ctrl-click queues. BUILT; the "replace" half SUPERSEDED by [I-plain-order-goes-first].
 
+Pointer picking retains forgiving content rectangles for ordinary furniture.
+Sims use the displayed body frame's alpha, so transparent sprite corners do
+not intercept a click on a visible table or dish pile. Visible body pixels
+retain their normal depth priority. Paired interaction and covered-bed masks
+keep their existing body/furniture ownership rules.
+
 **Status note (2026-09-13).** The gesture split below stands: a plain click is
 the correction and the modifier is the plan. What "replace" meant has changed:
 a plain click no longer empties the queue with `CancelIntents` + `UseObject`;

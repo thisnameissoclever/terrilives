@@ -1,0 +1,93 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+ ❯ tests/bridge.test.ts (52 tests | 2 failed) 1817ms
+     × restores the explicit empty edge layout without falling back to current or legacy walls 6ms
+     × rejects V5 truncation, V1-style tail padding, trailing bytes and future versions transactionally 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > restores the explicit empty edge layout without falling back to current or legacy walls
+AssertionError: expected [ Array(25) ] to deeply equal [ Array(25) ]
+
+- Expected
++ Received
+
+@@ -1,7 +1,6 @@
+  [
+-   1,
+    0,
+    0,
+    0,
+    0,
+    0,
+@@ -15,10 +14,11 @@
+    0,
+    0,
+    0,
+    0,
+    1,
++   0,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+ ❯ tests/bridge.test.ts:916:57
+    914|     const sleepingPlacesTail = [1, 0, 0];
+    915|     const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, .…
+    916|     expect(Array.from(legacyCells.slice(-tail.length))).toEqual(tail);
+       |                                                         ^
+    917|     const edgeBytes = legacyCells.slice();
+    918|     // The layout tag precedes the appended save fields.
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > rejects V5 truncation, V1-style tail padding, trailing bytes and future versions transactionally
+AssertionError: expected [ Array(25) ] to deeply equal [ Array(25) ]
+
+- Expected
++ Received
+
+@@ -1,7 +1,6 @@
+  [
+-   1,
+    0,
+    0,
+    0,
+    0,
+    0,
+@@ -15,10 +14,11 @@
+    0,
+    0,
+    0,
+    0,
+    1,
++   0,
+    0,
+    0,
+    0,
+    0,
+    0,
+
+ ❯ tests/bridge.test.ts:940:51
+    938|     const sleepingPlacesTail = [1, 0, 0];
+    939|     const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, .…
+    940|     expect(Array.from(valid.slice(-tail.length))).toEqual(tail);
+       |                                                   ^
+    941|     // A complete bed-era save lacks both privacy fields. Earlier V5 s…
+    942|     // also lack the whole grouped bed record; both remain loadable.
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 153 passed (154)
+      Tests  2 failed | 2011 passed (2013)
+   Start at  12:47:54
+   Duration  64.56s (transform 4.97s, setup 0ms, import 20.23s, tests 24.66s, environment 9ms)
+

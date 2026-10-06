@@ -1,5 +1,6 @@
 import {
-  menuEntries,
+  surfaceMenuEntries,
+  dishMenuEntries,
   socialMenuEntries,
   type Menu,
 } from './object-menu.js';
@@ -18,11 +19,15 @@ export interface KeyboardTargetSource {
   interactionLabels(entityIndex: number): readonly string[];
   socialLabels(): readonly string[];
   selectedIndex(): number | null;
+  choreOptions?(entity:number):Uint32Array;
+  dishPiles?(): Uint32Array;
 }
 
 export interface KeyboardTarget {
   readonly entity: number;
-  readonly kind: 'person' | 'object';
+  readonly kind: 'person' | 'object' | 'dishes';
+  readonly pileSlot?: number;
+  readonly dishes?: readonly number[];
   readonly label: string;
 }
 
@@ -56,6 +61,7 @@ export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] 
   // detach every view over the old ArrayBuffer midway through this loop.
   const ids = Array.from(source.ids().subarray(0, count));
   const kinds = Array.from(source.kinds().subarray(0, count));
+  const piles = Array.from(source.dishPiles?.() ?? []);
   const targets: KeyboardTarget[] = [];
   const rowCount = Math.min(count, ids.length, kinds.length);
   for (let row = 0; row < rowCount; row++) {
@@ -66,8 +72,15 @@ export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] 
       continue;
     }
     const label = source.objectName(entity);
-    if (label && (source.interactionLabels(entity).length > 0 || source.objectDetails?.(entity))) {
+    const slots = new Map<number, number[]>();
+    for (let i = 0; i + 2 < piles.length; i += 3) if (piles[i] === entity) {
+      const ids = slots.get(piles[i + 1]) ?? [];
+      ids.push(piles[i + 2]); slots.set(piles[i + 1], ids);
+    }
+    if (label && (slots.size > 0 || source.interactionLabels(entity).length > 0 || source.objectDetails?.(entity))) {
       targets.push({ entity, kind: 'object', label });
+      for (const [pileSlot, dishes] of slots) targets.push({ entity, kind: 'dishes', pileSlot, dishes,
+        label: `Dishes: ${label}, pile ${pileSlot === 4 ? 1 : pileSlot + 1}` });
     }
   }
   return targets;
@@ -76,6 +89,7 @@ export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] 
 /** Keyboard-only presentation state for choosing a world target. */
 export class KeyboardTargetController {
   private entity: number | null = null;
+  private pileSlot: number | null = null;
 
   constructor(
     private readonly source: KeyboardTargetSource,
@@ -85,18 +99,19 @@ export class KeyboardTargetController {
   cycle(direction: -1 | 1): KeyboardTarget | null {
     const targets = keyboardTargets(this.source);
     if (targets.length === 0) return null;
-    const current = targets.findIndex((target) => target.entity === this.entity);
+    const current = targets.findIndex((target) => target.entity === this.entity && (target.pileSlot ?? null) === this.pileSlot);
     const next = current < 0 ? (direction > 0 ? 0 : targets.length - 1) :
       (current + direction + targets.length) % targets.length;
     const target = targets[next];
     this.entity = target.entity;
+    this.pileSlot = target.pileSlot ?? null;
     this.status.hidden = false;
     this.status.textContent = `Target: ${target.label}.`;
     return target;
   }
 
   current(): KeyboardTarget | null {
-    return keyboardTargets(this.source).find((target) => target.entity === this.entity) ?? null;
+    return keyboardTargets(this.source).find((target) => target.entity === this.entity && (target.pileSlot ?? null) === this.pileSlot) ?? null;
   }
 
   activate(): KeyboardActivation {
@@ -123,17 +138,13 @@ export class KeyboardTargetController {
     }
     return {
       kind: 'menu',
-      menu: menuEntries(
-        this.source.entityName(target.entity),
-        this.source.interactionLabels(target.entity),
-        target.entity,
-        this.source.objectDetails?.(target.entity),
-      ),
+      menu: target.kind === 'dishes' ? dishMenuEntries(target.entity, target.dishes!) : surfaceMenuEntries(this.source, target.entity),
     };
   }
 
   clear(): void {
     this.entity = null;
+    this.pileSlot = null;
     this.status.hidden = true;
     this.status.textContent = '';
   }

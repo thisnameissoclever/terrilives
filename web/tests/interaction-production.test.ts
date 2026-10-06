@@ -18,7 +18,13 @@ beforeAll(async () => {
 
 it('contains all registered production facings, palettes and samples after the stable prefix', () => {
   expect(Object.keys(INTERACTION_SPRITES)).toHaveLength(20);
-  expect(Object.keys(SPRITE_PAIRS)).toHaveLength(336);
+  expect(Object.keys(SPRITE_PAIRS)).toHaveLength(348);
+  for(const facing of ['','SW','NW','NE'])for(const variant of ['green','blue','red'] as const){
+    const profile=INTERACTION_SPRITES[spriteIndex(`offlineDiningChair${facing}`)];
+    expect(profile.action).toBe(13);
+    expect(profile.idleFrames?.[variant]).toHaveLength(1);
+    expect(SPRITE_PAIRS[profile.idleFrames![variant][0]]).toBeDefined();
+  }
   for (const [object, action, count] of [['Bike', 6, 8], ['Chair', 3, 4], ['Bunk', 9, 4], ['Armchair', 8, 4]] as const) {
     for (const facing of ['', 'NW', 'SW', 'NE']) {
       const empty = spriteIndex(`offline${object}${facing}`);

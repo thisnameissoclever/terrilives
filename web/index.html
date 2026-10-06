@@ -924,6 +924,16 @@
         font: 11px/1.5 Consolas, monospace;
         white-space: pre-wrap;
       }
+
+      #chores-dialog { max-width: min(720px, calc(100vw - 24px)); max-height: 85vh; overflow:auto; color:var(--hud-text); background:var(--hud-bg); border:1px solid var(--hud-edge); border-radius:8px; padding:20px; }
+      #chores-dialog::backdrop {background:rgba(0,0,0,.6)}
+      .chore-rows {display:grid;gap:10px;margin:16px 0}
+      .chore-row {display:grid;grid-template-columns:1fr auto;gap:6px;padding:8px;border:1px solid var(--hud-edge)}
+      .chore-row strong,.chore-row span {grid-column:1}
+      .chore-row button {grid-column:2;grid-row:1 / 3}
+      .chores-board fieldset {display:grid;gap:10px}
+      .chores-board fieldset label {display:flex;justify-content:space-between;gap:12px}
+      .chores-board input[type=number] {width:80px}
     </style>
     <link rel="stylesheet" href="/src/ui/compact-hud.css" />
     <link rel="stylesheet" href="/src/ui/build-controls.css" />
@@ -1066,6 +1076,7 @@
           </div>
         </div>
         <button id="sim-details" class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-sheet" aria-expanded="false">Sim details</button>
+        <button id="chores-toggle" class="hud-button" type="button" aria-haspopup="dialog" aria-controls="chores-dialog">Chores</button>
         <button id="dock-queue" class="hud-button" type="button" data-open-sim-panel="queue" aria-controls="sim-sheet" aria-expanded="false">Queue</button>
         <button id="sim-dock-collapse" class="hud-button" type="button" aria-controls="sim-dock-body" aria-expanded="true">Collapse</button>
       </div>

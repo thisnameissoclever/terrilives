@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-04",
+  "base": "8bb83ffb35846e9b4e59bc319937d140dce14bb0",
+  "browser_tool_status": "FAILED during report export after guarded behavior checks",
+  "error": "TypeError [ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING]: A dynamic import callback was not specified.",
+  "assertion_evidence": "Original callback execution order: every behavior guard and final screenshot preceded the failing filesystem import.",
+  "callback_sha256": "d07276aad28884ff81b7c38982869a4b5b80378e3e436cce5a4c5d6b261dfa9b",
+  "observed_checks": [
+    "real pointer Do dishes menu and activation",
+    "pickup of exactly two dish units",
+    "washing save/load preserves world hash",
+    "pile completion retains [1,4,3,3,4,4,7,0,1]",
+    "dirty table offers Clean up and excludes Sit down to eat",
+    "surface completion retains only counter dishes [1,4,3,3,4,4]"
+  ],
+  "limits": [
+    "Intermediate result values were discarded by the failed tool callback.",
+    "Screenshots sample rendered states; HUD timing can lag manual simulation ticks.",
+    "Manual simulation stepping does not establish real-time animation or touch hardware operation.",
+    "No owner visual acceptance or publication is claimed."
+  ],
+  "cleanup": "Task page closed in finally; task-owned preview process on port5188 stopped after verifying its command line.",
+  "screenshots": [
+    {
+      "file": "before.png",
+      "sha256": "b9545509bddda5d4e6ebfaefc477b2f2c02422e8b5a331be6f9a4821f4f3b787",
+      "bytes": 469431
+    },
+    {
+      "file": "carrying.png",
+      "sha256": "559cf655c15ad0a2203a1fa034b448f8380fdc5935af3d84bf452f96e422a563",
+      "bytes": 471340
+    },
+    {
+      "file": "one-pile-cleaned.png",
+      "sha256": "058e64e21f1ec0cdd9cfc52bdb7253bea72dbe92b4102caff32d7d7037c464c1",
+      "bytes": 464766
+    },
+    {
+      "file": "pile-menu.png",
+      "sha256": "272b113efaa1cf985265bb731d8400d0d245121edf0f0ee4bebbc702161768b1",
+      "bytes": 460964
+    },
+    {
+      "file": "surface-menu.png",
+      "sha256": "352b19135dec3bd9d9c81c4f2b5a9f0d799cabf50bfb93ca5c21bc5b478e83b5",
+      "bytes": 443451
+    },
+    {
+      "file": "table-cleaned.png",
+      "sha256": "697735f8e7cd6068b2ec16255b1cf85cba30982c878de62dacb533bf64d1504e",
+      "bytes": 472849
+    },
+    {
+      "file": "washing.png",
+      "sha256": "dfbc8849815969dde46f455cfdfd80c3f06c2f33be01f5ed338eb767f0f336d0",
+      "bytes": 472532
+    }
+  ]
+}

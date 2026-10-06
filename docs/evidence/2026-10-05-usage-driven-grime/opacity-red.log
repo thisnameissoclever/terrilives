@@ -1,0 +1,78 @@
+
+> test
+> vitest run --maxWorkers=1 tests/grime.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+ ❯ tests/grime.test.ts (3 tests | 3 failed) 7ms
+   × draws localized floor stains above the floor and behind furniture without recolouring the material 4ms
+   × keeps grime in its additional atlas page with distinct floor, counter and bin sizes 1ms
+   × keeps a stable stain while opacity follows actual dirt down to zero 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/grime.test.ts > draws localized floor stains above the floor and behind furniture without recolouring the material
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ tests/grime.test.ts:11:23
+      9|     footprintWidths:()=>new Uint32Array(),footprintDepths:()=>new Uint…
+     10|   const batch=buildGrimeInstances(source,20,36,100,100,1,5000);
+     11|   expect(batch.count).toBe(1);
+       |                       ^
+     12|   expect(batch.opacity[0]).toBeCloseTo(.9);
+     13|   for(let i=0;i<batch.count;i++){
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/grime.test.ts > keeps grime in its additional atlas page with distinct floor, counter and bin sizes
+AssertionError: expected [ +0, +0, 1, 2, 2 ] to deeply equal [ +0, 1, 1, 1, 1 ]
+
+- Expected
++ Received
+
+  [
+    0,
+-   1,
+-   1,
+-   1,
++   0,
+    1,
++   2,
++   2,
+  ]
+
+ ❯ tests/grime.test.ts:25:46
+     23|   for(let i=0;i<12;i++)expect(rows[i*FLOATS_PER_SPRITE+10]).toBe(GRIME…
+     24|   expect(rows[4]).toBe(64);expect(rows[4*FLOATS_PER_SPRITE+4]).toBe(32…
+     25|   expect([0,74,75,450,1000].map(grimeMarks)).toEqual([0,1,1,1,1]);
+       |                                              ^
+     26| });
+     27|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/grime.test.ts > keeps a stable stain while opacity follows actual dirt down to zero
+TypeError: Cannot read properties of undefined (reading '0')
+ ❯ tests/grime.test.ts:32:46
+     30|   for(const amount of [100,500,1000,42,1]) {
+     31|     const batch=buildGrimeInstances({...source,floorGrime:()=>new Uint…
+     32|     expect(batch.count).toBe(1);expect(batch.opacity[0]).toBeCloseTo(a…
+       |                                              ^
+     33|   }
+     34| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  12:06:21
+   Duration  2.15s (transform 1.26s, setup 0ms, import 1.47s, tests 7ms, environment 0ms)
+

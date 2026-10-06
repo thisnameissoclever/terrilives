@@ -105,3 +105,8 @@ web/public/review-dining.sav
 assets/models/domestic/seated-hands/*.png
 assets/models/domestic/seated-hands/.checkpoints/
 web/proofs/.covered-bunk-reference.json
+
+# Cleaning animation raw renders and rejected previews stay local.
+assets/models/cleaning/raw/
+assets/models/cleaning/preview-*/
+assets/models/cleaning/contacts/

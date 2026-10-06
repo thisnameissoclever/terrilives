@@ -1,0 +1,44 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+warning: unreachable expression
+   --> crates\terri-sim\src\chores\work.rs:361:9
+    |
+360 |       task.cells.iter().all(|cell| { return true;
+    |                                      ----------- any code following this expression is unreachable
+361 | /         rooms.at((
+362 | |             (*cell as usize % grid.width()) as i32,
+363 | |             (*cell as usize / grid.width()) as i32,
+364 | |         )) == Some(task.key.target)
+    | |___________________________________^ unreachable expression
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `cell`
+   --> crates\terri-sim\src\chores\work.rs:360:28
+    |
+360 |     task.cells.iter().all(|cell| { return true;
+    |                            ^^^^ help: if this is intentional, prefix it with an underscore: `_cell`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 2 warnings (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.25s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells ... FAILED
+
+failures:
+
+---- chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells stdout ----
+
+thread 'chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells' (82556) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:329:5:
+assertion failed: sim.world().resource::<SavedChores>().tasks.is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::lifecycle_tests::suspended_floor_plan_is_cancelled_when_room_partition_changes_its_cells
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 934 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

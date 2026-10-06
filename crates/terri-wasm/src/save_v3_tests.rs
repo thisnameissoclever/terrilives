@@ -34,7 +34,7 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
 
 // Serialize each appended field independently so historical-prefix fixtures
 // cannot accidentally cut a newer field that follows the intended boundary.
-pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 15] {
+pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 18] {
     [
         postcard::to_allocvec(&snapshot.floors).unwrap().len(),
         postcard::to_allocvec(&snapshot.family_by_index)
@@ -63,6 +63,11 @@ pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 15] {
         postcard::to_allocvec(&snapshot.dining).unwrap().len(),
         postcard::to_allocvec(&snapshot.skills).unwrap().len(),
         postcard::to_allocvec(&snapshot.affinities).unwrap().len(),
+        postcard::to_allocvec(&snapshot.targeted_cleanup)
+            .unwrap()
+            .len(),
+        postcard::to_allocvec(&snapshot.chores).unwrap().len(),
+        postcard::to_allocvec(&snapshot.grime).unwrap().len(),
     ]
 }
 
@@ -191,7 +196,7 @@ fn grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut() {
 #[test]
 fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
     let mut source = SimHandle::from_lot();
-    let saved = source.sim.save_snapshot_v5();
+    let mut saved = source.sim.save_snapshot_v5();
     let agent = saved
         .world
         .entities
@@ -199,6 +204,17 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         .find(|row| row.agent)
         .unwrap()
         .index;
+    // This fixture predates dining and chore tails. Keep other housemates from
+    // creating modern chair claims or cleaning paths while testing bed state.
+    for row in saved
+        .world
+        .entities
+        .iter_mut()
+        .filter(|row| row.agent && row.index != agent)
+    {
+        row.at_work_ticks = Some(10000);
+    }
+    source.sim.load_snapshot_v5(saved.clone()).unwrap();
     let bed = saved
         .world
         .entities
@@ -267,6 +283,8 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         snapshot.shyness.clear();
         snapshot.boundaries.clear();
         snapshot.dining = None;
+        snapshot.chores = None;
+        snapshot.grime = None;
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend_from_slice(&5u16.to_le_bytes());
         bytes.extend(prefix);
@@ -783,14 +801,17 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
         postcard::to_allocvec(&None::<terri_core::save::SavedDining>),
         postcard::to_allocvec(&Some(terri_core::save::SavedSkills::default())),
         postcard::to_allocvec(&Some(terri_core::save::SavedAffinities::default())),
+        postcard::to_allocvec(&None::<terri_core::save::SavedTargetedCleanup>),
+        postcard::to_allocvec(&None::<terri_core::chores::SavedChores>),
+        postcard::to_allocvec(&None::<terri_core::grime::SavedGrime>),
     ] {
         tail.extend(field.unwrap());
     }
-    assert_eq!(tail, [1, 0, 0, 0, 0, 0, 1, 0, 1, 0]);
+    assert_eq!(tail, [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0]);
     assert_eq!(
-        &plain[plain.len() - 10..],
+        &plain[plain.len() - 13..],
         &tail[..],
-        "current saves carry sleeping places, shyness, boundary decisions, dining, skills and affinities explicitly"
+        "current saves carry sleeping places, privacy, dining, skills, affinities and cleanup explicitly"
     );
     let chair = (0..16u32)
         .find(|&index| source.object_colourway(f64::from(index)) == 0)
@@ -1422,7 +1443,7 @@ fn optional_group_multibyte_cuts_and_frozen_bed_none_fail_closed() {
         snapshot.sleeping_places = places;
         let mut bytes = postcard::to_allocvec(&snapshot).unwrap();
         let lengths = v5_appended_lengths(&snapshot);
-        // Frozen local layout has no dining or skills field.
+        // The frozen local layout predates dining and all following fields.
         bytes.truncate(bytes.len() - lengths[12..].iter().sum::<usize>());
         let domestic = bytes.len() - lengths[8..12].iter().sum::<usize>();
         assert_eq!(bytes.remove(domestic), 0); // Frozen local layout lacks this public field.
@@ -1498,12 +1519,11 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
     }
 }
 
-/// [SK-save]: only the affinities field follows the skills field. A save
-/// cut before skills is a save written before skills existed: it loads and
-/// seeds practice from the worn capability states. Every cut inside it,
-/// from the `Some` marker to the last byte of the last row, and a zero row
-/// count cut inside postcard's two-byte long form, is refused with the live
-/// world untouched.
+/// [SK-save]: skills precedes the later chore fields. A save cut
+/// before it is a save written before skills existed: it loads and seeds
+/// practice from the worn capability states. Every cut inside it, from the
+/// `Some` marker to the last byte of the last row, and a zero row count cut
+/// inside postcard's two-byte long form, is refused with the live world untouched.
 #[test]
 fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
     let mut source = SimHandle::from_lot();
@@ -1529,7 +1549,8 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
     let bytes = source.save_bytes();
     let tail = postcard::to_allocvec(&snapshot.skills).unwrap();
     assert_eq!(v5_appended_lengths(&snapshot)[13], tail.len());
-    let end = bytes.len() - v5_appended_lengths(&snapshot)[14];
+    let lengths = v5_appended_lengths(&snapshot);
+    let end = bytes.len() - lengths[14..].iter().sum::<usize>();
     let start = end - tail.len();
 
     let mut full = SimHandle::from_lot();
@@ -1557,8 +1578,6 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
 
     let before = legacy.save_bytes();
     let hash = legacy.world_hash();
-    // A cut at `end` is a whole save written before affinities existed;
-    // `decode_pads_the_affinities_list` covers the cuts after it.
     let mut cases: Vec<Vec<u8>> = (start + 1..end).map(|cut| bytes[..cut].to_vec()).collect();
     let mut long_empty = bytes[..start].to_vec();
     long_empty.extend([1, 0x80]);
@@ -1575,13 +1594,12 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
     }
 }
 
-/// [OA-values], Review focus 4: the affinities field is the newest appended
-/// field. A current payload with it stripped is a save written before
+/// [OA-values], Review focus 4: the affinities field precedes the chore extensions. A current payload with it stripped is a save written before
 /// affinities existed: it decodes with the field `None`, every other field
 /// intact, and loads with the values drawn once. Every cut inside the
 /// field, from the `Some` marker to the last byte of the last row, and a
 /// zero row count cut inside postcard's two-byte long form, is refused with
-/// the live world untouched. A payload stripped of all fifteen appended
+/// the live world untouched. A payload stripped of all eighteen appended
 /// fields still decodes, so the padding reaches the oldest V5 shape.
 #[test]
 fn decode_pads_the_affinities_list() {
@@ -1597,11 +1615,12 @@ fn decode_pads_the_affinities_list() {
     );
     let bytes = source.save_bytes();
     let lengths = v5_appended_lengths(&snapshot);
-    assert_eq!(lengths.len(), 15);
+    assert_eq!(lengths.len(), 18);
     let tail = postcard::to_allocvec(&snapshot.affinities).unwrap();
     assert_eq!(lengths[14], tail.len());
-    assert!(bytes.ends_with(&tail));
-    let start = bytes.len() - tail.len();
+    let end = bytes.len() - lengths[15..].iter().sum::<usize>();
+    assert_eq!(&bytes[end - tail.len()..end], &tail);
+    let start = end - tail.len();
 
     let mut full = SimHandle::from_lot();
     assert!(full.load_bytes(&bytes));
@@ -1625,9 +1644,7 @@ fn decode_pads_the_affinities_list() {
 
     let before = legacy.save_bytes();
     let hash = legacy.world_hash();
-    let mut cases: Vec<Vec<u8>> = (start + 1..bytes.len())
-        .map(|cut| bytes[..cut].to_vec())
-        .collect();
+    let mut cases: Vec<Vec<u8>> = (start + 1..end).map(|cut| bytes[..cut].to_vec()).collect();
     let mut long_empty = bytes[..start].to_vec();
     long_empty.extend([1, 0x80]);
     cases.push(long_empty);

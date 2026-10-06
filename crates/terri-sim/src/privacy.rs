@@ -13,11 +13,21 @@ pub(crate) fn directed(world: &World, entity: Entity) -> bool {
         .zip(world.get::<terri_core::IntentQueue>(entity))
         .is_some_and(|(target, queue)| {
             queue.contains(terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: target.object,
                 interaction: target.interaction,
             })
         });
     ordered
+        || world
+            .get_resource::<terri_core::chores::SavedChores>()
+            .is_some_and(|s| {
+                s.tasks
+                    .iter()
+                    .any(|t| t.person == entity.index_u32() && t.directed && !t.suspended)
+            })
+        || crate::targeted_cleanup::has_active(world, entity.index_u32())
         || world
             .get::<SimId>(entity)
             .and_then(|id| world.resource::<BoundaryDecisions>().0.get(&id.0))

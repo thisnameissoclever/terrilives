@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/grime.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  12:07:08
+   Duration  1.12s (transform 842ms, setup 0ms, import 1.02s, tests 3ms, environment 0ms)
+

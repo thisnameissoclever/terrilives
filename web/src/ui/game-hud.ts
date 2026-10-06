@@ -69,6 +69,9 @@ const ACTIVITY_NAMES = [
   'Getting ingredients',
   'Preparing food',
   'Cooking',
+  'Mopping floor',
+  'Wiping surface',
+  'Emptying bin',
 ] as const;
 
 export function formatActivity(

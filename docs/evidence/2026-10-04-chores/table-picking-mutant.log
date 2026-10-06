@@ -1,0 +1,43 @@
+
+> test
+> vitest run --maxWorkers=1 tests/table-picking-mutant.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+ ❯ tests/table-picking-mutant.test.ts (15 tests | 3 failed) 13ms
+     × keeps exposed table wood clickable beside a nearby selected Sim at zoom 0.65 7ms
+     × keeps exposed table wood clickable beside a nearby selected Sim at zoom 1 1ms
+     × keeps exposed table wood clickable beside a nearby selected Sim at zoom 2 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/table-picking-mutant.test.ts > targeted dish input > keeps exposed table wood clickable beside a nearby selected Sim at zoom 0.65
+ FAIL  tests/table-picking-mutant.test.ts > targeted dish input > keeps exposed table wood clickable beside a nearby selected Sim at zoom 1
+ FAIL  tests/table-picking-mutant.test.ts > targeted dish input > keeps exposed table wood clickable beside a nearby selected Sim at zoom 2
+AssertionError: expected [ 'Nothing' ] to deeply equal [ 'Clean up', 'Nothing' ]
+
+- Expected
++ Received
+
+  [
+-   "Clean up",
+    "Nothing",
+  ]
+
+ ❯ tests/table-picking-mutant.test.ts:57:88
+     55|       const point={x:70+30*scale,y:40-24*scale};
+     56|       expect(resolveRightClick(source,point,70,40,scale)!.entries.map(…
+     57|       expect(resolveRightClick(overlapped,point,70,40,scale)!.entries.…
+       |                                                                                        ^
+     58|       expect(pickSprite(overlapped,70+16*scale,40-5*scale,70,40,scale)…
+     59|     } finally {setBodyCoverage(body,new Uint8Array(alpha.length).fill(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 12 passed (15)
+   Start at  07:05:11
+   Duration  747ms (transform 518ms, setup 0ms, import 616ms, tests 13ms, environment 0ms)
+

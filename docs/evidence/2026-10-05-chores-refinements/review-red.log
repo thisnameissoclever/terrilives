@@ -1,0 +1,35 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.32s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 8 tests
+test chores::groups::tests::board_groups_each_existing_surface_type_once_per_room ... ok
+test chores::groups::tests::group_visits_every_counter_and_reloads_between_each_stage ... ok
+test chores::groups::tests::inaccessible_group_is_unavailable_at_midnight ... FAILED
+test chores::groups::tests::moving_all_counters_removes_old_group_adds_new_group_and_releases_suspended_work ... ok
+test chores::groups::tests::partitioning_a_room_moves_surface_members_to_the_new_duty ... ok
+test chores::groups::tests::removing_the_only_dirty_member_does_not_leave_a_neglected_duty ... ok
+test chores::groups::tests::retained_surface_contact_rejects_a_new_wall ... FAILED
+test chores::groups::tests::selling_last_surface_removes_its_duty_and_buying_first_surface_adds_one ... ok
+
+failures:
+
+---- chores::groups::tests::inaccessible_group_is_unavailable_at_midnight stdout ----
+
+thread 'chores::groups::tests::inaccessible_group_is_unavailable_at_midnight' (49064) panicked at crates\terri-core\src\grid.rs:142:14:
+edge endpoints must be in-bounds cardinal neighbors
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- chores::groups::tests::retained_surface_contact_rejects_a_new_wall stdout ----
+
+thread 'chores::groups::tests::retained_surface_contact_rejects_a_new_wall' (21552) panicked at crates\terri-sim\src\chores\groups.rs:213:9:
+assertion failed: !super::super::work::contact_valid(sim.world(), single, cell)
+
+
+failures:
+    chores::groups::tests::inaccessible_group_is_unavailable_at_midnight
+    chores::groups::tests::retained_surface_contact_rejects_a_new_wall
+
+test result: FAILED. 6 passed; 2 failed; 0 ignored; 0 measured; 941 filtered out; finished in 2.00s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

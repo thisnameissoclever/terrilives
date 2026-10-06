@@ -96,6 +96,7 @@ fn idle(world: &World, person: Entity) -> bool {
         return false;
     };
     !e.contains::<Target>()
+        && !e.contains::<terri_core::chores::ChoreWork>()
         && !e.contains::<Eating>()
         && !e.contains::<StepWork>()
         && !e.contains::<Socialising>()
@@ -622,7 +623,8 @@ pub(crate) fn tick(world: &mut World) {
             && roll(
                 world,
                 tuning.visitor_cleanup_fraction
-                    * cleanup_probability(clean, &needs, critical, &tuning),
+                    * cleanup_probability(clean, &needs, critical, &tuning)
+                    * crate::chores::cleanup_bias(world, person),
             )
         {
             start_cleanup(world, person, available, false);
@@ -896,6 +898,9 @@ pub(crate) fn completed(
         return;
     };
     let Some(station) = station else { return };
+    if def.id != CLEANUP || step > 0 {
+        crate::chores::grime::used(world, person, station);
+    }
     if def.id == CLEANUP {
         if step == 0 {
             let state = world.resource_mut::<SavedDomestic>().into_inner();
@@ -919,6 +924,7 @@ pub(crate) fn completed(
                 }
             }
         } else {
+            let mut washed_units = 0;
             let mut state = world.resource_mut::<SavedDomestic>();
             if let Some(task) = state
                 .cleanup
@@ -926,6 +932,12 @@ pub(crate) fn completed(
                 .find(|task| task.person == person.index_u32())
                 .cloned()
             {
+                washed_units = state
+                    .dishes
+                    .iter()
+                    .filter(|d| task.dishes.contains(&d.id))
+                    .map(|d| d.units)
+                    .sum();
                 state.dishes.retain(|dish| !task.dishes.contains(&dish.id));
                 for visit in &mut state.visits {
                     visit.seen.retain(|id| !task.dishes.contains(id));
@@ -935,10 +947,17 @@ pub(crate) fn completed(
                 .cleanup
                 .retain(|task| task.person != person.index_u32());
             crate::dining::maintain(world);
+            crate::targeted_cleanup::washed(world, person);
+            crate::chores::dish_washed(world, person.index_u32(), washed_units);
         }
         return;
     }
     if (def.id == "cook_dinner" || def.id == SNACK) && step == 1 {
+        crate::chores::soil(
+            world,
+            station.index_u32(),
+            if def.id == SNACK { 50 } else { 120 },
+        );
         add_dishes(
             world,
             station.index_u32(),
@@ -1058,7 +1077,10 @@ pub(crate) fn completed(
             pack.tuning.mood_critical_need_level,
             &tuning,
         );
-        let own = roll(world, probability);
+        let own = roll(
+            world,
+            (probability * crate::chores::cleanup_bias(world, person)).min(0.99),
+        );
         let blocked = !obstructing.is_empty();
         let response = blocked
             && roll(
@@ -1186,7 +1208,8 @@ pub(crate) fn restore(world: &mut World, saved: Option<SavedDomestic>) -> Result
         || state.cleanup.windows(2).any(|p| p[0].person >= p[1].person)
         || state.cleanup.iter().any(|task| {
             !person(task.person)
-                || task.dishes.is_empty()
+                || (task.dishes.is_empty()
+                    && !crate::targeted_cleanup::has_active(world, task.person))
                 || !unique(&task.dishes)
                 || !unique(&task.collected)
                 || entity(world, task.person)
@@ -1456,6 +1479,8 @@ pub(crate) fn directed_cleanup(world: &mut World, person: Entity) {
 /// Cancelling or replacing a chain releases all owned domestic commitments.
 /// Collected dishes return to their source; a guest's abandoned plate is dirty.
 pub(crate) fn abandon(world: &mut World, person: Entity) {
+    crate::chores::cancel(world, person);
+    crate::targeted_cleanup::abandon(world, person.index_u32());
     crate::dining::release(world, person.index_u32());
     if let Some(mut state) = world.get_resource_mut::<terri_core::save::SavedDining>() {
         state.complaints.retain(|(p, _)| *p != person.index_u32());

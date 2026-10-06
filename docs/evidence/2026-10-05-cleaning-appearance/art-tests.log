@@ -1,0 +1,23 @@
+...............D:\VIBES\.worktrees\a8a4\terrilives\assets\models\bedroom\double_bed_linear.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for parts in zip(*(image.getdata() for image in layers)):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\seating\seat_export_contract.py:157: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for red, green, blue, coverage in zip(*(band.getdata() for band in filtered)):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\bedroom\double_bed_layers.py:29: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for expected, result, *parts in zip(reference.getdata(), actual.getdata(),
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\bedroom\double_bed_layers.py:30: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  *(owner.getdata() for owner in owners)):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\furniture\layer_partition.py:22: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for sim, prop, ink in zip(body.getdata(), furniture.getdata(), outline.getdata()):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\furniture\export_contributions.py:54: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for left,right in zip(actual.getdata(),reference.getdata()) if left[3] or right[3])
+............................................................D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_door_assets.py:43: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  covered = [(c, d) for c, d in zip(colour.getdata(), depth.getdata()) if c[3] >= 128]
+...D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_door_assets.py:53: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  covered = [(i, d) for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())) if c[3] >= 128]
+.D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_door_assets.py:64: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())):
+.......................................................................................................................
+----------------------------------------------------------------------
+Ran 198 tests in 170.583s
+
+OK
