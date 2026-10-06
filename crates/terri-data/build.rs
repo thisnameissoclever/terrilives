@@ -31,6 +31,9 @@ mod pack;
 #[path = "src/relationship_tuning.rs"]
 mod relationship_tuning;
 pub use relationship_tuning::RelationshipTuning;
+#[path = "src/need_tuning.rs"]
+mod need_tuning;
+pub use need_tuning::NeedInteractionTuning;
 #[path = "src/schema.rs"]
 mod schema;
 

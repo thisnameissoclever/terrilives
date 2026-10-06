@@ -454,8 +454,13 @@ pub fn compile(
                 object: object.id.clone(),
             });
         }
+        check_number(
+            object.seat_comfort_per_tick,
+            &format!("seat Comfort on {}", object.id),
+        )?;
         let definition = CompiledObject {
             sleep_places: object.sleep_place.clone(),
+            seat_comfort_per_tick: object.seat_comfort_per_tick,
             id: object.id.clone(),
             name: object.name.clone(),
             presentation: object.presentation.clone(),
@@ -2669,6 +2674,9 @@ fn check_affinity_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
 type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    if !tuning.need_interactions.valid(tuning.mood_low_need_level) {
+        return Err(ContentError::InvalidNeedInteractionTuning);
+    }
     if !tuning.relationships.valid()
         || tuning.relationships.privacy_desperate_need_level > tuning.mood_critical_need_level
     {
@@ -3238,6 +3246,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             boundary_wander_reconsider_chance: tuning.boundary_wander_reconsider_chance,
             shyness_wander_reconsider_strength: tuning.shyness_wander_reconsider_strength,
             relationships: tuning.relationships,
+            need_interactions: tuning.need_interactions,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -4277,38 +4286,38 @@ mod tests {
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Completion presentation appends None after activity in the sole interaction.
-    // Save V1 bytes and the explicit compatibility fingerprint are unchanged.
+    // Seat Comfort appends four bytes to the object; need tuning appends twelve to Tuning.
+    // The build embeds this rebuilt pack. Save V1 bytes and compatibility remain unchanged.
     const GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
         154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
         100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
         116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2,
-        0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0,
-        0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64,
-        63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0,
-        0, 80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19,
-        0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144,
-        28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0,
-        0, 160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0,
-        0, 160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205,
-        204, 76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0,
-        0, 128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95,
-        112, 137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0,
-        64, 63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 205, 204, 76,
-        62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0, 128, 62, 205, 204, 204,
-        61, 154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0, 0, 0, 205, 204, 76,
-        190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10, 0, 0, 160, 64, 0,
-        0, 0, 176, 61, 0, 0, 172, 63,
-        0, 0, 80, 64, 0, 0, 144, 63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65,
-        4,
-        0, 0, 48, 63, 0, 0, 152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60,
-        0, 0, 188, 63, 0, 0, 144, 62,
-        0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64,
+        0, 0, 160, 63, 2, 0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62,
+        0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0,
+        32, 63, 0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62,
+        0, 0, 64, 61, 0, 0, 80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63,
+        0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62,
+        0, 0, 96, 62, 144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4,
+        0, 0, 0, 191, 0, 0, 160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65,
+        0, 0, 64, 65, 0, 0, 160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64,
+        205, 204, 204, 61, 205, 204, 76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65,
+        205, 204, 204, 60, 0, 0, 128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61,
+        0, 0, 160, 64, 95, 112, 137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204,
+        204, 61, 30, 0, 0, 64, 63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0,
+        0, 64, 205, 204, 76, 62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0,
+        128, 62, 205, 204, 204, 61, 154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0,
+        0, 0, 205, 204, 76, 190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10,
+        0, 0, 160, 64, 0, 0, 0, 176, 61, 0, 0, 172, 63, 0, 0, 80, 64, 0, 0, 144,
+        63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65, 4, 0, 0, 48, 63, 0, 0,
+        152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60, 0,
+        0, 188, 63, 0, 0, 144, 62, 0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62, 0,
+        0, 32, 66, 97, 11, 182, 60, 143, 194, 245, 61, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -4401,6 +4410,7 @@ mod tests {
                 .iter()
                 .map(|id| ObjectDef {
                     sleep_place: Vec::new(),
+                    seat_comfort_per_tick: 0.,
                     roles: vec![],
                     action_socket: vec![],
                     id: (*id).to_string(),
@@ -4457,6 +4467,8 @@ mod tests {
             ],
 
             relationships: crate::RelationshipTuning::default(),
+
+            need_interactions: crate::NeedInteractionTuning::default(),
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -4599,6 +4611,54 @@ mod tests {
         )
     }
 
+    #[test]
+    fn need_and_seat_rules_are_validated_and_copied_at_the_authoring_boundary() {
+        let expected = crate::NeedInteractionTuning {
+            handwashing_hygiene_ceiling: 30.,
+            standing_meal_comfort_cost_per_tick: 0.0625,
+            shared_social_per_tick: 0.1875,
+        };
+        let compiled = compile_tuned(tuning_where(|t| t.need_interactions = expected)).unwrap();
+        assert_eq!(compiled.tuning.need_interactions, expected);
+        for bad in [
+            crate::NeedInteractionTuning {
+                handwashing_hygiene_ceiling: 41.,
+                ..expected
+            },
+            crate::NeedInteractionTuning {
+                handwashing_hygiene_ceiling: f32::NAN,
+                ..expected
+            },
+            crate::NeedInteractionTuning {
+                standing_meal_comfort_cost_per_tick: -0.1,
+                ..expected
+            },
+            crate::NeedInteractionTuning {
+                shared_social_per_tick: f32::INFINITY,
+                ..expected
+            },
+        ] {
+            assert!(matches!(
+                compile_tuned(tuning_where(|t| t.need_interactions = bad)),
+                Err(ContentError::InvalidNeedInteractionTuning)
+            ));
+        }
+        let mut objects = one_object(snack());
+        objects.object[0].seat_comfort_per_tick = 0.125;
+        assert_eq!(
+            compile_objects(full_needs(), objects).unwrap().objects[0].seat_comfort_per_tick,
+            0.125
+        );
+        for value in [-0.1, f32::NAN] {
+            let mut objects = one_object(snack());
+            objects.object[0].seat_comfort_per_tick = value;
+            assert!(matches!(
+                compile_objects(full_needs(), objects),
+                Err(ContentError::NegativeValue { .. }) | Err(ContentError::NonFiniteValue { .. })
+            ));
+        }
+    }
+
     /// Every need declared, and nothing else: `needs.toml` says which
     /// needs exist, and `tuning.toml` says how fast they drain.
     ///
@@ -4688,6 +4748,7 @@ mod tests {
             affinity: Vec::new(),
             object: vec![ObjectDef {
                 sleep_place: Vec::new(),
+                seat_comfort_per_tick: 0.,
                 roles: vec![],
                 action_socket: vec![],
                 id: "fridge".into(),
@@ -5217,6 +5278,7 @@ mod tests {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
             sleep_place: Vec::new(),
+            seat_comfort_per_tick: 0.,
             roles: vec![],
             action_socket: vec![],
             id: "fridge".into(),
@@ -5257,6 +5319,7 @@ mod tests {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
             sleep_place: Vec::new(),
+            seat_comfort_per_tick: 0.,
             roles: vec![],
             action_socket: vec![],
             id: "vending".into(),
@@ -5715,7 +5778,8 @@ mod tests {
         // overdoing knobs ([OD-content]), the twenty bytes before that; and
         // then the two ladder knobs. Everything before the ladder is the
         // established pack.
-        let words_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let need_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let words_end = need_end - 12;
         let bands_end = words_end - 12;
         let affinity_end = bands_end - 8;
         let affinity_start = affinity_end - 25;
@@ -5777,12 +5841,21 @@ mod tests {
         assert_eq!(
             &bytes[bands_end..words_end],
             words,
-            "the word bands and the mild trait value are the tail of Tuning"
+            "the word bands and the mild trait value precede need-interaction tuning"
         );
         assert_eq!(
             &bytes[bytes.len() - 6..],
             &[0, 0, 0, 0, 0, 0],
             "each empty vector at the pack tail costs exactly one byte"
+        );
+        let need_tuning: Vec<_> = [40.0f32, 2. / 90., 0.12]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[words_end..need_end],
+            need_tuning,
+            "need-interaction tuning appends without moving main's established slots"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
     }
@@ -6154,8 +6227,8 @@ mod tests {
                 |t| t.mood_critical_need_level *= 0.875,
             ),
             (
-                |t| t.mood_low_need_level *= 0.875,
-                |t| t.mood_low_need_level *= 0.875,
+                |t| t.mood_low_need_level *= 1.125,
+                |t| t.mood_low_need_level *= 1.125,
             ),
             (
                 |t| t.mood_needs_met_level *= 0.875,
@@ -7363,6 +7436,7 @@ mod tests {
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
                     sleep_place: Vec::new(),
+                    seat_comfort_per_tick: 0.,
                     roles: vec![],
                     action_socket: vec![],
                     id: (*id).to_string(),
@@ -9059,6 +9133,7 @@ mod tests {
     /// `test_atlas` holds.
     fn affinity_object(id: &str, interaction: Vec<InteractionDef>) -> ObjectDef {
         ObjectDef {
+            seat_comfort_per_tick: 0.,
             sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
@@ -9605,6 +9680,7 @@ mod tests {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
             sleep_place: Vec::new(),
+            seat_comfort_per_tick: 0.,
             roles: vec![],
             action_socket: vec![],
             id: "couch".into(),
@@ -11435,6 +11511,7 @@ mod tests {
     fn reading_object() -> ObjectDef {
         ObjectDef {
             sleep_place: Vec::new(),
+            seat_comfort_per_tick: 0.,
             id: "reading_chair".to_string(),
             name: "Reading chair".to_string(),
             presentation: None,
@@ -12302,6 +12379,7 @@ mod tests {
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
             sleep_place: Vec::new(),
+            seat_comfort_per_tick: 0.,
             roles: vec!["eating_surface".to_string()],
             action_socket: vec![],
             id: "sink".into(),
@@ -12730,6 +12808,7 @@ mod tests {
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
             sleep_place: Vec::new(),
+            seat_comfort_per_tick: 0.,
             roles: vec!["eating_surface".to_string()],
             action_socket: vec![],
             id: "sink".into(),

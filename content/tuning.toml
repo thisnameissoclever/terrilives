@@ -922,6 +922,14 @@ exhaustion_ramp_ticks = 240
 exhaustion_bonus = 2.5
 
 # Ordinary relationship development and privacy decisions.
+[need_interactions]
+# Hands are a partial wash; only bathing removes body-odor consequences.
+handwashing_hygiene_ceiling = 40.0
+# Two Comfort points over ninety minutes of standing eating.
+standing_meal_comfort_cost_per_tick = 0.022222223
+# Mild company during actively shared reading, exercise and aquarium watching.
+shared_social_per_tick = 0.12
+
 [relationships]
 proximity_per_hour = 0.062
 shared_activity_multiplier = 10.0

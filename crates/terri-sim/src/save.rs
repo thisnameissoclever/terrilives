@@ -489,6 +489,7 @@ pub(super) fn restore(
         candidate.world.resource::<TileGrid>(),
         content,
     )?;
+    crate::media::validate_ownership(&candidate.world)?;
     Ok(candidate)
 }
 

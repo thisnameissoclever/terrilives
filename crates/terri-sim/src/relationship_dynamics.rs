@@ -4,13 +4,37 @@ use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, Re
 use crate::{compatibility, room_regions::RoomRegions, Content};
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, AtWork, Commuting, Eating, Fumbled, Hobbies, NeedId, Needs, Personality, Position,
-    Relationships, SimClock, SimId, SmartObject, Socialising, Target, Traits,
+    Agent, AtWork, Commuting, Eating, Hobbies, NeedId, Needs, Personality, Position, Relationships,
+    SimClock, SimId, SmartObject, Socialising, Target, Traits,
 };
 
 #[derive(Resource, Default)]
 #[doc(hidden)]
 pub struct RelationshipContext(pub(crate) std::collections::BTreeMap<Entity, Preferences>);
+
+/// Rebuild unsaved preferences before selection, including the first restored tick.
+pub(crate) fn refresh_profiles(world: &mut World) {
+    let pack = world.resource::<Content>().0;
+    let people: Vec<_> = world
+        .query_filtered::<Entity, With<Agent>>()
+        .iter(world)
+        .collect();
+    let profiles = people
+        .into_iter()
+        .map(|person| {
+            (
+                person,
+                compatibility::preferences(
+                    pack,
+                    world.get::<Personality>(person),
+                    world.get::<Traits>(person),
+                    world.get::<Hobbies>(person),
+                ),
+            )
+        })
+        .collect();
+    world.insert_resource(RelationshipContext(profiles));
+}
 
 pub(crate) fn positive_allowed(
     subject: &Needs,
@@ -31,6 +55,18 @@ pub(crate) fn positive_scale(score: f32) -> f32 {
     (1.0 + score).clamp(0.25, 2.0)
 }
 
+/// A completed chat can establish friendship even when loneliness is critical.
+/// Its positive Social advertisement exempts loneliness for relationship growth;
+/// actual meter delivery still requires a positive feeling toward the partner.
+pub(crate) fn conversation_positive_allowed(
+    subject: &Needs,
+    other: &Needs,
+    advertisements: &[(u8, f32)],
+    tuning: &terri_data::Tuning,
+) -> bool {
+    positive_allowed(subject, other, advertisements, tuning)
+}
+
 struct Contact {
     entity: Entity,
     id: SimId,
@@ -43,6 +79,7 @@ struct Contact {
 }
 
 pub(crate) fn tick(world: &mut World) {
+    crate::social_company::refresh(world);
     let pack = world.resource::<Content>().0;
     let tuning = pack.tuning;
     let rates = tuning.relationships;
@@ -112,27 +149,12 @@ pub(crate) fn tick(world: &mut World) {
                     .find(|(a, talk)| *a == entity || talk.partner == entity)
                 {
                     pack.social[talk.interaction as usize].advertises.clone()
-                } else if let Some((_, a)) = act {
-                    let scale = world.get::<Fumbled>(entity).map_or(1.0, |f| f.delta_scale);
-                    a.advertises
-                        .iter()
-                        .map(|&(n, d)| (n, if d > 0.0 { d * scale } else { d }))
-                        .collect()
-                } else if let Some(chain) = world
-                    .get::<terri_core::ChainState>(entity)
-                    .filter(|_| world.get::<terri_core::StepWork>(entity).is_some())
-                {
-                    pack.chains[chain.chain as usize]
-                        .advertises
-                        .iter()
-                        .map(|&(n, d)| (n, if d > 0.0 { d * chain.fumble_scale } else { d }))
-                        .collect()
                 } else {
-                    Vec::new()
+                    crate::need_interactions::active_benefits(world, entity)
                 },
-                activity: act
-                    .filter(|_| world.get::<Fumbled>(entity).is_none())
-                    .and_then(|(object, a)| a.shared_activity.clone().map(|group| (object, group))),
+                activity: world
+                    .resource::<crate::social_company::SocialCompany>()
+                    .shared_activity(entity),
             })
         })
         .collect();
@@ -531,7 +553,7 @@ mod tests {
             if failed {
                 sim.world_mut()
                     .entity_mut(a)
-                    .insert(Fumbled { delta_scale: 0.5 });
+                    .insert(terri_core::Fumbled { delta_scale: 0.5 });
             }
             tick(sim.world_mut());
             if failed || disliked {

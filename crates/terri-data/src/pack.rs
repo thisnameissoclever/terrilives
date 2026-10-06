@@ -233,6 +233,48 @@ pub struct CompiledInteraction {
 
 #[cfg(test)]
 #[test]
+fn shipped_need_rewards_have_a_physical_or_entertaining_cause() {
+    let pack = crate::pack();
+    let delta = |object: &str, need: terri_core::NeedId| {
+        pack.object(pack.find(object).unwrap()).interactions[0]
+            .advertises
+            .iter()
+            .find(|(n, _)| *n as usize == need.index())
+            .map_or(0., |(_, d)| *d)
+    };
+    use terri_core::NeedId;
+    assert_eq!(delta("kitchen_sink", NeedId::Comfort), 0.);
+    assert_eq!(delta("sink", NeedId::Comfort), 0.);
+    assert_eq!(delta("bed", NeedId::Comfort), 5.);
+    assert_eq!(delta("double_bed", NeedId::Comfort), 10.);
+    assert_eq!(delta("sofa", NeedId::Fun), 0.);
+    assert_eq!(delta("long_sofa", NeedId::Fun), 0.);
+    for chain in &pack.chains {
+        if chain.id == "cook_dinner" || chain.id == "eat_shared_meal" {
+            assert!(!chain
+                .advertises
+                .iter()
+                .any(|(n, d)| *n as usize == NeedId::Comfort.index() && *d > 0.));
+        }
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn contextual_balance_values_do_not_change_the_save_contract() {
+    let mut pack = crate::pack().clone();
+    let before = crate::content_fingerprint(&pack);
+    let chair = pack.find("chair").unwrap();
+    let rate = pack.object(chair).seat_comfort_rate();
+    pack.objects[chair.0 as usize].seat_comfort_per_tick = 0.25;
+    pack.tuning.need_interactions.handwashing_hygiene_ceiling = 30.;
+    pack.tuning.need_interactions.shared_social_per_tick = 0.07;
+    assert_ne!(pack.object(chair).seat_comfort_rate(), rate);
+    assert_eq!(crate::content_fingerprint(&pack), before);
+}
+
+#[cfg(test)]
+#[test]
 fn shipped_shared_activity_metadata_covers_parallel_reading_and_exercise() {
     let pack = crate::pack();
     for (object, group) in [
@@ -319,6 +361,8 @@ pub struct CompiledObject {
     pub presentation: Option<ObjectPresentation>,
     /// Ordered physical sleeping places. Saved ordinals follow this order.
     pub sleep_places: Vec<SleepPlaceAccess>,
+    /// Secondary-seat Comfort; balance data outside save compatibility.
+    pub seat_comfort_per_tick: f32,
 }
 
 /// Navigation offsets from the base-facing footprint, independent of art sockets.
@@ -329,6 +373,18 @@ pub struct SleepPlaceAccess {
 }
 
 impl CompiledObject {
+    /// Use the seat's own Comfort rate, without borrowing Fun or Energy.
+    pub fn seat_comfort_rate(&self) -> f32 {
+        self.interactions
+            .iter()
+            .flat_map(|a| {
+                a.advertises.iter().filter_map(|(n, d)| {
+                    (*n as usize == terri_core::NeedId::Comfort.index() && *d > 0.)
+                        .then_some(*d / a.duration_ticks as f32)
+                })
+            })
+            .fold(self.seat_comfort_per_tick, f32::max)
+    }
     /// Alternate sleep interactions share physical capacity rather than adding it.
     pub fn sleep_capacity(&self, sleep_tag: &str) -> u8 {
         if sleep_tag.is_empty() {
@@ -849,6 +905,8 @@ pub struct Tuning {
     /// this for one that likes its kind, its negative for one that dislikes
     /// it - [OA-values]. Above 0 and below `affinity_from_trait`.
     pub affinity_from_mild_trait: f32,
+    /// Appended balance values; saves reconstruct these from current content.
+    pub need_interactions: crate::NeedInteractionTuning,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1322,7 +1380,20 @@ impl ContentPack {
         };
         let own = definition.interactions.iter().fold(0, |mask, interaction| {
             mask | served(&interaction.advertises)
+                | if interaction.shared_activity.is_some()
+                    && self.tuning.need_interactions.shared_social_per_tick > 0.
+                {
+                    1 << terri_core::NeedId::Social.index()
+                } else {
+                    0
+                }
         });
+        let own = own
+            | if definition.seat_comfort_per_tick > 0. {
+                1 << terri_core::NeedId::Comfort.index()
+            } else {
+                0
+            };
         let chains = self
             .chains
             .iter()
@@ -1354,20 +1425,19 @@ mod tests {
     fn an_object_serves_its_own_needs_and_those_of_every_chain_it_stands_in() {
         let pack = crate::pack();
         let serves = |id: &str| pack.needs_served(pack.find(id).unwrap());
-        assert_eq!(serves("bed"), needs(&["energy"]));
+        assert_eq!(serves("bed"), needs(&["energy", "comfort"]));
         assert_eq!(serves("television"), needs(&["fun", "social"]));
-        // Cook dinner advertises hunger and comfort, and takes a fridge, a
-        // prep surface, a hob and an eating surface.
-        assert_eq!(serves("stove"), needs(&["hunger", "comfort"]));
-        assert_eq!(serves("counter"), needs(&["hunger", "comfort"]));
-        assert_eq!(serves("fridge"), needs(&["hunger", "comfort"]));
-        // The table's own comfort and the chain's comfort are one need.
+        // A recipe provides Hunger and conditional seated Social. The chair provides Comfort.
+        // This catalogue mask describes potential benefits, not current company.
+        assert_eq!(serves("stove"), needs(&["hunger", "social"]));
+        assert_eq!(serves("counter"), needs(&["hunger", "social"]));
+        assert_eq!(serves("fridge"), needs(&["hunger", "social"]));
         assert_eq!(
             serves("dining_table"),
             needs(&["hunger", "comfort", "social"])
         );
-        // A chair has no interaction and stands in no chain.
-        assert_eq!(serves("chair"), 0);
+        assert_eq!(serves("chair"), needs(&["comfort"]));
+        assert_eq!(serves("bookshelf"), needs(&["fun", "social"]));
     }
 
     /// Only a positive delta serves a need: a zero or a cost does not, and a
@@ -1381,15 +1451,15 @@ mod tests {
         let interaction = &mut pack.objects[bed.0 as usize].interactions[0];
         interaction.advertises.push((hygiene, 0.0));
         interaction.advertises.push((fun, -4.0));
-        assert_eq!(pack.needs_served(bed), needs(&["energy"]));
+        assert_eq!(pack.needs_served(bed), needs(&["energy", "comfort"]));
         // Two interactions on one object, and two chains, serving the same
         // needs.
         let second = pack.objects[bed.0 as usize].interactions[0].clone();
         pack.objects[bed.0 as usize].interactions.push(second);
-        assert_eq!(pack.needs_served(bed), needs(&["energy"]));
+        assert_eq!(pack.needs_served(bed), needs(&["energy", "comfort"]));
         pack.chains.push(pack.chains[0].clone());
         let stove = pack.find("stove").unwrap();
-        assert_eq!(pack.needs_served(stove), needs(&["hunger", "comfort"]));
+        assert_eq!(pack.needs_served(stove), needs(&["hunger", "social"]));
     }
 
     /// Review finding [H4] on the catalogue branch: an object that offers a
@@ -1405,7 +1475,7 @@ mod tests {
         pack.chains.push(offered);
         assert_eq!(
             pack.needs_served(bed),
-            needs(&["hunger", "energy", "comfort"])
+            needs(&["hunger", "energy", "comfort", "social"])
         );
     }
 
@@ -1595,6 +1665,7 @@ mod tests {
             affinity_band_loves: 0.5625,
             affinity_band_likes: 0.1875,
             affinity_from_mild_trait: 0.34375,
+            need_interactions: crate::NeedInteractionTuning::default(),
         }
     }
 
@@ -1628,6 +1699,7 @@ mod tests {
                     }
                     CompiledObject {
                         sleep_places: Vec::new(),
+                        seat_comfort_per_tick: 0.,
                         id: (*id).to_string(),
                         name: id.to_uppercase(),
                         presentation: None,
@@ -1972,6 +2044,7 @@ mod tests {
     ) -> CompiledObject {
         CompiledObject {
             sleep_places: Vec::new(),
+            seat_comfort_per_tick: 0.,
             id: "thing".to_string(),
             name: "Thing".to_string(),
             presentation: None,
@@ -2319,12 +2392,20 @@ mod tests {
         // [OA-hud], [OA-values]: the two word bands and the mild trait value
         // are the last twelve bytes, three floats in declaration order. Each
         // changed float differs from the fixture's only in its third byte.
-        let words = before.len() - 12;
+        let need_start = before.len() - 12;
+        assert_eq!(
+            &before[need_start..],
+            [40.0f32, 2. / 90., 0.12]
+                .into_iter()
+                .flat_map(f32::to_le_bytes)
+                .collect::<Vec<_>>()
+        );
+        let words = need_start - 12;
         let expected: Vec<u8> = [0.5625f32, 0.1875, 0.34375]
             .into_iter()
             .flat_map(f32::to_le_bytes)
             .collect();
-        assert_eq!(before[words..], expected);
+        assert_eq!(before[words..need_start], expected);
         for (offset, after) in [
             (
                 2,

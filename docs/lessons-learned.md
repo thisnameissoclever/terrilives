@@ -1,5 +1,38 @@
 # Lessons Learned
 
+## [L-conditional-needs-and-first-friendships] Separate company from furniture rewards
+
+**What happened.** Solo media and empty-table sitting refilled Social through
+ordinary advertisements. Removing those benefits also removed a useful route
+for lonely strangers to establish their first friendship. An initial future
+friendship score then depended on an unsaved compatibility cache.
+
+**Root cause.** Authored need amounts were treated as unconditional delivery,
+participation and relationship development were conflated, and a derived cache
+was read before its restoration-time rebuild. Secondary seats also did not
+imply shared device ownership.
+Compatibility additionally treated valid recipe preference addresses as
+ordinary-action indices; resolve each address in its actual vocabulary.
+
+**Prevention.** Evaluate conditional positive rewards from actual simultaneous
+participation and the receiver's directional feeling. Preserve authored costs.
+Keep friendship development separate from immediate need delivery. Rebuild
+every derived input before its first scoring consumer, including after loading.
+Count travelling commitments against shared capacity and reserve distinct
+destinations before deferred commands flush. Do not infer active participation
+from a reservation or a valid travelling lease alone.
+
+Shared devices and tables define these groups; do not add room or proximity
+restrictions intended for passive affinity effects to an approved participation
+rule.
+
+**Verification.** Compare solo and communal rewards, asymmetric feelings,
+valid shared use across room boundaries, travelling partners, seated and standing diners, and
+partial overlap through terminal completion. Reject invalid shared ownership
+transactionally. Compare first-tick utility as well as world hashes after
+restoring idle compatible strangers with nonpositive affinity. Delete each
+load-bearing gate and require the relevant assertion to fail, then restore
+byte-identical source. Evidence: `docs/evidence/social-needs/`.
 
 ## [L-proof-test-discovery] Check runner discovery when adding standalone proof tests
 
@@ -10471,6 +10504,52 @@ Use isolated browser contexts for fixtures and automation.
 the visible Pause control. A Saved game loaded message alone does not prove
 that the original time or state was restored.
 
+## [L-contextual-need-benefits] Decisions and delivery must use the same physical conditions
+
+**What happened.** Media reserved a seat without paying its Comfort, meals
+paid Comfort regardless of posture, and sink washing could replace bathing.
+Adding contextual alternatives also made an unrelated Energy substitution
+read private-room state that exists only during movement.
+Using prospective offers for friendship readiness also made failed sharing
+appear helpful and omitted actual chair Comfort during meals.
+
+**Root cause.** Need delivery and decisions read only the primary action's
+advertisements. Physical claims and partial cleaning were separate facts.
+The alternative search checked privacy before determining effective benefits.
+Future offers and current activity help were treated as the same information.
+
+**Prevention.** Calculate conditional benefits from actual participation and
+planned physical ownership. Use the same rules for scoring, urgency, privacy
+alternatives and waiting. Filter relevant benefits before reading temporary
+privacy state. Keep food, seat, company and cleanliness effects distinct.
+Separate prospective offers from current activity help. Rebuild participation
+inside consumers that also support direct calls outside the tick schedule.
+
+**Verify.** Assert real meter changes for solo and shared use, distinct seats,
+standing eating, both sinks, interruption and the first restored tick. Delete
+the caps, food checks and company guards separately. Require the corresponding
+tests to fail and restore byte-identical sources. Preserve the direct cleanup
+substitution regression outside the movement phase.
+Require failed sharing to leave critical loneliness unhelped and real meal
+seating to help critical Comfort. Remove the consumer's refresh to prove its
+ownership, without refreshing the fixture immediately before the call.
+
+## [L-type-scoped-field-edits] Scope field additions to their owning type
+
+**What happened.** A broad edit added a tuning field after similarly named
+relationship fields in saved entity records. Compilation caught the invalid
+fields. The content compiler's build-script imports also needed the new type.
+
+**Root cause.** A field-name match was used as a substitute for identifying
+the type's constructors and its separate build-script compilation path.
+
+**Prevention.** Scan references to the owning type before changing its shape.
+Edit its constructors explicitly. Inspect each changed file and shared source
+module import. Append serialized fields without moving established slots.
+
+**Verify.** Check every target, inspect the final diff, and preserve explicit
+serialization fixtures. Prove that balance metadata changes do not change
+the save compatibility fingerprint.
 ## [L-pinned-hash-search-includes-strings] Search for a moved hash in every written form
 
 **What happened.** Hashing personality effects moved the world hash of a released-main save that a web test loads. A search for pinned hash values matched only numeric and bigint literals, so it missed that test, which compares the hash as a decimal string, and the implementer reported that no web test pinned a moved value. The web suite failed on that test until the pin was updated.
@@ -10501,6 +10580,28 @@ that the original time or state was restored.
 
 **Verify.** `a_social_completion_teaches_both_participants` in `crates/terri-sim/src/skills_tests.rs` reads practice at tick 28 during the chat and at tick 60 after it. Moving the call into the per-tick delivery fails it with `nothing learned while the chat runs`, as recorded in `docs/specs/2026-10-05-skills-verification.md`.
 
+
+## [L-household-replay-control] Separate the rule from a household replay count
+
+**What happened.** Integrating needs changes moved a seed-specific sickness
+ordinal, removed an incidental toilet visit, and let a bystander carry the
+dish excluded from a cleaner's conservation assertion. No dish was lost:
+the trace showed four with the actor and one with a separate valid claim.
+
+**Root cause.** Household choices share the duration generator. Balance changes
+can change its later draws. Tests also counted one carrier while permitting
+other cleaners, or assumed an unrelated action would happen autonomously.
+
+**Prevention.** Keep exact replay observations as dated evidence. Test the
+threshold and measured accumulation independently. Order an unrelated
+completion explicitly when attribution needs a nonempty control. Isolate
+other cleaners through supported readiness rules when testing one owner.
+Repetition decay precedes the mood projection that drives life satisfaction.
+
+**Verify.** Assert the per-completion recurrence, threshold, refill and healing
+behavior. Match events to actual completion counters, retain save/load
+equality, and keep foreign-pile and quantity assertions. Verify the
+fixture's bystander constraint each tick.
 ## [L-walk-direction-is-state-not-position] Record which way a walk goes; do not read it off where it ends
 
 **What happened.** One `Commuting` marker covered both the walk out to a shift and the walk home, and `commute_and_work` told them apart by whether the worker's position was within a hundredth of a tile of the door or the street's exit when its path ran out. A worker a fraction of a tile from the door's centre when the shift started got the empty commute, arrived on the shift tick where it stood, was read as home from work, and lost the shift unpaid. A calendar test draft on a lot without wall edges hit it at tick 88 of a 30-tick day; the shipped lot's walls route every commute onto the tile's centre first, which is why the played game never showed it.
@@ -10610,3 +10711,13 @@ waiting order runs. Save and reload each transition with matching hashes.
 **Prevention.** For a body or animal sound, search CC0 sources for recordings first and audition them with the owner before synthesizing. Measure each candidate's energy above 1 kHz and 2 kHz before offering it, because the owner wants very few high-pitched sounds in a game left playing in the background. Send rendered audio files for listening rather than describing a waveform.
 
 **Verify.** Each offered candidate has a recorded licence and a band-energy measurement, and the owner chose the shipped sound by ear. For the snore, ASSETS.md, "Sleeping snore recordings", records both.
+
+## [L-merge-struct-edits] Scope merge repairs to the owning type
+
+**What happened.** A queued-order merge repair matched shared field names and temporarily added order fields to target records and to orders that already had them. Compilation caught the invalid and duplicate fields.
+
+**Root cause.** The replacement matched a field sequence without identifying the enclosing Rust type.
+
+**Prevention.** Limit structural replacements to the owning type and inspect the complete diff before compiling. Check existing fields before adding defaults from an incoming type change.
+
+**Verify.** The diff changes only missing fields in the intended initializers. Run formatting, compile every target with warnings denied, and run the affected tests.

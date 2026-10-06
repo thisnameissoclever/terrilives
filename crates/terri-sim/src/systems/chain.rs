@@ -366,9 +366,11 @@ pub fn advance_chains(
             None if any_station => {
                 commands.entity(sim).insert(Blocked);
                 if let Some(station) = occupied_reachable {
-                    commands
-                        .entity(sim)
-                        .insert(crate::waiting::advertised_needs(station, &chain.advertises));
+                    commands.entity(sim).insert(crate::waiting::effective_needs(
+                        station,
+                        &chain.advertises,
+                        false,
+                    ));
                 }
             }
             None => {}
@@ -512,6 +514,10 @@ pub fn tick_chain_steps(
         // and zeroes the satisfaction.
         let fumble = chain_state.fumble_scale;
         for (need_index, delta) in &chain.advertises {
+            // Social is delivered per minute of seated company, never as a terminal lump sum.
+            if *delta > 0. && *need_index as usize == NeedId::Social.index() {
+                continue;
+            }
             let per_need = personality.map_or(1.0, |p| p.satisfaction[*need_index as usize]);
             let delta = scaled_delta(*delta, per_need * fumble);
             needs.fill(NeedId::ALL[*need_index as usize], delta);
@@ -1768,6 +1774,9 @@ mod tests {
         let (mut sim, agent, _, _) = chain_world();
         let mut pack = sim.world().resource::<Content>().0.clone();
         pack.objects[0].interactions.clear();
+        pack.chains[0]
+            .advertises
+            .push((NeedId::Social.index() as u8, 11.));
         pack.tuning.idle_threshold = 0.0;
         sim.world_mut()
             .insert_resource(Content(Box::leak(Box::new(pack))));
@@ -1820,6 +1829,12 @@ mod tests {
     #[test]
     fn a_booked_station_is_waited_for() {
         let (mut sim, agent, pantry, _table) = chain_world();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.chains[0]
+            .advertises
+            .push((NeedId::Social.index() as u8, 11.));
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         sim.world_mut().entity_mut(pantry).insert(Reserved);
         start_chain(&mut sim, agent);
 
@@ -1830,6 +1845,15 @@ mod tests {
             .world()
             .get::<crate::waiting::WaitingNeeds>(agent)
             .is_some());
+        let waiting = sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .unwrap();
+        assert_eq!(
+            waiting.0,
+            (1 << NeedId::Hunger.index()) | (1 << NeedId::Comfort.index()),
+            "Waiting for preparation cannot provide Social before communal eating"
+        );
         let world = sim.world();
         assert!(
             world.get::<ChainState>(agent).is_some()

@@ -27,9 +27,9 @@ New keys in `content/tuning.toml`, validated at compile time: `habituation_max` 
 
 ## [OD-evidence] Proof required before delivery
 
-1. The cap: twelve consecutive back-to-back snacks reach `habituation_max` and not beyond; `benefit_scale` at 1.5 equals `benefit_scale` at 1.0; the details repetition reads 1.0 at 2.0; need delivery at the cap equals delivery at 0.
+1. The cap: consecutive back-to-back snacks reach `habituation_max` and not beyond; `benefit_scale` at 1.5 equals `benefit_scale` at 1.0; the details repetition reads 1.0 at 2.0; need delivery at the cap equals delivery at 0.
 2. The moodlets: exact labels, scores at the threshold (zero), midway and the top; the order after `Dirty dishes`; `Feeling sick` once per person; a non-food activity at the top shows overdoing but never sick.
-3. A played scenario: a person ordered to snack repeatedly gains `Overdoing Grab a snack` after the fourth snack, `Feeling sick` after the eleventh (the exact snack moves with the generator's draws, because each chain's length is drawn), satisfaction falls while the moodlets stand, and both fade by decay with no further orders over a fixed tick count, with the clock asserted.
+3. A played scenario: a person ordered to snack repeatedly gains `Overdoing Grab a snack` after the fourth snack, `Feeling sick` when habituation reaches the sickness threshold (the exact snack moves with the generator's draws, because each chain's length is drawn), satisfaction falls while the moodlets stand, and both fade by decay with no further orders over a fixed tick count, with the clock asserted.
 4. Save: a value above 1 round-trips exactly and loads through the public boundary; a value above `habituation_max` refuses the load; the world hash moves with the value (it already did) and the bare-agent golden vector is unchanged.
 5. Guard deletions recorded for the cap, the appeal clamp, the threshold, the food gate, the once-per-person rule and the validator's upper bound.
 6. A displayed check: order snacks until both moodlets show in the Mood panel at desktop and phone widths, with screenshots.

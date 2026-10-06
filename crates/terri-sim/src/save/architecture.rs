@@ -212,6 +212,7 @@ pub(crate) fn restore_v5(
             }
         }
     }
+    crate::media::validate_ownership(&candidate.world)?;
     if !death_default_applied {
         candidate
             .world
@@ -318,6 +319,7 @@ fn finish_restore(
         crate::placement::windows::validate_restored_windows(&candidate.world)
             .map_err(|_| SaveError::InvalidGrid)?;
     }
+    crate::media::validate_ownership(&candidate.world)?;
     Ok(candidate)
 }
 

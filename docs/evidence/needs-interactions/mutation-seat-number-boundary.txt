@@ -1,0 +1,21 @@
+
+running 1 test
+test compile::tests::need_and_seat_rules_are_validated_and_copied_at_the_authoring_boundary ... FAILED
+
+failures:
+
+failures:
+    compile::tests::need_and_seat_rules_are_validated_and_copied_at_the_authoring_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.00s
+
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-data)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.06s
+     Running unittests src\lib.rs (target\debug\deps\terri_data-c6b1992c464e518b.exe)
+
+thread 'compile::tests::need_and_seat_rules_are_validated_and_copied_at_the_authoring_boundary' (12260) panicked at crates\terri-data\src\compile.rs:4211:13:
+assertion failed: matches!(compile_objects(full_needs(), objects),
+    Err(ContentError::NegativeValue { .. }) |
+    Err(ContentError::NonFiniteValue { .. }))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-data --lib`

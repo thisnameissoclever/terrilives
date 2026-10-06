@@ -1,0 +1,34 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 126 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 281 filtered out; finished in 0.00s
+
+
+running 1 test
+test systems::chain::tests::a_booked_station_is_waited_for ... FAILED
+
+failures:
+
+failures:
+    systems::chain::tests::a_booked_station_is_waited_for
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 945 filtered out; finished in 0.02s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.49s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-b67bfee9131ed119.exe)
+     Running unittests src\lib.rs (target\debug\deps\terri_data-14b6a8285187343e.exe)
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-f8dc83d73b9df06b.exe)
+
+thread 'systems::chain::tests::a_booked_station_is_waited_for' (17796) panicked at crates\terri-sim\src\systems\chain.rs:1692:9:
+assertion `left == right` failed: Waiting for preparation cannot provide Social before communal eating
+  left: 81
+ right: 65
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

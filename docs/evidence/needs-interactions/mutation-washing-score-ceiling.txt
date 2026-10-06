@@ -1,0 +1,21 @@
+
+running 1 test
+test need_interactions::tests::autonomous_washing_scores_only_hygiene_available_below_the_cap ... FAILED
+
+failures:
+
+failures:
+    need_interactions::tests::autonomous_washing_scores_only_hygiene_available_below_the_cap
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.05s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'need_interactions::tests::autonomous_washing_scores_only_hygiene_available_below_the_cap' (95188) panicked at crates\terri-sim\src\need_interactions\tests.rs:403:5:
+assertion `left != right` failed: The advertised 32 points cannot escape the one-point ceiling gap
+  left: 0v0
+ right: 0v0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

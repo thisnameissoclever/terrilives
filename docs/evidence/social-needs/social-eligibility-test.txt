@@ -1,0 +1,26 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.59s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 5 tests
+test social_company::tests::friendship_utility_counts_building_chats_and_requires_future_relief ... ok
+test social_company::tests::media_company_requires_active_shared_use_across_room_and_distance_boundaries ... ok
+test social_company::tests::social_privacy_substitution_requires_active_liked_company_and_a_free_endpoint ... ok
+test social_company::tests::social_costs_still_apply_to_solo_interactions ... ok
+
+thread 'social_company::tests::critical_social_does_not_license_solo_media_privacy_intrusions' (99308) panicked at crates\terri-sim\src\social_company.rs:339:13:
+assertion `left == right` failed: Only genuine future company can make Social a relevant emergency: y=4, company=true
+  left: false
+ right: true
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test social_company::tests::critical_social_does_not_license_solo_media_privacy_intrusions ... FAILED
+
+failures:
+
+failures:
+    social_company::tests::critical_social_does_not_license_solo_media_privacy_intrusions
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 941 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

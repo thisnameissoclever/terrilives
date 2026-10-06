@@ -89,9 +89,9 @@ These work in normal play today. They appear here because every new system must 
 
 | System | Status | What exists |
 |---|---|---|
-| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. |
+| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
-| Habituation | Substantial | Repeating the same action on the same object pays less each time and recovers with time. This is what makes people rotate between objects. |
+| Habituation | Substantial | Repeating the same action on the same object lowers its appeal, which recovers with time. This makes people rotate between objects; it does not reduce ordinary need delivery. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
 | Player orders | Substantial | Unlimited stored orders per person, front or back placement, and current/queued action cards. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
@@ -401,14 +401,14 @@ Future facial expressions and unique animations should reflect both current mood
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades feelings toward living people. Affinity toward a dead person is preserved for grief. The shipped waiting moodlet does not implement the relationship penalty in [H12]. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
+**Status: Partial.** Each person holds a separate feeling toward every other person. Completed chats, pleasant proximity and recognized shared activities can improve affinity; incompatible preferences create friction. Time slowly fades feelings toward living people, while affinity toward a dead person is preserved for grief. Chat refills Social only when the receiver likes the partner. Shared TV or radio use, simultaneous seated eating at the same table, and eligible shared reading, exercise or aquarium watching can also refill Social with liked company; solo activities and empty-table sitting cannot. The shipped waiting moodlet does not implement the relationship penalty in [H12]. See [Sim interpersonal relations](SIM-RELATIONSHIPS.md) for the implemented rules and the remaining relationship work.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
-- `[H13]` Slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
+- `[H13]` Implemented: slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
 - `[H14]` Autonomous friendly conversations above a positive threshold, and fights below a negative one.
 - `[H15]` Extroversion changing how readily a person starts either.
 
-Also missing: more social actions than chat, group conversations (the content already declares a slot count that nothing reads), and a romance axis.
+Also missing: more direct social actions than chat, group conversations, and a romance axis. Media interactions use their authored slot capacity; conversation groups remain separate work.
 
 ### [S-family] Family relationships and kinship
 

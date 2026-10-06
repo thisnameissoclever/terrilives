@@ -1,0 +1,30 @@
+
+running 1 test
+test dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table ... FAILED
+
+failures:
+
+failures:
+    dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+warning: unused variable: `chair`
+   --> crates\terri-sim\src\dining.rs:499:14
+    |
+499 |     let Some(chair) = diner.chair.and_then(|c| entity(world, c)) else {
+    |              ^^^^^ help: if this is intentional, prefix it with an underscore: `_chair`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.81s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table' (90320) panicked at crates\terri-sim\src\dining\tests.rs:196:5:
+assertion `left == right` failed: A chair facing away from the table is not communal seating
+  left: 30.366669
+ right: 30.244446
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

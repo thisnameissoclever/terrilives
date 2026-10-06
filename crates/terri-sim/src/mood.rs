@@ -1494,6 +1494,14 @@ mod tests {
                 "snack {snack}: one clock tick per loop tick"
             );
             let now = value(&sim);
+            let expected = ((before - decay * (ticks - 1) as f32).max(0.)
+                + tuning.habituation_per_use)
+                .min(tuning.habituation_max)
+                - decay;
+            assert!(
+                (now - expected).abs() < 0.0001,
+                "snack {snack}: measured duration must explain habituation {now} versus {expected}"
+            );
             assert!(
                 now > before - decay * ticks as f32,
                 "snack {snack} completed"
@@ -1535,13 +1543,16 @@ mod tests {
         // snacks net about 0.25 each because decay runs during each chain.
         // The chains' lengths come from the world generator, so the exact
         // snack that crosses the sick line moves with the draws taken
-        // before it: the four affinity draws each person takes at spawn
-        // ([OA-values]) moved it from the tenth to the eleventh.
+        // before it. Conditional need rewards also change the other
+        // housemates' choices and the subsequent duration draws.
         assert_eq!(
             first_overdoing, 4,
             "three snacks in a row are not overdoing; the fourth is"
         );
-        assert_eq!(first_sick, 11, "the eleventh snack in a row makes Tim sick");
+        assert_eq!(
+            first_sick, 10,
+            "the tenth snack crosses the measured sickness threshold"
+        );
         assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
         assert!(
             refills.iter().all(|refill| *refill == refills[0]),

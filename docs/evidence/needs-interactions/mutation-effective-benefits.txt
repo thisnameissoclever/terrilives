@@ -1,0 +1,41 @@
+
+running 1 test
+test social_company::tests::social_privacy_substitution_requires_active_liked_company_and_a_free_endpoint ... FAILED
+
+failures:
+
+failures:
+    social_company::tests::social_privacy_substitution_requires_active_liked_company_and_a_free_endpoint
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+warning: unused variable: `need`
+  --> crates\terri-sim\src\social_company.rs:35:31
+   |
+35 | pub(crate) fn effective_delta(need: u8, delta: f32, social_available: bool) -> bool {
+   |                               ^^^^ help: if this is intentional, prefix it with an underscore: `_need`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `delta`
+  --> crates\terri-sim\src\social_company.rs:35:41
+   |
+35 | pub(crate) fn effective_delta(need: u8, delta: f32, social_available: bool) -> bool {
+   |                                         ^^^^^ help: if this is intentional, prefix it with an underscore: `_delta`
+
+warning: unused variable: `social_available`
+  --> crates\terri-sim\src\social_company.rs:35:53
+   |
+35 | pub(crate) fn effective_delta(need: u8, delta: f32, social_available: bool) -> bool {
+   |                                                     ^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_social_available`
+
+warning: `terri-sim` (lib test) generated 3 warnings (run `cargo fix --lib -p terri-sim --tests` to apply 3 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.34s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'social_company::tests::social_privacy_substitution_requires_active_liked_company_and_a_free_endpoint' (57952) panicked at crates\terri-sim\src\social_company.rs:520:9:
+assertion failed: !crate::privacy::substitute(sim.world_mut(), first,
+        NeedId::Social.index() as u8, &grid, false)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

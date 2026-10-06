@@ -11,12 +11,10 @@ use crate::Content;
 
 /// Decays every agent's habituation toward zero.
 ///
-/// **Ordering does not matter for this system and that is worth saying**, since
-/// almost every other system in the tick has a load-bearing position. It reads
-/// and writes one component per agent, touches no shared state, and no other
-/// system reads habituation in the same tick that this writes it: selection runs
-/// before it in the schedule and sees the previous tick's values. Placing it
-/// anywhere in the tick produces the same behaviour up to a one-tick offset.
+/// Runs after completion-based increases and before mood-derived satisfaction.
+/// Selection earlier in the schedule sees the previous tick's value; the later
+/// mood projection reads the value after this decay, including repetition
+/// penalties. Moving this system across those consumers changes the result.
 ///
 /// Entries that reach zero are dropped rather than kept at zero, which keeps
 /// `world_hash` a function of state that matters; see [`Habituation::decay`].
