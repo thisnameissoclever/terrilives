@@ -1,0 +1,24 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_independent_export_v1.py",
+    ".tmp/object-models/pose-complete-independent-renders-01/standingRead"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk 69aa82 returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 5.9663958,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "b269efe750a5605eafe1c7abb4cb68425bd6398f06a335997c80279f4d2126f4"
+  },
+  "exporter_sha256": "e8c43076799bb61ee150c789eab37552265640a36cc54c441bff1b393b241df4",
+  "output": {
+    "records": 48,
+    "uniqueTextures": 25,
+    "maximumError": 4,
+    "p95": 2
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

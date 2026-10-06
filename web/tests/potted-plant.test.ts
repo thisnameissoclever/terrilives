@@ -38,10 +38,10 @@ it.each([[13, 15, 0], [28, 10, 11]])('preserves plant %i placement, identity and
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.objectName(id)).toBe('Ficus, Under Review');
+    expect(sim.objectName(id)).toBe('Potted plant');
     expect(sim.interactionLabels(id)).toEqual([]);
-    expect(sim.catalogue().find(row => row.name === 'Ficus, Under Review')).toMatchObject({
-      price: 30, facings: 15, baseFacing: 0,
+    expect(sim.catalogue().find(row => row.name === 'Potted plant')).toMatchObject({
+      price: 25, facings: 15, baseFacing: 0,
     });
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {
       const index = atlas.spriteIndex('offlinePottedPlant' + suffix);

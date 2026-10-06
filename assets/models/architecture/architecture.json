@@ -31,6 +31,21 @@
       "kind": "cleaning",
       "catalog": "assets/models/cleaning/export/manifest.json",
       "canonicalSha256": "a1be4c0c5236ae1c5e99cc3ea5db758862dd750618f5c4f53dda2a96f134e855"
+    },
+    {
+      "kind": "shelf-mask",
+      "catalog": "assets/models/bookcase/export/mask-01/manifest.json",
+      "canonicalSha256": "ca751a5cb860d9a6b8f84a6b208351c2e081388e6282a74ac540bc473465d112"
+    },
+    {
+      "kind": "reader-subset",
+      "catalog": "assets/models/seating/reader-subset-01/export/manifest.json",
+      "canonicalSha256": "48f6ee03bf820d33349611dc4baa2f6b6eec2f0d93fa5531f0ae6100739991de"
+    },
+    {
+      "kind": "reading-actions",
+      "catalog": "assets/models/reading/catalog.json",
+      "canonicalSha256": "86b2937b5335c5784a2a25b6126fb3f66c5badbcb3dde1f445329e1278199945"
     }
   ],
   "historicalFiles": {

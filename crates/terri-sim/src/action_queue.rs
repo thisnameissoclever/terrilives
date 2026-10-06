@@ -59,27 +59,11 @@ impl Sim {
             }
             if let Some(object) = self.world.get::<SmartObject>(intent.object) {
                 let definition = pack.objects.get(object.0 .0 as usize)?;
-                let row = intent.interaction as usize;
-                let action = if definition.id == "dining_table" && row == 1 {
-                    "Eat prepared food"
-                } else if row < definition.interactions.len() {
-                    &definition.interactions[row].label
-                } else {
-                    let chain = pack
-                        .chains
-                        .iter()
-                        .filter(|chain| !crate::domestic::hidden_chain(&chain.id))
-                        .filter(|chain| chain.advertised_by == object.0)
-                        .nth(row - definition.interactions.len())?;
-                    if chain.id == "cook_dinner" {
-                        crate::domestic::meal_label(
-                            self.world.resource::<terri_core::SimClock>().tick,
-                            pack.tuning.day_ticks,
-                        )
-                    } else {
-                        &chain.label
-                    }
-                };
+                let action = crate::action_rows::resolve(pack, object.0, intent.interaction)?
+                    .label(
+                        self.world.resource::<terri_core::SimClock>().tick,
+                        pack.tuning.day_ticks,
+                    );
                 Some(format!("{}: {}", action, definition.display_name()))
             } else if self.world.get::<Agent>(intent.object).is_some() {
                 let interaction = pack.social.get(intent.interaction as usize)?;
@@ -137,30 +121,16 @@ impl Sim {
         let served =
             if carrying_out_chain && !crate::targeted_cleanup::has_active(&self.world, index) {
                 self.world
-                    .get::<terri_core::ChainState>(person)
-                    .and_then(|state| {
-                        self.world
-                            .get::<IntentQueue>(person)?
-                            .as_slice()
-                            .iter()
-                            .copied()
-                            .find(|order| {
-                                self.world
-                                    .get::<SmartObject>(order.object)
-                                    .and_then(|placed| {
-                                        crate::systems::chain::ordered_chain(
-                                            pack,
-                                            placed.0,
-                                            order.interaction,
-                                        )
-                                    })
-                                    == Some(state.chain)
-                            })
-                    })
+                    .get::<crate::recipe_actions::RecipeOrder>(person)
+                    .and_then(|active| self.world.get::<IntentQueue>(person)?.order(active.0))
+                    .map(|entry| entry.intent)
             } else {
                 served
             };
-        let current = if self.world.get::<AtWork>(person).is_some() {
+        let reading = self.world.get::<crate::reading::ReadingJourney>(person);
+        let current = if let Some(status) = crate::reading::status(&self.world, person) {
+            Some(status)
+        } else if self.world.get::<AtWork>(person).is_some() {
             Some("At work".to_string())
         } else if let Some(intent) = social
             .map(|s| Intent {
@@ -195,15 +165,29 @@ impl Sim {
         let mut result = vec![current.unwrap_or_default()];
         let mut removed = false;
         if let Some(queue) = self.world.get::<IntentQueue>(person) {
-            for &intent in queue.as_slice() {
+            for entry in queue.entries() {
+                let intent = entry.intent;
                 if result.len() >= max_rows {
                     break;
                 }
-                if !removed && Some(intent) == served {
+                if !removed
+                    && (reading.is_some_and(|j| j.order == Some(entry.id))
+                        || (reading.is_none()
+                            && entry.title_id.is_none()
+                            && Some(intent) == served))
+                {
                     removed = true;
                     continue;
                 }
-                result.push(label(intent).unwrap_or_else(|| "Unavailable action".to_string()));
+                let description = if let Some(title) = &entry.title_id {
+                    pack.books
+                        .iter()
+                        .find(|b| &b.id == title)
+                        .map(|b| format!("Read: {}", b.title))
+                } else {
+                    label(intent)
+                };
+                result.push(description.unwrap_or_else(|| "Unavailable action".to_string()));
             }
         }
         result
@@ -454,6 +438,7 @@ mod tests {
         };
         sim.world_mut().entity_mut(person).insert((
             terri_core::ChainState::begin(snack),
+            crate::recipe_actions::RecipeOrder(0),
             IntentQueue::from_intents(vec![order, order]),
         ));
         let labels = sim.action_queue_of(person.index_u32());

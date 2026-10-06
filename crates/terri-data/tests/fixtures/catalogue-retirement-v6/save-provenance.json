@@ -1,0 +1,139 @@
+{
+  "wasmSHA256": "bd5b4442c9aea4adf78651efe61bb0d8e5e66a1e3ac932bb1a60d0b9e9bcf248",
+  "provenance": "Real public commands in reviewed integrated release; no snapshot surgery.",
+  "captures": [
+    {
+      "name": "table-inactive-v6",
+      "tick": "0",
+      "bytes": 4529,
+      "sha256": "845c53e61c09e9a655e5f4695160578eb00ea21a9b348c85ad908c8fe9eeb6e9",
+      "queues": [
+        [
+          34,
+          [
+            ""
+          ]
+        ],
+        [
+          35,
+          [
+            ""
+          ]
+        ],
+        [
+          36,
+          [
+            ""
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "table-queued-v6",
+      "tick": "0",
+      "bytes": 4593,
+      "sha256": "fbd9da8ac890bdda28977c5f64d389b25786fef77a41122df95ca694d7177767",
+      "queues": [
+        [
+          34,
+          [
+            "",
+            "Sit down to eat: Dining table"
+          ]
+        ],
+        [
+          35,
+          [
+            "",
+            "Watch TV: Television"
+          ]
+        ],
+        [
+          36,
+          [
+            ""
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "table-active-v6",
+      "tick": "25",
+      "bytes": 4766,
+      "sha256": "020d297942f041cb4238b9899969ff7e3123b0912503f1e44be0850886af6dc0",
+      "queues": [
+        [
+          34,
+          [
+            "Sit down to eat: Dining table"
+          ]
+        ],
+        [
+          35,
+          [
+            "Watch TV: Television"
+          ]
+        ],
+        [
+          36,
+          [
+            "Sit: Dining chair"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "table-active-pending-v6",
+      "tick": "25",
+      "bytes": 4771,
+      "sha256": "a9ba9ea3e9a62a9b48eeae7c6b4e419a0689492f05754eeca212aa565dc9a158",
+      "queues": [
+        [
+          34,
+          [
+            "Sit down to eat: Dining table"
+          ]
+        ],
+        [
+          35,
+          [
+            "Watch TV: Television"
+          ]
+        ],
+        [
+          36,
+          [
+            "Sit: Dining chair"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "table-active-waiter-v6",
+      "tick": "25",
+      "bytes": 4800,
+      "sha256": "7112e199c1671f7f8d0115b10d371e09ff01c9cc4d622c17466d4ec52ecdd22c",
+      "queues": [
+        [
+          34,
+          [
+            "Sit down to eat: Dining table"
+          ]
+        ],
+        [
+          35,
+          [
+            "Watch TV: Television"
+          ]
+        ],
+        [
+          36,
+          [
+            "Sit: Dining chair",
+            "Sit down to eat: Dining table"
+          ]
+        ]
+      ]
+    }
+  ]
+}

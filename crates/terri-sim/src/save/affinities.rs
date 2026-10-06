@@ -18,6 +18,12 @@ use terri_data::ContentPack;
 /// value, so a current save is never mistaken for one written before
 /// affinities existed.
 pub(crate) fn capture(world: &World, pack: &ContentPack) -> Option<SavedAffinities> {
+    // These immutable source eras predate affinity state, including authoritative empty rows.
+    if std::ptr::eq(pack, terri_data::pre_books_pack())
+        || std::ptr::eq(pack, terri_data::published_pre_books_pack())
+    {
+        return None;
+    }
     let mut rows: Vec<(u32, String, f32)> = world
         .try_query::<(Entity, &Agent, &Affinities)>()
         .map_or_else(Vec::new, |mut query| {

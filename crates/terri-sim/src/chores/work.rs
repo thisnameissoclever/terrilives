@@ -65,6 +65,13 @@ pub(crate) fn start(
     key: ChoreKey,
     directed: bool,
 ) -> bool {
+    if world
+        .get::<crate::reading::ReadingJourney>(person)
+        .is_some()
+    {
+        crate::reading::request_return(world, person);
+        return false;
+    }
     super::grime::ensure(world, state);
     if key.kind == ChoreKind::Dishes {
         return start_dishes(world, state, person, directed);
@@ -198,7 +205,8 @@ pub(crate) fn start(
         .remove::<terri_core::ConversationVoice>()
         .remove::<terri_core::StepWork>()
         .remove::<terri_core::Carrying>()
-        .remove::<ChainState>()
+        .remove::<crate::recipe_actions::ActiveRecipe>()
+        .remove::<crate::recipe_actions::RecipeOrder>()
         .remove::<terri_core::Restless>()
         .insert(ChoreWork);
     let day = world.resource::<SimClock>().tick
@@ -252,7 +260,8 @@ fn start_dishes(
         .remove::<terri_core::ConversationVoice>()
         .remove::<terri_core::StepWork>()
         .remove::<terri_core::Carrying>()
-        .remove::<ChainState>()
+        .remove::<crate::recipe_actions::ActiveRecipe>()
+        .remove::<crate::recipe_actions::RecipeOrder>()
         .remove::<ChoreWork>();
     crate::domestic::directed_cleanup(world, person);
     if let Some(mut domestic) = world.get_resource_mut::<terri_core::save::SavedDomestic>() {
@@ -394,7 +403,11 @@ pub(super) fn plan_valid(world: &World, task: &ChoreTask) -> bool {
 }
 
 fn busy(world: &World, person: Entity) -> bool {
-    world.get::<Target>(person).is_some()
+    world
+        .get::<crate::reading::ReadingJourney>(person)
+        .is_some()
+        || world.get::<crate::reading::PendingShift>(person).is_some()
+        || world.get::<Target>(person).is_some()
         || world.get::<Eating>(person).is_some()
         || world.get::<Socialising>(person).is_some()
         || world.get::<AtWork>(person).is_some()

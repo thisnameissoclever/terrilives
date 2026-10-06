@@ -1,5 +1,6 @@
 //! Pure simulation core. No web dependencies, ever.
 
+pub mod books;
 pub mod clock;
 pub mod command;
 pub mod components;
@@ -11,6 +12,8 @@ pub mod layout;
 pub mod needs;
 pub mod rng;
 pub mod save;
+pub mod save_v6;
+pub use save_v6::SaveSnapshotV6;
 mod save_before_voice;
 pub mod windows;
 

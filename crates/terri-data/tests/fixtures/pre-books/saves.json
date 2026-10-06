@@ -1,0 +1,22 @@
+[
+  {
+    "ticks": 0,
+    "bytes": 3155,
+    "roundTrip": true
+  },
+  {
+    "ticks": 100,
+    "bytes": 3378,
+    "roundTrip": true
+  },
+  {
+    "ticks": 1000,
+    "bytes": 3385,
+    "roundTrip": true
+  },
+  {
+    "ticks": 2000,
+    "bytes": 3399,
+    "roundTrip": true
+  }
+]

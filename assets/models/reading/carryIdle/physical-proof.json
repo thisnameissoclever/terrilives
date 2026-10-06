@@ -1,0 +1,1479 @@
+{
+  "state": "complete_contact_seed",
+  "scope": "carryIdle",
+  "sourceReceipt": {
+    "path": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-carry-01\\raw\\proof.json",
+    "sha256": "2ced7a4bf2c4e22875b7d24393a541c31c963b230a871d03e771189898032776"
+  },
+  "profile": "carryIdle",
+  "content": "sim",
+  "stage": "carry",
+  "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\sim-01-rigged.blend",
+  "frame_error": 3.2782554626464844e-07,
+  "contacts": [],
+  "folds": [
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Relaxed palm",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Relaxed palm.001",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Resting thumb",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Resting thumb.001",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "pairs": 0,
+      "unresolved": []
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "pairs": 0,
+      "unresolved": []
+    }
+  ],
+  "support": null,
+  "valid": true,
+  "canvas": [
+    96,
+    120
+  ],
+  "anchor": [
+    48.0000114440918,
+    116.0004369020462
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "body_collection": "Double bed sleeper 1",
+  "rig": "Place 1 SIM_01_SHARED_RIG",
+  "grasp": [
+    {
+      "side": "L",
+      "skin_parts": [
+        "Relaxed palm",
+        "Resting thumb",
+        "Forearm with elbow and wrist sections"
+      ],
+      "book_parts": [
+        "Printed book line",
+        "Printed book line.001",
+        "Printed book line.002",
+        "Printed book line.003",
+        "Printed book line.004",
+        "Printed book line.005",
+        "Printed book line.006",
+        "Printed book line.007",
+        "Printed book line.008",
+        "Printed book line.009",
+        "Reading book cover",
+        "Reading book cover.001",
+        "Reading book pages",
+        "Reading book pages.001"
+      ],
+      "normal": [
+        -7.549790126404311e-08,
+        0.9999999999999971,
+        0.0
+      ],
+      "maximum_gap": 0.0015,
+      "nearest_actual_surfaces": {
+        "distance": 0.00020006562119730597,
+        "skin_part": "Resting thumb",
+        "book_part": "Reading book cover",
+        "skin_triangle": 506,
+        "book_triangle": 9,
+        "skin_point": [
+          -0.4706662671261904,
+          0.17649450843620837,
+          1.3411798286682681
+        ],
+        "book_point": [
+          -0.4706001671440117,
+          0.17631762474649343,
+          1.3412459286338798
+        ],
+        "skin_barycentric": [
+          0.0,
+          0.6920996784713875,
+          0.3079003215286125
+        ],
+        "book_barycentric": [
+          0.4999154613372102,
+          0.0,
+          0.5000845386627898
+        ],
+        "book_triangle_normal": [
+          -0.7020217841267822,
+          0.11971150723817502,
+          -0.7020217729146397
+        ],
+        "candidate_triangle_pairs": 4341,
+        "evaluated_triangle_pairs": 156,
+        "method": "Global AABB lower-bound pruning; complete vertex-face and edge-edge minima for side-plane-separated surfaces"
+      },
+      "projected_area": 3.224885576386116e-05,
+      "spans": [
+        0.016885024909618185,
+        0.016885024909618185
+      ],
+      "certified_cells": 16,
+      "occluded_or_ambiguous_cells": 0,
+      "witness": "finite-grasp/L",
+      "valid": true,
+      "interpretation": "Finite opposing side-contact area only; not a force, friction or visual-grip acceptance proof"
+    },
+    {
+      "side": "R",
+      "skin_parts": [
+        "Relaxed palm.001",
+        "Resting thumb.001",
+        "Forearm with elbow and wrist sections.001"
+      ],
+      "book_parts": [
+        "Printed book line",
+        "Printed book line.001",
+        "Printed book line.002",
+        "Printed book line.003",
+        "Printed book line.004",
+        "Printed book line.005",
+        "Printed book line.006",
+        "Printed book line.007",
+        "Printed book line.008",
+        "Printed book line.009",
+        "Reading book cover",
+        "Reading book cover.001",
+        "Reading book pages",
+        "Reading book pages.001"
+      ],
+      "normal": [
+        7.549790126404311e-08,
+        -0.9999999999999971,
+        0.0
+      ],
+      "maximum_gap": 0.0015,
+      "nearest_actual_surfaces": {
+        "distance": 0.00020007213727437097,
+        "skin_part": "Resting thumb.001",
+        "book_part": "Reading book cover.001",
+        "skin_triangle": 410,
+        "book_triangle": 8,
+        "skin_point": [
+          -0.47066653750014287,
+          -0.17649458870560747,
+          1.3411800947365082
+        ],
+        "book_point": [
+          -0.47060043538167523,
+          -0.17631769925484397,
+          1.3412461968715435
+        ],
+        "skin_barycentric": [
+          0.0,
+          0.30790686026813563,
+          0.6920931397318644
+        ],
+        "book_barycentric": [
+          0.0,
+          0.49991377535745873,
+          0.5000862246425413
+        ],
+        "book_triangle_normal": [
+          -0.7020217331844393,
+          -0.11971197321502776,
+          -0.7020217443966252
+        ],
+        "candidate_triangle_pairs": 4321,
+        "evaluated_triangle_pairs": 156,
+        "method": "Global AABB lower-bound pruning; complete vertex-face and edge-edge minima for side-plane-separated surfaces"
+      },
+      "projected_area": 3.224994749945198e-05,
+      "spans": [
+        0.01688540414276163,
+        0.01688540414276174
+      ],
+      "certified_cells": 16,
+      "occluded_or_ambiguous_cells": 0,
+      "witness": "finite-grasp/R",
+      "valid": true,
+      "interpretation": "Finite opposing side-contact area only; not a force, friction or visual-grip acceptance proof"
+    }
+  ],
+  "sole_heights": {
+    "Fitted rounded shoe sole": 0.019148124381899834,
+    "Fitted rounded shoe sole.001": 0.01914811134338379
+  },
+  "frames": {
+    "frame": 1,
+    "action": null,
+    "rig_matrix_world": [
+      [
+        7.549790126404332e-08,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        -1.0,
+        7.549790126404332e-08,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "bone_matrices": {
+      "root": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "hips": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.8600000143051147
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "spine": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.20791198313236237,
+          -0.978147566318512,
+          0.0
+        ],
+        [
+          0.0,
+          0.978147566318512,
+          -0.20791198313236237,
+          1.0299999713897705
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "head": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.3907310366630554,
+          -0.920504629611969,
+          -0.0769272968173027
+        ],
+        [
+          0.0,
+          0.920504629611969,
+          -0.3907310366630554,
+          1.3919144868850708
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "upper_arm.L": [
+        [
+          -0.21176141500473022,
+          -0.10774889588356018,
+          -0.9713636040687561,
+          -0.23000013828277588
+        ],
+        [
+          0.47939151525497437,
+          -0.8775695562362671,
+          -0.007163748145103455,
+          -0.05613623559474945
+        ],
+        [
+          -0.8516597747802734,
+          -0.467184454202652,
+          0.23749025166034698,
+          1.2940999269485474
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "forearm.L": [
+        [
+          -0.13536378741264343,
+          0.06864762306213379,
+          -0.9884147047996521,
+          -0.26065385341644287
+        ],
+        [
+          -0.8361371755599976,
+          -0.5431085824966431,
+          0.07679245620965958,
+          -0.30579301714897156
+        ],
+        [
+          -0.5315401554107666,
+          0.836850643157959,
+          0.13091813027858734,
+          1.1611918210983276
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "hand.L": [
+        [
+          1.5278346836566925e-06,
+          0.1351129561662674,
+          -0.9908297657966614,
+          -0.24592852592468262
+        ],
+        [
+          -0.707098662853241,
+          -0.7006229162216187,
+          -0.09553727507591248,
+          -0.4222938120365143
+        ],
+        [
+          -0.7071033120155334,
+          0.7006207704544067,
+          0.09554031491279602,
+          1.3407015800476074
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "upper_arm.R": [
+        [
+          -0.21176138520240784,
+          0.1077491044998169,
+          0.9713636040687561,
+          0.23000013828277588
+        ],
+        [
+          -0.47939085960388184,
+          -0.8775697350502014,
+          -0.0071633607149124146,
+          -0.05613623559474945
+        ],
+        [
+          0.8516599535942078,
+          -0.4671837091445923,
+          0.23749035596847534,
+          1.2940999269485474
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "forearm.R": [
+        [
+          -0.13536390662193298,
+          -0.0686473548412323,
+          0.9884148240089417,
+          0.26065370440483093
+        ],
+        [
+          0.8361362218856812,
+          -0.5431102514266968,
+          0.07679248601198196,
+          -0.30579322576522827
+        ],
+        [
+          0.5315415263175964,
+          0.8368501663208008,
+          0.13091811537742615,
+          1.1611921787261963
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "hand.R": [
+        [
+          1.521781086921692e-06,
+          -0.1351129114627838,
+          0.9908300042152405,
+          0.245928555727005
+        ],
+        [
+          0.707098662853241,
+          -0.7006231546401978,
+          -0.09553726017475128,
+          -0.4222941994667053
+        ],
+        [
+          0.7071037888526917,
+          0.7006208300590515,
+          0.0955403670668602,
+          1.3407020568847656
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "thigh.L": [
+        [
+          1.0,
+          0.0,
+          -8.742277657347586e-08,
+          -0.12399999797344208
+        ],
+        [
+          8.742277657347586e-08,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.8600000143051147
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "shin.L": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -0.12399999797344208
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.49000000953674316
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "foot.L": [
+        [
+          -1.0,
+          0.0,
+          8.742277657347586e-08,
+          -0.12399999797344208
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          8.742277657347586e-08,
+          0.0,
+          1.0,
+          0.12999999523162842
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "thigh.R": [
+        [
+          1.0,
+          0.0,
+          -8.742277657347586e-08,
+          0.12399999797344208
+        ],
+        [
+          8.742277657347586e-08,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.8600000143051147
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "shin.R": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.12399999797344208
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.49000000953674316
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "foot.R": [
+        [
+          -1.0,
+          0.0,
+          8.742277657347586e-08,
+          0.12399999797344208
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          8.742277657347586e-08,
+          0.0,
+          1.0,
+          0.12999999523162842
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "book": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.7071067690849304,
+          -0.7071067094802856,
+          -0.4654332399368286
+        ],
+        [
+          0.0,
+          0.7071067094802856,
+          0.7071067690849304,
+          1.3393149375915527
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "channels": {
+      "root": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "hips": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "spine": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          0.9945218563079834,
+          0.10452858358621597,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "head": {
+        "location": [
+          0.0,
+          -1.1920928955078125e-07,
+          -1.1920928955078125e-07
+        ],
+        "rotation_quaternion": [
+          0.9953961968421936,
+          0.09584560990333557,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          0.9999997615814209,
+          0.9999997615814209
+        ]
+      },
+      "upper_arm.L": {
+        "location": [
+          -1.4901161193847656e-07,
+          -1.1920928955078125e-07,
+          5.960464477539063e-08
+        ],
+        "rotation_quaternion": [
+          0.6369026899337769,
+          -0.3501700460910797,
+          -0.5015997290611267,
+          0.46918413043022156
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          0.9999921917915344,
+          0.9999998211860657,
+          1.0000087022781372
+        ]
+      },
+      "forearm.L": {
+        "location": [
+          4.76837158203125e-07,
+          -4.172325134277344e-07,
+          5.066394805908203e-07
+        ],
+        "rotation_quaternion": [
+          0.7104062438011169,
+          0.04469957947731018,
+          2.7530410307008424e-07,
+          0.7023710012435913
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          0.9999920725822449,
+          1.0000076293945312,
+          0.9999999403953552
+        ]
+      },
+      "hand.L": {
+        "location": [
+          4.172325134277344e-07,
+          2.384185791015625e-07,
+          5.960464477539063e-08
+        ],
+        "rotation_quaternion": [
+          0.9993966221809387,
+          0.004357373807579279,
+          0.0031707454472780228,
+          -0.034313760697841644
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          0.9999993443489075,
+          0.9999995827674866,
+          0.9999998807907104
+        ]
+      },
+      "upper_arm.R": {
+        "location": [
+          1.4901161193847656e-07,
+          -1.1920928955078125e-07,
+          5.960464477539063e-08
+        ],
+        "rotation_quaternion": [
+          0.6369026303291321,
+          -0.3501701056957245,
+          0.5015994906425476,
+          -0.46918442845344543
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          0.9999920725822449,
+          0.9999995827674866,
+          1.0000087022781372
+        ]
+      },
+      "forearm.R": {
+        "location": [
+          -1.1920928955078125e-07,
+          -4.172325134277344e-07,
+          3.5762786865234375e-07
+        ],
+        "rotation_quaternion": [
+          0.710407018661499,
+          0.04469945654273033,
+          -3.932911454285204e-07,
+          -0.7023701667785645
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          0.9999922513961792,
+          1.000008225440979,
+          0.9999999403953552
+        ]
+      },
+      "hand.R": {
+        "location": [
+          -1.7881393432617188e-07,
+          2.384185791015625e-07,
+          1.7881393432617188e-07
+        ],
+        "rotation_quaternion": [
+          0.9993966221809387,
+          0.0043572415597736835,
+          -0.00317065860144794,
+          0.03431304544210434
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          0.9999997615814209,
+          0.9999994039535522,
+          0.9999999403953552
+        ]
+      },
+      "thigh.L": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "shin.L": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "foot.L": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "thigh.R": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "shin.R": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "foot.R": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_quaternion": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "book": {
+        "location": [
+          0.0,
+          0.4493149518966675,
+          0.06543323397636414
+        ],
+        "rotation_quaternion": [
+          0.9238795638084412,
+          -0.3826834559440613,
+          0.0,
+          0.0
+        ],
+        "rotation_euler": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_mode": "QUATERNION",
+        "scale": [
+          1.0,
+          0.9999999403953552,
+          0.9999999403953552
+        ]
+      }
+    },
+    "properties": {
+      "book_visible": 1.0,
+      "eyes_closed": 0.0
+    },
+    "visibility": {
+      "Place 1 Collar stand": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Dark pupil": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Dark pupil.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Ear": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Ear.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Eye white": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Eye white.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Fitted rounded shoe sole": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Fitted rounded shoe sole.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Folded fabric collar leaf": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Folded fabric collar leaf.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Forearm with elbow and wrist sections": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Forearm with elbow and wrist sections.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 HAIR_01_TRIPO_CURL": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Hazel iris": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Hazel iris.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Inner ear": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Inner ear.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Natural neck": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 One sewn breast pocket": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Overshirt body": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Pocket top seam": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.002": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.003": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.004": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.005": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.006": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.007": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.008": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Printed book line.009": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Quiet closed smile": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Reading book cover": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Reading book cover.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Reading book pages": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Reading book pages.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Relaxed palm": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Relaxed palm.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Relaxed shirt sleeve": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Relaxed shirt sleeve.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Resting thumb": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Resting thumb.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Sculpted head": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Shaped shoe": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Shaped shoe.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Shirt lower hem": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Shirt placket": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Shoe apron stitch": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Shoe apron stitch.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Sleep closed eyelid": {
+        "render": false,
+        "viewport": false,
+        "layer": true
+      },
+      "Place 1 Sleep closed eyelid.001": {
+        "render": false,
+        "viewport": false,
+        "layer": true
+      },
+      "Place 1 Small eye catchlight": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Small eye catchlight.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Small horn button": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Small horn button.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Small horn button.002": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Small horn button.003": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Small rounded nose": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Soft eyebrow": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Soft eyebrow.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Tailored trouser leg": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Tailored trouser leg.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Trouser hem": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Trouser hem.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Trouser hip bridge": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Turned sleeve cuff": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Turned sleeve cuff.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Upper lid outline": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      },
+      "Place 1 Upper lid outline.001": {
+        "render": true,
+        "viewport": true,
+        "layer": true
+      }
+    }
+  },
+  "scene": {
+    "path": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-carry-01\\raw\\carryIdle\\source.blend",
+    "sha256": "25e8fdffd15b92eb04a1f2784451d46419a46805be07296849d82257ba4b6f42"
+  }
+}

@@ -462,7 +462,6 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
         ("sofa", activity::SITTING),
         ("sink", activity::WASHING_HANDS),
         ("kitchen_sink", activity::WASHING_HANDS),
-        ("dining_table", activity::SITTING),
         ("long_sofa", activity::LOUNGING),
         ("radio", activity::LISTENING_RADIO),
         ("double_bed", activity::SLEEPING),
@@ -497,6 +496,27 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
                 .world_mut()
                 .entity_mut(person)
                 .insert(terri_core::SleepPlace(0));
+        }
+        if pack.object(definition).interactions[0].seat_use != terri_data::SeatUse::Exclusive {
+            let (dx, dy) = pack
+                .object(definition)
+                .seat_approaches_at(0, pack.object(definition).base_facing)
+                .unwrap()[0];
+            source.world_mut().entity_mut(person).insert(Position {
+                x: 5. + dx as f32,
+                y: 5. + dy as f32,
+            });
+            source
+                .world_mut()
+                .entity_mut(item)
+                .insert(terri_core::Reserved);
+            crate::seating::install(
+                source.world_mut(),
+                person,
+                item,
+                0,
+                pack.object(definition).interactions[0].seat_use == terri_data::SeatUse::All,
+            );
         }
         let mut restored = Sim::new_from_shipped_lot();
         restored

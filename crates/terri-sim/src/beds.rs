@@ -15,6 +15,58 @@ pub struct BedPlace {
     pub ordinal: u8,
 }
 
+/// Admission and store facts share these physical ownership rules. A bookcase
+/// lends copies through the reading planner; it is not one exclusive reader slot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ActionAdmission {
+    Seats,
+    WholeSeat,
+    Sleep,
+    BookSource,
+    Exclusive,
+}
+
+pub(crate) fn action_admission(
+    pack: &ContentPack,
+    object: &CompiledObject,
+    action: &terri_data::CompiledInteraction,
+) -> ActionAdmission {
+    if action.book_reading && object.seats.is_empty() {
+        ActionAdmission::BookSource
+    } else if action.seat_use == terri_data::SeatUse::One {
+        ActionAdmission::Seats
+    } else if action.seat_use == terri_data::SeatUse::All {
+        ActionAdmission::WholeSeat
+    } else if !pack.sleep_tag.is_empty() && action.tags.contains(&pack.sleep_tag) {
+        ActionAdmission::Sleep
+    } else {
+        ActionAdmission::Exclusive
+    }
+}
+
+pub(crate) fn action_capacity(
+    pack: &ContentPack,
+    object: &CompiledObject,
+    action: &terri_data::CompiledInteraction,
+) -> Option<u32> {
+    match action_admission(pack, object, action) {
+        ActionAdmission::BookSource => None,
+        ActionAdmission::Seats => Some(object.seats.len() as u32),
+        ActionAdmission::Sleep => Some(u32::from(capacity(pack, object))),
+        ActionAdmission::WholeSeat | ActionAdmission::Exclusive => Some(1),
+    }
+}
+
+/// Whole-seat admission requires every physical seat to be free.
+pub fn all_seats_required(
+    pack: &ContentPack,
+    object: &CompiledObject,
+    action: &terri_data::CompiledInteraction,
+) -> Option<usize> {
+    (action_admission(pack, object, action) == ActionAdmission::WholeSeat)
+        .then_some(object.seats.len())
+}
+
 /// One assignment per stable person identity; active use is carried by SleepPlace.
 #[derive(Resource, Debug, Clone, Default, PartialEq, Eq)]
 pub struct BedAssignments(BTreeMap<SimId, BedPlace>);
@@ -230,13 +282,14 @@ pub(crate) enum Preference {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Admission {
     Exclusive,
+    Seat { ordinal: u16, all: bool },
     Sleep { ordinal: u8, preference: Preference },
 }
 
 impl Admission {
     pub(crate) fn apply(self, commands: &mut EntityCommands) {
         match self {
-            Self::Exclusive => {
+            Self::Exclusive | Self::Seat { .. } => {
                 commands.remove::<SleepPlace>();
             }
             Self::Sleep { ordinal, .. } => {
@@ -250,6 +303,9 @@ impl Admission {
 pub(crate) struct Occupancy {
     targets: Vec<(Entity, Target, Option<SleepPlace>)>,
     orphaned_markers: HashSet<Entity>,
+    seats: Vec<(Entity, Entity, u16, bool)>,
+    endpoints: Vec<crate::seating::EndpointUse>,
+    historical_endpoints: bool,
 }
 
 impl Occupancy {
@@ -268,15 +324,65 @@ impl Occupancy {
         Self {
             targets,
             orphaned_markers,
+            seats: vec![],
+            endpoints: vec![],
+            historical_endpoints: false,
         }
+    }
+
+    pub(crate) fn historical_endpoints(&mut self, historical: bool) {
+        self.historical_endpoints = historical;
+    }
+
+    pub(crate) fn endpoint_available(&self, candidate: crate::seating::EndpointUse) -> bool {
+        self.endpoints.iter().all(|known| {
+            !crate::seating::endpoints_conflict(candidate, *known, self.historical_endpoints)
+        })
+    }
+
+    pub(crate) fn claim_endpoint(&mut self, endpoint: crate::seating::EndpointUse) {
+        self.endpoints
+            .retain(|known| known.owner != endpoint.owner || known.kind != endpoint.kind);
+        self.endpoints.push(endpoint);
     }
 
     pub(crate) fn exclusive_available(&self, agent: Entity, object: Entity) -> bool {
         !self.orphaned_markers.contains(&object)
             && !self
+                .seats
+                .iter()
+                .any(|(owner, item, _, _)| *owner != agent && *item == object)
+            && !self
                 .targets
                 .iter()
                 .any(|(owner, target, _)| *owner != agent && target.object == object)
+    }
+
+    pub(crate) fn seat_available(&self, agent: Entity, object: Entity, ordinal: u16) -> bool {
+        !self.orphaned_markers.contains(&object)
+            && !self.seats.iter().any(|(owner, item, seat, all)| {
+                *owner != agent && *item == object && (*all || *seat == ordinal)
+            })
+            && !self.targets.iter().any(|(owner, target, _)| {
+                *owner != agent
+                    && target.object == object
+                    && !self
+                        .seats
+                        .iter()
+                        .any(|(known, item, _, _)| known == owner && *item == object)
+            })
+    }
+
+    pub(crate) fn physical_seat_claim(
+        &mut self,
+        owner: Entity,
+        object: Entity,
+        ordinal: u16,
+        all: bool,
+    ) {
+        self.orphaned_markers.remove(&object);
+        self.seats.retain(|(known, _, _, _)| *known != owner);
+        self.seats.push((owner, object, ordinal, all));
     }
 
     pub(crate) fn physical_claim(&mut self, owner: Entity, object: Entity) {
@@ -303,7 +409,30 @@ impl Occupancy {
         let Some(interaction) = object.interactions.get(target.interaction as usize) else {
             return Vec::new();
         };
-        if pack.sleep_tag.is_empty() || !interaction.tags.contains(&pack.sleep_tag) {
+        let admission = action_admission(pack, object, interaction);
+        if admission == ActionAdmission::BookSource {
+            return Vec::new();
+        }
+        if admission == ActionAdmission::Seats {
+            return (0..object.seats.len())
+                .filter(|ordinal| self.seat_available(agent, target.object, *ordinal as u16))
+                .map(|ordinal| Admission::Seat {
+                    ordinal: ordinal as u16,
+                    all: false,
+                })
+                .collect();
+        }
+        if admission == ActionAdmission::WholeSeat {
+            return self
+                .exclusive_available(agent, target.object)
+                .then_some(Admission::Seat {
+                    ordinal: 0,
+                    all: true,
+                })
+                .into_iter()
+                .collect();
+        }
+        if admission == ActionAdmission::Exclusive {
             return self
                 .exclusive_available(agent, target.object)
                 .then_some(Admission::Exclusive)
@@ -367,12 +496,18 @@ impl Occupancy {
 
     pub(crate) fn release(&mut self, agent: Entity) {
         self.targets.retain(|(owner, _, _)| *owner != agent);
+        self.seats.retain(|(owner, _, _, _)| *owner != agent);
+        self.endpoints.retain(|known| known.owner != agent);
     }
 
     pub(crate) fn claim(&mut self, agent: Entity, target: Target, admission: Admission) {
         self.release(agent);
         let place = match admission {
             Admission::Exclusive => None,
+            Admission::Seat { ordinal, all } => {
+                self.physical_seat_claim(agent, target.object, ordinal, all);
+                None
+            }
             Admission::Sleep { ordinal, .. } => Some(SleepPlace(ordinal)),
         };
         self.targets.push((agent, target, place));

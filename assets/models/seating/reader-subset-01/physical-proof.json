@@ -1,0 +1,2970 @@
+{
+  "state": "complete_reader_contact_seed",
+  "acceptance_scope": "Center reader only; full animation/shared sofa remain pending",
+  "source_receipt": {
+    "path": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-cuff-01\\cached\\proof.json",
+    "sha256": "ebc82a88960a00daef0834b891c5776b366bdaabb9406247f66136df9e7b1104"
+  },
+  "reader_self_surfaces": 10,
+  "reader_furniture_pairs": 952,
+  "hip_support": {
+    "owner": "1",
+    "min_gap": 0.000500023365020974,
+    "ray_hits": 970,
+    "contact_count": 34,
+    "valid": true,
+    "contact_bounds": [
+      [
+        -0.37460485100746155,
+        -0.09995647519826889,
+        0.5605000257492065
+      ],
+      [
+        -0.2885623276233673,
+        0.09995624423027039,
+        0.5677723288536072
+      ]
+    ],
+    "xy_hull_area": 0.01404845746253991,
+    "sole_heights": {
+      "Fitted rounded shoe sole": 0.01914808712899685,
+      "Fitted rounded shoe sole.001": 0.019148128107190132
+    }
+  },
+  "grasp": [
+    {
+      "side": "L",
+      "skin_parts": [
+        "Relaxed palm",
+        "Resting thumb",
+        "Forearm with elbow and wrist sections"
+      ],
+      "book_parts": [
+        "Printed book line",
+        "Printed book line.001",
+        "Printed book line.002",
+        "Printed book line.003",
+        "Printed book line.004",
+        "Printed book line.005",
+        "Printed book line.006",
+        "Printed book line.007",
+        "Printed book line.008",
+        "Printed book line.009",
+        "Reading book cover",
+        "Reading book cover.001",
+        "Reading book pages",
+        "Reading book pages.001"
+      ],
+      "normal": [
+        -3.13916473260163e-07,
+        0.9999999999999507,
+        0.0
+      ],
+      "maximum_gap": 0.0015,
+      "nearest_actual_surfaces": {
+        "distance": 0.00020008878038456555,
+        "skin_part": "Resting thumb",
+        "book_part": "Reading book cover",
+        "skin_triangle": 506,
+        "book_triangle": 9,
+        "skin_point": [
+          -0.8306660833475328,
+          0.17649430493772258,
+          1.1673796224579316
+        ],
+        "book_point": [
+          -0.8305999750893354,
+          0.17631740122661405,
+          1.1674457306664228
+        ],
+        "skin_barycentric": [
+          0.0,
+          0.6920853658598323,
+          0.3079146341401677
+        ],
+        "book_barycentric": [
+          0.4999167583900725,
+          0.0,
+          0.5000832416099275
+        ],
+        "book_triangle_normal": [
+          -0.7020218157697413,
+          0.11971126761348294,
+          -0.7020217821333812
+        ],
+        "candidate_triangle_pairs": 4341,
+        "evaluated_triangle_pairs": 156,
+        "method": "Complete actual triangle distance; skin/book crossings retained in this complete scene inventory"
+      },
+      "projected_area": 3.224901564563565e-05,
+      "spans": [
+        0.016885155603844515,
+        0.01688515560384385
+      ],
+      "certified_cells": 16,
+      "occluded_or_ambiguous_cells": 0,
+      "witness": "finite-grasp/L",
+      "valid": true,
+      "interpretation": "Finite opposing side-contact area only; not a force, friction or visual-grip acceptance proof"
+    },
+    {
+      "side": "R",
+      "skin_parts": [
+        "Relaxed palm.001",
+        "Resting thumb.001",
+        "Forearm with elbow and wrist sections.001"
+      ],
+      "book_parts": [
+        "Printed book line",
+        "Printed book line.001",
+        "Printed book line.002",
+        "Printed book line.003",
+        "Printed book line.004",
+        "Printed book line.005",
+        "Printed book line.006",
+        "Printed book line.007",
+        "Printed book line.008",
+        "Printed book line.009",
+        "Reading book cover",
+        "Reading book cover.001",
+        "Reading book pages",
+        "Reading book pages.001"
+      ],
+      "normal": [
+        3.13916473260163e-07,
+        -0.9999999999999507,
+        0.0
+      ],
+      "maximum_gap": 0.0015,
+      "nearest_actual_surfaces": {
+        "distance": 0.00020013367511732117,
+        "skin_part": "Resting thumb.001",
+        "book_part": "Reading book cover.001",
+        "skin_triangle": 410,
+        "book_triangle": 8,
+        "skin_point": [
+          -0.8306663334752503,
+          -0.17649486681505439,
+          1.167379963832378
+        ],
+        "book_point": [
+          -0.8306002112854846,
+          -0.17631792277479807,
+          1.1674460860718616
+        ],
+        "skin_barycentric": [
+          0.0,
+          0.30793030119525244,
+          0.6920696988047476
+        ],
+        "book_barycentric": [
+          0.0,
+          0.49991452452639595,
+          0.500085475473604
+        ],
+        "book_triangle_normal": [
+          -0.7020217020035193,
+          -0.11971220741796672,
+          -0.7020217356401435
+        ],
+        "candidate_triangle_pairs": 4321,
+        "evaluated_triangle_pairs": 156,
+        "method": "Complete actual triangle distance; skin/book crossings retained in this complete scene inventory"
+      },
+      "projected_area": 3.224710356114491e-05,
+      "spans": [
+        0.016884711072531644,
+        0.016884711072530978
+      ],
+      "certified_cells": 16,
+      "occluded_or_ambiguous_cells": 0,
+      "witness": "finite-grasp/R",
+      "valid": true,
+      "interpretation": "Finite opposing side-contact area only; not a force, friction or visual-grip acceptance proof"
+    }
+  ],
+  "source_identity_equal": true,
+  "inherited_own_attachment_rows": [
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Collar stand",
+        "Folded fabric collar leaf"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Collar stand",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Collar stand",
+        "Folded fabric collar leaf.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Collar stand",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Collar stand",
+        "Natural neck"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 387,
+        "witness": "own/1/Collar stand|1/Natural neck",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Collar stand",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Collar stand",
+        "Overshirt body"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 298,
+        "witness": "own/1/Collar stand|1/Overshirt body",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Collar stand",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Collar stand",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 124,
+        "witness": "own/1/Collar stand|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Collar stand",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Collar stand",
+        "Shirt placket"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Collar stand",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil",
+        "Eye white"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Eye white",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil",
+        "HAIR_01_TRIPO_CURL"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil",
+        "Hazel iris"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Hazel iris",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil",
+        "Small eye catchlight"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Small eye catchlight",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil",
+        "Upper lid outline"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil.001",
+        "Eye white.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Eye white.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil.001",
+        "HAIR_01_TRIPO_CURL"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil.001",
+        "Hazel iris.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Hazel iris.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil.001",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil.001",
+        "Small eye catchlight.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Small eye catchlight.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Dark pupil.001",
+        "Upper lid outline.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Dark pupil.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Ear",
+        "HAIR_01_TRIPO_CURL"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 194,
+        "witness": "own/1/Ear|1/HAIR_01_TRIPO_CURL",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Ear",
+        "Inner ear"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 131,
+        "witness": "own/1/Ear|1/Inner ear",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Ear",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 163,
+        "witness": "own/1/Ear|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Ear.001",
+        "HAIR_01_TRIPO_CURL"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 188,
+        "witness": "own/1/Ear.001|1/HAIR_01_TRIPO_CURL",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Ear.001",
+        "Inner ear.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 133,
+        "witness": "own/1/Ear.001|1/Inner ear.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Ear.001",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 163,
+        "witness": "own/1/Ear.001|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white",
+        "HAIR_01_TRIPO_CURL"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white",
+        "Hazel iris"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Hazel iris",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white",
+        "Small eye catchlight"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Small eye catchlight",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white",
+        "Upper lid outline"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white.001",
+        "HAIR_01_TRIPO_CURL"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white.001",
+        "Hazel iris.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Hazel iris.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white.001",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white.001",
+        "Small eye catchlight.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Small eye catchlight.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Eye white.001",
+        "Upper lid outline.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Eye white.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Fitted rounded shoe sole",
+        "Shaped shoe"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 287,
+        "witness": "own/1/Fitted rounded shoe sole|1/Shaped shoe",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Fitted rounded shoe sole.001",
+        "Shaped shoe.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 286,
+        "witness": "own/1/Fitted rounded shoe sole.001|1/Shaped shoe.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Folded fabric collar leaf",
+        "Overshirt body"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Folded fabric collar leaf",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 120,
+        "witness": "own/1/Folded fabric collar leaf|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Folded fabric collar leaf.001",
+        "Overshirt body"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Folded fabric collar leaf.001",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 120,
+        "witness": "own/1/Folded fabric collar leaf.001|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections",
+        "Relaxed palm"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 274,
+        "witness": "own/1/Forearm with elbow and wrist sections|1/Relaxed palm",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections",
+        "Relaxed shirt sleeve"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 232,
+        "witness": "own/1/Forearm with elbow and wrist sections|1/Relaxed shirt sleeve",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections",
+        "Resting thumb"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 114,
+        "witness": "own/1/Forearm with elbow and wrist sections|1/Resting thumb",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections",
+        "Turned sleeve cuff"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 288,
+        "witness": "own/1/Forearm with elbow and wrist sections|1/Turned sleeve cuff",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Relaxed palm.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 274,
+        "witness": "own/1/Forearm with elbow and wrist sections.001|1/Relaxed palm.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Relaxed shirt sleeve.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 232,
+        "witness": "own/1/Forearm with elbow and wrist sections.001|1/Relaxed shirt sleeve.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Resting thumb.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 114,
+        "witness": "own/1/Forearm with elbow and wrist sections.001|1/Resting thumb.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Turned sleeve cuff.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 286,
+        "witness": "own/1/Forearm with elbow and wrist sections.001|1/Turned sleeve cuff.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        },
+        {
+          "owner": "1",
+          "part": "Hazel iris",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        },
+        {
+          "owner": "1",
+          "part": "Hazel iris.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Inner ear"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Inner ear.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 1924,
+        "witness": "own/1/HAIR_01_TRIPO_CURL|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Soft eyebrow"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        },
+        {
+          "owner": "1",
+          "part": "Soft eyebrow",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Soft eyebrow.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        },
+        {
+          "owner": "1",
+          "part": "Soft eyebrow.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Upper lid outline"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "HAIR_01_TRIPO_CURL",
+        "Upper lid outline.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "HAIR_01_TRIPO_CURL",
+          "closed": false,
+          "self_intersections": true
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Hazel iris",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Hazel iris",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Hazel iris",
+        "Small eye catchlight"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Hazel iris",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Small eye catchlight",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Hazel iris",
+        "Upper lid outline"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Hazel iris",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Hazel iris.001",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Hazel iris.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Hazel iris.001",
+        "Small eye catchlight.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Hazel iris.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Small eye catchlight.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Hazel iris.001",
+        "Upper lid outline.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Hazel iris.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Inner ear",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 40,
+        "witness": "own/1/Inner ear|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Inner ear.001",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 42,
+        "witness": "own/1/Inner ear.001|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Natural neck",
+        "Overshirt body"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 64,
+        "witness": "own/1/Natural neck|1/Overshirt body",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Natural neck",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 499,
+        "witness": "own/1/Natural neck|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Natural neck",
+        "Shirt placket"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "One sewn breast pocket",
+        "Overshirt body"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 58,
+        "witness": "own/1/One sewn breast pocket|1/Overshirt body",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "One sewn breast pocket",
+          "closed": true,
+          "self_intersections": true
+        },
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Pocket top seam"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Pocket top seam",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Relaxed shirt sleeve"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 258,
+        "witness": "own/1/Overshirt body|1/Relaxed shirt sleeve",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Relaxed shirt sleeve.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 262,
+        "witness": "own/1/Overshirt body|1/Relaxed shirt sleeve.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 63,
+        "witness": "own/1/Overshirt body|1/Sculpted head",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Shirt lower hem"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 620,
+        "witness": "own/1/Overshirt body|1/Shirt lower hem",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Shirt placket"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 164,
+        "witness": "own/1/Overshirt body|1/Shirt placket",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Small horn button"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Small horn button.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Small horn button.002"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Small horn button.003"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Tailored trouser leg"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 173,
+        "witness": "own/1/Overshirt body|1/Tailored trouser leg",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Tailored trouser leg.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 173,
+        "witness": "own/1/Overshirt body|1/Tailored trouser leg.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Overshirt body",
+        "Trouser hip bridge"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 401,
+        "witness": "own/1/Overshirt body|1/Trouser hip bridge",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Overshirt body",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Quiet closed smile",
+        "Sculpted head"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Quiet closed smile",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Reading book cover",
+        "Reading book cover.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 26,
+        "witness": "own/1/Reading book cover|1/Reading book cover.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Reading book cover",
+        "Reading book pages"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 10,
+        "witness": "own/1/Reading book cover|1/Reading book pages",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Reading book cover.001",
+        "Reading book pages.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 10,
+        "witness": "own/1/Reading book cover.001|1/Reading book pages.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Relaxed palm",
+        "Resting thumb"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 138,
+        "witness": "own/1/Relaxed palm|1/Resting thumb",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Relaxed palm.001",
+        "Resting thumb.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 134,
+        "witness": "own/1/Relaxed palm.001|1/Resting thumb.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Turned sleeve cuff"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 288,
+        "witness": "own/1/Relaxed shirt sleeve|1/Turned sleeve cuff",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Relaxed shirt sleeve.001",
+        "Turned sleeve cuff.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 288,
+        "witness": "own/1/Relaxed shirt sleeve.001|1/Turned sleeve cuff.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Shirt placket"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 21,
+        "witness": "own/1/Sculpted head|1/Shirt placket",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Small eye catchlight"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Small eye catchlight",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Small eye catchlight.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Small eye catchlight.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Small rounded nose"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 134,
+        "witness": "own/1/Sculpted head|1/Small rounded nose",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Soft eyebrow"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Soft eyebrow",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Soft eyebrow.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Soft eyebrow.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Upper lid outline"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Upper lid outline",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Sculpted head",
+        "Upper lid outline.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Upper lid outline.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shaped shoe",
+        "Shoe apron stitch"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 118,
+        "witness": "own/1/Shaped shoe|1/Shoe apron stitch",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shoe apron stitch",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shaped shoe",
+        "Tailored trouser leg"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 399,
+        "witness": "own/1/Shaped shoe|1/Tailored trouser leg",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shaped shoe",
+        "Trouser hem"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 304,
+        "witness": "own/1/Shaped shoe|1/Trouser hem",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shaped shoe.001",
+        "Shoe apron stitch.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 118,
+        "witness": "own/1/Shaped shoe.001|1/Shoe apron stitch.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shoe apron stitch.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shaped shoe.001",
+        "Tailored trouser leg.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 400,
+        "witness": "own/1/Shaped shoe.001|1/Tailored trouser leg.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shaped shoe.001",
+        "Trouser hem.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 306,
+        "witness": "own/1/Shaped shoe.001|1/Trouser hem.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt lower hem",
+        "Shirt placket"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt lower hem",
+        "Tailored trouser leg"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 136,
+        "witness": "own/1/Shirt lower hem|1/Tailored trouser leg",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt lower hem",
+        "Tailored trouser leg.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 138,
+        "witness": "own/1/Shirt lower hem|1/Tailored trouser leg.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt lower hem",
+        "Trouser hip bridge"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 570,
+        "witness": "own/1/Shirt lower hem|1/Trouser hip bridge",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt placket",
+        "Small horn button"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 34,
+        "witness": "own/1/Shirt placket|1/Small horn button",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt placket",
+        "Small horn button.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 58,
+        "witness": "own/1/Shirt placket|1/Small horn button.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt placket",
+        "Small horn button.002"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 82,
+        "witness": "own/1/Shirt placket|1/Small horn button.002",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Shirt placket",
+        "Small horn button.003"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Shirt placket",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Small eye catchlight",
+        "Upper lid outline"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Small eye catchlight",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Small eye catchlight.001",
+        "Upper lid outline.001"
+      ],
+      "evidence": {
+        "kind": "unresolved_containment_prerequisites"
+      },
+      "containment_prerequisite_gaps": [
+        {
+          "owner": "1",
+          "part": "Small eye catchlight.001",
+          "closed": false,
+          "self_intersections": false
+        },
+        {
+          "owner": "1",
+          "part": "Upper lid outline.001",
+          "closed": false,
+          "self_intersections": false
+        }
+      ]
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Tailored trouser leg",
+        "Trouser hem"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 572,
+        "witness": "own/1/Tailored trouser leg|1/Trouser hem",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Tailored trouser leg",
+        "Trouser hip bridge"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 299,
+        "witness": "own/1/Tailored trouser leg|1/Trouser hip bridge",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Tailored trouser leg.001",
+        "Trouser hem.001"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 573,
+        "witness": "own/1/Tailored trouser leg.001|1/Trouser hem.001",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    },
+    {
+      "pair_kind": "own",
+      "owners": [
+        "1",
+        "1"
+      ],
+      "parts": [
+        "Tailored trouser leg.001",
+        "Trouser hip bridge"
+      ],
+      "evidence": {
+        "kind": "surface",
+        "pairs": 305,
+        "witness": "own/1/Tailored trouser leg.001|1/Trouser hip bridge",
+        "unresolved": []
+      },
+      "containment_prerequisite_gaps": [],
+      "classification": "Raw source joins and unintended contact retained without exemptions"
+    }
+  ],
+  "existing_attachment_evidence": "Unchanged original/derived source identities and retained garment anatomy; no new cuff exemption"
+}

@@ -1,5 +1,7 @@
 import {cleaningFrame} from './render/cleaning-animation.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
+import { shelfPresence } from './render/shelf-sprites.js';
+import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES } from './render/atlas.js';
 /**
  * The frame loop's two halves: pacing the simulation, and turning the two
  * most recent simulation ticks into one frame's worth of GPU instances.
@@ -584,8 +586,8 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
   return 'green';
 }
 
-const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES);
-const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES);
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG);
 
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {
@@ -857,6 +859,24 @@ export interface RenderSource {
   mealTables?(): Uint32Array;
   sleepingBeds?(): Uint32Array;
   sleepingPlaces?(): Uint32Array;
+  seatedFurniture?(): Uint32Array;
+  seatedPlaces?(): Uint32Array;
+  seatedWhole?(): Uint32Array;
+  modelSeatIds?(model: string): readonly string[];
+  shelfBookOffsets?(): Uint32Array;
+  shelfBookCounts?(): Uint32Array;
+  shelfBookMasks?(): Uint32Array;
+  carriedBooks?(): Uint32Array;
+  readingStages?(): Uint32Array;
+  readingCopies?(): Uint32Array;
+  readingSeats?(): Uint32Array;
+  readingHomeShelves?(): Uint32Array;
+  readingHomeSlots?(): Uint32Array;
+  readingReachRemaining?(): Uint32Array;
+  readingReachTotals?(): Uint32Array;
+  readonly droppedBookCount?: number;
+  droppedBookIds?(): Uint32Array;
+  droppedBookPositions?(): Float32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
   /**
@@ -1051,7 +1071,7 @@ export function buildInstanceBatch(
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
-  const needed = (count * 8 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
+  const needed = (count * 8 + 1 + (source.droppedBookCount ?? 0) + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
     + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
@@ -1086,6 +1106,8 @@ export function buildInstanceBatch(
   const carriedDishes = source.carriedDishes?.();
   const choreProgress = source.choreProgress?.();
   const mealPortions = source.mealPortions?.();
+  const shelfOffsets = source.shelfBookOffsets?.(), shelfCounts = source.shelfBookCounts?.();
+  const shelfMasks = source.shelfBookMasks?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
   const replacedRow = placementReplacedRow(source, selected, placement);
 
@@ -1163,7 +1185,7 @@ export function buildInstanceBatch(
         kinds[i] === KIND_AGENT ? LAYER_SIM : LAYER_PROP,
       ),
       sprite,
-      TINT_NONE,
+      SHELF_PROFILES[sprite] ? shelfPresence(i, shelfOffsets, shelfCounts, shelfMasks) : TINT_NONE,
       TINT_NONE,
       TINT_NONE,
       Math.max(emissiveForSprite(sprite), localLight),
@@ -1394,6 +1416,17 @@ export function buildInstanceBatch(
     writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
   }
 
+  const droppedIds = source.droppedBookIds?.(), droppedPositions = source.droppedBookPositions?.();
+  for (let drop = 0; drop < (source.droppedBookCount ?? 0); drop++) {
+    const sprite = DROPPED_BOOK_SPRITES[droppedIds![drop] % DROPPED_BOOK_SPRITES.length].sprite;
+    const x = droppedPositions![drop * 2], y = droppedPositions![drop * 2 + 1];
+    writeInstance(scratch, slot++, screenX(x, y, originX, scale) + spriteDrawOffsetX(sprite) * scale,
+      screenY(x, y, originY, scale) + spriteDrawOffsetY(sprite) * scale,
+      layeredDepth(x, y, gridSize, LAYER_PROP), sprite, TINT_NONE, TINT_NONE, TINT_NONE,
+      lighting === null ? EMISSIVE_NONE : sampleLight(lighting, Math.floor(x), Math.floor(y)));
+    writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(x), Math.floor(y)));
+  }
+
   // **The selection ring, last, in the slot past the live entities and
   // their bubbles and badges.**
   //
@@ -1511,7 +1544,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
       extras++;
     }
   }
-  return source.count + extras + (source.portals?.().portalCount ?? 0) * 2
+  return source.count + extras + (source.droppedBookCount ?? 0) + (source.portals?.().portalCount ?? 0) * 2
     + (replacedRow !== null || findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement)
     + tileHighlightCount(highlight);
 }

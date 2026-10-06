@@ -39,16 +39,16 @@ it('preserves sofa identity, placement, price and interaction metadata', () => {
     const sim = new SimBridge(handle, memory);
     const before = sim.saveBytes();
     const row = Array.from(sim.ids()).indexOf(11);
-    expect(sim.objectName(11)).toBe('The Sectional Compromise');
+    expect(sim.objectName(11)).toBe('Sofa');
     expect([...sim.positions().slice(row * 2, row * 2 + 2)]).toEqual([10.5, 0]);
     expect([sim.footprintWidths()[row], sim.footprintDepths()[row]]).toEqual([2, 1]);
     expect(sim.objectFacing(11)).toBe(0);
     expect(sim.objectFacingMask(11)).toBe(15);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineLongSofa'));
     expect(sim.foregroundSprites()[row]).toBe(0xffffffff);
-    expect(sim.interactionLabels(11)).toEqual(['Lie down']);
-    expect(sim.catalogue().find(item => item.name === 'The Sectional Compromise')).toMatchObject({
-      price: 280, facings: 15, baseFacing: 0,
+    expect(sim.interactionLabels(11)).toEqual(['Lie down', 'Sit', 'Read a book']);
+    expect(sim.catalogue().find(item => item.model?.id === 'long_sofa')).toMatchObject({
+      price: 300, facings: 15, baseFacing: 0,
     });
     expect(sim.saveBytes()).toEqual(before);
   } finally {

@@ -1,0 +1,24 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_independent_export_v1.py",
+    ".tmp/object-models/pose-complete-independent-renders-01/office"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk 8084f2 returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 6.9889615,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "a08d79cbf0905dc5d51b9686d78f64f63280c2d7b98aa06cddcfe35fcaabe3ed"
+  },
+  "exporter_sha256": "e8c43076799bb61ee150c789eab37552265640a36cc54c441bff1b393b241df4",
+  "output": {
+    "records": 48,
+    "uniqueTextures": 29,
+    "maximumError": 5,
+    "p95": 2
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

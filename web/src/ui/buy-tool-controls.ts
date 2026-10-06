@@ -5,6 +5,7 @@ import { formatFunds } from './game-hud.js';
 import { FACING_NAMES } from './builder.js';
 import type { BuyTool } from './buy-tool.js';
 import { createObjectIdentity } from './object-identity.js';
+import type { ModelFacts } from '../books/codec.js';
 
 /**
  * How the list names an item: its name and its price. The price goes in
@@ -19,15 +20,60 @@ function needWord(name: string): string {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+/** Station identities stay canonical in metadata; purchase text uses literal names. */
+export function requirementLabel(requirement: string): string {
+  const labels: Record<string, string> = { prep_surface: 'Preparation counter', cold_storage: 'Fridge', hob: 'Stove', meal_table: 'Dining table', dining_seat: 'Reachable dining chairs', dish_sink: 'Kitchen sink', eating_surface: 'Eating surface' };
+  return labels[requirement] ?? needWord(requirement.replaceAll('_', ' '));
+}
+
 /** What an item is good for, from its needs mask and the need names in index order. */
 export function servesLabel(needs: number, names: readonly string[]): string {
   const served = names.filter((_, index) => (needs & (1 << index)) !== 0).map(needWord);
   return served.length === 0 ? 'Good for: no need on its own' : `Good for: ${served.join(', ')}`;
 }
 
+/** Base purchase facts preserve small rewards and distinguish borrowing from shelf access. */
+export function modelFactsLabel(model: ModelFacts, needNames: readonly string[]): string {
+  const number = (value: number) => String(Number(value.toPrecision(4)));
+  const signed = (value: number) => `${value >= 0 ? '+' : ''}${number(value)}`;
+  const lines = [`Footprint: ${model.width} x ${model.depth} tiles.`];
+  const stationLabels: Record<string, string> = { cold_storage: 'Ingredient storage', hob: 'Cooking station', prep_surface: 'Food preparation surface', dish_sink: 'Dishwashing station', meal_table: 'Dining surface', eating_surface: 'Eating surface' };
+  if (model.roles.length) lines.push(`Useful as: ${model.roles.map(role => stationLabels[role] ?? requirementLabel(role)).join(', ')}.`);
+  if (model.roles.includes('meal_table')) lines.push('Add reachable dining chairs for seated meals.');
+  if (model.shelfCapacity) {
+    lines.push(`Shelf space: ${model.shelfCapacity} copies, including borrowed copies' reserved spaces.`);
+    lines.push(`Collect or return: ${model.shelfAccessPoints} ${model.shelfAccessPoints === 1 ? 'person' : 'people'} at once.`);
+  }
+  for (const action of model.actions) {
+    const capacity = action.capacity === null ? 'Readers use separate copies elsewhere' : `${action.capacity} ${action.capacity === 1 ? 'user' : 'users'} at once`;
+    if (action.reading) {
+      const [fun, comfort, satisfaction, rate] = action.readingBenefits;
+      const gains = [
+        ...(fun ? [`Fun ${signed(fun)} per reading hour`] : []),
+        ...(comfort ? [`Comfort ${signed(comfort)} per hour`] : []),
+        ...(satisfaction ? [`life satisfaction ${signed(satisfaction)} points per reading hour`] : []),
+      ];
+      lines.push(`${action.label}: ${capacity}. Up to ${model.sessionTicks} minutes per session. ${rate === 1 ? 'Standard reading speed' : `${number(rate)} times standard reading speed`}. ${gains.join('; ')}. Requires an available shelved copy.`);
+      continue;
+    }
+    const gains = action.benefits.filter(([, value]) => value !== 0)
+      .map(([need, value]) => `${needWord(needNames[need])} ${signed(value)}`);
+    if (action.satisfactionPoints) gains.push(`life satisfaction ${signed(action.satisfactionPoints)} points`);
+    const requirements = action.requirements.length ? ` Requires: ${action.requirements.map(requirement => action.workKind === 'dish_cleanup' && requirement === 'prep_surface' ? 'Dirty dishes to collect' : requirementLabel(requirement)).join(', ')}.` : '';
+    const extra = action.workKind === 'dish_cleanup' ? ' Extra dishes and collection stops take longer.' : '';
+    const optional = action.optionalRequirements.length ? ` Optional seating: ${action.optionalRequirements.map(requirementLabel).join(', ')}. Without seating, eat beside a preparation counter.` : '';
+    lines.push(`${action.label}: ${capacity}; about ${action.durationTicks} minutes.${gains.length ? ` ${gains.join('; ')}.` : ''}${requirements}${optional}${extra}`);
+  }
+  if (model.shelfCapacity && model.actions.some(action => action.reading)) lines.push('The chosen seat affects reading comfort and enjoyment.');
+  if (model.actions.length) lines.push('Times are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration.');
+  return lines.join('\n');
+}
+
 export class BuyToolControls {
   private readonly selector: HTMLSelectElement;
   private readonly filter: HTMLSelectElement;
+  private readonly room: HTMLSelectElement;
+  private readonly facts: HTMLElement;
   private readonly colour: HTMLSelectElement;
   private readonly placeholder: HTMLOptionElement;
   private readonly options: HTMLOptionElement[] = [];
@@ -38,7 +84,6 @@ export class BuyToolControls {
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
   private readonly identity: HTMLElement;
-  private readonly identityBoundary: HTMLElement;
   private disposeIdentity: (() => void) | undefined;
   private shownDefinition: number | null = null;
 
@@ -51,8 +96,16 @@ export class BuyToolControls {
     };
     this.selector = required('buy-object');
     this.identity = required('buy-identity');
-    this.identityBoundary = required('buy-tool');
     this.filter = required('buy-filter');
+    this.room = required('buy-room-filter');
+    this.facts = required('buy-facts');
+    const allRooms = document.createElement('option'); allRooms.value = ''; allRooms.textContent = 'Every room';
+    this.room.replaceChildren(allRooms);
+    for (const room of [...new Set(tool.items.flatMap(item => item.model?.rooms ?? []))].sort()) {
+      const option = document.createElement('option'); option.value = room;
+      option.textContent = room.split('_').map(needWord).join(' '); this.room.append(option);
+    }
+    this.room.addEventListener('change', () => { tool.setRoomFilter(this.room.value || null); this.render(); });
     this.colour = required('buy-colour');
     // [RC-slice-buy]: the colourways are content, so the list is built once.
     for (const [index, name] of tool.colourways.entries()) {
@@ -123,7 +176,7 @@ export class BuyToolControls {
       this.disposeIdentity = undefined;
       this.identity.replaceChildren();
       if (tool.chosen?.details) {
-        const identity = createObjectIdentity(this.identity.ownerDocument, tool.chosen.name, tool.chosen.details, this.identityBoundary);
+        const identity = createObjectIdentity(this.identity.ownerDocument, tool.chosen.name, tool.chosen.details);
         this.disposeIdentity = identity.dispose;
         this.identity.append(identity.element);
       }
@@ -139,6 +192,9 @@ export class BuyToolControls {
     this.colour.disabled = tool.pending || tool.blocked || tool.colourways.length < 2;
     this.filter.value = tool.filter === null ? '' : String(tool.filter);
     this.filter.disabled = tool.pending || tool.blocked;
+    this.room.value = tool.roomFilter ?? ''; this.room.disabled = tool.pending || tool.blocked;
+    const model = tool.chosen?.model;
+    this.facts.textContent = model ? modelFactsLabel(model, this.needNames) : '';
     this.serves.textContent = tool.chosen ? servesLabel(tool.chosen.needs, this.needNames) : '';
     this.facing.textContent = tool.preview ? `Facing: ${FACING_NAMES[tool.preview.facing]}` : '';
     this.price.textContent = tool.chosen ? `Price: ${formatFunds(tool.chosen.price)}` : '';

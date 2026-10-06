@@ -19,6 +19,7 @@ import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
 export type MenuAction =
   | {readonly kind:'chore';readonly choreKind:number;readonly target:number}
   | { readonly kind: 'clean'; readonly surface: number; readonly dishes: readonly number[] | null }
+  | { readonly kind: 'read'; readonly object: number; readonly action: string; readonly title: string }
   | {
       readonly kind: 'use';
       readonly object: number;
@@ -45,6 +46,7 @@ export type MenuAction =
 
 /** One row. */
 export interface MenuEntry {
+  readonly titleChoice?: boolean;
   readonly label: string;
   readonly action: MenuAction;
   /**
@@ -72,6 +74,7 @@ export interface MenuEntry {
  * line.
  */
 export interface Menu {
+  readonly readingNotice?: string;
   readonly title: string;
   readonly details?: ObjectDetails;
   readonly entries: readonly MenuEntry[];
@@ -119,16 +122,19 @@ export function menuEntries(
   labels: readonly string[],
   object: number,
   details?: ObjectDetails,
+  books?: { entries: readonly MenuEntry[]; notice: string },
 ): Menu {
   const entries: MenuEntry[] = labels.map((label, interaction) => ({
     label,
     action: { kind: 'use', object, interaction },
   }));
+  if (books) entries.push(...books.entries);
   entries.push(NOTHING);
-  return details ? { title, entries, details } : { title, entries };
+  return { title, entries, ...(details ? { details } : {}), ...(books ? { readingNotice: books.notice } : {}) };
 }
 
 export interface SurfaceMenuSource {
+  readingChoices?(entity: number): { entries: readonly MenuEntry[]; notice: string } | undefined;
   tableActions?(entity:number):Uint32Array;
   choreOptions?(entity:number):Uint32Array;
   entityName(entity: number): string;
@@ -143,7 +149,7 @@ export function surfaceMenuEntries(source: SurfaceMenuSource, entity: number): M
     title: source.entityName(entity), details: source.objectDetails?.(entity),
     entries: [{ label: 'Clean up', action: { kind: 'clean', surface: entity, dishes: null } }, NOTHING],
   };
-    let menu=menuEntries(source.entityName(entity), source.interactionLabels(entity), entity, source.objectDetails?.(entity));
+    let menu=menuEntries(source.entityName(entity), source.interactionLabels(entity), entity, source.objectDetails?.(entity), source.readingChoices?.(entity));
     const table=source.tableActions?.(entity);
     if(table?.length===2) {
       menu={...menu,entries:[...(table[0]?[{label:'Sit',action:{kind:'use' as const,object:entity,interaction:0}}]:[]),
@@ -396,16 +402,18 @@ export function createMenuSurface(
 ): MenuSurface {
   let returnFocus: HTMLElement | null = null;
   let disposeIdentity: (() => void) | undefined;
+  let disposePlacement: (() => void) | undefined;
   return {
     show(menu, clientX, clientY, onPick) {
       returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
       disposeIdentity?.();
+      disposePlacement?.();
       disposeIdentity = undefined;
       root.replaceChildren();
       // Identity stays outside the action rows. Initial focus still goes to
       // the first action; Shift+Tab reaches an available description.
       if (menu.details) {
-        const identity = createObjectIdentity(doc, menu.title, menu.details, root);
+        const identity = createObjectIdentity(doc, menu.title, menu.details);
         disposeIdentity = identity.dispose;
         root.appendChild(identity.element);
       } else if (menu.title !== '') {
@@ -430,14 +438,20 @@ export function createMenuSurface(
         button.addEventListener('click', (event) =>
           onPick(index, queueModifierHeld(event)),
         );
-        root.appendChild(button);
+        if (entry.titleChoice) {
+          let choices = root.querySelector<HTMLDetailsElement>('.reading-choices');
+          if (!choices) { choices = doc.createElement('details'); choices.className = 'reading-choices';
+            const summary = doc.createElement('summary'); summary.textContent = 'Choose a title'; choices.append(summary); root.append(choices); }
+          choices.append(button);
+        } else root.appendChild(button);
       }
+      if (menu.readingNotice) { const note = doc.createElement('p'); note.className = 'reading-notice'; note.textContent = menu.readingNotice; root.append(note); }
       root.style.left = `${clientX}px`;
       root.style.top = `${clientY}px`;
       root.style.width = '';
       root.hidden = false;
       // Reserve the expanded dimensions before placement. Opening near an
-      // edge must not move the hovered summary out from under the pointer.
+      // edge must keep the description and its actions inside the viewport.
       const disclosure = root.querySelector('details');
       if (disclosure) disclosure.open = true;
       const expandedWidth = root.offsetWidth;
@@ -461,11 +475,23 @@ export function createMenuSurface(
         root.style.top = `${position.y}px`;
       };
       place();
+      const reclamp = () => {
+        const view = doc.defaultView;
+        if (!view || root.hidden) return;
+        const position = clampMenuPosition(clientX, clientY, root.offsetWidth,
+          root.offsetHeight, view.innerWidth, view.innerHeight);
+        root.style.left = `${position.x}px`; root.style.top = `${position.y}px`;
+      };
+      // Native toggle does not bubble; capture both the description and title chooser.
+      root.addEventListener('toggle', reclamp, true);
+      disposePlacement = () => root.removeEventListener('toggle', reclamp, true);
       root.querySelector<HTMLButtonElement>('.menu-entry')?.focus();
     },
     hide() {
       disposeIdentity?.();
       disposeIdentity = undefined;
+      disposePlacement?.();
+      disposePlacement = undefined;
       const restore = root.contains(doc.activeElement);
       root.hidden = true;
       root.replaceChildren();

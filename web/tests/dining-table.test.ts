@@ -49,7 +49,7 @@ it('retains the table identity, price, saved center and all four rectangular rot
         valid: true, width, depth, sprite: atlas.spriteIndex(`offlineDiningTable${suffix}`),
       });
     }
-    expect(bridge.catalogue().find(item => item.name === 'Dining table')).toMatchObject({
+    expect(bridge.catalogue().find(item => item.model?.id === 'dining_table')).toMatchObject({
       price: 120, facings: 15, baseFacing: 0,
     });
     expect(bridge.saveBytes()).toEqual(before);

@@ -1,0 +1,194 @@
+# Proposed catalogue; the owner has not approved this copy for publication.
+genres = ["mystery", "romance", "science_fiction", "fantasy", "history", "horror"]
+
+[[book]]
+id = "the_locked_laundry"
+genre = "mystery"
+title = "The Locked Laundry"
+description = "A caretaker finds the laundry locked from the inside, every machine running, and the building's least popular tenant missing."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "one_spoon_missing"
+genre = "mystery"
+title = "One Spoon Missing"
+description = "A hotel detective investigates a stolen silver spoon and discovers that everyone at breakfast has lied about something larger."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "the_last_tenant"
+genre = "mystery"
+title = "The Last Tenant"
+description = "A woman clearing her late brother's flat finds rent receipts dated years after the landlord's death."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "an_excellent_alibi"
+genre = "mystery"
+title = "An Excellent Alibi"
+description = "Six guests can account for every minute of a country-house murder. The inspector begins to suspect they rehearsed."
+reading_minutes = 240
+price = 14
+
+[[book]]
+id = "wrong_number_right_person"
+genre = "romance"
+title = "Wrong Number, Right Person"
+description = "Two strangers keep answering each other's misdirected messages long after they have corrected the mistake."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "a_second_cup"
+genre = "romance"
+title = "A Second Cup"
+description = "A cafe owner and an early-morning regular spend a wet autumn finding reasons to extend breakfast."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "the_house_between_us"
+genre = "romance"
+title = "The House Between Us"
+description = "Former partners inherit equal shares in a house neither can afford to keep alone. Renovation makes old disagreements difficult to ignore."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "letters_from_low_tide"
+genre = "romance"
+title = "Letters from Low Tide"
+description = "Letters exchanged between a dockworker and a travelling musician follow their affection through years of missed arrivals."
+reading_minutes = 240
+price = 14
+
+[[book]]
+id = "warranty_void_at_dawn"
+genre = "science_fiction"
+title = "Warranty Void at Dawn"
+description = "A household robot develops an inconvenient attachment to its owners on the morning it is due for replacement."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "the_quiet_moon"
+genre = "science_fiction"
+title = "The Quiet Moon"
+description = "A maintenance crew reaches a silent lunar station and finds that its occupants have left careful instructions for being forgotten."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "the_last_local_train"
+genre = "science_fiction"
+title = "The Last Local Train"
+description = "The final commuter service on a dying colony keeps collecting passengers from stations that were demolished decades ago."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "a_map_of_unoccupied_stars"
+genre = "science_fiction"
+title = "A Map of Unoccupied Stars"
+description = "Rival survey crews search for a habitable world while their maps disagree about which stars have already disappeared."
+reading_minutes = 240
+price = 14
+
+[[book]]
+id = "the_wizards_notice"
+genre = "fantasy"
+title = "The Wizard's Notice"
+description = "A village wizard announces his retirement, leaving his apprentice to discover how much of the village was being held together by habit and threats."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "the_orchard_under_the_sea"
+genre = "fantasy"
+title = "The Orchard Under the Sea"
+description = "A pearl diver finds a living orchard beneath the tide and takes a piece of fruit that was already promised to someone else."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "the_minor_dragon"
+genre = "fantasy"
+title = "The Minor Dragon"
+description = "A small dragon takes a post guarding a royal treasury and finds the accounts far more alarming than the thieves."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "the_river_that_kept_its_dead"
+genre = "fantasy"
+title = "The River That Kept Its Dead"
+description = "A ferryman's daughter follows a river upstream to bargain for the return of a village it swallowed fifty years earlier."
+reading_minutes = 240
+price = 14
+
+[[book]]
+id = "a_short_history_of_bad_bridges"
+genre = "history"
+title = "A Short History of Bad Bridges"
+description = "An illustrated account of ambitious crossings, optimistic engineers and the rivers that remained unconvinced."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "the_winter_of_three_mayors"
+genre = "history"
+title = "The Winter of Three Mayors"
+description = "A town chronicle follows a disputed election, a flooded council chamber and three men who each ordered a new nameplate."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "salt_rail_and_sunday_dinner"
+genre = "history"
+title = "Salt, Rail and Sunday Dinner"
+description = "Family diaries and freight records trace how preserved food and the railway changed what ordinary households ate."
+reading_minutes = 240
+price = 14
+
+[[book]]
+id = "the_border_moved_on_tuesday"
+genre = "history"
+title = "The Border Moved on Tuesday"
+description = "An account of a border town whose residents outlasted several flags, currencies and official explanations."
+reading_minutes = 240
+price = 14
+
+[[book]]
+id = "please_leave_the_light_on"
+genre = "horror"
+title = "Please Leave the Light On"
+description = "A babysitter receives one final instruction after the parents leave: the spare room must remain lit, even when someone inside asks for darkness."
+reading_minutes = 120
+price = 6
+
+[[book]]
+id = "no_one_on_the_landing"
+genre = "horror"
+title = "No One on the Landing"
+description = "Night after night, a tenant hears someone stop outside her door and carefully read her name aloud."
+reading_minutes = 180
+price = 10
+
+[[book]]
+id = "the_winter_guests"
+genre = "horror"
+title = "The Winter Guests"
+description = "A snowbound boarding house fills with travellers who insist they have stayed there before. The oldest guest book agrees."
+reading_minutes = 240
+price = 14
+
+[[book]]
+id = "the_empty_rooms"
+genre = "horror"
+title = "The Empty Rooms"
+description = "A surveyor measuring an abandoned hospital finds an extra room on each visit, furnished with things from his childhood."
+reading_minutes = 240
+price = 14

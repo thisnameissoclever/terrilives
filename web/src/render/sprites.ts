@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
-import { packVisibleSceneLayers } from './visible-scene-layers.js';
+import { packPresentationLayers } from './visible-scene-layers.js';
+import { uploadJointAlpha } from './joint-alpha.js';
+import { packShelfLayers } from './shelf-sprites.js';
 import { packDiningSupport } from './dining-support.js';
 import { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 export { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
@@ -14,7 +16,11 @@ import {
   SPRITE_PAIRS,
   SPRITE_ANCHORS,
   BED_LAYERS,
+  BED_COVERAGE,
+  JOINT_SCENE_ALPHA_IDS,
   SEATING_LAYERS,
+  SHELF_PROFILES,
+  SHARED_SEAT_LAYERS,
   BED_LAYER_TRIMS,
   ATLAS_PAGE_FILES,
   SPRITE_DINING_SUPPORT,
@@ -350,8 +356,12 @@ export class SpriteRenderer {
     this.finishCount = architecture?.finishes?.keys.length ?? 0;
     this.uniformData[13] = SPRITES.length;
     const patternCount = architecture?.patterns?.length ?? 0;
+    const joint = uploadJointAlpha(gpu.device, JOINT_SCENE_ALPHA_IDS, BED_COVERAGE);
+    textures.push(joint.texture);
+    const jointBinding = 11 + patternCount;
     const module = gpu.device.createShaderModule({ code: shaderSource.replace(
-      '// ARCHITECTURE_PATTERN_BINDINGS', architecturePatternShader(patternCount)) });
+      '// ARCHITECTURE_PATTERN_BINDINGS', architecturePatternShader(patternCount)).replace(
+      '// JOINT_ALPHA_BINDING', `@group(0) @binding(${jointBinding}) var jointAlpha: texture_2d_array<f32>;`) });
     const bindGroupLayout = gpu.device.createBindGroupLayout({ entries: [
       { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
       { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
@@ -365,8 +375,9 @@ export class SpriteRenderer {
       ...Array.from({ length: patternCount }, (_, index): GPUBindGroupLayoutEntry => ({
         binding: 11 + index, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' },
       })),
-      { binding: 9, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+      { binding: 9, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
       { binding: 10, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+      { binding: jointBinding, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
     ] });
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
@@ -515,8 +526,9 @@ export class SpriteRenderer {
         { width: bitmap.width, height: bitmap.height });
       return texture;
     });
-    const bedTable = packVisibleSceneLayers(this.grimeSpriteBase+GRIME_SPRITE_COUNT,
-      { ...BED_LAYERS, ...SEATING_LAYERS });
+    const sceneCount = this.grimeSpriteBase + GRIME_SPRITE_COUNT;
+    const bedTable = packShelfLayers(packPresentationLayers(sceneCount,
+      { ...BED_LAYERS, ...SEATING_LAYERS }, SHARED_SEAT_LAYERS, joint.layers), sceneCount, SHELF_PROFILES);
     this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.bedBuffer);
@@ -554,6 +566,7 @@ export class SpriteRenderer {
         ...patternTextures.map((texture, index) => ({ binding: 11 + index, resource: texture.createView() })),
         { binding: 9, resource: { buffer: this.bedBuffer } },
         { binding: 10, resource: { buffer: this.diningBuffer } },
+        { binding: jointBinding, resource: joint.texture.createView({ dimension: '2d-array' }) },
       ],
     });
   }

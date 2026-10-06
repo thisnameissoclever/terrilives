@@ -1,8 +1,6 @@
 # Player-visible string inventory
 
-Status: the inventory includes the first object-identity slice. The broader voice pass still requires the owner's review under [L58]. This file is the handoff for playable-alpha criterion 11; local implementation does not establish release approval for all game copy.
-
-The project writing direction is defined in [.agents/skills/natural-causes-writing-style/SKILL.md](../.agents/skills/natural-causes-writing-style/SKILL.md). It requires clear object types as primary identification, secondary model names, and descriptions with optional humor. The first implementation covers the washing machine, armchair, and dining table in [object identity](specs/2026-09-22-object-identity.md). Existing strings are material to review, not examples of the desired voice. The broader voice-review gate remains open.
+This inventory distinguishes functional controls from authored copy. The writing direction is defined in [.agents/skills/natural-causes-writing-style/SKILL.md](../.agents/skills/natural-causes-writing-style/SKILL.md): clear object types, secondary model names, and useful descriptions with optional humor. Existing strings are rewrite targets, not style examples. The owner reviews replacement names and descriptions beside a running build before publication, as recorded in [L58].
 
 ## Functional text that stays plain
 
@@ -46,6 +44,10 @@ itself on having personality.
 | Room tool | Room; Build room; Cancel; Choose a corner tile of the room.; Choose the opposite corner.; Ready to build. Choose a line of the outline for a doorway.; Ready to build, with a doorway.; This room is already built.; Try the doorway on another line.; Building the room…; Room built.; The room could not be sent.; That room is not possible.; the collapsed Shortcuts reference; Tap one corner tile, then the opposite one; tap a line of the outline for a doorway. Drag to pan; pinch to zoom. | `web/index.html`, `web/src/ui/room-tool.ts` |
 | Room tool refusals | Choose the doorway on the room's outline.; This house's walls cannot be changed.; Keep the room inside the lot.; The room would cut through furniture.; Someone is using something across the room's outline.; Someone is standing on the room's outline.; The room would block someone's way.; The room would leave furniture out of reach.; The room would cut off the front door.; The room would cut off the front-door landing.; That room is not possible.; after the refusals for someone's way, furniture and the front-door landing, Choose a doorway. or Try the doorway on another line. | `web/src/bridge.ts`, `web/src/ui/room-tool.ts` |
 | Buy tool | Show; Everything; {need}, a need's name from `NeedId::as_str` with its first letter capitalised; Buy; Choose something to buy; Choose something to buy.; {name} ({price}); Price: {price}; Good for: {needs}; Good for: no need on its own; Facing: {direction}; Rotate; Cancel; Ready to buy.; Buying…; {name} bought.; The purchase could not be sent.; This position is unavailable.; the collapsed Shortcuts reference; Choose something, then tap a tile. Drag to pan; pinch to zoom. | `web/index.html`, `web/src/ui/buy-tool.ts`, `web/src/ui/buy-tool-controls.ts` |
+| Furniture buying facts | Room; Footprint; Useful as; Shelf space; Collect or return; Requires; Optional seating; Preparation counter; Fridge; Stove; Dining table; Reachable dining chairs; Kitchen sink; available shelved copy; base action benefits and duration; standard or multiplied reading speed | `web/src/ui/buy-tool-controls.ts`, `web/src/books/codec.ts`, `crates/terri-wasm/src/browser_books.rs` |
+| Books store and inventory | Books; Choose a title; Household inventory; No household books.; Buy; Move copy; Recover copy; Copy {n}; Destination for copy {n}; genre, price and approximate reading length; selected person's current interest and progress; shelved and reserved capacity; borrowed by {person}; home shelf and slot; Choose a title. Each purchase buys one copy.; Shelve a copy before reading.; Fetching and returning add time.; purchase and transfer confirmations | `web/index.html`, `web/src/ui/book-tool.ts`, `web/src/ui/book-tool-controls.ts` |
+| Book refusals | unavailable title, copy, person or shelf; insufficient Funds; borrowed copy; full shelf; current book must be returned; no readable shelved copy; unavailable reading action; full order queue; refused command or unavailable book information | `web/src/books/results.ts`, `web/src/ui/book-tool.ts` |
+| Reading journey and migration | Fetching: {title}; Going to read: {title}; Reading: {title}; Returning: {title}; Waiting to return: {title}; Picking up: {title}; Shelving: {title}; one-time notice that bookless reading ended and five starter titles were added, with excess copies in household inventory | `crates/terri-sim/src/reading.rs`, `web/src/ui/book-notice.ts` |
 | Buy tool refusals | every furniture refusal, and The household cannot afford that. | `web/src/bridge.ts` |
 | Selling | Sell; Sell for {amount}; Selling…; {name} sold.; The sale could not be sent.; Cannot sell: {refusal}, under Sell while the chosen furniture would not sell; Sell, with separate keycaps in Shortcuts | `web/index.html`, `web/src/ui/builder.ts`, `web/src/ui/builder-controls.ts` |
 | Sale refusals | That furniture is no longer available.; This lot layout does not support furniture editing.; Wait until nobody is using or approaching this object.; That furniture is not for sale. | `web/src/bridge.ts` |
@@ -70,17 +72,12 @@ The current text is deliberately plain or inherited from the content pack.
 The owner decides which rows should become dark comedy and approves every
 replacement before it ships.
 
-The two names selected with the 2026-08-12 object mockups are narrow,
-feature-local approvals: `Aquarium of Managed Expectations` and `Wellness
-Initiative, Indoor`. Both were visible in the mockups the owner selected for
-implementation. That approval does not close the whole-pack voice session or
-authorize unrelated replacement copy.
-
 | Content family | Current authority | Voice-pass decision |
 | --- | --- | --- |
 | Game title | `docs/TIM-TODO.md` [T1]; shown in the `<title>` of `web/index.html` | Decided 2026-09-21: **Natural Causes**. The repository name `terrilives` is the internal codename, not the title. |
-| Object identity | `content/objects.toml` `name`, optional `presentation.object_type` and `presentation.description` | Washing machine / Perpetual Cycle, Armchair / Staying In, and Dining table / Visiting Hours have separate type, model, and description text. Other objects retain their existing names. See the object-identity spec for the copy and local verification. |
-| Object action labels | `content/objects.toml` interaction `label` | Keep verbs understandable; humor cannot obscure the action. |
+| Object identity | `content/objects.toml` category/type/model definitions, authored model `name` and `description`, with compiled presentation from the canonical type | Object types are primary, with separate model names and descriptions. Describe product construction, relative quality and useful distinctions. Keep usable capacity and other buying facts in functional details. See [object identity](specs/2026-09-22-object-identity.md). Owner approval is required before publication. |
+| Object action labels | Resolved actions from `content/objects.toml` templates and category/type/model layers | Keep verbs understandable; humor cannot obscure the action. A label change does not change the stable action ID. |
+| Book titles and descriptions | `content/books.toml` | Descriptions introduce the book's subject or story. Genre, length, price and estimated personal interest are functional purchase details. Proposed launch copy requires owner review before publication. |
 | Sim names and personality labels | `content/household.toml`, `content/personalities.toml` | Owner approval required. Each personality's description follows the trait verbs of [TL-affinity]. |
 | Career labels | `content/careers.toml` | Prime voice surface, but must remain legible in the HUD. |
 | Skill labels and descriptions | `content/skills.toml` | Shown with each skill's level in Sim details. A description must not promise an effect that skills do not have yet. |

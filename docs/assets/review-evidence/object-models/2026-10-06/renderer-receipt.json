@@ -1,0 +1,38 @@
+{
+  "wasmSHA256": "62be0469ec5e25a29e13446ebb976645a03f9963b6c7f349de1ea5b02de4ecb8",
+  "copy": "Proposed; owner review pending",
+  "art": "Complete solo/standing/idle carry/eight-frame carry walk/dropped normal source exports only",
+  "readerGPU": {
+    "pass": true,
+    "cases": 144,
+    "maximum": 4,
+    "p95": 1,
+    "fractionalBoundaryPicking": true,
+    "negativeControls": [
+      23,
+      29
+    ]
+  },
+  "actionGPU": {
+    "pass": true,
+    "cases": 1296,
+    "maximum": 4,
+    "p95": 2,
+    "picking": true
+  },
+  "web": {
+    "pass": true,
+    "files": 169,
+    "tests": 2163,
+    "scope": "Before restoring the published flitting dining disposition; final module smoke and production build are separate logs"
+  },
+  "finalModule": {
+    "contentRestoration": "Published flitting dining disposition restored",
+    "buildExit": 0,
+    "smokeExit": 0,
+    "productionBuildExit": 0
+  },
+  "dropRecoveryUI": "UNVERIFIED: original fractional source-pixel gesture misses after DOM integer rounding; integer gesture opens Build/Books but recovery-button focus fails. Native transfer recovery is covered by passing bridge tests.",
+  "fullSharedSofa": "BLOCKED: four neighboring-cloth contact rows; production long_sofa catalogue remains absent",
+  "pickupShelveRecline": "UNVERIFIED: complete exports and runtime visual acceptance outstanding"
+}

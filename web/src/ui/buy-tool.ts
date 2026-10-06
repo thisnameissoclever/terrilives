@@ -36,6 +36,7 @@ export class BuyTool {
   chosen: CatalogueItem | null = null;
   /** The need the list is narrowed to, by need index, or null for everything ([CB-filter]). */
   filter: number | null = null;
+  roomFilter: string | null = null;
   preview: PlacementPreview | null = null;
   /** The colourway names, in content order; the first is the art as drawn ([RC-slice-buy]). */
   readonly colourways: readonly string[];
@@ -80,7 +81,14 @@ export class BuyTool {
 
   /** Whether the list shows `item` under the filter. */
   shows(item: CatalogueItem): boolean {
-    return this.filter === null || (item.needs & (1 << this.filter)) !== 0;
+    return (this.filter === null || (item.needs & (1 << this.filter)) !== 0)
+      && (this.roomFilter === null || item.model?.rooms.includes(this.roomFilter) === true);
+  }
+
+  setRoomFilter(room: string | null): void {
+    if (this.pending || this.blocked) return;
+    this.roomFilter = room;
+    if (this.chosen && !this.shows(this.chosen)) this.clear(); else this.hooks.changed();
   }
 
   /**
@@ -251,6 +259,7 @@ export class BuyTool {
     this.height = height;
     this.revision = this.source.lotRevision();
     this.filter = null;
+    this.roomFilter = null;
     this.colourway = 0;
     this.clear();
   }

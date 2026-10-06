@@ -41,10 +41,10 @@ it('preserves bookcase reading, placement, colours and saves through all four ro
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.objectName(10)).toBe('Wall of Intent');
+    expect(sim.objectName(10)).toBe('Bookcase');
     expect(sim.interactionLabels(10)).toEqual(['Read a book']);
-    expect(sim.catalogue().find(row => row.name === 'Wall of Intent')).toMatchObject({
-      price: 120, facings: 15, baseFacing: 0,
+    expect(sim.catalogue().find(row => row.model?.id === 'bookshelf')).toMatchObject({
+      price: 100, facings: 15, baseFacing: 0,
     });
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {
       const index = atlas.spriteIndex('offlineBookcase' + suffix);
@@ -82,25 +82,19 @@ it('preserves bookcase reading, placement, colours and saves through all four ro
 });
 
 
-it('keeps reading beside the shelf with the approved standing animation', () => {
-  const handle = SimHandle.from_lot();
+it('projects owned standing reading and restores its authoritative journey', () => {
+  const handle = new SimHandle(64, 64);
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.useObjectFirst(34, 10, 0)).toBe(true);
-    let found = false;
-    for (let tick = 0; tick < 1200; tick++) {
-      sim.tick();
-      const first = sim.actionQueueOf(34)[0];
-      if (sim.activityOf(34) === 8 && first === 'Read a book: Wall of Intent') {
-        const row = Array.from(sim.ids()).indexOf(34);
-        expect(sim.visualActions()[row]).toBe(4);
-        // Standing reading has no furniture socket; the active queue identifies its target.
-        expect(sim.interactionTargets()[row]).toBe(0xffffffff);
-        expect([...sim.positions().slice(row*2, row*2+2)]).not.toEqual([8, 0]);
-        found = true;
-        break;
-      }
-    }
-    expect(found).toBe(true);
+    const fixture = Uint8Array.from(readFileSync('tests/fixtures/owned-reading-standing.sav'));
+    expect(sim.loadBytes(fixture)).toBe(true);
+    const row = Array.from(sim.ids()).indexOf(1);
+    expect(sim.activityOf(1)).toBe(8);
+    expect(sim.visualActions()[row]).toBe(4);
+    expect(sim.readingStatusOf(1)).toContain('Reading:');
+    expect(sim.bookCopies()[0].location.kind).toBe('carried');
+    expect([...sim.positions().slice(row*2, row*2+2)]).not.toEqual([11.5, 13.25]);
+    expect(sim.loadBytes(sim.saveBytes())).toBe(true);
+    expect(sim.visualActions()[Array.from(sim.ids()).indexOf(1)]).toBe(4);
   } finally { handle.free(); }
 });

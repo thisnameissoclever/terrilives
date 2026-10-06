@@ -1,0 +1,35 @@
+# Which needs exist. Nothing else: a need's DECAY RATE is system balance
+# rather than part of its identity, so the rates live in
+# content/tuning.toml alongside every other knob a designer tunes. This
+# file answers "what needs are there", tuning.toml answers "how fast does
+# the simulation drain them".
+#
+# Every NeedId variant must appear exactly once. A missing, unknown or
+# repeated entry fails the build, and so does a tuning.toml whose
+# decay_per_tick table does not cover exactly the needs declared here.
+#
+# The file is deliberately not empty of purpose even though `NeedId::ALL`
+# already lists the same seven in Rust: it is what the tuning table is
+# validated against, so adding a need is a content edit that fails the
+# build until its rate exists too.
+
+[[need]]
+id = "hunger"
+
+[[need]]
+id = "energy"
+
+[[need]]
+id = "hygiene"
+
+[[need]]
+id = "bladder"
+
+[[need]]
+id = "social"
+
+[[need]]
+id = "fun"
+
+[[need]]
+id = "comfort"

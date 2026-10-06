@@ -17,6 +17,64 @@ pub const SNACK: &str = "prepare_snack";
 pub const CLEANUP: &str = "clean_dishes";
 pub const SHARED: &str = "eat_shared_meal";
 
+/// A stable public interaction row can dispatch an internal program without a second menu row.
+pub(crate) fn interaction_chain<'a>(
+    pack: &'a terri_data::ContentPack,
+    action: &terri_data::CompiledInteraction,
+) -> Option<(usize, &'a terri_data::CompiledChain)> {
+    let recipe = action
+        .recipe
+        .as_ref()
+        .map(|binding| binding.recipe.as_str())
+        .or_else(|| {
+            (terri_data::is_pre_books_pack(pack) && action.id == "grab_snack").then_some(SNACK)
+        })?;
+    pack.chains
+        .iter()
+        .enumerate()
+        .find(|(_, chain)| chain.id == recipe)
+}
+
+impl crate::Sim {
+    /// Base work is fixed; cleanup adds repeated collection and per-dish washing work.
+    pub fn model_action_work_kind(&self, model: &str, action: &str) -> &'static str {
+        match self
+            .model_interaction_chain(model, action)
+            .map(|recipe| recipe.id.as_str())
+        {
+            Some(CLEANUP) => "dish_cleanup",
+            Some(_) => "recipe",
+            None => "ordinary",
+        }
+    }
+    /// Browser facts resolve through the same internal-program mapping as execution and scoring.
+    pub fn model_interaction_chain(
+        &self,
+        model: &str,
+        action: &str,
+    ) -> Option<&'static terri_data::CompiledChain> {
+        let pack = self.world().resource::<Content>().0;
+        let action = pack
+            .object(pack.find(model)?)
+            .interactions
+            .iter()
+            .find(|row| row.id == action)?;
+        interaction_chain(pack, action).map(|(_, chain)| chain)
+    }
+
+    pub fn model_visible_chains(&self, model: &str) -> Vec<&'static terri_data::CompiledChain> {
+        let pack = self.world().resource::<Content>().0;
+        let Some(model) = pack.find(model) else {
+            return vec![];
+        };
+        crate::action_rows::rows(pack, model)
+            .into_iter()
+            .filter(|row| row.public && row.action.is_none())
+            .filter_map(|row| row.recipe.map(|(_, chain)| chain))
+            .collect()
+    }
+}
+
 fn entity(world: &World, index: u32) -> Option<Entity> {
     let index = bevy_ecs::entity::EntityIndex::from_raw_u32(index)?;
     let entity = world.entities().resolve_from_index(index);
@@ -95,7 +153,9 @@ fn idle(world: &World, person: Entity) -> bool {
     let Ok(e) = world.get_entity(person) else {
         return false;
     };
-    !e.contains::<Target>()
+    !e.contains::<crate::reading::ReadingJourney>()
+        && !e.contains::<crate::reading::PendingShift>()
+        && !e.contains::<Target>()
         && !e.contains::<terri_core::chores::ChoreWork>()
         && !e.contains::<Eating>()
         && !e.contains::<StepWork>()
@@ -314,10 +374,8 @@ fn start_cleanup(world: &mut World, person: Entity, dishes: Vec<u32>, directed: 
         .resource_mut::<SavedDomestic>()
         .cleanup
         .sort_by_key(|task| task.person);
-    world
-        .entity_mut(person)
-        .remove::<Path>()
-        .insert(ChainState::begin(chain));
+    let progress = crate::recipe_actions::internal(world.resource::<Content>().0, chain);
+    world.entity_mut(person).remove::<Path>().insert(progress);
     true
 }
 
@@ -597,9 +655,13 @@ pub(crate) fn tick(world: &mut World) {
                     world.resource_mut::<SavedDomestic>().meals[meal]
                         .claimed
                         .push(id.0);
-                    let mut progress = ChainState::begin(chain);
+                    let (mut progress, origin) =
+                        crate::recipe_actions::internal(world.resource::<Content>().0, chain);
                     progress.fumble_scale = world.resource::<SavedDomestic>().meals[meal].scale;
-                    world.entity_mut(person).remove::<Path>().insert(progress);
+                    world
+                        .entity_mut(person)
+                        .remove::<Path>()
+                        .insert((progress, origin));
                     continue;
                 }
             }
@@ -682,7 +744,7 @@ pub(crate) fn awaiting_meal_table(state: &SavedDomestic, id: Option<SimId>, step
 }
 
 pub(crate) fn communal(chain: &str, step: u32, steps: usize) -> bool {
-    (chain == "cook_dinner" || chain == SHARED) && step as usize + 1 == steps
+    terri_data::pack::communal_recipe_step(chain, step, steps)
 }
 
 fn dining_meal<'a>(state: &'a SavedDomestic, id: SimId, chain: &str) -> Option<&'a SavedMeal> {
@@ -1451,29 +1513,39 @@ pub(crate) fn hash(world: &World, hash: &mut terri_core::FnvHasher) {
 }
 
 pub(crate) fn directed_cleanup(world: &mut World, person: Entity) {
+    let origin = world.get::<crate::recipe_actions::Origin>(person).cloned();
     if !world.contains_resource::<SavedDomestic>() {
         world.insert_resource(SavedDomestic::default());
     }
     abandon(world, person);
-    let dishes = world
-        .resource::<SavedDomestic>()
-        .dishes
-        .iter()
-        .filter(|dish| {
-            !world
-                .resource::<SavedDomestic>()
-                .cleanup
-                .iter()
-                .any(|task| task.dishes.contains(&dish.id))
-        })
-        .map(|dish| dish.id)
-        .collect();
+    let dishes = available_cleanup_dishes(world, person);
     if !start_cleanup(world, person, dishes, true) {
         if let Some(chain) = world.get::<ChainState>(person).map(|state| state.chain) {
             crate::systems::chain::settle_order(world, person, chain);
         }
-        world.entity_mut(person).remove::<ChainState>();
+        world
+            .entity_mut(person)
+            .remove::<crate::recipe_actions::ActiveRecipe>();
+    } else if let Some(origin) = origin {
+        world.entity_mut(person).insert(origin);
     }
+}
+
+pub(crate) fn available_cleanup_dishes(world: &World, person: Entity) -> Vec<u32> {
+    let Some(state) = world.get_resource::<SavedDomestic>() else {
+        return Vec::new();
+    };
+    state
+        .dishes
+        .iter()
+        .filter(|dish| {
+            !state
+                .cleanup
+                .iter()
+                .any(|task| task.person != person.index_u32() && task.dishes.contains(&dish.id))
+        })
+        .map(|dish| dish.id)
+        .collect()
 }
 
 /// Cancelling or replacing a chain releases all owned domestic commitments.
@@ -1521,6 +1593,12 @@ pub(crate) fn abandon(world: &mut World, person: Entity) {
 }
 
 pub(crate) fn remove_person(world: &mut World, person: Entity) {
+    world
+        .entity_mut(person)
+        .remove::<crate::recipe_actions::RecipeOrder>();
+    world
+        .entity_mut(person)
+        .remove::<crate::recipe_actions::ActiveRecipe>();
     if let Some(mut state) = world.get_resource_mut::<terri_core::save::SavedDining>() {
         state
             .opportunities
@@ -1695,6 +1773,7 @@ pub(crate) fn boundary_route(
     actor: Entity,
     id: Option<SimId>,
     chain_state: ChainState,
+    origin: Option<&crate::recipe_actions::Origin>,
     station: Entity,
     object: terri_core::ObjectDefId,
     facing: Option<&terri_core::ObjectFacing>,
@@ -1704,6 +1783,9 @@ pub(crate) fn boundary_route(
     exclusive: bool,
     occupants: &[BoundaryOccupant],
 ) -> Option<Vec<(i32, i32)>> {
+    if !crate::recipe_actions::station_eligible(pack, &chain_state, origin, station, object) {
+        return None;
+    }
     let start = (from.x.round() as i32, from.y.round() as i32);
     let chain = pack.chains.get(chain_state.chain as usize)?;
     if crate::dining::managed_step(pack, chain, chain_state.step) {
@@ -1765,22 +1847,20 @@ pub(crate) fn boundary_route(
             }
         }
     }
-    if step
-        .visual
-        .as_ref()
-        .is_some_and(|v| v.action == terri_data::CompiledVisualAction::Cook)
-    {
-        if let Some(front) = crate::stove_front(pack, &terri_core::SmartObject(object), &to, facing)
-        {
-            if !route_grid.is_walkable(start.0, start.1)
-                || !route_grid.is_walkable(front.x.round() as i32, front.y.round() as i32)
-            {
-                return None;
-            }
-            return route_grid
-                .find_path(start, (front.x.round() as i32, front.y.round() as i32))
-                .and_then(|steps| route_grid.anchor_path((from.x, from.y), steps));
+    if crate::stove_front(pack, &terri_core::SmartObject(object), &to, facing).is_some() {
+        let front = crate::cooking_contact(
+            &route_grid,
+            pack,
+            &terri_core::SmartObject(object),
+            &to,
+            facing,
+        )?;
+        if !route_grid.is_walkable(start.0, start.1) {
+            return None;
         }
+        return route_grid
+            .find_path(start, (front.x.round() as i32, front.y.round() as i32))
+            .and_then(|steps| route_grid.anchor_path((from.x, from.y), steps));
     }
     route_grid
         .find_path_adjacent(

@@ -417,6 +417,134 @@ fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
 
 #[wasm_bindgen]
 impl SimHandle {
+    #[wasm_bindgen(js_name = shelfBookOffsetsPtr)]
+    pub fn shelf_book_offsets_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().shelf_book_offsets.as_ptr()
+    }
+    #[wasm_bindgen(js_name = shelfBookCountsPtr)]
+    pub fn shelf_book_counts_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().shelf_book_counts.as_ptr()
+    }
+    #[wasm_bindgen(js_name = shelfBookMasksPtr)]
+    pub fn shelf_book_masks_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().shelf_book_masks.as_ptr()
+    }
+    #[wasm_bindgen(js_name = shelfBookMaskCount)]
+    pub fn shelf_book_mask_count(&self) -> usize {
+        self.sim.render_buffer().shelf_book_masks.len()
+    }
+    #[wasm_bindgen(js_name = droppedBookIdsPtr)]
+    pub fn dropped_book_ids_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().dropped_book_ids.as_ptr()
+    }
+    #[wasm_bindgen(js_name = droppedBookPositionsPtr)]
+    pub fn dropped_book_positions_ptr(&self) -> *const f32 {
+        self.sim.render_buffer().dropped_book_positions.as_ptr()
+    }
+    #[wasm_bindgen(js_name = droppedBookCount)]
+    pub fn dropped_book_count(&self) -> usize {
+        self.sim.render_buffer().dropped_book_ids.len()
+    }
+    #[wasm_bindgen(js_name = carriedBooksPtr)]
+    pub fn carried_books_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().carried_books.as_ptr()
+    }
+    pub fn reading_copies_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().reading_copies.as_ptr()
+    }
+
+    #[wasm_bindgen(js_name = readingStagesPtr)]
+    pub fn reading_stages_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().reading_stages.as_ptr()
+    }
+    #[wasm_bindgen(js_name = readingSeatsPtr)]
+    pub fn reading_seats_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().reading_seats.as_ptr()
+    }
+
+    pub fn seated_furniture_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().seated_furniture.as_ptr()
+    }
+
+    pub fn seated_places_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().seated_places.as_ptr()
+    }
+
+    pub fn seated_whole_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().seated_whole.as_ptr()
+    }
+
+    /// Resolve projected ordinals to authored IDs once when loading model metadata.
+    pub fn model_seat_ids(&self, model: &str) -> Vec<String> {
+        let pack = self.sim.world().resource::<terri_sim::Content>().0;
+        pack.find(model).map_or_else(Vec::new, |id| {
+            pack.object(id)
+                .seats
+                .iter()
+                .map(|seat| seat.id.clone())
+                .collect()
+        })
+    }
+
+    pub fn reading_home_shelves_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().reading_home_shelves.as_ptr()
+    }
+
+    pub fn reading_home_slots_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().reading_home_slots.as_ptr()
+    }
+
+    pub fn reading_reach_remaining_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().reading_reach_remaining.as_ptr()
+    }
+
+    pub fn reading_reach_totals_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().reading_reach_totals.as_ptr()
+    }
+    #[wasm_bindgen(js_name = readingJourneys)]
+    pub fn reading_journeys(&self) -> Vec<u8> {
+        postcard::to_allocvec(&self.sim.reading_journeys()).expect("reading projection serializes")
+    }
+    #[wasm_bindgen(js_name = readingAvailableTitles)]
+    pub fn reading_available_titles(
+        &mut self,
+        person: f64,
+        object: f64,
+        action: &str,
+    ) -> Vec<String> {
+        let (Some(person), Some(object)) = (placement_u32(person), placement_u32(object)) else {
+            return vec![];
+        };
+        self.sim.reading_available_titles(person, object, action)
+    }
+    #[wasm_bindgen(js_name = readingTransferDetails)]
+    pub fn reading_transfer_details(&self) -> Vec<u32> {
+        self.sim.reading_transfer_details()
+    }
+    #[wasm_bindgen(js_name = readingActionBenefits)]
+    pub fn reading_action_benefits(&self, object: f64, action: &str) -> Vec<f32> {
+        if !object.is_finite()
+            || object.fract() != 0.0
+            || object < 0.0
+            || object >= f64::from(u32::MAX)
+        {
+            return vec![];
+        }
+        self.sim.reading_action_benefits(object as u32, action)
+    }
+    #[wasm_bindgen(js_name = readingProgress)]
+    pub fn reading_progress(&self, person: f64, title: &str) -> Vec<u8> {
+        let value = if person.is_finite()
+            && person.fract() == 0.0
+            && person >= 0.0
+            && person < f64::from(u32::MAX)
+        {
+            self.sim.reading_progress(person as u32, title)
+        } else {
+            None
+        };
+        postcard::to_allocvec(&value).expect("reading progress serializes")
+    }
     #[wasm_bindgen(constructor)]
     pub fn new(width: usize, height: usize) -> SimHandle {
         SimHandle {
@@ -1059,7 +1187,7 @@ impl SimHandle {
         let content = self.sim.world().resource::<Content>().0;
         content
             .catalogue()
-            .map(|(id, _, _)| content.needs_served(id))
+            .map(|(id, _, _)| terri_sim::usable_catalogue_needs(content, id))
             .collect()
     }
 
@@ -2342,7 +2470,7 @@ impl SimHandle {
     /// interpret a shape it does not understand.
     pub fn save_bytes(&self) -> Vec<u8> {
         let payload =
-            postcard::to_allocvec(&self.sim.save_snapshot_v5()).expect("SaveSnapshotV5 serialises");
+            postcard::to_allocvec(&self.sim.save_snapshot_v6()).expect("SaveSnapshotV6 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2356,6 +2484,7 @@ impl SimHandle {
     /// and invalid-content payloads all return false. The live simulation is
     /// replaced only after the candidate world is fully validated and built.
     pub fn load_bytes(&mut self, bytes: &[u8]) -> bool {
+        self.sim.take_legacy_book_import_notice();
         if !save_length_is_allowed(bytes.len()) {
             return false;
         }
@@ -2365,27 +2494,71 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 6 {
+            return match postcard::take_from_bytes::<terri_core::save_v6::FrozenSaveSnapshotV6>(
+                payload,
+            ) {
+                Ok((snapshot, [])) => self.sim.load_frozen_owned_snapshot(snapshot).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 7 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV6>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v6(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 5 {
             return match decode_v5(payload) {
-                Some(snapshot) => self.sim.load_snapshot_v5(snapshot).is_ok(),
+                Some(snapshot) => self
+                    .sim
+                    .load_legacy_snapshot({
+                        let omitted = postcard::to_allocvec(&snapshot)
+                            .expect("decoded snapshot serializes")
+                            .len()
+                            .saturating_sub(payload.len());
+                        let source = if snapshot.affinities.is_some() && omitted >= 3 {
+                            Some(terri_sim::PreBookSource::AffinitiesBeforeChores)
+                        } else if snapshot.affinities.is_some() {
+                            Some(terri_sim::PreBookSource::Latest)
+                        } else {
+                            None
+                        };
+                        match source {
+                            Some(source) => {
+                                terri_sim::LegacySnapshot::V5Source(Box::new(snapshot), source)
+                            }
+                            None => terri_sim::LegacySnapshot::V5(Box::new(snapshot)),
+                        }
+                    })
+                    .is_ok(),
                 None => false,
             };
         }
         if version == 4 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV4>(payload) {
-                Ok((snapshot, [])) => self.sim.load_snapshot_v4(snapshot).is_ok(),
+                Ok((snapshot, [])) => self
+                    .sim
+                    .load_legacy_snapshot(terri_sim::LegacySnapshot::V4(snapshot))
+                    .is_ok(),
                 _ => false,
             };
         }
         if version == 3 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV3>(payload) {
-                Ok((snapshot, [])) => self.sim.load_snapshot_v3(snapshot).is_ok(),
+                Ok((snapshot, [])) => self
+                    .sim
+                    .load_legacy_snapshot(terri_sim::LegacySnapshot::V3(snapshot))
+                    .is_ok(),
                 _ => false,
             };
         }
         if version == 2 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV2>(payload) {
-                Ok((snapshot, [])) => self.sim.load_snapshot_v2(snapshot).is_ok(),
+                Ok((snapshot, [])) => self
+                    .sim
+                    .load_legacy_snapshot(terri_sim::LegacySnapshot::V2(snapshot))
+                    .is_ok(),
                 _ => false,
             };
         }
@@ -2396,7 +2569,9 @@ impl SimHandle {
         let Some(snapshot) = decode_save_payload(payload) else {
             return false;
         };
-        self.sim.load_snapshot(snapshot).is_ok()
+        self.sim
+            .load_legacy_snapshot(terri_sim::LegacySnapshot::V1(snapshot))
+            .is_ok()
     }
 
     /// The seven need levels of the entity carrying `entity_index`, in
@@ -2974,6 +3149,162 @@ impl SimHandle {
 }
 
 #[cfg(test)]
+fn published_empty(width: usize, height: usize) -> SimHandle {
+    let sim = Sim::new_with_lot_and_content(width, height, Content::pre_books());
+    assert_eq!(
+        sim.save_snapshot().content_fingerprint,
+        0xcf78_7472_e9e8_38f5
+    );
+    assert_eq!(
+        sim.save_snapshot().rng,
+        terri_core::SimRng::from_seed(Content::pre_books().0.tuning.rng_seed)
+    );
+    SimHandle { sim }
+}
+
+#[cfg(test)]
+fn published_household() -> SimHandle {
+    let content = Content::pre_books();
+    let seed = content.0.tuning.rng_seed;
+    let mut sim = Sim::new_household_with_content(content, seed);
+    sim.sync_render_buffer();
+    assert_eq!(
+        sim.save_snapshot().content_fingerprint,
+        0xcf78_7472_e9e8_38f5
+    );
+    SimHandle { sim }
+}
+
+#[cfg(test)]
+fn current_world(mut world: terri_core::SaveSnapshotV1) -> terri_core::SaveSnapshotV1 {
+    world.content_fingerprint = SimHandle::new(1, 1).sim.save_snapshot().content_fingerprint;
+    // Expected migration delta only. Historical fixture bytes remain untouched.
+    let tables: std::collections::BTreeSet<_> = world
+        .entities
+        .iter()
+        .filter(|e| e.smart_object.as_deref() == Some("dining_table"))
+        .map(|e| e.index)
+        .collect();
+    let retired = |object, row| tables.contains(&object) && row == 0;
+    let mut released = std::collections::BTreeSet::new();
+    for entity in &mut world.entities {
+        if entity
+            .target
+            .is_some_and(|t| retired(t.object, t.interaction))
+        {
+            released.insert(entity.target.unwrap().object);
+            entity.target = None;
+            entity.path = None;
+            entity.eating = None;
+            entity.fumbled_delta_scale = None;
+            entity.restless = true;
+        }
+        if let Some(intents) = &mut entity.intents {
+            intents.retain(|i| !retired(i.object, i.interaction));
+        }
+        if let Some(habits) = &mut entity.habituation {
+            habits.retain(|h| h.object != "dining_table" || h.interaction != 0);
+        }
+        if let Some(personality) = &mut entity.personality {
+            personality
+                .dispositions
+                .retain(|h| h.object != "dining_table" || h.interaction != 0);
+        }
+    }
+    let claimed: std::collections::BTreeSet<_> = world
+        .entities
+        .iter()
+        .filter_map(|e| e.target.map(|t| t.object))
+        .collect();
+    for entity in &mut world.entities {
+        if released.contains(&entity.index) && !claimed.contains(&entity.index) {
+            entity.reserved = false;
+        }
+    }
+    world.queued_commands.retain(|c| !matches!(c, terri_core::SavedCommand::UseObject {object,interaction,..} | terri_core::SavedCommand::UseObjectFirst {object,interaction,..} if retired(*object,*interaction)));
+    world
+}
+
+#[cfg(test)]
+fn current_v5(mut snapshot: terri_core::SaveSnapshotV5) -> terri_core::SaveSnapshotV5 {
+    snapshot.world = current_world(snapshot.world);
+    if snapshot.skills.is_none() {
+        let pack = SimHandle::from_lot().sim.world().resource::<Content>().0;
+        let mut rows = vec![];
+        for person in snapshot.world.entities.iter().filter(|e| e.agent) {
+            let traits = terri_core::Traits::from_entries(
+                person
+                    .traits
+                    .iter()
+                    .flatten()
+                    .map(|t| {
+                        (
+                            pack.traits
+                                .iter()
+                                .position(|d| d.id == t.id)
+                                .expect("known source trait") as u32,
+                            t.state,
+                        )
+                    })
+                    .collect(),
+            );
+            let mut skills = terri_core::Skills::default();
+            terri_sim::skills::seed_from_states(&mut skills, &traits, pack);
+            rows.extend(
+                skills
+                    .entries()
+                    .iter()
+                    .filter(|(_, value)| *value > 0.0)
+                    .map(|(skill, value)| {
+                        (
+                            person.index,
+                            pack.skills[*skill as usize].id.clone(),
+                            *value,
+                        )
+                    }),
+            );
+        }
+        rows.sort_by(|a, b| (a.0, &a.1).cmp(&(b.0, &b.1)));
+        snapshot.skills = Some(terri_core::save::SavedSkills { rows });
+    }
+    if snapshot.affinities.is_none() {
+        let pack = SimHandle::from_lot().sim.world().resource::<Content>().0;
+        let mut people: Vec<_> = snapshot.world.entities.iter().filter(|e| e.agent).collect();
+        people.sort_by_key(|e| e.index);
+        let mut rows = Vec::new();
+        for person in people {
+            let traits = terri_core::Traits::from_entries(
+                person
+                    .traits
+                    .iter()
+                    .flatten()
+                    .map(|entry| {
+                        (
+                            pack.traits
+                                .iter()
+                                .position(|trait_def| trait_def.id == entry.id)
+                                .expect("known source trait") as u32,
+                            entry.state,
+                        )
+                    })
+                    .collect(),
+            );
+            let values = terri_sim::affinity::draw(&mut snapshot.world.rng, pack, Some(&traits));
+            rows.extend(
+                pack.affinities
+                    .iter()
+                    .zip(values.values())
+                    .filter(|(_, value)| **value != 0.0)
+                    .map(|(kind, value)| (person.index, kind.id.clone(), *value)),
+            );
+        }
+        rows.sort_by(|a, b| (a.0, &a.1).cmp(&(b.0, &b.1)));
+        snapshot.affinities = Some(terri_core::save::SavedAffinities { rows });
+    }
+    snapshot
+}
+
+#[cfg(test)]
 mod boundary_tests {
     //! Everything JavaScript can hand this crate that Rust could not.
     //!
@@ -3010,7 +3341,7 @@ mod boundary_tests {
         for _ in 0..agents * kinds {
             snapshot.rng.next_f32();
         }
-        snapshot
+        current_world(snapshot)
     }
 
     use terri_core::{Relationships, SimClock, SimId, SimName, Traits, NEED_COUNT};
@@ -3048,8 +3379,7 @@ mod boundary_tests {
     ];
 
     fn legacy_cell_handle() -> SimHandle {
-        let current = SimHandle::from_lot();
-        let pack = current.sim.world().resource::<Content>().0;
+        let pack = Content::pre_books().0;
         let mut lot = pack.lot.clone();
         let origins = include!("../../test-fixtures/pre-yard-placements.rs");
         assert_eq!(lot.placements.len(), origins.len());
@@ -3062,7 +3392,7 @@ mod boundary_tests {
         (lot.width, lot.height) = lot.house;
         lot.wall_edges.clear();
         lot.walls = LEGACY_WALLS.to_vec();
-        let mut sim = Sim::new_from_lot(&lot, &pack.objects);
+        let mut sim = Sim::new_from_lot_and_content(&lot, Content::pre_books());
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
         SimHandle { sim }
     }
@@ -3231,6 +3561,23 @@ mod boundary_tests {
         );
         // And it is the same game, not merely a game.
         let mut expected = original.sim.save_snapshot();
+        let old_chair = expected
+            .entities
+            .iter()
+            .find(|e| e.smart_object.as_deref() == Some("armchair"))
+            .unwrap()
+            .index;
+        let walker = expected
+            .entities
+            .iter_mut()
+            .find(|e| e.target.is_some_and(|t| t.object == old_chair))
+            .expect("fixture includes the legacy armchair walk");
+        assert!(walker.eating.is_none());
+        assert_eq!(walker.path.as_ref().unwrap().steps.last(), Some(&(12, 0)));
+        walker.path = Some(terri_core::SavedPath {
+            steps: vec![(12, 1), (13, 1)],
+            cursor: 0,
+        });
         set_legacy_walls(&mut expected, false);
         assert_eq!(
             house_part(resumed.sim.save_snapshot()),
@@ -3357,7 +3704,7 @@ mod boundary_tests {
         );
         assert!(!snapshot.blocked_tiles[9 * 16 + 15]);
         assert!(snapshot.blocked_tiles[10 * 16 + 14]);
-        assert_eq!(snapshot.entities, old.entities);
+        assert_eq!(snapshot.entities, current_world(old.clone()).entities);
         assert_eq!(snapshot.funds, old.funds);
         assert_eq!(snapshot.tick, old.tick);
         assert_eq!(snapshot.rng, after_legacy_load_draws(old.clone()).rng);
@@ -3455,7 +3802,7 @@ mod boundary_tests {
             let mut migrated = SimHandle::from_lot();
             assert!(migrated.load_bytes(&bytes));
             let current = house_part(migrated.sim.save_snapshot());
-            assert_eq!(current.entities, old.entities);
+            assert_eq!(current.entities, current_world(old.clone()).entities);
             let mut expected = old.clone();
             set_legacy_walls(&mut expected, false);
             assert_eq!(current.blocked_tiles, expected.blocked_tiles);
@@ -3610,7 +3957,13 @@ mod boundary_tests {
         assert!(handle.load_bytes(&bytes));
         assert_eq!(handle.shyness_of(entity.index_u32()), 100);
         assert_eq!(handle.world_hash(), hash);
-        let mut snapshot = handle.sim.save_snapshot_v5();
+        let mut snapshot = published_household().sim.save_snapshot_v5();
+        snapshot.shyness = handle.sim.save_snapshot_v5().shyness;
+        assert!(!snapshot.shyness.is_empty());
+        let shyness_tail_fixture = super::save_v3_tests::v5_bytes(&snapshot);
+        let shyness_suffix = super::save_v3_tests::v5_appended_lengths(&snapshot)[11..]
+            .iter()
+            .sum::<usize>();
         snapshot.shyness.clear();
         let mut previous = postcard::to_allocvec(&snapshot).unwrap();
         let suffix = super::save_v3_tests::v5_appended_lengths(&snapshot)[10..]
@@ -3619,19 +3972,18 @@ mod boundary_tests {
         previous.truncate(previous.len() - suffix);
         let old = decode_v5(&previous).unwrap();
         assert!(old.shyness.is_empty());
-        let mut previous_bytes = bytes[..SAVE_HEADER_BYTES].to_vec();
+        let mut previous_bytes =
+            super::save_v3_tests::v5_bytes(&snapshot)[..SAVE_HEADER_BYTES].to_vec();
         previous_bytes.extend(previous);
         assert!(handle.load_bytes(&previous_bytes));
         assert_eq!(handle.shyness_of(entity.index_u32()), initial);
         let before = handle.world_hash();
-        let suffix = super::save_v3_tests::v5_appended_lengths(&handle.sim.save_snapshot_v5())
-            [11..]
-            .iter()
-            .sum::<usize>();
-        assert!(!handle.load_bytes(&bytes[..bytes.len() - suffix - 1]));
+        assert_eq!(&shyness_tail_fixture[8..10], &[5, 0]);
+        assert!(!handle
+            .load_bytes(&shyness_tail_fixture[..shyness_tail_fixture.len() - shyness_suffix - 1]));
         assert_eq!(handle.world_hash(), before);
         snapshot.shyness = vec![(0, 101)];
-        let mut invalid = bytes[..SAVE_HEADER_BYTES].to_vec();
+        let mut invalid = super::save_v3_tests::v5_bytes(&snapshot)[..SAVE_HEADER_BYTES].to_vec();
         invalid.extend(postcard::to_allocvec(&snapshot).unwrap());
         assert!(!handle.load_bytes(&invalid));
         assert_eq!(handle.world_hash(), before);
@@ -3754,7 +4106,10 @@ mod boundary_tests {
             );
             let mut current = loaded.sim.save_snapshot_v3();
             current.world = house_part(current.world);
-            assert_eq!(current.world.entities, old.world.entities);
+            assert_eq!(
+                current.world.entities,
+                current_world(old.world.clone()).entities
+            );
             assert_eq!(current.world.funds, old.world.funds);
             assert_eq!(current.world.blocked_tiles, old.world.blocked_tiles);
             assert_eq!(current.layout, grown_layout(&old.layout));
@@ -3764,7 +4119,7 @@ mod boundary_tests {
             assert_eq!(
                 current.world,
                 after_legacy_load_draws(expected),
-                "only the digest may differ after a load"
+                "only the digest, missing instincts and retired table references may differ"
             );
             assert_ne!(
                 current.world.content_fingerprint,
@@ -3884,8 +4239,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            5,
-            "the public writer must emit the V5 envelope"
+            7,
+            "the public writer must emit the schema-7 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -3929,7 +4284,7 @@ mod boundary_tests {
             ],
             Vec::new(),
         ] {
-            let mut source = SimHandle::new(5, 4);
+            let mut source = published_empty(5, 4);
             source.spawn_agent(0.0, 0.0, 75.0);
             let mut snapshot = source.sim.save_snapshot_v2();
             snapshot.layout = SavedLayout::EdgeWallsV1 {
@@ -3953,7 +4308,10 @@ mod boundary_tests {
             let mut expected = snapshot;
             expected.world = after_legacy_load_draws(expected.world);
             assert_eq!(restored.sim.save_snapshot_v2(), expected);
-            assert_eq!(restored.save_bytes(), source.save_bytes());
+            assert_eq!(
+                restored.sim.save_snapshot_v5(),
+                current_v5(source.sim.save_snapshot_v5())
+            );
             let grid = restored.sim.world().resource::<TileGrid>();
             assert_eq!(grid.can_cross((1, 1), (2, 1)), edges.is_empty());
             assert_eq!(grid.can_cross((2, 1), (1, 1)), edges.is_empty());
@@ -3963,8 +4321,13 @@ mod boundary_tests {
 
     #[test]
     fn v2_never_pads_a_truncated_payload_or_accepts_trailing_bytes_or_a_v1_body() {
-        let source = SimHandle::new(4, 4);
+        let source = published_empty(4, 4);
         let valid = save_v3_tests::v2_bytes(&source.sim.save_snapshot_v2());
+        let mut positive = SimHandle::from_lot();
+        assert!(
+            positive.load_bytes(&valid),
+            "complete historical V2 base loads"
+        );
         assert_eq!(&valid[8..10], &[2, 0]);
         // LegacyCells is tag 1 followed by its empty vector. Removing the
         // final zero would become valid again if the V1 tail repair leaked in.
@@ -4018,7 +4381,7 @@ mod boundary_tests {
     #[test]
     fn a_legacy_fingerprint_crosses_the_public_byte_loader_and_migrates_names() {
         let source = legacy_cell_handle();
-        let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
+        let current_fingerprint = SimHandle::new(1, 1).sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         before_the_yard(&mut snapshot);
         snapshot.content_fingerprint = 0x2eb2_02fa_e70e_4939;
@@ -4078,7 +4441,7 @@ mod boundary_tests {
     #[test]
     fn the_prior_structural_fingerprint_crosses_the_public_byte_loader_without_renaming() {
         let source = legacy_cell_handle();
-        let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
+        let current_fingerprint = SimHandle::new(1, 1).sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         before_the_yard(&mut snapshot);
         snapshot.content_fingerprint = 0x26d5_982c_9af8_3de8;
@@ -5189,6 +5552,79 @@ mod boundary_tests {
         (handle, initiator, partner)
     }
 
+    pub(super) fn start_owned_reading(
+        handle: &mut SimHandle,
+        agent: terri_core::Entity,
+        target: terri_core::Entity,
+    ) {
+        let people: Vec<_> = handle
+            .sim
+            .world_mut()
+            .query::<(terri_core::Entity, &Agent)>()
+            .iter(handle.sim.world())
+            .map(|(e, _)| e)
+            .collect();
+        for person in people {
+            if handle
+                .sim
+                .world()
+                .get::<terri_core::SimId>(person)
+                .is_none()
+            {
+                let id = handle
+                    .sim
+                    .world_mut()
+                    .resource_mut::<terri_core::SimIdAllocator>()
+                    .issue();
+                handle.sim.world_mut().entity_mut(person).insert(id);
+            }
+        }
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds(10000));
+        let pack = handle.sim.world().resource::<Content>().0;
+        let object = handle
+            .sim
+            .world()
+            .get::<terri_core::SmartObject>(target)
+            .unwrap()
+            .0;
+        let shelf = if pack.object(object).shelf_capacity > 0 {
+            target
+        } else {
+            handle
+                .sim
+                .spawn_object(Position { x: 5.0, y: 5.0 }, pack.find("bookshelf").unwrap())
+        };
+        let title = pack.books[0].id.clone();
+        assert!(handle.buy_book(title.clone(), Some(f64::from(shelf.index_u32()))));
+        let action = pack
+            .object(object)
+            .interactions
+            .iter()
+            .find(|a| a.book_reading)
+            .unwrap()
+            .id
+            .clone();
+        assert!(handle.read_book(
+            f64::from(agent.index_u32()),
+            f64::from(target.index_u32()),
+            action,
+            title,
+            false
+        ));
+        for _ in 0..500 {
+            handle.tick();
+            if handle.sim.reading_journeys().iter().any(|j| {
+                j.owner == agent.index_u32() && j.stage == terri_core::save_v6::ReadingStage::Read
+            }) {
+                return;
+            }
+        }
+        panic!("owned reader did not reach the reading stage");
+    }
+
     fn handle_with_projected_reading() -> (SimHandle, terri_core::Entity, Position) {
         let mut handle = SimHandle::new(24, 24);
         let chair_position = Position { x: 11.5, y: 13.25 };
@@ -5200,16 +5636,6 @@ mod boundary_tests {
             .0
             .find("reading_chair")
             .expect("shipped reading chair");
-        let settle = handle
-            .sim
-            .world()
-            .resource::<Content>()
-            .0
-            .object(chair)
-            .interactions
-            .iter()
-            .position(|interaction| interaction.id == "settle_in")
-            .expect("shipped settle_in") as u32;
         let target = {
             let world = handle.sim.world_mut();
             let mut query =
@@ -5234,18 +5660,7 @@ mod boundary_tests {
                 .next()
                 .expect("the bridge spawned the reader")
         };
-        handle.sim.world_mut().entity_mut(agent).insert((
-            terri_core::Eating {
-                object: chair,
-                interaction: settle,
-                remaining_ticks: 10,
-            },
-            terri_core::Target {
-                object: target,
-                interaction: settle,
-            },
-        ));
-        handle.sim.sync_render_buffer();
+        start_owned_reading(&mut handle, agent, target);
         (handle, agent, chair_position)
     }
 
@@ -5261,16 +5676,6 @@ mod boundary_tests {
             .0
             .find("bookshelf")
             .expect("shipped bookshelf");
-        let read = handle
-            .sim
-            .world()
-            .resource::<Content>()
-            .0
-            .object(bookshelf)
-            .interactions
-            .iter()
-            .position(|interaction| interaction.id == "read")
-            .expect("shipped bookshelf.read") as u32;
         let target = {
             let world = handle.sim.world_mut();
             let mut query =
@@ -5295,18 +5700,8 @@ mod boundary_tests {
                 .next()
                 .expect("the bridge spawned the standing reader")
         };
-        handle.sim.world_mut().entity_mut(agent).insert((
-            terri_core::Eating {
-                object: bookshelf,
-                interaction: read,
-                remaining_ticks: 10,
-            },
-            terri_core::Target {
-                object: target,
-                interaction: read,
-            },
-        ));
-        handle.sim.sync_render_buffer();
+        start_owned_reading(&mut handle, agent, target);
+        let agent_position = *handle.sim.world().get::<Position>(agent).unwrap();
         (handle, agent, agent_position)
     }
 
@@ -5932,7 +6327,7 @@ mod boundary_tests {
 
         assert_eq!(
             (actions[row], activities[row], facings[row]),
-            (4, 8, terri_sim::render_buffer::facing::POSITIVE_X,),
+            (4, 8, terri_sim::render_buffer::facing::NEGATIVE_X,),
             "the append-only standing-read literals must cross the existing bridge columns"
         );
         assert_eq!(
@@ -6493,7 +6888,7 @@ mod boundary_tests {
         let first = &pack.lot.placements[0];
         assert_eq!(
             handle.object_name_of(0),
-            pack.objects[first.object.0 as usize].name
+            pack.objects[first.object.0 as usize].display_name()
         );
         let first_sim = pack.lot.placements.len() as u32;
         assert_eq!(handle.object_name_of(first_sim), "");
@@ -6510,9 +6905,9 @@ mod boundary_tests {
         let details = handle.catalogue_details();
         assert_eq!(details.len(), names.len() * 2);
         for (id, kind, model) in [
-            ("laundry", "Washing machine", "Perpetual Cycle"),
-            ("armchair", "Armchair", "Staying In"),
-            ("dining_table", "Dining table", "Visiting Hours"),
+            ("laundry", "Washer-dryer", "Stackwell Duo"),
+            ("armchair", "Armchair", "Standard Lounge"),
+            ("dining_table", "Dining table", "Oakline Family"),
         ] {
             let def = pack.find(id).unwrap();
             let row = rows
@@ -6806,8 +7201,7 @@ mod boundary_tests {
             .find(|(entity, _)| entity.index_u32() == agent)
             .map(|(_, queue)| {
                 queue
-                    .as_slice()
-                    .iter()
+                    .intents()
                     .map(|intent| intent.object.index_u32())
                     .collect()
             })
@@ -7506,7 +7900,7 @@ mod boundary_tests {
             assert_eq!(name, object.display_name());
             assert_eq!(
                 *served,
-                pack.needs_served(pack.find(&object.id).unwrap()),
+                terri_sim::usable_catalogue_needs(pack, pack.find(&object.id).unwrap()),
                 "{}",
                 object.id
             );
@@ -7779,9 +8173,9 @@ mod boundary_tests {
             // became a truncated `SetFloor`, as each later append moved the
             // edge on to 23.
             (
-                "variant index 23, one past the twenty-three SimCommand declares; \
+                "variant index 30, one past the thirty SimCommand variants; \
                  also what an older shell sending a newer format looks like",
-                vec![23, 0x00],
+                vec![30, 0x00],
             ),
             (
                 "AddHousemate missing its traits",
@@ -8415,7 +8809,7 @@ mod boundary_tests {
         // the wire changing. The toilet advertises no chain, so its
         // list is its interactions alone.
         let mut fridge_rows = authored("fridge");
-        fridge_rows.push("Cook breakfast".to_string());
+        fridge_rows[1] = "Cook breakfast".to_string();
         assert_eq!(handle.interaction_labels(fridge), fridge_rows);
         assert_eq!(handle.interaction_labels(toilet), authored("toilet"));
 
@@ -9254,7 +9648,7 @@ mod instinct_boundary_tests {
 
     #[test]
     fn self_preservation_appended_tail_loads_old_v5_and_refuses_truncated_rows() {
-        let source = SimHandle::from_lot();
+        let source = published_household();
         let mut snapshot = source.sim.save_snapshot_v5();
         snapshot.self_preservation.clear();
         snapshot.chronotype_offsets.clear();
@@ -9268,7 +9662,9 @@ mod instinct_boundary_tests {
         let decoded = decode_v5(&payload).unwrap();
         assert!(decoded.self_preservation.is_empty());
         let mut loaded = SimHandle::from_lot();
-        let mut bytes = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        let mut bytes = super::save_v3_tests::v5_bytes(&source.sim.save_snapshot_v5())
+            [..SAVE_HEADER_BYTES]
+            .to_vec();
         bytes.extend(payload);
         assert!(loaded.load_bytes(&bytes));
         assert!(loaded
@@ -9281,7 +9677,9 @@ mod instinct_boundary_tests {
         current.chronotype_offsets.clear();
         current.domestic = None;
         current.dining = None;
-        let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        let mut truncated = super::save_v3_tests::v5_bytes(&source.sim.save_snapshot_v5())
+            [..SAVE_HEADER_BYTES]
+            .to_vec();
         truncated.extend(postcard::to_allocvec(&current).unwrap());
         let suffix: usize = super::save_v3_tests::v5_appended_lengths(&current)[7..]
             .iter()
@@ -9294,7 +9692,7 @@ mod instinct_boundary_tests {
     #[test]
     fn published_domestic_tail_without_dining_loads_and_nested_dining_truncation_rejects() {
         use terri_core::save::{SavedCleanupOpportunity, SavedDining, SavedDishes, SavedDomestic};
-        let source = SimHandle::from_lot();
+        let source = published_household();
         let mut saved = source.sim.save_snapshot_v5();
         saved.domestic = Some(SavedDomestic {
             next_dish: 1,
@@ -9321,7 +9719,9 @@ mod instinct_boundary_tests {
         let decoded = decode_v5(&old).unwrap();
         assert_eq!(decoded.domestic, saved.domestic);
         assert!(decoded.dining.is_none());
-        let mut bytes = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        let mut bytes = super::save_v3_tests::v5_bytes(&source.sim.save_snapshot_v5())
+            [..SAVE_HEADER_BYTES]
+            .to_vec();
         bytes.extend(old);
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&bytes));
@@ -9340,7 +9740,9 @@ mod instinct_boundary_tests {
         let lengths = crate::save_v3_tests::v5_appended_lengths(&saved);
         full.truncate(full.len() - lengths[13..].iter().sum::<usize>());
         for removed in 1..=8 {
-            let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+            let mut truncated = super::save_v3_tests::v5_bytes(&source.sim.save_snapshot_v5())
+                [..SAVE_HEADER_BYTES]
+                .to_vec();
             truncated.extend(&full[..full.len() - removed]);
             assert!(
                 !loaded.load_bytes(&truncated),
@@ -9368,6 +9770,10 @@ mod window_boundary_tests {
     };
 
     fn encode(snapshot: &terri_core::SaveSnapshotV5) -> Vec<u8> {
+        assert_eq!(
+            snapshot.world.content_fingerprint, 0xcf78_7472_e9e8_38f5,
+            "window wire fixtures are historical"
+        );
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend(5u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(snapshot).unwrap());
@@ -9547,7 +9953,7 @@ mod window_boundary_tests {
         let hash = live.world_hash();
         for model in 1..=9 {
             for (axis, x, y) in [(0., 0., 1.), (1., 10., 0.)] {
-                let mut source = SimHandle::from_lot();
+                let mut source = published_household();
                 assert!(source.fit_window(axis, x, y, model as f64));
                 source.flush_commands();
                 assert_eq!(source.last_window_edit_result(), [0]);
@@ -9592,7 +9998,7 @@ mod window_boundary_tests {
                 ties: vec![(1, Some(terri_core::layout::Relation::Sibling)), (2, None)],
             },
         ] {
-            let mut snapshot = live.sim.save_snapshot_v5();
+            let mut snapshot = published_household().sim.save_snapshot_v5();
             snapshot.world.queued_commands = vec![command.clone()];
             let bytes = encode(&snapshot);
             let end = SAVE_HEADER_BYTES + postcard::to_allocvec(&snapshot.world).unwrap().len()
@@ -9613,8 +10019,8 @@ mod window_boundary_tests {
             let mut valid = SimHandle::from_lot();
             assert!(valid.load_bytes(&bytes));
             assert_eq!(
-                valid.save_bytes(),
-                bytes,
+                valid.sim.save_snapshot_v5().world.queued_commands,
+                snapshot.world.queued_commands,
                 "complete stale commands remain pending"
             );
         }
@@ -9650,3 +10056,150 @@ mod window_boundary_tests {
         );
     }
 }
+
+#[cfg(test)]
+mod save_v6_tests;
+
+impl SimHandle {
+    fn enqueue_book(&mut self, command: terri_core::command::BookCommand) -> bool {
+        let bytes =
+            postcard::to_allocvec(&SimCommand::Book(command)).expect("book command serializes");
+        self.enqueue_command(&bytes)
+    }
+}
+
+#[wasm_bindgen]
+impl SimHandle {
+    #[wasm_bindgen(js_name = buyBook)]
+    pub fn buy_book(&mut self, title: String, shelf: Option<f64>) -> bool {
+        let Some(shelf) = optional_book_index(shelf) else {
+            return false;
+        };
+        self.enqueue_book(terri_core::command::BookCommand::Purchase { title, shelf })
+    }
+    #[wasm_bindgen(js_name = transferBook)]
+    pub fn transfer_book(&mut self, copy: f64, shelf: Option<f64>) -> bool {
+        let Some(shelf) = optional_book_index(shelf) else {
+            return false;
+        };
+        let Some(copy) = placement_u32(copy) else {
+            return false;
+        };
+        self.enqueue_book(terri_core::command::BookCommand::Transfer { copy, shelf })
+    }
+    #[wasm_bindgen(js_name = readBook)]
+    pub fn read_book(
+        &mut self,
+        agent: f64,
+        object: f64,
+        action: String,
+        title: String,
+        front: bool,
+    ) -> bool {
+        let (Some(agent), Some(object)) = (placement_u32(agent), placement_u32(object)) else {
+            return false;
+        };
+        self.enqueue_book(terri_core::command::BookCommand::Read {
+            agent,
+            object,
+            action,
+            title,
+            front,
+        })
+    }
+    /// Postcard title rows: id, title, description, genre, reading minutes, price.
+    #[wasm_bindgen(js_name = bookCatalogue)]
+    pub fn book_catalogue(&self) -> Vec<u8> {
+        postcard::to_allocvec(self.sim.book_titles()).expect("catalogue serializes")
+    }
+    /// Postcard BookCopy rows, including authoritative location and reserved home.
+    #[wasm_bindgen(js_name = bookCopies)]
+    pub fn book_copies(&self) -> Vec<u8> {
+        postcard::to_allocvec(self.sim.book_copies()).expect("copies serialize")
+    }
+    /// Pairs of shelf entity index and capacity.
+    #[wasm_bindgen(js_name = bookShelves)]
+    pub fn book_shelves(&self) -> Vec<u32> {
+        self.sim
+            .book_shelves()
+            .unwrap_or_default()
+            .into_iter()
+            .flat_map(|s| [s.id.0 as u32, u32::from(s.slots)])
+            .collect()
+    }
+    #[wasm_bindgen(js_name = bookShelfSlots)]
+    pub fn book_shelf_slots(&self, shelf: f64, reserved: bool) -> Vec<u32> {
+        let Some(shelf) = placement_u32(shelf) else {
+            return vec![];
+        };
+        self.sim
+            .book_shelf_slots(shelf, reserved)
+            .map(|slots| {
+                slots
+                    .into_iter()
+                    .map(|id| id.map_or(u32::MAX, |i| i.0))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+    #[wasm_bindgen(js_name = bookInterestAt)]
+    pub fn book_interest_at(
+        &self,
+        agent: f64,
+        object: f64,
+        action: &str,
+        title: &str,
+    ) -> Option<f32> {
+        self.sim
+            .book_interest(placement_u32(agent)?, placement_u32(object)?, action, title)
+            .ok()
+    }
+    /// Context-free store estimate using the authored bookshelf/read baseline.
+    #[wasm_bindgen(js_name = bookInterest)]
+    pub fn book_interest(&self, agent: f64, title: &str) -> Option<f32> {
+        self.sim
+            .book_store_interest(placement_u32(agent)?, title)
+            .ok()
+    }
+    /// Four strings per result: sequence, copy ID, order ID, literal refusal code.
+    /// An empty field means absent; consuming feedback does not change saved gameplay.
+    #[wasm_bindgen(js_name = takeBookResults)]
+    pub fn take_book_results(&mut self) -> Vec<String> {
+        self.sim
+            .take_book_results()
+            .into_iter()
+            .flat_map(|r| {
+                [
+                    r.sequence.to_string(),
+                    r.copy.map(|id| id.to_string()).unwrap_or_default(),
+                    r.order.map(|id| id.to_string()).unwrap_or_default(),
+                    r.refusal.unwrap_or("").to_string(),
+                ]
+            })
+            .collect()
+    }
+    #[wasm_bindgen(js_name = takeLegacyBookImportNotice)]
+    pub fn take_legacy_book_import_notice(&mut self) -> bool {
+        self.sim.take_legacy_book_import_notice()
+    }
+}
+
+#[cfg(test)]
+mod book_tests;
+#[cfg(test)]
+mod inherited_runtime_tests;
+
+mod browser_books;
+
+fn optional_book_index(value: Option<f64>) -> Option<Option<u32>> {
+    match value {
+        None => Some(None),
+        Some(value) => placement_u32(value).map(Some),
+    }
+}
+
+#[cfg(test)]
+mod upstream_integration_tests;
+
+#[cfg(test)]
+mod table_retirement_tests;

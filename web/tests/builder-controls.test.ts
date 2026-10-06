@@ -1,3 +1,4 @@
+import { furnitureLabel } from '../src/ui/furniture-label.js';
 import { beforeAll, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
@@ -76,7 +77,7 @@ it('moves one live control panel between hosts and routes native control events 
   expect(panel.hidden).toBe(false);
   expect(node('build-toggle').textContent).toBe('Exit build');
   const selector = node('builder-object');
-  expect(selector.children.find(child => child.value === '15')?.textContent).toBe(source.objectName(15));
+  expect(selector.children.find(child => child.value === '15')?.textContent).toBe(furnitureLabel(source, 15));
   selector.value = '15'; selector.fire('change');
   expect(builder.selected).toBe(15);
   expect(node('builder-name').textContent).toBe('Build mode');
@@ -159,7 +160,7 @@ it('sells the chosen furniture for part of its price and clears the choice', () 
   expect(payout).toBeGreaterThan(0);
   expect([!action('sell')?.enabled, action('sell')?.label])
     .toEqual([false, `Sell for ${payout.toLocaleString('en-US')}`]);
-  const name = source.objectName(15);
+  const name = furnitureLabel(source, 15);
   const funds = source.funds();
   action('sell')?.invoke();
   expect([builder.pending, !action('sell')?.enabled, node('builder-status').textContent])
@@ -179,8 +180,8 @@ it('lets the player sell the only stove and refrigerator', () => {
   const { handle, source, builder, node, action } = fixture();
   try {
     node('build-toggle').fire('click');
-    for (const name of ['The Combustible Optimist', 'Chill-o-Matic 3000']) {
-      const object = builder.objects.find((object) => object.name === name);
+    for (const name of ['Stove', 'Fridge']) {
+      const object = builder.objects.find((object) => source.objectName(object.id) === name);
       expect(object).toBeDefined();
       const selector = node('builder-object');
       selector.value = String(object!.id); selector.fire('change');
@@ -217,7 +218,7 @@ it('recolours the chosen furniture from the Colour list', () => {
   source.flushCommands(); builder.afterCommands();
   expect(source.lastColourwayResult()).toEqual({ object: 15, reason: null, colourway: 2 });
   expect([builder.pending, builder.selected, colour.value, node('builder-status').textContent])
-    .toEqual([false, 15, '2', `${source.objectName(15)} recoloured.`]);
+    .toEqual([false, 15, '2', `${furnitureLabel(source, 15)} recoloured.`]);
   expect(source.objectColourway(15)).toBe(2);
   action('cancel')?.invoke();
   expect([colour.disabled, colour.value]).toEqual([true, '0']);

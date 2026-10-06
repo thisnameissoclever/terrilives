@@ -32,18 +32,24 @@ pub const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
+mod action_refs;
 pub(super) mod affinities;
 pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
+pub(crate) mod books_migration;
 pub(super) mod chronotype;
 mod meal_migration;
 pub(super) mod self_preservation;
 pub(super) mod skills;
 pub(super) mod sleeping_places;
+mod table_retirement;
 #[cfg(test)]
 mod v3_tests;
+pub(crate) mod v6;
+#[cfg(test)]
+mod v6_tests;
 mod wall_migration;
 #[cfg(test)]
 mod wall_migration_tests;
@@ -68,7 +74,7 @@ pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
 }
 
 /// [`capture`] for anything holding a world, which a lot-edit validator does.
-fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
+pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
     let pack = world.resource::<Content>().0;
     let grid = world.resource::<TileGrid>();
 
@@ -121,6 +127,7 @@ fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
             .resource::<CommandQueue>()
             .as_slice()
             .iter()
+            .filter(|command| !matches!(command, SimCommand::Book(_)))
             .map(|command| capture_command(command, pack))
             .collect(),
     }
@@ -162,8 +169,7 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
         selected: entity.get::<Selected>().is_some(),
         intents: entity.get::<IntentQueue>().map(|queue| {
             queue
-                .as_slice()
-                .iter()
+                .intents()
                 .filter(|intent| intent.cleanup.is_none() && intent.chore.is_none())
                 .map(|intent| SavedIntent {
                     object: intent.object.index_u32(),
@@ -268,6 +274,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             preferences: *preferences,
         },
         SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
+        SimCommand::Book(_) => unreachable!("V6 commands are captured separately"),
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
         SimCommand::BuyObjectInColourway {
             definition,
@@ -1234,6 +1241,9 @@ pub(crate) fn candidate_grid_loads(
 ) -> Result<(), LoadProblem> {
     let content = world.resource::<Content>().0;
     let snapshot = capture_world(world);
+    v6::validate_live_books(world).map_err(|_| LoadProblem::EdgeWorld)?;
+    crate::seating::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
+    crate::reading::persistence::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
     validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
     // Every edge layout, not one named version: a house with a window is
     // still an edge house, and naming the version here is what let review
@@ -1772,15 +1782,10 @@ fn validate_flyout_row(
 ) -> Result<(), SaveError> {
     reject_impossible_pre_aquarium_bike_row(object, row, pre_aquarium_bike)?;
     let id = resolve_object(pack, object)?;
-    if pack.object(id).id == "dining_table" && row == 1 {
+    if terri_data::is_latest_pre_books_pack(pack) && object == "dining_table" && row == 1 {
         return Ok(());
     }
-    let rows = pack.object(id).interactions.len()
-        + pack
-            .chains
-            .iter()
-            .filter(|chain| chain.advertised_by == id)
-            .count();
+    let rows = crate::action_rows::rows(pack, id).len();
     if row as usize >= rows {
         return Err(SaveError::InvalidContentReference);
     }
@@ -2195,12 +2200,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot_v5();
+        let state = uninterrupted.save_snapshot_v6();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot_v5(state.clone())
+            .load_snapshot_v6(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot_v5(), state);
+        assert_eq!(resumed.save_snapshot_v6(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -2267,7 +2272,12 @@ mod tests {
             let pack = world.resource::<Content>().0;
             let chain = pack.chains.first().expect("a shipped chain");
             let fridge_def = chain.advertised_by;
-            let dinner_row = pack.object(fridge_def).interactions.len() as u32;
+            let dinner_row = pack
+                .object(fridge_def)
+                .interactions
+                .iter()
+                .position(|a| a.id == "cook_dinner")
+                .expect("bound dinner") as u32;
             let diner = world
                 .query_filtered::<Entity, bevy_ecs::query::With<Agent>>()
                 .iter(world)
@@ -2287,6 +2297,20 @@ mod tests {
                 agent: diner.index_u32(),
                 object: fridge.index_u32(),
                 interaction: dinner_row,
+            });
+        let mut others: Vec<_> = sim
+            .world_mut()
+            .query_filtered::<Entity, bevy_ecs::query::With<Agent>>()
+            .iter(sim.world())
+            .filter(|p| *p != diner)
+            .collect();
+        others.sort_by_key(|p| p.index_u32());
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::TalkTo {
+                agent: others[0].index_u32(),
+                target: others[1].index_u32(),
+                interaction: 0,
             });
         let mut saw_walk_to_talk = false;
         let mut saw_chain_row_habituation = false;
@@ -2369,7 +2393,9 @@ mod tests {
                     let pack = sim.world().resource::<Content>().0;
                     for entry in entries {
                         let object = pack.find(&entry.object).expect("a saved object id");
-                        if entry.interaction as usize >= pack.object(object).interactions.len() {
+                        if crate::action_rows::resolve(pack, object, entry.interaction)
+                            .is_some_and(|row| row.recipe.is_some())
+                        {
                             saw_chain_row_habituation = true;
                         }
                     }
@@ -2378,7 +2404,7 @@ mod tests {
 
             let mut fresh = Sim::new_from_shipped_lot();
             assert_eq!(
-                fresh.load_snapshot_v5(sim.save_snapshot_v5()),
+                fresh.load_snapshot_v6(sim.save_snapshot_v6()),
                 Ok(()),
                 "the snapshot taken at tick {tick} will not load"
             );
@@ -2617,17 +2643,10 @@ mod tests {
             .find_map(|entity| {
                 let id = entity.smart_object.as_deref()?;
                 let object = pack.find(id)?;
-                let chains = pack
-                    .chains
-                    .iter()
-                    .filter(|chain| chain.advertised_by == object)
-                    .count();
-                (chains > 0).then(|| {
-                    (
-                        entity.index,
-                        pack.object(object).interactions.len() + chains,
-                    )
-                })
+                let rows = crate::action_rows::rows(pack, object);
+                rows.iter()
+                    .any(|row| row.recipe.is_some())
+                    .then_some((entity.index, rows.len()))
             })
             .expect("shipped content advertises a chain from a placed object");
         let id = base
@@ -4256,7 +4275,7 @@ mod tests {
         ] {
             let mut snapshot = legacy.clone();
             snapshot.content_fingerprint = fingerprint;
-            let mut restored = Sim::new_from_shipped_lot();
+            let mut restored = crate::test_content::pre_books_sim();
             assert_eq!(
                 restored.load_snapshot(snapshot),
                 Ok(()),
@@ -4310,17 +4329,17 @@ mod tests {
             expected_blocked[y as usize * width + x as usize] = false;
         }
         let expected_entities = prior.entities.clone();
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = crate::test_content::pre_books_sim();
         assert_eq!(restored.load_snapshot(prior), Ok(()));
 
         let current = restored.save_snapshot();
         assert_eq!(
             current.content_fingerprint,
-            terri_data::content_fingerprint(terri_data::pack())
+            terri_data::content_fingerprint(terri_data::pre_books_pack())
         );
         // The house then grows into the yard, each tile kept where it was
         // saved ([OS-migrate]).
-        let lot = &terri_data::pack().lot;
+        let lot = &terri_data::pre_books_pack().lot;
         let grown_width = lot.width as usize;
         let mut grown = vec![false; grown_width * lot.height as usize];
         for (index, &blocked) in expected_blocked.iter().enumerate() {
@@ -4456,7 +4475,7 @@ mod tests {
                 cases.push(("Personality disposition", personality));
 
                 for (space, impossible) in cases {
-                    let mut live = Sim::new_from_shipped_lot();
+                    let mut live = crate::test_content::pre_books_sim();
                     for _ in 0..31 {
                         live.tick();
                     }
@@ -4523,7 +4542,7 @@ mod tests {
 
     #[test]
     fn the_pre_portal_save_keeps_current_actions_names_and_the_active_lot() {
-        let mut source = Sim::new_from_shipped_lot();
+        let mut source = crate::test_content::pre_books_sim();
         let pack = source.world().resource::<Content>().0;
         let object_def = pack.find("moving_box").expect("shipped exercise bike row");
         let object = {
@@ -4558,13 +4577,13 @@ mod tests {
         prior.content_fingerprint = 0xbcdd_476e_1e23_8ab0;
         let expected_entities = prior.entities.clone();
 
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = crate::test_content::pre_books_sim();
         assert_eq!(restored.load_snapshot(prior), Ok(()));
         let current = restored.save_snapshot();
         assert_eq!(current.entities, expected_entities);
         assert_eq!(
             current.content_fingerprint,
-            terri_data::content_fingerprint(terri_data::pack())
+            terri_data::content_fingerprint(terri_data::pre_books_pack())
         );
         assert!(
             restored.world().contains_resource::<ActivePortals>(),
@@ -4593,7 +4612,7 @@ mod tests {
             .expect("the shipped household has SimId 0")
             .sim_name = Some("Player Name".to_string());
 
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = crate::test_content::pre_books_sim();
         assert_eq!(restored.load_snapshot(snapshot), Ok(()));
         let name = {
             let mut query = restored.world_mut().query::<(&SimId, &SimName)>();

@@ -18,6 +18,7 @@ struct Participant {
     directed: bool,
     commuting: bool,
     chain: Option<terri_core::ChainState>,
+    origin: Option<crate::recipe_actions::Origin>,
 }
 
 /// Object availability at the start of movement, after route reservations settle.
@@ -95,6 +96,7 @@ pub(crate) fn prepare(world: &mut World) {
                 directed: crate::privacy::directed(world, entity),
                 commuting: world.get::<terri_core::Commuting>(entity).is_some(),
                 chain: world.get::<terri_core::ChainState>(entity).copied(),
+                origin: world.get::<crate::recipe_actions::Origin>(entity).cloned(),
             }
         })
         .collect();
@@ -194,12 +196,12 @@ impl InterpersonalPhase {
         let helped = object
             .zip(target)
             .and_then(|(id, t)| pack.object(id).interactions.get(t.interaction as usize))
-            .map(|a| &a.advertises)
+            .map(|a| a.advertises.as_slice())
             .or_else(|| {
                 target
                     .filter(|t| t.interaction == super::chain::CHAIN_STEP)
                     .and(person.chain)
-                    .map(|c| &pack.chains[c.chain as usize].advertises)
+                    .map(|c| crate::recipe_actions::benefits(pack, &c, person.origin.as_ref()))
             });
         let mut need = helped.map_or(100.0, |act| {
             act.iter()
@@ -257,6 +259,7 @@ impl InterpersonalPhase {
                                 agent,
                                 Some(person.id),
                                 chain,
+                                person.origin.as_ref(),
                                 item.entity,
                                 item.definition,
                                 Some(&terri_core::ObjectFacing(item.facing)),
@@ -567,18 +570,21 @@ pub(crate) fn refresh_routes(world: &mut World) {
         .cloned();
     let occupants = crate::domestic::boundary_occupants(world);
     let chains: Vec<_> = world
-        .query::<(Entity, Option<&terri_core::ChainState>)>()
+        .query::<(
+            Entity,
+            Option<&terri_core::ChainState>,
+            Option<&crate::recipe_actions::Origin>,
+        )>()
         .iter(world)
-        .map(|(e, c)| (e, c.copied()))
+        .map(|(e, c, o)| (e, c.copied(), o.cloned()))
         .collect();
     let mut phase = world.resource_mut::<InterpersonalPhase>();
     phase.domestic = domestic;
     phase.domestic_occupants = occupants;
     for person in &mut phase.participants {
-        person.chain = chains
-            .iter()
-            .find(|(e, _)| *e == person.entity)
-            .and_then(|(_, c)| *c);
+        let state = chains.iter().find(|(e, _, _)| *e == person.entity);
+        person.chain = state.and_then(|(_, c, _)| *c);
+        person.origin = state.and_then(|(_, _, o)| o.clone());
     }
 }
 

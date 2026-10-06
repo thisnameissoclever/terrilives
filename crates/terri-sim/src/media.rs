@@ -15,6 +15,7 @@ use terri_data::CompiledSocketFacing;
 pub(crate) struct Plan {
     pub access: Reachable,
     pub lease: Option<SavedDiner>,
+    pub seat: Option<(Entity, u16)>,
 }
 
 fn direction(facing: CompiledSocketFacing) -> (i32, i32) {
@@ -33,7 +34,7 @@ fn cone(origin: (f32, f32), front: (i32, i32), point: (f32, f32)) -> bool {
     forward > 0. && lateral.abs() <= forward && x * x + y * y <= 49.
 }
 
-fn seat_socket(
+fn legacy_seat_socket(
     pack: &terri_data::ContentPack,
     seat: &BoundaryFurniture,
     toward: (f32, f32),
@@ -84,6 +85,28 @@ fn seat_socket(
     })
 }
 
+fn media_socket(
+    pack: &terri_data::ContentPack,
+    definition: terri_core::ObjectDefId,
+    mut socket: terri_data::CompiledPlacementSocket,
+    toward: (f32, f32),
+) -> terri_data::CompiledPlacementSocket {
+    if pack
+        .object(definition)
+        .roles
+        .iter()
+        .any(|r| pack.roles[*r as usize] == "turnable_seat")
+    {
+        socket.facing = match wire_facing(toward.0 - socket.x, toward.1 - socket.y) {
+            1 => CompiledSocketFacing::PositiveX,
+            2 => CompiledSocketFacing::NegativeX,
+            3 => CompiledSocketFacing::PositiveY,
+            _ => CompiledSocketFacing::NegativeY,
+        };
+    }
+    socket
+}
+
 fn axis_facing(facing: u32) -> (i32, i32) {
     match facing {
         1 => (1, 0),
@@ -127,7 +150,6 @@ pub(crate) struct Planning<'a> {
     pub field: &'a TileDistanceField,
     pub objects: &'a [BoundaryFurniture],
     pub occupancy: &'a Occupancy,
-    pub claims: &'a [SavedDiner],
 }
 
 pub(crate) fn plan(
@@ -141,48 +163,70 @@ pub(crate) fn plan(
         field,
         objects,
         occupancy,
-        claims,
     } = planning;
     let origin = (device.position.x, device.position.y);
     let front = device.facing.rotate_axis(1, 0);
     let mut candidates = vec![];
     for seat in objects {
-        let Some(socket) = seat_socket(pack, seat, origin) else {
-            continue;
-        };
-        let point = (socket.x, socket.y);
-        let seat_front = direction(socket.facing);
-        if !cone(origin, front, point)
-            || !cone(point, seat_front, origin)
-            || !grid.segment_can_cross(point, origin)
-            || !occupancy.exclusive_available(person, seat.entity)
-            || claims
-                .iter()
-                .any(|d| d.person != person.index_u32() && d.chair == Some(seat.entity.index_u32()))
-        {
-            continue;
+        let definition = pack.object(seat.definition);
+        for ordinal in 0..definition.seats.len() {
+            let socket = media_socket(
+                pack,
+                seat.definition,
+                definition.seat_at(ordinal, seat.position.x, seat.position.y, seat.facing)?,
+                origin,
+            );
+            let point = (socket.x, socket.y);
+            if !cone(origin, front, point)
+                || !cone(point, direction(socket.facing), origin)
+                || !grid.segment_can_cross(point, origin)
+                || !occupancy.seat_available(person, seat.entity, ordinal as u16)
+            {
+                continue;
+            }
+            let footprint = definition.footprint_at(seat.facing);
+            let at = (
+                seat.position.x.round() as i32,
+                seat.position.y.round() as i32,
+            );
+            let best = definition
+                .seat_approaches_at(ordinal, seat.facing)?
+                .into_iter()
+                .filter_map(|(x, y)| {
+                    let endpoint = (at.0 + x, at.1 + y);
+                    if !occupancy.endpoint_available(crate::seating::EndpointUse {
+                        owner: person,
+                        endpoint,
+                        kind: crate::seating::UseKind::Media,
+                    }) {
+                        return None;
+                    }
+                    let contact = (
+                        at.0 + x.clamp(0, footprint.width as i32 - 1),
+                        at.1 + y.clamp(0, footprint.depth as i32 - 1),
+                    );
+                    field
+                        .distance_to_contact(endpoint, contact)
+                        .map(|distance| (distance, endpoint))
+                })
+                .min();
+            if let Some((distance, endpoint)) = best {
+                candidates.push((
+                    (point.0 - origin.0).powi(2) + (point.1 - origin.1).powi(2),
+                    seat.entity,
+                    ordinal as u16,
+                    distance,
+                    endpoint,
+                ));
+            }
         }
-        let best = approaches(pack, seat, &socket)
-            .into_iter()
-            .filter(|(endpoint, _)| {
-                !claims
-                    .iter()
-                    .any(|d| d.person != person.index_u32() && d.endpoint == *endpoint)
-            })
-            .filter_map(|(endpoint, contact)| {
-                field
-                    .distance_to_contact(endpoint, contact)
-                    .map(|distance| (distance, endpoint))
-            })
-            .min();
-        let Some((distance, endpoint)) = best else {
-            continue;
-        };
-        let device_distance = (point.0 - origin.0).powi(2) + (point.1 - origin.1).powi(2);
-        candidates.push((device_distance, seat.entity.index_u32(), distance, endpoint));
     }
-    candidates.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
-    if let Some((_, chair, distance, endpoint)) = candidates.first().copied() {
+    candidates.sort_by(|a, b| {
+        a.0.total_cmp(&b.0)
+            .then(a.1.index_u32().cmp(&b.1.index_u32()))
+            .then(a.2.cmp(&b.2))
+    });
+    if let Some((_, chair, ordinal, distance, endpoint)) = candidates.first().copied() {
         return Some(Plan {
             access: Reachable {
                 route: Route::Exact(endpoint),
@@ -191,11 +235,12 @@ pub(crate) fn plan(
             lease: Some(SavedDiner {
                 person: person.index_u32(),
                 station: device.entity.index_u32(),
-                chair: Some(chair),
+                chair: Some(chair.index_u32()),
                 setting: None,
                 endpoint,
                 obstructing: vec![],
             }),
+            seat: Some((chair, ordinal)),
         });
     }
     let mut standing = vec![];
@@ -221,6 +266,7 @@ pub(crate) fn plan(
             distance: *distance,
         },
         lease: None,
+        seat: None,
     })
 }
 
@@ -252,7 +298,9 @@ pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketA
                 .map_or(pack.object(definition).base_facing, |f| f.0),
         };
         let device = world.get::<Position>(target.object)?;
-        let socket = seat_socket(pack, &seat, (device.x, device.y))?;
+        let socket = crate::seating::body(world, person)
+            .or_else(|| legacy_seat_socket(pack, &seat, (device.x, device.y)))?;
+        let socket = media_socket(pack, definition, socket, (device.x, device.y));
         let front = direction(socket.facing);
         return Some(crate::SocketActionProjection {
             x: socket.x,
@@ -296,15 +344,24 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
     {
         return false;
     }
-    if world.get::<terri_core::Reserved>(chair).is_some()
-        || world
-            .try_query::<(Entity, &Target)>()
-            .is_some_and(|mut query| {
-                query
-                    .iter(world)
-                    .any(|(owner, target)| owner != person && target.object == chair)
+    let held = world.get::<crate::seating::PhysicalClaim>(person);
+    if world
+        .try_query::<(Entity, &Target)>()
+        .is_some_and(|mut query| {
+            query.iter(world).any(|(owner, target)| {
+                owner != person
+                    && target.object == chair
+                    && world
+                        .get::<crate::seating::PhysicalClaim>(owner)
+                        .is_none_or(|c| {
+                            held.is_none_or(|ours| c.all || ours.all || c.seat == ours.seat)
+                        })
             })
+        })
     {
+        return false;
+    }
+    if held.is_none() && world.get::<terri_core::Reserved>(chair).is_some() {
         return false;
     }
     let pack = world.resource::<Content>().0;
@@ -331,15 +388,42 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
         return false;
     }
     let origin = (device.position.x, device.position.y);
-    let Some(socket) = seat_socket(pack, &seat, origin) else {
+    let socket =
+        crate::seating::body(world, person).or_else(|| legacy_seat_socket(pack, &seat, origin));
+    let Some(socket) = socket else {
         return false;
     };
+    let socket = media_socket(pack, seat.definition, socket, origin);
     let front = direction(socket.facing);
     let point = (socket.x, socket.y);
     let grid = world.resource::<TileGrid>();
-    let contact = approaches(pack, &seat, &socket)
-        .into_iter()
-        .find(|(end, _)| *end == lease.endpoint);
+    let options = if let Some(held) = held {
+        let Some(ordinal) = crate::seating::ordinal(world, held) else {
+            return false;
+        };
+        let def = pack.object(seat.definition);
+        let fp = def.footprint_at(seat.facing);
+        def.seat_approaches_at(ordinal as usize, seat.facing)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|(x, y)| {
+                let at = (
+                    seat.position.x.round() as i32,
+                    seat.position.y.round() as i32,
+                );
+                (
+                    (at.0 + x, at.1 + y),
+                    (
+                        at.0 + x.clamp(0, fp.width as i32 - 1),
+                        at.1 + y.clamp(0, fp.depth as i32 - 1),
+                    ),
+                )
+            })
+            .collect()
+    } else {
+        approaches(pack, &seat, &socket)
+    };
+    let contact = options.into_iter().find(|(end, _)| *end == lease.endpoint);
     if contact.is_none()
         || !grid.is_walkable(lease.endpoint.0, lease.endpoint.1)
         || !contact.is_some_and(|(_, tile)| {
@@ -492,9 +576,6 @@ pub(crate) fn maintain(world: &mut World) {
         let Some(device) = furniture.iter().find(|d| d.entity == target.object) else {
             continue;
         };
-        let claims = world
-            .get_resource::<terri_core::save::SavedDining>()
-            .map_or_else(Vec::new, |s| s.diners.clone());
         let occupancy = crate::seating::occupancy(world);
         let grid = world.resource::<TileGrid>();
         let from = (position.x.round() as i32, position.y.round() as i32);
@@ -509,7 +590,6 @@ pub(crate) fn maintain(world: &mut World) {
                 field: &field,
                 objects: &furniture,
                 occupancy: &occupancy,
-                claims: &claims,
             },
             person,
             device,
@@ -530,7 +610,7 @@ pub(crate) fn maintain(world: &mut World) {
             cancel(world, person, target);
             continue;
         };
-        crate::seating::replace(world, person, next.lease);
+        crate::seating::replace_media(world, person, next);
         world
             .entity_mut(person)
             .remove::<Eating>()

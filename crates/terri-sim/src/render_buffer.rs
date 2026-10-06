@@ -144,6 +144,35 @@ pub struct RenderBuffer {
     /// shell resolves the index against `item_kinds()` and the
     /// `carried_<kind>` atlas convention.
     pub carrying: Vec<u32>,
+    /// Canonical book transport; u32::MAX means no carried copy. Separate from food.
+    pub carried_books: Vec<u32>,
+    /// Per-entity range into shelf_book_masks; empty for non-shelves.
+    pub shelf_book_offsets: Vec<u32>,
+    pub shelf_book_counts: Vec<u32>,
+    /// Little-endian slot bits in consecutive 32-slot words, covering the full capacity.
+    pub shelf_book_masks: Vec<u32>,
+    /// Independent physical-copy rows for dropped books, sorted by copy ID.
+    pub dropped_book_ids: Vec<u32>,
+    pub dropped_book_positions: Vec<f32>,
+    /// 0 none, 1 fetch, 2 seat travel, 3 read, 4 return, 5 blocked return,
+    /// 6 pickup reach, 7 shelving reach.
+    pub reading_stages: Vec<u32>,
+    /// Exact journey copy, including pickup before carrying. u32::MAX means absent.
+    pub reading_copies: Vec<u32>,
+    /// Selected seat furniture identity, or u32::MAX. Stable seat ID is in reading_journeys.
+    pub reading_seats: Vec<u32>,
+    /// Active physical furniture, not an inbound reservation; u32::MAX is absent.
+    pub seated_furniture: Vec<u32>,
+    /// Current definition ordinal resolved from the claim's stable seat ID.
+    pub seated_places: Vec<u32>,
+    /// One when the active action owns the whole furniture, otherwise zero.
+    pub seated_whole: Vec<u32>,
+    /// Canonical home shelf and slot for a reading journey; u32::MAX is absent.
+    pub reading_home_shelves: Vec<u32>,
+    pub reading_home_slots: Vec<u32>,
+    /// Runtime reach timing; zero outside pickup and shelving.
+    pub reading_reach_remaining: Vec<u32>,
+    pub reading_reach_totals: Vec<u32>,
     /// Visible dirty dish units and unclaimed meal plates on each surface row.
     pub dirty_dishes: Vec<u32>,
     /// Four table-setting nibbles, each the visible dish count capped at 15.
@@ -1702,9 +1731,13 @@ mod tests {
             .clone();
 
         let chair_position = Position { x: 41.0, y: 40.0 };
-        let chair_agent_position = Position { x: 39.0, y: 40.0 };
+        let chair_agent_position = Position { x: 41.0, y: 41.0 };
         let (sitter, chair_target, _, _) =
             spawn_shipped_sitter(&mut sim, chair_position, chair_agent_position);
+        sim.world_mut()
+            .entity_mut(chair_target)
+            .insert(terri_core::Reserved);
+        crate::seating::install(sim.world_mut(), sitter, chair_target, 0, false);
         let seat = sim
             .world()
             .get::<crate::ResolvedActionSockets>(chair_target)
@@ -3822,12 +3855,6 @@ mod tests {
                 visual_action::NONE,
             ),
             (
-                "dining_table",
-                "sit_properly",
-                activity::SITTING,
-                visual_action::NONE,
-            ),
-            (
                 "long_sofa",
                 "stretch_out",
                 activity::LOUNGING,
@@ -3876,14 +3903,35 @@ mod tests {
                 visual_action::WATCH,
             ),
             ("bathtub", "soak", activity::BATHING, visual_action::NONE),
+            (
+                "reading_chair",
+                "sit",
+                activity::SITTING,
+                visual_action::SIT,
+            ),
+            ("chair", "sit", activity::SITTING, visual_action::SIT),
+            ("desk_chair", "sit", activity::SITTING, visual_action::SIT),
+            ("long_sofa", "sit", activity::SITTING, visual_action::SIT),
+            ("long_sofa", "read", activity::READING, visual_action::READ),
+            ("armchair", "read", activity::READING, visual_action::READ),
+            ("chair", "read", activity::READING, visual_action::READ),
+            ("desk_chair", "read", activity::READING, visual_action::READ),
+            ("sofa", "read", activity::READING, visual_action::READ),
+            (
+                "dining_table",
+                "sit_properly",
+                activity::SITTING,
+                visual_action::NONE,
+            ),
         ];
         assert_eq!(
             pack.objects
                 .iter()
-                .map(|object| object.interactions.len())
-                .sum::<usize>(),
+                .flat_map(|object| &object.interactions)
+                .filter(|action| action.activity.is_some())
+                .count(),
             cases.len(),
-            "every new shipped interaction needs an activity and icon review"
+            "every authored ordinary presentation needs an activity and icon review; recipe-only rows use their stages"
         );
         let mut sim = Sim::new_with_lot(64, 64);
         let mut agents = Vec::new();
@@ -3922,6 +3970,21 @@ mod tests {
                     },
                 ))
                 .id();
+            if pack.object(definition).interactions[interaction as usize].seat_use
+                != terri_data::SeatUse::Exclusive
+            {
+                sim.world_mut()
+                    .entity_mut(target)
+                    .insert(terri_core::Reserved);
+                crate::seating::install(
+                    sim.world_mut(),
+                    agent,
+                    target,
+                    0,
+                    pack.object(definition).interactions[interaction as usize].seat_use
+                        == terri_data::SeatUse::All,
+                );
+            }
             agents.push((
                 agent,
                 object_id,

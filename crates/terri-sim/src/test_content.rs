@@ -15,6 +15,55 @@ use crate::{portals::ActivePortals, Content, Sim};
 use terri_core::{Footprint, NeedId, SimRng, SmartObject};
 use terri_data::{CompiledInteraction, CompiledObject, ContentPack, Tuning};
 
+/// Explicit bindings for small manually assembled procedure fixtures. Public
+/// inheritance acceptance uses the separately compiled TOML fixture instead.
+pub(crate) fn bind_recipe(
+    pack: &mut ContentPack,
+    model: usize,
+    recipe: usize,
+    selected_step: u32,
+) -> u32 {
+    let chain = &pack.chains[recipe];
+    let mut action = interaction(
+        &chain.id,
+        &chain
+            .advertises
+            .iter()
+            .map(|(need, delta)| (NeedId::ALL[*need as usize], *delta))
+            .collect::<Vec<_>>(),
+        chain.steps.iter().map(|s| s.duration_ticks).sum(),
+    );
+    action.label = chain.label.clone();
+    action.tags = crate::systems::chain::chain_tags(chain);
+    action.satisfaction = chain.satisfaction;
+    action.recipe = Some(terri_data::RecipeBinding {
+        recipe: chain.id.clone(),
+        selected_step,
+        steps: chain.steps.iter().map(|s| s.duration_ticks).collect(),
+    });
+    let role = chain.steps[selected_step as usize].role;
+    let object = &mut pack.objects[model];
+    if !object.roles.contains(&role) {
+        object.roles.push(role);
+        object.roles.sort_unstable();
+    }
+    let row = object.interactions.len() as u32;
+    object.interactions.push(action);
+    row
+}
+
+pub(crate) fn completed_dinner_origin() -> crate::recipe_actions::Origin {
+    crate::recipe_actions::Origin(
+        terri_core::save_v6::ChainOrigin::Action {
+            model: "fridge".into(),
+            action: "cook_dinner".into(),
+            recipe: "cook_dinner".into(),
+            selected_step: 0,
+        },
+        crate::recipe_actions::SelectedUse::Complete,
+    )
+}
+
 /// Historical placements with current definitions; callers supply the era's walls.
 pub(crate) fn historical_lot(pack: &ContentPack) -> terri_data::CompiledLot {
     let origins = include!("../../test-fixtures/pre-yard-placements.rs");
@@ -60,6 +109,10 @@ pub fn interaction(
          name one twice"
     );
     CompiledInteraction {
+        media: None,
+        recipe: None,
+        book_reading: false,
+        seat_use: Default::default(),
         completion_sound: None,
         id: id.to_string(),
         advertises,
@@ -153,6 +206,11 @@ pub fn object_sized(
     footprint: Footprint,
 ) -> CompiledObject {
     CompiledObject {
+        cooking_front: None,
+        shelf_capacity: 0,
+        shelf_access: vec![],
+        metadata: None,
+        seats: vec![],
         sleep_places: Vec::new(),
         id: id.to_string(),
         name: id.to_string(),
@@ -282,6 +340,8 @@ pub fn pack_with_circadian(
 
 pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
+        books: Vec::new(),
+        reading: None,
         traits: Vec::new(),
         decay_per_tick: terri_data::pack().decay_per_tick,
         objects,
@@ -439,4 +499,28 @@ pub fn disable_mood_satisfaction(sim: &mut Sim) {
     pack.tuning.satisfaction_mood_per_tick = 0.0;
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
+}
+
+/// Source-world fixture for published positional formats. Current actions must not leak into it.
+pub(crate) fn pre_books_sim() -> Sim {
+    let content = Content::pre_books();
+    let seed = content.0.tuning.rng_seed;
+    Sim::new_household_with_content(content, seed)
+}
+
+/// Affinity migration consumes one restored random draw per person and kind.
+pub(crate) fn after_affinity_migration(snapshot: &terri_core::SaveSnapshotV5) -> SimRng {
+    let mut rng = snapshot.world.rng.clone();
+    if snapshot.affinities.is_none() {
+        let people = snapshot
+            .world
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .count();
+        for _ in 0..people * terri_data::pack().affinities.len() {
+            rng.next_f32();
+        }
+    }
+    rng
 }

@@ -39,9 +39,9 @@ it('preserves lamp identity, save round trips and illumination in every directio
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.objectName(15)).toBe('Illumination, Ambient');
+    expect(sim.objectName(15)).toBe('Floor lamp');
     expect(sim.interactionLabels(15)).toEqual([]);
-    expect(sim.catalogue().find(row => row.name === 'Illumination, Ambient')).toMatchObject({
+    expect(sim.catalogue().find(row => row.name === 'Floor lamp')).toMatchObject({
       price: 45, facings: 15, baseFacing: 0,
     });
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {

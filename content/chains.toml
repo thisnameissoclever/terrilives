@@ -1,15 +1,14 @@
 # The multi-step chains - [K1] in
 # docs/specs/2026-08-01-m2f-multi-step-working-design.md.
 #
-# A chain is a sequence of steps across station ROLES (see the roles
-# lists in objects.toml), advertised by one object and paid ONLY at the
-# last step's completion - a sim that gets halfway through cooking and
-# wanders off has not eaten. Steps resolve to the nearest placed object
-# wearing the role at run time, so the chain works on any lot that can
-# feed somebody, and refuses to compile on one that cannot.
+# A chain is a shared procedure across station roles (see objects.toml).
+# Public actions bind a recipe and retain their selected appliance through
+# its designated step. Other stages choose an available station by role.
+# Benefits arrive only at the last step: halfway through cooking is not fed.
 #
-# Durations are per STEP and obey the same clipped-duration rule as
-# interactions. Tags ride per step: the hob step is what a cooking
+# These durations and benefits are internal defaults. Bound public actions
+# supply their resolved total work and terminal benefits; compilation allocates
+# that work across the steps. Tags ride per step: the hob step is what a cooking
 # hobby loves and a cooking capability may fumble.
 
 [[chain]]
@@ -18,11 +17,10 @@ id = "cook_dinner"
 label = "Cook dinner"
 advertised_by = "fridge"
 # 70 hunger and 15 comfort, delivered at the table after eating.
-# These benefits were tuned for the original shorter meal. The current
-# six-stage meal costs 500 base work ticks plus travel and gathering;
-# benefit-per-time autonomy often favors the quicker snack. Habituation
-# still affects both choices. The longer cooking sequence does not add
-# a separate preference that forces Sims to choose a full meal.
+# Public actions set total work for these six stages. Cooked meals give
+# more food and comfort than snacks and can supply invited hungry friends.
+# Travel and gathering add time; urgency can make a snack the better choice.
+# Repetition affects appeal, without changing the delivered need benefits.
 advertises = { hunger = 70.0, comfort = 15.0 }
 # Above the retired stove meal's 2.5: a cooked-and-eaten dinner is the
 # fullest meal the game can express, and the satisfaction axis should

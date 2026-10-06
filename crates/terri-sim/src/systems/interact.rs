@@ -164,6 +164,19 @@ pub fn tick_interactions(
         // an advert naming a need rustc does not know, and it rejects a
         // zero duration, so the division below cannot be by zero.
         let act = &content.0.object(eating.object).interactions[eating.interaction as usize];
+        if act.book_reading {
+            commands.queue(move |world: &mut World| {
+                if !crate::reading::request_return(world, entity) {
+                    if let Some(target) = world.get::<Target>(entity).copied() {
+                        crate::reservations::release_now(world, entity, target);
+                    }
+                    world
+                        .entity_mut(entity)
+                        .remove::<(Eating, Target, terri_core::Path)>();
+                }
+            });
+            continue;
+        }
         let duration = act.duration_ticks as f32;
         for (need_index, delta) in &act.advertises {
             // **The satisfaction multiplier scales what a positive delta

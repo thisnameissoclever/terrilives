@@ -47,7 +47,7 @@ fn fixture(kind: ChoreKind) -> (Sim, Entity, ChoreKey) {
 fn reload(sim: &Sim) {
     let mut loaded = Sim::new_from_shipped_lot();
     loaded
-        .load_snapshot_v5(sim.save_snapshot_v5())
+        .load_snapshot_v6(sim.save_snapshot_v6())
         .expect("ordinary lifecycle state must reload");
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }

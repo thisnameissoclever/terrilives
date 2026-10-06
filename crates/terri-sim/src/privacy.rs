@@ -252,9 +252,13 @@ pub(crate) fn route(world: &mut World) {
             let helps = act
                 .map(|a| a.advertises.as_slice())
                 .or_else(|| {
-                    world
-                        .get::<terri_core::ChainState>(actor)
-                        .map(|c| pack.chains[c.chain as usize].advertises.as_slice())
+                    world.get::<terri_core::ChainState>(actor).map(|c| {
+                        crate::recipe_actions::benefits(
+                            pack,
+                            c,
+                            world.get::<crate::recipe_actions::Origin>(actor),
+                        )
+                    })
                 })
                 .unwrap_or(&[]);
             let urgent = world.get::<Needs>(actor).and_then(|needs| {
@@ -386,6 +390,7 @@ pub(crate) fn route(world: &mut World) {
                     actor,
                     world.get::<terri_core::SimId>(actor).copied(),
                     chain,
+                    world.get::<crate::recipe_actions::Origin>(actor),
                     object,
                     placed.0,
                     facing,
@@ -441,6 +446,76 @@ fn occupancy(world: &mut World) -> crate::beds::Occupancy {
     crate::seating::occupancy(world)
 }
 
+/// Probe the first real recipe stage before replacing an interrupted goal.
+fn replacement_recipe_route(
+    world: &mut World,
+    actor: Entity,
+    selected: Entity,
+    row: u32,
+    safe: &terri_core::TileGrid,
+    furniture: &[crate::systems::interpersonal::BoundaryFurniture],
+    occupancy: &crate::beds::Occupancy,
+) -> Option<Vec<(i32, i32)>> {
+    let pack = world.resource::<crate::Content>().0;
+    let model = world.get::<terri_core::SmartObject>(selected)?.0;
+    let (recipe, chain) = crate::action_rows::resolve(pack, model, row)?.recipe?;
+    if chain.steps.iter().enumerate().any(|(i, step)| {
+        !crate::dining::managed_step(pack, chain, i as u32)
+            && !furniture
+                .iter()
+                .any(|item| pack.object(item.definition).roles.contains(&step.role))
+    }) {
+        return None;
+    }
+    let (state, origin) = crate::recipe_actions::begin(pack, model, row, recipe, selected);
+    let mut domestic = world
+        .get_resource::<terri_core::save::SavedDomestic>()
+        .cloned()
+        .unwrap_or_default();
+    // A replacement releases the actor's old dish claim before acquiring the new one.
+    domestic
+        .cleanup
+        .retain(|task| task.person != actor.index_u32());
+    if chain.id == crate::domestic::CLEANUP {
+        let dishes = crate::domestic::available_cleanup_dishes(world, actor);
+        if dishes.is_empty() {
+            return None;
+        }
+        domestic.cleanup.push(terri_core::save::SavedCleanup {
+            person: actor.index_u32(),
+            dishes,
+            collected: Vec::new(),
+            directed: true,
+        });
+    }
+    let from = *world.get::<terri_core::Position>(actor)?;
+    let id = world.get::<SimId>(actor).copied();
+    let occupants = crate::domestic::boundary_occupants(world);
+    furniture
+        .iter()
+        .filter_map(|item| {
+            crate::domestic::boundary_route(
+                pack,
+                Some(&domestic),
+                actor,
+                id,
+                state,
+                Some(&origin),
+                item.entity,
+                item.definition,
+                Some(&terri_core::ObjectFacing(item.facing)),
+                item.position,
+                from,
+                safe,
+                occupancy.exclusive_available(actor, item.entity),
+                &occupants,
+            )
+            .map(|steps| (steps.len(), item.entity.index_u32(), steps))
+        })
+        .min_by_key(|(length, index, _)| (*length, *index))
+        .map(|(_, _, steps)| steps)
+}
+
 pub(crate) fn substitute(
     world: &mut World,
     actor: Entity,
@@ -448,6 +523,9 @@ pub(crate) fn substitute(
     safe: &terri_core::TileGrid,
     allow_private_start: bool,
 ) -> bool {
+    if crate::reading::request_return(world, actor) {
+        return true;
+    }
     use terri_core::{ObjectFacing, Path, Position, Reserved, SmartObject, Target};
     let pack = world.resource::<crate::Content>().0;
     let pos = *world.get::<Position>(actor).unwrap();
@@ -489,9 +567,6 @@ pub(crate) fn substitute(
             }
         })
         .collect();
-    let physical_claims = world
-        .get_resource::<terri_core::save::SavedDining>()
-        .map_or_else(Vec::new, |state| state.diners.clone());
     for item in &furniture {
         let object = item.entity;
         let position = &item.position;
@@ -504,6 +579,9 @@ pub(crate) fn substitute(
             &field,
         );
         for (interaction, a) in definition.interactions.iter().enumerate() {
+            if a.book_reading {
+                continue;
+            }
             if !a
                 .advertises
                 .iter()
@@ -525,6 +603,22 @@ pub(crate) fn substitute(
                 object,
                 interaction: interaction as u32,
             };
+            let recipe_path = if a.recipe.is_some() {
+                let Some(path) = replacement_recipe_route(
+                    world,
+                    actor,
+                    object,
+                    interaction as u32,
+                    safe,
+                    &furniture,
+                    &occupancy,
+                ) else {
+                    continue;
+                };
+                Some(path)
+            } else {
+                None
+            };
             let media =
                 crate::seating::media_activity(pack, item.definition, next.interaction).is_some();
             let media_plan = media
@@ -536,7 +630,6 @@ pub(crate) fn substitute(
                             field: &field,
                             objects: &furniture,
                             occupancy: &occupancy,
-                            claims: &physical_claims,
                         },
                         actor,
                         item,
@@ -561,8 +654,12 @@ pub(crate) fn substitute(
                     } else {
                         access.for_admission(admission)?
                     };
-                    let steps = route.route.path(safe, from)?;
-                    let steps = safe.anchor_path((pos.x, pos.y), steps)?;
+                    let steps = if let Some(path) = &recipe_path {
+                        path.clone()
+                    } else {
+                        let steps = route.route.path(safe, from)?;
+                        safe.anchor_path((pos.x, pos.y), steps)?
+                    };
                     let risk = crate::systems::autonomy::survival_penalty(
                         pack,
                         &needs,
@@ -570,7 +667,11 @@ pub(crate) fn substitute(
                         instinct,
                         &a.advertises,
                         a.duration_ticks,
-                        route.distance as f32,
+                        if recipe_path.is_some() {
+                            steps.len() as f32
+                        } else {
+                            route.distance as f32
+                        },
                         a.tags.contains(&pack.sleep_tag),
                         deprivation,
                         death_enabled,
@@ -581,7 +682,7 @@ pub(crate) fn substitute(
                             preference,
                             ordinal,
                         } => (preference, ordinal),
-                        crate::beds::Admission::Exclusive => {
+                        crate::beds::Admission::Exclusive | crate::beds::Admission::Seat { .. } => {
                             (crate::beds::Preference::Unassigned, 0)
                         }
                     };
@@ -595,7 +696,7 @@ pub(crate) fn substitute(
                         ordinal,
                         admission,
                         steps,
-                        media_plan.as_ref().and_then(|p| p.lease.clone()),
+                        media_plan.clone(),
                     ))
                 })
                 .min_by(|a, b| {
@@ -631,12 +732,47 @@ pub(crate) fn substitute(
     if let Some((_, _, interaction, object, admission, steps, _, lease)) =
         candidates.into_iter().next()
     {
+        let model = world
+            .get::<SmartObject>(object)
+            .expect("candidate object")
+            .0;
+        if let Some((recipe, chain)) =
+            crate::action_rows::resolve(pack, model, interaction).and_then(|row| row.recipe)
+        {
+            if let Some(t) = target {
+                crate::reservations::release_now(world, actor, t);
+            }
+            crate::domestic::abandon(world, actor);
+            world
+                .entity_mut(actor)
+                .remove::<(
+                    Target,
+                    Path,
+                    terri_core::Eating,
+                    terri_core::StepWork,
+                    terri_core::Carrying,
+                    terri_core::Fumbled,
+                    terri_core::SleepPlace,
+                )>()
+                .insert(crate::recipe_actions::begin(
+                    pack,
+                    model,
+                    interaction,
+                    recipe,
+                    object,
+                ));
+            if chain.id == crate::domestic::CLEANUP {
+                crate::domestic::directed_cleanup(world, actor);
+            }
+            maintain(world);
+            return true;
+        }
         crate::domestic::suspend_cleanup(world, actor);
         if let Some(t) = target {
             crate::reservations::release_now(world, actor, t);
         }
         match admission {
-            crate::beds::Admission::Exclusive => {
+            crate::beds::Admission::Exclusive | crate::beds::Admission::Seat { .. } => {
                 world.entity_mut(actor).remove::<terri_core::SleepPlace>();
             }
             crate::beds::Admission::Sleep { ordinal, .. } => {
@@ -653,7 +789,10 @@ pub(crate) fn substitute(
             },
             Path { steps, cursor: 0 },
         ));
-        crate::seating::replace(world, actor, lease);
+        crate::seating::apply_admission(world, actor, admission);
+        if let Some(plan) = lease {
+            crate::seating::replace_media(world, actor, plan);
+        }
         return true;
     }
     false

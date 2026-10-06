@@ -7,14 +7,17 @@ use std::{
     io::{Read, Write},
     path::Path,
 };
-use terri_core::{
-    legacy_chores_preview::PreviewSnapshotV5, SaveSnapshotV5, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
-};
+use terri_core::{legacy_chores_preview::PreviewSnapshotV5, SaveSnapshotV5, SAVE_MAGIC};
 use terri_sim::Sim;
 
 const PREVIEW_FINGERPRINT: u64 = 0xcf78_7472_e9e8_38f5;
 const HEADER_BYTES: usize = SAVE_MAGIC.len() + std::mem::size_of::<u16>();
 const MAX_SAVE_BYTES: usize = 16_777_216;
+
+fn published_source() -> Sim {
+    let pack = terri_sim::Content::latest_pre_books().0;
+    Sim::new_household_with_content(terri_sim::Content(pack), pack.tuning.rng_seed)
+}
 
 fn decode_preview(bytes: &[u8]) -> Result<PreviewSnapshotV5, String> {
     if !(HEADER_BYTES..=MAX_SAVE_BYTES).contains(&bytes.len()) {
@@ -39,7 +42,9 @@ fn decode_preview(bytes: &[u8]) -> Result<PreviewSnapshotV5, String> {
 
 fn encode_current(snapshot: &SaveSnapshotV5) -> Result<Vec<u8>, String> {
     let mut bytes = SAVE_MAGIC.to_vec();
-    bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
+    // This converter emits the complete published V5 world format.
+    // The public loader then migrates that source into the current envelope.
+    bytes.extend_from_slice(&5u16.to_le_bytes());
     bytes.extend(postcard::to_allocvec(snapshot).map_err(|e| e.to_string())?);
     Ok(bytes)
 }
@@ -47,7 +52,7 @@ fn encode_current(snapshot: &SaveSnapshotV5) -> Result<Vec<u8>, String> {
 fn migrate(bytes: &[u8]) -> Result<(Vec<u8>, u64, u64), String> {
     let snapshot: SaveSnapshotV5 = decode_preview(bytes)?.into();
     let tick = snapshot.world.tick;
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = published_source();
     sim.load_snapshot_v5(snapshot.clone())
         .map_err(|error| format!("converted preview snapshot failed validation: {error:?}"))?;
     let hash = sim.world_hash();
@@ -196,7 +201,7 @@ mod tests {
     }
 
     fn fixture() -> PreviewSnapshotV5 {
-        let mut sim = Sim::new_from_shipped_lot();
+        let mut sim = published_source();
         for _ in 0..80 {
             sim.tick();
         }
@@ -290,14 +295,14 @@ mod tests {
         assert!(rest.is_empty());
         let mut retained = saved.clone();
         retained.skills = None;
-        let mut direct = Sim::new_from_shipped_lot();
+        let mut direct = published_source();
         direct.load_snapshot_v5(expected.clone()).unwrap();
         assert_eq!(
             retained,
             expected_affinity_migration(&direct, expected.clone()).unwrap()
         );
 
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = published_source();
         restored.load_snapshot_v5(saved).unwrap();
         assert_eq!(restored.world_hash(), hash);
         assert_eq!(

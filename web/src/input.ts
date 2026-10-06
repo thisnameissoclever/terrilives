@@ -1,5 +1,6 @@
 import {cleaningBinSprite} from './frame.js';
 import { sampleBedCoverage } from './render/bed-sprites.js';
+import { SHELF_COVERAGE, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES } from './render/atlas.js';
 /**
  * Pointer input: a click on the canvas becomes a serialised player command.
  *
@@ -99,6 +100,16 @@ export interface PickSource {
   simIds?(): Uint32Array;
   carrying?(): Uint32Array;
   carriedDishes?(): Uint32Array;
+  carriedBooks?(): Uint32Array;
+  readonly droppedBookCount?: number;
+  droppedBookIds?(): Uint32Array;
+  droppedBookPositions?(): Float32Array;
+  readingCopies?(): Uint32Array;
+  readingStages?(): Uint32Array;
+  readingHomeShelves?(): Uint32Array;
+  readingHomeSlots?(): Uint32Array;
+  readingReachRemaining?(): Uint32Array;
+  readingReachTotals?(): Uint32Array;
   choreProgress?(): Uint32Array;
   dirtyDishes?(): Uint32Array;
   dirtySettings?(): Uint32Array;
@@ -110,6 +121,10 @@ export interface PickSource {
   interactionTargets?(): Uint32Array;
   sleepingBeds?(): Uint32Array;
   sleepingPlaces?(): Uint32Array;
+  seatedFurniture?(): Uint32Array;
+  seatedPlaces?(): Uint32Array;
+  seatedWhole?(): Uint32Array;
+  modelSeatIds?(model: string): readonly string[];
   mealTables?(): Uint32Array;
   footprintWidths?(): Uint32Array;
   footprintDepths?(): Uint32Array;
@@ -146,6 +161,7 @@ export interface Pick {
   readonly entity: number;
   readonly isAgent: boolean;
   readonly cleanup?: { readonly surface: number; readonly dishes: readonly number[] };
+  readonly bookCopy?: number;
 }
 
 /**
@@ -362,7 +378,7 @@ export function clientToWorld(
  * loop's timing; the miss is small and only at the boundary, so it has not been
  * done.
  */
-const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES);
+const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG);
 
 export function pickSprite(
   source: PickSource,
@@ -481,6 +497,10 @@ export function pickSprite(
         py > top + (bounds?.[3] ?? spriteHeight(displayedSprite)) * scale) continue;
 
     const bed = interactions.bedScenes[row];
+    const shelfAlpha = SHELF_COVERAGE[displayedSprite];
+    if (shelfAlpha && sampleBedCoverage(shelfAlpha,
+      (px - left) / scale * (sprite.pixel_density ?? 1) - .5,
+      (py - top) / scale * (sprite.pixel_density ?? 1) - .5) < .5) continue;
     const place = interactions.bedPlaces[row];
     let coverage = -1;
     const seatingCoverage = SEATING_COVERAGE[displayedSprite];
@@ -582,6 +602,19 @@ export function pickSprite(
         bestNearness = near; bestLayer = LAYER_FOREGROUND; bestDrawRow = drawRow;
         best = { entity: ids[row], isAgent: false, cleanup: { surface: ids[row], dishes } };
       }
+    }
+  }
+  const droppedIds = source.droppedBookIds?.(), droppedPositions = source.droppedBookPositions?.();
+  for (let drop = 0; drop < (source.droppedBookCount ?? 0); drop++) {
+    const record = DROPPED_BOOK_SPRITES[droppedIds![drop] % DROPPED_BOOK_SPRITES.length];
+    const sprite = record.sprite, x = droppedPositions![drop * 2], y = droppedPositions![drop * 2 + 1];
+    const left = screenX(x, y, originX, scale) + (spriteDrawOffsetX(sprite) - spriteWidth(sprite) / 2) * scale;
+    const top = screenY(x, y, originY, scale) + (TILE_HALF_HEIGHT + spriteDrawOffsetY(sprite) - spriteHeight(sprite)) * scale;
+    if (px < left || px > left + spriteWidth(sprite) * scale || py < top || py > top + spriteHeight(sprite) * scale) continue;
+    if (sampleBedCoverage(BED_COVERAGE[record.alpha], (px - left) / scale * 2 - .5, (py - top) / scale * 2 - .5) < .5) continue;
+    if (x + y > bestNearness || (x + y === bestNearness && LAYER_PROP > bestLayer)) {
+      bestNearness = x + y; bestLayer = LAYER_PROP;
+      best = { entity: 0xffffffff, isAgent: false, bookCopy: droppedIds![drop] };
     }
   }
   return best;
@@ -710,6 +743,7 @@ export function resolveLeftClick(
   additive: boolean,
 ): ClickAction {
   if (pick === null) return { kind: 'select', entity: null };
+  if (pick.bookCopy !== undefined) return { kind: 'none' };
   if (pick.isAgent) return { kind: 'select', entity: pick.entity };
   if (selected === null) return { kind: 'none' };
   if (pick.cleanup) return { kind: 'clean', agent: selected, ...pick.cleanup, placement: additive ? 'back' : 'front' };
@@ -738,6 +772,7 @@ export interface CommandSink {
   cleanChore?(person:number,kind:number,target:number,first:boolean):boolean;
   cleanDishes?(agent: number, surface: number, dishes: readonly number[] | null): boolean;
   cleanDishesFirst?(agent: number, surface: number, dishes: readonly number[] | null): boolean;
+  readBook?(agent: number, object: number, action: string, title: string, front: boolean): boolean;
   select(entityIndex: number | null): boolean;
   /**
    * `interaction` is required, matching `SimBridge.useObject`. A default of
@@ -822,6 +857,7 @@ export type InputTarget = CommandSink & PickSource;
 export interface InteractionSource {
   choreOptions?(entity:number):Uint32Array;
   floorChoreAt?(x:number,y:number):Uint32Array;
+  readingChoices?(entity: number): { entries: readonly import('./ui/object-menu.js').MenuEntry[]; notice: string } | undefined;
   interactionLabels(entity: number): readonly string[];
   /**
    * What to call the thing under the pointer, for the flyout's heading.
@@ -885,6 +921,7 @@ export function handleLeftClick(
   scale = 1,
   reducedMotion = false,
   onOrderAttempt: () => void = () => {},
+  onBookPicked: (copy: number) => void = () => {},
 ): LeftClickOutcome {
   if (point === null) return { kind: 'none' };
   const pick = pickSprite(
@@ -896,6 +933,7 @@ export function handleLeftClick(
     scale,
     reducedMotion,
   );
+  if (pick?.bookCopy !== undefined) { onBookPicked(pick.bookCopy); return { kind: 'none' }; }
   const action = resolveLeftClick(pick, target.selectedIndex(), additive);
   if (action.kind === 'none') return { kind: 'none' };
   if (action.kind === 'use' || action.kind === 'clean') onOrderAttempt();
@@ -1016,6 +1054,7 @@ export function resolveRightClick(
     if(point&&target.floorChoreAt){const [x,y]=screenToWorld(point.x,point.y,originX,originY,scale);const floor=target.floorChoreAt(Math.round(x),Math.round(y));if(floor.length===2)return floorMenuEntries(floor[0],floor[1]);}
     return NOTHING_MENU;
   }
+  if (pick.bookCopy !== undefined) return NOTHING_MENU;
   if (pick.isAgent) {
     // The selected sim itself: nothing to do but close. A DIFFERENT
     // sim: the social vocabulary - "walk over and chat" - which is the
@@ -1120,6 +1159,8 @@ export function dispatchMenuAction(
     case 'chore':return sink.cleanChore?.(agent,action.choreKind,action.target,placement==='front')??false;
     case 'clean':
       return sendClean(sink, agent, action.surface, action.dishes, placement);
+    case 'read':
+      return sink.readBook?.(agent, action.object, action.action, action.title, placement === 'front') ?? false;
     case 'use':
       return sendUse(sink, agent, action.object, action.interaction, placement);
     case 'talk':
@@ -1304,6 +1345,7 @@ export function attachPointerInput(
   onOrderAttempt: () => void = () => {},
   onCommandAccepted: (kind: RejectedCommandKind) => void = () => {},
   editing?: CanvasEditInput,
+  onBookPicked: (copy: number) => void = () => {},
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -1489,6 +1531,7 @@ export function attachPointerInput(
       camera.scale,
       reducedMotion(),
       onOrderAttempt,
+      onBookPicked,
     );
     reportCommandOutcome(outcome, onCommandAccepted, onCommandRejected);
   });

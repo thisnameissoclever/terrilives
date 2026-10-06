@@ -1575,7 +1575,7 @@ describe('resolveRightClick', () => {
   });
 
   it('carries the clicked object description beside its unchanged action rows', () => {
-    const details = { modelName: 'Staying In', description: 'A chair for sitting.' };
+    const details = { modelName: 'Lounge', description: 'A chair for sitting.' };
     const sink = { ...target(6), objectDetails: (entity: number) => entity === 9 ? details : undefined };
     const described = resolveRightClick(sink, bodyOf([7, 3]), 0, 0);
     expect(described?.details).toEqual(details);

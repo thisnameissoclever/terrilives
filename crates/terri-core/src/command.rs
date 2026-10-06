@@ -291,6 +291,27 @@ pub enum SimCommand {
     SetChoreBoard {
         enabled: bool,
     },
+    Book(BookCommand),
+}
+
+/// Book operations use stable authored title/action IDs and preserve stream order.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BookCommand {
+    Purchase {
+        title: String,
+        shelf: Option<u32>,
+    },
+    Transfer {
+        copy: u32,
+        shelf: Option<u32>,
+    },
+    Read {
+        agent: u32,
+        object: u32,
+        action: String,
+        title: String,
+        front: bool,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -964,5 +985,20 @@ mod edit_wire_tests {
         })
         .unwrap();
         assert_eq!(bytes, [22, 0, 0, 0, 0, 0]);
+    }
+}
+
+#[cfg(test)]
+mod book_wire_test {
+    #[test]
+    fn owned_book_command_appends_after_all_published_chore_commands() {
+        let command = super::SimCommand::Book(super::BookCommand::Purchase {
+            title: "t".into(),
+            shelf: None,
+        });
+        assert_eq!(
+            postcard::to_allocvec(&command).unwrap(),
+            [29, 0, 1, b't', 0]
+        );
     }
 }

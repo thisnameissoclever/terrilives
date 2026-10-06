@@ -7535,6 +7535,8 @@ remove stale blocker instructions from the recurring monitor.
 midnight while trying to capture a crossing. The primary save was automatically
 written at 2026-09-21T03:09:33.828Z. No Save button was clicked, but that did not
 preserve the file. A V1 recovery copy was created before the V2 overwrite.
+The same visibility path later overwrote a browser test fixture during navigation
+because the test seeded storage while a game page still held the previous world.
 
 **Root cause.** Verification treated ordinary UI playback as save-neutral without
 checking the midnight and hidden-tab autosave paths. Pausing also does not prevent
@@ -7546,11 +7548,16 @@ inspect startup, periodic and visibility-triggered writes. Perform gameplay on a
 disposable local origin. Keep public checks read-only and do not assume closing a
 paused tab is write-free. Preserve identified recovery bytes and seek direction
 before replacing a user's save.
+For startup-load tests, create a fresh isolated browser context. Seed the fixture
+from a non-game document on the same local origin before opening the game. Do not
+change production autosave behavior to accommodate a fixture-seeding race.
 
 **How to verify.** Record public save hashes and metadata through a non-game,
 same-origin document before and after the check. Require unchanged bytes. Exercise
 midnight and hidden-tab behavior only on disposable saves. This incident's owned
 tab was script-disabled before closure; no recovery write was attempted.
+For a seeded startup test, verify the loaded household and copy identities through
+the running game's native bridge as well as its visible controls.
 
 ## [L-builder-export-contracts] Test the values returned to the browser
 
@@ -7871,7 +7878,9 @@ Hidden` and `--background`, with absolute script and output paths. Do not open
 an interactive Blender window without separate foreground permission. The
 full command, including `--threads 2` and `--python-exit-code 1`, is in
 `assets/models/sims/sim-01/README.md`; copy it from there rather than from
-this summary.
+this summary. `Get-Command blender` can resolve the protected package executable;
+that path does not establish the supported launch command. Read the documented
+launcher command before starting a render.
 
 **How to verify.** Require a newly written script result with
 `bpy.app.background` true and the Blender version. For actual renders, also
@@ -9175,6 +9184,28 @@ Changing to an urgent goal also needs stable priority. Comparing two critical ne
 The balance harness initially inferred completion from any final-step disappearance and omitted chains still active at cutoff. Its JSON summary also dropped recovery contributions and some negative causes. Observe the terminal countdown, report outstanding chains and progress intervals, and retain every cause before drawing an access or balance conclusion. All 168 final runs reproduced identical hashes and prior metrics after adding those read-only observations; the report distinguishes pooled privacy frequency from individual-layout results and reused validation seeds from an untouched holdout.
 
 
+A meal comparison counted later snacks and slower sleeping decay as rewards from
+its original meal. The observer watched need changes without retaining the exact
+recipe invocation or shared batch. Shorter preparation also changed whether
+guests were hungry enough when invitations were sent; that was a real outcome,
+not a reason to wait for unrelated food.
+
+Attribute delivery to the owned terminal recipe step and the batch's cook and
+plating tick. Stop each delivery ledger when that invocation ends. Keep authored
+reward, actual clamped reward and net need change separate. Account for the
+actual decay state only at an owned completion, rather than treating every
+positive residual as food. Predeclare matched starting needs for urgent feeding,
+positive shared feeding and late invitation eligibility; retain failed or
+partial outcomes. Do not infer skill-based speed from the difference between
+an authored duration and sampled work plus travel and waiting.
+
+Verify that later snacks, unrelated batches, sleep-only decay and cancellation
+produce no delivery for the tracked meal. Retain real completions with zero
+usable reward after clamping. Observe invitation, collection and eating intervals
+before claiming communal dining. A countdown-decrement counter is an observation,
+not total work, unless arrival-tick work and other transitions are also counted.
+
+
 ## [L-privacy-autonomy-integration] Preserve published behavior when integrating simulation features
 
 **What happened:** integrating privacy development with newer autonomy and sleep changes exposed a stroll detour that discarded the distance already walked, save fixtures that cut at outdated offsets, and replay fixtures that omitted the newly required self-preservation component. The previous relationship calibration no longer described the integrated simulation.
@@ -9740,12 +9771,20 @@ orientation relative to its parent's deformed rest frame, not an unrelated world
 normal. Carry the roll convention through the chain; fixing only the shoulder
 can transfer the twist to the elbow. Re-solve surface contact after changing roll,
 because identical joint positions do not imply identical palm or cuff surfaces.
+A hand-referenced forearm can move that mismatch to the elbow when upper-arm
+axial rotation is frozen. Keep the complete chain's available orientation freedoms
+explicit. Solve compatible shoulder, elbow and wrist frames together, retaining
+the actual source rest directions rather than assuming a straight chain. Measure
+both joint residuals and all changed skin and garments. A compatible frame solution
+does not, by itself, certify its resulting shoulder deformation or grip.
 
 ## [L-sleep-silhouette-before-certification] Review the whole sleeping posture first
 
 **What happened.** Detailed arm/contact work continued on a double-bed pose whose
 knees were drawn up conspicuously. The owner rejected the cramped posture after
-earlier independent reviews had accepted its early visual appearance.
+earlier independent reviews had accepted its early visual appearance. Reading
+and shared-seat authoring later repeated the ordering mistake: local collision
+improvements were measured before inspecting the current whole pose.
 
 **Root cause.** Review concentrated on the recently changed arms and numerical
 fit. The inherited folded legs escaped a whole-body naturalness check. Passing
@@ -9757,10 +9796,20 @@ together. For a relaxed back-sleeping baseline, start with mostly extended legs
 and a slight bend. Measure the complete body against the mattress. Do not force
 an implausible curl to conceal a proportion mismatch or silently resize approved
 art. Preserve rejected poses and distinguish visual rejection from physical fit.
+Render diagnostic views even when known geometry failures remain; label those
+failures and keep them separate from acceptance. Author the intended posture on
+its actual furniture before expanding an isolated hand or arm fit. A particular
+palm-support model or frozen grip is an authoring choice, not an owner requirement.
+Use contact measurements appropriate to the chosen grip without excusing its
+actual visible clipping, unsupported props or damaged anatomy.
 
 **Verify.** Retain the straight-leg and slight-bend bounds, corresponding source
 images and independent whole-body review under the double-bed pilot. Neither an
 arm-only pass nor an old interbody certificate transfers to a changed full pose.
+For reading, inspect the face, pages, wrists and complete seated silhouette at
+native size and useful close views; a ray reaching a page does not prove a
+convincing reading posture. Keep actual geometry checks and visual judgment as
+separate evidence.
 
 ## [L-occupied-bedding-replaces-flat-duvet] Lift the existing blanket over the sleeper
 
@@ -10610,3 +10659,414 @@ waiting order runs. Save and reload each transition with matching hashes.
 **Prevention.** For a body or animal sound, search CC0 sources for recordings first and audition them with the owner before synthesizing. Measure each candidate's energy above 1 kHz and 2 kHz before offering it, because the owner wants very few high-pitched sounds in a game left playing in the background. Send rendered audio files for listening rather than describing a waveform.
 
 **Verify.** Each offered candidate has a recorded licence and a band-energy measurement, and the owner chose the shipped sound by ear. For the snore, ASSETS.md, "Sleeping snore recordings", records both.
+## [L-object-description-explicit-activation] Keep optional descriptions closed until requested
+
+**What happened.** Object descriptions opened when the pointer crossed their names or keyboard focus reached them, although the player had only opened the action menu. Object names also obscured ordinary types with forced jokes.
+
+**Root cause.** Hover and focus were treated as requests to read optional text. Model names carried the job of identifying objects that lacked separate type labels.
+
+**Prevention rule.** Use an explicit click, tap, or keyboard activation to toggle optional descriptions. Give each object a plain type and keep model names secondary. State actual uses and limits before considering humor.
+
+**How to verify.** Hover and focus must leave a newly opened description closed. Click, Enter, Space, and touch must toggle it; moving toward an action must preserve its position. Reopening the menu resets it. Check every catalogue item against the placed object and verify that edits change only names and presentation text.
+
+
+## [L-product-copy-is-not-development-status] Describe the product a player is choosing
+
+**What happened.** An object-copy rewrite replaced forced jokes with generic action summaries and temporary limitations, including a warning that an upper bunk was not usable. The owner rejected it because the same descriptions must sell and distinguish specific models in the store.
+
+**Root cause.** Flavor text was treated as implementation documentation. Removing bad humor also removed product character, quality cues, and reasons to choose one model over another.
+
+**Prevention rule.** Review the physical model, its resolved values, and its intended trade-offs before naming or describing it. Write specific product copy with optional humor. Keep development status in development documentation and material purchase facts in functional details. A higher price needs an advantage but does not imply superiority in every dimension.
+
+**How to verify.** Compare the art, balance table, name, description, and purchase details for competing models. Each model should offer an understandable distinction without promising unimplemented effects. Obtain the owner's wording review before publishing.
+
+## [L-resume-finished-workers-explicitly] A queued message does not restart a completed worker
+
+**What happened.** Review findings and later resource grants were sent to workers after their turns had completed. The instructions remained queued while the parent expected implementation or validation to be running.
+
+**Root cause.** The parent used a message-only operation, which does not start a new turn for an idle or completed worker.
+
+**Prevention rule.** Use the follow-up task operation for new assignments, continuation instructions and resource grants; it can deliver to a running worker or start an idle one. Reserve message-only delivery for information that does not require starting work. A readiness report can be followed by completion before the parent sends its grant, so do not rely on the earlier running status. Check the dispatch acknowledgment and reconcile live workers during a wait.
+
+**How to verify.** The resumed task acknowledges its assignment and produces new source, process or test evidence. A queued message, an old log or a superficial running indicator is not evidence of resumed execution. Preserve any existing process identity during takeover and inspect its actual completion before launching a duplicate job.
+
+## [L-content-layer-validation] Validate authored layers as well as resolved models
+
+**What happened.** Independent review found that inherited satisfaction could not be removed, unused action templates could contain invalid semantic references, and legacy input could inject unchecked classification metadata.
+
+**Root cause.** One helper treated optional and required numeric properties alike. Layer preflight checked operation shape but left names to validation of consumed models. A resolver-derived field was also exposed as an authored field.
+
+**Prevention rule.** Preserve each property's absence/removal contract. Validate supplied semantic references in every authored layer, including unused and partial templates, through the same vocabulary validators used by resolved content. Keep derived metadata owned by the resolver.
+
+**How to verify.** Removing an inherited satisfaction reward resolves to zero. Unused unknown need, sound, activity, and visual names fail compilation. Direct metadata authoring fails. Partial templates and model-owned socket resolution remain valid. Each failure has a regression that failed before its correction.
+
+## [L-current-save-envelopes-need-current-markers] Check current semantics before invoking legacy restoration
+
+**What happened.** The first V6 wrapper reused V5 restoration without requiring modern sleeping-place state. An explicitly absent record invoked historical migration and cleared assigned beds. A historical shyness truncation test also cut current V6 output using old V5 offsets, so it passed without testing its stated case.
+
+**Root cause.** Strict byte decoding was mistaken for a complete current-format contract. The embedded historical structure still admitted obsolete absence markers and migration defaults. The old-format test borrowed the current writer's header.
+
+**Prevention rule.** Validate current presence markers and retired fields before entering shared legacy restoration. Preserve legitimate sparse fields according to the actual current writer. Construct historical test payloads with explicit historical headers and snapshots.
+
+**How to verify.** A V6 record with absent sleeping places, an unapplied historical death default, or legacy index-based family entries must reject without changing nonempty live assignments, settings, bytes, or hash. The shyness-cut fixture must assert its V5 header before truncation. Genuine historical saves must still load through their dedicated path.
+
+## [L-test-one-source-revision] Keep build inputs fixed during verification
+
+**What happened.** A seating verification build compiled the saved owner field as one type, then read its simulation consumers after that field had been changed. The mixed build failed even though neither complete source revision had that particular mismatch.
+
+**Root cause.** Source edits continued while a command was compiling several crates. A build reads its inputs over time; starting the command does not capture a source snapshot.
+
+**Prevention rule.** Keep production sources and tests unchanged during an acceptance command. Use the wait for documentation, isolated experiments or read-only review. If a relevant edit lands during a run, do not attribute the result to the final source revision; run the affected checks again after editing stops.
+
+**How to verify.** Record the tested revision or worktree diff and confirm it did not change during the command. Run the affected crates against the complete saved-field type and its callers, then retain the command's actual exit code and results.
+
+## [L-validate-legacy-claims-before-cleanup] Validate old ownership before migration cleanup
+
+**What happened.** Seating migration could end a legacy activity and remove the evidence that two people had claimed the same chair. A malformed-save regression then accepted the transformed result.
+
+**Root cause.** Migration cleanup ran before the old format's exclusive-chair rule was checked. The repaired state looked valid even though its source had never been valid.
+
+**Prevention rule.** Validate ownership rules required by the source format before removing or translating its activity records. End valid obsolete actions only after those checks. Current-format loads must reject missing or conflicting claims rather than reconstructing them through a legacy migration path.
+
+**How to verify.** A saved duplicate chair claim must reject without changing the running household. Genuine old meal and media saves must still migrate, while current saves require complete physical-seat claims.
+
+## [L-use-one-seating-contact-contract] Share contact rules across planning and restoration
+
+**What happened.** Dining could choose an approach across a wall even though current save validation rejected that contact. Historical rerouting could also take another diner's reserved approach. Mixed meal and media leases then exposed a validation result that depended on person order.
+
+**Root cause.** Admission, migration and restoration each encoded part of the same rules. A path reaching a walkable tile was mistaken for legal contact with the chair, and endpoint conflicts were checked differently by activity.
+
+**Prevention rule.** Use the same legal-contact predicate in planning, migration and current validation. Express endpoint conflicts symmetrically and publish accepted reservations to the current selection pass before deferred commands run. Keep physical seats distinct from travel approaches: different sofa seats can share an approach without sharing a seat. Preserve the source format's rules when validating historical input.
+
+**How to verify.** Test a reachable tile across a wall, both person and admission orders for meal/media conflicts, an old traveller whose only new approach is already claimed, and different sofa seats with one shared approach. Every accepted current state must round-trip. Migration must preserve another diner's active work and retain a deferred traveller's food, chain progress and queued orders.
+
+## [L-scope-fallbacks-to-the-operation] Limit fallback behavior to the operation that needs it
+
+**What happened.** A task brief described full-shelf fallback too broadly. The first command adapter applied the purchase rule to transfers as well, so moving an existing book to a full shelf could unshelve it into inventory instead of refusing the move.
+
+**Root cause.** The brief lost the distinction between creating a new owned copy and changing an existing copy's location. Sharing an underlying operation did not make their failure behavior equivalent.
+
+**Prevention rule.** State fallback behavior separately for creation and transfer. Preserve an existing object's location when its requested destination is unavailable, unless the product contract explicitly authorizes another destination. Do not convert a refusal into a different successful operation merely because that operation is available.
+
+**How to verify.** A purchase aimed at a full shelf creates exactly one inventory copy and charges once. A transfer aimed at a full shelf reports the refusal and preserves the copy, original location, Funds and saved gameplay state.
+
+## [L-check-combined-command-streams] Bound the complete stream after extending a save format
+
+**What happened.** Version 6 stored new book commands beside frozen ordinary commands. The first validator checked the ordinary command count, but a save containing only book commands could exceed the public command limit.
+
+**Root cause.** The old substream's validation was mistaken for validation of the combined stream. Preserving the old record layout did not preserve its size constraint automatically.
+
+**Prevention rule.** Validate the complete ordered stream before adopting an extended save. Keep each substream's structural checks, and apply the shared inclusive limit to their combined length.
+
+**How to verify.** Accept a complete stream at the configured limit. Reject limit plus one with unchanged live bytes and hash. Repeat with only new commands and with several ordinary/new command mixtures.
+
+## [L-preserve-collision-witnesses] Keep the evidence that explains a geometry failure
+
+**What happened.** Shared-seat pose probes retained the names of colliding parts but discarded the collision result. Repeated arm adjustments changed the reported count without showing whether the remaining flags were triangle crossings or inferred containment.
+
+**Root cause.** A structured geometric result was reduced to a Boolean before writing the receipt. The resulting evidence could not distinguish overlapping surfaces, an invalid containment assumption, or deformation caused by the bone frames. A parameter grid also varied distal joints before testing the torso motion relevant to the remaining shoulder contacts.
+
+**Prevention rule.** Save collision kind, triangle or point witnesses, evaluated frames and the surface assumptions used by the check. Validate the prerequisites of containment tests; a nearest-normal sign alone is not a general inside test. When the same parts keep failing, run one controlled comparison that distinguishes the competing explanations before searching more parameters. Keep unresolved flags unresolved.
+
+**How to verify.** Reproduce the rejected baseline with complete witnesses. Change one relevant pose variable and compare the affected surfaces. Check crossing, contained and separated controls, including unsupported open surfaces. Require evaluated body support, unchanged scale, complete contact checks and visual review before accepting a pose; fewer reported pairs do not establish a correct fit.
+
+## [L-current-adoption-is-not-migration] Keep historical repairs out of current-save adoption
+
+**What happened.** A valid current save with an absent optional instinct value passed validation, then generic adoption filled that value and consumed simulation randomness. Loading changed both the saved state and the next random choices.
+
+**Root cause.** Current and historical loads shared an adoption method that also performed old-format repairs. A successful validation boundary did not protect state from later mutation inside adoption.
+
+**Prevention rule.** Give a validated current snapshot a direct adoption path. Apply historical repairs only within the migration path for the source format that needs them. Do not interpret a legitimate absent optional value as proof that a current save is old.
+
+**How to verify.** Round-trip current saves containing valid absent optional fields and compare complete bytes, world hash and random state. Continue both original and restored simulations. Keep positive historical migration controls separate, and verify rejected current input leaves the live world unchanged.
+
+## [L-distinguish-probe-assumptions] Do not turn an initial test position into a requirement
+
+**What happened.** Shared-seat probes fixed each person's hips at a cushion's geometric centre. Later fitting work treated those coordinates as protected, although the requirement allowed authored body positions on the existing cushions. The study also inherited a ban on changing derived skin weights from a separate bed-animation task whose scope did not cover shared seating.
+
+**Root cause.** A convenient initial position was carried forward as if the owner had specified it. Preserving furniture geometry was mistakenly taken to mean preserving the probe's body placement. A restriction from another task was repeated without checking its scope or authority.
+
+**Prevention rule.** Separate owner requirements and physical constraints from experimental starting choices. Trace each claimed restriction to its source and applicable task. Before declaring a fit impossible or repeating a failed adjustment, identify which positions, rotations and derived authoring choices remain open. Measure the valid support region instead of assuming its centre is the only valid point. Preserving original asset bytes does not, by itself, prohibit repairing a demonstrated articulation defect in a separately reviewed derivative.
+
+**How to verify.** Keep stable seat identity, original furniture, full-size bodies and existing collision thresholds. Prove support and clearance at the proposed position, then record that position consistently in simulation and rendering. A different supported position is a design change; hiding an intersection or shrinking a person is not proof that it fits.
+For a derived binding repair, preserve the original files and verify the saved source weights, neutral geometry, skeleton, materials and exact changed weights. Demonstrate the defect and its repair across relevant poses before visual review. Classify changed garment intersections by source-defined attachment regions; changed triangle IDs alone do not establish invalid contact. A buried-attachment exception must cover every implicated current triangle and every required view, with matching source, material and geometry identity. Require actual enclosure and attachment connectivity; camera invisibility alone is insufficient. Missing coverage, exposed garment folds and folded skin remain failures.
+
+## [L-separate-work-units-from-session-limits] A shorter session must not redefine a unit of work
+
+**What happened.** Reading used the session limit as both a stop condition and the reference for work speed, rewards and comfort. Reducing only the limit slowed progress and increased the rewards for finishing the same title.
+
+**Root cause.** Equal production defaults concealed different meanings. A reference hour and a maximum session length both happened to contain the same number of ticks.
+
+**Prevention rule.** Give work, elapsed time, reward units and stopping limits distinct definitions. Share those definitions across delivery, scoring, persistence and displayed facts. Enforce elapsed limits where time advances; do not clip faster work as if it were elapsed time.
+
+**How to verify.** Change only the session limit. Complete the same work through actual commands and compare total reading time and benefits across different session partitions. Include a work rate greater than the short cap, slower fractional progress, saved continuation and the native facts used by the browser.
+
+## [L-check-accrual-after-work-starts] Validate accumulated rewards in a populated state
+
+**What happened.** A corrupted-reward test reached the reading stage before its first work tick. It proved that zero-work state rejected earnings, but missed the absence of an upper bound after work began.
+
+**Root cause.** The stage label was treated as evidence of accrued work. Finiteness and a lower bound were mistaken for a complete accumulated-reward invariant.
+
+**Prevention rule.** Assert the values that make a corruption case exercise its intended guard before modifying the snapshot. Bound accumulated rewards using actual work and permissible modifiers. Account for modifiers that can change over time; the current value alone does not establish the past. Reject impossible state instead of clamping it or replaying random history during load.
+
+**How to verify.** Start from a valid state with positive elapsed time, work and earnings. Test modest and large inflation, unchanged live bytes/hash/random state on rejection, valid changed-condition continuation and exactly one settlement after interruption or reload.
+
+## [L-collapse-copies-after-availability] Choose the route before collapsing interchangeable items
+
+**What happened.** Reading removed duplicate title/seat choices by keeping the first copy ID. An older distant copy could displace a newer nearby copy, while the outer action score still advertised the nearer route.
+
+**Root cause.** Removing duplicate probability tickets was combined with choosing a physical copy, without considering route quality or current reservations.
+
+**Prevention rule.** Filter current availability, choose the best physical representative deterministically, then assign one probability ticket to the interchangeable group. Use that same representative rule for scoring and execution. Publish a complete new reservation set after any admission helper that releases the owner's prior claims.
+
+**How to verify.** Put equivalent copies on different shelves and reverse their allocation order. Reserve the best copy and its contact separately, then verify a valid fallback. Include same-tick admission, equal-score tie order, save/load and unchanged choice probabilities when equivalent copies are added at one location.
+
+## [L-encode-before-truncating-source] Encode authored text before replacing a source file
+
+**What happened.** A Windows Python write used the locale's default encoding for a new Rust module containing a Unicode fixture. Opening the file for writing truncated it before the encoder rejected the text.
+
+**Root cause.** The write depended on machine locale and performed its destructive step before validating the output bytes. A compile started with the resulting empty module could not verify the intended implementation.
+
+**Prevention rule.** Encode source text explicitly as UTF-8 before opening the destination, for example with `write_bytes(text.encode('utf-8'))`. When replacing an existing file, use a temporary file and atomic replacement where the write needs failure protection. Do not treat a successful command with missing intended tests as verification.
+
+**How to verify.** Confirm the complete module and its Unicode fixture exist after writing. Check that the expected tests actually run. Restore the intended source before retrying a check, and never count a run made against a truncated or empty module as passing evidence.
+
+## [L-bound-source-replacements] Keep helper extractions inside their intended code block
+
+**What happened.** Extracting a shared snack-action lookup with a broad substring replacement also removed an adjacent owned-reading commit branch. The compiler found a remaining reference to the deleted local variable, and an independent diff review found the missing reading branch before delivery.
+
+**Root cause.** The replacement's text boundaries covered more than the intended lookup. Repeated nearby control-flow shapes made a matching substring insufficient evidence that the selected block was correct.
+
+**Prevention rule.** Use a narrowly contextual patch for each call site. If a scripted replacement is necessary, assert the exact expected input and occurrence count before writing. Inspect the complete resulting function diff before compiling, including adjacent branches and declarations. Restore an accidental deletion from the preserved checkpoint, then reapply only the intended changes.
+
+**How to verify.** Compile the affected crate and exercise both the extracted behavior and the adjacent autonomous reading path. Compare the corrected diff with the checkpoint and require the reading branch to remain intact. A passing check of the new helper alone does not verify its callers.
+
+## [L-evaluate-hidden-rest-variants] Initialize hidden variants before comparing rest geometry
+
+**What happened.** A derived clothing-binding check blamed untouched book meshes for changed rest geometry. An unchanged-binding control reproduced the movement: their object matrices had not incorporated the parent rotation. Activating the books alone then exposed the same problem in hidden eyelid variants.
+
+**Root cause.** The audit compared evaluated coordinates before all inspected variants had entered the dependency graph. Raw mesh identity and a stable evaluated world transform were treated as the same invariant.
+
+**Prevention rule.** Capture raw geometry, weights, materials, bones and visibility-driver state separately. For a rest-only audit, activate every inspected variant and complete parent/object evaluation before capturing the baseline. Verify the expected hierarchy matrices and an unchanged-binding replay. Restore and verify the exact visibility, driver and pose state in a finally block. Perform intentional rebinding between separate guarded audits, not inside an audit that promises unchanged weights.
+
+**How to verify.** Include initially hidden props and alternate body meshes in the control. Compare ordered topology, finite coordinates and measured residuals before classifying a mismatch. Require raw-state and visibility restoration even if the audit fails. Do not loosen physical contact limits or alter an unrelated mesh to compensate for an uninitialized baseline.
+
+## [L-measure-continuous-contact] Measure support on surfaces rather than sparse vertices
+
+**What happened.** A resting-hand check classified lap contact as an unsupported line because only a few mesh vertices fell within its gap limit. Clipping the actual evaluated triangles found a finite support patch. Independent wrist folds and furniture intersections were still real failures.
+
+**Root cause.** Vertex sampling was treated as a measurement of the continuous contact area. Tessellation density and triangle layout changed the apparent support without changing the underlying surface relationship.
+
+**Prevention rule.** Measure projected overlap and signed separation on evaluated surface patches. Exclude penetration and occluded or ambiguous layers from supporting area. Keep unresolved classifications explicit. Diagnose joint frames and intersections separately; correcting the contact measurement does not repair a folded arm.
+
+**How to verify.** Include a surface with real support but only one near vertex, a true point or line contact, and a penetrating pair. Equivalent tessellations must give the same classification within the stated numerical tolerance. Preserve correspondence to source polygons when evaluated quad diagonals change. Correct joint lengths alone do not prove correct bone rotation or skin deformation.
+
+A supported patch also need not contain the palm centre or wrist origin. A
+fitting attempt unnecessarily restricted the hand centre to an exposed thigh
+triangle, then compared an unprojected reference with projected perturbations.
+Its calculated derivative included the jump into that artificial domain. Keep
+physical support separate from search bounds. If a parameter requires bounding,
+apply the same mapping to reference and trials and use the actual parameter
+displacements. Verify an edge-supported pose and reconstruct the complete frames
+before treating a resumed search point as the same pose.
+
+## [L-preserve-action-origin-through-detours] Keep action identity through alternate admission paths
+
+**What happened.** Inherited recipe actions retained their selected appliance and model-specific benefits in normal execution, but privacy detours still chose any station with the same role and read the recipe's default benefits. An autonomous detour could use another appliance while crediting the original model, or treat an action as relief for a need it no longer improved. The resulting appliance mismatch could also make a live save fail strict restoration.
+
+**Root cause.** The change covered command admission, ordinary planning and terminal rewards without tracing every alternate route and urgency decision. Shared recipe defaults remained accessible beside the resolved action values, so old callers continued to use the wrong source.
+
+**Prevention rule.** Carry the initiating model/action identity through detours, interruption and saved state. Share selected-station eligibility and resolved benefits between all planners and execution paths. When a new public action invokes a procedure, inspect every path that previously treated public rows as ordinary interactions, including urgent replacements. Preserve internal recipe defaults only for explicitly internal activities. Do not weaken save validation to accept a planner's inconsistent state.
+
+**How to verify.** Let autonomy select an upgraded appliance, then block its route with a temporary privacy boundary while another appliance remains reachable. Verify selected-appliance use and save continuation before and after the boundary clears. Replace or reverse an inherited benefit and prove that urgency follows the resolved action rather than the recipe default. Exercise urgent replacement with a procedural action and require its complete work sequence and one terminal reward.
+
+## [L-bound-published-source-capture] Export the inputs a historical build actually needs
+
+**What happened.** Capturing published source for save-compatibility fixtures began archiving the entire repository, including unrelated art and audio. The capture spent minutes collecting files before the native fixture producer could run.
+
+**Root cause.** A whole repository export was treated as the default build input set without inspecting the compiler, build scripts and test fixture references.
+
+**Prevention rule.** Identify the manifests, crate sources, content and referenced generated metadata or fixtures required by the selected producer. Export those paths from the exact published revision into an isolated directory inside the worktree. Keep the producer additions separately identified, preserve the original source identity and record command exits. Stop only the task-owned capture if its scope is wrong; do not interfere with another task's build.
+
+Give each captured source revision its own Cargo target directory, the folder
+that holds compiled output. Reusing one across archived revisions ran a newer
+cached build script against older source, despite correct source-file hashes.
+Do not add files to the older source merely to satisfy that stale script.
+
+**How to verify.** Check every included-file reference against the captured source, build the intended producer without borrowing current working-tree implementation files, and record the revision and output hashes. A fixture made by merged development code is not evidence of what the published implementation wrote.
+
+
+## [L-occupancy-conditioned-art] Prove appearance before splitting an occupied scene
+
+**What happened.** Independent book sprites drew outlines over the bookcase.
+Correcting outline visibility still left cabinet-colour differences when books
+were added. A later row-based comparison was close after reduction, but had not
+yet tested the texture representation that the game would actually sample.
+
+**Root cause.** Geometric depth order was treated as evidence that appearance
+could be composed independently. Fill holdouts did not preserve the outline
+renderer’s visibility. The cabinet material computed lit diffuse colour before
+converting it through a colour ramp to emission, so the final emission node did
+not make cabinet appearance independent of book shadows. Composition before
+reduction also differed from reconstructing separately reduced textures.
+
+**Prevention.** Inspect the complete saved material and lighting graph. Test
+fill, ink, shared-surface shading and filtering separately against independently
+rendered occupied scenes. Preserve the cabinet as real occluding geometry when
+extracting selected book ink. Never assume an empty background remains valid
+when the added object changes its shadows. Choose a representation that carries
+those changes, then test its actual storage quantization, registered crops,
+sampling, colourways, alpha threshold and blending. Subtracting several
+independently rounded images can amplify the reused baseline's rounding error.
+Retain unrounded contributions through reduction, then use enough storage
+precision for the complete reconstruction. Prove neutral values, channel range,
+bilinear decoding and the final error budget; do not increase the budget after a
+full-scene check exposes accumulated quantization error.
+
+**Verify.** Compare empty, occupied and removed-neighbour controls. Keep raw
+and reduced-image errors separate, including the affected-region percentile and
+visible ownership changes. Preserve failed representations. A close row-pair
+witness neither proves arbitrary row combinations nor permits stacking ordinary
+row beauties; subtraction or another explicit composition rule needs its own
+encoding and runtime proof.
+
+The CPU comparison and graphics shader must use the same colour domain and
+clamping order. A comparison helper silently clamped a recolour intermediate,
+while the shader did not. Apply the intended final RGB clamp explicitly in both
+paths before recolouring, then compare negative reconstruction values and every
+colourway. Agreement between two CPU helpers does not establish shader parity.
+
+## [L-preserve-authored-pose-frames] Preserve complete frames when reconstructing a pose
+
+**What happened.** Reconstructing saved outward torso poses from scalar angles
+reversed their direction. The resulting inward lean created real neighbouring
+body and clothing intersections despite correct hand contact.
+
+**Root cause.** The reconstruction assumed an angle convention instead of
+checking the saved rotation frame and resulting world-space displacement.
+
+**Prevention.** Reuse the complete saved frame where possible. If a frame must
+be reconstructed, verify its axes, handedness and world-space displacement
+before rendering. Recompute dependent arm frames against the actual torso.
+
+**Verify.** Compare saved and reconstructed matrices, confirm that both outer
+torsos move outward, and inspect opposing views. Require contact and clearance
+checks on the corrected complete pose rather than accepting individual hands.
+
+## [L-project-usable-purchase-facts] Advertise functionality that current actions can use
+
+**What happened.** Buying details exposed historical station tags as usable
+food functions. A desk had an eating-surface tag without an action that used
+it. Cooking details also presented a dining table as mandatory despite a
+working counter fallback.
+
+**Root cause.** The display copied raw configuration without tracing admission
+and execution. Compatibility tags and every procedural step were treated as
+current purchase requirements.
+
+**Prevention.** Preserve raw tags needed by saves, but derive buying facts from
+current usable routes. Separate required stations from optional furniture and
+fallbacks. Share role eligibility with execution rather than special-casing
+model names.
+
+**Verify.** Exercise generic models with the same roles, a model with an
+inactive role, and cooking without dining furniture. Compare displayed facts
+and required costs with what the public command actually admits.
+
+## [L-pin-shared-git-refs] Pin revisions during multi-step integration
+
+**What happened.** Another worktree advanced the shared remote-tracking main
+reference between an integration's fetch and fast-forward. The checkout moved
+to a newer revision than the one named in its preparation record.
+
+**Root cause.** The operation reused a mutable reference after resolving the
+intended source. Linked worktrees share remote-tracking references.
+
+**Prevention.** Resolve the intended source to a full commit ID. Use that ID
+for captures, comparisons and integration. Keep the original backup when the
+actual revision differs and record the actual revision separately.
+
+**Verify.** Compare the checkout's full commit ID with the captured source ID
+before restoration, compilation or review. A current branch name alone does
+not establish which source was inspected.
+
+## [L-freeze-nested-save-layouts] Freeze positional layouts inside saved envelopes
+
+**What happened.** New fields extended a published save record also embedded
+inline in a book-save envelope. Reusing the extended type would make the older
+envelope's reader consume following fields as part of that nested record.
+
+**Root cause.** Appending fields safely at a standalone payload's end was
+treated as safe inside another positional record. The nested record has no
+independent end boundary.
+
+**Prevention.** Use an explicit frozen decoder for each existing envelope.
+Give a changed layout a distinct version. Freeze its embedded layout or store
+length-delimited legacy bytes, then convert into current runtime structures.
+Keep published command numbers fixed; append unpublished commands after them.
+
+**Verify.** Load immutable older fixtures and current published saves with
+active work and mixed queued orders. Preserve progress and ownership. Reject
+truncation, trailing bytes and unsupported future versions transactionally.
+
+## [L-preserve-unlimited-sentinels] Preserve zero-as-unlimited limits
+
+**What happened.** A complete-queue validator rejected authentic published
+saves before migration. It compared their queue length directly with a limit
+whose zero value means unlimited. A fresh review found the shared cause after
+three restoration probes failed at the same boundary.
+
+**Root cause.** A replacement validation path retained the numeric limit but
+lost its sentinel semantics. The same incorrect check affected current state
+and historical source restoration.
+
+**Prevention.** Trace the existing meaning of special values before replacing
+a limit check. Apply the bound only when the limit is positive. Share this rule
+across admission, current validation and historical validation.
+
+**Verify.** Restore authentic zero-limit saves with mixed queued work. Check
+positive limits at and beyond the boundary. Require exact preservation of queue
+identity and ordering through the corrected restoration path.
+
+Golden serialized records need an independent frozen decoder when the compiled
+type changes. Keep the original literal bytes and require strict decoding and
+exact re-encoding through that decoder. Convert the decoded historical value
+explicitly into the current type; changing the golden bytes to the new layout
+would remove its historical compatibility check.
+
+## [L-retire-legacy-ownership-before-current-validation] Retire obsolete actions before current ownership checks
+
+Historical actions can retain a seat or dining lease as well as an action target.
+Validating those references against the current catalogue before retiring the
+obsolete action rejects an otherwise authentic save. Validate the historical
+record against its own definitions first, then release every ownership record
+held by the retired action before applying current invariants. Keep unrelated
+occupants and orders intact. Verify with immutable published saves and explicit
+seat, dining, queue and progress assertions.
+
+## [L-export-exit-is-separate-from-render-exit] Prove the final asset export completed
+
+A successful source render does not prove that its exporter completed. An
+export can leave a readable manifest before its final process fails. Record the
+observed terminal exporter exit and bind that receipt to the manifest and
+producer hashes. Require the receipt at import, alongside source-render and
+pixel evidence. Verify that an incomplete export is rejected without modifying
+the source evidence.
+
+## [L-author-against-clothed-surfaces] Fit contact poses against the visible surface
+
+A hand placed above a thigh can still pass through the shirt covering it.
+Author supported poses against the outermost clothed surface, then check the
+complete actor and adjacent occupants. Moving one limb until its isolated test
+passes can create another intersection elsewhere. Verify grips, clothing,
+furniture contact and neighboring bodies in the complete scene.
+
+## [L-joint-alpha-is-not-owner-weight] Preserve joint coverage when separating color owners
+
+Independently quantized owner alpha values are reconstruction weights. Their
+sum can cross a discard threshold differently from the original scene coverage,
+changing both the silhouette and picking. Preserve original joint coverage for
+discard, blending and picking; retain contribution weights for color
+normalization. Verify actual graphics samples at fractional edges, complete
+frames and a negative control using the incorrect summed coverage. Keep the
+original reference representation fixed during the comparison.

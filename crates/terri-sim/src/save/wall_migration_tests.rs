@@ -26,7 +26,7 @@ fn edges() -> Vec<WallEdge> {
 }
 
 fn destination() -> &'static ContentPack {
-    let mut pack = terri_data::pack().clone();
+    let mut pack = terri_data::pre_books_pack().clone();
     pack.lot.walls.clear();
     pack.lot.wall_edges = edges();
     Box::leak(Box::new(pack))
@@ -34,7 +34,7 @@ fn destination() -> &'static ContentPack {
 
 /// The cell-wall house, on the lot as it stood before the yard ([OS-grow]).
 fn source_sim() -> Sim {
-    let mut pack = terri_data::pack().clone();
+    let mut pack = terri_data::pre_books_pack().clone();
     pack.lot = crate::test_content::historical_lot(&pack);
     (pack.lot.width, pack.lot.height) = pack.lot.house;
     pack.lot.wall_edges.clear();
@@ -43,8 +43,7 @@ fn source_sim() -> Sim {
         .map(|&(x, y)| (x as u32, y as u32))
         .collect();
     let pack = Box::leak(Box::new(pack));
-    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
-    sim.world.insert_resource(Content(pack));
+    let mut sim = Sim::new_from_lot_and_content(&pack.lot, Content(pack));
     sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
     sim
 }
@@ -80,7 +79,7 @@ fn wall_migration_releases_only_frozen_wall_cells_and_preserves_every_other_fiel
 /// buffer, so the house drew its doorways doorless until the next tick.
 #[test]
 fn a_migrated_v1_house_shows_its_doors_before_the_first_tick() {
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::pre_books_sim();
     loaded.load_snapshot(source_sim().save_snapshot()).unwrap();
     assert!(matches!(
         loaded.save_snapshot_v2().layout,

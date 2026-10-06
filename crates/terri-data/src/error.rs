@@ -9,6 +9,14 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    InvalidBookContent {
+        context: String,
+        reason: String,
+    },
+    InvalidHierarchy {
+        context: String,
+        reason: String,
+    },
     InvalidSleepPlaces {
         object: String,
         reason: String,
@@ -1280,6 +1288,8 @@ pub enum ContentError {
 impl fmt::Display for ContentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ContentError::InvalidHierarchy { context, reason } => write!(f, "{context}: {reason}"),
+            ContentError::InvalidBookContent { context, reason } => write!(f, "{context}: {reason}"),
             ContentError::InvalidSleepPlaces { object, reason } => write!(
                 f, "object '{object}' has invalid sleep places: {reason}"
             ),

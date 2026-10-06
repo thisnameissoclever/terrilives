@@ -8,6 +8,8 @@ from pathlib import Path
 import sys
 import tomllib
 
+from content_sprites import model_sprites
+
 from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -134,7 +136,7 @@ def tables(export, sprites):
     indices = {record[0]: index for index, record in enumerate(sprites)}
     if len(indices) != len(sprites):
         raise ValueError('Duplicate sprite name while importing neutral seats')
-    content = {obj['id']: obj['sprite'] for obj in tomllib.loads((ROOT / 'content/objects.toml').read_text())['object']}
+    content = model_sprites(tomllib.loads((ROOT / 'content/objects.toml').read_text(encoding='utf-8')))
     result = {key: {} for key in ('anchors', 'tops', 'bounds', 'density', 'profiles', 'layers', 'coverage')}
     result['masks'] = []
     mask_ids = {}

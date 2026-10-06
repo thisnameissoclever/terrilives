@@ -119,24 +119,24 @@ fn skills_of_rejects_non_people_in_release() {
 fn a_spawned_agent_learns_and_its_reload_continues_identically() {
     let mut handle = SimHandle::from_lot();
     let content = handle.sim.world().resource::<Content>().0;
-    let shelf_def = content.find("bookshelf").expect("the shipped bookshelf");
+    let bike_def = content.find("moving_box").expect("the shipped bookbike");
     let interaction = content
-        .object(shelf_def)
+        .object(bike_def)
         .interactions
         .iter()
-        .position(|offer| offer.tags.iter().any(|tag| tag == "reading"))
-        .expect("a reading interaction") as u32;
-    let reading = content
+        .position(|offer| offer.tags.iter().any(|tag| tag == "exercise"))
+        .expect("an exercise interaction") as u32;
+    let exercise = content
         .skills
         .iter()
-        .position(|skill| skill.tag == "reading")
-        .expect("the reading skill") as u32;
+        .position(|skill| skill.tag == "exercise")
+        .expect("the fitness skill") as u32;
     let world = handle.sim.world_mut();
-    let shelf = world
+    let bike = world
         .query::<(terri_core::Entity, &terri_core::SmartObject)>()
         .iter(world)
-        .find(|(_, object)| object.0 == shelf_def)
-        .expect("the lot has a bookshelf")
+        .find(|(_, object)| object.0 == bike_def)
+        .expect("the lot has a bookbike")
         .0;
     let start = *world
         .query::<(&terri_core::Position, &SimName)>()
@@ -157,7 +157,7 @@ fn a_spawned_agent_learns_and_its_reload_continues_identically() {
             .sim
             .world()
             .get::<terri_core::Skills>(spawned)
-            .map_or(0.0, |skills| skills.practice(reading))
+            .map_or(0.0, |skills| skills.practice(exercise))
     };
     handle
         .sim
@@ -165,15 +165,15 @@ fn a_spawned_agent_learns_and_its_reload_continues_identically() {
         .resource_mut::<CommandQueue>()
         .push(SimCommand::UseObject {
             agent: spawned.index_u32(),
-            object: shelf.index_u32(),
+            object: bike.index_u32(),
             interaction,
         });
     for _ in 0..600 {
         handle.tick();
     }
     assert!(
-        practice(&handle) >= content.skills[reading as usize].practice_per_attempt,
-        "the ordered read taught the spawned agent"
+        practice(&handle) >= content.skills[exercise as usize].practice_per_attempt,
+        "the ordered exercise taught the spawned agent"
     );
     let mut resumed = SimHandle::from_lot();
     assert!(resumed.load_bytes(&handle.save_bytes()));

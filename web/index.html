@@ -966,6 +966,7 @@
         <!-- The status lines live here so every compact layout shows them:
              a live region inside a closed panel is not announced ([OF3]). -->
         <div id="hud-status">
+          <p id="book-import-notice" role="status" hidden></p>
           <p id="save-status" role="status" aria-live="polite">Starting</p>
           <p id="command-feedback" role="status" aria-live="polite"></p>
           <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
@@ -1147,6 +1148,7 @@
           <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true" aria-controls="furniture-tool">Furniture</button>
           <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false" aria-controls="wall-tool">Walls</button>
           <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false" aria-controls="room-tool">Room</button>
+          <button id="build-tool-books" class="hud-button" type="button" aria-pressed="false" aria-controls="book-tool">Books</button>
           <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false" aria-controls="buy-tool">Buy</button>
           <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false" aria-controls="floor-tool">Floors</button>
         </div>
@@ -1219,8 +1221,18 @@
 
           </div>
         </div>
+        <div id="book-tool" class="builder-tool" hidden>
+          <label for="book-title">Title</label><select id="book-title"></select>
+          <p id="book-facts"></p><div id="book-description"></div>
+          <label for="book-destination">Purchase destination</label><select id="book-destination"></select>
+          <button id="book-buy" class="hud-button" type="button">Buy one copy</button>
+          <p id="book-status" role="status"></p>
+          <details><summary>Household books</summary><div id="book-owned"></div></details>
+        </div>
         <div id="buy-tool" class="builder-tool" hidden>
           <div class="builder-choices">
+            <label for="buy-room-filter">Room</label>
+            <select id="buy-room-filter"></select>
             <label for="buy-filter">Show</label>
             <select id="buy-filter"><option value="">Everything</option></select>
             <label for="buy-object">Buy</label>
@@ -1234,6 +1246,7 @@
             </div>
             <p id="buy-price"></p>
             <p id="buy-serves"></p>
+            <p id="buy-facts"></p>
             <details id="buy-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="buy-shortcut-content"></div></details>
             <p id="buy-touch-help" class="builder-note builder-help" hidden>Choose an item, then its destination tile. Use the nearby buttons to turn or buy it.</p>
           </div>

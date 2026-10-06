@@ -37,7 +37,7 @@ it('uses the new art in the real lot and previews all rotations without changing
   const handle = SimHandle.from_lot();
   try {
     const bridge = new SimBridge(handle, memory);
-    const row = Array.from(bridge.ids()).findIndex(id => bridge.objectName(id) === 'Ergonomic, Allegedly');
+    const row = Array.from(bridge.ids()).findIndex(id => bridge.objectModel(id)?.id === 'desk_chair');
     expect(row).toBeGreaterThanOrEqual(0);
     const id = bridge.ids()[row];
     expect([...bridge.positions().slice(row * 2, row * 2 + 2)]).toEqual([6, 7]);
@@ -45,8 +45,8 @@ it('uses the new art in the real lot and previews all rotations without changing
     expect(bridge.objectFacing(id)).toBe(2);
     expect(bridge.objectFacingMask(id)).toBe(15);
     expect(bridge.sprites()[row]).toBe(atlas.spriteIndex('offlineDeskChairNW'));
-    expect(bridge.catalogue().find(item => item.name === 'Ergonomic, Allegedly')).toMatchObject({
-      price: 60, facings: 15, baseFacing: 0,
+    expect(bridge.catalogue().find(item => item.model?.id === 'desk_chair')).toMatchObject({
+      price: 70, facings: 15, baseFacing: 0,
     });
     const before = bridge.saveBytes();
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {

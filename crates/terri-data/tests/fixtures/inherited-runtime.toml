@@ -1,0 +1,82 @@
+[[model]]
+id = "fixture_fridge"
+object_type = "fridge"
+[model.properties]
+name = { set = "Fixture fridge" }
+price = { set = 300 }
+sprite = { set = "offlineFridge" }
+roles = { set = ["cold_storage"] }
+[[model.action]]
+id = "grab_snack"
+[model.action.properties]
+duration_ticks = { set = 91 }
+advertises = { replace = { hunger = 17.0, comfort = 9.0, hygiene = -6.0 } }
+satisfaction = { set = 4.0 }
+[[model.action]]
+id = "cook_dinner"
+[model.action.properties]
+duration_ticks = { set = 503 }
+advertises = { replace = { hunger = 23.0, comfort = 7.0, hygiene = -5.0 } }
+satisfaction = { set = 5.0 }
+
+[[model]]
+id = "fixture_station"
+object_type = "fridge"
+[model.properties]
+name = { set = "Fixture station" }
+price = { set = 300 }
+sprite = { set = "offlineFridge" }
+roles = { set = ["cold_storage"] }
+[[model.action]]
+id = "grab_snack"
+remove = true
+[[model.action]]
+id = "cook_dinner"
+remove = true
+
+[[model]]
+id = "fixture_tv"
+object_type = "television"
+[model.properties]
+name = { set = "Fixture television" }
+sprite = { set = "offlineTelevision" }
+
+[[model]]
+id = "fixture_label_tv"
+object_type = "television"
+[model.properties]
+name = { set = "Presentation control" }
+sprite = { set = "offlineTelevision" }
+[[model.action]]
+id = "watch_tv"
+[model.action.properties]
+media = { remove = true }
+
+[[model]]
+id = "fixture_radio"
+object_type = "radio"
+[model.properties]
+name = { set = "Fixture radio" }
+sprite = { set = "offlineRadio" }
+
+[[model]]
+id = "fixture_hob"
+object_type = "stove"
+[model.properties]
+name = { set = "Fixture hob" }
+sprite = { set = "offlineStove" }
+roles = { set = ["hob"] }
+
+[[model]]
+id = "fixture_sink"
+object_type = "kitchen_sink"
+[model.properties]
+name = { set = "Fixture sink" }
+sprite = { set = "offlineSink" }
+roles = { set = ["dish_sink", "prep_surface"] }
+[[model.action]]
+id = "clean_dishes"
+[model.action.properties]
+duration_ticks = { set = 53 }
+advertises = { replace = { hygiene = 11.0, comfort = -4.0 } }
+satisfaction = { set = 6.0 }

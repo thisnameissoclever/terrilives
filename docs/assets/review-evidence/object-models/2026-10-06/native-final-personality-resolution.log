@@ -1,0 +1,16 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.24s
+     Running unittests src\lib.rs (target\debug\deps\terri_data-c6b1992c464e518b.exe)
+
+running 8 tests
+test compile::tests::a_disposition_that_changes_nothing_is_refused ... ok
+test compile::tests::a_zero_disposition_is_a_fear_and_a_negative_one_is_rejected ... ok
+test compile::tests::dispositions_compile_sorted_by_key_not_by_declaration_order ... ok
+test compile::tests::rejects_a_disposition_toward_missing_content ... ok
+test compile::tests::a_disposition_opens_with_the_verb_its_multiplier_earns ... ok
+test compile::tests::rejects_two_dispositions_for_one_interaction ... ok
+test compile::tests::rejects_a_negative_disposition_and_accepts_the_fear ... ok
+test schema::tests::parses_an_archetype_with_sparse_maps_and_dispositions ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 299 filtered out; finished in 0.00s
+
