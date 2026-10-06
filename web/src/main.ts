@@ -61,6 +61,7 @@ import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
+import { SkillsPanel, createSkillsPanelSurface } from './ui/skills-panel.js';
 import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
@@ -562,6 +563,21 @@ async function main(): Promise<void> {
       bedAssignmentPanel.update(nowMs, true);
     }
   });
+  // [SK-hud]: the Skills disclosure beside the personal details. Closed, it
+  // reads nothing; opening it reads at once.
+  const skillsBlock = document.querySelector<HTMLDetailsElement>('#skills-block');
+  const skillsEmpty = document.querySelector<HTMLElement>('#skills-empty');
+  const skillList = document.querySelector<HTMLElement>('#skill-list');
+  if (!skillsBlock || !skillsEmpty || !skillList) {
+    throw new Error('missing skills markup');
+  }
+  const skillsPanel = new SkillsPanel(sim,
+    { labels: sim.skillLabels(), descriptions: sim.skillDescriptions(), levels: sim.skillLevels() },
+    createSkillsPanelSurface(document, skillsBlock, skillsEmpty, skillList), sim.needBarRefreshMs(),
+    () => skillsBlock.open && !simOverview.hidden && !simSheet.hidden);
+  skillsBlock.addEventListener('toggle', () => {
+    if (skillsBlock.open) skillsPanel.update(performance.now(), true);
+  });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
   const peopleList = document.querySelector<HTMLElement>('#people-list');
@@ -715,6 +731,7 @@ async function main(): Promise<void> {
   moodPanel.update(initialHudMs, true);
   traitsPanel.update(initialHudMs, true);
   personalDetailsPanel.update(initialHudMs, true);
+  skillsPanel.update(initialHudMs, true);
   bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
@@ -963,6 +980,7 @@ async function main(): Promise<void> {
           moodPanel.update(nowMs, true);
           traitsPanel.update(nowMs, true);
           personalDetailsPanel.update(nowMs, true);
+          skillsPanel.update(nowMs, true);
           bedAssignmentPanel.update(nowMs, true);
         }
       })
@@ -1001,6 +1019,7 @@ async function main(): Promise<void> {
       peoplePanel.update(nowMs, true);
       traitsPanel.update(nowMs, true);
       personalDetailsPanel.update(nowMs, true);
+      skillsPanel.update(nowMs, true);
     },
   });
   housemateView = new HousemateFormView(document, housemateForm);
@@ -1834,6 +1853,7 @@ async function main(): Promise<void> {
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
     personalDetailsPanel.update(nowMs);
+    skillsPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();

@@ -6,7 +6,7 @@ You can now change a housemate after they have moved in. Housemates can settle b
 
 - Select a person and press Edit to change their name, personality, traits and family ties. They keep their place, needs, job, hobbies and how they feel about everyone else.
 - Keep current personality leaves their personality exactly as it is. Choosing a personality replaces how fast their needs fall and refill, how they feel about using objects, how tidy they are and when they like to sleep.
-- A trait you keep carries on from where it was. A trait you remove forgets its progress, and adding it back later starts it afresh.
+- A trait you keep carries on from where it was. Removing Low spirits, Isolated or Cooped up forgets how far it had eased, and adding it back later starts it afresh.
 
 ## Improved
 

@@ -263,6 +263,12 @@ pub struct TuningFile {
     pub shyness_annoyance_strength: f32,
     pub boundary_wander_reconsider_chance: f32,
     pub shyness_wander_reconsider_strength: f32,
+    /// The practice level 1 of every skill costs, finite and above 0 -
+    /// [SK-model] in `docs/specs/2026-10-05-skills.md`.
+    pub skill_level_cost: f32,
+    /// What each later level costs, as a multiple of the one before; finite
+    /// and at least 1, so a later level never costs less - [SK-model].
+    pub skill_level_growth: f32,
     #[serde(default)]
     pub relationships: crate::RelationshipTuning,
 }
@@ -792,10 +798,6 @@ pub struct TraitDef {
     /// advertised benefit, usually 0.
     #[serde(default)]
     pub fail_delta_scale: Option<f32>,
-    /// capability only: how much every attempt (pass or fail) raises the
-    /// level, toward 1.
-    #[serde(default)]
-    pub learn_per_attempt: Option<f32>,
     /// condition only: what the satisfaction ACCRUAL is multiplied by at
     /// full severity; the effective scale interpolates toward 1 as
     /// severity falls.
@@ -812,6 +814,36 @@ pub struct TraitDef {
 
 /// The three legal trait kinds, in the order the design names them.
 pub const TRAIT_KINDS: [&str; 3] = ["disposition", "capability", "condition"];
+
+/// Mirrors `content/skills.toml` - [SK-content] in
+/// `docs/specs/2026-10-05-skills.md`. Defaulted so a project with no skills
+/// parses, as a project with no traits does.
+#[derive(Debug, Default, Deserialize)]
+pub struct SkillsFile {
+    #[serde(default)]
+    pub skill: Vec<SkillDef>,
+}
+
+/// One skill: practice a person gains by doing tagged activities -
+/// [SK-model]. Level and progress are derived from practice through the
+/// ladder in `tuning.toml`, so nothing here names a cost.
+#[derive(Debug, Deserialize)]
+pub struct SkillDef {
+    /// What a save names the skill by.
+    pub id: String,
+    /// What the UI calls it. Required and non-blank.
+    pub label: String,
+    /// One plain sentence saying what the skill is. Required and non-blank.
+    pub description: String,
+    /// The activity tag this skill keys on - the same tag space traits and
+    /// hobbies use, resolved against the pack's activities at compile time.
+    pub tag: String,
+    /// How many levels the ladder has, from 1 to 100.
+    pub levels: u8,
+    /// How much practice one completed tagged attempt adds, pass or fail,
+    /// in `(0, 1]`.
+    pub practice_per_attempt: f32,
+}
 
 /// Mirrors `content/chains.toml` - the multi-step interactions, [K1]
 /// in docs/specs/2026-08-01-m2f-multi-step-working-design.md.
@@ -1081,7 +1113,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 70] = [
+    const TUNING_LINES: [(&str, &str); 72] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1154,6 +1186,8 @@ mod tests {
         ("shyness_annoyance_strength", "0.25"),
         ("boundary_wander_reconsider_chance", "0.10"),
         ("shyness_wander_reconsider_strength", "0.15"),
+        ("skill_level_cost", "0.0859375"),
+        ("skill_level_growth", "1.34375"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -1232,6 +1266,8 @@ mod tests {
         assert_eq!(parsed.housemate_max_traits, 5);
         assert_eq!(parsed.interior_daylight_shade, 0.15625);
         assert_eq!(parsed.daylight_reach_per_tile, 0.21875);
+        assert_eq!(parsed.skill_level_cost, 0.0859375);
+        assert_eq!(parsed.skill_level_growth, 1.34375);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

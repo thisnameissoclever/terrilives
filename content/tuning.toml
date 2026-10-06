@@ -206,6 +206,15 @@ housemate_max_traits = 4
 interior_daylight_shade = 0.25
 daylight_reach_per_tile = 0.2
 
+# Skill ladder [SK-model]: level 1 costs skill_level_cost practice and each
+# later level costs skill_level_growth times the one before. The ladder is
+# flat until the owner tunes it: with growth 1.0 every level costs the same,
+# so mastery rises at the pace capability traits learned at before skills.
+# Lowering skill_level_cost, skill_level_growth or a skill's levels caps
+# existing saves' practice at the new top on load.
+skill_level_cost = 0.1
+skill_level_growth = 1.0
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

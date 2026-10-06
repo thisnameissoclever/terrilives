@@ -780,6 +780,12 @@ pub struct Tuning {
     pub relationships: crate::RelationshipTuning,
     /// Domestic systems are disabled in custom packs without this table.
     pub domestic: Option<DomesticTuning>,
+    /// The practice level 1 of every skill costs, above 0 - [SK-model] in
+    /// `docs/specs/2026-10-05-skills.md`. Appended, per the rule above.
+    pub skill_level_cost: f32,
+    /// What each later skill level costs, as a multiple of the one before,
+    /// at least 1 - [SK-model].
+    pub skill_level_growth: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -865,12 +871,12 @@ pub struct CompiledPersonality {
 pub enum CompiledTraitKind {
     /// Weighs tagged candidates in scoring. Stateless.
     Disposition { score_multiplier: f32 },
-    /// Gates tagged completions as may-attempt-may-fail, with a level
-    /// that learning raises toward 1.
+    /// Gates tagged completions as may-attempt-may-fail. Practice from an
+    /// attempt goes to the skill with the same tag, not to the trait -
+    /// [SK-learning] in `docs/specs/2026-10-05-skills.md`.
     Capability {
         start_level: f32,
         fail_delta_scale: f32,
-        learn_per_attempt: f32,
     },
     /// Scales satisfaction accrual, with a severity that management
     /// lowers toward 0.
@@ -897,6 +903,22 @@ pub struct CompiledTrait {
     /// Initial satisfaction bias, applied only when a Sim is created.
     /// Appended for the compiled pack's field order; absent TOML values are zero.
     pub starting_satisfaction_offset: f32,
+}
+
+/// One skill, compiled - [SK-model] in `docs/specs/2026-10-05-skills.md`.
+/// `tag` stays a string for the reason [`CompiledTrait::tag`] does.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledSkill {
+    pub id: String,
+    pub label: String,
+    /// One plain sentence for the UI. In no save and not in the content
+    /// fingerprint.
+    pub description: String,
+    pub tag: String,
+    /// Rungs on the ladder, from 1 to 100.
+    pub levels: u8,
+    /// Practice one completed tagged attempt adds, in `(0, 1]`.
+    pub practice_per_attempt: f32,
 }
 
 /// One member of the authored household - [H2].
@@ -1037,6 +1059,11 @@ pub struct ContentPack {
     /// by where it is ([OS-yard]). Appended at the pack tail, so every
     /// established block keeps its byte offset.
     pub coverings: Vec<CompiledCovering>,
+    /// The skills a person practises, in content order - [SK-content] in
+    /// `docs/specs/2026-10-05-skills.md`. Empty in most test packs. Saves
+    /// name a skill by id, and the content fingerprint does not read this.
+    /// Appended at the pack tail.
+    pub skills: Vec<CompiledSkill>,
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -1429,6 +1456,8 @@ mod tests {
             boundary_wander_reconsider_chance: 0.10,
             shyness_wander_reconsider_strength: 0.15,
             relationships: crate::RelationshipTuning::default(),
+            skill_level_cost: 0.0859375,
+            skill_level_growth: 1.34375,
         }
     }
 
@@ -1602,7 +1631,6 @@ mod tests {
                     kind: CompiledTraitKind::Capability {
                         start_level: 0.1875,
                         fail_delta_scale: 0.0625,
-                        learn_per_attempt: 0.03125,
                     },
                     description: String::new(),
                 },
@@ -1720,6 +1748,14 @@ mod tests {
             portals: vec![],
             colourways: vec![],
             coverings: Vec::new(),
+            skills: vec![CompiledSkill {
+                id: "tinkering".to_string(),
+                label: "Tinkering".to_string(),
+                description: "Making a broken thing go again.".to_string(),
+                tag: "tinkering".to_string(),
+                levels: 7,
+                practice_per_attempt: 0.046875,
+            }],
         }
     }
 
@@ -2042,14 +2078,14 @@ mod tests {
 
     /// A new tuning knob belongs at the end of the serialized `Tuning`
     /// record, even when it is conceptually related to fields near the
-    /// beginning. The two housemate limits ([CS-command]) are the final two
-    /// one-byte varints; `resale_fraction` ([SL-pay]) is the four bytes
-    /// before them, and `wander_radius_tiles` the byte before that; every
-    /// established field stays put.
+    /// beginning. The two housemate limits ([CS-command]) are one-byte
+    /// varints; `resale_fraction` ([SL-pay]) is the four bytes before them,
+    /// and `wander_radius_tiles` the byte before that; the skill ladder
+    /// ([SK-model]) is the final eight bytes; every established field stays
+    /// put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
-        let old_end = before.len() - 35;
         let changed = |after: Tuning| -> Vec<usize> {
             let after = postcard::to_allocvec(&after).expect("tuning must serialise");
             assert_eq!(before.len(), after.len());
@@ -2060,6 +2096,26 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // 0.0859375 and 0.09375 differ only in their third byte, as do
+        // 1.34375 and 1.40625.
+        let ladder = before.len() - 8;
+        assert_eq!(before[ladder..ladder + 4], 0.0859375f32.to_le_bytes());
+        assert_eq!(before[ladder + 4..], 1.34375f32.to_le_bytes());
+        assert_eq!(
+            changed(Tuning {
+                skill_level_cost: 0.09375,
+                ..a_tuning()
+            }),
+            vec![ladder + 2]
+        );
+        assert_eq!(
+            changed(Tuning {
+                skill_level_growth: 1.40625,
+                ..a_tuning()
+            }),
+            vec![ladder + 6]
+        );
+        let old_end = ladder - 35;
         // [OS-daylight]: the two daylight floats precede mortality; 0.21875
         // and 0.15625 are 0, 0, 96, 62 and 0, 0, 32, 62, and a change of
         // either to 0.28125 or 0.34375 moves only its third byte.

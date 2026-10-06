@@ -1103,7 +1103,7 @@
           <summary>Personality, habits and bed</summary>
           <p id="personal-details-empty">Select a person to see their personality and habits.</p>
           <div id="personal-details-content" hidden></div>
-        </details></section>
+        </details><details id="skills-block"><summary>Skills</summary><p id="skills-empty">Select a person to see their skills.</p><ul id="skill-list" hidden></ul></details></section>
           <section id="sim-queue" data-sim-panel="queue" aria-label="Queue" hidden>
             <div class="queue-controls"><button
           id="queue-mode"
@@ -1298,7 +1298,7 @@
           <!-- [ES-form] in docs/specs/2026-09-30-edit-sims.md: edit mode's
                relation to each other household member, built by the view. -->
           <div id="housemate-ties" hidden></div>
-          <p id="housemate-removal-note" hidden>Removing a trait forgets its progress.</p>
+          <p id="housemate-removal-note" hidden>Removing a condition forgets its severity. Skills are kept.</p>
           <menu>
             <button id="housemate-back" class="hud-button" type="button">Back</button>
             <button id="housemate-confirm" class="hud-button" type="button">Move in</button>

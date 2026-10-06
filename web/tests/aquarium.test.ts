@@ -22,9 +22,13 @@ it('loads an actual released-main save and changes only the aquarium artwork', (
   try {
     const sim = new SimBridge(handle, memory);
     expect(sim.loadBytes(bytes)).toBe(true);
-    expect(sim.saveBytes()).toEqual(bytes);
-    // Moved from 16205700675540473065 when personality effects joined the world hash.
-    expect(sim.worldHash().toString()).toBe('6571675261293790793');
+    // Written before skills existed, so its next save appends the skills
+    // field after the loaded bytes: Some (1), then the seeded practice rows.
+    const saved = sim.saveBytes();
+    expect(saved.slice(0, bytes.length)).toEqual(bytes);
+    expect(saved[bytes.length]).toBe(1);
+    // Moved from 6601771059661594058 when the skill ladder became flat and the seeded practice changed.
+    expect(sim.worldHash().toString()).toBe('13907076554945442085');
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));

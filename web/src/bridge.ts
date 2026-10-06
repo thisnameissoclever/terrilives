@@ -15,6 +15,17 @@ export interface SimDetails {
   }[];
 }
 
+/**
+ * Where a person stands in one content skill ([SK-hud]): whole levels
+ * completed, the fraction of the next level already practised, and the
+ * fraction of the whole ladder climbed.
+ */
+export interface SkillStanding {
+  readonly level: number;
+  readonly progress: number;
+  readonly mastery: number;
+}
+
 export interface BedPlace { readonly bed: number; readonly ordinal: number; }
 export interface BedPlaceStatus extends BedPlace {
   readonly label: string;
@@ -1585,6 +1596,42 @@ export class SimBridge {
   /** One plain sentence per pack trait, aligned with traitLabels - [TL-panel]. */
   traitDescriptions(): string[] {
     return this.handle.trait_descriptions();
+  }
+
+  /**
+   * Every content skill for the person at `entityIndex`, in pack order, or
+   * null for anything that is not a living person and for a reading that
+   * does not line up with `skillLevels` one triple per skill. A copy across
+   * the boundary; the Skills view reads it only while it is open.
+   */
+  skillsOf(entityIndex: number): SkillStanding[] | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.skills_of(entityIndex);
+    const levels = this.handle.skill_levels();
+    if (values.length === 0 || values.length !== levels.length * 3) return null;
+    const skills: SkillStanding[] = [];
+    for (let skill = 0; skill < levels.length; skill += 1) {
+      const [level, progress, mastery] = values.slice(skill * 3, skill * 3 + 3);
+      if (!Number.isInteger(level) || level < 0 || level > levels[skill]
+        || !(progress >= 0 && progress < 1) || !(mastery >= 0 && mastery <= 1)) return null;
+      skills.push({ level, progress, mastery });
+    }
+    return skills;
+  }
+
+  /** One label per content skill, in pack order. Read once, like traitLabels. */
+  skillLabels(): string[] {
+    return this.handle.skill_labels();
+  }
+
+  /** One plain sentence per content skill, aligned with skillLabels. */
+  skillDescriptions(): string[] {
+    return this.handle.skill_descriptions();
+  }
+
+  /** The top level of each content skill, aligned with skillLabels. */
+  skillLevels(): number[] {
+    return Array.from(this.handle.skill_levels());
   }
 
   /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */

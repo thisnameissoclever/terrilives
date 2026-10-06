@@ -135,6 +135,7 @@ pub fn tick_interactions(
         Option<&terri_core::Hobbies>,
         Option<&terri_core::Fumbled>,
         Option<&mut terri_core::Traits>,
+        Option<&mut terri_core::Skills>,
     )>,
 ) {
     for (
@@ -149,6 +150,7 @@ pub fn tick_interactions(
         hobbies,
         fumbled,
         traits,
+        skills,
     ) in &mut agents
     {
         // Every index here is in range by construction. The object and
@@ -302,12 +304,16 @@ pub fn tick_interactions(
                 }
             }
 
-            // **Every attempt teaches, pass or fail** - the capability's
-            // level rises and any condition this activity's tags manage
-            // eases, which is the resolving loop [S4] demands. Removing
-            // `Fumbled` closes the attempt either way.
+            // **Every attempt teaches, pass or fail** - the skill with
+            // each of the activity's tags gains practice ([SK-learning])
+            // and any condition those tags manage eases, which is the
+            // resolving loop [S4] demands. Removing `Fumbled` closes the
+            // attempt either way.
             if let Some(mut traits) = traits {
                 super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
+            }
+            if let Some(mut skills) = skills {
+                crate::skills::practise(&mut skills, content.0, &act.tags);
             }
             commands.entity(entity).try_remove::<terri_core::Fumbled>();
             commands

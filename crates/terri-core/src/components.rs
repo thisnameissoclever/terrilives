@@ -600,6 +600,58 @@ impl Traits {
     }
 }
 
+/// [SK-model]: practice per pack skill index; level and progress are
+/// derived by the simulation's ladder; in the world hash through the
+/// `skills-v1` block. Entries are `(index into the pack's skill list,
+/// practice)`, sorted by index, at most one per skill. A skill with no
+/// entry has practice 0.0. See `docs/specs/2026-10-05-skills.md`.
+///
+/// The same sorted-`Vec` shape as [`Traits`], for the same reason: the
+/// world hash and the save iterate it in key order.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Skills(Vec<(u32, f32)>);
+
+impl Skills {
+    /// Built from `(skill index, practice)` pairs in any order. Indices
+    /// must be unique, as in [`Traits::from_entries`]: `set_practice`
+    /// would update one duplicate and leave the other stale.
+    pub fn from_entries(mut entries: Vec<(u32, f32)>) -> Self {
+        entries.sort_unstable_by_key(|(index, _)| *index);
+        debug_assert!(
+            entries.windows(2).all(|w| w[0].0 != w[1].0),
+            "duplicate skill index in Skills::from_entries"
+        );
+        Self(entries)
+    }
+    /// The practice held for the skill at `index`, or 0.0 when this person
+    /// has no entry for it.
+    pub fn practice(&self, index: u32) -> f32 {
+        self.find(index).map_or(0.0, |i| self.0[i].1)
+    }
+    /// Sets the practice for the skill at `index`, inserting an entry when
+    /// there is none. A negative value is stored as 0.0. The upper bound
+    /// is the ladder's, which this component does not know; callers clamp
+    /// against it.
+    pub fn set_practice(&mut self, index: u32, value: f32) {
+        let value = value.max(0.0);
+        match self.find(index) {
+            Ok(i) => self.0[i].1 = value,
+            Err(i) => self.0.insert(i, (index, value)),
+        }
+    }
+    /// Every entry, in key order.
+    pub fn entries(&self) -> &[(u32, f32)] {
+        &self.0
+    }
+    /// Whether this person holds no entry at all.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+    fn find(&self, index: u32) -> Result<usize, usize> {
+        self.0.binary_search_by(|(i, _)| i.cmp(&index))
+    }
+}
+
 /// This attempt is FAILING - a capability roll came up short when the
 /// interaction began ([E3]). Carried beside `Eating` for the length of
 /// the attempt; `delta_scale` is what the advertised BENEFITS deliver

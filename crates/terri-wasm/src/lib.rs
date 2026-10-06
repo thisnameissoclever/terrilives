@@ -21,6 +21,8 @@ mod save_v3_tests;
 #[cfg(test)]
 mod sim_details_tests;
 #[cfg(test)]
+mod skills_boundary_tests;
+#[cfg(test)]
 mod spawn_boundary_tests;
 #[cfg(test)]
 mod unlimited_queue_tests;
@@ -328,20 +330,20 @@ fn decode_local_bed_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
 fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 13;
+    const APPENDED_LISTS: usize = 14;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                if snapshot.sleeping_places.is_some() != (pad <= 3) {
+                if snapshot.sleeping_places.is_some() != (pad <= 4) {
                     return None;
                 }
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: dining, boundaries, shyness, sleeping places, domestic,
-                // chronotypes, instincts, waiting, migration flag, mortality, SimId
-                // ties, legacy ties, floors. Asking every appended field
-                // to be empty at every pad level is how
-                // review finding [F1] on PR 131 refused those saves.
+                // From the tail: skills, dining, boundaries, shyness, sleeping
+                // places, domestic, chronotypes, instincts, waiting, migration
+                // flag, mortality, SimId ties, legacy ties, floors. Asking every
+                // appended field to be empty at every pad level is how review
+                // finding [F1] on PR 131 refused those saves.
                 //
                 // And a padded payload must be exactly what this snapshot
                 // encodes to. Postcard writes every length in its shortest
@@ -359,6 +361,7 @@ fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
                 let invented: usize = [
+                    usize::from(snapshot.skills.is_some()),
                     usize::from(snapshot.dining.is_some()),
                     snapshot.boundaries.len(),
                     snapshot.shyness.len(),
@@ -1608,11 +1611,15 @@ impl SimHandle {
             .world_mut()
             .resource_mut::<terri_core::SimRng>()
             .range(101) as u8;
+        // Empty practice, so a tagged completion teaches this agent as it
+        // teaches everyone else, and a reload (which gives every person a
+        // `Skills`) continues the same world ([SK-save]).
         self.sim.world_mut().spawn((
             terri_core::SelfPreservation(instinct),
             Agent,
             Position { x, y },
             Needs::with(NeedId::Hunger, hunger),
+            terri_core::Skills::default(),
         ));
         self.sim.sync_render_buffer();
     }
@@ -2287,6 +2294,53 @@ impl SimHandle {
             .into_iter()
             .map(str::to_string)
             .collect()
+    }
+
+    /// Where the person carrying `entity_index` stands in every content
+    /// skill, in pack order, as `[level, progress, mastery]` triples - the
+    /// Skills view's read ([SK-hud]). Empty for anything that is not a
+    /// living person: an object, a retired index, or a number past the
+    /// last entity. Levels are at most 100, so f32 carries them exactly.
+    pub fn skills_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim
+            .skills_of(entity_index)
+            .map(|standings| {
+                standings
+                    .into_iter()
+                    .flat_map(|standing| {
+                        [
+                            f32::from(standing.level),
+                            standing.progress,
+                            standing.mastery,
+                        ]
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// One label per content skill, in pack order - what `skills_of`'s
+    /// triples resolve against. Read once at startup, like `trait_labels`.
+    pub fn skill_labels(&self) -> Vec<String> {
+        self.sim
+            .skill_labels()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// One plain sentence per content skill, aligned with `skill_labels`.
+    pub fn skill_descriptions(&self) -> Vec<String> {
+        self.sim
+            .skill_descriptions()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// The top level of each content skill, aligned with `skill_labels`.
+    pub fn skill_levels(&self) -> Vec<u32> {
+        self.sim.skill_levels().into_iter().map(u32::from).collect()
     }
 
     /// The label of the career held by the sim carrying `entity_index`,
@@ -8996,7 +9050,10 @@ mod instinct_boundary_tests {
             ..SavedDomestic::default()
         });
         saved.dining = None;
+        saved.skills = None;
         let mut old = postcard::to_allocvec(&saved).unwrap();
+        // Written before dining and skills existed: neither `None` marker.
+        assert_eq!(old.pop(), Some(0));
         assert_eq!(old.pop(), Some(0));
         let decoded = decode_v5(&old).unwrap();
         assert_eq!(decoded.domestic, saved.domestic);
@@ -9015,7 +9072,9 @@ mod instinct_boundary_tests {
             }],
             ..SavedDining::default()
         });
-        let full = postcard::to_allocvec(&saved).unwrap();
+        let mut full = postcard::to_allocvec(&saved).unwrap();
+        // A dining-era save, written before skills existed.
+        assert_eq!(full.pop(), Some(0));
         for removed in 1..=8 {
             let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
             truncated.extend(&full[..full.len() - removed]);

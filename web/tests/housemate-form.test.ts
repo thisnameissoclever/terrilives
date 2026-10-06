@@ -719,7 +719,8 @@ describe('HousemateFormView', () => {
     expect(markup.indexOf('id="housemate-keep-personality"')).toBeLessThan(markup.indexOf('id="housemate-personality-list"'));
     const traitsPage = markup.slice(markup.indexOf('<div id="housemate-page-traits"'));
     expect(traitsPage.indexOf('<div id="housemate-ties" hidden></div>')).toBeGreaterThan(traitsPage.indexOf('id="housemate-family"'));
-    expect(traitsPage).toContain('<p id="housemate-removal-note" hidden>Removing a trait forgets its progress.</p>');
+    expect(traitsPage).toContain('<p id="housemate-removal-note" hidden>Removing a condition forgets its severity. Skills are kept.</p>');
+    expect(REMOVAL_NOTE).toBe('Removing a condition forgets its severity. Skills are kept.');
     // Phone layout: the header's buttons, Edit among them, and the tie selects reach 44 px.
     const phone = COMPACT_HUD_CSS.slice(COMPACT_HUD_CSS.indexOf('@media (max-width: 600px), (max-height: 480px)'));
     expect(phone).toMatch(/#sim-dock-header > \.hud-button \{ min-height: 44px;/);
