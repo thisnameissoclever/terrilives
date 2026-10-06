@@ -1,7 +1,7 @@
 # Household chores delivery verification
 
 Date: 2026-10-06. Repository: `terrilives`. Branch: `twcx/household-chores`.
-The delivery integrates published main `f3cb7a1c993d66dd3e1e6d40085da7d94b5e0805`
+The delivery integrates published main `d19c2d6e10487145813e7a1ae1469cc42dd730b9`
 with the household chores implementation. `source-receipt.json` identifies the
 inspected runtime, persistence and regression-test source bytes.
 
@@ -33,6 +33,16 @@ The passing diagnostic records guest allocations at ticks 500 and 592, with
 the cook's valid Sit still active. Their 92-tick separation explains the need
 for explicit fixture occupancy beyond the shipped 62-tick duration. Diagnostic
 prints were removed before final workspace verification.
+
+The latest main queue update retains generic chain orders until completion.
+Integration now distinguishes those orders from an active scoped cleanup or
+chore. Waiting orders preserve the current movement and work; First requests
+validate before cancellation. Completion settles only the order that owns the
+work, and queue display preserves other pending orders. New regressions cover
+pile and surface scopes followed by generic orders, duplicate generic orders
+behind a First pile cleanup, repeat collection with a queued surface, stale
+First requests and a First floor chore interrupting a generic cleanup. Save/load
+continuation hashes match. Final independent review found no remaining blocker.
 
 ## Browser and artwork evidence
 
@@ -77,21 +87,23 @@ used to bypass that rejection. The backed-up files remain outside Git.
 
 ## Verification commands
 
-All completed checks below returned exit 0. Logs retain their captured content.
+Logs retain their captured content. The full web run hit four artwork-file timeouts; its isolated rerun passed without changing assertions or repository timeout settings.
 
 | Command | Result | Evidence |
 | --- | --- | --- |
-| `cargo fmt --all --check` | PASS | `format-complete.log` |
-| `cargo clippy --workspace --all-targets -- -D warnings` | PASS | `clippy-complete.log` |
+| `cargo test --workspace -j1 -- --test-threads=1` | PASS: 1744 tests, exit 0 | `native-release.log` |
+| `cargo fmt --all --check` | PASS | `format-release.log` |
+| `cargo clippy --workspace --all-targets -- -D warnings` | PASS | `clippy-release.log` |
 | `cargo test -p terri-wasm -j1 -- --test-threads=1` | PASS: 204 boundary tests and 4 converter tests | `wasm-native-final.log` |
 | `cargo test -p terri-wasm --example migrate_chores_preview -- --ignored --test-threads=1` with process-local `TERRI_PRIVATE_PREVIEW_SAVE` | PASS: supplied private source | `private-migration-final.log` |
 | `cargo run -p terri-wasm --example migrate_chores_preview -- INPUT.sav OUTPUT.sav` | PASS: validated conversion | `migration-final.log` |
-| `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | PASS | `wasm-build-final.log` |
-| `npm --prefix web run typecheck` | PASS | `typecheck-affinity.log` |
-| `npm --prefix web test -- --maxWorkers=1` | PASS: 2117 tests | `web-tests-affinity.log` |
-| `npm --prefix web run build` | PASS | `web-build-affinity.log` |
-| `node --test scripts/build-changelog.test.mjs` | PASS: 12 tests | `changelog-tests-final.log` |
-| `node scripts/build-changelog.mjs` | PASS | `changelog-build-final.log` |
+| `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | PASS | `wasm-build-release.log` |
+| `npm --prefix web run typecheck` | PASS | `typecheck-release.log` |
+| `npm --prefix web test -- --maxWorkers=1` | 2113 PASS; 4 artwork checks hit the 5-second limit, exit 1 | `web-tests-release.log` |
+| `npm --prefix web test -- --maxWorkers=1 tests/atlas.test.ts --testTimeout=30000` | PASS: all 14 tests in the affected file, exit 0 | `atlas-release.log` |
+| `npm --prefix web run build` | PASS | `web-build-release.log` |
+| `node --test scripts/build-changelog.test.mjs` | PASS: 12 tests | `changelog-tests-release.log` |
+| `node scripts/build-changelog.mjs` | PASS | `changelog-build-release.log` |
 | `python check-doc-ids.py` | PASS | `doc-ids.log` |
 
 The asset sequence passed 327 tests and both atlas checks. Each command used

@@ -10573,3 +10573,21 @@ content before restoring the comparison world.
 claim. Require both guests to perform standing work, save during that work,
 and compare original and restored hashes through consumption. Trace the
 reservation owner when admission fails; do not clear markers blindly.
+
+
+## Match an order's owner as well as its activity
+
+**What happened.** Retaining generic chain orders until completion let a queued
+whole-house cleanup be mistaken for the owner of an active pile or surface
+cleanup. Retained orders also displaced a First floor chore on the next tick.
+
+**Root cause.** Activity identity alone does not distinguish different scopes
+or a timed chore that temporarily interrupts the same generic activity.
+
+**Prevention.** Use existing saved scope and chore ownership in serving,
+resumption, settlement and queue display. Let waiting orders preserve the
+current movement. Validate a First request before releasing existing work.
+
+**Verify.** Queue whole-house cleanup after a pile or surface, preserve repeated
+orders behind a First chore, and require actual physical cleanup before the
+waiting order runs. Save and reload each transition with matching hashes.

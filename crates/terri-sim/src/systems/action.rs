@@ -408,6 +408,32 @@ mod sampler_tests {
     }
 }
 
+/// Records `chain` as the one the player ordered `agent` to run. The
+/// privacy rules read the record to tell a directed errand from one the
+/// sim chose for itself; `privacy::maintain` clears it once the sim no
+/// longer carries that chain.
+fn record_directed_chain(
+    boundaries: &mut crate::privacy::BoundaryDecisions,
+    identities: &Query<&SimId>,
+    agent: Entity,
+    chain: u32,
+) {
+    if let Ok(id) = identities.get(agent) {
+        boundaries
+            .0
+            .entry(id.0)
+            .or_insert(terri_core::save::SavedBoundaryDecision {
+                actor: id.0,
+                expires: 0,
+                lapse: false,
+                waiting_since: None,
+                goal: None,
+                directed_chain: None,
+            })
+            .directed_chain = Some(chain);
+    }
+}
+
 /// Turns each directed agent's front intent into a `Target`, taking
 /// precedence over whatever the sim had decided for itself - [D-3].
 ///
@@ -488,18 +514,26 @@ mod sampler_tests {
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn serve_intents(
     mut commands: Commands,
+    scoped: Option<Res<terri_core::save::SavedTargetedCleanup>>,
     grid: Res<TileGrid>,
     content: Res<Content>,
     beds: BedState,
     chore_state: Option<Res<terri_core::chores::SavedChores>>,
     mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
     identities: Query<&SimId>,
+    domestic: Option<Res<terri_core::save::SavedDomestic>>,
     // Work outranks the queue - [E4]. serve_intents deliberately sees
     // mid-walk and mid-meal sims because a player intent preempts, but
     // the clock's preemption is not preemptable back: a commuting or
     // working sim's queued intents wait and are served on the return.
     mut agents: Query<
-        (Entity, &Position, &mut IntentQueue, Option<&Target>),
+        (
+            Entity,
+            &Position,
+            &mut IntentQueue,
+            Option<&Target>,
+            Option<&terri_core::ChainState>,
+        ),
         (
             With<Agent>,
             Without<terri_core::AtWork>,
@@ -537,8 +571,8 @@ pub fn serve_intents(
 ) {
     let mut directed: Vec<Entity> = agents
         .iter()
-        .filter(|(_, _, queue, _)| !queue.is_empty())
-        .map(|(entity, _, _, _)| entity)
+        .filter(|(_, _, queue, ..)| !queue.is_empty())
+        .map(|(entity, ..)| entity)
         .collect();
     directed.sort_by_key(|entity| entity.index());
 
@@ -560,13 +594,40 @@ pub fn serve_intents(
     for agent in directed {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, agent_pos, mut queue, target)) = agents.get_mut(agent) else {
+        let Ok((_, agent_pos, mut queue, target, chain_state)) = agents.get_mut(agent) else {
             continue;
         };
         let Some(intent) = queue.front() else {
             continue;
         };
 
+        let owns_scope = scoped.as_deref().is_some_and(|state| {
+            state
+                .orders
+                .iter()
+                .any(|order| order.person == agent.index_u32() && order.queue_position.is_none())
+        });
+        let queued_chain = objects
+            .get(intent.object)
+            .ok()
+            .and_then(|(_, _, placed, _, _)| {
+                super::chain::ordered_chain(content.0, placed.0, intent.interaction)
+            });
+        let owns_chore = chore_state.as_deref().is_some_and(|state| {
+            state
+                .tasks
+                .iter()
+                .any(|task| task.person == agent.index_u32() && task.directed && !task.suspended)
+        });
+        let generic_cleanup_waits = owns_scope
+            && queued_chain.is_some_and(|chain| {
+                content.0.chains[chain as usize].id == crate::domestic::CLEANUP
+            });
+        if (owns_scope && (intent.cleanup.is_some() || generic_cleanup_waits))
+            || (owns_chore && (intent.cleanup.is_some() || queued_chain.is_some()))
+        {
+            continue;
+        }
         // **An agent the player has directed is not an agent with
         // nothing to do.** `select_action` is the only writer of
         // `Restless` and it skips directed agents entirely, so a marker
@@ -749,54 +810,41 @@ pub fn serve_intents(
         // **The rows past the interactions are the object's CHAINS** -
         // [K5]'s flyout mapping, which is what keeps the command wire
         // untouched: `UseObject`'s existing index addresses a chain by
-        // position. Starting one preempts exactly as any command does,
-        // spends the intent (the chain carries itself from here -
-        // advance_chains targets the first station this same tick),
+        // position. Starting one preempts exactly as any command does
         // and replaces whatever chain was already running, hands
         // emptied: two dinners at once is not a state.
-        {
-            let interactions = content.0.object(placed.0).interactions.len();
-            let snack = content
-                .0
-                .object(placed.0)
-                .interactions
-                .get(intent.interaction as usize)
-                .is_some_and(|act| act.id == "grab_snack")
-                && content
-                    .0
-                    .chains
-                    .iter()
-                    .any(|chain| chain.id == crate::domestic::SNACK);
-            if intent.interaction as usize >= interactions || snack {
-                let local = (intent.interaction as usize).saturating_sub(interactions);
-                let requested = if snack {
-                    content
-                        .0
-                        .chains
-                        .iter()
-                        .enumerate()
-                        .find(|(_, chain)| chain.id == crate::domestic::SNACK)
-                } else {
-                    content
-                        .0
-                        .chains
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, chain)| chain.advertised_by == placed.0)
-                        .nth(local)
-                };
-                let Some((global, chain)) = requested else {
-                    // Past the chains too: the pack changed under a
-                    // saved command log, since a live click cannot name
-                    // a row that is not there. Dropping it is what
-                    // keeps the indexing in `follow_path` and
-                    // `tick_interactions` safe by construction rather
-                    // than by hope.
-                    queue.pop();
+        //
+        // **The order is NOT spent at the start.** It stays at the front
+        // for as long as its chain runs, the [D-3] rule every ordinary
+        // order already follows, so an order queued behind it waits its
+        // turn instead of becoming the front on the next tick and
+        // replacing the chain - the failure that let eleven queued
+        // snacks produce one snack. `advance_chains` and the dining
+        // systems recognise the front order as the running chain's own
+        // through `outranked`, and `settle_order` removes it when the
+        // chain finishes or is abandoned.
+        let interactions = content.0.object(placed.0).interactions.len();
+        match super::chain::ordered_chain(content.0, placed.0, intent.interaction) {
+            Some(global) => {
+                let chain = &content.0.chains[global as usize];
+                // Already carrying out this very chain - the `Target`
+                // check above, for a chain. A chain the sim chose for
+                // itself that the order happens to name is adopted
+                // rather than restarted, and recorded as directed so
+                // the privacy rules read it as the player's errand from
+                // here on. EXCEPT a cleanup the sim started on its own:
+                // that task covers only the dishes the sim picked when it
+                // started and is dropped between steps once energy,
+                // hunger or bladder turns critical, neither of which is
+                // what "Clean dishes" orders, so it is restarted below
+                // as a directed task over every dish.
+                if owns_scope && chain.id == crate::domestic::CLEANUP {
                     continue;
-                };
-                if crate::domestic::hidden_chain(&chain.id) && !snack {
-                    queue.pop();
+                }
+                let adoptable = chain.id != crate::domestic::CLEANUP
+                    || crate::domestic::cleaning_under_orders(domestic.as_deref(), agent);
+                if adoptable && chain_state.is_some_and(|state| state.chain == global) {
+                    record_directed_chain(&mut boundaries, &identities, agent, global);
                     continue;
                 }
                 if let Some(target) = target {
@@ -813,21 +861,8 @@ pub fn serve_intents(
                     .remove::<terri_core::StepWork>()
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
-                    .insert(terri_core::ChainState::begin(global as u32));
-                if let Ok(id) = identities.get(agent) {
-                    boundaries
-                        .0
-                        .entry(id.0)
-                        .or_insert(terri_core::save::SavedBoundaryDecision {
-                            actor: id.0,
-                            expires: 0,
-                            lapse: false,
-                            waiting_since: None,
-                            goal: None,
-                            directed_chain: None,
-                        })
-                        .directed_chain = Some(global as u32);
-                }
+                    .insert(terri_core::ChainState::begin(global));
+                record_directed_chain(&mut boundaries, &identities, agent, global);
                 commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
                 if chain.id == crate::domestic::CLEANUP {
                     commands.queue(move |world: &mut World| {
@@ -835,9 +870,19 @@ pub fn serve_intents(
                     });
                 }
                 claimed.push(agent);
+                continue;
+            }
+            None if intent.interaction as usize >= interactions => {
+                // Past the chains, or a chain the pack keeps to itself:
+                // the pack changed under a saved command log, since a
+                // live click cannot name a row that is not there.
+                // Dropping it is what keeps the indexing in
+                // `follow_path` and `tick_interactions` safe by
+                // construction rather than by hope.
                 queue.pop();
                 continue;
             }
+            None => {}
         }
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
         let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);

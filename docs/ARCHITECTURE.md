@@ -1419,6 +1419,12 @@ entity order; zero-only historical worlds retain their previous hash layout.
 See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
 ## Domestic state and presentation
 
+Queued generic chains retain their own order until completion. Active targeted
+cleanup and directed timed chores own separate saved records, so the generic
+order waits rather than adopting, replacing or being settled by their work.
+First cleanup requests validate their target and route before releasing current
+work. Serving, resumption and queue display use the same ownership distinction.
+
 The published V5 skill and affinity fields follow dining. Targeted cleanup, `SavedChores`
 and `SavedGrime` append after that published tail in this order.
 `SavedChores` follows targeted cleanup.

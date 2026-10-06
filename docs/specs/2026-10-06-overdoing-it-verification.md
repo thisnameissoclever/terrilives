@@ -65,6 +65,8 @@ Not checked: decay clearing both moodlets in the browser (the deterministic test
 
 One existing behaviour was observed and is recorded rather than changed here. With Queue mode on, eleven `Grab a snack` orders queued while paused were consumed within about ten game minutes of unpausing, and only one snack chain was seen running. The likely cause is in `serve_intents` in `crates/terri-sim/src/systems/action.rs`: a chain order is removed from the queue when its chain begins, so the next queued snack becomes the front order and is served at once, replacing the running chain. This branch does not touch that file, so queued snack orders cannot be used to overdo snacking until it is fixed.
 
+The cause was confirmed and fixed the same day on a separate branch: a chain order now stays in the queue until its chain finishes or is abandoned, the way an ordinary order stays until its interaction completes. `queued_snack_orders_run_one_after_another` in `crates/terri-sim/src/domestic/tests.rs` pins three snack orders appended in one tick running as three snacks.
+
 ## Delivery
 
 The implementation and this record are on branch `twcl/acclimation`. Push, merge and deployment are recorded separately in the delivery report.

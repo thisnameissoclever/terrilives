@@ -456,7 +456,17 @@ pub(crate) fn advance(world: &mut World, state: &mut SavedChores) {
             || (!task.directed && urgent)
             || world
                 .get::<IntentQueue>(person)
-                .is_some_and(|q| !q.is_empty())
+                .and_then(IntentQueue::front)
+                .is_some_and(|order| {
+                    let queued_chain = world.get::<SmartObject>(order.object).and_then(|placed| {
+                        crate::systems::chain::ordered_chain(
+                            world.resource::<crate::Content>().0,
+                            placed.0,
+                            order.interaction,
+                        )
+                    });
+                    !(task.directed && (order.cleanup.is_some() || queued_chain.is_some()))
+                })
         {
             if !task.suspended && may_release_path(world, person) {
                 world.entity_mut(person).remove::<Path>();

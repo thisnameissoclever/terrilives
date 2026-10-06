@@ -429,6 +429,11 @@ pub(crate) fn drain_ordinary_commands(
                 else {
                     continue;
                 };
+                if matches!(placement, Placement::Front) {
+                    commands.queue(move |world: &mut World| {
+                        crate::targeted_cleanup::interrupt_for_order(world, agent, id)
+                    });
+                }
                 place_intent(
                     &mut commands,
                     &mut agents,
@@ -509,6 +514,35 @@ pub(crate) fn drain_ordinary_commands(
                 // command log recorded against an older content pack
                 // replays as, and what an object with no interactions at
                 // all makes of any index whatsoever.
+                let scoped_cleanup_front = matches!(placement, Placement::Front)
+                    && definitions
+                        .get(object)
+                        .ok()
+                        .and_then(|placed| {
+                            crate::systems::chain::ordered_chain(content.0, placed.0, interaction)
+                        })
+                        .is_some_and(|chain| {
+                            content.0.chains[chain as usize].id == crate::domestic::CLEANUP
+                        });
+                if scoped_cleanup_front {
+                    commands.queue(move |world: &mut World| {
+                        crate::targeted_cleanup::interrupt_for_sink(world, agent, object)
+                    });
+                } else if matches!(placement, Placement::Front)
+                    && definitions
+                        .get(object)
+                        .ok()
+                        .and_then(|placed| {
+                            crate::systems::chain::ordered_chain(content.0, placed.0, interaction)
+                        })
+                        .is_some()
+                {
+                    commands.queue(move |world: &mut World| {
+                        if crate::targeted_cleanup::reachable(world, agent, object) {
+                            crate::chores::cancel(world, agent);
+                        }
+                    });
+                }
                 let intent = Intent {
                     cleanup: None,
                     chore: None,
@@ -635,8 +669,9 @@ pub(crate) fn drain_ordinary_commands(
                 // REGARDLESS of the serving guard** - [K4]'s one
                 // destructive path. The guard protects autonomous
                 // actions from "stop doing what I told you", but a
-                // chain is a long visible errand whose starting intent
-                // is already spent, so stop means stop. The chain walk
+                // chain is a long visible errand, chosen or ordered, and
+                // stop means stop: an ordered chain's order goes with
+                // the rest of the queue cleared above. The chain walk
                 // is identifiable by its sentinel, which is what lets
                 // the station release here without touching the guard
                 // above; the counter and the carried item go

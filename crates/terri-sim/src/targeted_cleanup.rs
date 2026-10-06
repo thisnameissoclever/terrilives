@@ -65,6 +65,53 @@ pub(crate) fn has_active(world: &World, person: u32) -> bool {
         })
 }
 
+/// Validate a replacement before releasing the current scoped work.
+pub(crate) fn interrupt_for_order(world: &mut World, person: Entity, id: u32) {
+    let valid = world
+        .get_resource::<SavedTargetedCleanup>()
+        .and_then(|state| state.orders.iter().find(|order| order.id == id))
+        .filter(|order| order.person == person.index_u32())
+        .is_some_and(|order| {
+            surface(world, order.surface).is_some_and(|station| reachable(world, person, station))
+                && washing_available(world, person)
+                && {
+                    let (ids, visible) = candidates(world, order);
+                    !ids.is_empty() || visible
+                }
+        });
+    if valid {
+        crate::chores::cancel(world, person);
+        interrupt_active(world, person);
+    }
+}
+
+pub(crate) fn interrupt_for_sink(world: &mut World, person: Entity, sink: Entity) {
+    if reachable(world, person, sink) && washing_available(world, person) {
+        crate::chores::cancel(world, person);
+        interrupt_active(world, person);
+    }
+}
+
+/// A plain front order replaces the active scope at the command boundary.
+/// Waiting scoped orders remain queued and carried dishes use normal restoration.
+pub(crate) fn interrupt_active(world: &mut World, person: Entity) {
+    if !has_active(world, person.index_u32()) {
+        return;
+    }
+    if let Some(target) = world.get::<terri_core::Target>(person).copied() {
+        crate::reservations::release_now(world, person, target);
+    }
+    crate::domestic::abandon(world, person);
+    world
+        .entity_mut(person)
+        .remove::<terri_core::Target>()
+        .remove::<terri_core::Path>()
+        .remove::<terri_core::Eating>()
+        .remove::<terri_core::StepWork>()
+        .remove::<terri_core::Carrying>()
+        .remove::<ChainState>();
+}
+
 pub(crate) fn abandon(world: &mut World, person: u32) {
     if let Some(mut state) = world.get_resource_mut::<SavedTargetedCleanup>() {
         state
@@ -73,7 +120,7 @@ pub(crate) fn abandon(world: &mut World, person: u32) {
     }
 }
 
-fn reachable(world: &World, person: Entity, object: Entity) -> bool {
+pub(crate) fn reachable(world: &World, person: Entity, object: Entity) -> bool {
     let (Some(from), Some(to), Some(placed)) = (
         world.get::<Position>(person),
         world.get::<Position>(object),
