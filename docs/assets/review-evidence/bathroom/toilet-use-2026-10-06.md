@@ -65,6 +65,17 @@ reduced-motion rest sample, visible body versus fixture click ownership,
 compiled use through the WebAssembly bridge, save and load restoring the drawn
 pose, and cancellation clearing it.
 
+## Empty and occupied registration
+
+Measured on the toilet-05 atlas against the empty `offlineToilet*` sprites:
+all four scene anchors equal the empty anchor `[48.0000114440918,
+116.0004369020462]`. The occupied furniture layer's alpha box is inset by
+three export pixels on every side in SE and SW (the separate ink layer covers
+that rim), and by three or four pixels per side in NE and NW, whose centres
+differ from the empty sprite's by half an export pixel horizontally. The
+played frames below show the bowl at the same screen position empty and
+occupied.
+
 ## Atlas preservation
 
 The atlas appends 108 records (60 visible-contribution textures and 48 scene
@@ -101,8 +112,8 @@ to watch and the dev server was stopped when the delivery finished.
 3. `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`: passed.
 4. `npm --prefix web test -- --maxWorkers=1`: 2,132 tests passed.
    Web typecheck and production build: passed.
-5. Bathroom action suite (`assets/models/bathroom/actions`): 96 tests passed,
-   29 of them the contract and exporter tests. The intentionally red bath
+5. Bathroom action suite (`assets/models/bathroom/actions`): 97 tests passed,
+   30 of them the contract and exporter tests. The intentionally red bath
    wall-support test from the checkpoint is not part of this delivery; it
    remains in history at ba38c907 for the bath track. CI discovers only the
    eight top-level bathroom tests; the action suite is a local gate.
