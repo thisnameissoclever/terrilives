@@ -32,7 +32,7 @@ export const EDIT_TITLE = 'Edit housemate';
 export const CONFIRM_CHANGES = 'Confirm changes';
 export const SAVING_CHANGES = 'Making the changes…';
 export const KEEP_PERSONALITY = 'Keep current personality';
-export const REMOVAL_NOTE = 'Removing a trait forgets its progress.';
+export const REMOVAL_NOTE = 'Removing a condition forgets its severity. Skills are kept.';
 
 /** The form's two pages: who they are, then their traits. */
 export type HousematePage = 'personality' | 'traits';

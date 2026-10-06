@@ -2504,6 +2504,48 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// One label per content skill, in pack order - what
+    /// [`Sim::skills_of`]'s rows resolve against ([SK-hud]). Borrowed from
+    /// the `&'static` pack like [`Sim::trait_labels`].
+    pub fn skill_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .skills
+                    .iter()
+                    .map(|skill| skill.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// One plain sentence per content skill, aligned with
+    /// [`Sim::skill_labels`].
+    pub fn skill_descriptions(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .skills
+                    .iter()
+                    .map(|skill| skill.description.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The number of rungs on each content skill's ladder, aligned with
+    /// [`Sim::skill_labels`]: the top level a person can reach.
+    pub fn skill_levels(&self) -> Vec<u8> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| content.0.skills.iter().map(|skill| skill.levels).collect())
+            .unwrap_or_default()
+    }
+
     /// One name per entry in the pack's item-kind list, in pack order -
     /// what the render buffer's `carrying` column resolves against.
     pub fn item_kinds(&self) -> Vec<&'static str> {
