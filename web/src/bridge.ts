@@ -1643,6 +1643,25 @@ export class SimBridge {
     return Array.from(this.handle.skill_levels());
   }
 
+  /**
+   * The value the person at `entityIndex` holds for every affinity kind, in
+   * pack order, each from -1 (hates) to 1 (loves) - [OA-hud]. Null for
+   * anything that is not a living person and for a reading with a value
+   * outside that range. A copy across the boundary; the Likes and dislikes
+   * view reads it only while it is open.
+   */
+  affinitiesOf(entityIndex: number): number[] | null {
+    if (!isU32(entityIndex)) return null;
+    const values = Array.from(this.handle.affinities_of(entityIndex));
+    if (values.length === 0 || !values.every(value => value >= -1 && value <= 1)) return null;
+    return values;
+  }
+
+  /** One label per affinity kind, in pack order. Read once, like skillLabels. */
+  affinityLabels(): string[] {
+    return this.handle.affinity_labels();
+  }
+
   /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */
   frontDoorLines(): Uint32Array {
     return Uint32Array.from(this.handle.front_door_lines());

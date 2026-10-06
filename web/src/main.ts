@@ -62,6 +62,7 @@ import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
 import { SkillsPanel, createSkillsPanelSurface } from './ui/skills-panel.js';
+import { AffinitiesPanel, createAffinitiesPanelSurface } from './ui/affinities-panel.js';
 import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
@@ -578,6 +579,20 @@ async function main(): Promise<void> {
   skillsBlock.addEventListener('toggle', () => {
     if (skillsBlock.open) skillsPanel.update(performance.now(), true);
   });
+  // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it
+  // reads nothing; opening it reads at once.
+  const affinitiesBlock = document.querySelector<HTMLDetailsElement>('#affinities-block');
+  const affinitiesEmpty = document.querySelector<HTMLElement>('#affinities-empty');
+  const affinityList = document.querySelector<HTMLElement>('#affinity-list');
+  if (!affinitiesBlock || !affinitiesEmpty || !affinityList) {
+    throw new Error('missing likes and dislikes markup');
+  }
+  const affinitiesPanel = new AffinitiesPanel(sim, sim.affinityLabels(),
+    createAffinitiesPanelSurface(document, affinitiesBlock, affinitiesEmpty, affinityList), sim.needBarRefreshMs(),
+    () => affinitiesBlock.open && !simOverview.hidden && !simSheet.hidden);
+  affinitiesBlock.addEventListener('toggle', () => {
+    if (affinitiesBlock.open) affinitiesPanel.update(performance.now(), true);
+  });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
   const peopleList = document.querySelector<HTMLElement>('#people-list');
@@ -732,6 +747,7 @@ async function main(): Promise<void> {
   traitsPanel.update(initialHudMs, true);
   personalDetailsPanel.update(initialHudMs, true);
   skillsPanel.update(initialHudMs, true);
+  affinitiesPanel.update(initialHudMs, true);
   bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
@@ -981,6 +997,7 @@ async function main(): Promise<void> {
           traitsPanel.update(nowMs, true);
           personalDetailsPanel.update(nowMs, true);
           skillsPanel.update(nowMs, true);
+          affinitiesPanel.update(nowMs, true);
           bedAssignmentPanel.update(nowMs, true);
         }
       })
@@ -1020,6 +1037,7 @@ async function main(): Promise<void> {
       traitsPanel.update(nowMs, true);
       personalDetailsPanel.update(nowMs, true);
       skillsPanel.update(nowMs, true);
+      affinitiesPanel.update(nowMs, true);
     },
   });
   housemateView = new HousemateFormView(document, housemateForm);
@@ -1854,6 +1872,7 @@ async function main(): Promise<void> {
     traitsPanel.update(nowMs);
     personalDetailsPanel.update(nowMs);
     skillsPanel.update(nowMs);
+    affinitiesPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();

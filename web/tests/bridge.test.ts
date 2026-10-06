@@ -1114,6 +1114,38 @@ describe('SimBridge', () => {
     expect(bridge.funds()).toBe(120);
   });
 
+  it("reads each person's likes and dislikes through release wasm without changing saves", () => {
+    // [OA-hud]: four values per person in kind order. Bill wears Television
+    // devotee, which sets television to 0.8.
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, wasmMemory);
+      expect(bridge.affinityLabels()).toEqual(['plants', 'aquarium', 'television', 'radio']);
+      const ids = Array.from(bridge.ids());
+      const kinds = bridge.kinds();
+      const people = ids.filter((_, index) => kinds[index] === 0);
+      expect(people.length).toBeGreaterThan(0);
+      const bill = people.find(id => bridge.simName(id) === 'Bill');
+      expect(bill).toBeDefined();
+      const before = handle.save_bytes();
+      const hash = bridge.worldHash();
+      for (const person of people) {
+        const values = bridge.affinitiesOf(person);
+        expect(values).toHaveLength(4);
+        expect(values).toEqual(Array.from(handle.affinities_of(person)));
+      }
+      expect(bridge.affinitiesOf(bill!)![2]).toBe(Math.fround(0.8));
+      const object = ids.find((_, index) => kinds[index] !== 0)!;
+      expect(object).toBeDefined();
+      expect(bridge.affinitiesOf(object)).toBeNull();
+      for (const hostile of [-1, 1.5, Number.NaN, 2 ** 32, 0xffffffff]) {
+        expect(bridge.affinitiesOf(hostile)).toBeNull();
+      }
+      expect(handle.save_bytes()).toEqual(before);
+      expect(bridge.worldHash()).toBe(hash);
+    } finally { handle.free(); }
+  });
+
   it('a shipped dinner becomes visible: hands fill, the status line reads', () => {
     // The chain's whole VISIBLE pipeline through the release artifact:
     // somewhere in the first few game days a sim starts cook_dinner,

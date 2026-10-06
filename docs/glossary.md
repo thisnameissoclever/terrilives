@@ -179,6 +179,16 @@ kinds, each doing exactly one thing:
 | **ladder** | How practice becomes a level. Level 1 costs `skill_level_cost` practice and each later level costs `skill_level_growth` times the one before; both live in `content/tuning.toml`. Progress is the share of the current level's cost already paid, and practice stops rising at the top level. |
 | **mastery** | How far up the ladder a person is, from 0 to 1: the level plus progress, divided by the number of levels. The capability fumble roll and the Traits panel's Skill percentage read it ([SK-capability]). |
 
+## Likes and dislikes - feelings about kinds of things
+
+These are a person's feelings about things in the house. They are separate from a relationship's affinity, which is one person's feeling about another.
+
+| Term | Means |
+| --- | --- |
+| **affinity kind** | A kind of thing a person can love or hate, listed as an `[[affinity]]` table in `content/objects.toml` with the objects it covers. The shipped kinds are plants, the aquarium, the television and the radio, in that order. A **presence** kind moves the mood of people in the same room as one of its objects; a **use** kind bothers a person who dislikes it when somebody else in the room is using one. An object no kind lists, such as a sofa or the fridge, pleases or bothers nobody this way. The rules are [OA-kinds] in `docs/specs/2026-10-06-object-affinities.md`. |
+| **affinity value** | One number per person for each affinity kind, from -1 (hates) to 1 (loves), drawn at random from the seeded world generator when the person is created and saved with the household. A disposition trait about the same activity replaces the draw: Television devotee gives 0.8 for television and Hates television gives -0.8. Changing traits later leaves the value alone ([OA-values]). The Likes and dislikes section of Sim details shows each value as one word: Loves at 0.6 or above, Likes at 0.2 or above, Indifferent strictly between -0.2 and 0.2, Dislikes at -0.2 or below, and Hates at -0.6 or below. |
+| **affinity moodlet** | `Likes the {kind} here` or `Bothered by the {kind} here` while a presence kind is in the person's room and their value is 0.2 or more in either direction, and `Bothered by {name} using the {kind}` for each other person in the room using a use kind the person's value is -0.2 or below for. Being bothered by someone's use also slowly lowers the person's feeling toward that user. Nobody outside the house gets any, including a person at work ([OA-presence], [OA-use]). |
+
 ## Career
 
 | Term | Means |

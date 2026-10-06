@@ -2560,6 +2560,42 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// The value the person carrying `index` holds for every affinity
+    /// kind, in pack order, each in -1.0..=1.0 - [OA-hud]. `None` for
+    /// anything that is not a living person. A person spawned without the
+    /// component (a bare agent) reads 0.0, indifferent, for every kind.
+    pub fn affinities_of(&self, index: u32) -> Option<Vec<f32>> {
+        let pack = self.world.resource::<Content>().0;
+        let mut people = self
+            .world
+            .try_query::<(Entity, &terri_core::Agent, Option<&terri_core::Affinities>)>()?;
+        let (_, _, held) = people
+            .iter(&self.world)
+            .find(|(entity, ..)| entity.index_u32() == index)?;
+        Some(
+            (0..pack.affinities.len() as u32)
+                .map(|kind| held.map_or(0.0, |held| held.value(kind)))
+                .collect(),
+        )
+    }
+
+    /// One label per affinity kind, in pack order - what
+    /// [`Sim::affinities_of`]'s values resolve against ([OA-hud]).
+    /// Borrowed from the `&'static` pack like [`Sim::skill_labels`].
+    pub fn affinity_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .affinities
+                    .iter()
+                    .map(|kind| kind.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
     /// One name per entry in the pack's item-kind list, in pack order -
     /// what the render buffer's `carrying` column resolves against.
     pub fn item_kinds(&self) -> Vec<&'static str> {

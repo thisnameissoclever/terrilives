@@ -11,6 +11,8 @@ use wasm_bindgen::prelude::*;
 mod save_before_voice;
 
 #[cfg(test)]
+mod affinity_boundary_tests;
+#[cfg(test)]
 mod bed_assignment_tests;
 #[cfg(test)]
 mod calendar_boundary_tests;
@@ -2361,6 +2363,25 @@ impl SimHandle {
     /// The top level of each content skill, aligned with `skill_labels`.
     pub fn skill_levels(&self) -> Vec<u32> {
         self.sim.skill_levels().into_iter().map(u32::from).collect()
+    }
+
+    /// The value the person carrying `entity_index` holds for every
+    /// affinity kind, in pack order, each in -1.0..=1.0 - the Likes and
+    /// dislikes view's read ([OA-hud]). Empty for anything that is not a
+    /// living person: an object, a retired index, or a number past the
+    /// last entity.
+    pub fn affinities_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim.affinities_of(entity_index).unwrap_or_default()
+    }
+
+    /// One label per affinity kind, in pack order - what `affinities_of`'s
+    /// values resolve against. Read once at startup, like `skill_labels`.
+    pub fn affinity_labels(&self) -> Vec<String> {
+        self.sim
+            .affinity_labels()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
     }
 
     /// The label of the career held by the sim carrying `entity_index`,
