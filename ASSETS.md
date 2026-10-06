@@ -263,6 +263,15 @@ claimed listening evidence. Technical contract and measurements are in
 `docs/specs/2026-10-01-toilet-completion-audio.md`. The owner accepted the source
 recording; separate in-game mix listening remains unverified.
 
+## Sleeping snore recordings
+
+A sleeping household plays one of five snores cut from "snore.wav" by sirplus, [Freesound sound 20545](https://freesound.org/people/sirplus/sounds/20545/), CC0 1.0. The owner chose it on 2026-10-06 from three CC0 candidates, after rejecting synthesized snores as unlike the real thing.
+
+1. Retained source: `assets/audio/snore/sirplus-snore-20545-preview.mp3`, 725,943 bytes, SHA-256 `f394b7034bf0d07530bee1e7c69e5b627dade788fde09cca3024f2fd5262f50f`. This is Freesound's public high-quality MP3 preview of the 32-second original; the original WAV needs a Freesound account.
+2. Edit: `scripts/prepare-snore-audio.py` cuts five snore-and-exhale windows, removes rumble below 40 Hz, rolls off everything above 1.2 kHz, fades the edges, and level-matches each clip's loud part to RMS 0.1. Measured after the edit, 94 to 99.7 percent of each clip's energy lies below 250 Hz and none measurable lies above 2 kHz.
+3. Runtime: `web/public/audio/sleep/snore-1.wav` to `snore-5.wav`, mono 16-bit PCM at 48 kHz, 3.7 to 5.2 seconds each. `web/tests/snore-audio-assets.test.js` pins their hashes and frame counts.
+4. Playback: gain 0.05 before Effects, which puts the snore near the level of the flush, sink, stove and conversation recordings. One snore at a time, at most one start every six real seconds, rotating through the five clips. Pause, mute, Effects at zero, a hidden tab and Load stop it.
+
 ## Paper recordings for review only
 
 Four unchanged originals from rubberduck's [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx), CC0 1.0, are retained in `assets/audio/review/paper/`. Archive SHA-256 is `a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`. The source page and local archive hash were rechecked on 2026-10-01; no new pack was downloaded.

@@ -117,9 +117,9 @@ same graph and cannot bypass a zero voice gain.
 
 Each audible cue creates one oscillator and one gain envelope, then disconnects
 both nodes when ended or evicted. Rejection, footstep, and
-personal activity cues stop within 160 ms. The low-gain sleep-breath envelope
-is a soft, low snore: it swells in over 220 ms and lasts 600 ms, sweeping from
-92 to 68 Hz. At most eight voices remain active. A ninth event stops and
+personal activity cues stop within 160 ms. Sleep plays a recorded snore
+instead of a tone; ASSETS.md, "Sleeping snore recordings", gives its source,
+level and spacing. At most eight voices remain active. A ninth event stops and
 disconnects the oldest voice instead of building an invisible backlog. Recorded
 conversations use two buffer sources sharing one gain, with a separate cap of
 three pairs. The scheduler tracks each conversation independently and collapses

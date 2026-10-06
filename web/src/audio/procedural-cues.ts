@@ -1,7 +1,6 @@
 export type ProceduralCue =
   | 'rejected'
   | 'footstep'
-  | 'sleep-breath'
   | 'eating'
   | 'page-turn'
   | 'exercise'
@@ -43,14 +42,6 @@ interface CueShape {
   readonly startHz: number;
   readonly endHz: number;
   readonly oscillator: OscillatorType;
-  /**
-   * Seconds from silence to peak gain. Short impact cues keep the default
-   * 8 ms so they read as a tap; a sustained cue such as the sleep snore sets a
-   * longer swell so it fades in rather than switching on. The player clamps
-   * it below `durationSeconds`, where the fade back to silence ends, so the
-   * two ramps can never be scheduled out of order.
-   */
-  readonly attackSeconds?: number;
 }
 
 interface ActiveVoice {
@@ -60,7 +51,6 @@ interface ActiveVoice {
 }
 
 const SILENCE_GAIN = 0.0001;
-const DEFAULT_ATTACK_SECONDS = 0.008;
 export const MAX_ACTIVE_PROCEDURAL_VOICES = 8;
 
 const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
@@ -76,20 +66,6 @@ const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
     peakGain: 0.0225,
     startHz: 175,
     endHz: 130,
-    oscillator: 'triangle',
-  },
-  // A soft, low snore: one slow exhale every household sleep interval. The
-  // owner wants as little high-pitched sound as possible from a game left
-  // playing in the background, so this sits near the bottom of the voice
-  // range and swells in over a fifth of a second instead of clicking on. The
-  // triangle's faint odd harmonics give it the rasp of a snore; a pure sine
-  // this low is a hum that small speakers barely reproduce.
-  'sleep-breath': {
-    durationSeconds: 0.6,
-    attackSeconds: 0.22,
-    peakGain: 0.008,
-    startHz: 92,
-    endHz: 68,
     oscillator: 'triangle',
   },
   eating: {
@@ -167,10 +143,7 @@ export class ProceduralCuePlayer {
 
       gain.gain.cancelScheduledValues(now);
       gain.gain.setValueAtTime(SILENCE_GAIN, now);
-      gain.gain.linearRampToValueAtTime(
-        shape.peakGain,
-        now + attackSecondsFor(shape),
-      );
+      gain.gain.linearRampToValueAtTime(shape.peakGain, now + 0.008);
       gain.gain.linearRampToValueAtTime(
         SILENCE_GAIN,
         now + shape.durationSeconds,
@@ -230,11 +203,6 @@ export class ProceduralCuePlayer {
     safeDisconnect(voice.oscillator);
     safeDisconnect(voice.gain);
   }
-}
-
-function attackSecondsFor(shape: CueShape): number {
-  const attack = shape.attackSeconds ?? DEFAULT_ATTACK_SECONDS;
-  return Math.min(attack, shape.durationSeconds / 2);
 }
 
 function safeDisconnect(node: AudioNodePort): void {
