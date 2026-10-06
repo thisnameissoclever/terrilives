@@ -23,7 +23,8 @@ it('loads an actual released-main save and changes only the aquarium artwork', (
     const sim = new SimBridge(handle, memory);
     expect(sim.loadBytes(bytes)).toBe(true);
     expect(sim.saveBytes()).toEqual(bytes);
-    expect(sim.worldHash().toString()).toBe('16205700675540473065');
+    // Moved from 16205700675540473065 when personality effects joined the world hash.
+    expect(sim.worldHash().toString()).toBe('6571675261293790793');
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));
