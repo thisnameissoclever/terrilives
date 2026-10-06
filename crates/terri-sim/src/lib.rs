@@ -5022,7 +5022,7 @@ mod overlay_read_tests {
                 Agent,
                 Position { x: 1.0, y: 7.0 },
                 Restless,
-                terri_core::Commuting,
+                terri_core::Commuting::Outbound,
             ))
             .id()
             .index_u32();

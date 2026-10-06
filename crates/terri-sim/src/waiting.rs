@@ -518,7 +518,7 @@ mod tests {
                     e.insert(terri_core::AtWork { remaining_ticks: 1 });
                 }
                 6 => {
-                    e.insert(terri_core::Commuting);
+                    e.insert(terri_core::Commuting::Outbound);
                 }
                 7 => {
                     e.insert(terri_core::Restless);
