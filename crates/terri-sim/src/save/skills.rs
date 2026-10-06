@@ -47,9 +47,12 @@ pub(crate) fn capture(world: &World, pack: &ContentPack) -> Option<SavedSkills> 
 /// with no rows gets empty practice and nothing is seeded. A present field
 /// is checked whole before anything is written: rows strictly ascending by
 /// entity index then id, each naming a living person, a known skill id
-/// (an unknown one is a content mismatch), and a practice above zero and
-/// at most the top of that skill's ladder. Capture never writes a zero
-/// row, so one is refused as a save no build wrote.
+/// (an unknown one is a content mismatch), and a finite practice above
+/// zero. Capture never writes a zero row, so one is refused as a save no
+/// build wrote. Practice above the top of the skill's current ladder loads
+/// as that top: the ladder and the levels are tuning, outside the content
+/// fingerprint, so lowering them caps saved practice rather than refusing
+/// every save that holds more.
 pub(crate) fn restore(
     world: &mut World,
     pack: &ContentPack,
@@ -78,11 +81,11 @@ pub(crate) fn restore(
             .iter()
             .position(|known| known.id == id)
             .ok_or(SaveError::InvalidContentReference)?;
-        let top = ladder.max_practice(pack.skills[skill].levels);
-        if !(practice.is_finite() && practice > 0.0 && practice <= top) {
+        if !(practice.is_finite() && practice > 0.0) {
             return Err(SaveError::InvalidValue);
         }
-        let entry = (skill as u32, practice);
+        let top = ladder.max_practice(pack.skills[skill].levels);
+        let entry = (skill as u32, practice.min(top));
         match checked.last_mut() {
             Some((last, entries)) if *last == person => entries.push(entry),
             _ => checked.push((person, vec![entry])),

@@ -730,7 +730,8 @@ mod tests {
             );
         }
         assert!((pack.tuning.skill_level_cost - 0.1).abs() < f32::EPSILON);
-        assert!((pack.tuning.skill_level_growth - 1.25).abs() < f32::EPSILON);
+        // A flat ladder until the owner tunes it: every level costs the same.
+        assert_eq!(pack.tuning.skill_level_growth, 1.0);
     }
 
     /// [SK-learning]: learning left the capability trait for the skill.

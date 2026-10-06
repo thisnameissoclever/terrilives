@@ -111,3 +111,76 @@ fn skills_of_rejects_non_people_in_release() {
     assert_eq!(handle.save_bytes(), bytes);
     assert_eq!(handle.world_hash(), hash);
 }
+
+/// Review finding [M1]: an agent spawned through `spawn_agent` holds empty
+/// practice from the start, so a tagged completion teaches it, and its
+/// world continues identically after a save and load.
+#[test]
+fn a_spawned_agent_learns_and_its_reload_continues_identically() {
+    let mut handle = SimHandle::from_lot();
+    let content = handle.sim.world().resource::<Content>().0;
+    let shelf_def = content.find("bookshelf").expect("the shipped bookshelf");
+    let interaction = content
+        .object(shelf_def)
+        .interactions
+        .iter()
+        .position(|offer| offer.tags.iter().any(|tag| tag == "reading"))
+        .expect("a reading interaction") as u32;
+    let reading = content
+        .skills
+        .iter()
+        .position(|skill| skill.tag == "reading")
+        .expect("the reading skill") as u32;
+    let world = handle.sim.world_mut();
+    let shelf = world
+        .query::<(terri_core::Entity, &terri_core::SmartObject)>()
+        .iter(world)
+        .find(|(_, object)| object.0 == shelf_def)
+        .expect("the lot has a bookshelf")
+        .0;
+    let start = *world
+        .query::<(&terri_core::Position, &SimName)>()
+        .iter(world)
+        .next()
+        .expect("a household member stands somewhere walkable")
+        .0;
+    handle.spawn_agent(start.x, start.y, 100.0);
+    let world = handle.sim.world_mut();
+    let spawned = world
+        .query::<(terri_core::Entity, &Agent, Option<&SimName>)>()
+        .iter(world)
+        .find(|(_, _, name)| name.is_none())
+        .expect("spawn_agent spawned an agent")
+        .0;
+    let practice = |handle: &SimHandle| {
+        handle
+            .sim
+            .world()
+            .get::<terri_core::Skills>(spawned)
+            .map_or(0.0, |skills| skills.practice(reading))
+    };
+    handle
+        .sim
+        .world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObject {
+            agent: spawned.index_u32(),
+            object: shelf.index_u32(),
+            interaction,
+        });
+    for _ in 0..600 {
+        handle.tick();
+    }
+    assert!(
+        practice(&handle) >= content.skills[reading as usize].practice_per_attempt,
+        "the ordered read taught the spawned agent"
+    );
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&handle.save_bytes()));
+    assert_eq!(resumed.world_hash(), handle.world_hash());
+    for _ in 0..300 {
+        handle.tick();
+        resumed.tick();
+        assert_eq!(resumed.world_hash(), handle.world_hash());
+    }
+}

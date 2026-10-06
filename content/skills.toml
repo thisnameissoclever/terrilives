@@ -2,6 +2,7 @@
 # docs/specs/2026-10-05-skills.md. Each skill keys on an activity tag; a
 # completed tagged attempt adds practice_per_attempt. Levels and progress come
 # from the ladder in tuning.toml (skill_level_cost, skill_level_growth).
+# Lowering a skill's levels caps existing saves' practice at the new top on load.
 # Order is append-only: saves name skills by id, not position.
 
 [[skill]]

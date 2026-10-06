@@ -160,11 +160,11 @@ kinds, each doing exactly one thing:
 | Term | Means |
 | --- | --- |
 | **fumble** | A failed capability roll, live on the current attempt. The meal happens; it just does not feed anybody. |
-| **level** / **severity** | The number the overlay prints beside a capability / condition. For a capability it is the matching skill's mastery; the trait's own saved number no longer changes in play. |
+| **mastery** / **severity** (overlay) | The number the overlay prints beside a capability / condition. For a capability it is the matching skill's mastery from 0 to 1, not the skill's ladder level; the trait's own saved number no longer changes in play. |
 | **trait library** | All fifteen traits in `content/traits.toml`. It is append-only: a sim's traits are stored as positions in this list, so a new trait goes at the end. Four of the fifteen are worn by nobody yet and wait for Create-a-sim. |
 | **affinity verb** | The word a disposition trait's sentence opens with: Loves, Likes, Dislikes or Hates, chosen by its score multiplier against the two lines in `tuning.toml` ([TL-affinity]). The compiler refuses a sentence with the wrong one. |
 | **Traits panel** | The Traits tab of Sim details for the selected person. Each row is the trait's label, one sentence saying what it does, and for a capability **Skill** or for a condition **Severity** as a whole percentage. A disposition has no number. Hidden while nobody is selected. |
-| **Skill** / **Severity** | What the Traits panel calls the mastery of a capability's matching skill and a condition's severity, as a rounded 0 to 100%. Skill rises each time the person finishes an attempt, pass or fail; an attempt that is interrupted teaches nothing. Severity falls each time the person finishes the activity that manages the condition. |
+| **Skill** / **Severity** | What the Traits panel calls the mastery of a capability's matching skill and a condition's severity, as a whole 0 to 100%. Skill is rounded down, so it never reads 100% while the person can still fumble; Severity is rounded to the nearest percent. Skill rises each time the person finishes an attempt, pass or fail; an attempt that is interrupted teaches nothing. Severity falls each time the person finishes the activity that manages the condition. |
 
 ## Skills - learned by doing
 

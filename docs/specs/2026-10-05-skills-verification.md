@@ -25,8 +25,10 @@ Status: implementation evidence for `2026-10-05-skills.md`. Each table row names
 | The ordering check in `restore`, rows strictly ascending by entity index then id | `invalid_rows_refuse_the_load_without_touching_the_live_world` | `assertion left == right failed: [(36, "cooking", 0.1), (34, "cooking", 0.1)]`, left `Ok(())`, right `Err(InvalidValue)` |
 | The living-person check in `restore`, `world.get::<Agent>(entity).is_some()` | `invalid_rows_refuse_the_load_without_touching_the_live_world` | `assertion left == right failed: [(0, "cooking", 0.1)]`, left `Ok(())`, right `Err(InvalidValue)`: a row on a placed object loaded |
 | The known-id check in `restore`, `.ok_or(SaveError::InvalidContentReference)`, replaced by the first skill | `invalid_rows_refuse_the_load_without_touching_the_live_world` | `assertion left == right failed: [(34, "juggling", 0.1)]`, left `Ok(())`, right `Err(InvalidContentReference)` |
-| The whole range check in `restore`, finite, above zero and at most the top of the ladder | `invalid_rows_refuse_the_load_without_touching_the_live_world` | `assertion left == right failed: [(34, "cooking", 3.3252904)]`, left `Ok(())`, right `Err(InvalidValue)`: one f32 step above the top loaded |
-| Only the upper bound of that check, `practice <= top` | `invalid_rows_refuse_the_load_without_touching_the_live_world` | the same assertion on `[(34, "cooking", 3.3252904)]` |
+| The range check in `restore`, finite and above zero | `invalid_rows_refuse_the_load_without_touching_the_live_world` | `assertion left == right failed: [(34, "cooking", inf)]`, left `Ok(())`, right `Err(InvalidValue)` |
+| The clamp of saved practice to the top of the current ladder in `restore`, `practice.min(top)` | `practice_above_the_ladder_top_loads_clamped_to_it` | `assertion left == right failed: practice above the top loads as the top`: Casey loaded with `(0, 1.0000002), (2, 4.0000005)` where the top is `1.0000001` |
+| The empty `Skills` that `SimHandle::spawn_agent` in `crates/terri-wasm/src/lib.rs` gives a spawned agent | `a_spawned_agent_learns_and_its_reload_continues_identically` | `the ordered read taught the spawned agent`: the completed read left no practice |
+| The trait-state fallback in `Sim::traits_of`, `.unwrap_or(value)`, replaced by `.unwrap_or(0.0)` | `the_fumble_roll_reads_skill_mastery_and_keeps_its_draw_count` | `assertion left == right failed`, left `[(1, 0.0)]`, right `[(1, 0.37)]`: with no skill on the tag the panel would not show the trait state |
 | The entity index write in the `skills-v1` block of `Sim::world_hash` in `crates/terri-sim/src/lib.rs` | `the_world_hash_observes_practice_and_its_owner` | `assertion left != right failed: the same practice held by someone else`, both `15596589372039368716` |
 | The skill id write in the same block | `the_world_hash_observes_practice_and_its_owner` | `assertion left != right failed: the same practice in another skill`, both `1298941223531281020` |
 | The practice bits write in the same block | `the_world_hash_observes_practice_and_its_owner` | `assertion left != right failed: one f32 step of practice`, both `7968284513284597355` |
@@ -35,6 +37,8 @@ Status: implementation evidence for `2026-10-05-skills.md`. Each table row names
 | The `practise` call in `tick_social` moved from the completion into the per-tick delivery, ahead of the countdown | `a_social_completion_teaches_both_participants` | `assertion left == right failed: nothing learned while the chat runs`, left `(0.40000004, 0.40000004)`, right `(0.0, 0.0)` |
 | The `practise` call in `tick_social` moved to the talk's first tick, when `remaining_ticks` still equals the duration | `an_interrupted_conversation_teaches_neither_participant` | `assertion left == right failed`, left `(0.02, 0.02)`, right `(0.0, 0.0)`: the chat ended by an order to the partner taught both sides |
 | The `practise` call in `tick_chain_steps` moved to the step's first tick of work, when `remaining_ticks` still equals the step's duration | `a_cancelled_chain_step_teaches_nothing` | `assertion left == right failed`, left `0.015`, right `0.0`: the cancelled Cook step taught |
+
+The `skills-v1` tag and the row count written before the rows have no deletion row of their own: both are pinned by the released-main world hash in `web/tests/aquarium.test.ts`, whose people hold practice, so removing either changes that value.
 
 ## Restoration
 
@@ -45,6 +49,8 @@ For the three rows that move a `practise` call, the same script method applied e
 The `tick_social` deletion row was measured again on 2026-10-05 against the rewritten test, with the same script method: the call was replaced by a statement that only borrows `skills`, and `cargo test -p terri-sim --lib -- --exact skills::tests::a_social_completion_teaches_both_participants` ran with its output saved to a log. `git hash-object crates/terri-sim/src/systems/social.rs` was `56f06f9c8a5958387a942f906e58644046e237ed` before the mutation and after the restoration.
 
 The save rows used the same script method, with `cargo test -p terri-sim --lib -- <filter>` or, for the decoder row, `cargo test -p terri-wasm --lib -- <filter>`. `git hash-object` before and after matched for every row: `crates/terri-sim/src/save/skills.rs` was `925c6b4547c06fb4e21a0edc931ae97d48c14c9c`, `crates/terri-sim/src/lib.rs` was `9746ad6667b7fe5b56df1ac9a63f300d423961fd` and `crates/terri-wasm/src/lib.rs` was `409634c376aa0854f9e189c06d9e092a29be4674`.
+
+The range, clamp, `spawn_agent` and `traits_of` fallback rows were measured on the flat ladder (`skill_level_growth` 1.0) with the same script method. `git hash-object` before and after matched: `crates/terri-sim/src/save/skills.rs` was `04c05311b676b76e0690a2d31a4d6cdfdd595abc`, `crates/terri-wasm/src/lib.rs` was `2eef97f47c91cb372110f7919c637ee7f4b4c70f` and `crates/terri-sim/src/lib.rs` was `667bcf1a1123c60236dd8b57c8c53c94f4a3fff8`. Rows measured earlier quote values from the ladder then shipped (`skill_level_growth` 1.25).
 
 ## Displayed browser
 

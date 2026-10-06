@@ -1611,11 +1611,15 @@ impl SimHandle {
             .world_mut()
             .resource_mut::<terri_core::SimRng>()
             .range(101) as u8;
+        // Empty practice, so a tagged completion teaches this agent as it
+        // teaches everyone else, and a reload (which gives every person a
+        // `Skills`) continues the same world ([SK-save]).
         self.sim.world_mut().spawn((
             terri_core::SelfPreservation(instinct),
             Agent,
             Position { x, y },
             Needs::with(NeedId::Hunger, hunger),
+            terri_core::Skills::default(),
         ));
         self.sim.sync_render_buffer();
     }

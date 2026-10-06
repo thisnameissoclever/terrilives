@@ -35,11 +35,15 @@ const UNAVAILABLE: SkillsPanelState = { kind: 'unavailable' };
 
 /**
  * "Level 2 of 10, 50% to the next level", or "Level 10 of 10" at the top.
- * Floored, so a person still on the lower level never reads 100%.
+ * Floored and capped at 99, so a person still on the lower level never
+ * reads 100%. Progress arrives as an f32, which can sit a step below the
+ * value it names (a half is 0.49999997 on a flat ladder); the 1e-4
+ * allowance on the percentage absorbs that.
  */
 function standingText(standing: SkillStanding, levels: number): string {
   if (standing.level === levels) return `Level ${levels} of ${levels}`;
-  return `Level ${standing.level} of ${levels}, ${Math.floor(standing.progress * 100)}% to the next level`;
+  const percent = Math.min(99, Math.floor(standing.progress * 100 + 1e-4));
+  return `Level ${standing.level} of ${levels}, ${percent}% to the next level`;
 }
 
 export function skillsPanelState(source: SkillsPanelSource, library: SkillLibrary): SkillsPanelState {

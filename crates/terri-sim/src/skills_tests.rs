@@ -263,7 +263,10 @@ fn cooking_practice(sim: &Sim, who: Entity) -> f32 {
 
 #[test]
 fn a_completed_tagged_interaction_teaches_each_person_once_and_an_interrupted_one_nothing() {
-    let seeded = practice_for_mastery(&ladder(), 10, 0.25);
+    // The fixture's ladder is the shipped tuning's, not the hand-written
+    // one the unit ladder tests use.
+    let fixture_ladder = Ladder::from_tuning(&cooking_pack().tuning);
+    let seeded = practice_for_mastery(&fixture_ladder, 10, 0.25);
     for (wearing, start) in [(true, seeded), (false, 0.0)] {
         let (mut sim, cook) = ordered_cook(wearing);
         assert_eq!(cooking_practice(&sim, cook), start, "wearing {wearing}");
@@ -759,6 +762,22 @@ fn the_fumble_roll_reads_skill_mastery_and_keeps_its_draw_count() {
             "the state of 0 fails without a skill (seed {seed})"
         );
         assert_eq!(rng, one_draw(seed));
+    }
+
+    // `traits_of` falls back the same way: with no skill on the tag it
+    // reports the trait state, and with one it reports the skill's mastery.
+    for (content, expected) in [(no_skills, 0.37), (pack, 1.0)] {
+        let mut sim = crate::test_content::sim_with(4, 4, content);
+        let person = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                Traits::from_entries(vec![(cannot_cook, 0.37)]),
+                master.clone(),
+            ))
+            .id();
+        let reported = sim.traits_of(person.index_u32()).expect("a person");
+        assert_eq!(reported, vec![(cannot_cook, expected)]);
     }
 }
 

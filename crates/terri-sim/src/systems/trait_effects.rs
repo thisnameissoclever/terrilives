@@ -58,7 +58,7 @@ pub fn condition_accrual_scale(traits: Option<&Traits>, pack: &ContentPack) -> f
 /// capabilities' `fail_delta_scale`s multiplied together in the rare
 /// case an activity needs two skills and both miss.
 ///
-/// The level rolled against is the mastery of the skill with the
+/// The number rolled against is the mastery of the skill with the
 /// capability's tag ([SK-capability] in
 /// `docs/specs/2026-10-05-skills.md`); the trait's own state is read only
 /// when no skill keys on that tag. Wearing the trait is what makes the
@@ -83,10 +83,10 @@ pub fn roll_fumble(
         } = def.kind
         {
             if tags.contains(&def.tag) {
-                let level =
+                let mastery =
                     crate::skills::mastery_for_tag(skills, pack, &def.tag).unwrap_or(*state);
                 let roll = rng.next_f32();
-                if roll >= level {
+                if roll >= mastery {
                     fumbled = Some(fumbled.unwrap_or(1.0) * fail_delta_scale);
                 }
             }

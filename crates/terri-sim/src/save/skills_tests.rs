@@ -243,7 +243,6 @@ fn invalid_rows_refuse_the_load_without_touching_the_live_world() {
         .unwrap()
         .index;
     let top = top("cooking");
-    let above = f32::from_bits(top.to_bits() + 1);
     let row = |index: u32, id: &str, practice: f32| (index, id.to_string(), practice);
     let hash = live.world_hash();
     for (rows, error) in [
@@ -270,7 +269,6 @@ fn invalid_rows_refuse_the_load_without_touching_the_live_world() {
         (vec![row(object, "cooking", 0.1)], SaveError::InvalidValue),
         (vec![row(dead, "cooking", 0.1)], SaveError::InvalidValue),
         (vec![row(u32::MAX, "cooking", 0.1)], SaveError::InvalidValue),
-        (vec![row(first, "cooking", above)], SaveError::InvalidValue),
         (
             vec![row(first, "cooking", f32::INFINITY)],
             SaveError::InvalidValue,
@@ -303,6 +301,40 @@ fn invalid_rows_refuse_the_load_without_touching_the_live_world() {
         )
     );
     assert_eq!(live.save_snapshot_v5(), edge);
+}
+
+/// [SK-save]: practice above the top of the current ladder, as a save
+/// written before the ladder or a skill's levels were lowered would hold,
+/// loads as that top, and the world it gives is the world whose practice
+/// was set to the top directly.
+#[test]
+fn practice_above_the_ladder_top_loads_clamped_to_it() {
+    let source = Sim::new_from_shipped_lot();
+    let casey = person(&source, "Casey").index_u32();
+    let row = |id: &str, practice: f32| (casey, id.to_string(), practice);
+    let (cooking, reading) = (top("cooking"), top("reading"));
+    let mut above = source.save_snapshot_v5();
+    above.skills = Some(SavedSkills {
+        rows: vec![
+            row("cooking", f32::from_bits(cooking.to_bits() + 1)),
+            row("reading", reading * 4.0),
+        ],
+    });
+    let mut at_top = above.clone();
+    at_top.skills = Some(SavedSkills {
+        rows: vec![row("cooking", cooking), row("reading", reading)],
+    });
+    let mut clamped = Sim::new_from_shipped_lot();
+    clamped.load_snapshot_v5(above).unwrap();
+    let mut direct = Sim::new_from_shipped_lot();
+    direct.load_snapshot_v5(at_top.clone()).unwrap();
+    assert_eq!(
+        held(&clamped),
+        held(&direct),
+        "practice above the top loads as the top"
+    );
+    assert_eq!(clamped.world_hash(), direct.world_hash());
+    assert_eq!(clamped.save_snapshot_v5(), at_top);
 }
 
 #[test]
