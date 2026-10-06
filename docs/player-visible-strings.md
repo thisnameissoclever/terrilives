@@ -104,6 +104,11 @@ Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
 Not enough beds. Action cards combine existing interaction labels with object
 or person names. Build and Exit build now live in the upper-left world group.
 
+## Commute label added on 2026-10-06
+
+The queue reads Heading home while a housemate walks back from work, and
+Going to work only for the walk out. The owner chose the wording on
+2026-10-06. Source is `crates/terri-sim/src/action_queue.rs`.
 
 ## Self-preservation controls (2026-09-30)
 
