@@ -1,5 +1,15 @@
 # Features
 
+## Household chores
+
+The local chores implementation adds targeted dish cleanup, indoor floor and
+surface grime, bin waste, timed cleaning, separate responsibility and chore
+preferences, and an automatic weekly board with saved daily outcomes. The main
+bottom bar opens Chores, which exposes assignments, recent outcomes, actual performers and profile
+controls. Pet chores, laundry and manually assigning standing duties remain
+future work. See [the specification](specs/2026-10-04-chores-and-weekly-board.md)
+for behavior and persistence, and the dated evidence for verification limits.
+
 ## Current roadmap, reviewed 2026-09-30
 
 Checked against main at `5ac34ca`, the shipped content and commands, and merged
@@ -7,27 +17,19 @@ PRs through #141. This section and **Next engineering slices** own the current
 build priority. Older milestone narratives below preserve their release evidence;
 their original save versions, sprite counts and measurements describe those releases.
 
-**Next to build: Edit Sims [B-edit-sims].** The owner selected it on 2026-09-30.
-It is not implemented yet. Reuse the New housemate form to edit a living person's
-name, personality, traits and family ties, including the starting household.
-The trait-progress rule must be designed before implementation. This slice does
-not depend on new appearance art, gender, or the advanced-controls system.
-
-**Soon after Edit Sims: communal activities and activity-specific seating.**
-Requested by the owner on 2026-10-01. Prioritise [S-communal-activities] and
-[S-activity-seating], including their missing sitting poses, before the later
-proposed priorities. Their scope is in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
+**Next to build: communal activities and activity-specific seating [S-communal-activities], [S-activity-seating].** Requested by the owner on 2026-10-01. Prioritise both, including their missing sitting poses, before the later proposed priorities. Their scope is in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). Edit Sims [B-edit-sims] shipped on 2026-10-05: the Edit button beside the selected person opens the housemate form filled with their name, personality, traits and family ties.
 
 | Area | Completed and shipped | Still open |
 |---|---|---|
 | Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
-| Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie | Edit Sims next; appearance and gender choices, random generation and deeper traits later |
+| Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie, editing a living person's name, personality, traits and family ties, and each person's likes and dislikes for plants, the aquarium, the television and the radio, shown in Sim details; likes and dislikes shipped 2026-10-06 | Appearance and gender choices, random generation, deeper traits, colour preferences and editing likes and dislikes |
+| Skills | Cooking, Fitness and Reading, learned by every completed attempt, read by the matching capability trait's fumble roll, saved with the household and listed in Sim details; shipped 2026-10-05 | Better outcomes and unlocks at higher levels, more skills, career performance, and a fuller skills panel if the owner wants one |
 | Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
 | Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
-| Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
+| Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration, overdoing an activity and feeling sick from overeating, liked or disliked plants and aquarium in the room, being bothered by another's television or radio, and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
 | Grief duration | 10 game days for neutral acquaintances to 60 for closest affinity, with a linear fade; PR #141 | Longer-term play balance remains subject to feedback |
-| Careers and money | One scheduled office job, wages, purchase costs and sale proceeds | Player-directed career paths, skills, bills, recurring costs and a ledger |
+| Careers and money | One office job working Monday to Friday, its days and hours shown in Sim details, wages, purchase costs and sale proceeds; working days shipped 2026-10-06 | Player-directed career paths, skills, bills, recurring costs, a ledger, and the dates bills and pay days need |
 | Art and audio | Shared rigged Sim with shirt variants, reviewed furniture replacements, action-specific animation and the audio foundation | Appearance variety, remaining action poses, sound content and recorded owner/device acceptance checks |
 
 Completed slices are complete even when their larger system remains partial.
@@ -42,7 +44,7 @@ Self-preservation instinct from 0 through 100; New housemate defaults to Random
 and offers a manual override. Older saves receive stable values from 30 through 70
 once, while current saves preserve their values and subsequent random choices.
 The low-instinct range can neglect critical needs. This completes that behavior
-slice without changing the next Edit Sims priority. Mechanics and verification:
+slice without changing the build priority. Mechanics and verification:
 [varied autonomy spec](specs/2026-09-30-varied-autonomy.md) and
 [validation record](autonomy-validation.md).
 
@@ -93,7 +95,9 @@ Order placement is now a property of the command ([I-plain-order-goes-first]):
 Queue mode and Ctrl or Cmd append every order, talks included, and a plain
 order goes to the front of the queue with the waiting orders kept behind it.
 Only the two cancel controls, Clear orders and the action menu's cancel row,
-empty a queue.
+empty a queue. A multi-step errand's order (a snack, a meal or a chore) stays
+in the queue until the errand ends, so orders queued behind it wait for it
+instead of replacing it.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
@@ -122,8 +126,9 @@ control [R6], which is the risk most likely to actually kill this project.
 ### Presentation history and remaining acceptance
 
 This records shipped presentation work and its evidence, not the next engineering
-priority. Edit Sims is next. Unrecorded owner or physical-device acceptance remains
-open; later replacement art supersedes the earlier art it replaced.
+priority. Communal activities are next. Unrecorded owner or physical-device
+acceptance remains open; later replacement art supersedes the earlier art it
+replaced.
 
 The 2026-09-10 implementation replaces the ordinary Sim presentation with the
 approved small-front-curl model, baked into 156 sprites per shirt palette: four idle views, eight
@@ -425,21 +430,24 @@ an unchanged design target is not an unchanged measurement.
 
 ### Next engineering slices
 
-1. **Edit Sims [B-edit-sims]: next, owner-selected.** Design the keep/remove/re-add
-   rule for progressed traits, then implement editing through a validated simulation
-   command, save/load, and the existing two-page form. Preserving progress for
-   retained traits is the recommendation, pending that design decision.
-2. **Communal activities and seating [S-communal-activities], [S-activity-seating]:
-   soon, owner-requested.** Sims who like each other should prefer sharing
+1. **Communal activities and seating [S-communal-activities], [S-activity-seating]:
+   next, owner-requested.** Sims who like each other should prefer sharing
    compatible activities, including watching TV, listening to the radio and
    reading together. Prefer suitable available seats for eating, reading, TV
    and listening. Preserve activity-specific locations: watching fish stays
    near the tank. Reuse existing sitting and seated-reading art, and deliver
    missing sitting poses and animations with this slice [A-animations].
-3. **Later priorities remain proposals.** Object affinities [B-object-affinities]
-   are the recommended follow-up, alongside the colour-preference design
-   [B-colour-preferences]. Aging [DE-slice-age] is the next death slice, but needs
-   an age and lifespan design. Neither is selected ahead of Edit Sims.
+2. **Later priorities remain proposals.** The first object-affinities slice [B-object-affinities] shipped on 2026-10-06; the colour-preference design [B-colour-preferences] is the recommended follow-up. Aging [DE-slice-age] is the next death slice, but needs an age and lifespan design. Neither is selected ahead of communal activities.
+
+Edit Sims [B-edit-sims] shipped on 2026-10-05; see `specs/2026-09-30-edit-sims.md`.
+
+The first skills slice [S-skills] shipped on 2026-10-05: Cooking, Fitness and Reading grow with every completed attempt, set the fumble chance of the matching capability trait, and are listed in Sim details; see `specs/2026-10-05-skills.md`. Better outcomes, unlocks, career performance and any fuller skills panel remain open.
+
+Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an activity past saturation adds an `Overdoing {activity}` moodlet that grows with each further use, and too much food adds a temporary `Feeling sick` moodlet; need delivery is unchanged, appeal never falls below its floor but stays there until decay brings the value back below saturation, and decay clears both. Novelty from purchases, part two, remains open; see `specs/2026-10-06-overdoing-it.md`.
+
+The first calendar slice [S-calendar] shipped on 2026-10-06: the clock names the weekday, a new game starts on a Monday, each career lists its working days, and the office job rests on Saturday and Sunday. The Career row in Sim details shows the job's days and hours. Dates, seasons, pay days and scheduled events remain open; see `specs/2026-10-06-calendar.md`.
+
+The first object-affinities slice [B-object-affinities] shipped on 2026-10-06: every person has a value for plants, the aquarium, the television and the radio, shown as Loves to Hates under Likes and dislikes in Sim details. Plants and the aquarium in a person's room lift or lower their mood, and somebody else using a television or radio a person dislikes in the same room lowers their mood and their feeling toward that person. Colour preferences, editing the values, the general nuisance field and pets remain open; see `specs/2026-10-06-object-affinities.md`.
 
 Remaining acceptance work runs separately from this build priority: owner art and
 sound review where still recorded as open, physical-phone touch/safe-area/daylight
@@ -952,8 +960,8 @@ bass-thud range and adds sparse sleep cues from authored fixed-tick activity
 state. Conversations now play pairs from twelve first-party recordings, with
 their lengths compiled into the simulation. Each conversation sounds once rather
 than once per participant, with independent start/stop ownership and a playback
-cap of three pairs. Sleep breathing is capped at one household cue every
-three seconds. Eating, seated or standing reading, and exercise now emit
+cap of three pairs. Sleep plays a recorded household snore at most once
+every six seconds. Eating, seated or standing reading, and exercise now emit
 low-gain candidate cues on independent per-Sim cadences. These cues use the
 existing authored visual-action contract; they do not guess which appliance or
 object is involved. Master mute and Effects level are visible, touch-sized,
@@ -1049,18 +1057,11 @@ The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies
 
 ### [B-edit-sims] Change a person after they move in
 
-**Status: Not started. Next build, selected by the owner on 2026-09-30.**
+**Status: Shipped 2026-10-05.**
 
-The draft implementation contract is `docs/specs/2026-09-30-edit-sims.md`.
-It records atomic family edits, legacy personality preservation and required
-verification. Removed-trait history remains an explicit owner decision; the
-draft is not implementation or approval of either policy.
+The Edit button beside the selected person opens the same two pages the New housemate form uses ([CS-pages] in `docs/specs/2026-09-22-create-a-sim.md`), filled with their name, personality, traits and family ties to the rest of the household; it works for the starting household too. Confirming sends one validated command, so the person keeps their SimId, needs, job, hobbies and the progress of every trait they keep, while a condition removed in a confirmed edit forgets its severity and starts from its authored state if added back. Since the skills slice ([SK-capability] in `docs/specs/2026-10-05-skills.md`), a capability's progress lives in its matching skill, so removing a capability trait keeps that progress. The form marks an archetype as current only when the person's complete effects equal that one archetype's and no other, and preselects Keep current personality in every case; the contract is `docs/specs/2026-09-30-edit-sims.md` and the evidence is `docs/specs/2026-10-05-edit-sims-verification.md`.
 
-Once somebody lives in the house, the player cannot change anything about them. Their name, personality, traits and family ties are fixed the moment they move in, and the shipped household cannot be changed at all. The owner asked on 2026-09-29 for this to come soon.
-
-The first slice is an Edit button for the selected person. It opens the same two pages the New housemate form uses ([CS-pages] in `docs/specs/2026-09-22-create-a-sim.md`), filled with who they are now: name, personality, traits, and their family ties to the rest of the household. Confirming sends one command the simulation applies, like every other player action, and the change is saved. Looks join the editor once people have looks to choose ([CS-slice-looks]), and gender once [B-gender] exists.
-
-The design has to settle one rule before building: what happens to a trait whose state has moved during play, such as a condition that has eased or a capability that has improved, when the player keeps it, removes it, or adds it back.
+Looks join the editor once people have looks to choose ([CS-slice-looks]), and gender once [B-gender] exists.
 
 ### [B-gender] A sim can be a woman
 
@@ -1074,7 +1075,7 @@ Once gender exists, the relationship list can say "sister" or "brother" instead 
 
 ### [B-object-affinities] Things one housemate loves can bother another
 
-**Status: Not started.**
+**Status: Partial.** The first slice shipped on 2026-10-06 ([OA-kinds] to [OA-hud] in `docs/specs/2026-10-06-object-affinities.md`). Every person holds a value from -1 to 1 for plants, the aquarium, the television and the radio, drawn at random when they are created, set by a matching disposition trait (strongly by Television devotee and Hates television, mildly by Fish watcher), saved with the household, and shown as Loves, Likes, Indifferent, Dislikes or Hates under Likes and dislikes in Sim details. Plants and the aquarium in a person's room lift or lower their mood. A person who dislikes the television or the radio is bothered when somebody else in the same room uses it, and their feeling toward that person falls. Still open: colour preferences [B-colour-preferences], editing the values [S-advanced-controls], the general nuisance field with distance falloff [P-nuisance], and pets [S-pets].
 
 The owner asked on 2026-09-29 that objects stop being good for everybody alike. Every item should have at least the possibility of being a net good for some members of the household and a net bad for others.
 
@@ -1085,8 +1086,8 @@ The owner asked on 2026-09-29 that objects stop being good for everybody alike. 
 
 **Design notes, not yet decided.**
 - For a kind of item with no affinity, such as a sofa or a fridge, colour ([B-colour-preferences]) is one way it can still be good for one sim and bad for another.
-- The random starting values can come from the seeded generator, so a replay draws the same, and which kinds carry an affinity can be listed in content.
-- The disposition traits that already exist, such as "Hates television", can become strong starting values for the same affinity. One of them, "Avoids the couch" (`couch_averse` in `content/traits.toml`, "Hates sofas and armchairs"), is about a kind this entry says carries no affinity, so the design must either keep it as a trait about using a sofa rather than being near one, or retire it.
+- The first slice's choice, an autonomous ruling recorded in `docs/specs/2026-10-06-object-affinities.md` that the owner has not confirmed: the random starting values come from the seeded generator, so a replay draws the same, and `content/objects.toml` lists which kinds carry an affinity.
+- The first slice's choice, also an autonomous ruling the owner has not confirmed: a matching disposition trait sets the starting value, strongly for Television devotee and Hates television and mildly for Fish watcher. "Avoids the couch" (`couch_averse` in `content/traits.toml`, "Hates sofas and armchairs") stays a trait about using a sofa or armchair, and the sofa carries no affinity.
 - Several systems already describe these values and should share one model with this entry: item and colour affinities in [S-acclimation], species affinity in [S-pets], and the rule in [S-deep-traits] (all in `docs/GAME-SYSTEMS.md`) that such values live in one place. The owner's earlier direction in [S-acclimation] is that a possession stops bringing joy but does not cause unhappiness, in most cases. A hated kind of item is one of the cases that does.
 - Being bothered by somebody else's use is the same shape as the nuisance mechanism [P-nuisance] proposes for a barking dog or a loud television, and should share it. [S-sensitivities] is the neighbouring value for how strongly a sim reacts.
 
@@ -1343,14 +1344,15 @@ contacts remain historical evidence, not the current bike's limitation. See
 `docs/assets/review-evidence/furniture/README.md` for GPU and played checks.
 All Sims share one approved appearance with household-specific shirts. The lower bunk also
 has a generated foreground layer, so its upper mattress, near posts, rail, and
-ladder cover the horizontal body correctly. Double-bed sleeping, cooking,
-washing, using a toilet, dining-table seating, and idling remain static poses.
-The builder play-through on 2026-09-20 confirmed that a moved and rotated table
-is reachable and usable, but its "Sit down to eat" action still leaves Sims
-standing beside it. Proper multi-seat dining needs authored seating anchors,
-chair/table association and matching poses; moving the table must not silently
-move separately placed chairs. This remains an animation task, not a completed
-part of furniture placement. The generic
+ladder cover the horizontal body correctly. Cooking, dish carrying and washing,
+floor mopping, counter and table wiping, and bin emptying have action clips.
+Cleaning tools follow the hands; the bin lid follows the bag-lifting sequence.
+Using the toilet has a fitted seated loop on the fixture's seat socket in all
+four facings. Double-bed sleeping, showering, bathing and ordinary idling
+remain static poses.
+Tables use adjacent chairs and fitted sitting poses. Sit needs a matching chair;
+Eat prepared food needs an available prepared portion for the selected Sim.
+Moving a table does not move independently placed chairs. The generic
 `Using object` activity stays deliberately text-only until each category has
 an honest anchor and body contract.
 

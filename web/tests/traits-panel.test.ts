@@ -161,18 +161,27 @@ describe('traitsPanelState', () => {
     ]);
   });
 
-  it('rounds to a whole percentage and keeps it inside 0 to 100', () => {
+  it('rounds skill down to a whole percentage and keeps it inside 0 to 100', () => {
     const source = new MutableTraitsSource();
     const stateOf = (value: number) => {
       source.worn = new Float32Array([1, value]);
       return ready(traitsPanelState(source, LIBRARY))[0].state;
     };
     expect(stateOf(0.424)).toBe('Skill 42%');
-    expect(stateOf(0.425)).toBe('Skill 43%');
+    expect(stateOf(0.429)).toBe('Skill 42%');
+    // Still able to fumble, so not yet 100%.
+    expect(stateOf(0.996)).toBe('Skill 99%');
+    // An f32 a step below the value it names reads as that value.
+    expect(stateOf(Math.fround(0.58))).toBe('Skill 58%');
+    // The last f32 below 1, the most mastery short of the top, still fumbles.
+    expect(stateOf(Math.fround(1 - 2 ** -24))).toBe('Skill 99%');
     expect(stateOf(1)).toBe('Skill 100%');
     expect(stateOf(0)).toBe('Skill 0%');
     expect(stateOf(1.5)).toBe('Skill 100%');
     expect(stateOf(-0.5)).toBe('Skill 0%');
+    // Severity still rounds to the nearest percent.
+    source.worn = new Float32Array([2, 0.996]);
+    expect(ready(traitsPanelState(source, LIBRARY))[0].state).toBe('Severity 100%');
   });
 
   it('is ready and empty for a person with no traits', () => {

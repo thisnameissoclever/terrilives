@@ -6,9 +6,10 @@
 
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, NeedId, Needs, Position, Relationships, SimId, SimName, SmartObject, Traits,
+    Agent, Habituation, NeedId, Needs, ObjectDefId, Position, Relationships, SimId, SimName,
+    SmartObject, Traits,
 };
-use terri_data::CompiledTraitKind;
+use terri_data::{CompiledTraitKind, ContentPack, Tuning};
 
 use crate::{Content, Sim};
 
@@ -39,7 +40,29 @@ impl Sim {
     }
 }
 
+/// Board decisions hold the chore resource outside the world while updating it.
+/// Borrow that current state so their mood includes the same causes as the HUD.
+pub(crate) fn score(
+    world: &World,
+    index: u32,
+    chores: &terri_core::chores::SavedChores,
+) -> Option<f32> {
+    derive_mood_with_chores(world, index, Some(chores)).map(|m| m.overall_score)
+}
+
 fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
+    derive_mood_with_chores(
+        world,
+        index,
+        world.get_resource::<terri_core::chores::SavedChores>(),
+    )
+}
+
+fn derive_mood_with_chores(
+    world: &World,
+    index: u32,
+    chores: Option<&terri_core::chores::SavedChores>,
+) -> Option<MoodSnapshot> {
     let pack = world.get_resource::<Content>()?.0;
     let mut subject_query = world.try_query_filtered::<(
         Entity,
@@ -47,12 +70,16 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         &Position,
         Option<&Traits>,
         Option<&Relationships>,
+        Option<&Habituation>,
     ), With<Agent>>()?;
-    let (subject, needs, position, traits, relationships) = subject_query
+    let (subject, needs, position, traits, relationships, habituation) = subject_query
         .iter(world)
         .find(|(entity, ..)| entity.index_u32() == index)?;
 
     let mut moodlets = Vec::new();
+    if let Some(chores) = chores {
+        moodlets.extend(crate::chores::moodlets_in(world, subject, chores));
+    }
     for need in NeedId::ALL {
         let level = needs.get(need);
         let (low_label, critical_label) = need_labels(need);
@@ -196,6 +223,9 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
             score: -penalty,
         });
     }
+    moodlets.extend(overdoing_moodlets(pack, habituation));
+    moodlets.extend(crate::affinity::presence_moodlets(world, pack, subject));
+    moodlets.extend(crate::affinity::use_moodlets(world, pack, subject));
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)
@@ -205,6 +235,65 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         overall_score,
         overall_label: overall_label(overall_score),
         moodlets,
+    })
+}
+
+/// The fixed label of the food-repetition moodlet, [OD-moodlets] in
+/// `docs/specs/2026-10-06-overdoing-it.md`.
+const FEELING_SICK: &str = "Feeling sick";
+
+/// The mood one habituation value costs, [OD-moodlets] item 1: zero at
+/// `overdoing_threshold`, the whole `overdoing_penalty` at
+/// `habituation_max`, and linear between. A function rather than inline
+/// arithmetic so golden values can pin it ([L55]). It does not gate:
+/// `overdoing_moodlets` adds the moodlet only for a value strictly above
+/// the threshold.
+pub(crate) fn overdoing_score(value: f32, tuning: &Tuning) -> f32 {
+    -tuning.overdoing_penalty * (value - tuning.overdoing_threshold)
+        / (tuning.habituation_max - tuning.overdoing_threshold)
+}
+
+/// The moodlets repetition costs, [OD-moodlets]: one `Overdoing {activity}`
+/// for every habituation entry above `overdoing_threshold`, in the entries'
+/// (object, row) order, then at most one `Feeling sick` when any food row
+/// is at or above `sick_threshold`. Derived from habituation alone, which
+/// is already saved, so nothing new is stored; decay is the timer that
+/// clears both. A row the content cannot resolve has no label and is
+/// skipped, as the Sim details skip it.
+fn overdoing_moodlets(pack: &ContentPack, habituation: Option<&Habituation>) -> Vec<Moodlet> {
+    let tuning = &pack.tuning;
+    let mut moodlets = Vec::new();
+    let mut sick = false;
+    for &(object, row, value) in habituation.into_iter().flat_map(Habituation::entries) {
+        let Some((_, activity)) = crate::details::activity_labels(pack, object, row) else {
+            continue;
+        };
+        if value > tuning.overdoing_threshold {
+            moodlets.push(Moodlet {
+                label: format!("Overdoing {activity}"),
+                score: overdoing_score(value, tuning),
+            });
+        }
+        if value >= tuning.sick_threshold && is_food(pack, object, row) {
+            sick = true;
+        }
+    }
+    if sick {
+        moodlets.push(Moodlet {
+            label: FEELING_SICK.to_string(),
+            score: -tuning.sick_penalty,
+        });
+    }
+    moodlets
+}
+
+/// Whether a habituation row is food: the interaction or chain it names
+/// advertises a positive Hunger delta. A row that does not resolve is not.
+pub(crate) fn is_food(pack: &ContentPack, object: ObjectDefId, row: u32) -> bool {
+    crate::details::flyout_row(pack, object, row).is_some_and(|row| {
+        row.advertises()
+            .iter()
+            .any(|&(need, delta)| usize::from(need) == NeedId::Hunger.index() && delta > 0.0)
     })
 }
 
@@ -301,15 +390,15 @@ mod tests {
     /// because the Traits panel and the Mood panel sit in the same sheet.
     #[test]
     fn no_trait_label_repeats_a_need_moodlet() {
-        let mut taken: Vec<&str> = vec!["Needs met"];
+        let mut taken: Vec<&str> = vec!["Needs met", FEELING_SICK];
         for need in NeedId::ALL {
             let (low, critical) = need_labels(need);
             taken.extend([low, critical]);
         }
         assert_eq!(
             taken.len(),
-            15,
-            "seven needs, two labels each, and the all-clear"
+            16,
+            "seven needs, two labels each, the all-clear and feeling sick"
         );
         for trait_def in &terri_data::pack().traits {
             assert!(
@@ -599,7 +688,6 @@ mod tests {
             kind: CompiledTraitKind::Capability {
                 start_level: 0.25,
                 fail_delta_scale: 0.0,
-                learn_per_attempt: 0.01,
             },
             description: String::new(),
         }
@@ -915,5 +1003,650 @@ mod tests {
             before,
             "a projection read must not create state that Save V1 could persist"
         );
+    }
+
+    /// Tim from the shipped household, on the shipped lot.
+    fn shipped_tim() -> (Sim, Entity) {
+        let mut sim = Sim::new_from_shipped_lot();
+        let tim = person_named(&mut sim, "Tim");
+        (sim, tim)
+    }
+
+    fn person_named(sim: &mut Sim, name: &str) -> Entity {
+        sim.world_mut()
+            .query::<(Entity, &SimName)>()
+            .iter(sim.world())
+            .find(|(_, person)| person.0 == name)
+            .unwrap_or_else(|| panic!("{name} is in the shipped household"))
+            .0
+    }
+
+    /// The shipped (definition, flyout row) of one object's own interaction.
+    fn shipped_row(object: &str, interaction: &str) -> (ObjectDefId, u32) {
+        let pack = terri_data::pack();
+        let id = pack.find(object).expect("a shipped object");
+        let row = pack
+            .object(id)
+            .interactions
+            .iter()
+            .position(|candidate| candidate.id == interaction)
+            .expect("a shipped interaction");
+        (id, row as u32)
+    }
+
+    /// The flyout row of a chain an object advertises: past the object's
+    /// own interactions, at the chain's position among its chains.
+    fn shipped_chain_row(object: &str, chain: &str) -> (ObjectDefId, u32) {
+        let pack = terri_data::pack();
+        let id = pack.find(object).expect("a shipped object");
+        let slot = pack
+            .chains
+            .iter()
+            .filter(|candidate| candidate.advertised_by == id)
+            .position(|candidate| candidate.id == chain)
+            .expect("the object advertises the chain");
+        (id, (pack.object(id).interactions.len() + slot) as u32)
+    }
+
+    /// Replaces a person's habituation with exactly these values.
+    fn set_habituation(sim: &mut Sim, person: Entity, rows: &[(ObjectDefId, u32, f32)]) {
+        let cap = sim.world().resource::<Content>().0.tuning.habituation_max;
+        let mut habits = Habituation::default();
+        for &(object, row, value) in rows {
+            habits.bump(object, row, value, cap);
+        }
+        for &(object, row, value) in rows {
+            assert_eq!(
+                habits.get(object, row),
+                value,
+                "the fixture sets exact values"
+            );
+        }
+        sim.world_mut().entity_mut(person).insert(habits);
+    }
+
+    /// The moodlets [OD-moodlets] adds, in the order mood lists them.
+    fn repetition_moodlets(snapshot: &MoodSnapshot) -> Vec<Moodlet> {
+        snapshot
+            .moodlets
+            .iter()
+            .filter(|moodlet| {
+                moodlet.label.starts_with("Overdoing ") || moodlet.label == FEELING_SICK
+            })
+            .cloned()
+            .collect()
+    }
+
+    fn next_above(value: f32) -> f32 {
+        assert!(value > 0.0 && value.is_finite());
+        f32::from_bits(value.to_bits() + 1)
+    }
+
+    fn next_below(value: f32) -> f32 {
+        assert!(value > 0.0 && value.is_finite());
+        f32::from_bits(value.to_bits() - 1)
+    }
+
+    /// [OD-moodlets] item 1: only a value strictly above
+    /// `overdoing_threshold` costs mood, and the cost starts at zero.
+    #[test]
+    fn exactly_at_the_threshold_is_not_overdoing() {
+        let (mut sim, tim) = shipped_tim();
+        let tuning = terri_data::pack().tuning;
+        let (television, watch) = shipped_row("television", "watch_tv");
+        set_habituation(
+            &mut sim,
+            tim,
+            &[(television, watch, tuning.overdoing_threshold)],
+        );
+        assert_eq!(
+            repetition_moodlets(&mood(&sim, tim)),
+            Vec::new(),
+            "a value exactly at the threshold is not overdoing"
+        );
+
+        let above = next_above(tuning.overdoing_threshold);
+        set_habituation(&mut sim, tim, &[(television, watch, above)]);
+        let moodlets = repetition_moodlets(&mood(&sim, tim));
+        assert_eq!(moodlets.len(), 1, "{moodlets:?}");
+        assert_eq!(moodlets[0].label, "Overdoing Watch TV");
+        assert!(
+            moodlets[0].score < 0.0 && moodlets[0].score > -1e-4,
+            "one f32 step above the threshold costs almost nothing: {}",
+            moodlets[0].score
+        );
+    }
+
+    /// [OD-moodlets] item 1 and [L55]: the score is linear from zero at the
+    /// threshold to the whole penalty at the cap, and the label is the one
+    /// the Sim details repetition row shows, for an interaction row and for
+    /// a chain row alike.
+    #[test]
+    fn overdoing_score_grows_linearly_to_the_penalty_at_the_cap() {
+        let shipped = terri_data::pack().tuning;
+        assert_eq!(
+            (
+                shipped.habituation_max,
+                shipped.overdoing_threshold,
+                shipped.overdoing_penalty
+            ),
+            (3.0, 1.0, 20.0),
+            "the golden values below are for the shipped tuning"
+        );
+        assert_eq!(overdoing_score(1.0, &shipped), 0.0);
+        assert_eq!(overdoing_score(1.5, &shipped), -5.0);
+        assert_eq!(overdoing_score(2.0, &shipped), -10.0);
+        assert_eq!(overdoing_score(3.0, &shipped), -20.0);
+        // Distinct values for every knob, so swapping any two of them in
+        // the formula moves a result.
+        let other = terri_data::Tuning {
+            habituation_max: 5.0,
+            overdoing_threshold: 2.0,
+            overdoing_penalty: 30.0,
+            ..shipped
+        };
+        assert_eq!(overdoing_score(2.0, &other), 0.0);
+        assert_eq!(overdoing_score(3.5, &other), -15.0);
+        assert_eq!(overdoing_score(5.0, &other), -30.0);
+
+        let (mut sim, tim) = shipped_tim();
+        let (television, watch) = shipped_row("television", "watch_tv");
+        let (fridge, dinner) = shipped_chain_row("fridge", "cook_dinner");
+        let midpoint = (shipped.overdoing_threshold + shipped.habituation_max) / 2.0;
+        assert!(
+            midpoint < shipped.sick_threshold,
+            "Cook dinner is food; below the sick threshold it shows overdoing only"
+        );
+        set_habituation(
+            &mut sim,
+            tim,
+            &[
+                (television, watch, shipped.habituation_max),
+                (fridge, dinner, midpoint),
+            ],
+        );
+        let moodlets = repetition_moodlets(&mood(&sim, tim));
+        let details = sim.details_of(tim.index_u32()).unwrap().repeated;
+        let label_of = |object: ObjectDefId, row: u32| {
+            let detail = details
+                .iter()
+                .find(|detail| detail.object == object.0 && detail.interaction == row)
+                .expect("the details list the row");
+            format!("Overdoing {}", detail.activity_label)
+        };
+        let score_of = |label: &str| {
+            moodlets
+                .iter()
+                .find(|moodlet| moodlet.label == label)
+                .unwrap_or_else(|| panic!("no '{label}' in {moodlets:?}"))
+                .score
+        };
+        assert_eq!(moodlets.len(), 2, "{moodlets:?}");
+        assert_eq!(label_of(television, watch), "Overdoing Watch TV");
+        assert_eq!(label_of(fridge, dinner), "Overdoing Cook dinner");
+        assert!((score_of("Overdoing Watch TV") - -shipped.overdoing_penalty).abs() < 1e-4);
+        assert!(
+            (score_of("Overdoing Cook dinner") - -shipped.overdoing_penalty / 2.0).abs() < 1e-4
+        );
+    }
+
+    /// [OD-moodlets] item 2: one `Feeling sick` per person however many
+    /// food rows qualify, from exactly `sick_threshold`, and never for an
+    /// activity that does not feed.
+    #[test]
+    fn feeling_sick_appears_once_per_person_and_only_for_food() {
+        let pack = terri_data::pack();
+        let tuning = pack.tuning;
+        let (fridge, snack) = shipped_row("fridge", "grab_snack");
+        let (_, dinner) = shipped_chain_row("fridge", "cook_dinner");
+        let (television, watch) = shipped_row("television", "watch_tv");
+        let (sink, clean_dishes) = shipped_chain_row("kitchen_sink", "clean_dishes");
+        // Food is a positive Hunger delta on the row, whether the row is an
+        // interaction or a chain.
+        assert!(is_food(pack, fridge, snack));
+        assert!(is_food(pack, fridge, dinner));
+        assert!(!is_food(pack, television, watch));
+        assert!(
+            !is_food(pack, sink, clean_dishes),
+            "a chain that feeds nobody"
+        );
+        assert!(
+            !is_food(pack, fridge, u32::MAX),
+            "a row that does not exist"
+        );
+        let custom = test_content::pack(vec![
+            test_content::object(
+                "diet_pill",
+                &[(NeedId::Hunger, -5.0), (NeedId::Fun, 10.0)],
+                5,
+            ),
+            test_content::object("biscuit", &[(NeedId::Hunger, 5.0)], 5),
+        ]);
+        assert!(
+            !is_food(custom, ObjectDefId(0), 0),
+            "a row that costs hunger does not feed"
+        );
+        assert!(is_food(custom, ObjectDefId(1), 0));
+
+        let (mut sim, tim) = shipped_tim();
+        set_habituation(
+            &mut sim,
+            tim,
+            &[
+                (fridge, snack, tuning.sick_threshold),
+                (fridge, dinner, tuning.sick_threshold),
+            ],
+        );
+        let moodlets = repetition_moodlets(&mood(&sim, tim));
+        assert_eq!(
+            moodlets
+                .iter()
+                .map(|moodlet| moodlet.label.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "Overdoing Grab a snack",
+                "Overdoing Cook dinner",
+                "Feeling sick"
+            ],
+            "two food rows at the threshold make one person sick once"
+        );
+        assert_eq!(moodlets[2].score, -tuning.sick_penalty);
+
+        let below = next_below(tuning.sick_threshold);
+        set_habituation(
+            &mut sim,
+            tim,
+            &[(fridge, snack, below), (fridge, dinner, below)],
+        );
+        assert!(
+            !repetition_moodlets(&mood(&sim, tim))
+                .iter()
+                .any(|moodlet| moodlet.label == FEELING_SICK),
+            "just below the threshold is not sick"
+        );
+
+        set_habituation(
+            &mut sim,
+            tim,
+            &[(television, watch, tuning.habituation_max)],
+        );
+        assert_eq!(
+            repetition_moodlets(&mood(&sim, tim)),
+            vec![Moodlet {
+                label: "Overdoing Watch TV".to_string(),
+                score: -tuning.overdoing_penalty,
+            }],
+            "an activity that does not feed never makes anyone sick"
+        );
+
+        // Per person: Bill's food rows make Bill sick and leave Tim alone.
+        let bill = person_named(&mut sim, "Bill");
+        set_habituation(&mut sim, bill, &[(fridge, snack, tuning.habituation_max)]);
+        assert!(!mood(&sim, tim)
+            .moodlets
+            .iter()
+            .any(|moodlet| moodlet.label == FEELING_SICK));
+        assert_eq!(
+            mood(&sim, bill)
+                .moodlets
+                .iter()
+                .filter(|moodlet| moodlet.label == FEELING_SICK)
+                .count(),
+            1
+        );
+    }
+
+    /// [OD-moodlets]: the new moodlets come after every existing one, the
+    /// overdoing rows in habituation order (object, then row) and then
+    /// `Feeling sick`, so the existing exact-list tests keep their order.
+    #[test]
+    fn new_moodlets_come_after_every_existing_one_in_habituation_order() {
+        let (mut sim, tim) = shipped_tim();
+        let pack = terri_data::pack();
+        let tuning = pack.tuning;
+        let (fridge, snack) = shipped_row("fridge", "grab_snack");
+        let (television, watch) = shipped_row("television", "watch_tv");
+        assert!(
+            fridge.0 < television.0,
+            "the sick food row sorts first, so Feeling sick must wait for the TV row"
+        );
+
+        // A condition above the cutoff.
+        let condition = pack
+            .traits
+            .iter()
+            .position(|definition| matches!(definition.kind, CompiledTraitKind::Condition { .. }))
+            .expect("the shipped pack has a condition");
+        sim.world_mut()
+            .entity_mut(tim)
+            .insert(Traits::from_entries(vec![(condition as u32, 0.5)]));
+
+        // Bill beside Tim, both at the fridge, with a pile of Bill's dishes
+        // on the fridge.
+        let bill = person_named(&mut sim, "Bill");
+        let bill_id = *sim.world().get::<SimId>(bill).unwrap();
+        let fridge_entity = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| object.0 == fridge)
+            .expect("the shipped lot has a fridge")
+            .0;
+        let at_fridge = *sim.world().get::<Position>(fridge_entity).unwrap();
+        for person in [tim, bill] {
+            *sim.world_mut().get_mut::<Position>(person).unwrap() = at_fridge;
+        }
+        let mut feelings = Relationships::default();
+        feelings.bump(bill_id, 1.0);
+        sim.world_mut().entity_mut(tim).insert(feelings);
+        {
+            sim.world_mut()
+                .init_resource::<terri_core::save::SavedDomestic>();
+            let mut domestic = sim
+                .world_mut()
+                .resource_mut::<terri_core::save::SavedDomestic>();
+            let id = domestic.next_dish;
+            domestic.next_dish += 1;
+            domestic.dishes.push(terri_core::save::SavedDishes {
+                id,
+                surface: fridge_entity.index_u32(),
+                owner: bill_id.0,
+                units: 3,
+            });
+        }
+
+        // Set in the reverse of habituation order.
+        set_habituation(
+            &mut sim,
+            tim,
+            &[
+                (television, watch, 2.0),
+                (fridge, snack, tuning.habituation_max),
+            ],
+        );
+        let labels: Vec<String> = mood(&sim, tim)
+            .moodlets
+            .into_iter()
+            .map(|moodlet| moodlet.label)
+            .collect();
+        let position = |label: &str| {
+            labels
+                .iter()
+                .position(|candidate| candidate == label)
+                .unwrap_or_else(|| panic!("no '{label}' in {labels:?}"))
+        };
+        let condition_at = position(&pack.traits[condition].label);
+        let bill_at = position("Comforted by Bill");
+        let dishes_at = position("Dirty dishes");
+        assert!(
+            condition_at < bill_at && bill_at < dishes_at,
+            "the existing order is unchanged: {labels:?}"
+        );
+        assert_eq!(
+            labels[dishes_at + 1..],
+            [
+                "Overdoing Grab a snack".to_string(),
+                "Overdoing Watch TV".to_string(),
+                FEELING_SICK.to_string(),
+            ],
+            "the new moodlets come last, in habituation order, then Feeling sick"
+        );
+    }
+
+    /// [OD-evidence] item 3, played on the shipped lot: Tim is ordered to
+    /// grab a snack again and again. After every completion his mood shows
+    /// `Overdoing Grab a snack` exactly when the snack row is above the
+    /// threshold, with the score the formula gives and a penalty that grows
+    /// with each use, and `Feeling sick` exactly when the row is at or above
+    /// the sick threshold. While both stand his satisfaction falls; with no
+    /// further snack use, decay removes both within the tick count the tuning
+    /// implies. Every snack fills hunger by the same amount, because need
+    /// delivery never reads repetition.
+    #[test]
+    fn repeated_snacks_make_a_person_sick_and_decay_heals_them() {
+        use terri_core::{Career, ChainState, CommandQueue, Satisfaction, SimClock, SimCommand};
+
+        let (mut sim, tim) = shipped_tim();
+        let pack = sim.world().resource::<Content>().0;
+        let tuning = pack.tuning;
+        let decay = tuning.habituation_decay_per_tick;
+        // No shift to leave for, and no drain, so hunger moves only when a
+        // snack delivers. Tim can cook, so no snack is fumbled.
+        sim.world_mut().entity_mut(tim).remove::<Career>();
+        sim.world_mut()
+            .get_mut::<terri_core::Personality>(tim)
+            .expect("Tim has a personality")
+            .drain = [0.0; terri_core::NEED_COUNT];
+        let fridge = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| pack.object(object.0).id == "fridge")
+            .expect("the shipped lot has a fridge")
+            .0;
+        let (fridge_def, row) = shipped_row("fridge", "grab_snack");
+        let snack_chain = pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == crate::domestic::SNACK)
+            .expect("the snack chain") as u32;
+        let value = |sim: &Sim| {
+            sim.world()
+                .get::<Habituation>(tim)
+                .map_or(0.0, |h| h.get(fridge_def, row))
+        };
+        let clock = |sim: &Sim| sim.world().resource::<SimClock>().tick;
+        let overdoing = |snapshot: &MoodSnapshot| {
+            snapshot
+                .moodlets
+                .iter()
+                .find(|moodlet| moodlet.label == "Overdoing Grab a snack")
+                .map(|moodlet| moodlet.score)
+        };
+        let sick = |snapshot: &MoodSnapshot| {
+            snapshot
+                .moodlets
+                .iter()
+                .filter(|moodlet| moodlet.label == FEELING_SICK)
+                .count()
+        };
+
+        const HUNGER: f32 = 30.0;
+        let mut refills = Vec::new();
+        let mut first_overdoing = None;
+        let mut first_sick = None;
+        let mut previous_score = 0.0_f32;
+        let mut capped = false;
+        for snack in 1..=16_u32 {
+            sim.world_mut()
+                .get_mut::<Needs>(tim)
+                .unwrap()
+                .set(NeedId::Hunger, HUNGER);
+            let before = value(&sim);
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObjectFirst {
+                    agent: tim.index_u32(),
+                    object: fridge.index_u32(),
+                    interaction: row,
+                });
+            let start = clock(&sim);
+            let mut ticks = 0_u64;
+            let mut began = false;
+            let mut finished = false;
+            for _ in 0..2000 {
+                sim.tick();
+                ticks += 1;
+                let running = sim
+                    .world()
+                    .get::<ChainState>(tim)
+                    .is_some_and(|state| state.chain == snack_chain);
+                began |= running;
+                if began && !running {
+                    finished = true;
+                    break;
+                }
+            }
+            assert!(finished, "snack {snack} must finish within the bound");
+            assert_eq!(
+                clock(&sim),
+                start + ticks,
+                "snack {snack}: one clock tick per loop tick"
+            );
+            let now = value(&sim);
+            let expected = ((before - decay * (ticks - 1) as f32).max(0.)
+                + tuning.habituation_per_use)
+                .min(tuning.habituation_max)
+                - decay;
+            assert!(
+                (now - expected).abs() < 0.0001,
+                "snack {snack}: measured duration must explain habituation {now} versus {expected}"
+            );
+            assert!(
+                now > before - decay * ticks as f32,
+                "snack {snack} completed"
+            );
+            refills.push(sim.world().get::<Needs>(tim).unwrap().get(NeedId::Hunger) - HUNGER);
+
+            let snapshot = mood(&sim, tim);
+            match overdoing(&snapshot) {
+                Some(score) => {
+                    assert!(now > tuning.overdoing_threshold, "snack {snack}: {now}");
+                    assert!((score - overdoing_score(now, &tuning)).abs() < 1e-6);
+                    assert!(
+                        score < previous_score,
+                        "snack {snack}: the penalty grows with each use, {score} after \
+                         {previous_score}"
+                    );
+                    previous_score = score;
+                    first_overdoing.get_or_insert(snack);
+                }
+                None => assert!(now <= tuning.overdoing_threshold, "snack {snack}: {now}"),
+            }
+            assert_eq!(
+                sick(&snapshot),
+                usize::from(now >= tuning.sick_threshold),
+                "snack {snack}: {now}"
+            );
+            if now >= tuning.sick_threshold {
+                first_sick.get_or_insert(snack);
+            }
+            if now >= tuning.habituation_max - decay * 2.0 {
+                capped = true;
+                break;
+            }
+        }
+        let first_overdoing = first_overdoing.expect("snacking reaches overdoing");
+        let first_sick = first_sick.expect("snacking makes Tim sick");
+        assert!(capped, "snacking reaches the cap within the bound");
+        // The sim is deterministic, so the counts are exact: back-to-back
+        // snacks net about 0.25 each because decay runs during each chain.
+        // The chains' lengths come from the world generator, so the exact
+        // snack that crosses the sick line moves with the draws taken
+        // before it. Conditional need rewards also change the other
+        // housemates' choices and the subsequent duration draws.
+        assert_eq!(
+            first_overdoing, 4,
+            "three snacks in a row are not overdoing; the fourth is"
+        );
+        assert_eq!(
+            first_sick, 10,
+            "the tenth snack crosses the measured sickness threshold"
+        );
+        assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
+        assert!(
+            refills.iter().all(|refill| *refill == refills[0]),
+            "every snack fills hunger the same: {refills:?}"
+        );
+
+        // While both stand, satisfaction falls. Without them his mood
+        // would sit inside the neutral band, which costs nothing, so the
+        // fall is theirs.
+        const STRETCH: u64 = 200;
+        let band = tuning.satisfaction_mood_neutral_band;
+        let satisfaction = |sim: &Sim| sim.world().get::<Satisfaction>(tim).unwrap().value();
+        let start = clock(&sim);
+        let satisfied_before = satisfaction(&sim);
+        for _ in 0..STRETCH {
+            sim.tick();
+            let snapshot = mood(&sim, tim);
+            let overdone = overdoing(&snapshot).expect("Overdoing stands");
+            assert_eq!(sick(&snapshot), 1, "Feeling sick stands");
+            let without = snapshot.overall_score - overdone + tuning.sick_penalty;
+            assert!(
+                snapshot.overall_score < -band && without.abs() < band,
+                "{} with the two moodlets, {without} without",
+                snapshot.overall_score
+            );
+        }
+        assert_eq!(clock(&sim), start + STRETCH);
+        assert!(
+            satisfaction(&sim) < satisfied_before,
+            "{} after {satisfied_before}",
+            satisfaction(&sim)
+        );
+
+        // Recovery measures decay with no further snack use. An empty order
+        // queue still permits exploratory snacks, even at full hunger. Rest
+        // through normal bed orders and cancel any snack already under way.
+        let bed = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| pack.object(object.0).id == "bed")
+            .expect("the shipped lot has a bed")
+            .0;
+        let (_, sleep) = shipped_row("bed", "sleep");
+        if sim
+            .world()
+            .get::<ChainState>(tim)
+            .is_some_and(|state| state.chain == snack_chain)
+        {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::CancelIntents {
+                    agent: tim.index_u32(),
+                });
+            sim.flush_commands();
+        }
+        assert!(sim
+            .world()
+            .get::<ChainState>(tim)
+            .is_none_or(|state| state.chain != snack_chain));
+        // From at most the cap, no further use reaches the threshold within
+        // this many ticks. Check every tick for a renewed use as well.
+        let heal =
+            ((tuning.habituation_max - tuning.overdoing_threshold) / decay).ceil() as u64 + 1;
+        let start = clock(&sim);
+        for _ in 0..heal {
+            if sim
+                .world()
+                .get::<terri_core::IntentQueue>(tim)
+                .is_none_or(|queue| queue.is_empty())
+            {
+                sim.world_mut()
+                    .resource_mut::<CommandQueue>()
+                    .push(SimCommand::UseObjectFirst {
+                        agent: tim.index_u32(),
+                        object: bed.index_u32(),
+                        interaction: sleep,
+                    });
+            }
+            let before = value(&sim);
+            sim.tick();
+            let after = value(&sim);
+            assert!(
+                after <= before,
+                "healing restarted snack use at tick {}: {before} to {after}; chain {:?}; hunger {}",
+                clock(&sim),
+                sim.world().get::<ChainState>(tim),
+                sim.world().get::<Needs>(tim).unwrap().get(NeedId::Hunger)
+            );
+        }
+        assert_eq!(clock(&sim), start + heal);
+        let snapshot = mood(&sim, tim);
+        assert!(value(&sim) <= tuning.overdoing_threshold, "{}", value(&sim));
+        assert_eq!(overdoing(&snapshot), None, "{:?}", snapshot.moodlets);
+        assert_eq!(sick(&snapshot), 0, "{:?}", snapshot.moodlets);
     }
 }

@@ -101,6 +101,8 @@ LIFE is authorable today as a condition; if play shows the direct
 form is needed, this is the recorded place to re-open it.
 The day arrives with it: `day_ticks` in tuning, `tick % day_ticks` as
 the clock - no calendar, no weekday, until something needs one.
+Working days needed one: the seven-day week and each career's working
+days are in `docs/specs/2026-10-06-calendar.md`.
 
 At shift start a working sim drops what it holds (the same preemption
 a player command gets), walks to the lot's doorway and enters

@@ -18,6 +18,8 @@ struct Participant {
     directed: bool,
     commuting: bool,
     chain: Option<terri_core::ChainState>,
+    feelings: Relationships,
+    destination: (i32, i32),
 }
 
 /// Object availability at the start of movement, after route reservations settle.
@@ -50,6 +52,8 @@ pub struct InterpersonalPhase {
     tuning: terri_data::Tuning,
     next_event: u32,
     emergency: std::collections::BTreeSet<Entity>,
+    social: crate::social_company::SocialCompany,
+    physical_places: Vec<terri_core::save::SavedDiner>,
 }
 
 fn tile(position: Position) -> (i32, i32) {
@@ -88,6 +92,10 @@ pub(crate) fn prepare(world: &mut World) {
             Participant {
                 entity,
                 id,
+                destination: world
+                    .get::<terri_core::Path>(entity)
+                    .and_then(|p| p.steps.last().copied())
+                    .unwrap_or(tile(position)),
                 room: rooms.at(tile(position)),
                 private_room,
                 needs: *needs,
@@ -95,6 +103,10 @@ pub(crate) fn prepare(world: &mut World) {
                 directed: crate::privacy::directed(world, entity),
                 commuting: world.get::<terri_core::Commuting>(entity).is_some(),
                 chain: world.get::<terri_core::ChainState>(entity).copied(),
+                feelings: world
+                    .get::<Relationships>(entity)
+                    .cloned()
+                    .unwrap_or_default(),
             }
         })
         .collect();
@@ -103,6 +115,10 @@ pub(crate) fn prepare(world: &mut World) {
         .get_resource::<terri_core::save::SavedDomestic>()
         .cloned();
     let domestic_occupants = crate::domestic::boundary_occupants(world);
+    let physical_places = crate::seating::physical_places(world);
+    let social = world
+        .resource::<crate::social_company::SocialCompany>()
+        .clone();
     world.insert_resource(InterpersonalPhase {
         domestic,
         domestic_occupants,
@@ -113,6 +129,8 @@ pub(crate) fn prepare(world: &mut World) {
         tuning: pack.tuning,
         next_event: 0,
         emergency: Default::default(),
+        social,
+        physical_places,
     });
 }
 
@@ -191,17 +209,51 @@ impl InterpersonalPhase {
         if person.directed || person.commuting {
             return true;
         }
+        let social_available = target.is_some_and(|t| {
+            self.social
+                .media_allowed(agent, t.object, t.interaction, &person.feelings)
+        });
         let helped = object
             .zip(target)
-            .and_then(|(id, t)| pack.object(id).interactions.get(t.interaction as usize))
-            .map(|a| &a.advertises)
+            .and_then(|(id, t)| {
+                let action = pack.object(id).interactions.get(t.interaction as usize)?;
+                let shared = self.social.shared_allowed(
+                    agent,
+                    t.object,
+                    t.interaction,
+                    &person.feelings,
+                    person.destination,
+                );
+                let seat = self
+                    .physical_places
+                    .iter()
+                    .find(|p| p.person == agent.index_u32() && p.station == t.object.index_u32())
+                    .and_then(|p| p.chair)
+                    .and_then(|id| furniture.iter().find(|seat| seat.entity.index_u32() == id))
+                    .map_or(0., |seat| pack.object(seat.definition).seat_comfort_rate());
+                Some(crate::need_interactions::benefits(
+                    pack,
+                    action,
+                    &person.needs,
+                    social_available,
+                    seat,
+                    shared,
+                ))
+            })
             .or_else(|| {
                 target
                     .filter(|t| t.interaction == super::chain::CHAIN_STEP)
                     .and(person.chain)
-                    .map(|c| &pack.chains[c.chain as usize].advertises)
+                    .map(|c| {
+                        pack.chains[c.chain as usize]
+                            .advertises
+                            .iter()
+                            .copied()
+                            .filter(|&(n, d)| crate::social_company::effective_delta(n, d, false))
+                            .collect()
+                    })
             });
-        let mut need = helped.map_or(100.0, |act| {
+        let mut need = helped.as_ref().map_or(100.0, |act| {
             act.iter()
                 .filter(|(_, delta)| *delta > 0.0)
                 .map(|(need, _)| person.needs.get(NeedId::ALL[*need as usize]))
@@ -215,7 +267,7 @@ impl InterpersonalPhase {
             && need <= pack.tuning.mood_critical_need_level
         {
             let safe = self.safe_grid(agent, grid);
-            let relevant = helped.and_then(|act| {
+            let relevant = helped.as_ref().and_then(|act| {
                 act.iter()
                     .filter(|(_, d)| *d > 0.0)
                     .min_by(|(a, _), (b, _)| {
@@ -274,9 +326,65 @@ impl InterpersonalPhase {
                         .iter()
                         .enumerate()
                         .any(|(index, a)| {
-                            a.advertises
-                                .iter()
-                                .any(|&(n, d)| Some(n) == relevant && d > 0.0)
+                            let media =
+                                crate::seating::media_activity(pack, item.definition, index as u32)
+                                    .is_some();
+                            let plan = media
+                                .then(|| {
+                                    crate::media::plan(
+                                        crate::media::Planning {
+                                            pack,
+                                            grid: &safe,
+                                            field,
+                                            objects: furniture,
+                                            occupancy,
+                                            claims: &self.physical_places,
+                                        },
+                                        agent,
+                                        item,
+                                    )
+                                })
+                                .flatten();
+                            let social_available = plan.as_ref().is_some_and(|_| {
+                                self.social.media_allowed(
+                                    agent,
+                                    item.entity,
+                                    index as u32,
+                                    &person.feelings,
+                                )
+                            });
+                            let shared = access
+                                .nearest(false)
+                                .and_then(|route| route.route.path(&safe, tile(position)))
+                                .is_some_and(|steps| {
+                                    self.social.shared_allowed(
+                                        agent,
+                                        item.entity,
+                                        index as u32,
+                                        &person.feelings,
+                                        steps.last().copied().unwrap_or(tile(position)),
+                                    )
+                                });
+                            let seat = plan
+                                .as_ref()
+                                .and_then(|p| p.lease.as_ref())
+                                .and_then(|p| p.chair)
+                                .and_then(|id| {
+                                    furniture.iter().find(|seat| seat.entity.index_u32() == id)
+                                })
+                                .map_or(0., |seat| {
+                                    pack.object(seat.definition).seat_comfort_rate()
+                                });
+                            crate::need_interactions::benefits(
+                                pack,
+                                a,
+                                &person.needs,
+                                social_available,
+                                seat,
+                                shared,
+                            )
+                            .iter()
+                            .any(|&(n, d)| Some(n) == relevant && d > 0.)
                                 && (!a.tags.iter().any(|tag| tag == PRIVATE_USE_TAG)
                                     || !self.start_blocked(agent, item.entity))
                                 && occupancy
@@ -292,7 +400,18 @@ impl InterpersonalPhase {
                                         assignments,
                                     )
                                     .into_iter()
-                                    .any(reachable)
+                                    .any(|admission| {
+                                        if media {
+                                            plan.as_ref().is_some_and(|plan| {
+                                                plan.access
+                                                    .route
+                                                    .path(&safe, tile(position))
+                                                    .is_some()
+                                            })
+                                        } else {
+                                            reachable(admission)
+                                        }
+                                    })
                         })
                 })
             });
@@ -562,6 +681,11 @@ pub(crate) fn apply(world: &mut World) {
 
 /// Refresh task routing facts without resetting the incident ordering baseline.
 pub(crate) fn refresh_routes(world: &mut World) {
+    crate::social_company::refresh(world);
+    let social = world
+        .resource::<crate::social_company::SocialCompany>()
+        .clone();
+    let physical_places = crate::seating::physical_places(world);
     let domestic = world
         .get_resource::<terri_core::save::SavedDomestic>()
         .cloned();
@@ -574,6 +698,8 @@ pub(crate) fn refresh_routes(world: &mut World) {
     let mut phase = world.resource_mut::<InterpersonalPhase>();
     phase.domestic = domestic;
     phase.domestic_occupants = occupants;
+    phase.social = social;
+    phase.physical_places = physical_places;
     for person in &mut phase.participants {
         person.chain = chains
             .iter()

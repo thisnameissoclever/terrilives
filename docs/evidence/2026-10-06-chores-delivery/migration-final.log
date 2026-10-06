@@ -1,0 +1,4 @@
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.72s
+     Running `target\debug\examples\migrate_chores_preview.exe .superpowers/sdd/delivery/preview-source.sav .superpowers/sdd/delivery/preview-affinity-migrated.sav`
+Migrated 5053 bytes to 5255 bytes; tick 49577; world hash 11064684446028606279.

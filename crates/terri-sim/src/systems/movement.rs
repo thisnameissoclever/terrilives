@@ -113,6 +113,7 @@ pub fn follow_path(
         &mut Path,
         Option<&Target>,
         Option<&terri_core::Traits>,
+        Option<&terri_core::Skills>,
         Option<&mut terri_core::ChainState>,
     )>,
     objects: Query<&SmartObject>,
@@ -143,14 +144,15 @@ pub fn follow_path(
     let occupancy = beds.occupancy();
     let mut walking: Vec<Entity> = agents
         .iter()
-        .map(|(entity, _, _, _, _, _)| entity)
+        .map(|(entity, _, _, _, _, _, _)| entity)
         .collect();
     walking.sort_by_key(|entity| entity.index());
 
     for entity in walking {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, mut pos, mut path, target, traits, mut chain_state)) = agents.get_mut(entity)
+        let Ok((_, mut pos, mut path, target, traits, skills, mut chain_state)) =
+            agents.get_mut(entity)
         else {
             continue;
         };
@@ -217,7 +219,7 @@ pub fn follow_path(
                 if !step.tags.is_empty() {
                     if let Some(traits) = traits {
                         if let Some(delta_scale) = super::trait_effects::roll_fumble(
-                            traits, content.0, &step.tags, &mut rng,
+                            traits, skills, content.0, &step.tags, &mut rng,
                         ) {
                             chain_state.fumble_scale = chain_state.fumble_scale.min(delta_scale);
                         }
@@ -286,9 +288,9 @@ pub fn follow_path(
                 // delivers `fail_delta_scale` of its benefits and pays
                 // no satisfaction, while still teaching at completion.
                 if let Some(traits) = traits {
-                    if let Some(delta_scale) =
-                        super::trait_effects::roll_fumble(traits, content.0, &act.tags, &mut rng)
-                    {
+                    if let Some(delta_scale) = super::trait_effects::roll_fumble(
+                        traits, skills, content.0, &act.tags, &mut rng,
+                    ) {
                         commands
                             .entity(entity)
                             .insert(terri_core::Fumbled { delta_scale });
@@ -441,6 +443,7 @@ pub fn follow_path(
             continue;
         }
 
+        let grime_from = (pos.x.round() as i32, pos.y.round() as i32);
         if dist <= SPEED {
             pos.x = tx as f32;
             pos.y = ty as f32;
@@ -448,6 +451,12 @@ pub fn follow_path(
         } else {
             pos.x += dx / dist * SPEED;
             pos.y += dy / dist * SPEED;
+        }
+        let grime_to = (pos.x.round() as i32, pos.y.round() as i32);
+        if grime_from != grime_to {
+            commands.queue(move |world: &mut World| {
+                crate::chores::grime::footstep(world, entity, grime_from, grime_to)
+            });
         }
         interpersonal.moved(entity, *pos, content.0.tuning.bathroom_privacy_penalty);
     }

@@ -1,0 +1,67 @@
+[
+  {
+    "check": "wasm-native-rerun",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-wasm",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit": 0,
+    "seconds": 43.08
+  },
+  {
+    "check": "doctests",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--doc"
+    ],
+    "exit": 0,
+    "seconds": 2.69
+  },
+  {
+    "check": "fixture",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "terri-wasm",
+      "--example",
+      "chores_review",
+      "--",
+      "web/public/.tmp/chores-normal.sav"
+    ],
+    "exit": 0,
+    "seconds": 2.72
+  },
+  {
+    "check": "final-format",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 1.16
+  },
+  {
+    "check": "final-lint",
+    "command": [
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 1.32
+  }
+]

@@ -86,7 +86,7 @@ export interface ActivityCueEventSink {
  *
  * Each conversation owns one recording pair, deduplicated by the simulation's
  * instance identity. Sleep remains one shared scene represented by its lowest
- * stable Sim ID, preventing synchronized breathing loops for every sleeper.
+ * stable Sim ID, preventing synchronized snores for every sleeper.
  * Eating, reading, and exercise belong to individual Sims, so each Sim retains
  * an independent cadence until the authored action changes or disappears.
  */

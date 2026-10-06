@@ -6,6 +6,12 @@ The project writing direction is defined in [.agents/skills/natural-causes-writi
 
 ## Functional text that stays plain
 
+Targeted dish menus use Dishes, Do dishes and Clean up in
+`web/src/ui/object-menu.ts`. Dirty tables offer Clean up until their visible dishes have
+been collected; clean tables retain their authored interactions. The existing
+Nothing control remains available.
+Keyboard targeting identifies each pile with Dishes: {object}, pile {n}.
+
 These strings are controls, state, instructions, confirmations, or failures.
 They should remain literal even after the voice pass. A joke in a destructive
 confirmation is how somebody loses a save while the interface congratulates
@@ -13,19 +19,21 @@ itself on having personality.
 
 | Surface | Current strings | Source |
 | --- | --- | --- |
-| Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
-| Compact HUD | Sim details; Overview; Queue; Queue mode; Clear orders; People; Traits; Collapse; Expand; Close; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
+| Household status | Time; Funds; Day {n}, {Weekday} and {hh}:{mm}, on two lines; Monday; Tuesday; Wednesday; Thursday; Friday; Saturday; Sunday; Day and time unavailable | `web/index.html`, `web/src/ui/game-hud.ts` |
+| Compact HUD | Sim details; Overview; Queue; Queue mode; Clear orders; People; Traits; Collapse; Expand; Close; Edit; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
 | Contextual Build actions | Confirm; Buy with price; Sell with payout; Cancel; Wall; Doorway; Window; Remove; Clear; Build room; Corners; covering names; Rotate clockwise; Rotate counterclockwise | `web/src/ui/placement-actions.ts` |
 | Options flyout | Options; Close Options; holds Light, Death, Sound, Effects, Voices and game actions in the world controls; compact Build places Options beside zoom | `web/index.html`, `web/src/ui/options-menu.ts` |
 | Build sidebar controls | Build; Build mode; Exit build, in the desktop heading or compact bottom panel | `web/index.html`, `web/src/ui/builder-controls.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
-| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the eight refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
-| Selected person | Life satisfaction; Very dissatisfied; Dissatisfied; Content; Satisfied; Fulfilled; Unavailable; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts`, `web/src/ui/satisfaction-meter.ts` |
+| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the eight refusal lines in `housemateReason`; Edit housemate; Keep current personality; {label}, current; They are the {relation} of {name}; Nobody; Removing a condition forgets its severity. Skills are kept.; Confirm changes; Making the changes…; That person is no longer here.; That relative is no longer here.; Each relative once.; They cannot be their own relative.; The changes could not be made.; the other five refusal lines in `editReason`, shared with `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
+| Selected person | Life satisfaction; Very dissatisfied; Dissatisfied; Content; Satisfied; Fulfilled; Unavailable; Career; {job}, {working days}, {hh}:{mm} to {hh}:{mm}, where the working days read {first} to {last} for two or more days in one unbroken run, every day for all seven, a single day's name for one day, or the day names separated by commas; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts`, `web/src/ui/satisfaction-meter.ts` |
 | Personality, habits and bed | Shyness; Personality factors; Need; Drain; Refill; 100% is the normal personality factor. Sleep, work and traits also affect needs.; Sleep rhythm: Usual schedule / {n} game min earlier / later; Sleep timing depends on needs and available beds.; Repeated activities; Recent repetition reduces an activity's appeal. It fades with time and is shared across objects of the same type.; No repeated activities recorded.; Select a person to see their personality and habits.; Personal details unavailable. | `web/index.html`, `web/src/ui/personal-details.ts` |
+| Skills | Skills; Select a person to see their skills.; Skills unavailable; Level {n} of {m}, {p}% to the next level; Level {m} of {m}; each skill's label and description | `web/index.html`, `web/src/ui/skills-panel.ts`, `content/skills.toml` |
 | Sleeping place, implementation in progress | Sleeping place; Choose a place; Assign; Clear assignment; Bed at ({x}, {y}), place {n}: {name}; Assigned: {place}; No assigned sleeping place.; No beds on this lot.; In use or reserved by {name}.; Not currently in use.; Applying assignment…; Sleeping place assigned.; Assignment cleared.; Select a Sim to assign a place.; Sleeping places unavailable.; That assignment is no longer available. Check the current places.; That assignment could not be sent.; Another assignment was handled. Check the current assignment.; That Sim is no longer here.; That bed is no longer here.; That sleeping place is not available.; That place is assigned to another Sim. | `web/src/ui/bed-assignment.ts`, `web/src/bridge.ts` |
 | Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Sitting; Showering; Using the toilet; Watching TV; Lying down; Washing hands; Washing dishes; Listening to the radio; Handling correspondence; Bathing; Getting ingredients; Preparing food; Cooking; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
-| Mood | Mood; Select a person to see their mood.; Mood unavailable; No active moodlets.; Overall mood; Miserable; Low; Okay; Good; Great; {label}: {signed score} | `web/index.html`, `web/src/ui/mood-panel.ts` |
+| Mood | Mood; Select a person to see their mood.; Mood unavailable; No active moodlets.; Overall mood; Miserable; Low; Okay; Good; Great; {label}: {signed score}; Grieving {name}; Waiting for an item; Overdoing {activity}; Feeling sick; Likes the {kind} here; Bothered by the {kind} here; Bothered by {name} using the {kind}, where {kind} is an affinity kind's lower-case label | `web/index.html`, `web/src/ui/mood-panel.ts`, `crates/terri-sim/src/mood.rs`, `crates/terri-sim/src/affinity.rs` |
+| Likes and dislikes | Likes and dislikes; Select a person to see their likes and dislikes.; Likes and dislikes unavailable; {Kind}: {word}, one row per kind with the label's first letter upper-cased; Loves; Likes; Indifferent; Dislikes; Hates, each chosen by the simulation from the edges `affinity_band_loves` and `affinity_band_likes` in `content/tuning.toml`; the kind labels plants, aquarium, television and radio, proposed for the owner's review | `web/index.html`, `web/src/ui/affinities-panel.ts`, `crates/terri-sim/src/affinity.rs`, `content/objects.toml` |
 | Domestic actions and mood | Cook breakfast; Cook lunch; Cook dinner; Get ingredients; Prepare food; Cook; Simmer and stir; Plate meal; Eat meal; Grab a snack; Get snack; Prepare snack; Eat snack; Wash hands; Clean dishes; Collect dishes; Wash dishes; Get prepared plate; Eat together; Dirty dishes | `content/chains.toml`, `crates/terri-sim/src/domestic.rs`, `crates/terri-sim/src/mood.rs` |
 | Cleanliness | Cleanliness; {value}%; Tidier Sims usually clean up and mind other people leaving dirty dishes. Urgent needs can take priority. | `web/src/ui/traits-panel.ts` |
 | Need moodlets | Hungry; Starving; Tired; Exhausted; Needs a wash; Very dirty; Needs the toilet; Desperate for the toilet; Lonely; Very lonely; Bored; Very bored; Uncomfortable; Very uncomfortable; Needs met | `crates/terri-sim/src/mood.rs` |
@@ -75,6 +83,7 @@ authorize unrelated replacement copy.
 | Object action labels | `content/objects.toml` interaction `label` | Keep verbs understandable; humor cannot obscure the action. |
 | Sim names and personality labels | `content/household.toml`, `content/personalities.toml` | Owner approval required. Each personality's description follows the trait verbs of [TL-affinity]. |
 | Career labels | `content/careers.toml` | Prime voice surface, but must remain legible in the HUD. |
+| Skill labels and descriptions | `content/skills.toml` | Shown with each skill's level in Sim details. A description must not promise an effect that skills do not have yet. |
 | Trait labels and descriptions | `content/traits.toml` | Review with the mechanics visible so fiction does not misstate behavior. A disposition's sentence opens with Likes, Loves, Dislikes or Hates, and the compiler holds that verb to the trait's number ([TL-affinity]). |
 | Chain labels, steps, and carried items | `content/chains.toml` | One coherent miniature story per chain. |
 | Social action labels | compiled content social vocabulary | Keep intent obvious at the moment of choice. |
@@ -95,6 +104,11 @@ Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
 Not enough beds. Action cards combine existing interaction labels with object
 or person names. Build and Exit build now live in the upper-left world group.
 
+## Commute label added on 2026-10-06
+
+The queue reads Heading home while a housemate walks back from work, and
+Going to work only for the walk out. The owner chose the wording on
+2026-10-06. Source is `crates/terri-sim/src/action_queue.rs`.
 
 ## Self-preservation controls (2026-09-30)
 
@@ -110,3 +124,36 @@ acceptance above remains separate.
 The functional Windows chooser contains Sash, Cottage, Arched, Sliding, Steel-grid, Twin casement, Picture, Craftsman and Clerestory, their wall-unit widths, Fit window, Replace window and Remove window. N opens the chooser from Build; the selected model persists when returning. New refusal messages explain a missing straight wall, a junction or a partial-window Room edit. Sources are `web/src/ui/window-tool.ts`, `web/src/ui/window-tool-controls.ts`, `web/src/bridge.ts` and the Rust window catalogue.
 
 These labels describe implemented controls. The wider object-name/flavor review boundary remains unchanged; this entry does not approve unrelated copy or establish final owner visual acceptance.
+
+## Household chores controls
+
+Literal actions are Do dishes, Clean up, Clean floor, Wipe surface and Empty
+bin. Clean tables offer Sit and, when a portion is available, Eat prepared food.
+The main bottom bar includes Chores. Grouped board rows use Wipe counter surfaces
+and Wipe table surfaces with room names. Its panel uses Automatic weekly assignments,
+Do now, Recent daily outcomes, Performed by, Responsibility, Commitment history
+score, Dishes preference, Floor cleaning preference, Surface wiping preference,
+Bin emptying preference, Apply preferences and Close. Preferences use whole
+numbers from -100 to 100; responsibility uses 0 to 100. Positive preferences mean
+enjoyment and negative preferences mean dislike. History starts at 50 and records
+outcomes as a score, rather than a completion percentage.
+
+Duty outcomes are Pending, No work needed, Plans to do it, Skipped today, Done,
+Covered by a housemate, Missed and Unavailable. Missing identities display
+Unassigned or Former housemate. Progress uses Week, Day, Grime, Bin fill and
+Dirty dishes with the relevant values. Profile feedback reads Use whole numbers
+within the displayed ranges., Preference changes queued., or Those changes
+could not be sent. Mood reasons are Enjoying a chore, Dislikes this chore,
+Enjoyed a chore, Chore frustration and Grimy floor.
+
+Sources are `web/src/ui/chores-board.ts`, `web/src/ui/object-menu.ts`,
+`web/src/ui/traits-panel.ts` and `crates/terri-sim/src/chores/consequences.rs`.
+The approved scope is functional chore copy; unrelated object-name and flavor
+review remains separate.
+
+Grime mood labels are Grimy floor and Grimy surfaces. Both scale with the
+remaining grime amount during cleaning.
+
+Active cleaning labels are Mopping floor, Wiping surface and Emptying bin in
+`web/src/ui/game-hud.ts`. They describe the current work stage; queued orders
+retain their existing action labels.

@@ -11,9 +11,9 @@ from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT/'assets/models/bathroom/actions'))
-from bathroom_export_contract import (MODELS, FACINGS, PALETTES, OWNERS, read_loop, validate_render_rows,
-    checked_file, read_png, digest)
-from export_toilet_loop import ENCODING, read_ink
+from bathroom_export_contract import (MODELS, FACINGS, PALETTES, OWNERS, USE_TOILET_ACTION, read_loop,
+    validate_render_rows, checked_file, read_png, digest)
+from export_toilet_loop import ENCODING, read_ink, scene_anchor
 from seat_export_contract import check_exported_images, check_palettes
 from double_bed_linear import reconstruct
 
@@ -29,7 +29,7 @@ def load_bathroom(manifest_path):
     path = Path(manifest_path).resolve()
     manifest = json.loads(path.read_text())
     if (manifest.get('version') != 1 or manifest.get('encoding') != ENCODING
-            or manifest.get('pixel_density') != 2 or manifest.get('action') != 15
+            or manifest.get('pixel_density') != 2 or manifest.get('action') != USE_TOILET_ACTION
             or manifest.get('halfCycleTicks') != 8
             or manifest.get('comparison_reference') != 'independent-beauty-float-linear-box-display-once'):
         raise ValueError('Unsupported bathroom export contract')
@@ -57,7 +57,7 @@ def load_bathroom(manifest_path):
     expected_identity = dict(source_sha256=accepted['inputs'][
         'bathroom/owner-review-pending/toilet/candidate-03/toilet-authoring.blend'],
         model_sha256=source['editable_model']['sha256'], canvas=[96, 120],
-        anchor=[v/8 for v in source['origin_pixels']], camera_matrix=source['camera_matrix'], ortho_scale=source['ortho_scale'])
+        anchor=scene_anchor(source['origin_pixels']), camera_matrix=source['camera_matrix'], ortho_scale=source['ortho_scale'])
     if any(obj.get(key) != value for key, value in expected_identity.items()):
         raise ValueError('Bathroom exported model/camera/anchor identity differs from source')
     expected = set(itertools.product(FACINGS, PALETTES, range(4)))
@@ -119,7 +119,8 @@ def records(export):
     return result
 
 
-def tables(export, sprites):
+def tables(export, sprites, anchors=None):
+    """Build the bathroom tables; `anchors`, when given, must register each occupied scene exactly on its empty fixture."""
     indices = {row[0]:index for index, row in enumerate(sprites)}
     if len(indices) != len(sprites):
         raise ValueError('Duplicate sprite name while importing bathroom scenes')
@@ -161,6 +162,8 @@ def tables(export, sprites):
             name = 'offlineToilet'+('' if facing == 'SE' else facing)
             if name not in indices:
                 raise ValueError('Missing exact empty toilet facing: '+name)
-            result['profiles'][indices[name]] = dict(action=15, halfCycleTicks=export.manifest['halfCycleTicks'],
+            if anchors is not None and anchors.get(indices[name]) != obj['anchor']:
+                raise ValueError('Occupied bathroom scene anchor differs from its empty fixture: '+name)
+            result['profiles'][indices[name]] = dict(action=USE_TOILET_ACTION, halfCycleTicks=export.manifest['halfCycleTicks'],
                                                     frames=frames[facing])
     return result

@@ -19,6 +19,15 @@
 #household-summary .summary-row { gap: 4px; }
 #household-summary .summary-label { font-size: 10px; }
 #household-summary .summary-value { font-size: 12px; overflow-wrap: anywhere; }
+/* The clock is always two lines, day and weekday then time, so the panel keeps one height. */
+#clock-value { white-space: pre-line; }
+/* In the 144-pixel desktop panel the Time label sits above the clock, so the
+   clock has the panel's full inner width and keeps two lines on every day.
+   The wider compact and Build panels keep the label beside it. */
+@media (min-width: 601px) and (min-height: 481px) and (not (any-pointer: coarse)) {
+  body:not([data-building='true']) #clock-row { flex-direction: column; align-items: stretch; gap: 0; }
+  body:not([data-building='true']) #clock-row .summary-value { text-align: left; }
+}
 #hud-status { margin-top: 2px; }
 #world-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 #world-actions #builder-desktop { padding: 0; }
@@ -47,6 +56,41 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 }
 #sim-dock [hidden], #sim-dock[hidden] { display: none !important; }
 #sim-dock-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+#chores-dialog { font: 13px/1.45 system-ui, sans-serif; }
+#chores-dialog .chores-header {display:flex;align-items:center;justify-content:space-between;gap:20px;position:sticky;top:-20px;background:var(--hud-bg);padding-block:10px;z-index:1}
+#chores-dialog .chore-row {
+  padding: 14px 16px;
+  gap: 7px 18px;
+  border-radius: 8px;
+  background: #1d2229;
+  border-color: #343e49;
+  align-items: center;
+}
+#chores-dialog .chore-row strong { line-height: 1.4; }
+#chores-dialog .chore-row span { color: var(--hud-muted); line-height: 1.45; }
+#chores-dialog .chore-do-now {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid #75b9d7;
+  border-radius: 6px;
+  background: #294b5b;
+  color: #effaff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: center;
+}
+#chores-dialog .chore-do-now:hover:not(:disabled) { background: #356277; border-color: #a0dbf1; }
+#chores-dialog .chore-do-now:focus-visible { outline: 2px solid #c6eeff; outline-offset: 3px; }
+#chores-dialog .chore-do-now:disabled { opacity: .4; cursor: default; background: #26323a; border-color: #4d6370; }
+@media (max-width: 600px) {
+  #chores-dialog .chore-row { padding: 12px; gap: 7px 10px; }
+  #chores-dialog .chore-do-now { min-height: 44px; padding-inline: 12px; }
+}
 #sim-identity { flex: 1 0 60px; min-width: 0; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: baseline; gap: 0 10px; }
 #needs-caption { margin: 0; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock-activity { color: var(--hud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -113,6 +157,23 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #personal-details th:first-child { text-align: left; }
 #personal-details tbody th { font-weight: 400; }
 .personal-details-note { color: var(--hud-muted); font-size: 12px; }
+/* [SK-hud]: the Skills disclosure under the personal details. The sheet scrolls, so the list has no fixed height. */
+#skills-block { border-top: 1px solid var(--hud-edge); margin-top: 10px; padding-top: 2px; }
+#skills-block summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; }
+#skills-block summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#skill-list { display: grid; gap: 5px; margin: 0 0 6px; padding: 0; list-style: none; }
+#skill-list[hidden] { display: none; }
+.skill-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; }
+.skill-label { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.skill-standing { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#skill-list .skill-description { margin: 0; color: var(--hud-muted); font-size: 12px; overflow-wrap: anywhere; }
+/* [OA-hud]: the Likes and dislikes disclosure under Skills, one short line per kind. */
+#affinities-block { border-top: 1px solid var(--hud-edge); margin-top: 10px; padding-top: 2px; }
+#affinities-block summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; }
+#affinities-block summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#affinity-list { display: grid; gap: 3px; margin: 0 0 6px; padding: 0; list-style: none; }
+#affinity-list[hidden] { display: none; }
+.affinity-row { overflow-wrap: anywhere; }
 .bed-assignment { min-width: 0; margin: 12px 0 0; padding: 8px; border: 1px solid var(--hud-edge); }
 .bed-assignment fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
 .bed-assignment:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }

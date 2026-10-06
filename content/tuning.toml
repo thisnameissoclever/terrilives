@@ -184,7 +184,9 @@ resale_fraction = 0.5
 # start to read as more than a preference. 0.5 halves what the activity
 # offers before the soft choice, while its walk still costs in full: a strong
 # push away but not a refusal, so the sim still does it when the need is
-# pressing enough.
+# pressing enough. The spawn draw reads both lines too: a worn disposition
+# at or beyond either one sets the starting value of the affinity kind its
+# tag names ([OA-values] in docs/specs/2026-10-06-object-affinities.md).
 affinity_loves_from = 1.5
 affinity_hates_to = 0.5
 
@@ -205,6 +207,15 @@ housemate_max_traits = 4
 # tiles in from its doorway.
 interior_daylight_shade = 0.25
 daylight_reach_per_tile = 0.2
+
+# Skill ladder [SK-model]: level 1 costs skill_level_cost practice and each
+# later level costs skill_level_growth times the one before. The ladder is
+# flat until the owner tunes it: with growth 1.0 every level costs the same,
+# so mastery rises at the pace capability traits learned at before skills.
+# Lowering skill_level_cost, skill_level_growth or a skill's levels caps
+# existing saves' practice at the new top on load.
+skill_level_cost = 0.1
+skill_level_growth = 1.0
 
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
@@ -386,6 +397,63 @@ habituation_decay_per_tick = 0.0011
 # refuse to eat.
 habituation_floor = 0.45
 
+# [OD-content] in docs/specs/2026-10-06-overdoing-it.md: repetition above
+# saturation is overdoing. Habituation keeps rising past 1 up to
+# `habituation_max`. Appeal and the Sim details repetition meter still read at
+# most 1 and need delivery ignores habituation, so the range above 1 only costs
+# mood. Decay brings an entry back below 1 on its own, which is what makes
+# overdoing temporary.
+#
+# The highest habituation repeated use can reach. Must be finite and above 1.
+habituation_max = 3.0
+
+# The habituation above which an activity shows an "Overdoing" moodlet. Must be
+# finite, at least 1 and below `habituation_max`.
+overdoing_threshold = 1.0
+
+# The mood an activity at `habituation_max` costs; the cost grows in a straight
+# line from nothing at `overdoing_threshold`. At 20 it cancels "Needs met" at the
+# top. Must be finite and not negative.
+overdoing_penalty = 20.0
+
+# The habituation on a food activity at which a person feels sick. Must be
+# finite, above `overdoing_threshold` and at most `habituation_max`.
+sick_threshold = 2.5
+
+# The mood "Feeling sick" costs, once per person. Must be finite and not
+# negative.
+sick_penalty = 25.0
+
+# Object affinities - [OA-values], [OA-presence] and [OA-use] in
+# docs/specs/2026-10-06-object-affinities.md.
+#
+# Starting value a disposition trait sets for its kind: this for a trait that
+# loves, its negative for one that hates. In (0, 1].
+affinity_from_trait = 0.8
+# Below this magnitude a value gives no moodlet. In [0, 1).
+affinity_presence_threshold = 0.2
+# Mood for one object of a presence kind at a value of 1.0. Finite, not negative.
+affinity_presence_points = 10.0
+# Mood each further object adds at 1.0, up to the cap. Finite, not negative.
+affinity_presence_extra_points = 3.0
+# How many further objects count.
+affinity_presence_extra_cap = 3
+# Mood each other person using a use kind costs at a value of -1.0. Finite, not negative.
+affinity_use_points = 15.0
+# How much a bothered person's feeling toward the user falls per game hour at -1.0. Finite, not negative.
+affinity_use_feeling_per_hour = 0.03
+# The word Sim details shows for a value ([OA-hud]): at or above
+# affinity_band_loves "Loves", at or below its negative "Hates"; at or above
+# affinity_band_likes "Likes", at or below its negative "Dislikes"; strictly
+# between "Indifferent". 0 < affinity_band_likes < affinity_band_loves <= 1.
+affinity_band_loves = 0.6
+affinity_band_likes = 0.2
+# Starting value a disposition trait between the verb bands sets for its kind
+# ([OA-values]): this for a trait that likes (multiplier above 1 and below
+# affinity_loves_from), its negative for one that dislikes (below 1 and above
+# affinity_hates_to). Finite, above 0 and below affinity_from_trait.
+affinity_from_mild_trait = 0.4
+
 # Seed for fixed-seed constructors and tests. Browser new games supply fresh
 # cryptographic entropy. Saves persist the complete live generator state.
 rng_seed = 20260728
@@ -531,10 +599,18 @@ neglect_floor = 15.0
 # The length of a day in ticks - [E4]. One tick is one sim-minute, so
 # 1440 IS the day, read straight off the clock: `tick % day_ticks` is
 # minutes past midnight, and careers.toml writes shift times in it.
-# 2.4 real minutes at 1x. No calendar and no weekday until something
-# needs one. Must be at least 1 - a zero-tick day divides by zero the
-# first time a career asks the hour.
+# 2.4 real minutes at 1x. Seven days make a week, counted from
+# first_weekday below - [CAL-week] in docs/specs/2026-10-06-calendar.md.
+# There is no month or year. Must be at least 1 - a zero-tick day divides
+# by zero the first time a career asks the hour.
 day_ticks = 1440
+
+# The weekday of the first day, 0 (Monday) to 6 (Sunday) - [CAL-week].
+# 0 starts a new game on a Monday, so days 6 and 7 are the first weekend
+# and the office job's first shift is on the first morning. The weekday
+# is worked out from the tick and this number, so nothing about it is
+# saved; changing it moves every saved game to a different weekday.
+first_weekday = 0
 
 # Satisfaction lost PER NEGLECTED NEED per tick below the floor:
 # One crisis costs about 0.0144 points per game day, alongside its mood
@@ -846,6 +922,14 @@ exhaustion_ramp_ticks = 240
 exhaustion_bonus = 2.5
 
 # Ordinary relationship development and privacy decisions.
+[need_interactions]
+# Hands are a partial wash; only bathing removes body-odor consequences.
+handwashing_hygiene_ceiling = 40.0
+# Two Comfort points over ninety minutes of standing eating.
+standing_meal_comfort_cost_per_tick = 0.022222223
+# Mild company during actively shared reading, exercise and aquarium watching.
+shared_social_per_tick = 0.12
+
 [relationships]
 proximity_per_hour = 0.062
 shared_activity_multiplier = 10.0

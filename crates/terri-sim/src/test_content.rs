@@ -154,6 +154,7 @@ pub fn object_sized(
 ) -> CompiledObject {
     CompiledObject {
         sleep_places: Vec::new(),
+        seat_comfort_per_tick: 0.,
         id: id.to_string(),
         name: id.to_string(),
         presentation: None,
@@ -350,6 +351,11 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         portals: Vec::new(),
         colourways: Vec::new(),
         coverings: Vec::new(),
+        skills: Vec::new(),
+        // Empty: a kind lists object indices, and the shipped kinds' indices
+        // point into the shipped objects, not this fixture's. A test about
+        // affinities installs its own kinds.
+        affinities: Vec::new(),
     }))
 }
 

@@ -1,0 +1,32 @@
+    Blocking waiting for file lock on package cache
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-data)
+    Checking terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+warning: unused variable: `plan`
+   --> crates\terri-sim\src\privacy.rs:544:69
+    |
+544 |             let social_available = media_plan.as_ref().is_some_and(|plan| {
+    |                                                                     ^^^^ help: if this is intentional, prefix it with an underscore: `_plan`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `plan`
+   --> crates\terri-sim\src\systems\action.rs:895:54
+    |
+895 |                     media_plan.as_ref().is_some_and(|plan| {
+    |                                                      ^^^^ help: if this is intentional, prefix it with an underscore: `_plan`
+
+warning: unused variable: `plan`
+    --> crates\terri-sim\src\systems\action.rs:1421:62
+     |
+1421 | ...                   media_plan.as_ref().is_some_and(|plan| {
+     |                                                        ^^^^ help: if this is intentional, prefix it with an underscore: `_plan`
+
+warning: unused variable: `plan`
+   --> crates\terri-sim\src\systems\interpersonal.rs:330:79
+    |
+330 | ...                   let social_available = plan.as_ref().is_some_and(|plan| {
+    |                                                                         ^^^^ help: if this is intentional, prefix it with an underscore: `_plan`
+
+warning: `terri-sim` (lib) generated 4 warnings (run `cargo fix --lib -p terri-sim` to apply 4 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.94s

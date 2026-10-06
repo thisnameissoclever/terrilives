@@ -1,0 +1,24 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.66s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::lifecycle_tests::real_dish_washing_crosses_midnight_and_reloads_without_double_settlement ... FAILED
+
+failures:
+
+---- chores::lifecycle_tests::real_dish_washing_crosses_midnight_and_reloads_without_double_settlement stdout ----
+
+thread 'chores::lifecycle_tests::real_dish_washing_crosses_midnight_and_reloads_without_double_settlement' (53748) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:264:9:
+assertion `left != right` failed
+  left: Missed
+ right: Missed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::lifecycle_tests::real_dish_washing_crosses_midnight_and_reloads_without_double_settlement
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 934 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

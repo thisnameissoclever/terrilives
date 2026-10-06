@@ -31,8 +31,10 @@ import {
   type ObjectRecordingFamily,
 } from './object-recordings.js';
 import { PortalAudioScheduler } from './portal-audio.js';
-import { RecordedDoorPlayer } from './recorded-doors.js';
-import { RecordedToiletPlayer, MAX_TOILET_CLIP_SECONDS } from './recorded-toilet.js';
+import { DOOR_POLICY } from './recorded-doors.js';
+import { TOILET_POLICY } from './recorded-toilet.js';
+import { RecordedCuePlayer } from './recorded-cues.js';
+import { SNORE_CLIP_URLS, SNORE_POLICY } from './recorded-snores.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
@@ -143,8 +145,13 @@ export class AudioController implements GameAudioEventSink {
   private readonly objectRecordings = new Map<ObjectRecordingFamily, ObjectRecordingState>();
   private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
   private objectSoundsPaused = false;
-  private doors: RecordedDoorPlayer | null = null;
-  private toilet: RecordedToiletPlayer | null = null;
+  private doors: RecordedCuePlayer | null = null;
+  private toilet: RecordedCuePlayer | null = null;
+  private snores: RecordedCuePlayer | null = null;
+  private snoreClips: readonly AudioBufferPort[] = [];
+  private snoreFetch: Promise<void> | null = null;
+  private nextSnoreRetryAt = 0;
+  private snoresPlayed = 0;
   private toiletClip: AudioBufferPort | null = null;
   private toiletFetch: Promise<void> | null = null;
   private nextToiletRetryAt = 0;
@@ -310,10 +317,23 @@ export class AudioController implements GameAudioEventSink {
     if (event.type === 'object.completed') {
       if (!this.objectCuesAudible() || event.action !== 1 || !Number.isInteger(event.sourceId) ||
         event.sourceId < 0 || event.sourceId >= 0xffff_ffff) return;
-      if (this.toiletClip !== null && this.toilet?.play(event.sourceId, this.toiletClip)) {
+      if (this.toiletClip !== null && this.toilet?.play(this.toiletClip, event.sourceId)) {
         this.playedCueCounts[8]++;
       }
       void this.loadToiletRecording();
+      return;
+    }
+
+    if (event.type === 'sim.sleep-breath') {
+      // A recorded snore, never a synthesized stand-in while it loads: the
+      // tone it replaced was rejected as unlike a snore.
+      if (this.objectSoundsPaused) return;
+      const clip = this.snoreClips[this.snoresPlayed % this.snoreClips.length];
+      if (clip !== undefined && this.snores?.play(clip)) {
+        this.snoresPlayed += 1;
+        this.playedCueCounts[2]++;
+      }
+      void this.loadSnoreRecordings();
       return;
     }
 
@@ -374,6 +394,50 @@ export class AudioController implements GameAudioEventSink {
   }
   activeDoorVoiceCount(): number { return this.doors?.activeVoiceCount() ?? 0; }
   activeToiletVoiceCount(): number { return this.toilet?.activeVoiceCount() ?? 0; }
+  activeSnoreVoiceCount(): number { return this.snores?.activeVoiceCount() ?? 0; }
+
+  /**
+   * Demand only, like the doors: the first sleep event of a session fetches
+   * the clips and is itself skipped; a decode never plays the event that
+   * requested it. The next household sleep event, three seconds later, snores.
+   */
+  async loadSnoreRecordings(): Promise<void> {
+    if (this.snoreFetch !== null) { await this.snoreFetch; return; }
+    const context = this.context;
+    if (context === null || !this.isUnlocked() || this.mutedPreference ||
+      this.effectsLevelPreference === 0 || this.snoreClips.length > 0 ||
+      performance.now() < this.nextSnoreRetryAt) return;
+    const fetching = this.fetchSnoreClips(context);
+    this.snoreFetch = fetching;
+    try { await fetching; }
+    finally { if (this.snoreFetch === fetching) this.snoreFetch = null; }
+  }
+
+  /**
+   * Replaces the snore rotation with already-decoded clips. Browser proofs use
+   * it to play a known buffer without serving the recordings; the game loads
+   * its clips through `loadSnoreRecordings`. Installing never plays anything.
+   */
+  installSnoreClips(clips: readonly AudioBufferPort[]): void {
+    if (clips.length === 0 || !clips.every(validSnoreClip)) throw new Error('invalid snore clips');
+    this.snoreClips = [...clips];
+  }
+
+  /** All five or none, so the rotation never shrinks to a subset after a partial failure. */
+  private async fetchSnoreClips(context: BrowserAudioContext): Promise<void> {
+    try {
+      const clips = await Promise.all(SNORE_CLIP_URLS.map(async (url) => {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`snore recording: ${response.status}`);
+        const clip = await context.decodeAudioData(await response.arrayBuffer());
+        if (!validSnoreClip(clip)) throw new Error('invalid snore recording');
+        return clip;
+      }));
+      this.snoreClips = clips;
+    } catch {
+      this.nextSnoreRetryAt = performance.now() + 5000;
+    }
+  }
 
   /** Preload or fresh demand only; successful decoding never plays a held event. */
   async loadToiletRecording(): Promise<void> {
@@ -395,7 +459,7 @@ export class AudioController implements GameAudioEventSink {
       const response = await fetch('audio/toilet/flush.wav');
       if (!response.ok) throw new Error(`toilet recording: ${response.status}`);
       const clip = await context.decodeAudioData(await response.arrayBuffer());
-      if (!Number.isFinite(clip.duration) || clip.duration < .024 || clip.duration > MAX_TOILET_CLIP_SECONDS) {
+      if (!Number.isFinite(clip.duration) || clip.duration < .024 || clip.duration > TOILET_POLICY.maxClipSeconds) {
         throw new Error('invalid toilet recording');
       }
       this.toiletClip = clip;
@@ -445,6 +509,7 @@ export class AudioController implements GameAudioEventSink {
     if ((this.player?.activeVoiceCount() ?? 0) > 0) this.player?.stopAll();
     if ((this.doors?.activeVoiceCount() ?? 0) > 0) this.doors?.stopAll();
     if ((this.toilet?.activeVoiceCount() ?? 0) > 0) this.toilet?.stopAll();
+    if ((this.snores?.activeVoiceCount() ?? 0) > 0) this.snores?.stopAll();
     if ((this.objectLoops?.retainedLoopCount() ?? 0) > 0) this.objectLoops?.stopAll(true);
     if ((this.voices?.retainedConversationCount() ?? 0) > 0) this.voices?.stopAll(true);
   }
@@ -567,6 +632,7 @@ export class AudioController implements GameAudioEventSink {
     this.desiredObjectLoops.clear();
     if (paused) {
       this.toilet?.stopAll();
+      this.snores?.stopAll();
       this.objectLoops?.stopAll();
     }
   }
@@ -664,6 +730,7 @@ export class AudioController implements GameAudioEventSink {
     this.pendingVoices.clear();
     this.desiredObjectLoops.clear();
     this.toilet?.stopAll();
+    this.snores?.stopAll();
     this.doors?.stopAll();
     this.objectLoops?.stopAll(true);
     this.player?.stopAll();
@@ -907,8 +974,9 @@ export class AudioController implements GameAudioEventSink {
         this.effectsGain = effectsGain;
         this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
-        this.doors = new RecordedDoorPlayer(context, effectsGain);
-        this.toilet = new RecordedToiletPlayer(context, effectsGain);
+        this.doors = new RecordedCuePlayer(context, effectsGain, DOOR_POLICY);
+        this.toilet = new RecordedCuePlayer(context, effectsGain, TOILET_POLICY);
+        this.snores = new RecordedCuePlayer(context, effectsGain, SNORE_POLICY);
         this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
         this.objectLoops.setClips(this.objectLoopClips);
         // Voices adjusts recordings only; Effects and Sound still govern all audio.
@@ -942,6 +1010,7 @@ export class AudioController implements GameAudioEventSink {
         this.objectLoops = null;
         this.doors = null;
         this.toilet = null;
+        this.snores = null;
         if (context !== null) {
           try {
             await context.close();
@@ -1062,6 +1131,11 @@ function compactClips(
   return clips.map((clip) => clip ?? { duration: 0 });
 }
 
+function validSnoreClip(clip: AudioBufferPort): boolean {
+  return Number.isFinite(clip.duration) && clip.duration >= 0.024 &&
+    clip.duration <= SNORE_POLICY.maxClipSeconds;
+}
+
 function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
   switch (event.type) {
     case 'command.staged':
@@ -1076,7 +1150,8 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
     case 'sim.footstep':
       return 'footstep';
     case 'sim.sleep-breath':
-      return 'sleep-breath';
+      // A recorded snore; `emit` plays it before reaching here.
+      return null;
     case 'sim.eating':
       return 'eating';
     case 'sim.page-turn':
@@ -1097,10 +1172,6 @@ function pitchScaleForEvent(event: GameAudioEvent): number {
   switch (event.type) {
     case 'sim.footstep':
       return footstepPitchScale(event.simId, event.stepIndex);
-    case 'sim.sleep-breath': {
-      const phase = (Math.trunc(event.simId) + event.breathIndex) & 1;
-      return 0.97 + phase * 0.04;
-    }
     case 'sim.eating': {
       const phase = (Math.trunc(event.simId) * 5 + event.biteIndex) & 3;
       return 0.96 + phase * 0.025;
@@ -1129,8 +1200,6 @@ function cueIndex(cue: ProceduralCue): number {
       return 0;
     case 'footstep':
       return 1;
-    case 'sleep-breath':
-      return 2;
     case 'eating':
       return 3;
     case 'page-turn':

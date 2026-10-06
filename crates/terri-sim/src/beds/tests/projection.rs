@@ -161,7 +161,9 @@ fn sleeping_projection_rejects_inactive_and_invalid_claims() {
                     .object = ObjectDefId(999);
             }
             6 => {
-                sim.world_mut().entity_mut(person).insert(Commuting);
+                sim.world_mut()
+                    .entity_mut(person)
+                    .insert(Commuting::Outbound);
             }
             7 => {
                 sim.world_mut()

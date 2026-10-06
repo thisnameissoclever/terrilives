@@ -59,7 +59,9 @@ pub enum SimCommand {
         interaction: u32,
     },
     /// Clear an agent's queued intents, returning it to autonomy.
-    CancelIntents { agent: u32 },
+    CancelIntents {
+        agent: u32,
+    },
     /// Ticks per frame. 0 is paused. Never changes dt; see [D2].
     SetSpeed(u8),
     /// Direct an agent to start a social interaction with another sim,
@@ -165,13 +167,18 @@ pub enum SimCommand {
     /// in `docs/specs/2026-09-22-selling-furniture.md`. A lot edit, applied
     /// by itself in stream order like `PlaceObject`. Appended to preserve
     /// earlier wire codes.
-    SellObject { object: u32 },
+    SellObject {
+        object: u32,
+    },
     /// Draw the placed object carrying entity index `object` in content
     /// colourway `colourway` - [RC-command] in
     /// `docs/specs/2026-09-22-colourways.md`. A lot edit, applied by itself
     /// in stream order like `SellObject`. Appended to preserve earlier wire
     /// codes.
-    SetColourway { object: u32, colourway: u32 },
+    SetColourway {
+        object: u32,
+        colourway: u32,
+    },
     /// Buy object definition `definition` at tile (x, y) facing `facing`, in
     /// content colourway `colourway` - [RC-slice-buy] in
     /// `docs/specs/2026-09-22-colourways.md`. One lot edit: every purchase
@@ -199,7 +206,11 @@ pub enum SimCommand {
     /// content's coverings in order; 0 leaves the tile drawn by where it is
     /// ([OS-yard]). A lot edit, applied by itself in stream order like
     /// `SetWallEdge`. Appended to preserve earlier wire codes.
-    SetFloor { x: u32, y: u32, covering: u8 },
+    SetFloor {
+        x: u32,
+        y: u32,
+        covering: u8,
+    },
     /// Record that the sim with entity index `who` is `relation` to the sim
     /// with entity index `to`, or take their tie away with `None` - [FM-tie]
     /// in `docs/specs/2026-09-22-family.md`. The indices name two people
@@ -239,12 +250,96 @@ pub enum SimCommand {
         x: u32,
         y: u32,
     },
+    /// [ES-atomic]: one edit of a living person, found by permanent SimId
+    /// at the exclusive drain. `personality` of `None` keeps the current
+    /// effects exactly; `Some(index)` adopts that archetype's current
+    /// values. `traits` is the complete new set. Each tie names a living
+    /// relative by SimId and the relation from the edited person's side;
+    /// `None` clears that pair. Wire code 22, append-only.
+    EditHousemate {
+        sim: u32,
+        name: String,
+        personality: Option<u32>,
+        traits: Vec<u32>,
+        ties: Vec<(u32, Option<crate::layout::Relation>)>,
+    },
+    /// Collect the named dish identities, or keep clearing one surface.
+    CleanDishes {
+        agent: u32,
+        surface: u32,
+        dishes: Option<Vec<u32>>,
+    },
+    /// The same scoped chore placed ahead of waiting orders.
+    CleanDishesFirst {
+        agent: u32,
+        surface: u32,
+        dishes: Option<Vec<u32>>,
+    },
+    CleanChore {
+        agent: u32,
+        key: crate::chores::ChoreKey,
+    },
+    CleanChoreFirst {
+        agent: u32,
+        key: crate::chores::ChoreKey,
+    },
+    SetChoreProfile {
+        agent: u32,
+        responsibility: u8,
+        preferences: [i8; 4],
+    },
+    SetChoreBoard {
+        enabled: bool,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
 /// issued in one tick must apply in the order the player issued them.
 #[derive(Resource, Debug, Default)]
 pub struct CommandQueue(Vec<SimCommand>);
+
+#[cfg(test)]
+mod targeted_cleanup_wire_tests {
+    use super::*;
+    #[test]
+    fn cleanup_commands_append_codes_twenty_three_and_twenty_four() {
+        for (command, saved, bytes) in [
+            (
+                SimCommand::CleanDishes {
+                    agent: 300,
+                    surface: 129,
+                    dishes: None,
+                },
+                crate::SavedCommand::CleanDishes {
+                    agent: 300,
+                    surface: 129,
+                    dishes: None,
+                },
+                vec![23, 172, 2, 129, 1, 0],
+            ),
+            (
+                SimCommand::CleanDishesFirst {
+                    agent: 300,
+                    surface: 129,
+                    dishes: Some(vec![0, 128]),
+                },
+                crate::SavedCommand::CleanDishesFirst {
+                    agent: 300,
+                    surface: 129,
+                    dishes: Some(vec![0, 128]),
+                },
+                vec![24, 172, 2, 129, 1, 1, 2, 0, 128, 1],
+            ),
+        ] {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
+            assert_eq!(postcard::to_allocvec(&saved).unwrap(), bytes);
+            assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), command);
+            for cut in 0..bytes.len() {
+                assert!(postcard::from_bytes::<SimCommand>(&bytes[..cut]).is_err());
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod bed_assignment_wire_tests {
@@ -780,5 +875,94 @@ mod window_wire_tests {
         let invalid = [20, 0, 4, 3, 9];
         assert!(postcard::from_bytes::<SimCommand>(&invalid).is_err());
         assert!(postcard::from_bytes::<SavedCommand>(&invalid).is_err());
+    }
+
+    #[test]
+    fn chore_commands_append_pinned_tags_without_moving_published_commands() {
+        use crate::chores::{ChoreKey, ChoreKind};
+        let cases = [
+            (
+                SimCommand::CleanChore {
+                    agent: 34,
+                    key: ChoreKey {
+                        kind: ChoreKind::Bins,
+                        target: 6,
+                    },
+                },
+                vec![25, 34, 3, 6],
+            ),
+            (
+                SimCommand::CleanChoreFirst {
+                    agent: 34,
+                    key: ChoreKey {
+                        kind: ChoreKind::Floors,
+                        target: 120,
+                    },
+                },
+                vec![26, 34, 1, 120],
+            ),
+            (
+                SimCommand::SetChoreProfile {
+                    agent: 34,
+                    responsibility: 90,
+                    preferences: [0, 0, 0, 0],
+                },
+                vec![27, 34, 90, 0, 0, 0, 0],
+            ),
+            (SimCommand::SetChoreBoard { enabled: true }, vec![28, 1]),
+        ];
+        for (command, bytes) in cases {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
+            assert_eq!(postcard::from_bytes::<SimCommand>(&bytes).unwrap(), command);
+            let saved: SavedCommand = postcard::from_bytes(&bytes).unwrap();
+            assert_eq!(postcard::to_allocvec(&saved).unwrap(), bytes);
+        }
+    }
+}
+
+#[cfg(test)]
+mod edit_wire_tests {
+    use super::*;
+    use crate::layout::Relation;
+
+    fn sample() -> SimCommand {
+        SimCommand::EditHousemate {
+            sim: 3,
+            name: "Ann".to_string(),
+            personality: Some(1),
+            traits: vec![0, 300],
+            ties: vec![(5, Some(Relation::Parent)), (7, None)],
+        }
+    }
+
+    #[test]
+    fn edit_housemate_appends_wire_code_22_with_every_field() {
+        let bytes = postcard::to_allocvec(&sample()).unwrap();
+        assert_eq!(
+            bytes,
+            [22, 3, 3, b'A', b'n', b'n', 1, 1, 2, 0, 172, 2, 2, 5, 1, 1, 7, 0]
+        );
+        let (decoded, rest) = postcard::take_from_bytes::<SimCommand>(&bytes).unwrap();
+        assert_eq!(decoded, sample());
+        assert!(rest.is_empty());
+        for cut in 1..bytes.len() {
+            assert!(
+                postcard::take_from_bytes::<SimCommand>(&bytes[..cut]).is_err(),
+                "a prefix of {cut} bytes must not decode"
+            );
+        }
+    }
+
+    #[test]
+    fn keep_personality_and_no_ties_encode_as_zero_markers() {
+        let bytes = postcard::to_allocvec(&SimCommand::EditHousemate {
+            sim: 0,
+            name: String::new(),
+            personality: None,
+            traits: Vec::new(),
+            ties: Vec::new(),
+        })
+        .unwrap();
+        assert_eq!(bytes, [22, 0, 0, 0, 0, 0]);
     }
 }

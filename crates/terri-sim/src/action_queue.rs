@@ -29,10 +29,40 @@ impl Sim {
         };
         let pack = content.0;
         let label = |intent: Intent| -> Option<String> {
+            if let Some(id) = intent.chore {
+                let order = self
+                    .world
+                    .get_resource::<terri_core::chores::SavedChores>()?
+                    .orders
+                    .iter()
+                    .find(|o| o.id == id)?;
+                return Some(order.key.kind.label().to_string());
+            }
+            if let Some(id) = intent.cleanup {
+                let order = self
+                    .world
+                    .get_resource::<terri_core::save::SavedTargetedCleanup>()?
+                    .orders
+                    .iter()
+                    .find(|o| o.id == id)?;
+                let object = self.world.get::<SmartObject>(intent.object)?;
+                let action = if order.dishes.is_some() {
+                    "Do dishes"
+                } else {
+                    "Clean up"
+                };
+                return Some(format!(
+                    "{}: {}",
+                    action,
+                    pack.object(object.0).display_name()
+                ));
+            }
             if let Some(object) = self.world.get::<SmartObject>(intent.object) {
                 let definition = pack.objects.get(object.0 .0 as usize)?;
                 let row = intent.interaction as usize;
-                let action = if row < definition.interactions.len() {
+                let action = if definition.id == "dining_table" && row == 1 {
+                    "Eat prepared food"
+                } else if row < definition.interactions.len() {
                     &definition.interactions[row].label
                 } else {
                     let chain = pack
@@ -60,6 +90,8 @@ impl Sim {
             }
         };
         let target = self.world.get::<Target>(person).map(|t| Intent {
+            cleanup: None,
+            chore: None,
             object: t.object,
             interaction: t.interaction,
         });
@@ -72,6 +104,8 @@ impl Sim {
                         .iter(&self.world)
                         .find(|(_, s)| s.partner == person)
                         .map(|(initiator, s)| Intent {
+                            cleanup: None,
+                            chore: None,
                             object: initiator,
                             interaction: s.interaction,
                         })
@@ -81,15 +115,57 @@ impl Sim {
         } else {
             social
                 .map(|s| Intent {
+                    cleanup: None,
+                    chore: None,
                     object: s.partner,
                     interaction: s.interaction,
                 })
                 .or(target)
         };
+        // A running chain's own order stays queued until the chain ends,
+        // and the current row already describes that chain, so the order
+        // is the served one while the sim is carrying the chain out: at a
+        // station, walking to one, or idle between steps. An ordinary
+        // action, a conversation started or received, a commute or a
+        // shift has interrupted the chain - then the chain is waiting and
+        // its order is listed.
+        let carrying_out_chain = social.is_none()
+            && partner_action.is_none()
+            && self.world.get::<AtWork>(person).is_none()
+            && self.world.get::<Commuting>(person).is_none()
+            && target.is_none_or(|intent| intent.interaction == crate::systems::chain::CHAIN_STEP);
+        let served =
+            if carrying_out_chain && !crate::targeted_cleanup::has_active(&self.world, index) {
+                self.world
+                    .get::<terri_core::ChainState>(person)
+                    .and_then(|state| {
+                        self.world
+                            .get::<IntentQueue>(person)?
+                            .as_slice()
+                            .iter()
+                            .copied()
+                            .find(|order| {
+                                self.world
+                                    .get::<SmartObject>(order.object)
+                                    .and_then(|placed| {
+                                        crate::systems::chain::ordered_chain(
+                                            pack,
+                                            placed.0,
+                                            order.interaction,
+                                        )
+                                    })
+                                    == Some(state.chain)
+                            })
+                    })
+            } else {
+                served
+            };
         let current = if self.world.get::<AtWork>(person).is_some() {
             Some("At work".to_string())
         } else if let Some(intent) = social
             .map(|s| Intent {
+                cleanup: None,
+                chore: None,
                 object: s.partner,
                 interaction: s.interaction,
             })
@@ -107,8 +183,14 @@ impl Sim {
                 .get(eating.object.0 as usize)
                 .and_then(|o| o.interactions.get(eating.interaction as usize))
                 .map(|i| i.label.clone())
-        } else if self.world.get::<Commuting>(person).is_some() {
-            Some("Going to work".to_string())
+        } else if let Some(commute) = self.world.get::<Commuting>(person) {
+            Some(
+                match commute {
+                    Commuting::Outbound => "Going to work",
+                    Commuting::Inbound => "Heading home",
+                }
+                .to_string(),
+            )
         } else if self.world.get::<terri_core::StepWork>(person).is_some() {
             self.chain_status_of(index)
         } else if self.world.get::<Path>(person).is_some() {
@@ -150,10 +232,14 @@ mod tests {
         let mut sim = test_content::sim_with(8, 8, test_content::pack(vec![object]));
         let object = sim.world_mut().spawn(SmartObject(ObjectDefId(0))).id();
         let first = Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction: 0,
         };
         let second = Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction: 1,
         };
@@ -220,6 +306,8 @@ mod tests {
                 interaction: 0,
             },
             IntentQueue::from_intents(vec![Intent {
+                cleanup: None,
+                chore: None,
                 object: a,
                 interaction: 0,
             }]),
@@ -258,14 +346,20 @@ mod tests {
             .entity_mut(person)
             .insert(IntentQueue::from_intents(vec![
                 Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: row,
                 },
                 Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: 0,
                 },
                 Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: u32::MAX - 1,
                 },
@@ -311,8 +405,16 @@ mod tests {
         sim.world_mut()
             .entity_mut(person)
             .remove::<Target>()
-            .insert(Commuting);
+            .insert(Commuting::Outbound);
         assert_eq!(sim.action_queue_of(person.index_u32())[0], "Going to work");
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(Commuting::Inbound);
+        assert_eq!(
+            sim.action_queue_of(person.index_u32())[0],
+            "Heading home",
+            "the walk home after a shift is not a walk to work"
+        );
         sim.world_mut()
             .entity_mut(person)
             .remove::<Commuting>()
@@ -321,5 +423,113 @@ mod tests {
                 interaction: crate::systems::chain::CHAIN_STEP,
             });
         assert!(sim.action_queue_of(person.index_u32())[0].starts_with("Cook breakfast - step: "));
+    }
+
+    /// A running recipe's own order stays queued until the recipe ends,
+    /// and the current row already describes the recipe, so that order
+    /// is not listed again - while an ordinary action interrupting the
+    /// recipe puts the whole waiting recipe back in the list.
+    #[test]
+    fn a_running_recipes_own_order_is_listed_once() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let pack = terri_data::pack();
+        let snack = pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == crate::domestic::SNACK)
+            .unwrap() as u32;
+        let find = |sim: &mut Sim, id: &str| {
+            sim.world_mut()
+                .query::<(Entity, &SmartObject)>()
+                .iter(sim.world())
+                .find(|(_, object)| pack.objects[object.0 .0 as usize].id == id)
+                .unwrap()
+                .0
+        };
+        let fridge = find(&mut sim, "fridge");
+        let bookcase = find(&mut sim, "bookshelf");
+        let person = sim
+            .world_mut()
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(sim.world())
+            .next()
+            .unwrap();
+        let row = sim
+            .interaction_labels(fridge.index_u32())
+            .unwrap()
+            .iter()
+            .position(|label| *label == "Grab a snack")
+            .unwrap() as u32;
+        let order = Intent {
+            cleanup: None,
+            chore: None,
+            object: fridge,
+            interaction: row,
+        };
+        sim.world_mut().entity_mut(person).insert((
+            terri_core::ChainState::begin(snack),
+            IntentQueue::from_intents(vec![order, order]),
+        ));
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(
+            labels.len(),
+            2,
+            "the running snack once, the waiting snack once"
+        );
+        assert!(labels[1].starts_with("Grab a snack: "));
+
+        sim.world_mut().entity_mut(person).insert(Target {
+            object: bookcase,
+            interaction: 0,
+        });
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(
+            labels.len(),
+            3,
+            "the interrupted snack waits with its order"
+        );
+        assert!(labels[0].starts_with("Read a book: "));
+        assert!(labels[1].starts_with("Grab a snack: "));
+        assert!(labels[2].starts_with("Grab a snack: "));
+
+        // Talked to by somebody else: the chain waits for the talk to
+        // end, so its order is listed just as during the read.
+        sim.world_mut().entity_mut(person).remove::<Target>();
+        let other = sim
+            .world_mut()
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(sim.world())
+            .find(|candidate| *candidate != person)
+            .unwrap();
+        sim.world_mut().entity_mut(other).insert(Socialising {
+            partner: person,
+            interaction: 0,
+            remaining_ticks: 10,
+        });
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(labels.len(), 3, "a received talk interrupts the snack too");
+        assert!(labels[1].starts_with("Grab a snack: "));
+        assert!(labels[2].starts_with("Grab a snack: "));
+
+        // Called to work: the chain waits for the return, so its order
+        // is listed beneath the commute.
+        sim.world_mut().entity_mut(other).remove::<Socialising>();
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(Commuting::Outbound);
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(labels.len(), 3, "a commute interrupts the snack too");
+        assert_eq!(labels[0], "Going to work");
+        assert!(labels[1].starts_with("Grab a snack: "));
+        assert!(labels[2].starts_with("Grab a snack: "));
+
+        sim.world_mut()
+            .entity_mut(person)
+            .remove::<Commuting>()
+            .insert(AtWork { remaining_ticks: 1 });
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(labels.len(), 3, "a shift interrupts the snack too");
+        assert_eq!(labels[0], "At work");
+        assert!(labels[1].starts_with("Grab a snack: "));
     }
 }

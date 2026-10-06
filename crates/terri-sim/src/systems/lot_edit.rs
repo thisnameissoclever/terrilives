@@ -3,9 +3,45 @@ use bevy_ecs::{prelude::*, system::RunSystemOnce};
 use terri_core::{CommandQueue, SimCommand};
 
 pub fn drain_commands(world: &mut World) {
+    if !world.contains_resource::<terri_core::save::SavedTargetedCleanup>() {
+        world.insert_resource(terri_core::save::SavedTargetedCleanup::default());
+    }
     let issued: Vec<_> = world.resource_mut::<CommandQueue>().drain().collect();
+    if issued.iter().any(|c| {
+        matches!(
+            c,
+            SimCommand::CleanChore { .. }
+                | SimCommand::CleanChoreFirst { .. }
+                | SimCommand::SetChoreProfile { .. }
+                | SimCommand::SetChoreBoard { .. }
+        )
+    }) {
+        crate::chores::ensure(world);
+    }
     for command in issued {
         match command {
+            SimCommand::SetChoreProfile {
+                agent,
+                responsibility,
+                preferences,
+            } => {
+                flush_ordinary(world);
+                crate::chores::set_profile(world, agent, responsibility, preferences);
+            }
+            SimCommand::SetChoreBoard { enabled } => {
+                flush_ordinary(world);
+                world
+                    .resource_mut::<terri_core::chores::SavedChores>()
+                    .board_enabled = enabled;
+            }
+            chore @ (SimCommand::CleanChore { key, .. }
+            | SimCommand::CleanChoreFirst { key, .. }) => {
+                flush_ordinary(world);
+                if crate::chores::key_valid(world, key) {
+                    world.resource_mut::<CommandQueue>().push(chore);
+                    flush_ordinary(world);
+                }
+            }
             SimCommand::SetDeathEnabled(enabled) => {
                 flush_ordinary(world);
                 world
@@ -110,6 +146,25 @@ pub fn drain_commands(world: &mut World) {
                     Some(instinct),
                 );
             }
+            SimCommand::EditHousemate {
+                sim,
+                name,
+                personality,
+                traits,
+                ties,
+            } => {
+                flush_ordinary(world);
+                crate::edit::commit(
+                    world,
+                    &crate::edit::Edit {
+                        sim,
+                        name: &name,
+                        personality,
+                        traits: &traits,
+                        ties: &ties,
+                    },
+                );
+            }
             SimCommand::BuyObjectInColourway {
                 definition,
                 x,
@@ -156,6 +211,8 @@ pub fn drain_commands(world: &mut World) {
         }
     }
     flush_ordinary(world);
+    crate::targeted_cleanup::prune(world);
+    crate::chores::prune(world);
 }
 
 fn flush_ordinary(world: &mut World) {

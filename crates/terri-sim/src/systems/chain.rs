@@ -47,9 +47,10 @@ pub const CHAIN_STEP: u32 = u32::MAX;
 /// pre-expanded intents): the nearest free table when the plate is
 /// ready, not when the fridge was opened. All stations reserved means
 /// WAIT, the standing [C3] answer, with `Blocked` saying why.
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn advance_chains(
     mut commands: Commands,
+    scoped: Option<Res<terri_core::save::SavedTargetedCleanup>>,
     grid: Res<TileGrid>,
     content: Res<Content>,
     idle: Query<
@@ -80,6 +81,7 @@ pub fn advance_chains(
         Option<&terri_core::ObjectFacing>,
     )>,
     mut domestic: Option<ResMut<terri_core::save::SavedDomestic>>,
+    chore_state: Option<Res<terri_core::chores::SavedChores>>,
     occupants: Query<
         (
             Entity,
@@ -97,8 +99,26 @@ pub fn advance_chains(
         .iter()
         // A queued player intent outranks the resume - serve_intents
         // will act on it this tick, and targeting here as well would
-        // hand the sim two walks at once.
-        .filter(|(_, _, queue, ..)| queue.is_none_or(|q| q.is_empty()))
+        // hand the sim two walks at once. The running chain's OWN order
+        // is not one: it sits at the front for as long as the chain
+        // runs ([D-3]) and is exactly what the resume is carrying out.
+        .filter(|(person, _, queue, state, ..)| {
+            let queued_scope_waits = queue
+                .and_then(IntentQueue::front)
+                .is_some_and(|intent| intent.cleanup.is_some())
+                && scoped.as_deref().is_some_and(|saved| {
+                    saved.orders.iter().any(|order| {
+                        order.person == person.index_u32() && order.queue_position.is_none()
+                    })
+                });
+            queued_scope_waits
+                || !outranked(content.0, *queue, state.chain, |object| {
+                    stations
+                        .get(object)
+                        .ok()
+                        .map(|(_, _, placed, _, _)| placed.0)
+                })
+        })
         .map(|(entity, ..)| entity)
         .collect();
     resuming.sort_by_key(|entity| entity.index());
@@ -138,11 +158,27 @@ pub fn advance_chains(
                 .remove::<terri_core::Fumbled>()
                 .remove::<Blocked>()
                 .remove::<Restless>();
-            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
+            let abandoned = chain_state.chain;
+            commands.queue(move |world: &mut World| {
+                settle_order(world, sim, abandoned);
+                crate::domestic::abandon(world, sim);
+            });
             continue;
         }
         let step = &chain.steps[chain_state.step as usize];
         let cleanup = chain.id == crate::domestic::CLEANUP;
+        if cleanup
+            && chain_state.step == 0
+            && domestic.as_ref().is_some_and(|state| {
+                state
+                    .cleanup
+                    .iter()
+                    .any(|t| t.person == sim.index_u32() && t.dishes.is_empty())
+            })
+        {
+            commands.entity(sim).insert(Blocked);
+            continue;
+        }
         if cleanup
             && domestic.as_ref().is_none_or(|state| {
                 state
@@ -160,7 +196,11 @@ pub fn advance_chains(
             })
         {
             commands.entity(sim).remove::<ChainState>();
-            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
+            let abandoned = chain_state.chain;
+            commands.queue(move |world: &mut World| {
+                settle_order(world, sim, abandoned);
+                crate::domestic::abandon(world, sim);
+            });
             continue;
         }
         let fixed = domestic.as_ref().and_then(|state| {
@@ -180,7 +220,11 @@ pub fn advance_chains(
                 .entity(sim)
                 .remove::<ChainState>()
                 .remove::<Carrying>();
-            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
+            let abandoned = chain_state.chain;
+            commands.queue(move |world: &mut World| {
+                settle_order(world, sim, abandoned);
+                crate::domestic::abandon(world, sim);
+            });
             continue;
         }
         let communal = crate::domestic::communal(&chain.id, chain_state.step, chain.steps.len());
@@ -209,6 +253,12 @@ pub fn advance_chains(
                 continue;
             }
             any_station = true;
+            let reserved = reserved
+                || crate::chores::object_claimed(
+                    chore_state.as_deref(),
+                    station.index_u32(),
+                    sim.index_u32(),
+                );
             let to = (station_pos.x.round() as i32, station_pos.y.round() as i32);
             // The ORIENTED rectangle: a station the player has turned is
             // approached where it now lies.
@@ -316,9 +366,11 @@ pub fn advance_chains(
             None if any_station => {
                 commands.entity(sim).insert(Blocked);
                 if let Some(station) = occupied_reachable {
-                    commands
-                        .entity(sim)
-                        .insert(crate::waiting::advertised_needs(station, &chain.advertises));
+                    commands.entity(sim).insert(crate::waiting::effective_needs(
+                        station,
+                        &chain.advertises,
+                        false,
+                    ));
                 }
             }
             None => {}
@@ -341,7 +393,8 @@ pub fn advance_chains(
 /// A fumble RIDES from the tagged step it was rolled at to the terminal
 /// delivery ([K4]): Casey serves the dinner she ruined, is fed almost
 /// nothing by it, paid nothing for it - and learned at the hob, where
-/// `learn_and_manage` fires on the tagged step's own completion.
+/// `crate::skills::practise` and `learn_and_manage` fire on the tagged
+/// step's own completion.
 #[allow(clippy::type_complexity)]
 pub fn tick_chain_steps(
     mut commands: Commands,
@@ -358,6 +411,7 @@ pub fn tick_chain_steps(
             Option<&Hobbies>,
             Option<&mut Satisfaction>,
             Option<&mut Traits>,
+            Option<&mut terri_core::Skills>,
             Option<&Carrying>,
             Option<&terri_core::SimId>,
         ),
@@ -378,6 +432,7 @@ pub fn tick_chain_steps(
             hobbies,
             satisfaction,
             mut traits,
+            skills,
             carrying,
             sim_id,
         )) = working.get_mut(sim)
@@ -433,6 +488,9 @@ pub fn tick_chain_steps(
             if let Some(traits) = traits.as_deref_mut() {
                 super::trait_effects::learn_and_manage(traits, content.0, &step.tags);
             }
+            if let Some(mut skills) = skills {
+                crate::skills::practise(&mut skills, content.0, &step.tags);
+            }
         }
 
         // The station is released either way: done with the counter is
@@ -456,6 +514,10 @@ pub fn tick_chain_steps(
         // and zeroes the satisfaction.
         let fumble = chain_state.fumble_scale;
         for (need_index, delta) in &chain.advertises {
+            // Social is delivered per minute of seated company, never as a terminal lump sum.
+            if *delta > 0. && *need_index as usize == NeedId::Social.index() {
+                continue;
+            }
             let per_need = personality.map_or(1.0, |p| p.satisfaction[*need_index as usize]);
             let delta = scaled_delta(*delta, per_need * fumble);
             needs.fill(NeedId::ALL[*need_index as usize], delta);
@@ -482,14 +544,15 @@ pub fn tick_chain_steps(
         commands.queue({
             let advertiser = chain.advertised_by;
             let per_use = content.0.tuning.habituation_per_use;
+            let cap = content.0.tuning.habituation_max;
             // Insert-if-absent, the tick_interactions rule: an agent
             // gains the component the first time it finishes anything,
             // and a fresh sim's first dinner must leave a record too.
             move |world: &mut World| match world.get_mut::<terri_core::Habituation>(sim) {
-                Some(mut habituation) => habituation.bump(advertiser, row, per_use),
+                Some(mut habituation) => habituation.bump(advertiser, row, per_use, cap),
                 None => {
                     let mut fresh = terri_core::Habituation::default();
-                    fresh.bump(advertiser, row, per_use);
+                    fresh.bump(advertiser, row, per_use, cap);
                     if let Ok(mut entity) = world.get_entity_mut(sim) {
                         entity.insert(fresh);
                     }
@@ -513,8 +576,93 @@ pub fn tick_chain_steps(
 
         commands.entity(sim).remove::<ChainState>();
         commands.queue(move |world: &mut World| {
+            settle_order(world, sim, completed_chain);
             crate::domestic::completed(world, sim, completed_chain, completed_step, station)
         });
+    }
+}
+
+/// The chain a player order asks for, when it asks for one: `None` for
+/// an ordinary interaction row, for a row the pack no longer has, and
+/// for a hidden chain only the pack's own systems may start. The snack
+/// row is the one visible interaction that maps onto a hidden chain.
+///
+/// ONE resolver for the order's whole life, so the three readers cannot
+/// drift apart: `serve_intents` starts the chain an order names and
+/// keeps the order queued while the chain runs, [`outranked`] tells a
+/// waiting order from the running chain's own, and [`settle_order`]
+/// removes the order when the chain ends.
+pub(crate) fn ordered_chain(
+    pack: &terri_data::ContentPack,
+    kind: terri_data::ObjectDefId,
+    interaction: u32,
+) -> Option<u32> {
+    let definition = pack.object(kind);
+    if definition
+        .interactions
+        .get(interaction as usize)
+        .is_some_and(|act| act.id == "grab_snack")
+    {
+        return pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == crate::domestic::SNACK)
+            .map(|global| global as u32);
+    }
+    let local = (interaction as usize).checked_sub(definition.interactions.len())?;
+    let (global, chain) = pack
+        .chains
+        .iter()
+        .enumerate()
+        .filter(|(_, chain)| chain.advertised_by == kind)
+        .nth(local)?;
+    (!crate::domestic::hidden_chain(&chain.id)).then_some(global as u32)
+}
+
+/// Whether a player order outranks the chain `running`: the queue's
+/// front order is one `serve_intents` will act on rather than the
+/// running chain's own order. `kind_of` names the placed kind of an
+/// order's object, `None` for a person or a gone entity, whose orders
+/// are never chains. An empty or absent queue outranks nothing.
+pub(crate) fn outranked(
+    pack: &terri_data::ContentPack,
+    queue: Option<&IntentQueue>,
+    running: u32,
+    kind_of: impl Fn(Entity) -> Option<terri_data::ObjectDefId>,
+) -> bool {
+    queue.and_then(IntentQueue::front).is_some_and(|order| {
+        kind_of(order.object).and_then(|kind| ordered_chain(pack, kind, order.interaction))
+            != Some(running)
+    })
+}
+
+/// Removes the first queued order that asked for `chain`, now that the
+/// chain has finished or been abandoned - the chain's `remove_first`,
+/// matched wherever the order sits for the reason `tick_interactions`
+/// gives. A chain the sim chose for itself has no order to remove, and
+/// neither has one restored from a save written while chain orders were
+/// still spent at the start.
+pub(crate) fn settle_order(world: &mut World, sim: Entity, chain: u32) {
+    // The active scoped order owns this wash; a queued sink-wide order does not.
+    let pack = world.resource::<Content>().0;
+    if pack.chains[chain as usize].id == crate::domestic::CLEANUP
+        && crate::targeted_cleanup::has_active(world, sim.index_u32())
+    {
+        return;
+    }
+    let Some(queue) = world.get::<IntentQueue>(sim) else {
+        return;
+    };
+    let settled = queue.as_slice().iter().copied().find(|order| {
+        world
+            .get::<SmartObject>(order.object)
+            .and_then(|placed| ordered_chain(pack, placed.0, order.interaction))
+            == Some(chain)
+    });
+    if let Some(order) = settled {
+        if let Some(mut queue) = world.get_mut::<IntentQueue>(sim) {
+            queue.remove_first(order);
+        }
     }
 }
 
@@ -930,15 +1078,16 @@ mod tests {
         let _ = table;
     }
 
-    /// The fumble rides IN the counter: a level-0 cook fumbles the
-    /// tagged step, the terminal delivery scales to nothing, no
+    /// The fumble rides IN the counter: a cook with no practice fumbles
+    /// the tagged step, the terminal delivery scales to nothing, no
     /// satisfaction lands - and the counter's record survives where
-    /// the transient marker would have been cleared.
+    /// the transient marker would have been cleared. The lesson lands in
+    /// the cooking skill ([SK-learning]).
     #[test]
     fn a_fumbled_step_ruins_the_terminal_delivery() {
         let (mut sim, agent, _pantry, _table) = chain_world();
-        // A hopeless cook: level 0, fail scale 0 - the roll cannot
-        // pass, so the test is about machinery rather than a seed.
+        // A hopeless cook: no cooking practice, fail scale 0 - the roll
+        // cannot pass, so the test is about machinery rather than a seed.
         let pack = sim
             .world()
             .get_resource::<crate::Content>()
@@ -953,16 +1102,24 @@ mod tests {
                 kind: terri_data::CompiledTraitKind::Capability {
                     start_level: 0.0,
                     fail_delta_scale: 0.0,
-                    learn_per_attempt: 0.015,
                 },
                 description: String::new(),
+            }],
+            skills: vec![terri_data::CompiledSkill {
+                id: "cooking".to_string(),
+                label: "Cooking".to_string(),
+                description: String::new(),
+                tag: "cooking".to_string(),
+                levels: 10,
+                practice_per_attempt: 0.015,
             }],
             ..pack.clone()
         }));
         sim.world_mut().insert_resource(crate::Content(pack));
-        sim.world_mut()
-            .entity_mut(agent)
-            .insert(Traits::from_entries(vec![(0, 0.0)]));
+        sim.world_mut().entity_mut(agent).insert((
+            Traits::from_entries(vec![(0, 0.0)]),
+            terri_core::Skills::default(),
+        ));
         start_chain(&mut sim, agent);
 
         for _ in 0..200 {
@@ -987,9 +1144,9 @@ mod tests {
                     0.0,
                     "a ruined dinner feeds nobody's soul"
                 );
-                let level = world.get::<Traits>(agent).unwrap().state(0).expect("worn");
-                assert!(
-                    level > 0.0,
+                assert_eq!(
+                    world.get::<terri_core::Skills>(agent).unwrap().practice(0),
+                    0.015,
                     "and yet the tagged step taught at its own completion"
                 );
                 return;
@@ -1178,7 +1335,12 @@ mod tests {
             )],
         );
         let mut habituation = terri_core::Habituation::default();
-        habituation.bump(terri_data::ObjectDefId(0), target_row, habituation_seed);
+        habituation.bump(
+            terri_data::ObjectDefId(0),
+            target_row,
+            habituation_seed,
+            test_content::tuning().habituation_max,
+        );
         let agent = sim
             .world_mut()
             .spawn((
@@ -1612,6 +1774,9 @@ mod tests {
         let (mut sim, agent, _, _) = chain_world();
         let mut pack = sim.world().resource::<Content>().0.clone();
         pack.objects[0].interactions.clear();
+        pack.chains[0]
+            .advertises
+            .push((NeedId::Social.index() as u8, 11.));
         pack.tuning.idle_threshold = 0.0;
         sim.world_mut()
             .insert_resource(Content(Box::leak(Box::new(pack))));
@@ -1664,6 +1829,12 @@ mod tests {
     #[test]
     fn a_booked_station_is_waited_for() {
         let (mut sim, agent, pantry, _table) = chain_world();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.chains[0]
+            .advertises
+            .push((NeedId::Social.index() as u8, 11.));
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         sim.world_mut().entity_mut(pantry).insert(Reserved);
         start_chain(&mut sim, agent);
 
@@ -1674,6 +1845,15 @@ mod tests {
             .world()
             .get::<crate::waiting::WaitingNeeds>(agent)
             .is_some());
+        let waiting = sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .unwrap();
+        assert_eq!(
+            waiting.0,
+            (1 << NeedId::Hunger.index()) | (1 << NeedId::Comfort.index()),
+            "Waiting for preparation cannot provide Social before communal eating"
+        );
         let world = sim.world();
         assert!(
             world.get::<ChainState>(agent).is_some()
@@ -1699,5 +1879,212 @@ mod tests {
             }
         }
         panic!("the chain never proceeded after the station freed");
+    }
+
+    /// The fixture's fridge, and an order for its one chain: the fridge
+    /// has one interaction, so flyout row 1 is the chain ([K5]).
+    fn order_the_chain(sim: &mut Sim, agent: Entity, first: bool) -> Entity {
+        let fridge = {
+            let world = sim.world_mut();
+            let mut state = world.query::<(Entity, &SmartObject)>();
+            state
+                .iter(world)
+                .find(|(_, o)| o.0 == terri_data::ObjectDefId(0))
+                .map(|(e, _)| e)
+                .expect("the fixture placed a fridge")
+        };
+        let command = if first {
+            terri_core::SimCommand::UseObjectFirst {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 1,
+            }
+        } else {
+            terri_core::SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 1,
+            }
+        };
+        sim.world_mut().resource_mut::<CommandQueue>().push(command);
+        fridge
+    }
+
+    fn queued(sim: &Sim, agent: Entity) -> usize {
+        sim.world()
+            .get::<IntentQueue>(agent)
+            .map_or(0, IntentQueue::len)
+    }
+
+    /// A chain order lives until its chain ends ([D-3]), so it is still
+    /// queued once the chain has begun, and an abandoned chain takes
+    /// its order with it: the order must not restart the recipe the
+    /// world can no longer finish, tick after tick.
+    #[test]
+    fn an_abandoned_chain_takes_its_order_with_it() {
+        let (mut sim, agent, _pantry, table) = chain_world();
+        order_the_chain(&mut sim, agent, false);
+        sim.tick();
+        assert!(
+            sim.world().get::<ChainState>(agent).is_some(),
+            "the order starts the chain"
+        );
+        assert_eq!(queued(&sim, agent), 1, "the order outlives the start");
+
+        // The table goes while the sim is on its way to the pantry. The
+        // missing station is noticed when the sim is next idle, after
+        // the pantry step, and from then on nothing may start the
+        // recipe again.
+        sim.world_mut().despawn(table);
+        let start = sim.world().resource::<terri_core::SimClock>().tick;
+        let mut ticks = 0_u64;
+        let mut abandoned_at = None;
+        for _ in 0..200 {
+            sim.tick();
+            ticks += 1;
+            let gone = sim.world().get::<ChainState>(agent).is_none();
+            match abandoned_at {
+                None if gone => {
+                    abandoned_at = Some(ticks);
+                    assert_eq!(queued(&sim, agent), 0, "the order leaves with the recipe");
+                }
+                Some(at) => assert!(
+                    gone,
+                    "tick {ticks}: the recipe abandoned at tick {at} was started again"
+                ),
+                None => {}
+            }
+            if abandoned_at.is_some_and(|at| ticks >= at + 30) {
+                break;
+            }
+        }
+        assert_eq!(
+            sim.world().resource::<terri_core::SimClock>().tick,
+            start + ticks,
+            "one clock tick per loop tick"
+        );
+        assert!(
+            abandoned_at.is_some(),
+            "the recipe was abandoned within the bound"
+        );
+    }
+
+    /// Queue mode and Ctrl append ([I-plain-order-goes-first]): an
+    /// order appended behind a directed chain waits for the chain to
+    /// finish, and the chain still walks to its second station with
+    /// that order queued behind it.
+    #[test]
+    fn an_appended_order_waits_for_the_directed_chain_to_finish() {
+        let (mut sim, agent, _pantry, _table) = chain_world();
+        let fridge = order_the_chain(&mut sim, agent, false);
+        sim.tick();
+        assert!(sim.world().get::<ChainState>(agent).is_some());
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(terri_core::SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            });
+        sim.tick();
+        assert_eq!(
+            queued(&sim, agent),
+            2,
+            "the chain's order and the snack behind it"
+        );
+
+        let start = sim.world().resource::<terri_core::SimClock>().tick;
+        let mut ticks = 0_u64;
+        let mut cooked = false;
+        let mut snacked = false;
+        for _ in 0..400 {
+            sim.tick();
+            ticks += 1;
+            let world = sim.world();
+            cooked |= world.get::<ChainState>(agent).is_none();
+            if world.get::<Eating>(agent).is_some() {
+                assert!(cooked, "the appended snack waits until the dinner is over");
+                assert!(
+                    world.get::<ChainState>(agent).is_none(),
+                    "the dinner is finished, not interrupted"
+                );
+                snacked = true;
+            }
+            if snacked && world.get::<Eating>(agent).is_none() {
+                break;
+            }
+        }
+        assert_eq!(
+            sim.world().resource::<terri_core::SimClock>().tick,
+            start + ticks,
+            "one clock tick per loop tick"
+        );
+        assert!(snacked, "the appended snack ran after the dinner");
+        assert!(
+            sim.world().get::<Satisfaction>(agent).unwrap().value() > 0.0,
+            "the dinner completed and paid out"
+        );
+        assert_eq!(queued(&sim, agent), 0, "both orders settled");
+    }
+
+    /// A plain order still goes first ([I-plain-order-goes-first]): it
+    /// interrupts a directed chain exactly as it interrupts a chosen
+    /// one, the counter survives the interruption with the chain's
+    /// order still queued, and the chain resumes and completes.
+    #[test]
+    fn a_plain_order_interrupts_the_directed_chain_and_it_resumes() {
+        let (mut sim, agent, _pantry, _table) = chain_world();
+        let fridge = order_the_chain(&mut sim, agent, false);
+        for _ in 0..10 {
+            sim.tick();
+        }
+        assert!(sim.world().get::<ChainState>(agent).is_some());
+        sim.world_mut().resource_mut::<CommandQueue>().push(
+            terri_core::SimCommand::UseObjectFirst {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            },
+        );
+        sim.tick();
+        assert_eq!(
+            queued(&sim, agent),
+            2,
+            "the snack ahead of the chain's order"
+        );
+
+        let start = sim.world().resource::<terri_core::SimClock>().tick;
+        let mut ticks = 0_u64;
+        let mut snacked = false;
+        for _ in 0..400 {
+            sim.tick();
+            ticks += 1;
+            let world = sim.world();
+            if world.get::<Eating>(agent).is_some() {
+                snacked = true;
+                assert!(
+                    world.get::<ChainState>(agent).is_some(),
+                    "the counter survives the plain order"
+                );
+            }
+            if snacked && world.get::<ChainState>(agent).is_none() {
+                break;
+            }
+        }
+        assert_eq!(
+            sim.world().resource::<terri_core::SimClock>().tick,
+            start + ticks,
+            "one clock tick per loop tick"
+        );
+        assert!(snacked, "the plain order went first");
+        assert!(
+            sim.world().get::<ChainState>(agent).is_none(),
+            "the interrupted chain resumed and completed"
+        );
+        assert!(
+            sim.world().get::<Satisfaction>(agent).unwrap().value() > 0.0,
+            "the resumed chain paid out"
+        );
+        assert_eq!(queued(&sim, agent), 0, "both orders settled");
     }
 }

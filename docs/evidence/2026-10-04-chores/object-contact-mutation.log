@@ -1,0 +1,41 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+warning: unreachable statement
+   --> crates\terri-sim\src\chores\work.rs:330:5
+    |
+329 | pub(super) fn contact(world: &World, task: &ChoreTask) -> Option<u32> { return task.endpoint;
+    |                                                                         -------------------- any code following this expression is unreachable
+330 |     let person = crate::dining::entity(world, task.person)?;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `world`
+   --> crates\terri-sim\src\chores\work.rs:329:23
+    |
+329 | pub(super) fn contact(world: &World, task: &ChoreTask) -> Option<u32> { return task.endpoint;
+    |                       ^^^^^ help: if this is intentional, prefix it with an underscore: `_world`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 2 warnings (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.57s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move ... FAILED
+
+failures:
+
+---- chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move stdout ----
+
+thread 'chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move' (24516) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:51:10:
+ordinary lifecycle state must reload: InvalidValue
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::lifecycle_tests::resumed_surface_work_recomputes_contact_after_actual_furniture_move
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 934 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

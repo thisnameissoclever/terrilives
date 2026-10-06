@@ -1,0 +1,43 @@
+
+> test
+> vitest run --maxWorkers=1 tests/targeted-dishes.test.ts -t boundary allocation
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+ ❯ tests/targeted-dishes.test.ts (12 tests | 1 failed | 11 skipped) 6ms
+     × reads the copied pile projection before a boundary allocation can detach render views 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/targeted-dishes.test.ts > targeted dish input > reads the copied pile projection before a boundary allocation can detach render views
+AssertionError: expected undefined to deeply equal { surface: 50, dishes: [ 8, 9 ] }
+
+- Expected:
+{
+  "dishes": [
+    8,
+    9,
+  ],
+  "surface": 50,
+}
+
++ Received:
+undefined
+
+ ❯ tests/targeted-dishes.test.ts:47:58
+     45|     } };
+     46|     const p = point(2);
+     47|     expect(pickSprite(growing, p.x, p.y, 0, 0)?.cleanup).toEqual({ sur…
+       |                                                          ^
+     48|   });
+     49|   it('opens the same exact pile action through the touch long-press co…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  20:06:22
+   Duration  637ms (transform 440ms, setup 0ms, import 526ms, tests 6ms, environment 0ms)
+

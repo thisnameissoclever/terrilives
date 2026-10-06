@@ -256,25 +256,30 @@ pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
         .collect()
 }
 
+/// The content's front door matched to its authored portal ([OS-door]), or
+/// `None` on a legacy lot whose door has no portal.
+pub fn front_portal(content: &terri_data::ContentPack) -> Option<&terri_data::CompiledPortal> {
+    content.lot.front_door.and_then(|door| {
+        content
+            .portals
+            .iter()
+            .find(|portal| portal.position == door)
+    })
+}
+
 /// The front door's line on a lot `width` tiles wide, from the content's
 /// front door matched to its portal ([OS-door]), or `None` when the door has
 /// no yard beyond it.
 pub fn front_door_line(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
-    content
-        .lot
-        .front_door
-        .and_then(|door| {
-            content
-                .portals
-                .iter()
-                .find(|portal| portal.position == door)
-        })
-        .and_then(|portal| door_line(portal, width))
+    front_portal(content).and_then(|portal| door_line(portal, width))
 }
 
-/// Whether `position` stands on `tile`, within the tolerance a walk's end is
-/// measured by: a commute clocks in, and a saved worker at work is judged, by
-/// this one test ([OS-street]).
+/// Whether `position` stands on `tile`, within a hundredth of a tile on each
+/// axis, inclusive: the tolerance a worker at work is judged by when the
+/// loader asks whether it stands on the street's exit ([OS-street]), on a
+/// load and on every lot edit, which validates a snapshot of the live world.
+/// A commute's end is not judged by it; the commute's direction says what
+/// the end means.
 pub fn on_tile(position: (f32, f32), tile: (u32, u32)) -> bool {
     (position.0 - tile.0 as f32).abs() <= 0.01 && (position.1 - tile.1 as f32).abs() <= 0.01
 }
@@ -617,6 +622,7 @@ mod tests {
                 pay: 1,
                 energy_cost: 1.0,
                 satisfaction: 0.0,
+                working_days: 0b1111111,
             }],
             ..base.clone()
         }))
@@ -879,7 +885,7 @@ mod tests {
             world.spawn((
                 Agent,
                 Position { x, y },
-                Commuting,
+                Commuting::Inbound,
                 Path { steps, cursor: 0 },
             ));
             let mut buffer = PortalBuffer::default();
@@ -907,7 +913,7 @@ mod tests {
                 .spawn((
                     Agent,
                     Position { x: 15.0, y: 2.5 },
-                    Commuting,
+                    Commuting::Inbound,
                     Path {
                         steps: vec![(15, 3)],
                         cursor: 0,
@@ -943,7 +949,7 @@ mod tests {
         world.spawn((
             Agent,
             Position { x, y },
-            Commuting,
+            Commuting::Outbound,
             Path {
                 steps: vec![(5, 2)],
                 cursor: 0,
@@ -983,7 +989,7 @@ mod tests {
 
         let outbound = world
             .spawn((
-                Commuting,
+                Commuting::Outbound,
                 Path {
                     steps: vec![(5, 2)],
                     cursor: 1,
@@ -998,7 +1004,7 @@ mod tests {
 
         let inbound = world
             .spawn((
-                Commuting,
+                Commuting::Inbound,
                 Path {
                     steps: vec![(5, 3)],
                     cursor: 0,
@@ -1023,7 +1029,7 @@ mod tests {
         let mut world = world_with_active_portals(portal_pack());
         let outbound = world
             .spawn((
-                Commuting,
+                Commuting::Outbound,
                 Path {
                     steps: vec![(5, 2)],
                     cursor: 0,
@@ -1037,6 +1043,32 @@ mod tests {
             approaching,
             "projection starts only inside the final one-tile approach"
         );
+    }
+
+    /// Each axis separately, at the inclusive boundary and one float past
+    /// it on either side, on the origin tile, where the subtraction returns
+    /// the position unchanged and the boundary position is the same f32 as
+    /// the tolerance literal, and off a nonzero tile
+    /// ([L-door-arrival-needs-independent-axis-tests]).
+    #[test]
+    fn on_tile_is_inclusive_at_a_hundredth_on_each_axis() {
+        let past = 0.01f32.next_up();
+        for (case, position, tile, expected) in [
+            ("exact origin", (0.0, 0.0), (0, 0), true),
+            ("x at the boundary", (0.01, 0.0), (0, 0), true),
+            ("y at the boundary", (0.0, 0.01), (0, 0), true),
+            ("x at the boundary below", (-0.01, 0.0), (0, 0), true),
+            ("y at the boundary below", (0.0, -0.01), (0, 0), true),
+            ("x one float past", (past, 0.0), (0, 0), false),
+            ("y one float past", (0.0, past), (0, 0), false),
+            ("x one float past below", (-past, 0.0), (0, 0), false),
+            ("y one float past below", (0.0, -past), (0, 0), false),
+            ("x a fraction off", (5.3, 4.0), (5, 4), false),
+            ("y a fraction off", (5.0, 4.3), (5, 4), false),
+            ("exact nonzero tile", (5.0, 4.0), (5, 4), true),
+        ] {
+            assert_eq!(on_tile(position, tile), expected, "{case}");
+        }
     }
 
     #[test]
@@ -1106,7 +1138,7 @@ mod tests {
             let mut world = world_with_active_portals(content);
             let commuter = world
                 .spawn((
-                    Commuting,
+                    Commuting::Outbound,
                     Path {
                         steps: vec![(5, 2)],
                         cursor: 0,
@@ -1166,7 +1198,7 @@ mod tests {
             world.spawn((
                 Agent,
                 Position { x: 5.0, y },
-                Commuting,
+                Commuting::Inbound,
                 Path {
                     steps: vec![(5, 3)],
                     cursor: 0,
@@ -1190,7 +1222,7 @@ mod tests {
         world.spawn((
             Agent,
             Position { x: 5.0, y: 2.25 },
-            Commuting,
+            Commuting::Inbound,
             Path {
                 steps: vec![(5, 3)],
                 cursor: 0,

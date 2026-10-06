@@ -1,0 +1,30 @@
+
+running 1 test
+test need_interactions::tests::critical_social_relationship_help_requires_actual_successful_sharing ... FAILED
+
+failures:
+
+failures:
+    need_interactions::tests::critical_social_relationship_help_requires_actual_successful_sharing
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+warning: function `active_benefits` is never used
+   --> crates\terri-sim\src\need_interactions.rs:234:15
+    |
+234 | pub(crate) fn active_benefits(world: &World, person: Entity) -> Vec<(u8, f32)> {
+    |               ^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.33s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'need_interactions::tests::critical_social_relationship_help_requires_actual_successful_sharing' (20276) panicked at crates\terri-sim\src\need_interactions\tests.rs:360:9:
+assertion `left == right` failed: Failed sharing cannot claim to relieve critical Social
+  left: true
+ right: false
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

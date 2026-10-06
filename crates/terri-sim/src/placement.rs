@@ -70,6 +70,9 @@ pub struct LotEditState {
     pub last_floor_result: Option<floors::FloorEditResult>,
     /// What the drain did with the most recent family tie - [FM-tie].
     pub last_family_result: Option<crate::family::FamilyTieResult>,
+    /// What the drain did with the most recent edit of a living person -
+    /// [ES-atomic].
+    pub last_edit_result: Option<crate::edit::EditResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -448,6 +451,11 @@ fn plan_rectangle(
     if moving.is_some_and(|entity| {
         world.get::<Reserved>(entity).is_some()
             || crate::dining::object_in_use(world, entity.index_u32())
+            || crate::chores::object_claimed(
+                world.get_resource::<terri_core::chores::SavedChores>(),
+                entity.index_u32(),
+                u32::MAX,
+            )
             || entities
                 .iter(world)
                 .any(|e| e.get::<Target>().is_some_and(|t| t.object == entity))

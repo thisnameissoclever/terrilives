@@ -5,11 +5,22 @@ import json
 from pathlib import Path
 import shutil
 
-from bathroom_export_contract import (BASE, MODELS, FACINGS, PALETTES, OWNERS,
+from bathroom_export_contract import (BASE, MODELS, FACINGS, PALETTES, OWNERS, USE_TOILET_ACTION,
     read_loop, validate_render_rows, validate_ink_binding, validate_strokes, encode_raw_scene)
 from seat_export_contract import read_png, digest, check_palettes
 
 ENCODING = 'scene-linear-premultiplied-visible-additive'
+# Logical pixels between the rendered model origin and the drawn anchor. The empty
+# fixture sprites and the seating renderer register their anchors this far below the
+# projected origin, so an occupied scene must do the same or the fixture jumps when a
+# body sits down. See [L-rig-pixel-registration] in docs/lessons-learned.md.
+TILE_DROP = 21
+
+
+def scene_anchor(origin_pixels):
+    """Logical anchor of a 192x240 source render whose origin is at `origin_pixels`."""
+    x, y = origin_pixels
+    return [x/8, y/8+TILE_DROP]
 
 
 def read_ink(path, source_path, source):
@@ -41,7 +52,7 @@ def export(source_path, ink_path, output, *, process_exited):
     dependencies = [BASE/'bathroom_export_contract.py', Path(__file__), BASE/'contact_surface.py',
                     MODELS/'seating/seat_export_contract.py', MODELS/'bedroom/double_bed_linear.py',
                     MODELS/'bedroom/double_bed_layers.py', MODELS/'sims/sim-01/shirt-source-materials.json']
-    manifest = dict(version=1, encoding=ENCODING, pixel_density=2, action=15, halfCycleTicks=8,
+    manifest = dict(version=1, encoding=ENCODING, pixel_density=2, action=USE_TOILET_ACTION, halfCycleTicks=8,
         comparison_reference='independent-beauty-float-linear-box-display-once',
         source_batch=source_path.relative_to(MODELS).as_posix(), ink_batch=ink_path.relative_to(MODELS).as_posix(),
         source_receipt=dict(path='source-proof.json', sha256=digest(source_path)),
@@ -52,7 +63,7 @@ def export(source_path, ink_path, output, *, process_exited):
     obj = dict(kind='toilet', content='toilet', source_sha256=accepted['inputs'][
         'bathroom/owner-review-pending/toilet/candidate-03/toilet-authoring.blend'],
         model_sha256=source['editable_model']['sha256'], canvas=[96, 120],
-        anchor=[v/8 for v in source['origin_pixels']], camera_matrix=source['camera_matrix'],
+        anchor=scene_anchor(source['origin_pixels']), camera_matrix=source['camera_matrix'],
         ortho_scale=source['ortho_scale'], scenes=[])
     manifest['objects'].append(obj)
     saved = {}

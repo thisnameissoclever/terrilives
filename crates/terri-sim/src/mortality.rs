@@ -115,7 +115,7 @@ fn clear_action(world: &mut World, entity: Entity) {
     )>();
 }
 
-fn remove_person(world: &mut World, dead: Entity) {
+pub(crate) fn remove_person(world: &mut World, dead: Entity) {
     if let Some(person) = world.get::<SimId>(dead).copied() {
         world
             .resource_mut::<crate::beds::BedAssignments>()
@@ -609,14 +609,20 @@ mod tests {
                 .entity_mut(survivor)
                 .insert(IntentQueue::from_intents(vec![
                     Intent {
+                        cleanup: None,
+                        chore: None,
                         object: dead,
                         interaction: 0,
                     },
                     Intent {
+                        cleanup: None,
+                        chore: None,
                         object: unrelated,
                         interaction: 0,
                     },
                     Intent {
+                        cleanup: None,
+                        chore: None,
                         object: dead,
                         interaction: 1,
                     },
@@ -629,6 +635,8 @@ mod tests {
             assert_eq!(
                 sim.world().get::<IntentQueue>(survivor).unwrap().as_slice(),
                 &[Intent {
+                    cleanup: None,
+                    chore: None,
                     object: unrelated,
                     interaction: 0
                 }]

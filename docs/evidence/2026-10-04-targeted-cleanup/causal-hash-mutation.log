@@ -1,0 +1,33 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+warning: function `hash` is never used
+   --> crates\terri-sim\src\targeted_cleanup.rs:385:15
+    |
+385 | pub(crate) fn hash(world: &World, hash: &mut terri_core::FnvHasher) {
+    |               ^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.88s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test domestic::tests::targeted_hash_changes_causally_with_scope_selection_allocator_and_queue_order ... FAILED
+
+failures:
+
+---- domestic::tests::targeted_hash_changes_causally_with_scope_selection_allocator_and_queue_order stdout ----
+
+thread 'domestic::tests::targeted_hash_changes_causally_with_scope_selection_allocator_and_queue_order' (24640) panicked at crates\terri-sim\src\domestic\tests.rs:391:9:
+assertion `left != right` failed: scope state must affect the hash without advancing time
+  left: 7332323118545982402
+ right: 7332323118545982402
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    domestic::tests::targeted_hash_changes_causally_with_scope_selection_allocator_and_queue_order
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 914 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

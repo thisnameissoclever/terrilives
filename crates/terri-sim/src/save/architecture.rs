@@ -72,6 +72,11 @@ pub(crate) fn restore_v5(
         shyness,
         boundaries,
         dining,
+        skills,
+        targeted_cleanup,
+        chores,
+        grime,
+        affinities,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -153,10 +158,35 @@ pub(crate) fn restore_v5(
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
     super::self_preservation::restore(&mut candidate.world, self_preservation)?;
     super::chronotype::restore(&mut candidate.world, chronotype_offsets)?;
+    // [SK-save]: a present field installs every person's practice; a
+    // missing one seeds it once from the worn capabilities' saved states.
+    super::skills::restore(&mut candidate.world, content, skills)?;
+    // [OA-values]: a present field installs every person's values; a
+    // missing one draws them once from the saved world generator.
+    super::affinities::restore(&mut candidate.world, content, affinities)?;
     // Domestic validation needs exact standing claims for table-free meals.
     if let Some(state) = &dining {
         candidate.world.insert_resource(state.clone());
     }
+    let original_cleanup = targeted_cleanup.clone();
+    let mut rebased_cleanup = targeted_cleanup;
+    if let (Some(cleanup), Some(chores)) = (&mut rebased_cleanup, &chores) {
+        for order in &mut cleanup.orders {
+            if let Some(position) = order.queue_position {
+                let before = chores
+                    .orders
+                    .iter()
+                    .filter(|o| o.person == order.person && o.queue_position < position)
+                    .count() as u32;
+                order.queue_position = Some(
+                    position
+                        .checked_sub(before)
+                        .ok_or(SaveError::InvalidValue)?,
+                );
+            }
+        }
+    }
+    crate::targeted_cleanup::restore(&mut candidate.world, rebased_cleanup)?;
     crate::domestic::restore(&mut candidate.world, domestic)?;
     match sleeping_places {
         Some(saved) => super::sleeping_places::restore(&mut candidate.world, saved)?,
@@ -165,6 +195,24 @@ pub(crate) fn restore_v5(
     crate::shyness::restore(&mut candidate.world, shyness)?;
     crate::privacy::restore(&mut candidate.world, boundaries)?;
     crate::dining::restore(&mut candidate.world, dining)?;
+    crate::targeted_cleanup::validate_claims(&candidate.world)?;
+    crate::targeted_cleanup::validate_legacy_capacity(&candidate.world)?;
+    crate::targeted_cleanup::split_legacy_piles(&mut candidate.world);
+    crate::chores::restore(&mut candidate.world, chores)?;
+    crate::chores::grime::restore(&mut candidate.world, grime)?;
+    if let Some(original) = original_cleanup {
+        if let Some(mut current) = candidate
+            .world
+            .get_resource_mut::<terri_core::save::SavedTargetedCleanup>()
+        {
+            for order in &mut current.orders {
+                if let Some(saved) = original.orders.iter().find(|o| o.id == order.id) {
+                    order.queue_position = saved.queue_position;
+                }
+            }
+        }
+    }
+    crate::media::validate_ownership(&candidate.world)?;
     if !death_default_applied {
         candidate
             .world
@@ -271,6 +319,7 @@ fn finish_restore(
         crate::placement::windows::validate_restored_windows(&candidate.world)
             .map_err(|_| SaveError::InvalidGrid)?;
     }
+    crate::media::validate_ownership(&candidate.world)?;
     Ok(candidate)
 }
 
@@ -389,7 +438,7 @@ fn dining_contact(
         d.station == station
             && d.endpoint == endpoint
             && match crate::seating::kind(world, d) {
-                Some(crate::seating::UseKind::Meal) => true,
+                Some(crate::seating::UseKind::Meal | crate::seating::UseKind::TableSeat) => true,
                 Some(crate::seating::UseKind::Media) => crate::media::valid_lease(world, d),
                 None => false,
             }

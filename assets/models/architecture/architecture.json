@@ -23,9 +23,19 @@
       "canonicalSha256": "2955c095bdfee70517c6d8d7a120299c02d4d72e0f1674d8a54838fcc2170589"
     },
     {
+      "kind": "table-sitting",
+      "catalog": "assets/models/domestic/table-sitting/proof.json",
+      "canonicalSha256": "4891e907df7ce70883e5af269c8f0502b50bd74ec438d78ad4b6ab05d3d19f33"
+    },
+    {
+      "kind": "cleaning",
+      "catalog": "assets/models/cleaning/export/manifest.json",
+      "canonicalSha256": "a1be4c0c5236ae1c5e99cc3ea5db758862dd750618f5c4f53dda2a96f134e855"
+    },
+    {
       "kind": "bathroom-actions",
-      "catalog": "assets/models/bathroom/actions/export/toilet-03/manifest.json",
-      "canonicalSha256": "73b7d178dda60eaec4899d38d668b574c2dc3a2cd9e9eeea288b298360213fa0"
+      "catalog": "assets/models/bathroom/actions/export/toilet-05/manifest.json",
+      "canonicalSha256": "361fd4f1d05fa357502f290548efbb5a1552e85cebcb51df72fb03da6cbddd97"
     }
   ],
   "historicalFiles": {

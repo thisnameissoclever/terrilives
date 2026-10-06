@@ -11,7 +11,10 @@
 # and completing the interaction moves both relationships up
 # (relationship_gain_per_talk).
 #
-# The deltas apply to BOTH participants: a conversation is the one
+# Positive Social applies independently to participants who like their partner.
+# Neutral and disliked partners provide no Social refill. Completed chats can
+# still build friendship, including when loneliness is critical.
+# The other deltas apply to BOTH participants: a conversation is the one
 # interaction in the game where the object gets as much out of being
 # used as the user. Delivery scales each side by that sim's own
 # satisfaction multiplier, so a personality that enjoys company less is

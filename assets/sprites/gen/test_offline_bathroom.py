@@ -22,7 +22,7 @@ class BathroomImportTests(unittest.TestCase):
                        coverage={r:r for r in masks})
                   for f, v, i in itertools.product(('SE', 'NW', 'SW', 'NE'), ('green', 'blue', 'red'), range(4))]
         obj = dict(kind='toilet', content='toilet', canvas=[4, 4], anchor=[2, 4], scenes=scenes)
-        return api, api.BathroomExport(dict(objects=[obj], halfCycleTicks=8, action=15), layers, masks)
+        return api, api.BathroomExport(dict(objects=[obj], halfCycleTicks=8, action=18), layers, masks)
 
     def test_records_append_layer_textures_and_registered_scene_aliases(self):
         api, export = self.fixture()
@@ -37,11 +37,20 @@ class BathroomImportTests(unittest.TestCase):
         tables = api.tables(export, empties+api.records(export))
         self.assertEqual(set(tables['profiles']), {0, 1, 2, 3})
         for profile in tables['profiles'].values():
-            self.assertEqual(profile['action'], 15)
+            self.assertEqual(profile['action'], 18)
             self.assertEqual(profile['halfCycleTicks'], 8)
             self.assertTrue(all(len(frames) == 4 for frames in profile['frames'].values()))
         self.assertEqual(len(tables['layers']), 48)
         self.assertEqual(len(tables['coverage']), 48)
+
+    def test_occupied_scene_must_register_on_its_empty_fixture_anchor(self):
+        api, export = self.fixture()
+        empties = [('offlineToilet'+suffix, Image.new('RGBA', (1, 1)), 1, 1)
+                   for suffix in ('', 'NW', 'SW', 'NE')]
+        sprites = empties+api.records(export)
+        api.tables(export, sprites, anchors={index:[2, 4] for index in range(4)})
+        with self.assertRaises(ValueError):
+            api.tables(export, sprites, anchors={0:[2, 4], 1:[2, 4], 2:[2, 4], 3:[2, 25]})
 
     def test_missing_exact_empty_facing_rejects(self):
         api, export = self.fixture()

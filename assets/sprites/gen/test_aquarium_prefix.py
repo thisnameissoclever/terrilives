@@ -32,7 +32,9 @@ class AquariumPrefixTests(unittest.TestCase):
         value = json.loads(match.group(1))
         base = value.pop('baseSpriteId')
         # Neutral seating appends 300 texture records and 240 scene aliases.
-        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32 + 300 + 240)
+        # Quiet dining adds 36 records; cleaning adds 336 bodies, 32 lids and 80 masks.
+        # The fitted toilet adds 60 texture layers and 48 scene aliases.
+        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32 + 300 + 240 + 36 + 448 + 108)
         for index, row in enumerate(value['sprites']):
             self.assertEqual(row.pop('id'), base + index)
         digest = hashlib.sha256(json.dumps(value, sort_keys=True,
@@ -60,8 +62,18 @@ class AquariumPrefixTests(unittest.TestCase):
                 value = table_value(source, name)
                 if name == 'BED_CATALOG':
                     value = {key: value[key] for key in ('1133', '1134', '1135', '1136')}
-                elif name == 'BED_COVERAGE':
+                elif name in ('BED_COVERAGE', 'SPRITE_PAIR_MASKS'):
                     value = value[:expected['count']]
+                elif name == 'INTERACTION_SPRITES':
+                    value = {key: {field: item for field, item in profile.items() if field != 'idleFrames'}
+                             for key, profile in value.items()}
+                elif name == 'RIGGED_SIM_CLIPS':
+                    value = {key: item for key, item in value.items()
+                             if key not in ('mop', 'wipe_counter', 'wipe_table', 'empty_bin')}
+                elif name == 'RIGGED_SIM_VARIANTS':
+                    value = {key: {action: clip for action, clip in clips.items()
+                             if action not in ('mop', 'wipe_counter', 'wipe_table', 'empty_bin')}
+                             for key, clips in value.items()}
                 self.assertEqual(len(value), expected['count'])
                 digest = hashlib.sha256(json.dumps(value, sort_keys=True,
                     separators=(',', ':'), allow_nan=False).encode()).hexdigest()

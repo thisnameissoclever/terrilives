@@ -151,6 +151,9 @@ pub struct Selected;
 /// today's values could never reach the difference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Intent {
+    /// Identity of a scoped cleanup order; ordinary object and social orders omit it.
+    pub cleanup: Option<u32>,
+    pub chore: Option<u32>,
     pub object: Entity,
     /// Index into that object's `interactions` in the content pack.
     pub interaction: u32,
@@ -317,24 +320,30 @@ impl IntentQueue {
 pub struct Habituation(Vec<(ObjectDefId, u32, f32)>);
 
 impl Habituation {
-    /// How habituated this sim is to one interaction, in `0.0..=1.0`. An
-    /// interaction never performed reads 0.
+    /// How habituated this sim is to one interaction, from 0 up to the cap
+    /// [`Self::bump`] was given. An interaction never performed reads 0.
+    /// Above 1 is overdoing ([OD-model] in
+    /// `docs/specs/2026-10-06-overdoing-it.md`): appeal and the details meter
+    /// read at most 1 and need delivery ignores habituation, so the part
+    /// above 1 is for mood ([OD-moodlets]).
     pub fn get(&self, object: ObjectDefId, interaction: u32) -> f32 {
         match self.find(object, interaction) {
             Ok(i) => self.0[i].2,
             Err(_) => 0.0,
         }
     }
-    /// Raises one interaction's habituation by `amount`, capped at 1.
+    /// Raises one interaction's habituation by `amount`, capped at `cap`.
+    /// Every simulation caller passes the tuned `habituation_max`, so the
+    /// cap lives in content rather than here.
     ///
     /// Inserting at the searched position is what keeps the Vec sorted, and the
     /// sort is what makes `world_hash` reproducible.
-    pub fn bump(&mut self, object: ObjectDefId, interaction: u32, amount: f32) {
+    pub fn bump(&mut self, object: ObjectDefId, interaction: u32, amount: f32, cap: f32) {
         match self.find(object, interaction) {
-            Ok(i) => self.0[i].2 = (self.0[i].2 + amount).min(1.0),
+            Ok(i) => self.0[i].2 = (self.0[i].2 + amount).min(cap),
             Err(i) => self
                 .0
-                .insert(i, (object, interaction, amount.clamp(0.0, 1.0))),
+                .insert(i, (object, interaction, amount.clamp(0.0, cap))),
         }
     }
     /// Decays every entry by `amount`, dropping any that reach zero.
@@ -600,6 +609,98 @@ impl Traits {
     }
 }
 
+/// [SK-model]: practice per pack skill index; level and progress are
+/// derived by the simulation's ladder; in the world hash through the
+/// `skills-v1` block. Entries are `(index into the pack's skill list,
+/// practice)`, sorted by index, at most one per skill. A skill with no
+/// entry has practice 0.0. See `docs/specs/2026-10-05-skills.md`.
+///
+/// The same sorted-`Vec` shape as [`Traits`], for the same reason: the
+/// world hash and the save iterate it in key order.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Skills(Vec<(u32, f32)>);
+
+impl Skills {
+    /// Built from `(skill index, practice)` pairs in any order. Indices
+    /// must be unique, as in [`Traits::from_entries`]: `set_practice`
+    /// would update one duplicate and leave the other stale.
+    pub fn from_entries(mut entries: Vec<(u32, f32)>) -> Self {
+        entries.sort_unstable_by_key(|(index, _)| *index);
+        debug_assert!(
+            entries.windows(2).all(|w| w[0].0 != w[1].0),
+            "duplicate skill index in Skills::from_entries"
+        );
+        Self(entries)
+    }
+    /// The practice held for the skill at `index`, or 0.0 when this person
+    /// has no entry for it.
+    pub fn practice(&self, index: u32) -> f32 {
+        self.find(index).map_or(0.0, |i| self.0[i].1)
+    }
+    /// Sets the practice for the skill at `index`, inserting an entry when
+    /// there is none. A negative value is stored as 0.0. The upper bound
+    /// is the ladder's, which this component does not know; callers clamp
+    /// against it.
+    pub fn set_practice(&mut self, index: u32, value: f32) {
+        let value = value.max(0.0);
+        match self.find(index) {
+            Ok(i) => self.0[i].1 = value,
+            Err(i) => self.0.insert(i, (index, value)),
+        }
+    }
+    /// Every entry, in key order.
+    pub fn entries(&self) -> &[(u32, f32)] {
+        &self.0
+    }
+    /// Whether this person holds no entry at all.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+    fn find(&self, index: u32) -> Result<usize, usize> {
+        self.0.binary_search_by(|(i, _)| i.cmp(&index))
+    }
+}
+
+/// [OA-values]: how this person feels about each affinity kind, one value
+/// per kind in the pack's kinds order, each in -1.0 (hates) ..= 1.0
+/// (loves). See `docs/specs/2026-10-06-object-affinities.md`. In the world
+/// hash through the `affinities-v1` block, which reads only values that are
+/// not exactly 0.0, so a person holding none hashes as one with no
+/// component.
+///
+/// Dense rather than the sorted pairs of [`Skills`]: every person is drawn
+/// a value for every kind at spawn, so nearly every entry is non-zero.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Affinities(Vec<f32>);
+
+impl Affinities {
+    /// One value per kind, in kinds order. Each is clamped into
+    /// -1.0..=1.0, and NaN is stored as 0.0, so a stored value is always
+    /// one a save can carry.
+    pub fn from_values(values: Vec<f32>) -> Self {
+        Self(
+            values
+                .into_iter()
+                .map(|value| {
+                    if value.is_nan() {
+                        0.0
+                    } else {
+                        value.clamp(-1.0, 1.0)
+                    }
+                })
+                .collect(),
+        )
+    }
+    /// The value for the kind at `kind`, or 0.0 past the end of the list.
+    pub fn value(&self, kind: u32) -> f32 {
+        self.0.get(kind as usize).copied().unwrap_or(0.0)
+    }
+    /// Every value, in kinds order.
+    pub fn values(&self) -> &[f32] {
+        &self.0
+    }
+}
+
 /// This attempt is FAILING - a capability roll came up short when the
 /// interaction began ([E3]). Carried beside `Eating` for the length of
 /// the attempt; `delta_scale` is what the advertised BENEFITS deliver
@@ -625,11 +726,24 @@ pub struct Fumbled {
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Career(pub u32);
 
-/// This sim is walking to the front door to start a shift - [E4].
+/// This sim is walking a commute - [E4]: `Outbound` to the street's exit
+/// or the front door to start a shift, `Inbound` from where it reappeared
+/// to the door's landing after one. The direction is state, written by
+/// whoever starts the walk, because the walk's end cannot tell them apart:
+/// a worker standing on the commute's end when the shift starts arrives
+/// on the shift tick without moving, and a position read as "not on the
+/// door" would send it home from a shift it never clocked in to.
 /// Transient action state of the same class as `Eating` and `Fumbled`,
 /// deliberately NOT hashed: reproduced by the day clock on any replay.
+/// A save carries only the marker, so a load reads the direction back off
+/// the saved walk's destination.
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Commuting;
+pub enum Commuting {
+    /// Walking out to start a shift.
+    Outbound,
+    /// Walking home to the door's landing after a shift.
+    Inbound,
+}
 
 /// This sim is off the lot, working - the rabbit hole ([E4]). Counts
 /// down to the return. IN the world hash: it ticks, so two replays
@@ -844,8 +958,8 @@ impl Personality {
     /// A personality with the given dispositions, sorted here so no caller
     /// can construct an unsorted one: `disposition` binary-searches, and
     /// the list's iteration order must be deterministic for anything that
-    /// ever walks it. The world hash currently includes only the separate
-    /// chronotype field, not these static multipliers or dispositions.
+    /// ever walks it, including the world hash, which includes the
+    /// multipliers, the dispositions and the chronotype field.
     pub fn with_dispositions(
         drain: [f32; NEED_COUNT],
         satisfaction: [f32; NEED_COUNT],
@@ -872,9 +986,8 @@ impl Personality {
         }
     }
 
-    /// Every disposition, in key order. For tests today, and for
-    /// `world_hash` the day personality becomes mutable and has to enter
-    /// it - see the exclusion note on `Sim::world_hash`.
+    /// Every disposition, in key order. `Sim::world_hash` walks this list
+    /// in its `personality-effects-v1` block.
     pub fn dispositions(&self) -> &[(ObjectDefId, u32, f32)] {
         &self.dispositions
     }
@@ -993,6 +1106,8 @@ mod intent_queue_tests {
 
     fn intent(object: Entity, interaction: u32) -> Intent {
         Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction,
         }

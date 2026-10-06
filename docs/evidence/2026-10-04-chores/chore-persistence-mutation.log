@@ -1,0 +1,24 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.07s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::tests::mixed_dish_chore_and_ordinary_orders_restore_their_complete_queue_order ... FAILED
+
+failures:
+
+---- chores::tests::mixed_dish_chore_and_ordinary_orders_restore_their_complete_queue_order stdout ----
+
+thread 'chores::tests::mixed_dish_chore_and_ordinary_orders_restore_their_complete_queue_order' (41536) panicked at crates\terri-sim\src\chores\tests.rs:107:5:
+assertion `left == right` failed
+  left: ["", "Grab a snack: Chill-o-Matic 3000", "Clean up: Surface of Deferred Decisions"]
+ right: ["", "Wipe surface", "Clean up: Surface of Deferred Decisions", "Grab a snack: Chill-o-Matic 3000"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::tests::mixed_dish_chore_and_ordinary_orders_restore_their_complete_queue_order
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 934 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

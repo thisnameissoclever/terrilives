@@ -1,7 +1,0 @@
-remote: 
-remote: Create a pull request for 'twcx/media-seated-actions' on GitHub by visiting:        
-remote:      https://github.com/thisnameissoclever/terrilives/pull/new/twcx/media-seated-actions        
-remote: 
-To https://github.com/thisnameissoclever/terrilives.git
- * [new branch]        twcx/media-seated-actions -> twcx/media-seated-actions
-branch 'twcx/media-seated-actions' set up to track 'origin/twcx/media-seated-actions'.

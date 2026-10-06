@@ -17,6 +17,24 @@ pub(crate) struct Plan {
     pub lease: Option<SavedDiner>,
 }
 
+impl Plan {
+    pub(crate) fn physical_place(&self, person: Entity, device: Entity) -> SavedDiner {
+        self.lease.clone().unwrap_or_else(|| {
+            let Route::Exact(endpoint) = self.access.route else {
+                unreachable!("Media plans have exact endpoints")
+            };
+            SavedDiner {
+                person: person.index_u32(),
+                station: device.index_u32(),
+                chair: None,
+                setting: None,
+                endpoint,
+                obstructing: vec![],
+            }
+        })
+    }
+}
+
 fn direction(facing: CompiledSocketFacing) -> (i32, i32) {
     match facing {
         CompiledSocketFacing::PositiveX => (1, 0),
@@ -206,6 +224,9 @@ pub(crate) fn plan(
             if !cone(origin, front, point)
                 || !grid.is_walkable(tile.0, tile.1)
                 || !grid.segment_can_cross(point, origin)
+                || claims
+                    .iter()
+                    .any(|d| d.person != person.index_u32() && d.endpoint == tile)
             {
                 continue;
             }
@@ -368,6 +389,50 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
         && (position.x.round() as i32, position.y.round() as i32) == lease.endpoint
 }
 
+/// Validate device capacity and exclusive destinations before adopting a save.
+pub(crate) fn validate_ownership(world: &World) -> Result<(), crate::SaveError> {
+    let pack = world.resource::<Content>().0;
+    let Some(mut people) = world.try_query_filtered::<(Entity, &Target, &Position, Option<&terri_core::Path>), With<terri_core::Agent>>() else { return Ok(()); };
+    let viewers: Vec<_> = people
+        .iter(world)
+        .filter_map(|(person, target, position, path)| {
+            let definition = world.get::<SmartObject>(target.object)?.0;
+            crate::seating::media_activity(pack, definition, target.interaction)?;
+            let endpoint = crate::seating::claim(world, person.index_u32())
+                .map(|d| d.endpoint)
+                .or_else(|| path.and_then(|p| p.steps.last().copied()))
+                .unwrap_or((position.x.round() as i32, position.y.round() as i32));
+            Some((person, *target, definition, endpoint))
+        })
+        .collect();
+    for (person, target, definition, endpoint) in &viewers {
+        let occupants: Vec<_> = viewers
+            .iter()
+            .filter(|(_, t, _, _)| t.object == target.object)
+            .collect();
+        let slots =
+            pack.object(*definition).interactions[target.interaction as usize].slots as usize;
+        if occupants.len() > slots
+            || occupants
+                .iter()
+                .any(|(_, t, _, _)| t.interaction != target.interaction)
+            || viewers
+                .iter()
+                .any(|(other, _, _, p)| other != person && p == endpoint)
+            || world
+                .get_resource::<terri_core::save::SavedDining>()
+                .is_some_and(|s| {
+                    s.diners
+                        .iter()
+                        .any(|d| d.person != person.index_u32() && d.endpoint == *endpoint)
+                })
+        {
+            return Err(crate::SaveError::InvalidValue);
+        }
+    }
+    Ok(())
+}
+
 fn wire_facing(x: f32, y: f32) -> u32 {
     if x.abs() >= y.abs() {
         if x >= 0. {
@@ -462,7 +527,19 @@ pub(crate) fn maintain(world: &mut World) {
             continue;
         }
         if held.is_none() && world.get::<Eating>(person).is_none() {
-            continue;
+            let endpoint = world
+                .get::<terri_core::Path>(person)
+                .and_then(|p| p.steps.last().copied())
+                .or_else(|| {
+                    world
+                        .get::<Position>(person)
+                        .map(|p| (p.x.round() as i32, p.y.round() as i32))
+                });
+            if endpoint.is_some_and(|p| {
+                valid_standing_contact(world, person.index_u32(), target.object.index_u32(), p)
+            }) {
+                continue;
+            }
         }
         if held.is_none()
             && world
@@ -492,9 +569,7 @@ pub(crate) fn maintain(world: &mut World) {
         let Some(device) = furniture.iter().find(|d| d.entity == target.object) else {
             continue;
         };
-        let claims = world
-            .get_resource::<terri_core::save::SavedDining>()
-            .map_or_else(Vec::new, |s| s.diners.clone());
+        let claims = crate::seating::physical_places(world);
         let occupancy = crate::seating::occupancy(world);
         let grid = world.resource::<TileGrid>();
         let from = (position.x.round() as i32, position.y.round() as i32);
@@ -519,7 +594,19 @@ pub(crate) fn maintain(world: &mut World) {
             continue;
         };
         if held.is_none() && next.lease.is_none() {
-            continue;
+            let Route::Exact(endpoint) = next.access.route else {
+                unreachable!("media endpoint")
+            };
+            if endpoint == (position.x.round() as i32, position.y.round() as i32)
+                && valid_standing_contact(
+                    world,
+                    person.index_u32(),
+                    target.object.index_u32(),
+                    endpoint,
+                )
+            {
+                continue;
+            }
         }
         let Some(steps) = next
             .access

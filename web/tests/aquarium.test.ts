@@ -10,11 +10,21 @@ import { emissiveForSprite } from '../src/render/lighting.js';
 import { pickSprite, type PickSource } from '../src/input.js';
 
 let memory: WebAssembly.Memory;
+
+/** The offset after `count` postcard varints starting at `offset`; a u64 varint is at most ten bytes. */
+function skipVarints(bytes: Uint8Array, offset: number, count: number): number {
+  for (let field = 0; field < count; field++) {
+    let length = 1;
+    while (length < 10 && (bytes[offset + length - 1] & 0x80) !== 0) length++;
+    offset += length;
+  }
+  return offset;
+}
 beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
-it('loads an actual released-main save and changes only the aquarium artwork', () => {
+it('loads a released-main save with its published state intact and empty chore extensions', () => {
   const bytes = Uint8Array.from(readFileSync('tests/fixtures/aquarium-released-main.sav'));
   expect(createHash('sha256').update(bytes).digest('hex'))
     .toBe('117f99a05d6e9ad879954ec46c6ccc84858a3d9d7c6d7b957847927600a6eea6');
@@ -22,8 +32,27 @@ it('loads an actual released-main save and changes only the aquarium artwork', (
   try {
     const sim = new SimBridge(handle, memory);
     expect(sim.loadBytes(bytes)).toBe(true);
-    expect(sim.saveBytes()).toEqual(bytes);
-    expect(sim.worldHash().toString()).toBe('16205700675540473065');
+    // Written before skills and affinities existed, so its next save
+    // appends the skills field after the loaded bytes: Some (1), then the
+    // seeded practice rows, and then the drawn affinity values. Drawing
+    // those values ([OA-values]) moves the saved generator, which follows
+    // the content fingerprint and the tick; every other loaded byte is kept.
+    const saved = sim.saveBytes();
+    const rngStart = skipVarints(bytes, 10, 2);
+    const rngEnd = skipVarints(bytes, rngStart, 2);
+    const savedRngEnd = skipVarints(saved, rngStart, 2);
+    expect(saved.slice(0, rngStart)).toEqual(bytes.slice(0, rngStart));
+    expect(saved.slice(rngStart, savedRngEnd)).not.toEqual(bytes.slice(rngStart, rngEnd));
+    const rest = bytes.length - rngEnd;
+    expect(saved.slice(savedRngEnd, savedRngEnd + rest)).toEqual(bytes.slice(rngEnd));
+    expect(saved[savedRngEnd + rest]).toBe(1);
+    // Moved from 6601771059661594058 when the skill ladder became flat and the seeded practice changed.
+    // Moved from 13907076554945442085 when loading began drawing each person's affinity values once
+    // ([OA-values]): the draws advance the generator and the values join the hash. Measured natively.
+    // Moved from 11804688860418536815 when the aquarium kind took the trait tag `aquarium`, so Fish
+    // watcher sets a mild 0.4 in place of the drawn value; with the tag removed the old value returns.
+    expect(sim.worldHash().toString()).toBe('4526374402505414594');
+    expect([...saved.slice(-3)]).toEqual([0, 0, 0]);
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));

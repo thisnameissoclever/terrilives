@@ -1,0 +1,32 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 126 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 281 filtered out; finished in 0.00s
+
+
+running 1 test
+test social_company::tests::friendship_utility_counts_building_chats_and_requires_future_relief ... FAILED
+
+failures:
+
+failures:
+    social_company::tests::friendship_utility_counts_building_chats_and_requires_future_relief
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 945 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.73s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-b67bfee9131ed119.exe)
+     Running unittests src\lib.rs (target\debug\deps\terri_data-14b6a8285187343e.exe)
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-f8dc83d73b9df06b.exe)
+
+thread 'social_company::tests::friendship_utility_counts_building_chats_and_requires_future_relief' (38032) panicked at crates\terri-sim\src\social_company.rs:618:9:
+assertion failed: (neutral - 0.18962963).abs() < 0.000001
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

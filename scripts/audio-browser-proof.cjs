@@ -557,8 +557,10 @@ function memoryHudIsDeselected() {
   const dockReady = matches('#dock-activity', node =>
     node.textContent === document.querySelector('#activity-value')?.textContent && node.dataset.urgent === 'false') &&
     matches('#needs-caption', node => node.title === node.textContent);
-  // Closed personal details intentionally do not refresh; assert the scenario, not their stale contents.
-  const detailsClosed = matches('#personal-details', node => node.open === false);
+  // Closed personal details, skills, and likes and dislikes intentionally do not refresh; assert the scenario, not their stale contents.
+  const detailsClosed = matches('#personal-details', node => node.open === false) &&
+    matches('#skills-block', node => node.open === false) &&
+    matches('#affinities-block', node => node.open === false);
   return panelsReady && warningsReady && rosterReady && dockReady && detailsClosed;
 }
 

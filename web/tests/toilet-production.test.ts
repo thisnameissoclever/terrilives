@@ -24,12 +24,12 @@ it('toilet scenes animate all facings and palettes with separate visible click o
       prevPositions: () => new Float32Array([5, 3, 4, 3]),
       ids: () => new Uint32Array([fixture, agent]), kinds: () => new Uint32Array([1, 0]),
       sprites: () => new Uint32Array([empty, 0]), activities: () => new Uint32Array([0, 13]),
-      visualActions: () => new Uint32Array([0, 15]), facings: () => new Uint32Array([0, 0]),
+      visualActions: () => new Uint32Array([0, 18]), facings: () => new Uint32Array([0, 0]),
       simIds: () => new Uint32Array([none, simId]), carrying: () => new Uint32Array([none, none]),
       foregroundSprites: () => new Uint32Array([none, none]),
       interactionTargets: () => new Uint32Array([none, fixture]), itemKinds: () => [],
     };
-    const frames = BATHROOM_SPRITES[empty][15].frames[simShirtVariant(simId)];
+    const frames = BATHROOM_SPRITES[empty][18].frames[simShirtVariant(simId)];
     const samples = new Set<number>();
     for (let tick = 0; tick < 16; tick++) {
       const data = buildInstances(source, 1, 0, 0, 16, null, 1, false, tick);
@@ -67,8 +67,8 @@ it('compiled toilet use restores its drawn pose after Load and clears it on canc
     source.spawnAgent(3, 4, 50);
     const toilet = source.ids()[0], agent = source.ids()[1];
     expect(source.useObject(agent, toilet, 0)).toBe(true);
-    for (let tick = 0; tick < 100 && source.visualActions()[1] !== 15; tick++) source.tick();
-    expect(source.visualActions()[1]).toBe(15);
+    for (let tick = 0; tick < 100 && source.visualActions()[1] !== 18; tick++) source.tick();
+    expect(source.visualActions()[1]).toBe(18);
     expect(source.interactionTargets()[1]).toBe(toilet);
     const snapshot = () => Array.from(buildInstances(source, 1, 0, 0, 16, null, 1, false, source.clockTick())
       .slice(0, 2 * FLOATS_PER_INSTANCE));

@@ -133,6 +133,65 @@ class BathroomExportContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_contacts(rows)
 
+    def half_cell_partition(self, rows, polygon):
+        cell = rows[0]['curved_support']['continuous_cells'][0]
+        ix, iy = cell['cell']
+        x, y = ix*.003, -.1+iy*.003
+        rectangle = [[x,y],[x+.0015,y],[x+.0015,y+.003],[x,y+.003]]
+        cert = cell['mirrored_pair'][0]
+        shape = polygon(x, y, rectangle)
+        cert['partitions'] = [dict(body_triangle=0, seat_triangle=0, polygon_xy=shape,
+            gaps=[cert['min_gap'],cert['max_gap']]*(len(shape)//2))]
+        return rows
+
+    def test_near_double_winding_with_distinct_vertices_cannot_claim_full_cell_support(self):
+        rows = self.half_cell_partition(self.rows(),
+            lambda x, y, rectangle: rectangle+[[px+1e-10, py] for px, py in rectangle])
+        with self.assertRaises(ValueError):
+            validate_contacts(rows)
+
+    def test_denormal_shift_clockwise_and_sliver_partitions_reject(self):
+        denormal = lambda x, y, rectangle: rectangle+[[px+5e-324, py] for px, py in rectangle]
+        clockwise = lambda x, y, rectangle: [[x,y],[x,y+.003],[x+.003,y+.003],[x+.003,y]]
+        sliver = lambda x, y, rectangle: [[x,y],[x+.0015,y],[x+.003,y]]
+        for polygon in (denormal, clockwise, sliver):
+            with self.assertRaises(ValueError):
+                validate_contacts(self.half_cell_partition(self.rows(), polygon))
+
+    def test_many_thin_overlapping_strips_cannot_hide_a_hole(self):
+        rows = self.rows()
+        cell = rows[0]['curved_support']['continuous_cells'][0]
+        ix, iy = cell['cell']
+        x, y, d = ix*.003, -.1+iy*.003, .003
+        count, width, overlap = 200, .003*.9/200, 1e-12/.003
+        cert = cell['mirrored_pair'][0]
+        cert['partitions'] = [dict(body_triangle=0, seat_triangle=0,
+            polygon_xy=[[x+i*width, y], [x+(i+1)*width+overlap, y], [x+(i+1)*width+overlap, y+d], [x+i*width, y+d]],
+            gaps=[cert['min_gap'], cert['max_gap']]*2) for i in range(count)]
+        with self.assertRaises(ValueError):
+            validate_contacts(rows)
+
+    def test_two_full_cells_and_overlapping_three_quarter_halves_reject(self):
+        full = lambda x, y, rectangle: [[x,y],[x+.003,y],[x+.003,y+.003],[x,y+.003]]
+        for shapes in ((full, full), (lambda x, y, r: [[x,y],[x+.00225,y],[x+.00225,y+.003],[x,y+.003]],
+                                      lambda x, y, r: [[x+.00075,y],[x+.003,y],[x+.003,y+.003],[x+.00075,y+.003]])):
+            rows = self.rows()
+            cell = rows[0]['curved_support']['continuous_cells'][0]
+            ix, iy = cell['cell']
+            x, y = ix*.003, -.1+iy*.003
+            cert = cell['mirrored_pair'][0]
+            cert['partitions'] = [dict(body_triangle=0, seat_triangle=0, polygon_xy=shape(x, y, None),
+                gaps=[cert['min_gap'], cert['max_gap']]*2) for shape in shapes]
+            with self.assertRaises(ValueError):
+                validate_contacts(rows)
+
+    def test_spike_and_reversal_partitions_cannot_claim_full_cell_support(self):
+        spike = lambda x, y, rectangle: rectangle[:2]+[[x+.0015, y+.003], [x+.003, y+.0015], [x+.0015+1e-10, y+.003]]+rectangle[3:]
+        reversal = lambda x, y, rectangle: [rectangle[0], rectangle[1], [x+.003, y], rectangle[1], rectangle[2], rectangle[3]]
+        for polygon in (spike, reversal):
+            with self.assertRaises(ValueError):
+                validate_contacts(self.half_cell_partition(self.rows(), polygon))
+
     def test_action_codes_and_loop_duration_are_exact(self):
         action = dict(name='toilet_idle_v1', samples=4, closure_frame=4, half_cycle_ticks=8, loop_ticks=16)
         validate_action(action)

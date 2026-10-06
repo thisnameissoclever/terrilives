@@ -190,6 +190,8 @@ fn incident(sim: &mut Sim, residents: &[(Entity, SimId)], before: f32) {
             cursor: 0,
         },
         IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: toilet,
             interaction: 0,
         }]),

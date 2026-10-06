@@ -1,0 +1,61 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+ ❯ tests/atlas.test.ts (14 tests | 4 failed) 41914ms
+     × appends registered model clips without losing their source anchors or hand contacts 11693ms
+     × preserves registration, sample counts and source hashes for the blue shirt palette 9503ms
+     × preserves registration, sample counts and source hashes for the red shirt palette 10888ms
+     × appends the same two-pose exercise contract for every shirt without legacy bodies 5052ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/atlas.test.ts > the atlas manifest > appends registered model clips without losing their source anchors or hand contacts
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/atlas.test.ts:380:3
+    378|   });
+    379|
+    380|   it('appends registered model clips without losing their source ancho…
+       |   ^
+    381|     const manifest = JSON.parse(readFileSync('../assets/models/sims/si…
+    382|     expect(SPRITES.slice(360, 368).map(sprite => sprite.name)).toEqual(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/atlas.test.ts > the atlas manifest > preserves registration, sample counts and source hashes for the blue shirt palette
+ FAIL  tests/atlas.test.ts > the atlas manifest > preserves registration, sample counts and source hashes for the red shirt palette
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/atlas.test.ts:412:36
+    410|   });
+    411|
+    412|   it.each(['blue', 'red'] as const)(
+       |                                    ^
+    413|     'preserves registration, sample counts and source hashes for the %…
+    414|     (variant) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/atlas.test.ts > the atlas manifest > appends the same two-pose exercise contract for every shirt without legacy bodies
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/atlas.test.ts:437:3
+    435|   );
+    436|
+    437|   it('appends the same two-pose exercise contract for every shirt with…
+       |   ^
+    438|     let registration: unknown;
+    439|     for (const variant of ['green', 'blue', 'red']) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  1 failed | 158 passed (159)
+      Tests  4 failed | 2113 passed (2117)
+   Start at  10:24:39
+   Duration  131.79s (transform 13.14s, setup 0ms, import 33.25s, tests 78.43s, environment 9ms)
+

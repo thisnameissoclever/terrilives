@@ -817,6 +817,8 @@ fn placement_cancel_before_edit_flushes_deferred_release_and_joined_matches_spli
         let entity = object_definition(sim.world(), object).unwrap().0;
         let mut queue = IntentQueue::default();
         queue.push(Intent {
+            cleanup: None,
+            chore: None,
             object: entity,
             interaction: 0,
         });

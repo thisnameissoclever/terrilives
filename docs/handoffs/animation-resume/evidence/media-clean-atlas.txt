@@ -1,2 +1,0 @@
-architecture is up to date: 472 logical records after 3055 historical records
-atlas is up to date: 3055 sprites, 2048x2048

@@ -13,6 +13,7 @@ export interface TraitsPanelSource {
   /** Interleaved [pack trait index, state, ...] pairs, or empty. */
   traitsOf(entity: number): Float32Array;
   cleanlinessOf?(entity: number): number | null;
+  choreProfileOf?(entity:number):Int32Array;
   selfPreservationOf?(entity: number): number | null;
 }
 
@@ -48,6 +49,17 @@ function percent(state: number): number {
 }
 
 /**
+ * A capability's skill is rounded down, and reads 100% only at mastery 1,
+ * so it never shows 100% while the person can still fumble. Mastery
+ * arrives as an f32, which can sit a step below the value it names (0.58
+ * is 0.57999998); the 1e-4 allowance on the percentage absorbs that.
+ */
+function skillPercent(state: number): number {
+  if (state >= 1) return 100;
+  return Math.min(99, Math.floor(Math.max(0, state) * 100 + 1e-4));
+}
+
+/**
  * How a trait's state is worded. The empty string is a real answer: a
  * disposition has no state, and the surface hides the slot when it is empty.
  * `null` means the row cannot be worded at all, and makes the whole panel
@@ -62,7 +74,7 @@ function stateText(kind: string | undefined, state: number): string | null {
     case 'disposition':
       return '';
     case 'capability':
-      return `Skill ${percent(state)}%`;
+      return `Skill ${skillPercent(state)}%`;
     case 'condition':
       return `Severity ${percent(state)}%`;
     default:
@@ -90,6 +102,13 @@ export function traitsPanelState(
   const worn = source.traitsOf(selected);
 
   const traits: TraitView[] = [];
+  const choreProfile=source.choreProfileOf?.(selected);
+  if(choreProfile&&choreProfile.length>0){
+    if(choreProfile.length!==6||choreProfile[0]<0||choreProfile[0]>100||choreProfile[1]<0||choreProfile[1]>100||[...choreProfile.slice(2)].some(v=>v< -100||v>100))return UNAVAILABLE;
+    traits.push({key:-10,label:'Responsibility',description:'Higher values make Sims more likely to follow through on assigned chores.',state:`${choreProfile[0]}%`});
+    traits.push({key:-11,label:'Commitment history score',description:'Starts at a neutral 50. Fulfilled or missed duties change future follow-through.',state:`${choreProfile[1]}/100`});
+    for(let i=0;i<4;i++){const preference=choreProfile[i+2];traits.push({key:-12-i,label:['Dishes preference','Floor cleaning preference','Surface wiping preference','Bin emptying preference'][i],description:'Enjoyment changes willingness and mood while doing this chore.',state:`${preference>0?'Enjoys':preference<0?'Dislikes':'Neutral'} (${preference})`});}
+  }
   const cleanliness = source.cleanlinessOf?.(selected);
   if (cleanliness !== undefined && cleanliness !== null) {
     if (!Number.isFinite(cleanliness) || cleanliness < 0 || cleanliness > 1) return UNAVAILABLE;

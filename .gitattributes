@@ -1,4 +1,11 @@
 * text=auto eol=lf
+
+# Cleaning receipts bind exact producer and variant-manifest bytes.
+assets/models/cleaning/render.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/cleaning/poses.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/cleaning/export/green/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/cleaning/export/blue/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/cleaning/export/red/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/domestic/render_dining_hands.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/domestic/export_dining_hands.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/domestic/seated-hands/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

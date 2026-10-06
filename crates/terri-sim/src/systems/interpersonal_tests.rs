@@ -151,7 +151,9 @@ fn privacy_commutes_can_take_a_required_route_and_exiting_is_always_allowed() {
             cursor: 0,
         });
         if commute {
-            sim.world_mut().entity_mut(a).insert(terri_core::Commuting);
+            sim.world_mut()
+                .entity_mut(a)
+                .insert(terri_core::Commuting::Outbound);
         }
         let mut schedule = Schedule::default();
         schedule.add_systems(
@@ -170,8 +172,11 @@ fn privacy_commutes_can_take_a_required_route_and_exiting_is_always_allowed() {
     }
 }
 
+/// The chain order stays queued while the chain runs ([D-3]), and the
+/// directed origin is recorded beside it rather than derived from it, so
+/// both the order and the origin survive a save and a load.
 #[test]
-fn privacy_player_chain_origin_survives_its_spent_order_and_save_load() {
+fn privacy_player_chain_origin_survives_save_load_with_its_order_queued() {
     let mut sim = fixture();
     deliberate(&mut sim);
     let a = person(&mut sim, 1.25, 1.0);
@@ -185,6 +190,8 @@ fn privacy_player_chain_origin_survives_its_spent_order_and_save_load() {
         .entity_mut(a)
         .insert(terri_core::IntentQueue::from_intents(vec![
             terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: fridge,
                 interaction: pack.object(fridge_def).interactions.len() as u32,
             },
@@ -192,11 +199,11 @@ fn privacy_player_chain_origin_survives_its_spent_order_and_save_load() {
     let mut schedule = Schedule::default();
     schedule.add_systems(super::super::action::serve_intents);
     schedule.run(sim.world_mut());
-    assert!(sim
-        .world()
-        .get::<terri_core::IntentQueue>(a)
-        .unwrap()
-        .is_empty());
+    assert_eq!(
+        sim.world().get::<terri_core::IntentQueue>(a).unwrap().len(),
+        1,
+        "the chain order outlives the chain's start"
+    );
     assert!(crate::privacy::directed(sim.world(), a));
     let saved = sim.save_snapshot_v5();
     let mut resumed = fixture();
@@ -236,6 +243,8 @@ fn privacy_start_waits_and_player_order_or_relevant_emergency_can_override() {
                 .entity_mut(a)
                 .insert(terri_core::IntentQueue::from_intents(vec![
                     terri_core::Intent {
+                        cleanup: None,
+                        chore: None,
                         object: toilet,
                         interaction: 0,
                     },
@@ -426,6 +435,8 @@ fn shyness_autonomous_choice_prefers_privacy_but_player_orders_still_win() {
         .entity_mut(a)
         .insert(terri_core::IntentQueue::from_intents(vec![
             terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: risky,
                 interaction: 0,
             },

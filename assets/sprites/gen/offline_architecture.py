@@ -202,6 +202,14 @@ def load_historical_extensions(config, existing_names=frozenset()):
             from offline_covered_bunk import load_covered_bunk, records
             sprites = records(load_covered_bunk(path))
             assert not names.intersection(row[0] for row in sprites), 'duplicate covered-bunk records'
+        elif extension.get('kind') == 'cleaning':
+            from offline_cleaning import records
+            sprites = records(path)
+            assert not names.intersection(row[0] for row in sprites), 'duplicate cleaning records'
+        elif extension.get('kind') == 'table-sitting':
+            from offline_table_sitting import load_table_sitting
+            sprites = load_table_sitting(path.parent).sprites
+            assert not names.intersection(row[0] for row in sprites), 'duplicate table-sitting records'
         elif extension.get('kind', 'static') == 'static':
             sprites, _, _, _ = load_props(path, existing_names=names)
         elif extension['kind'] == 'neutral-seating':

@@ -72,7 +72,9 @@ class ShippedAtlasTests(unittest.TestCase):
         bed_layers = {int(index): layers for index, layers in shipped_table("BED_LAYERS").items()}
         seating_layers = {int(index): layers for index, layers in shipped_table("SEATING_LAYERS").items()}
         self.assertEqual(len(seating_layers), 5 * 4 * 3 * 4)
-        visible_layers = {**bed_layers, **seating_layers}
+        bathroom_layers = {int(index): layers for index, layers in shipped_table("BATHROOM_LAYERS").items()}
+        self.assertEqual(len(bathroom_layers), 4 * 3 * 4)
+        visible_layers = {**bed_layers, **seating_layers, **bathroom_layers}
         pair_coverage = {int(index) for index in shipped_table("SPRITE_PAIR_COVERAGE")}
         pairs = {int(index): layers for index, layers in shipped_table("SPRITE_PAIRS").items()}
         trims = {int(index): offset for index, offset in shipped_table("BED_LAYER_TRIMS").items()}
@@ -110,8 +112,8 @@ class ShippedAtlasTests(unittest.TestCase):
         records = tomllib.loads((ROOT / "assets/sprites/atlas.toml").read_text())["sprite"]
         bounds = {int(index) for index in shipped_table("SPRITE_CONTENT_BOUNDS")}
         sim_bodies = shipped_sim_bodies(records)
-        # Preserve the existing figures and include every new dining pose.
-        self.assertEqual(len(sim_bodies), 975 + 336)
+        # Preserve the existing figures, dining poses and 336 cleaning samples.
+        self.assertEqual(len(sim_bodies), 975 + 336 + 336)
         self.assertEqual(sorted(sim_bodies & bounds), [])
 
 

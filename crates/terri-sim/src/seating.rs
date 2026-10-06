@@ -9,6 +9,7 @@ use terri_core::{
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum UseKind {
     Meal,
+    TableSeat,
     Media,
 }
 
@@ -19,6 +20,13 @@ pub(crate) fn media_activity(
 ) -> Option<u32> {
     let definition = pack.objects.get(object.0 as usize)?;
     let action = definition.interactions.get(interaction as usize)?;
+    media_kind(definition, action)
+}
+
+pub(crate) fn media_kind(
+    definition: &terri_data::CompiledObject,
+    action: &terri_data::CompiledInteraction,
+) -> Option<u32> {
     match (definition.id.as_str(), action.id.as_str()) {
         ("television", "watch_tv") => Some(crate::render_buffer::activity::WATCHING_TV),
         ("radio", "listen") => Some(crate::render_buffer::activity::LISTENING_RADIO),
@@ -80,6 +88,9 @@ pub(crate) fn kind(world: &World, lease: &SavedDiner) -> Option<UseKind> {
     if let Some(target) = world.get::<Target>(person) {
         if target.object.index_u32() != lease.station {
             return None;
+        }
+        if crate::dining::ordinary_sitting(world, person) == Some(target.object) {
+            return Some(UseKind::TableSeat);
         }
         if target.interaction != crate::systems::chain::CHAIN_STEP {
             let object = world.get::<SmartObject>(target.object)?;
@@ -164,6 +175,49 @@ pub(crate) fn occupancy(world: &mut World) -> crate::beds::Occupancy {
         }
     }
     result
+}
+
+pub(crate) fn with_endpoints(
+    mut places: Vec<SavedDiner>,
+    endpoints: impl Iterator<Item = (Entity, Target, (i32, i32))>,
+) -> Vec<SavedDiner> {
+    for (owner, target, endpoint) in endpoints {
+        if !places.iter().any(|d| d.person == owner.index_u32()) {
+            places.push(SavedDiner {
+                person: owner.index_u32(),
+                station: target.object.index_u32(),
+                chair: None,
+                setting: None,
+                endpoint,
+                obstructing: vec![],
+            });
+        }
+    }
+    places
+}
+
+pub(crate) fn physical_places(world: &mut World) -> Vec<SavedDiner> {
+    let saved = world
+        .get_resource::<SavedDining>()
+        .map_or_else(Vec::new, |s| s.diners.clone());
+    let endpoints: Vec<_> = world
+        .query_filtered::<(
+            Entity,
+            &Target,
+            &terri_core::Position,
+            Option<&terri_core::Path>,
+        ), With<terri_core::Agent>>()
+        .iter(world)
+        .map(|(owner, target, position, path)| {
+            (
+                owner,
+                *target,
+                path.and_then(|p| p.steps.last().copied())
+                    .unwrap_or((position.x.round() as i32, position.y.round() as i32)),
+            )
+        })
+        .collect();
+    with_endpoints(saved, endpoints.into_iter())
 }
 
 #[cfg(test)]

@@ -1,0 +1,9 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.65s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::grime_tests::actual_last_walking_step_rolls_once_and_standing_does_not ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 980 filtered out; finished in 0.01s
+

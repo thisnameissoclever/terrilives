@@ -1,0 +1,21 @@
+
+running 1 test
+test dining::tests::critical_comfort_relationship_help_recognizes_actual_meal_seating ... FAILED
+
+failures:
+
+failures:
+    dining::tests::critical_comfort_relationship_help_recognizes_actual_meal_seating
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.88s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'dining::tests::critical_comfort_relationship_help_recognizes_actual_meal_seating' (33032) panicked at crates\terri-sim\src\dining\tests.rs:103:9:
+assertion `left == right` failed: Only real chair Comfort helps the critical need
+  left: false
+ right: true
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -15,6 +15,26 @@ export interface SimDetails {
   }[];
 }
 
+/**
+ * Where a person stands in one content skill ([SK-hud]): whole levels
+ * completed, the fraction of the next level already practised, and the
+ * fraction of the whole ladder climbed.
+ */
+export interface SkillStanding {
+  readonly level: number;
+  readonly progress: number;
+  readonly mastery: number;
+}
+
+/** The five words a person's feeling about an affinity kind reads as ([OA-hud]). */
+export type AffinityWord = 'Loves' | 'Likes' | 'Indifferent' | 'Dislikes' | 'Hates';
+
+const AFFINITY_WORDS: readonly string[] = ['Loves', 'Likes', 'Indifferent', 'Dislikes', 'Hates'];
+
+function isAffinityWord(word: string): word is AffinityWord {
+  return AFFINITY_WORDS.includes(word);
+}
+
 export interface BedPlace { readonly bed: number; readonly ordinal: number; }
 export interface BedPlaceStatus extends BedPlace {
   readonly label: string;
@@ -88,6 +108,34 @@ const HOUSEMATE_REASONS: Readonly<Record<number, string>> = {
 
 export function housemateReason(code: number): string | null {
   return code === 0 ? null : HOUSEMATE_REASONS[code] ?? 'They could not move in.';
+}
+
+/** The drain's answer to an edit of a living person ([ES-atomic]). */
+export interface EditResult {
+  /** Why the edit was refused, or null when it was applied. */
+  readonly reason: string | null;
+  /** The edited person's entity index, or null when nothing changed. */
+  readonly sim: number | null;
+  /** How many edits this world has handled, this one included. */
+  readonly handled: number;
+}
+
+/** Refusal lines for an edit, by the simulation's code ([ES-atomic]). Functional text: plain. */
+const EDIT_REASONS: Readonly<Record<number, string>> = {
+  1: 'That person is no longer here.',
+  2: 'Give them a name that fits.',
+  3: 'That personality is not available.',
+  4: 'Choose fewer traits.',
+  5: 'That trait is not available.',
+  6: 'Each trait once.',
+  7: 'That relative is no longer here.',
+  8: 'Each relative once.',
+  9: 'They cannot be their own relative.',
+};
+
+export function editReason(code: number): string | null {
+  if (code === 0) return null;
+  return EDIT_REASONS[code] ?? 'The changes could not be made.';
 }
 
 const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
@@ -569,6 +617,15 @@ export class SimBridge {
     return this.handle.day_ticks();
   }
 
+  /**
+   * The weekday of the current tick, 0 (Monday) to 6 (Sunday), as the
+   * simulation works it out. The shell never derives one from the day
+   * number, because only the simulation knows which weekday day 1 is.
+   */
+  weekdayIndex(): number {
+    return this.handle.weekday_index();
+  }
+
   /** Versioned simulation bytes for browser-owned storage. */
   saveBytes(): Uint8Array {
     return this.handle.save_bytes();
@@ -707,6 +764,10 @@ export class SimBridge {
       this.count,
     );
   }
+  choreProgress(): Uint32Array {
+    return new Uint32Array(this.memory.buffer,this.handle.chore_progress_ptr(),this.count);
+  }
+
 
   /** Exact active socket target IDs, never inferred from position or row order. */
   interactionTargets(): Uint32Array {
@@ -1195,6 +1256,32 @@ export class SimBridge {
     return this.enqueueOrder(VARIANT_USE_OBJECT_FIRST, agent, object, interaction);
   }
 
+  dishPiles(): Uint32Array { return this.handle.dish_piles(); }
+
+  floorGrime(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.floor_grime_ptr(),this.handle.floor_grime_len()); }
+  lotWidth():number{return this.handle.lot_width();}
+  surfaceGrime(): Uint32Array {return new Uint32Array(this.memory.buffer,this.handle.surface_grime_ptr(),this.count);}
+  binWaste(): Uint32Array {return new Uint32Array(this.memory.buffer,this.handle.bin_waste_ptr(),this.count);}
+  choreRows(): Uint32Array {return this.handle.chore_rows();}
+  choreHistory(): Uint32Array {return this.handle.chore_history();}
+  tableActions(entity:number):Uint32Array{return this.handle.table_action_rows(entity);}
+  choreLocation(kind:number,target:number):string{return this.handle.chore_location(kind,target);}
+  choreOptions(entity:number): Uint32Array {return this.handle.chore_options(entity);}
+  floorChoreAt(x:number,y:number): Uint32Array {return this.handle.floor_chore_at(x,y);}
+  choreProfileOf(person:number): Int32Array {return this.handle.chore_profile(person);}
+  choreBoardEnabled():boolean{return this.handle.chore_board_enabled();}
+  setChoreBoard(enabled:boolean):boolean{return this.handle.set_chore_board(enabled);}
+  setChoreProfile(person:number,responsibility:number,preferences:readonly number[]):boolean{return this.handle.set_chore_profile(person,Float64Array.from([responsibility,...preferences]));}
+  cleanChore(person:number,kind:number,target:number,first:boolean):boolean{return this.handle.clean_chore(person,kind,target,first);}
+
+  cleanDishes(agent: number, surface: number, dishes: readonly number[] | null): boolean {
+    return this.handle.clean_dishes(agent, surface, dishes === null ? undefined : Float64Array.from(dishes), false);
+  }
+
+  cleanDishesFirst(agent: number, surface: number, dishes: readonly number[] | null): boolean {
+    return this.handle.clean_dishes(agent, surface, dishes === null ? undefined : Float64Array.from(dishes), true);
+  }
+
   /**
    * Directs `agent` to start social interaction `interaction` (an index
    * into the pack's social vocabulary) with the sim `target`. Field
@@ -1559,6 +1646,62 @@ export class SimBridge {
     return this.handle.trait_descriptions();
   }
 
+  /**
+   * Every content skill for the person at `entityIndex`, in pack order, or
+   * null for anything that is not a living person and for a reading that
+   * does not line up with `skillLevels` one triple per skill. A copy across
+   * the boundary; the Skills view reads it only while it is open.
+   */
+  skillsOf(entityIndex: number): SkillStanding[] | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.skills_of(entityIndex);
+    const levels = this.handle.skill_levels();
+    if (values.length === 0 || values.length !== levels.length * 3) return null;
+    const skills: SkillStanding[] = [];
+    for (let skill = 0; skill < levels.length; skill += 1) {
+      const [level, progress, mastery] = values.slice(skill * 3, skill * 3 + 3);
+      if (!Number.isInteger(level) || level < 0 || level > levels[skill]
+        || !(progress >= 0 && progress < 1) || !(mastery >= 0 && mastery <= 1)) return null;
+      skills.push({ level, progress, mastery });
+    }
+    return skills;
+  }
+
+  /** One label per content skill, in pack order. Read once, like traitLabels. */
+  skillLabels(): string[] {
+    return this.handle.skill_labels();
+  }
+
+  /** One plain sentence per content skill, aligned with skillLabels. */
+  skillDescriptions(): string[] {
+    return this.handle.skill_descriptions();
+  }
+
+  /** The top level of each content skill, aligned with skillLabels. */
+  skillLevels(): number[] {
+    return Array.from(this.handle.skill_levels());
+  }
+
+  /**
+   * The word for each affinity value of the person at `entityIndex`, in
+   * pack order - Loves, Likes, Indifferent, Dislikes or Hates, worded by the
+   * simulation from the edges in tuning ([OA-hud]). Null for anything that
+   * is not a living person and for a reading holding any other word. A copy
+   * across the boundary; the Likes and dislikes view reads it only while it
+   * is open.
+   */
+  affinityWordsOf(entityIndex: number): AffinityWord[] | null {
+    if (!isU32(entityIndex)) return null;
+    const words = this.handle.affinity_words_of(entityIndex);
+    if (words.length === 0 || !words.every(isAffinityWord)) return null;
+    return words;
+  }
+
+  /** One label per affinity kind, in pack order. Read once, like skillLabels. */
+  affinityLabels(): string[] {
+    return this.handle.affinity_labels();
+  }
+
   /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */
   frontDoorLines(): Uint32Array {
     return Uint32Array.from(this.handle.front_door_lines());
@@ -1614,6 +1757,44 @@ export class SimBridge {
   }
 
   /**
+   * Stages an edit of the living person with this SimId ([ES-atomic]): the
+   * name, the personality (null keeps the current one), the whole trait
+   * list and a relation code to each relative by SimId, `NO_RELATION`
+   * clearing one. Queue acceptance only; read the outcome from
+   * `lastEditResult`.
+   */
+  editHousemate(
+    sim: number,
+    name: string,
+    personality: number | null,
+    traits: readonly number[],
+    ties: readonly (readonly [number, number])[],
+  ): boolean {
+    const flat = new Float64Array(ties.length * 2);
+    ties.forEach(([relative, code], at) => {
+      flat[at * 2] = relative;
+      flat[at * 2 + 1] = code;
+    });
+    return this.handle.edit_housemate(
+      sim, name, personality === null, personality ?? 0, Float64Array.from(traits), flat,
+    );
+  }
+
+  /** The drain's answer to the last edit, or null before the first. */
+  lastEditResult(): EditResult | null {
+    const values = this.handle.last_edit_result();
+    return values.length === 0 ? null
+      : { reason: editReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1], handled: values[2] };
+  }
+
+  /** The archetype an editor may mark as current for this entity, or null for "Keep current personality". */
+  personalityIndexOf(entity: number): number | null {
+    if (!isU32(entity)) return null;
+    const index = this.handle.personality_index_of(entity);
+    return index === 0xffffffff ? null : index;
+  }
+
+  /**
    * The label of the sim's career, or null for the unemployed and for
    * everything that is not a sim - the boundary's empty string is
    * in-band the way simName's is.
@@ -1622,6 +1803,21 @@ export class SimBridge {
     if (!isU32(entityIndex)) return null;
     const label = this.handle.career_of(entityIndex);
     return label === '' ? null : label;
+  }
+
+  /**
+   * The working days and shift hours of the sim's career, or null for the
+   * unemployed and for everything that is not a sim. `workingDays` is a
+   * mask with bit 0 for Monday through bit 6 for Sunday; the two times are
+   * ticks of the day clock.
+   */
+  careerScheduleOf(
+    entityIndex: number,
+  ): { workingDays: number; shiftStart: number; shiftTicks: number } | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.career_schedule_of(entityIndex);
+    if (values.length !== 3) return null;
+    return { workingDays: values[0], shiftStart: values[1], shiftTicks: values[2] };
   }
 
   /**

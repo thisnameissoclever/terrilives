@@ -1,3 +1,5 @@
+import { buildGrimeInstances } from './render/grime-decals.js';
+import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
@@ -46,6 +48,7 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { householdMembers } from './ui/household-roster.js';
+import { editTargetOf } from './ui/edit-target.js';
 import { WallFade } from './render/wall-fade.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
@@ -60,6 +63,8 @@ import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
+import { SkillsPanel, createSkillsPanelSurface } from './ui/skills-panel.js';
+import { AffinitiesPanel, createAffinitiesPanelSurface } from './ui/affinities-panel.js';
 import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
@@ -561,6 +566,36 @@ async function main(): Promise<void> {
       bedAssignmentPanel.update(nowMs, true);
     }
   });
+  // [SK-hud]: the Skills disclosure beside the personal details. Closed, it
+  // reads nothing; opening it reads at once.
+  const skillsBlock = document.querySelector<HTMLDetailsElement>('#skills-block');
+  const skillsEmpty = document.querySelector<HTMLElement>('#skills-empty');
+  const skillList = document.querySelector<HTMLElement>('#skill-list');
+  if (!skillsBlock || !skillsEmpty || !skillList) {
+    throw new Error('missing skills markup');
+  }
+  const skillsPanel = new SkillsPanel(sim,
+    { labels: sim.skillLabels(), descriptions: sim.skillDescriptions(), levels: sim.skillLevels() },
+    createSkillsPanelSurface(document, skillsBlock, skillsEmpty, skillList), sim.needBarRefreshMs(),
+    () => skillsBlock.open && !simOverview.hidden && !simSheet.hidden);
+  skillsBlock.addEventListener('toggle', () => {
+    if (skillsBlock.open) skillsPanel.update(performance.now(), true);
+  });
+  // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
+  // no periodic reads; opening it reads at once, and the forced updates at
+  // start, after Load and after an edit read whether or not it is open.
+  const affinitiesBlock = document.querySelector<HTMLDetailsElement>('#affinities-block');
+  const affinitiesEmpty = document.querySelector<HTMLElement>('#affinities-empty');
+  const affinityList = document.querySelector<HTMLElement>('#affinity-list');
+  if (!affinitiesBlock || !affinitiesEmpty || !affinityList) {
+    throw new Error('missing likes and dislikes markup');
+  }
+  const affinitiesPanel = new AffinitiesPanel(sim, sim.affinityLabels(),
+    createAffinitiesPanelSurface(document, affinitiesBlock, affinitiesEmpty, affinityList), sim.needBarRefreshMs(),
+    () => affinitiesBlock.open && !simOverview.hidden && !simSheet.hidden);
+  affinitiesBlock.addEventListener('toggle', () => {
+    if (affinitiesBlock.open) affinitiesPanel.update(performance.now(), true);
+  });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
   const peopleList = document.querySelector<HTMLElement>('#people-list');
@@ -714,6 +749,8 @@ async function main(): Promise<void> {
   moodPanel.update(initialHudMs, true);
   traitsPanel.update(initialHudMs, true);
   personalDetailsPanel.update(initialHudMs, true);
+  skillsPanel.update(initialHudMs, true);
+  affinitiesPanel.update(initialHudMs, true);
   bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
@@ -885,6 +922,13 @@ async function main(): Promise<void> {
     syncPersistenceButtons();
     void saving.then(() => syncPersistenceButtons());
   });
+  // The housemate dialog and its two openers, found before Load so the load
+  // path can close an open edit draft ([ES-form]); the form is set up below.
+  const newHousemateButton = document.querySelector<HTMLButtonElement>('#new-housemate');
+  const housemateDialog = document.querySelector<HTMLDialogElement>('#housemate-dialog');
+  if (!newHousemateButton || !housemateDialog) throw new Error('missing the New housemate form');
+  const editHousemateButton = document.querySelector<HTMLButtonElement>('#edit-housemate');
+  if (!editHousemateButton) throw new Error('missing the Edit housemate button');
   let loadingGame = false;
   loadButton.addEventListener('click', () => {
     optionsMenu.close();
@@ -936,9 +980,13 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           builder.resetAfterLoad();
+          // [ES-form]: a draft names a person of the replaced world, so
+          // close it before the form returns to create mode.
+          if (housemateDialog.open) housemateDialog.close('cancel');
           housemateForm.resetAfterLoad();
           bedAssignmentPanel.resetAfterLoad();
           syncNewHousemateButton();
+          syncEditHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           windowTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
@@ -951,6 +999,8 @@ async function main(): Promise<void> {
           moodPanel.update(nowMs, true);
           traitsPanel.update(nowMs, true);
           personalDetailsPanel.update(nowMs, true);
+          skillsPanel.update(nowMs, true);
+          affinitiesPanel.update(nowMs, true);
           bedAssignmentPanel.update(nowMs, true);
         }
       })
@@ -968,10 +1018,11 @@ async function main(): Promise<void> {
   });
   // [CS-command]: the New housemate form. The dialog pauses the game as
   // Load does; Move in stages one command, and the form closes once the
-  // drain has moved the newcomer in and selected them.
-  const newHousemateButton = document.querySelector<HTMLButtonElement>('#new-housemate');
-  const housemateDialog = document.querySelector<HTMLDialogElement>('#housemate-dialog');
-  if (!newHousemateButton || !housemateDialog) throw new Error('missing the New housemate form');
+  // drain has moved the newcomer in and selected them. [ES-form]: the Edit
+  // button opens the same dialog on the selected person, and Confirm
+  // changes closes it once the drain has applied the edit.
+  /** Where focus returns when the dialog closes: the button that opened it. */
+  let housemateOpener: HTMLButtonElement = optionsToggle;
   let housemateView: HousemateFormView | undefined;
   const housemateForm = new HousemateForm(sim, {
     changed: () => housemateView?.render(),
@@ -979,15 +1030,45 @@ async function main(): Promise<void> {
       housemateDialog.close('confirm');
       householdRoster.update(performance.now(), true);
     },
+    edited: () => {
+      housemateDialog.close('confirm');
+      // A new name shows in the roster, the dock and the panels at once.
+      const nowMs = performance.now();
+      householdRoster.update(nowMs, true);
+      if (needsPanel.update(nowMs, sim)) syncDockSummary();
+      peoplePanel.update(nowMs, true);
+      traitsPanel.update(nowMs, true);
+      personalDetailsPanel.update(nowMs, true);
+      skillsPanel.update(nowMs, true);
+      affinitiesPanel.update(nowMs, true);
+    },
   });
   housemateView = new HousemateFormView(document, housemateForm);
   const syncNewHousemateButton = (): void => {
     newHousemateButton.disabled = !housemateForm.roomForOne();
   };
+  // Off while a move-in or edit is on its way, and with nobody selected.
+  const syncEditHousemateButton = (): void => {
+    editHousemateButton.disabled = housemateForm.pending || sim.selectedIndex() === null;
+  };
   syncNewHousemateButton();
+  syncEditHousemateButton();
+  editHousemateButton.addEventListener('click', () => {
+    const selected = sim.selectedIndex();
+    if (selected === null) return;
+    const members = householdMembers(sim);
+    const target = editTargetOf(sim, selected, members);
+    if (target === null) return;
+    housemateForm.beginEdit(target, members);
+    housemateView?.setHousehold(members);
+    housemateOpener = editHousemateButton;
+    overlayPause.suspend('housemate');
+    housemateDialog.showModal();
+  });
   newHousemateButton.addEventListener('click', () => {
     optionsMenu.close();
     housemateForm.reset();
+    housemateOpener = optionsToggle;
     // [FM-choose]: the household as it stands right now, since it changes
     // between one opening of this dialog and the next.
     housemateView?.setHousehold(householdMembers(sim));
@@ -997,7 +1078,8 @@ async function main(): Promise<void> {
   housemateDialog.addEventListener('close', () => {
     overlayPause.resume('housemate');
     syncNewHousemateButton();
-    restorePersistenceFocus(document, housemateDialog, optionsToggle, persistenceFocusFallbacks);
+    syncEditHousemateButton();
+    restorePersistenceFocus(document, housemateDialog, housemateOpener, persistenceFocusFallbacks);
   });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
@@ -1241,6 +1323,7 @@ async function main(): Promise<void> {
     wallFade.configure(staticGeometry.lowInstances, staticGeometry.lowPanels, lot.width, lot.height);
     renderer.setArchitectureCamera(camera.originX, camera.originY);
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count, staticGeometry.lowInstances);
+
     cameraDirty = false;
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
@@ -1281,6 +1364,16 @@ async function main(): Promise<void> {
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
   if (!keyboardStatus) throw new Error('missing #keyboard-target');
   const keyboardTargets = new KeyboardTargetController(sim, keyboardStatus);
+  const choresDialog=document.createElement('dialog');choresDialog.id='chores-dialog';
+  const choresTitle=document.createElement('h2');choresTitle.id='chores-title';choresTitle.textContent='Chores';
+  choresDialog.setAttribute('aria-labelledby','chores-title');
+  const choresClose=document.createElement('button');choresClose.type='button';choresClose.className='hud-button';choresClose.textContent='Close';
+  const choresBoard=new ChoresBoard(sim,document,()=>choresDialog.close());
+  const choresHeader=document.createElement('header');choresHeader.className='chores-header';choresHeader.append(choresTitle,choresClose);
+  choresDialog.append(choresHeader,choresBoard.element());document.body.append(choresDialog);
+  choresClose.addEventListener('click',()=>choresDialog.close());
+  document.querySelector('#chores-toggle')!.addEventListener('click',()=>{optionsMenu.close();overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
+  choresDialog.addEventListener('close',()=>overlayPause.resume('chores'));
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
   let builderControls: BuilderControls;
@@ -1715,6 +1808,7 @@ async function main(): Promise<void> {
     buyTool.afterCommands();
     housemateForm.afterCommands();
     bedAssignmentPanel.afterCommands();
+    if(choresDialog.open)choresBoard.update();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
@@ -1736,6 +1830,8 @@ async function main(): Promise<void> {
     // camera-derived statics after that drain, before any instances are drawn.
     if (floorScene.visible) {
       if (cameraDirty) applyCamera();
+      renderer.setGrimeInstances(buildGrimeInstances(sim,lot.width,depthScale,camera.originX,camera.originY,camera.scale,renderer.grimeSpriteBase));
+
       // [PA-place]: after the camera settles, so the buttons follow this
       // frame's pan and zoom.
       placementButtons.frame(camera, stage.width, stage.height);
@@ -1787,10 +1883,13 @@ async function main(): Promise<void> {
     householdRoster.update(nowMs);
     deathControls.update();
     syncNewHousemateButton();
+    syncEditHousemateButton();
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
     personalDetailsPanel.update(nowMs);
+    skillsPanel.update(nowMs);
+    affinitiesPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();

@@ -176,6 +176,10 @@ function memoryHudFixture() {
   add('#queue-empty', 'No actions queued.');
   add('#personal-details');
   nodes.get('#personal-details').open = false;
+  add('#skills-block');
+  nodes.get('#skills-block').open = false;
+  add('#affinities-block');
+  nodes.get('#affinities-block').open = false;
   const warnings = Array.from({ length: 7 }, () => ({ childNodes: [] }));
   const members = Array.from({ length: 3 }, () => ({ pressed: 'false', getAttribute() { return this.pressed; } }));
   const fixture = {
@@ -238,6 +242,8 @@ const staleProjectionCases = [
   ['dock-traits-empty', node => { node.hidden = true; }],
   ['queue-empty', node => { node.hidden = true; }],
   ['personal-details', node => { node.open = true; }],
+  ['skills-block', node => { node.open = true; }],
+  ['affinities-block', node => { node.open = true; }],
 ];
 
 test.each(staleProjectionCases)('memory normalization rejects stale %s even when the old subset is ready', (label, change) => {
@@ -250,6 +256,8 @@ test.each(staleProjectionCases)('memory normalization rejects stale %s even when
 test('memory normalization accepts only a complete deselected projection without waiting on closed detail contents', () => {
   const fixture = memoryHudFixture();
   fixture.nodes.set('#personal-details-content', { textContent: 'Intentionally not refreshed while closed' });
+  fixture.nodes.set('#skill-list', { hidden: false, childNodes: [{}] });
+  fixture.nodes.set('#affinity-list', { hidden: false, childNodes: [{}] });
   expect(normalized(fixture)).toBe(true);
   fixture.selected = 34;
   expect(normalized(fixture)).toBe(false);

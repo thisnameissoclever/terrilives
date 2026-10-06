@@ -1,5 +1,7 @@
 """Validate complete fitted toilet animation evidence without importing Blender."""
 import ast
+from fractions import Fraction
+from functools import lru_cache
 import itertools
 import json
 import math
@@ -23,6 +25,9 @@ SOLID_NAMES = {'Toilet recessed bowl', 'Toilet open seat ring', 'Toilet pedestal
     'Toilet cistern cap', 'Toilet flush button', 'Toilet seat bumper -1', 'Toilet seat bumper 1',
     'Toilet hinge mount -1', 'Toilet hinge mount 1', 'Toilet hinge axle', 'Toilet upright lid'}
 ACTION = dict(name='toilet_idle_v1', samples=4, closure_frame=4, half_cycle_ticks=8, loop_ticks=16)
+# Presentation body-action code shared with `render_buffer::visual_action::USE_TOILET`
+# in crates/terri-sim/src/render_buffer.rs. Codes 14 to 17 belong to the cleaning chores.
+USE_TOILET_ACTION = 18
 ACCEPTED_BASE = 'bathroom/actions/review/toilet/prototype-08-curved-support'
 LOOP_EXTRA_INPUTS = {'bathroom/actions/render_toilet_loop.py', 'bathroom/actions/render_toilet_ink.py',
     'bathroom/actions/toilet_loop_v1.py', 'bathroom/actions/test_toilet_loop.py',
@@ -180,6 +185,44 @@ def validate_palettes(palettes):
                         raise ValueError('Palette does not preserve frozen setter shading ratios')
 
 
+def exact_convex(polygon):
+    """Return the polygon as exact rationals when it is strictly convex, counterclockwise and winds once.
+
+    Python floats convert to Fraction exactly, so these predicates need no arithmetic tolerance.
+    A locally convex closed polygon that winds k times changes the sign of its edge x-direction
+    2k times, so a second circuit is rejected however small its displacement."""
+    points = [(Fraction(x), Fraction(y)) for x, y in polygon]
+    edges = [(b[0]-a[0], b[1]-a[1]) for a, b in zip(points, points[1:]+points[:1])]
+    if len(points) < 3 or any(e[0]*f[1]-e[1]*f[0] <= 0 for e, f in zip(edges, edges[1:]+edges[:1])):
+        raise ValueError('Contact partition must turn strictly left at every vertex')
+    signs = [dx > 0 for dx, _ in edges if dx != 0]
+    if sum(a != b for a, b in zip(signs, signs[1:]+signs[:1])) != 2:
+        raise ValueError('Contact partition must wind exactly once')
+    return points
+
+
+@lru_cache(maxsize=None)
+def uncertified_cell_area(bounds, polygons):
+    """Exact upper bound on the cell area that no partition covers.
+
+    The union of the partitions clipped to the cell covers at least the sum of their areas minus
+    the sum of their pairwise overlaps, so the returned shortfall never understates a hole. Summed
+    partition areas alone cannot prove coverage: many thin pieces overlapping by less than the
+    pairwise tolerance would otherwise hide a hole as large as all those overlaps together."""
+    left, bottom, right, top = (Fraction(v) for v in bounds)
+    cell = [(left, bottom), (right, bottom), (right, top), (left, top)]
+    pieces = [piece for piece in (clip_polygon(exact_convex(p), cell) for p in polygons) if len(piece) >= 3]
+    boxes = [(min(x for x, _ in p), min(y for _, y in p), max(x for x, _ in p), max(y for _, y in p)) for p in pieces]
+    lower = sum(signed_area(piece) for piece in pieces)
+    for i, (piece, a) in enumerate(zip(pieces, boxes)):
+        for other, b in zip(pieces[:i], boxes[:i]):
+            if a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]:
+                overlap = clip_polygon(piece, other)
+                if len(overlap) >= 3:
+                    lower -= signed_area(overlap)
+    return (right-left)*(top-bottom)-lower
+
+
 def validate_curved(support):
     if support['state'] != 'passed' or support['certificate_shape'] != 'mirrored edge-connected actual-surface cell union':
         raise ValueError('Missing actual curved contact certificate')
@@ -212,9 +255,7 @@ def validate_curved(support):
                     raise ValueError('Contact partition has no positive physical area')
                 if len({tuple(point) for point in polygon}) != len(polygon):
                     raise ValueError('Contact partition repeats a physical vertex')
-                for a, b in zip(polygon, polygon[1:]+polygon[:1]):
-                    if any((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]) < -1e-12 for p in polygon):
-                        raise ValueError('Contact partition must be convex and counterclockwise')
+                exact_convex(polygon)
                 for previous in polygons:
                     overlap = clip_polygon(polygon, previous)
                     if len(overlap) >= 3 and signed_area(overlap) > 1e-12:
@@ -224,6 +265,9 @@ def validate_curved(support):
             if (not gaps or min(gaps) != low or max(gaps) != high or abs(total-area) > 1e-12
                     or abs(area-.003*.003) > 1e-12):
                 raise ValueError('Contact extrema or area disagree with full partition evidence')
+            shortfall = uncertified_cell_area(bounds, tuple(tuple(tuple(p) for p in poly) for poly in polygons))
+            if shortfall > Fraction(1e-12):
+                raise ValueError('Contact partitions leave uncertified area inside the physical cell')
             pair_areas.append(area)
         areas[key] = min(pair_areas)
     if not areas or not support['eligible_regions']:

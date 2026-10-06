@@ -107,6 +107,8 @@ pub struct RenderBuffer {
     /// Walking is the deliberate exception: it is presentation-owned and
     /// derived from the live path's next step.
     pub visual_actions: Vec<u32>,
+    /// Derived timed-chore phase in thousandths; zero for inactive rows.
+    pub chore_progress: Vec<u32>,
     /// Exact target entity index for a winning socket interaction, or the
     /// absent-target sentinel. This is derived presentation state, not a save field.
     pub interaction_targets: Vec<u32>,
@@ -146,6 +148,9 @@ pub struct RenderBuffer {
     pub dirty_dishes: Vec<u32>,
     /// Four table-setting nibbles, each the visible dish count capped at 15.
     pub dirty_settings: Vec<u32>,
+    pub surface_grime: Vec<u32>,
+    pub bin_waste: Vec<u32>,
+    pub floor_grime: Vec<u32>,
     /// Collected cleanup load, derived from the saved cleanup claims.
     pub carried_dishes: Vec<u32>,
     pub meal_portions: Vec<u32>,
@@ -238,6 +243,9 @@ pub mod activity {
     pub const GETTING_INGREDIENTS: u32 = 21;
     pub const PREPARING_FOOD: u32 = 22;
     pub const COOKING: u32 = 23;
+    pub const MOPPING: u32 = 24;
+    pub const WIPING: u32 = 25;
+    pub const EMPTYING_BIN: u32 = 26;
 }
 
 /// Presentation body-action codes. Kept as `u32` so JavaScript can view the
@@ -265,8 +273,12 @@ pub mod visual_action {
     pub const COOK: u32 = 11;
     pub const WASH: u32 = 12;
     pub const SEATED_EAT: u32 = 13;
+    pub const MOP: u32 = 14;
+    pub const WIPE_COUNTER: u32 = 15;
+    pub const WIPE_TABLE: u32 = 16;
+    pub const EMPTY_BIN: u32 = 17;
     /// Sitting on the exact target toilet's authored seat socket.
-    pub const USE_TOILET: u32 = 15;
+    pub const USE_TOILET: u32 = 18;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -3168,6 +3180,8 @@ mod tests {
                 interaction: settle,
             },
             IntentQueue::from_intents(vec![Intent {
+                cleanup: None,
+                chore: None,
                 object: target,
                 interaction: settle,
             }]),

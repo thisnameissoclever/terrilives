@@ -31,12 +31,11 @@ score_multiplier = 1.5
 # A capability: cooking is a skill, and Casey does not have it yet. She
 # MAY attempt - the stove is not hidden from her, because a sim who
 # never approaches the stove is not a scene ([S4]) - and a failed
-# attempt delivers nothing of the meal while still teaching her
-# something. At 0.25 she fails three attempts in four to begin with;
-# at 0.015 per attempt she is competent after ~35 real tries - a few
-# sessions of genuine practice, not one. The first measured hour at
-# 0.05 saw her MASTER the stove before dinner, which read as tutorial
-# pacing rather than an arc; [A-13] records the correction.
+# attempt delivers nothing of the meal. Pass or fail, the attempt's
+# practice goes to the matching skill, `cooking` in skills.toml, and
+# not to this trait ([SK-learning] in docs/specs/2026-10-05-skills.md).
+# At 0.25 she fails three attempts in four to begin with. The learning
+# pace lives with the skill now; [A-13] records why it is slow.
 [[trait_def]]
 id = "cannot_cook"
 label = "Can't cook"
@@ -45,7 +44,6 @@ kind = "capability"
 tag = "cooking"
 start_level = 0.25
 fail_delta_scale = 0.0
-learn_per_attempt = 0.015
 
 # A condition: Tim's low spirits scale her satisfaction ACCRUAL - at
 # full severity a completed hobby pays 40% of what it would - and the
@@ -79,7 +77,7 @@ start_severity = 0.6
 # traits go at the END of this file.
 #
 # The mechanism numbers are pairwise distinct ([L26], [L29]): a
-# multiplier pasted into a learning rate must change a test's answer.
+# multiplier pasted into a start level must change a test's answer.
 # `the_trait_library_numbers_are_pairwise_distinct` enforces it.
 # Starting satisfaction offsets may repeat and are checked separately.
 #
@@ -168,7 +166,6 @@ kind = "capability"
 tag = "exercise"
 start_level = 0.42
 fail_delta_scale = 0.52
-learn_per_attempt = 0.02
 
 [[trait_def]]
 id = "slow_reader"
@@ -178,7 +175,6 @@ kind = "capability"
 tag = "reading"
 start_level = 0.58
 fail_delta_scale = 0.3
-learn_per_attempt = 0.012
 
 # Two more conditions, framed as [S4] requires: managed and improvable,
 # played straight. Each eases when the sim does the thing that helps.

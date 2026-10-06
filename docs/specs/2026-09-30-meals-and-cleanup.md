@@ -5,6 +5,12 @@ Corrected art and final integration passed independent adversarial reviews.
 Evidence: [local checks and screenshots](../assets/review-evidence/domestic/README.md).
 Companion: [Sim interpersonal relations](../SIM-RELATIONSHIPS.md).
 
+The [household chores extension](2026-10-04-chores-and-weekly-board.md) adds
+independent responsibility and per-chore preferences, physical grime and waste,
+and a saved weekly duty board. Dish completion reports the real washer to that
+board. Existing sink-wide orders and autonomous dish claims retain their scopes;
+the explicit targeted actions below remain fixed-pile or continuing-surface work.
+
 ## [MC-actions] Food is station work
 
 | Action | Stages | Station work, before walking |
@@ -18,10 +24,19 @@ seconds for a meal and 8.5 seconds for a snack. The existing duration variance
 changes actual step lengths. Every tick also advances one game minute.
 Walking, occupied stations and gathering for a shared meal add time.
 Snacks remain the faster hunger remedy.
-The meal grants hunger and comfort only after eating; intermediate work does
-not feed a Sim. Cooking competence can reduce the whole meal's food benefit,
+The meal grants Hunger only after eating; intermediate work does not feed a
+Sim. Comfort comes from the occupied chair during eating. Standing eating
+costs two Comfort points per ninety actual eating minutes, including a smaller
+proportional cost for snacks. Food quality scales Hunger, rather than chair
+Comfort or companionship. Social is separate: it arrives during simultaneous eating by
+liked Sims seated in chairs facing the same table. A nominal 90-minute eating
+interval offers 11 Social points; only eligible overlap receives the benefit.
+Standing, tableless, solitary meals and empty-table sitting offer none.
+Cooking competence can reduce the whole meal's food benefit,
 including friends' portions. Cooking practice occurs at the cooking step.
 The cook's cooking hobby and condition still compose with activity satisfaction.
+See [the needs interaction reference](../NEEDS-INTERACTIONS.md) for rates,
+modifiers and the justification for each need effect.
 
 The fridge retains its existing snack command index. Its meal label reads
 Cook breakfast before 11:00, Cook lunch from 11:00 through 16:59, and Cook dinner
@@ -41,7 +56,34 @@ remain saved until washing finishes. A different activity returns collected
 dishes to their original surfaces and frees the Sim's hands. The interrupted
 chore retains its claim and resumes at collection. Abandoning it also releases
 the claim.
-Player-directed cleanup is available at the kitchen sink.
+Player-directed cleanup is available at the kitchen sink and directly on dishes
+or their supporting counter or table.
+
+### Targeted cleanup
+
+Left-clicking a visible pile orders the selected Sim to wash that pile. Its
+right-click menu offers Do dishes. A pile includes all accumulated dishes at
+that visible setting; other settings remain untouched. The order captures
+stable dish identities, so dishes removed before it starts are skipped and
+replacement dishes cannot become its targets.
+
+Right-clicking exposed dirty furniture offers Clean up for that surface. A
+dirty table hides seating actions until its dishes have been collected. Surface
+cleanup includes dishes added during the chore: the Sim collects and washes,
+then returns for more until the surface is clear. Another cleaner's claims
+remain exclusive; this chore waits for collection or released claims. Prepared
+food is not dirty dishes. Ordinary clicks on furniture retain their existing
+actions. Queue mode and Ctrl/Cmd append either chore; ordinary activation puts
+it ahead of waiting orders. Long-press and keyboard menu activation use the same
+targets.
+Keyboard target cycling includes dirty surfaces and each visible pile, so both
+cleanup scopes are available without pointing at the canvas.
+
+Scoped chores use the existing transport, washing and interruption rules.
+Cancellation restores carried dishes and releases claims immediately. Missing
+surfaces and unavailable washing routes end the chore without deleting dishes
+or redirecting it to another surface. Kitchen-sink and autonomous cleanup retain
+their existing selections.
 
 The render buffer derives `carried_dishes` from these saved collection claims.
 Carry and wash clips contain a modeled plate with actual hand occlusion.
@@ -137,6 +179,12 @@ eating interval has started. Every
 future-affecting value enters the world hash.
 Load validation checks identity, finite ranges, ordering, references and
 exclusive claims before replacing the running world.
+An optional V5 field after dining stores scoped cleanup requests, their exact
+queue positions and continuing surface targets. Published nested intent and
+cleanup records retain their encoding. Loading reconstructs mixed order queues
+and validates active claims against their scope. Historical table records that
+span several settings split deterministically into individual dish identities,
+preserving units, creators, claims and room memory.
 Meal identities must be unique, and a serving cook's active dining target
 must match its batch's table. Ordinary interruptions may target other objects.
 
@@ -216,3 +264,13 @@ spoon, pot and nearest large burner share measured model coordinates. The compos
 fixture checks the spoon grip and bowl against the hand and pot over every phase
 and facing. Carrying food uses a held-plate body clip; preparation and cooking
 represent food at the station, so the logical inventory badge is suppressed there.
+
+## Sitting and available meals
+
+A clean table offers Sit only when a correctly oriented adjacent chair exists.
+Sitting claims that chair and uses the table-fitted resting pose without food or
+utensils. A temporarily occupied chair is rechecked before the order starts.
+Eat prepared food appears only when the selected Sim has an unclaimed, uneaten
+portion from a prepared shared meal that can use this table. Activation checks
+availability again. Interaction 0 remains Sit; the virtual meal action is 1.
+Both actions retain normal queue priority and save continuation.

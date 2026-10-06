@@ -9,6 +9,7 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    InvalidNeedInteractionTuning,
     InvalidSleepPlaces {
         object: String,
         reason: String,
@@ -280,6 +281,15 @@ pub enum ContentError {
     },
     HabituationFloorOutOfRange {
         value: f32,
+    },
+    /// [OD-content]: an overdoing knob outside its range, named by `key`.
+    /// Each rule guards a value that would fail quietly: a maximum of 1
+    /// leaves no room to overdo anything, a threshold below 1 charges mood
+    /// for ordinary appeal-level repetition, a sickness threshold outside
+    /// the overdoing range is never reached or reached before overdoing, and
+    /// a negative penalty pays mood for repetition.
+    InvalidOverdoingTuning {
+        key: &'static str,
     },
     /// Zero attempts is not "wander less"; it is a sim that can never
     /// roll a destination and therefore never wanders at all, which is
@@ -847,6 +857,98 @@ pub enum ContentError {
         id: String,
         kind: String,
     },
+    /// `skills.toml` declares the same skill id twice. Saves name a skill
+    /// by id, so two would be one row with two meanings - [SK-model].
+    DuplicateSkill(String),
+    /// A skill keyed on a tag no activity carries: practice nobody could
+    /// ever gain - [D9]'s dangling reference.
+    SkillAboutNothing {
+        id: String,
+        tag: String,
+    },
+    /// A skill with no levels or more than 100, or a practice step that is
+    /// not finite or outside `(0, 1]`.
+    SkillFieldOutOfRange {
+        id: String,
+        field: &'static str,
+    },
+    /// A skill with a blank label or description. The Overview sheet
+    /// prints both.
+    EmptySkillText {
+        id: String,
+        field: &'static str,
+    },
+    /// Two skills keyed on one tag. A capability's fumble roll reads the
+    /// one skill with its tag, so the second would be practised and never
+    /// read - [SK-capability].
+    SkillTagShared {
+        first: String,
+        second: String,
+        tag: String,
+    },
+    /// A skill whose whole ladder, under the tuning's cost and growth,
+    /// costs more practice than an f32 can hold - [SK-model].
+    SkillLadderOverflows {
+        id: String,
+    },
+    /// `skill_level_cost` not finite or not above 0. A free first level
+    /// would put a person past it before any practice.
+    SkillLevelCostOutOfRange {
+        value: f32,
+    },
+    /// `skill_level_growth` not finite or below 1. A later level would
+    /// cost less than the one before it.
+    SkillLevelGrowthBelowOne {
+        value: f32,
+    },
+    /// `objects.toml` declares the same affinity kind id twice. Saves name a
+    /// kind by id, so two would be one value with two meanings - [OA-kinds].
+    DuplicateAffinityKind(String),
+    /// An affinity kind with a blank id or label. The Overview sheet prints
+    /// the label, and a save records the id.
+    EmptyAffinityText {
+        id: String,
+        field: &'static str,
+    },
+    /// An affinity kind whose `reach` is neither `presence` nor `use`.
+    UnknownAffinityReach {
+        id: String,
+        reach: String,
+    },
+    /// An affinity kind listing an object id no object has.
+    AffinityObjectUnknown {
+        id: String,
+        object: String,
+    },
+    /// One object listed by two affinity kinds, or twice by one. An object
+    /// belongs to at most one kind, so a person has one feeling about it.
+    AffinityObjectShared {
+        first: String,
+        second: String,
+        object: String,
+    },
+    /// An affinity kind covering no object: a feeling about nothing.
+    AffinityObjectEmpty {
+        id: String,
+    },
+    /// A `use` affinity kind covering an object with no interaction, which
+    /// nobody could ever be seen using - [OA-use].
+    UseAffinityWithoutInteractions {
+        id: String,
+        object: String,
+    },
+    /// An affinity kind whose `trait_tag` no activity carries, so no
+    /// disposition trait could ever set its starting value - [D9]'s
+    /// dangling reference.
+    AffinityTraitTagAboutNothing {
+        id: String,
+        tag: String,
+    },
+    /// An affinity tuning knob outside its range, named by `key` -
+    /// [OA-values], [OA-presence] and [OA-use].
+    AffinityTuningOutOfRange {
+        key: &'static str,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -893,6 +995,20 @@ pub enum ContentError {
         id: String,
         value: f32,
     },
+    /// A career that works no day of the week - [CAL-careers].
+    EmptyWorkingDays {
+        id: String,
+    },
+    /// A career that lists the same working day twice.
+    RepeatedWorkingDay {
+        id: String,
+        day: String,
+    },
+    /// A working day that is not one of `mon` to `sun`.
+    UnknownWorkingDay {
+        id: String,
+        day: String,
+    },
     /// A household sim holding a career `careers.toml` does not declare.
     UnknownSimCareer {
         sim: String,
@@ -900,6 +1016,10 @@ pub enum ContentError {
     },
     /// A zero-tick day - `tick % day_ticks` would divide by zero.
     ZeroDayTicks,
+    /// A `first_weekday` past 6 (Sunday) - [CAL-week].
+    FirstWeekdayOutOfRange {
+        value: u8,
+    },
     /// A circadian curve with nothing to interpolate between.
     CircadianTooFewPoints {
         points: usize,
@@ -1161,6 +1281,7 @@ pub enum ContentError {
 impl fmt::Display for ContentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ContentError::InvalidNeedInteractionTuning => write!(f, "need-interaction tuning has an invalid Hygiene ceiling or participation rate"),
             ContentError::InvalidSleepPlaces { object, reason } => write!(
                 f, "object '{object}' has invalid sleep places: {reason}"
             ),
@@ -1382,6 +1503,10 @@ impl fmt::Display for ContentError {
             ContentError::HabituationFloorOutOfRange { value } => write!(
                 f,
                 "habituation_floor is {value}; must be in (0, 1]. It is a                  MULTIPLIER, so 1 disables the effect and 0 would make a fully                  habituated interaction permanently worthless"
+            ),
+            ContentError::InvalidOverdoingTuning { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: habituation_max must be finite and above 1; overdoing_threshold finite, at least 1 and below habituation_max; sick_threshold finite, above overdoing_threshold and at most habituation_max; overdoing_penalty and sick_penalty finite and not negative"
             ),
             ContentError::ZeroInteractionFloor => write!(
                 f,
@@ -1931,6 +2056,102 @@ impl fmt::Display for ContentError {
                 "trait '{id}' declares kind '{kind}'; the kinds are {}",
                 crate::schema::TRAIT_KINDS.join(", ")
             ),
+            ContentError::DuplicateSkill(id) => write!(
+                f,
+                "skill '{id}' is declared twice in skills.toml; saves name a \
+                 skill by its id"
+            ),
+            ContentError::SkillAboutNothing { id, tag } => write!(
+                f,
+                "skill '{id}' keys on tag '{tag}', which no interaction or \
+                 chain step in the pack carries, so nobody could practise it"
+            ),
+            ContentError::SkillFieldOutOfRange { id, field } => write!(
+                f,
+                "skill '{id}' has a {field} outside its range: levels 1 to \
+                 100, practice_per_attempt above 0 and at most 1"
+            ),
+            ContentError::EmptySkillText { id, field } => write!(
+                f,
+                "skill '{id}' needs a {field} in skills.toml"
+            ),
+            ContentError::SkillTagShared { first, second, tag } => write!(
+                f,
+                "skills '{first}' and '{second}' both key on tag '{tag}'; \
+                 one skill per tag, because a capability's fumble reads the \
+                 skill with its tag"
+            ),
+            ContentError::SkillLadderOverflows { id } => write!(
+                f,
+                "skill '{id}' has a ladder whose total cost is not a finite \
+                 number under skill_level_cost and skill_level_growth; use \
+                 fewer levels or a smaller growth"
+            ),
+            ContentError::SkillLevelCostOutOfRange { value } => write!(
+                f,
+                "skill_level_cost is {value}; must be finite and above 0, so \
+                 level 1 takes practice to reach"
+            ),
+            ContentError::SkillLevelGrowthBelowOne { value } => write!(
+                f,
+                "skill_level_growth is {value}; must be finite and at least 1, \
+                 so a later level never costs less than the one before"
+            ),
+            ContentError::DuplicateAffinityKind(id) => write!(
+                f,
+                "affinity kind '{id}' is declared twice in objects.toml; saves \
+                 name a kind by its id"
+            ),
+            ContentError::EmptyAffinityText { id, field } => write!(
+                f,
+                "affinity kind '{id}' needs a {field} in objects.toml"
+            ),
+            ContentError::UnknownAffinityReach { id, reach } => write!(
+                f,
+                "affinity kind '{id}' has reach '{reach}'; the reaches are \
+                 presence and use"
+            ),
+            ContentError::AffinityObjectUnknown { id, object } => write!(
+                f,
+                "affinity kind '{id}' lists object '{object}', which \
+                 objects.toml does not declare"
+            ),
+            ContentError::AffinityObjectShared {
+                first,
+                second,
+                object,
+            } => write!(
+                f,
+                "affinity kinds '{first}' and '{second}' both list object \
+                 '{object}'; an object belongs to at most one kind, and a kind \
+                 lists it once"
+            ),
+            ContentError::AffinityObjectEmpty { id } => write!(
+                f,
+                "affinity kind '{id}' lists no objects; list at least one"
+            ),
+            ContentError::UseAffinityWithoutInteractions { id, object } => write!(
+                f,
+                "affinity kind '{id}' reaches people by use, but object \
+                 '{object}' has no interaction, so nobody could be seen using it"
+            ),
+            ContentError::AffinityTraitTagAboutNothing { id, tag } => write!(
+                f,
+                "affinity kind '{id}' names trait tag '{tag}', which no \
+                 interaction or chain step in the pack carries, so no trait \
+                 could set its starting value"
+            ),
+            ContentError::AffinityTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: \
+                 affinity_from_trait must be above 0 and at most 1; \
+                 affinity_presence_threshold at least 0 and below 1; \
+                 affinity_presence_points, affinity_presence_extra_points, \
+                 affinity_use_points and affinity_use_feeling_per_hour finite \
+                 and not negative; affinity_band_likes above 0 and below \
+                 affinity_band_loves, which is at most 1; \
+                 affinity_from_mild_trait above 0 and below affinity_from_trait"
+            ),
             ContentError::UnknownSimTrait { sim, trait_id } => write!(
                 f,
                 "household sim '{sim}' wears '{trait_id}', which \
@@ -1982,6 +2203,20 @@ impl fmt::Display for ContentError {
                  satisfaction is non-negative - a job that drains a life \
                  is authored as a condition"
             ),
+            ContentError::EmptyWorkingDays { id } => write!(
+                f,
+                "career '{id}' has no working_days; list at least one of \
+                 mon, tue, wed, thu, fri, sat and sun"
+            ),
+            ContentError::RepeatedWorkingDay { id, day } => write!(
+                f,
+                "career '{id}' lists working day '{day}' more than once"
+            ),
+            ContentError::UnknownWorkingDay { id, day } => write!(
+                f,
+                "career '{id}' lists working day '{day}', which is not one \
+                 of mon, tue, wed, thu, fri, sat and sun"
+            ),
             ContentError::UnknownSimCareer { sim, career } => write!(
                 f,
                 "household sim '{sim}' holds career '{career}', which \
@@ -1991,6 +2226,10 @@ impl fmt::Display for ContentError {
                 f,
                 "day_ticks must be at least 1 - a zero-tick day divides \
                  by zero the first time a career asks the hour"
+            ),
+            ContentError::FirstWeekdayOutOfRange { value } => write!(
+                f,
+                "first_weekday is {value}; it must be 0 (Monday) to 6 (Sunday)"
             ),
             ContentError::CircadianTooFewPoints { points } => write!(
                 f,

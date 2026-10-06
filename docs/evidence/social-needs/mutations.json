@@ -1,0 +1,236 @@
+[
+  {
+    "name": "affinity",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "shared_media_refill_is_directional",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "96f3912a10a695a1e023ee63ae5ad4837cc5ab8b05c0864c3160b995edca6f56",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "same-device",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "shared_media_refill_is_directional",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "96f3912a10a695a1e023ee63ae5ad4837cc5ab8b05c0864c3160b995edca6f56",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "capacity",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "standing_shared_media_saves",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "b79974c9ddf4ca5e2f53224c5b69407830bd07460b17075d5825f10b4f825116",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "standing-endpoint",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "standing_shared_media_saves",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "a60081bb28a0b9c68dcf944b6c41b7ed221ef8e2126b0363a0d8157968283903",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "terminal-social",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "completing_a_meal_pays_only",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "0dc1ff6b30f918f6baea88ff153b9d723d12fe055a93a4147e0ce533a554d10b",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "negative-cost",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "social_costs_still_apply",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "c34f6f524059583250fe9e6113fdfec2fa7f4395522d12e75846914509295a00",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "friendship-horizon",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "friendship_utility_counts",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "96f3912a10a695a1e023ee63ae5ad4837cc5ab8b05c0864c3160b995edca6f56",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "restored-profiles",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "friendship_selection_rebuilds_profiles",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "303c16380a154fabc7bb0f308125dfad303e145c578b14f2e49f2bcd5a25d63a",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "real-food",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "meal_social_requires_liked",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "96f3912a10a695a1e023ee63ae5ad4837cc5ab8b05c0864c3160b995edca6f56",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "effective-privacy-benefits",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "social_privacy_substitution_requires",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "96f3912a10a695a1e023ee63ae5ad4837cc5ab8b05c0864c3160b995edca6f56",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "effective-media-waiting",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "waiting_for_media_without_liked",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "ea365767c24aae69b41b9418ad6f12e630f576ec1929e10d88740cc25f7ca372",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "effective-chain-waiting",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "a_booked_station_is_waited_for",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "0dc1ff6b30f918f6baea88ff153b9d723d12fe055a93a4147e0ce533a554d10b",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  },
+  {
+    "name": "recipe-address",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--lib",
+      "offered_recipe_dispositions",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 101,
+    "detected": true,
+    "source_sha256": "16cad7ce8365a6b099a6e4cbb82e3d99c305e25f4de34b2c786fe923cfe3eda6",
+    "baseline_seconds": 165.7556733,
+    "timeout_seconds": 664,
+    "restored_byte_identical": true
+  }
+]

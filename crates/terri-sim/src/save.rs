@@ -25,10 +25,14 @@ use terri_data::{ContentPack, ObjectDefId};
 const MAX_TILES: usize = 1_048_576;
 pub(super) const MAX_ENTITIES: usize = 100_000;
 const MAX_LIST_ENTRIES: usize = 100_000;
-const MAX_TEXT_BYTES: usize = 1_024;
+/// The most bytes any saved name may hold; the loader refuses a save with
+/// a longer one. Public so the wasm boundary can refuse a queued command
+/// whose name would make the next save unloadable ([CS-command]).
+pub const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
+pub(super) mod affinities;
 pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
@@ -36,6 +40,7 @@ mod bathtub_tests;
 pub(super) mod chronotype;
 mod meal_migration;
 pub(super) mod self_preservation;
+pub(super) mod skills;
 pub(super) mod sleeping_places;
 #[cfg(test)]
 mod v3_tests;
@@ -159,6 +164,7 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
             queue
                 .as_slice()
                 .iter()
+                .filter(|intent| intent.cleanup.is_none() && intent.chore.is_none())
                 .map(|intent| SavedIntent {
                     object: intent.object.index_u32(),
                     interaction: intent.interaction,
@@ -244,6 +250,24 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
+        SimCommand::CleanChore { agent, key } => SavedCommand::CleanChore {
+            agent: *agent,
+            key: *key,
+        },
+        SimCommand::CleanChoreFirst { agent, key } => SavedCommand::CleanChoreFirst {
+            agent: *agent,
+            key: *key,
+        },
+        SimCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences,
+        } => SavedCommand::SetChoreProfile {
+            agent: *agent,
+            responsibility: *responsibility,
+            preferences: *preferences,
+        },
+        SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
         SimCommand::BuyObjectInColourway {
             definition,
@@ -296,6 +320,26 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
                 .map(|&index| pack.traits.get(index as usize).map(|worn| worn.id.clone()))
                 .collect(),
         },
+        SimCommand::EditHousemate {
+            sim,
+            name,
+            personality,
+            traits,
+            ties,
+        } => SavedCommand::EditHousemate {
+            sim: *sim,
+            name: name.clone(),
+            personality: personality.map(|index| {
+                pack.personalities
+                    .get(index as usize)
+                    .map(|personality| personality.id.clone())
+            }),
+            traits: traits
+                .iter()
+                .map(|&index| pack.traits.get(index as usize).map(|worn| worn.id.clone()))
+                .collect(),
+            ties: ties.clone(),
+        },
         SimCommand::SetColourway { object, colourway } => SavedCommand::SetColourway {
             object: *object,
             colourway: pack
@@ -329,6 +373,24 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             x: *x,
             y: *y,
             facing: *facing,
+        },
+        SimCommand::CleanDishes {
+            agent,
+            surface,
+            dishes,
+        } => SavedCommand::CleanDishes {
+            agent: *agent,
+            surface: *surface,
+            dishes: dishes.clone(),
+        },
+        SimCommand::CleanDishesFirst {
+            agent,
+            surface,
+            dishes,
+        } => SavedCommand::CleanDishesFirst {
+            agent: *agent,
+            surface: *surface,
+            dishes: dishes.clone(),
         },
         SimCommand::FitWindow { axis, x, y, model } => SavedCommand::FitWindow {
             axis: *axis,
@@ -427,6 +489,7 @@ pub(super) fn restore(
         candidate.world.resource::<TileGrid>(),
         content,
     )?;
+    crate::media::validate_ownership(&candidate.world)?;
     Ok(candidate)
 }
 
@@ -634,6 +697,8 @@ fn restore_entity(
             .iter()
             .map(|intent| {
                 Ok(Intent {
+                    cleanup: None,
+                    chore: None,
                     object: resolve_entity(slots, intent.object)?,
                     interaction: intent.interaction,
                 })
@@ -651,10 +716,13 @@ fn restore_entity(
     if let Some(entries) = &saved.habituation {
         let mut habituation = Habituation::default();
         for entry in entries {
+            // The validator has already held the value to
+            // `0.0..=habituation_max`, so the cap here never changes it.
             habituation.bump(
                 resolve_object(pack, &entry.object)?,
                 entry.interaction,
                 entry.value,
+                pack.tuning.habituation_max,
             );
         }
         target.insert(habituation);
@@ -739,7 +807,12 @@ fn restore_entity(
         target.insert(Career(index as u32));
     }
     if saved.commuting {
-        target.insert(Commuting);
+        // One saved bit, two directions: the walk's destination says which.
+        let destination = saved
+            .path
+            .as_ref()
+            .and_then(|path| path.steps.last().copied());
+        target.insert(crate::systems::career::saved_commute(pack, destination));
     }
     if let Some(remaining_ticks) = saved.at_work_ticks {
         target.insert(AtWork { remaining_ticks });
@@ -844,6 +917,18 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
     match command {
+        SavedCommand::CleanChore { agent, key } => SimCommand::CleanChore { agent, key },
+        SavedCommand::CleanChoreFirst { agent, key } => SimCommand::CleanChoreFirst { agent, key },
+        SavedCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences,
+        } => SimCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences,
+        },
+        SavedCommand::SetChoreBoard { enabled } => SimCommand::SetChoreBoard { enabled },
         SavedCommand::BuildRoom {
             x0,
             y0,
@@ -877,6 +962,24 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             SimCommand::FitWindow { axis, x, y, model }
         }
         SavedCommand::RemoveWindow { axis, x, y } => SimCommand::RemoveWindow { axis, x, y },
+        SavedCommand::CleanDishes {
+            agent,
+            surface,
+            dishes,
+        } => SimCommand::CleanDishes {
+            agent,
+            surface,
+            dishes,
+        },
+        SavedCommand::CleanDishesFirst {
+            agent,
+            surface,
+            dishes,
+        } => SimCommand::CleanDishesFirst {
+            agent,
+            surface,
+            dishes,
+        },
         SavedCommand::SetWallEdge { axis, x, y, state } => {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
@@ -945,6 +1048,28 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
                         .map_or(u32::MAX, |index| index as u32)
                 })
                 .collect(),
+        },
+        SavedCommand::EditHousemate {
+            sim,
+            name,
+            personality,
+            traits,
+            ties,
+        } => SimCommand::EditHousemate {
+            sim,
+            name,
+            personality: personality.map(|id| {
+                id.and_then(|id| pack.personalities.iter().position(|known| known.id == id))
+                    .map_or(u32::MAX, |index| index as u32)
+            }),
+            traits: traits
+                .into_iter()
+                .map(|id| {
+                    id.and_then(|id| pack.traits.iter().position(|known| known.id == id))
+                        .map_or(u32::MAX, |index| index as u32)
+                })
+                .collect(),
+            ties,
         },
         // An id this pack lacks restores as an index past every colourway,
         // which the drain refuses, as a staged purchase of an unknown object.
@@ -1184,7 +1309,29 @@ fn validate_command(
     pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
     match command {
+        SavedCommand::CleanChore { .. }
+        | SavedCommand::CleanChoreFirst { .. }
+        | SavedCommand::SetChoreBoard { .. } => Ok(()),
+        SavedCommand::SetChoreProfile {
+            responsibility,
+            preferences,
+            ..
+        } => {
+            if *responsibility <= 100 && preferences.iter().all(|v| (-100..=100).contains(v)) {
+                Ok(())
+            } else {
+                Err(SaveError::InvalidValue)
+            }
+        }
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
+        SavedCommand::CleanDishes { dishes, .. }
+        | SavedCommand::CleanDishesFirst { dishes, .. } => {
+            if crate::targeted_cleanup::valid_selection(dishes) {
+                Ok(())
+            } else {
+                Err(SaveError::InvalidValue)
+            }
+        }
         SavedCommand::FitWindow { axis, x, y, model } => terri_core::windows::WindowPlacement {
             line: terri_core::layout::WallLine {
                 axis: *axis,
@@ -1219,6 +1366,20 @@ fn validate_command(
         | SavedCommand::AddHousemate { name, traits, .. } => {
             if exceeds_limit(name.len(), MAX_TEXT_BYTES)
                 || exceeds_limit(traits.len(), MAX_LIST_ENTRIES)
+            {
+                Err(SaveError::InvalidValue)
+            } else {
+                Ok(())
+            }
+        }
+        // [ES-atomic]: an edit is held to the same name and list limits;
+        // the drain checks the person, the content and the ties.
+        SavedCommand::EditHousemate {
+            name, traits, ties, ..
+        } => {
+            if exceeds_limit(name.len(), MAX_TEXT_BYTES)
+                || exceeds_limit(traits.len(), MAX_LIST_ENTRIES)
+                || exceeds_limit(ties.len(), MAX_LIST_ENTRIES)
             {
                 Err(SaveError::InvalidValue)
             } else {
@@ -1363,7 +1524,15 @@ fn validate_entity(
         validate_object_interaction(pack, &eating.object, eating.interaction, pre_aquarium_bike)?;
     }
     if let Some(entries) = &entity.habituation {
-        validate_habituation(entries, pack, 0.0, 1.0, pre_aquarium_bike)?;
+        // [OD-model]: habituation rises past 1 up to the tuned maximum, and
+        // the part above 1 is overdoing, a valid saved state.
+        validate_habituation(
+            entries,
+            pack,
+            0.0,
+            pack.tuning.habituation_max,
+            pre_aquarium_bike,
+        )?;
     }
     if let Some(personality) = &entity.personality {
         for value in personality
@@ -1604,6 +1773,9 @@ fn validate_flyout_row(
 ) -> Result<(), SaveError> {
     reject_impossible_pre_aquarium_bike_row(object, row, pre_aquarium_bike)?;
     let id = resolve_object(pack, object)?;
+    if pack.object(id).id == "dining_table" && row == 1 {
+        return Ok(());
+    }
     let rows = pack.object(id).interactions.len()
         + pack
             .chains
@@ -1891,11 +2063,20 @@ mod tests {
         assert_validation(&snapshot, Err(expected), label);
     }
 
-    pub(super) fn after_legacy_instinct_migration(mut snapshot: SaveSnapshotV1) -> SaveSnapshotV1 {
-        for entity in &snapshot.entities {
-            if entity.agent {
-                snapshot.rng.range(41);
-            }
+    /// What a legacy load draws from the restored generator: one instinct
+    /// per living person, then one value per affinity kind per living
+    /// person ([OA-values]). Only the generator's state is in a V1 record.
+    pub(super) fn after_legacy_load_draws(mut snapshot: SaveSnapshotV1) -> SaveSnapshotV1 {
+        let agents = snapshot
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .count();
+        for _ in 0..agents {
+            snapshot.rng.range(41);
+        }
+        for _ in 0..agents * terri_data::pack().affinities.len() {
+            snapshot.rng.next_f32();
         }
         snapshot
     }
@@ -1907,10 +2088,7 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("valid rich snapshot restores");
-        assert_eq!(
-            restored.save_snapshot(),
-            after_legacy_instinct_migration(snapshot)
-        );
+        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
     }
 
     /// **Sparse means sparse**, and the capture side had no test at all.
@@ -2059,7 +2237,14 @@ mod tests {
     #[test]
     fn every_tick_of_a_played_stretch_produces_a_loadable_save() {
         const TICKS: u64 = 2_000;
-        let mut sim = Sim::new_from_shipped_lot();
+        // **A fixed seed, not the shipped one.** Whether a walk over to
+        // talk falls inside 2 000 ticks depends on the generator: the four
+        // affinity draws each person takes at spawn ([OA-values]) moved the
+        // shipped seed's run to one without a walk to talk. Pinning a seed
+        // keeps the run independent of the shipped one; the coverage
+        // assertions at the end decide whether this seed still reaches
+        // both arms.
+        let mut sim = Sim::new_from_shipped_lot_with_seed(2);
         // **Start the household hungry rather than waiting for it to get
         // there.** The two arms below need a sim to use a chain station
         // enough times to habituate to one of its flyout rows, and a
@@ -2559,10 +2744,7 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("a sparse live-entity index space restores");
-        assert_eq!(
-            restored.save_snapshot(),
-            after_legacy_instinct_migration(snapshot)
-        );
+        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
     }
 
     #[test]
@@ -2789,7 +2971,7 @@ mod tests {
             .expect("old fridge art saves load");
         assert_eq!(
             historical.save_snapshot(),
-            after_legacy_instinct_migration(before.clone())
+            after_legacy_load_draws(before.clone())
         );
         let mut restored = Sim::new_from_shipped_lot();
         restored
@@ -3048,20 +3230,32 @@ mod tests {
         // the V1 loader accepts that. A V1 record carries no wall edges, so
         // the restored house has none and the world hash, which sees walls
         // since [WT-hash], differs by that layout. Legacy instinct migration
-        // also advances RNG, so the reference explicitly adopts those draws
-        // before comparing continuation. Everything V1 carries is compared.
+        // and the affinity seed ([OA-values]) also advance RNG, so the
+        // reference explicitly adopts those draws before comparing
+        // continuation. Everything V1 carries is compared.
         let snapshot = source.save_snapshot();
         let mut migrated_rng = snapshot.rng.clone();
-        for person in snapshot.entities.iter().filter(|entity| entity.agent) {
+        let people: Vec<Entity> = snapshot
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .map(|person| {
+                source
+                    .world()
+                    .entities()
+                    .resolve_from_index(EntityIndex::from_raw_u32(person.index).unwrap())
+            })
+            .collect();
+        for &entity in &people {
             let instinct = 30 + migrated_rng.range(41) as u8;
-            let entity = source
-                .world()
-                .entities()
-                .resolve_from_index(EntityIndex::from_raw_u32(person.index).unwrap());
             source
                 .world_mut()
                 .entity_mut(entity)
                 .insert(terri_core::SelfPreservation(instinct));
+        }
+        for &entity in &people {
+            let values = crate::affinity::draw(&mut migrated_rng, pack, None);
+            source.world_mut().entity_mut(entity).insert(values);
         }
         source.world_mut().insert_resource(migrated_rng);
 
@@ -3069,10 +3263,7 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("active reading save restores");
-        assert_eq!(
-            restored.save_snapshot(),
-            after_legacy_instinct_migration(snapshot)
-        );
+        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
         let restored_agent = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
         );
@@ -3734,6 +3925,78 @@ mod tests {
         }
     }
 
+    /// [OD-model]: a saved habituation value may be anything up to
+    /// `habituation_max`. Exactly the maximum loads, a value just above it
+    /// refuses the load without touching the live world, and an overdone
+    /// value of 2.0 round-trips exactly.
+    #[test]
+    fn habituation_above_the_tuned_maximum_refuses_the_load() {
+        let pack = terri_data::pack();
+        let max = pack.tuning.habituation_max;
+        let good = Sim::new_from_shipped_lot().save_snapshot_v5();
+        let person = good
+            .world
+            .entities
+            .iter()
+            .position(|entity| entity.sim_id.is_some())
+            .expect("the shipped household");
+        let row = pack
+            .object(pack.find("fridge").expect("the shipped fridge"))
+            .interactions
+            .iter()
+            .position(|action| action.id == "grab_snack")
+            .expect("the fridge offers a snack") as u32;
+        let with_value = |value: f32| {
+            let mut snapshot = good.clone();
+            snapshot.world.entities[person].habituation = Some(vec![SavedHabituation {
+                object: "fridge".into(),
+                interaction: row,
+                value,
+            }]);
+            snapshot
+        };
+
+        let mut live = Sim::new_from_shipped_lot();
+        let hash = live.world_hash();
+        let saved = live.save_snapshot_v5();
+        assert_eq!(
+            live.load_snapshot_v5(with_value(max + 0.001)),
+            Err(SaveError::InvalidValue)
+        );
+        assert_eq!(live.world_hash(), hash, "a refused load changes nothing");
+        assert_eq!(
+            live.save_snapshot_v5(),
+            saved,
+            "a refused load changes nothing"
+        );
+
+        let at_max = with_value(max);
+        live.load_snapshot_v5(at_max.clone())
+            .expect("exactly the maximum loads");
+        assert_eq!(live.save_snapshot_v5(), at_max);
+
+        let overdone = with_value(2.0);
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded
+            .load_snapshot_v5(overdone.clone())
+            .expect("an overdone value loads");
+        assert_eq!(
+            loaded.save_snapshot_v5(),
+            overdone,
+            "2.0 round-trips exactly"
+        );
+        // The same row at 1.0, so the only difference is the value.
+        let mut saturated = Sim::new_from_shipped_lot();
+        saturated
+            .load_snapshot_v5(with_value(1.0))
+            .expect("a saturated value loads");
+        assert_ne!(
+            loaded.world_hash(),
+            saturated.world_hash(),
+            "the hash follows the value above 1"
+        );
+    }
+
     #[test]
     fn habituation_and_disposition_entries_require_valid_unique_content_rows() {
         let pack = terri_data::pack();
@@ -3772,9 +4035,21 @@ mod tests {
         rich_agent_mut(&mut descending).habituation = Some(vec![rows[1].clone(), rows[0].clone()]);
         assert_validation(&descending, Ok(()), "save order is not content order");
 
+        // [OD-model]: overdoing is a valid saved state up to the tuned
+        // maximum, and only above it is the save refused.
+        let mut overdoing = rich_snapshot();
+        rich_agent_mut(&mut overdoing)
+            .habituation
+            .as_mut()
+            .expect("habituation")[0]
+            .value = 1.0 + f32::EPSILON;
+        assert_validation(&overdoing, Ok(()), "habituation above one");
         for (label, value) in [
             ("negative habituation", -f32::EPSILON),
-            ("habituation above one", 1.0 + f32::EPSILON),
+            (
+                "habituation above the tuned maximum",
+                pack.tuning.habituation_max + 0.001,
+            ),
             ("non-finite habituation", f32::NAN),
         ] {
             assert_invalid_entity(
@@ -4241,7 +4516,7 @@ mod tests {
             );
             assert_eq!(
                 restored.save_snapshot(),
-                after_legacy_instinct_migration(snapshot),
+                after_legacy_load_draws(snapshot),
                 "current {object} action must retain its row and remaining duration"
             );
         }
@@ -4502,6 +4777,136 @@ mod tests {
                 before,
                 "failed load mutated the running simulation"
             );
+        }
+    }
+
+    /// [ES-atomic]: a staged edit saves its personality and traits by
+    /// authored ID and restores to the same queued command. Pack trait
+    /// index 3 is "bookworm" and personality index 1 is "the_settled".
+    #[test]
+    fn a_queued_edit_survives_save_and_load_by_authored_ids() {
+        use terri_core::layout::Relation;
+        let mut sim = Sim::new_from_shipped_lot();
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::EditHousemate {
+                sim: 0,
+                name: " Timothy ".to_string(),
+                personality: Some(1),
+                traits: vec![3],
+                ties: vec![(1, Some(Relation::Sibling))],
+            });
+        let snapshot = sim.save_snapshot_v5();
+        let saved = snapshot.world.queued_commands.last().unwrap().clone();
+        assert_eq!(
+            saved,
+            SavedCommand::EditHousemate {
+                sim: 0,
+                name: " Timothy ".to_string(),
+                personality: Some(Some("the_settled".to_string())),
+                traits: vec![Some("bookworm".to_string())],
+                ties: vec![(1, Some(Relation::Sibling))],
+            }
+        );
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded.load_snapshot_v5(snapshot).unwrap();
+        assert_eq!(loaded.world().resource::<CommandQueue>().len(), 1);
+        assert_eq!(loaded.world_hash(), sim.world_hash());
+    }
+
+    /// [ES-atomic]: an ID this pack lacks, or a personality unknown at
+    /// capture, restores as `u32::MAX`, past every table, so the drain
+    /// refuses the edit rather than adopting some other row.
+    #[test]
+    fn an_edit_naming_unknown_content_restores_past_every_table() {
+        use terri_core::layout::Relation;
+        let restored = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: "Ann".to_string(),
+                personality: Some(None),
+                traits: vec![
+                    Some("bookworm".to_string()),
+                    Some("not_a_trait".to_string()),
+                ],
+                ties: vec![(2, Some(Relation::Child)), (5, None)],
+            },
+            terri_data::pack(),
+        );
+        assert_eq!(
+            restored,
+            SimCommand::EditHousemate {
+                sim: 4,
+                name: "Ann".to_string(),
+                personality: Some(u32::MAX),
+                traits: vec![3, u32::MAX],
+                ties: vec![(2, Some(Relation::Child)), (5, None)],
+            }
+        );
+        let unknown_id = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: String::new(),
+                personality: Some(Some("not_a_personality".to_string())),
+                traits: Vec::new(),
+                ties: Vec::new(),
+            },
+            terri_data::pack(),
+        );
+        assert!(matches!(
+            unknown_id,
+            SimCommand::EditHousemate {
+                personality: Some(u32::MAX),
+                ..
+            }
+        ));
+        let kept = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: String::new(),
+                personality: None,
+                traits: Vec::new(),
+                ties: Vec::new(),
+            },
+            terri_data::pack(),
+        );
+        assert!(matches!(
+            kept,
+            SimCommand::EditHousemate {
+                personality: None,
+                ..
+            }
+        ));
+    }
+
+    /// [ES-atomic]: a saved edit is held to the name and list limits every
+    /// saved name and list is held to, each limit inclusive.
+    #[test]
+    fn a_saved_edit_is_held_to_the_name_and_list_limits() {
+        let edit = |name: String, traits: usize, ties: usize| SavedCommand::EditHousemate {
+            sim: 0,
+            name,
+            personality: None,
+            traits: vec![None; traits],
+            ties: vec![(0, None); ties],
+        };
+        let validate =
+            |command: SavedCommand| validate_command(&command, &[], terri_data::pack(), false);
+        assert_eq!(
+            validate(edit(
+                "n".repeat(MAX_TEXT_BYTES),
+                MAX_LIST_ENTRIES,
+                MAX_LIST_ENTRIES
+            )),
+            Ok(()),
+            "every limit is inclusive"
+        );
+        for (label, command) in [
+            ("name", edit("n".repeat(MAX_TEXT_BYTES + 1), 0, 0)),
+            ("traits", edit(String::new(), MAX_LIST_ENTRIES + 1, 0)),
+            ("ties", edit(String::new(), 0, MAX_LIST_ENTRIES + 1)),
+        ] {
+            assert_eq!(validate(command), Err(SaveError::InvalidValue), "{label}");
         }
     }
 }

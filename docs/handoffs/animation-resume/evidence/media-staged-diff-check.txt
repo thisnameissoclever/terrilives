@@ -1,1 +1,0 @@
-docs/assets/review-evidence/seating/seating-tests.txt:32: new blank line at EOF.

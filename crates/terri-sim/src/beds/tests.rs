@@ -65,6 +65,8 @@ fn order(sim: &mut Sim, agent: Entity, bed: Entity, interaction: u32) {
     sim.world_mut()
         .entity_mut(agent)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: bed,
             interaction,
         }]));

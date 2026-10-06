@@ -70,6 +70,58 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
     ticks.max(floor)
 }
 
+#[cfg(test)]
+#[test]
+fn washing_hands_stops_at_partial_hygiene_without_charging_comfort() {
+    for (kind, initial, expected) in [
+        ("sink", 0., 40.),
+        ("kitchen_sink", 0., 40.),
+        ("sink", 80., 80.),
+        ("kitchen_sink", 80., 80.),
+        ("shower", 0., 100.),
+    ] {
+        let mut sim = crate::Sim::new_with_lot(8, 8);
+        let pack = sim.world().resource::<Content>().0;
+        let definition = pack.find(kind).unwrap();
+        let object = sim.spawn_object(terri_core::Position { x: 2., y: 2. }, definition);
+        let mut needs = Needs::all_at(50.);
+        needs.set(NeedId::Hygiene, initial);
+        let person = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::Position { x: 2., y: 3. },
+                needs,
+                Target {
+                    object,
+                    interaction: 0,
+                },
+                Eating {
+                    object: definition,
+                    interaction: 0,
+                    remaining_ticks: 1000,
+                },
+            ))
+            .id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(tick_interactions);
+        for _ in 0..100 {
+            schedule.run(sim.world_mut());
+        }
+        let needs = sim.world().get::<Needs>(person).unwrap();
+        assert!(
+            (needs.get(NeedId::Hygiene) - expected).abs() < 0.00001,
+            "{kind}: {}",
+            needs.get(NeedId::Hygiene)
+        );
+        assert_eq!(
+            needs.get(NeedId::Comfort),
+            50.,
+            "{kind} unexpectedly costs Comfort"
+        );
+    }
+}
+
 /// Advances in-progress interactions. When one finishes, the agent
 /// releases its reservation and becomes idle again.
 ///
@@ -106,10 +158,13 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 /// and `drain_commands`: the query tuple is what pushes past clippy's threshold,
 /// and a type alias would only move the same type somewhere less readable. It
 /// grew a sixth member when habituation arrived.
-#[allow(clippy::type_complexity)]
+// Social delivery adds disjoint reads of participation and directional feelings.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
+    company: Res<crate::social_company::SocialCompany>,
+    feelings: Query<&terri_core::Relationships>,
     mut completion_sounds: Option<ResMut<crate::completion_sounds::CompletionSounds>>,
     objects: Query<(&terri_core::SmartObject, &terri_core::Position)>,
     eligible: Query<
@@ -135,22 +190,29 @@ pub fn tick_interactions(
         Option<&terri_core::Hobbies>,
         Option<&terri_core::Fumbled>,
         Option<&mut terri_core::Traits>,
+        Option<&mut terri_core::Skills>,
     )>,
 ) {
-    for (
-        entity,
-        mut eating,
-        mut needs,
-        target,
-        queue,
-        habituation,
-        personality,
-        satisfaction,
-        hobbies,
-        fumbled,
-        traits,
-    ) in &mut agents
-    {
+    let mut order: Vec<_> = agents.iter().map(|row| row.0).collect();
+    order.sort_by_key(|entity| entity.index_u32());
+    for actor in order {
+        let Ok((
+            entity,
+            mut eating,
+            mut needs,
+            target,
+            queue,
+            habituation,
+            personality,
+            satisfaction,
+            hobbies,
+            fumbled,
+            traits,
+            skills,
+        )) = agents.get_mut(actor)
+        else {
+            continue;
+        };
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -159,6 +221,13 @@ pub fn tick_interactions(
         let act = &content.0.object(eating.object).interactions[eating.interaction as usize];
         let duration = act.duration_ticks as f32;
         for (need_index, delta) in &act.advertises {
+            if *delta > 0.
+                && *need_index as usize == NeedId::Social.index()
+                && !company
+                    .active_allowed(entity, &feelings.get(entity).cloned().unwrap_or_default())
+            {
+                continue;
+            }
             // **The satisfaction multiplier scales what a positive delta
             // DELIVERS, matching what selection advertised** - [H3]. The two
             // read the same array so a sim seeks exactly what delivery
@@ -178,12 +247,25 @@ pub fn tick_interactions(
             // as a good one ([E3]).
             let fumble = fumbled.map_or(1.0, |f| f.delta_scale);
             let delta = super::advertise::scaled_delta(*delta, satisfaction * fumble);
-            needs.fill(NeedId::ALL[*need_index as usize], delta / duration);
+            let delta = crate::need_interactions::cap_delta(
+                content.0,
+                act,
+                &needs,
+                *need_index,
+                delta / duration,
+            );
+            needs.fill(NeedId::ALL[*need_index as usize], delta);
         }
         let was_positive = eating.remaining_ticks > 0;
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            if was_positive && target.interaction != super::chain::CHAIN_STEP {
+                let station = target.object;
+                commands.queue(move |world: &mut bevy_ecs::world::World| {
+                    crate::chores::grime::used(world, entity, station)
+                });
+            }
             // Validate presentation independently; gameplay cleanup still runs.
             if was_positive
                 && eligible.contains(entity)
@@ -233,13 +315,14 @@ pub fn tick_interactions(
             // special-case it - but the component has to be INSERTED here for
             // the first entry to exist at all.
             let amount = content.0.tuning.habituation_per_use;
+            let cap = content.0.tuning.habituation_max;
             match habituation {
                 Some(mut habituation) => {
-                    habituation.bump(eating.object, eating.interaction, amount)
+                    habituation.bump(eating.object, eating.interaction, amount, cap)
                 }
                 None => {
                     let mut fresh = Habituation::default();
-                    fresh.bump(eating.object, eating.interaction, amount);
+                    fresh.bump(eating.object, eating.interaction, amount, cap);
                     commands.entity(entity).insert(fresh);
                 }
             }
@@ -269,6 +352,8 @@ pub fn tick_interactions(
             // one to run a second time. See `IntentQueue::contains`.
             if let Some(mut queue) = queue {
                 queue.remove_first(terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: target.object,
                     interaction: target.interaction,
                 });
@@ -302,12 +387,16 @@ pub fn tick_interactions(
                 }
             }
 
-            // **Every attempt teaches, pass or fail** - the capability's
-            // level rises and any condition this activity's tags manage
-            // eases, which is the resolving loop [S4] demands. Removing
-            // `Fumbled` closes the attempt either way.
+            // **Every attempt teaches, pass or fail** - the skill with
+            // each of the activity's tags gains practice ([SK-learning])
+            // and any condition those tags manage eases, which is the
+            // resolving loop [S4] demands. Removing `Fumbled` closes the
+            // attempt either way.
             if let Some(mut traits) = traits {
                 super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
+            }
+            if let Some(mut skills) = skills {
+                crate::skills::practise(&mut skills, content.0, &act.tags);
             }
             commands.entity(entity).try_remove::<terri_core::Fumbled>();
             commands
@@ -317,6 +406,9 @@ pub fn tick_interactions(
             // Check ownership after deferred target removals, so one
             // completion cannot free an object another person still uses.
             crate::reservations::release(&mut commands, entity, *target);
+            commands.queue(move |world: &mut World| {
+                crate::dining::release(world, entity.index_u32());
+            });
         }
     }
 }
@@ -1146,6 +1238,8 @@ mod tests {
                     remaining_ticks: 1,
                 },
                 IntentQueue::from_intents(vec![Intent {
+                    cleanup: None,
+                    chore: None,
                     object: queued,
                     interaction: 0,
                 }]),

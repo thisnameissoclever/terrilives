@@ -65,6 +65,7 @@ pub fn tick_social(
         Option<&terri_core::Hobbies>,
         Option<&mut terri_core::Traits>,
     )>,
+    mut skills: Query<&mut terri_core::Skills>,
 ) {
     let tuning = content.0.tuning;
 
@@ -139,6 +140,9 @@ pub fn tick_social(
             let scale = relationship_scale(feeling, tuning.relationship_delta_scale);
 
             for (need_index, delta) in &act.advertises {
+                if *delta > 0. && *need_index as usize == NeedId::Social.index() && feeling <= 0. {
+                    continue;
+                }
                 let delta = scaled_delta(*delta, scale * satisfaction_of(*need_index as usize));
                 let id = NeedId::ALL[*need_index as usize];
                 my_needs.fill(id, delta / duration);
@@ -178,6 +182,11 @@ pub fn tick_social(
                     super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
                 }
             }
+            // Practice does not depend on the satisfaction ledger: every
+            // participant learns from a completed talk ([SK-learning]).
+            if let Ok(mut skills) = skills.get_mut(me) {
+                crate::skills::practise(&mut skills, content.0, &act.tags);
+            }
         }
         for (me, other) in [(initiator, partner), (partner, initiator)] {
             let Some(other_id) = other_sim_id(&sim_ids, other) else {
@@ -193,7 +202,12 @@ pub fn tick_social(
                 .ok()
                 .zip(needs.get(other).ok())
                 .is_some_and(|(a, b)| {
-                    crate::relationship_dynamics::positive_allowed(a, b, &act.advertises, &tuning)
+                    crate::relationship_dynamics::conversation_positive_allowed(
+                        a,
+                        b,
+                        &act.advertises,
+                        &tuning,
+                    )
                 });
             let gain = if allowed {
                 tuning.relationship_gain_per_talk
@@ -253,6 +267,8 @@ pub fn tick_social(
         // is free.
         if let Ok(mut queue) = queues.get_mut(initiator) {
             queue.remove_first(terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: partner,
                 interaction: socialising.interaction,
             });
@@ -343,6 +359,118 @@ mod tests {
         )
     }
 
+    #[test]
+    fn neutral_lonely_chat_builds_friendship_before_it_refills_social() {
+        let pack = chat_pack();
+        let (mut sim, first, second) = household_of_two(pack);
+        for person in [first, second] {
+            sim.world_mut()
+                .get_mut::<Needs>(person)
+                .unwrap()
+                .set(NeedId::Social, 10.);
+        }
+        let start = |sim: &mut Sim, ticks| {
+            sim.world_mut().entity_mut(first).insert((
+                Target {
+                    object: second,
+                    interaction: 0,
+                },
+                Socialising {
+                    partner: second,
+                    interaction: 0,
+                    remaining_ticks: ticks,
+                },
+            ));
+            sim.world_mut().entity_mut(second).insert(Reserved);
+        };
+        start(&mut sim, 1);
+        sim.tick();
+        for (me, other) in [(first, second), (second, first)] {
+            assert!(sim.world().get::<Needs>(me).unwrap().get(NeedId::Social) < 10.);
+            assert!(
+                sim.world()
+                    .get::<Relationships>(me)
+                    .unwrap()
+                    .feeling(*sim.world().get::<SimId>(other).unwrap())
+                    > 0.,
+                "Critical loneliness must not prevent making the first friendship"
+            );
+        }
+        let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
+        start(&mut sim, 2);
+        sim.tick();
+        assert!(sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) > before);
+    }
+
+    #[test]
+    fn friendship_selection_rebuilds_profiles_and_replays_the_first_loaded_tick() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let pack = sim.world().resource::<crate::Content>().0;
+        let mut spawn = |name: &str, x| {
+            crate::household::spawn_member(
+                sim.world_mut(),
+                &pack.personalities,
+                &pack.traits,
+                crate::household::Member {
+                    name: name.into(),
+                    personality: 0,
+                    position: Position { x, y: 1. },
+                    needs: [100.; 7],
+                    hobbies: vec!["socialising".into()],
+                    traits: &[],
+                    career: None,
+                    instinct: Some(50),
+                },
+            )
+        };
+        let first = spawn("First", 1.);
+        let second = spawn("Second", 4.);
+        sim.world_mut()
+            .get_mut::<Needs>(first)
+            .unwrap()
+            .set(NeedId::Social, 20.);
+        for (me, other) in [(first, second), (second, first)] {
+            let mut feelings = Relationships::default();
+            feelings.bump(*sim.world().get::<SimId>(other).unwrap(), -0.2);
+            sim.world_mut()
+                .entity_mut(me)
+                .insert((feelings, terri_core::Hobbies(vec!["socialising".into()])));
+        }
+        crate::relationship_dynamics::refresh_profiles(sim.world_mut());
+        let context = sim
+            .world()
+            .resource::<crate::relationship_dynamics::RelationshipContext>();
+        assert!(crate::compatibility::between(&context.0[&first], &context.0[&second]) > 0.);
+        let mut restored = Sim::new_with_lot(8, 8);
+        restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        assert_eq!(
+            sim.world_hash(),
+            restored.world_hash(),
+            "The fixture must round-trip before stepping"
+        );
+        sim.tick();
+        restored.tick();
+        let utility = |s: &Sim| {
+            s.world()
+                .resource::<crate::systems::autonomy::DecisionTelemetry>()
+                .0
+                .iter()
+                .find(|d| d.agent == first.index_u32())
+                .unwrap()
+                .choices
+                .iter()
+                .find(|row| row.0 == second.index_u32())
+                .unwrap()
+                .2
+        };
+        assert!(
+            utility(&sim) > 0.,
+            "A lonely neutral/disliked Sim must value future company"
+        );
+        assert_eq!(utility(&sim).to_bits(), utility(&restored).to_bits());
+        assert_eq!(sim.world_hash(), restored.world_hash());
+    }
+
     /// Two sims three tiles apart: `lonely` wants company, `content_sim`
     /// wants nothing. Spawned lonely-first so the initiator is the
     /// lower-indexed agent and claims its partner before the partner's
@@ -429,8 +557,8 @@ mod tests {
             "completion must release the partner"
         );
         assert!(
-            social_of(&sim, lonely) > 20.0,
-            "the initiator's social must have been filled; got {}",
+            social_of(&sim, lonely) < 20.0,
+            "the first neutral conversation builds friendship before refilling Social; got {}",
             social_of(&sim, lonely)
         );
         // 70 splits the two worlds cleanly: with delivery the partner
@@ -703,26 +831,25 @@ mod tests {
         let leak = 40.0 * test_content::decay_per_tick(NeedId::Social);
         let stranger = run(0.0, 1.0);
         assert!(
-            (stranger - (20.0 + 30.0 - leak)).abs() < 0.01,
-            "a stranger's talk must deliver exactly its authored 30: \
-             scale 1.0 times satisfaction 1.0; got {stranger}"
+            (stranger - (20.0 - leak)).abs() < 0.01,
+            "a stranger's talk must not refill Social; got {stranger}"
         );
         // Halving satisfaction must HALVE the fill - `scale / satisfaction`
         // would double it instead, and at satisfaction 1.0 that mutant is
         // arithmetically invisible, which is why this run exists.
-        let half_hearted = run(0.0, 0.5);
+        let liked = run(0.5, 1.0);
+        assert!((liked - (20.0 + 37.5 - leak)).abs() < 0.01);
+        let half_hearted = run(0.5, 0.5);
         assert!(
-            (half_hearted - (20.0 + 15.0 - leak)).abs() < 0.01,
+            (half_hearted - (20.0 + 18.75 - leak)).abs() < 0.01,
             "half the satisfaction must be half the fill; got {half_hearted}"
         );
-        // 30 delivered at scale 1.0 against 30 * 1.5 at scale 1.5: the
-        // gap is 15, minus the sliver the warm feeling's own decay
-        // shaves off its scale across 40 ticks.
+        // A full friendship delivers 45; a neutral one delivers zero.
         let warm = run(1.0, 1.0);
         assert!(
-            (warm - stranger - 15.0).abs() < 0.1,
+            (warm - stranger - 45.0).abs() < 0.1,
             "a full-warmth initiator must receive exactly \
-             relationship_scale(1.0, 0.5) = 1.5x a stranger's fill: \
+             relationship_scale(1.0, 0.5) = 1.5x the authored fill: \
              stranger ended at {stranger}, warm at {warm}"
         );
     }
@@ -976,6 +1103,8 @@ mod tests {
             .entity_mut(lonely)
             .insert(terri_core::IntentQueue::from_intents(vec![
                 terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: 0,
                 },
@@ -1355,6 +1484,8 @@ mod tests {
             .entity_mut(partner)
             .insert(terri_core::IntentQueue::from_intents(vec![
                 terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: 0,
                 },
@@ -2189,6 +2320,8 @@ mod tests {
         assert_eq!(
             front,
             Some(terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: c,
                 interaction: 0,
             }),

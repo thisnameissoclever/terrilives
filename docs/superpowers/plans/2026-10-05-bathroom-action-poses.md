@@ -162,8 +162,9 @@ clothing/anatomy consistently while retaining readable head and arm motion.
 
 ## Export and runtime task
 
-Toilet presentation uses render action 15 and appends `UseToilet` to the
-compiled action vocabulary. Its authored contract is `use_toilet`,
+Toilet presentation uses render action 18 and appends `UseToilet` to the
+compiled action vocabulary. Codes 14 to 17 belong to the cleaning chores
+that reached main first, so the earlier draft code 15 is not available. Its authored contract is `use_toilet`,
 `object_socket`, `socket`, with a declared socket. The shipped toilet's
 `seat` stays at its fixture origin and rotates with the object. Preserve
 the exact use target, flush sound, privacy, duration, path position and
@@ -171,7 +172,7 @@ save fingerprint. Keep the ordinary activity code distinct from the body
 animation code.
 
 Shower presentation appends `CompiledVisualAction::Shower` after the existing
-compiled actions and uses render action 14. Its only legal authored contract
+compiled actions and uses render action 19, the next code after the toilet. Its only legal authored contract
 is `shower`, `object_socket`, `socket`, with an existing declared socket.
 The shipped shower's `tray` socket stays at the fixture origin and rotates
 with its facing. The live target and active interaction must agree before

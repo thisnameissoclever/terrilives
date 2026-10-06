@@ -1,7 +1,7 @@
 use super::{displayed_position_of, neutral_instincts, projection_of};
 use crate::{
     apply_object_placement,
-    render_buffer::{activity, facing},
+    render_buffer::{activity, facing, visual_action},
     Content, Sim,
 };
 use terri_core::{Agent, Eating, Position, Target};
@@ -57,7 +57,7 @@ fn toilet_projects_all_facings_without_changing_positions_or_saves() {
         sim.sync_render_buffer();
         assert_eq!(
             projection_of(sim.render_buffer(), user),
-            (15, direction, activity::USING_TOILET)
+            (visual_action::USE_TOILET, direction, activity::USING_TOILET)
         );
         assert_eq!(
             displayed_position_of(sim.render_buffer(), user),
@@ -82,7 +82,7 @@ fn toilet_projects_all_facings_without_changing_positions_or_saves() {
         assert_eq!(loaded.world_hash(), before_hash);
         assert_eq!(
             projection_of(loaded.render_buffer(), user),
-            (15, direction, activity::USING_TOILET)
+            (visual_action::USE_TOILET, direction, activity::USING_TOILET)
         );
         assert_eq!(
             displayed_position_of(loaded.render_buffer(), user),
@@ -96,14 +96,14 @@ fn mismatched_or_completed_use_does_not_keep_the_toilet_pose() {
     let mut sim = Sim::new_with_lot(48, 48);
     let (user, _) = active_toilet(&mut sim, Facing::SouthEast);
     sim.sync_render_buffer();
-    assert_eq!(projection_of(sim.render_buffer(), user).0, 15);
+    assert_eq!(projection_of(sim.render_buffer(), user).0, visual_action::USE_TOILET);
     sim.world_mut()
         .entity_mut(user)
         .get_mut::<Target>()
         .unwrap()
         .interaction = 1;
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, 15);
+    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::USE_TOILET);
     sim.world_mut()
         .entity_mut(user)
         .get_mut::<Target>()
@@ -111,7 +111,7 @@ fn mismatched_or_completed_use_does_not_keep_the_toilet_pose() {
         .interaction = 0;
     sim.world_mut().entity_mut(user).remove::<Eating>();
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, 15);
+    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::USE_TOILET);
     assert_eq!(
         displayed_position_of(sim.render_buffer(), user),
         ((19.0, 20.0), (19.0, 20.0))
@@ -123,12 +123,12 @@ fn conflicting_work_or_wrong_object_suppresses_toilet_projection() {
     let mut sim = Sim::new_with_lot(48, 48);
     let (user, _) = active_toilet(&mut sim, Facing::SouthEast);
     sim.sync_render_buffer();
-    assert_eq!(projection_of(sim.render_buffer(), user).0, 15);
+    assert_eq!(projection_of(sim.render_buffer(), user).0, visual_action::USE_TOILET);
     sim.world_mut()
         .entity_mut(user)
         .insert(terri_core::StepWork { remaining_ticks: 4 });
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, 15);
+    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::USE_TOILET);
     sim.world_mut()
         .entity_mut(user)
         .remove::<terri_core::StepWork>();
@@ -150,7 +150,7 @@ fn conflicting_work_or_wrong_object_suppresses_toilet_projection() {
         .unwrap()
         .object = wrong;
     sim.sync_render_buffer();
-    assert_ne!(projection_of(sim.render_buffer(), user).0, 15);
+    assert_ne!(projection_of(sim.render_buffer(), user).0, visual_action::USE_TOILET);
     assert_eq!(
         displayed_position_of(sim.render_buffer(), user),
         ((19.0, 20.0), (19.0, 20.0))

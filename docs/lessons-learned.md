@@ -1,5 +1,39 @@
 # Lessons Learned
 
+## [L-conditional-needs-and-first-friendships] Separate company from furniture rewards
+
+**What happened.** Solo media and empty-table sitting refilled Social through
+ordinary advertisements. Removing those benefits also removed a useful route
+for lonely strangers to establish their first friendship. An initial future
+friendship score then depended on an unsaved compatibility cache.
+
+**Root cause.** Authored need amounts were treated as unconditional delivery,
+participation and relationship development were conflated, and a derived cache
+was read before its restoration-time rebuild. Secondary seats also did not
+imply shared device ownership.
+Compatibility additionally treated valid recipe preference addresses as
+ordinary-action indices; resolve each address in its actual vocabulary.
+
+**Prevention.** Evaluate conditional positive rewards from actual simultaneous
+participation and the receiver's directional feeling. Preserve authored costs.
+Keep friendship development separate from immediate need delivery. Rebuild
+every derived input before its first scoring consumer, including after loading.
+Count travelling commitments against shared capacity and reserve distinct
+destinations before deferred commands flush. Do not infer active participation
+from a reservation or a valid travelling lease alone.
+
+Shared devices and tables define these groups; do not add room or proximity
+restrictions intended for passive affinity effects to an approved participation
+rule.
+
+**Verification.** Compare solo and communal rewards, asymmetric feelings,
+valid shared use across room boundaries, travelling partners, seated and standing diners, and
+partial overlap through terminal completion. Reject invalid shared ownership
+transactionally. Compare first-tick utility as well as world hashes after
+restoring idle compatible strangers with nonpositive affinity. Delete each
+load-bearing gate and require the relevant assertion to fail, then restore
+byte-identical source. Evidence: `docs/evidence/social-needs/`.
+
 ## [L-proof-test-discovery] Check runner discovery when adding standalone proof tests
 
 **What happened.** A proof helper's Node test passed when run directly, but its
@@ -10394,3 +10428,434 @@ ignored working files before calling a handoff portable.
 **Verify.** Resolve every declared active input hash from the clean export or
 its retained snapshot. Report unavailable rejected-history inputs explicitly;
 never excuse an undeclared missing active dependency.
+## [L-browser-evidence-export-boundary] Preserve completed checks when report export fails
+
+**What happened.** A browser proof completed its guarded dish-cleanup checks and
+saved screenshots, then failed while importing a filesystem module to write its
+report. Some screenshot labels also lagged the simulation state sampled by the
+proof.
+
+**Root cause.** The browser callback ran in a JavaScript virtual machine without
+a dynamic-import handler. A failed callback did not return its local results.
+Simulation stepping also did not wait for every presentation update.
+
+**Prevention.** Return plain data from browser callbacks and persist it through
+the controller's file tools. Capture each visual state after its presentation
+update. If export fails after checks completed, retain the failed tool status,
+the original guarded callback and artifact hashes. Distinguish control-flow
+evidence from visible pixels; never invent discarded values or a successful
+return.
+
+**Verify.** Require assertions before each capture, a normal structured return,
+and controller-side file verification. Where an earlier export failed, inspect
+the exact callback ordering and recorded error before making completion claims.
+
+## [L-chore-lifecycle-save-invariants] Reconcile chore state at every ownership transition
+
+**What happened.** Independent review found stale dish starts after cancellation
+and death, floor plans invalidated by room edits, outdated furniture contacts,
+lost contents after bin sales, unsupported saved tasks and duplicate midnight
+settlement. A final ownership check found chore interruption could erase a
+newly installed commute path.
+
+**Root cause.** The new chore resource shared existing movement and domestic
+state without covering every transition that changes their owners or targets.
+Runtime cleanup and load validation enforced different invariants.
+
+**Prevention.** Reconcile records on cancellation, death, furniture movement,
+sale and topology edits. Transfer conserved contents before removing sources.
+Validate only task variants the runtime constructs. Defer daily settlement for
+real active work and reject credit to settled episodes. Release shared paths
+only when no other activity owns them.
+
+**Verify.** Exercise actual furniture and wall commands, interruption and real
+washing across midnight. Save and reload at transition boundaries. Assert both
+the remaining resource state and movement ownership. Independently remove each
+guard, require its regression to fail, and restore exact original source bytes.
+
+## [L-transparent-body-picking] Do not let transparent character corners intercept furniture clicks
+
+**What happened.** Right-clicking visible table wood beside a Sim opened only
+Nothing. The isolated menu regression reproduced the same result.
+
+**Root cause.** Character picking treated the sprite's whole rectangle as solid,
+including transparent padding beside the head. The nearer Sim won that pick
+and its self menu hid the table's cleanup action.
+
+**Prevention.** Sample the displayed body frame's decoded alpha before assigning
+depth priority. Keep exact alpha for antialiased edges and existing paired-body
+and covered-bed ownership. Retain compact masks rather than the full atlas image.
+
+**Verify.** Click exposed table wood through a transparent body corner and require
+Clean up. Check that opaque body pixels still select the Sim, dish piles retain
+their fixed targets, and the behavior scales with zoom. Removing the alpha guard
+must reproduce the original Nothing menu.
+
+
+## Playable previews must preserve household needs
+
+**What happened.** A chore demonstration disabled need drain and forced other
+housemates away. The playable preview concealed ordinary household behavior.
+
+**Root cause.** An isolated regression fixture was presented as a gameplay demo.
+
+**Prevention.** Preserve normal personalities, need drain, autonomy and careers
+in playable previews. Seed only the mess needed to show a feature. Reserve frozen
+fixtures for narrow automated tests. State when a dialog pauses game time.
+
+**Verify.** Observe each need declining during normal ticks, then play chores in
+that household. Require table actions to reflect real chairs and prepared food.
+
+## Revalidate cleaning contact after building walls
+
+**What happened.** A retained wiping endpoint could pass geometric adjacency
+checks after a wall blocked contact. Failed grouped work could count as neglect.
+
+**Root cause.** Retained contacts used weaker checks than initial routing, and
+route failures discarded tasks without updating the daily duty episode.
+
+**Prevention.** Reuse the grid's edge-aware contact predicate and preserve route
+unavailability when terminating work, including build-mode pruning.
+
+**Verify.** Insert a wall during a chore. Require contact rejection and an
+unavailable daily outcome across midnight, without deleting grime.
+
+
+## Usage-driven dirt needs event and geometry boundaries
+
+**What happened.** Review found unordered ordinary completions sharing a random
+stream, diagonal cleaning across blocked tile corners, and a cancelled floor
+plan losing its unavailable-duty status after a room partition.
+
+**Root cause.** New dirt rolls made interaction iteration order observable.
+Wall-edge intersection alone did not represent legacy blocked wall tiles. The
+floor-plan pruning branch omitted an outcome update already present for objects.
+
+**Prevention.** Order completion events by stable entity identity. Check both
+wall edges and diagonal intermediate cells. Carry duty unavailability through
+all topology-driven task removal paths.
+
+**Verify.** Reverse insertion order for two identical completion bundles and
+require identical dirt targets. Block the orthogonal cells beside a diagonal.
+Partition a suspended cleaner's room and cross midnight without a neglect charge.
+
+## Test movement inside its actual lifecycle
+
+**What happened.** A bare test path was eligible for replacement by autonomy.
+Calling movement alone then failed because its interpersonal phase was absent;
+reusing that schedule after loading another world violated its world binding.
+
+**Root cause.** The fixture bypassed the ownership and lifecycle boundaries that
+production movement uses.
+
+**Prevention.** Use the established prepare, movement, apply phase when isolating
+walking. Create a fresh schedule for a newly loaded world. Compare the exact
+random-stream state as well as the resulting dirt amount.
+
+**Verify.** One final tile entry consumes one roll. Arrival, path removal,
+standing and save/load consume none. Deleting the movement hook must fail the test.
+
+## Verify the body motion when delivering an activity
+
+**What happened.** Cleaning logic and fading grime worked while the cleaner
+still used an idle body pose.
+
+**Root cause.** Work-state and effect checks were treated as evidence for the
+whole activity without observing the Sim's motion.
+
+**Prevention.** Review each activity's body clip, tool contact and furniture
+overlap in the running game. An activity label or disappearing dirt does not
+prove an animation. Derive work poses from the real activity lifecycle so
+travel, pause, cancellation and save/load remain consistent.
+
+**Verify.** Capture several work samples in every supported direction. Confirm
+the tool moves with the hands, the furniture hides the appropriate body parts,
+pause holds the pose, and cancellation removes the tool and closes moving lids.
+
+Native visual fixtures must call `sync_render_buffer()` after `Sim::tick()`
+before inspecting render rows. The browser handle performs both steps; the
+native simulation tick alone leaves the previous projection cached. Construct
+ordinary household members through `spawn_household()` to retain identity and
+personality initialization.
+
+## Preserve logical outline thickness and review the whole character
+
+**What happened.** A cleaning export rendered at four pixels per logical pixel
+using outlines authored for sixteen. Heavy ink filled the eyes, and a flat
+dark mop head concealed its cotton underside. Both passed a review focused
+on hand contact and furniture overlap.
+
+**Root cause.** The exporter changed render density without scaling outline
+width. Regrouping the character also removed the hair from its outline-selection
+collection. Visual review criteria omitted facial readability and tool identity.
+
+**Prevention.** Keep outline width divided by render density constant. Preserve
+authored line-selection membership when reorganizing scene collections. Show
+the full character and recognizable tool at native game size, ordinary zoom
+and close zoom. Give independent reviewers the owner's rejected capture as
+well as the new candidate, and require explicit checks of face and tool identity.
+
+**Verify.** Compare the approved outline settings and visible eye-white pixels
+in front-facing exported frames. Check every palette and facing, then inspect
+played captures at multiple zoom levels. Tests for hand contact and depth do
+not establish appearance quality.
+
+A point aligned with a tool does not prove a grip. A rigid relaxed hand cannot
+close its fingers by changing its orientation. Use a fitted grip pose or
+action-specific closed hand geometry, then check enclosure around the tool,
+opposing thumb placement, contact gaps and wrist continuity. Cotton strands
+should gather and hang; repeated radial loops create petals rather than yarn.
+
+## Preserve a separate save before a live development reload
+
+**What happened.** Texture and browser-module updates reloaded a paused game.
+Startup selected 1x speed, and autosave replaced the saved point as time advanced.
+
+**Root cause.** Saving into the game's single slot was treated as a backup.
+The same slot remains writable by autosave after a development reload.
+
+**Prevention.** Keep a separate copy of the save bytes before updating a live
+preview. Restore that copy when appropriate and reapply Pause after all reloads.
+Use isolated browser contexts for fixtures and automation.
+
+**Verify.** Compare the retained save's world hash after restoration and check
+the visible Pause control. A Saved game loaded message alone does not prove
+that the original time or state was restored.
+
+## [L-contextual-need-benefits] Decisions and delivery must use the same physical conditions
+
+**What happened.** Media reserved a seat without paying its Comfort, meals
+paid Comfort regardless of posture, and sink washing could replace bathing.
+Adding contextual alternatives also made an unrelated Energy substitution
+read private-room state that exists only during movement.
+Using prospective offers for friendship readiness also made failed sharing
+appear helpful and omitted actual chair Comfort during meals.
+
+**Root cause.** Need delivery and decisions read only the primary action's
+advertisements. Physical claims and partial cleaning were separate facts.
+The alternative search checked privacy before determining effective benefits.
+Future offers and current activity help were treated as the same information.
+
+**Prevention.** Calculate conditional benefits from actual participation and
+planned physical ownership. Use the same rules for scoring, urgency, privacy
+alternatives and waiting. Filter relevant benefits before reading temporary
+privacy state. Keep food, seat, company and cleanliness effects distinct.
+Separate prospective offers from current activity help. Rebuild participation
+inside consumers that also support direct calls outside the tick schedule.
+
+**Verify.** Assert real meter changes for solo and shared use, distinct seats,
+standing eating, both sinks, interruption and the first restored tick. Delete
+the caps, food checks and company guards separately. Require the corresponding
+tests to fail and restore byte-identical sources. Preserve the direct cleanup
+substitution regression outside the movement phase.
+Require failed sharing to leave critical loneliness unhelped and real meal
+seating to help critical Comfort. Remove the consumer's refresh to prove its
+ownership, without refreshing the fixture immediately before the call.
+
+## [L-type-scoped-field-edits] Scope field additions to their owning type
+
+**What happened.** A broad edit added a tuning field after similarly named
+relationship fields in saved entity records. Compilation caught the invalid
+fields. The content compiler's build-script imports also needed the new type.
+
+**Root cause.** A field-name match was used as a substitute for identifying
+the type's constructors and its separate build-script compilation path.
+
+**Prevention.** Scan references to the owning type before changing its shape.
+Edit its constructors explicitly. Inspect each changed file and shared source
+module import. Append serialized fields without moving established slots.
+
+**Verify.** Check every target, inspect the final diff, and preserve explicit
+serialization fixtures. Prove that balance metadata changes do not change
+the save compatibility fingerprint.
+## [L-pinned-hash-search-includes-strings] Search for a moved hash in every written form
+
+**What happened.** Hashing personality effects moved the world hash of a released-main save that a web test loads. A search for pinned hash values matched only numeric and bigint literals, so it missed that test, which compares the hash as a decimal string, and the implementer reported that no web test pinned a moved value. The web suite failed on that test until the pin was updated.
+
+**Root cause.** The search assumed every pinned hash is written as a number literal. A test can also pin a hash as a quoted decimal string.
+
+**Prevention.** When a change can move a hash, record the old value from a run before the change and search the repository for its exact text in decimal and hexadecimal, inside or outside quotes. Run every suite that loads a pinned save against a rebuilt package before claiming no pin moved.
+
+**Verify.** The search for the old value returns each pin, and each suite that loads a saved fixture passes against the rebuilt package.
+
+## [L-one-mutation-writer-per-worktree] Run one source-mutating agent per worktree at a time
+
+**What happened.** Two implementers worked in one worktree at once, and each ran guard-deletion checks that rewrote `crates/terri-sim/src/lib.rs` and restored its saved bytes afterwards. One agent's backups in the shared scratchpad replaced the other agent's mutation script, and the second agent had to wait until the source files matched HEAD before it could compile or mutate anything.
+
+**Root cause.** A save-and-restore mutation harness assumes it is the only writer of the file and of its scratch directory. A second agent in the same worktree breaks both assumptions: a restore can write back bytes that hold the other agent's mutation, and one crate build compiles both agents' changes into each other's test runs.
+
+**Prevention.** Allow one agent at a time to write source files in a worktree, including mutation harnesses. Give parallel implementers separate worktrees, and give each harness its own scratch directory.
+
+**Verify.** Before a mutation run, confirm that `git status` shows only your own changes and record `git hash-object` for each target file. After restoring, confirm the hash matches the recorded value and that no other process changed the file during the run.
+
+## [L-per-completion-effect-needs-mid-activity-read] Read a per-completion effect while the activity runs
+
+**What happened.** The first test of learning from a conversation recorded the first tick on which either participant's practice rose and asserted that it equalled one attempt. Review showed that a `practise` call moved into the per-tick delivery would also raise practice by exactly one attempt on that first tick, so the test passed for the wrong code. The rewritten test reads practice while the chat runs and again after it ends.
+
+**Root cause.** A site that runs every tick and a site that runs once at completion produce the same value on the first tick that changes anything. A first-change read cannot tell them apart.
+
+**Prevention.** For an effect that must happen once per completed activity, assert the value mid-activity, while the activity is still under way, and again at a fixed tick after it ends, against an exact count of completions. Prove the test by moving the call into the per-tick path and to the activity's first tick, and confirm that each move fails it.
+
+**Verify.** `a_social_completion_teaches_both_participants` in `crates/terri-sim/src/skills_tests.rs` reads practice at tick 28 during the chat and at tick 60 after it. Moving the call into the per-tick delivery fails it with `nothing learned while the chat runs`, as recorded in `docs/specs/2026-10-05-skills-verification.md`.
+
+
+## [L-household-replay-control] Separate the rule from a household replay count
+
+**What happened.** Integrating needs changes moved a seed-specific sickness
+ordinal, removed an incidental toilet visit, and let a bystander carry the
+dish excluded from a cleaner's conservation assertion. No dish was lost:
+the trace showed four with the actor and one with a separate valid claim.
+
+**Root cause.** Household choices share the duration generator. Balance changes
+can change its later draws. Tests also counted one carrier while permitting
+other cleaners, or assumed an unrelated action would happen autonomously.
+
+**Prevention.** Keep exact replay observations as dated evidence. Test the
+threshold and measured accumulation independently. Order an unrelated
+completion explicitly when attribution needs a nonempty control. Isolate
+other cleaners through supported readiness rules when testing one owner.
+Repetition decay precedes the mood projection that drives life satisfaction.
+
+**Verify.** Assert the per-completion recurrence, threshold, refill and healing
+behavior. Match events to actual completion counters, retain save/load
+equality, and keep foreign-pile and quantity assertions. Verify the
+fixture's bystander constraint each tick.
+## [L-walk-direction-is-state-not-position] Record which way a walk goes; do not read it off where it ends
+
+**What happened.** One `Commuting` marker covered both the walk out to a shift and the walk home, and `commute_and_work` told them apart by whether the worker's position was within a hundredth of a tile of the door or the street's exit when its path ran out. A worker a fraction of a tile from the door's centre when the shift started got the empty commute, arrived on the shift tick where it stood, was read as home from work, and lost the shift unpaid. A calendar test draft on a lot without wall edges hit it at tick 88 of a 30-tick day; the shipped lot's walls route every commute onto the tile's centre first, which is why the played game never showed it.
+
+**Root cause.** A direction known at the moment a walk starts was discarded and reconstructed from a tolerance check on the walk's end. Any end position outside the tolerance, including the start position of a zero-step walk, turned a departure into a return.
+
+**Prevention.** When two walks share a marker and a mover, write the direction into the marker when the walk starts (`Commuting::Outbound`, `Commuting::Inbound`) and read only that at the end. Keep a tolerance check for what it measures, a position, and never use it to decide which lifecycle an event belongs to. On load, where a save carries one bit, derive the direction from the saved walk's destination, which is authored, not from the position, which is wherever movement left it.
+
+**Verify.** `a_worker_a_fraction_off_the_door_at_shift_start_still_clocks_in_and_is_paid_once` and `an_outbound_commute_that_has_ended_clocks_in_wherever_the_worker_stands` in `crates/terri-sim/src/systems/career.rs` fail with `left: None` when the positional check is put back into the outbound arm; `a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street` in `crates/terri-sim/src/systems/street_tests.rs` pins the shipped lot.
+
+## Keep chore state available during mood-based decisions
+
+**What happened.** Daily cleaning decisions omitted grime and chore feelings,
+while the public mood display included them.
+
+**Root cause.** The chore scheduler temporarily removed its state resource.
+Mood derivation looked up that missing resource rather than receiving the
+scheduler's current state.
+
+**Prevention.** Pass the owned state explicitly to mood derivation while a
+resource is outside the world. Keep public and scheduler mood inputs identical.
+
+**Verify.** Run the normal daily-decision path with the same person, needs,
+profile and random draw, between the clean and grimy probabilities. Dirt and
+recent chore feelings must change the decision without adding random draws.
+
+## Verify asset receipts against staged Git bytes
+
+**What happened.** Asset checks passed against working files, but Git's newline
+conversion changed newly staged producers and manifests bound by raw SHA-256.
+
+**Root cause.** The accepted files lacked the exact-byte attributes already
+used for older model receipts. Git's cached index also needed renormalization
+after the attributes changed.
+
+**Prevention.** Protect every byte-hashed producer and receipt from newline
+conversion. Compare its staged blob with the receipt before delivery, and
+renormalize only the newly protected files when the index already holds them.
+
+**Verify.** Read each approved input from Git's index and require its hash to
+match the same receipt as the working file. A local-only asset check is
+insufficient evidence for a clean checkout.
+
+## Give recovery tests a real activity owner
+
+**What happened.** A repetition-recovery test expected a snack score to decay
+while an empty order queue allowed autonomy to complete another snack.
+
+**Root cause.** An empty player queue and full Hunger do not prohibit food;
+exploration can still choose it. The observed increase was another completed
+use rather than a failure of decay.
+
+**Prevention.** Give the person a valid directed activity during a recovery
+interval when the test requires no new use of the measured activity. Keep the
+normal simulation running and retain a per-tick monotonicity assertion.
+
+**Verify.** Record the first upward score transition and the active chain.
+Require the recovery scenario to avoid renewed use, then verify its score and
+mood heal without disabling production systems.
+
+
+## Release fixture ownership before replacing an autonomous target
+
+**What happened.** A busy-table meal test left the cook's Sit order waiting,
+then failed when a guest used a chair. Changing the activity duration did not
+fix the missing ownership precondition.
+
+**Root cause.** CancelIntents deliberately preserves an autonomous ordinary
+activity. The fixture manually replaced that activity's target without releasing
+its reservation, leaving an unowned table marker that blocked the real Sit order.
+The original injected cook target bypassed admission and masked the bad fixture.
+
+**Prevention.** Release the previous target through the existing reservation
+mechanism before replacing it in a fixture. Establish busy surfaces through real
+orders and physical-place routes. When sustained occupancy is the precondition,
+use a bounded authored duration in test-only content and install identical
+content before restoring the comparison world.
+
+**Verify.** Require the cook's actual Sit target at each guest's first meal
+claim. Require both guests to perform standing work, save during that work,
+and compare original and restored hashes through consumption. Trace the
+reservation owner when admission fails; do not clear markers blindly.
+
+
+## Match an order's owner as well as its activity
+
+**What happened.** Retaining generic chain orders until completion let a queued
+whole-house cleanup be mistaken for the owner of an active pile or surface
+cleanup. Retained orders also displaced a First floor chore on the next tick.
+
+**Root cause.** Activity identity alone does not distinguish different scopes
+or a timed chore that temporarily interrupts the same generic activity.
+
+**Prevention.** Use existing saved scope and chore ownership in serving,
+resumption, settlement and queue display. Let waiting orders preserve the
+current movement. Validate a First request before releasing existing work.
+
+**Verify.** Queue whole-house cleanup after a pile or surface, preserve repeated
+orders behind a First chore, and require actual physical cleanup before the
+waiting order runs. Save and reload each transition with matching hashes.
+## [L-organic-sounds-need-recordings] Body sounds need a recording, not a tone
+
+**What happened.** The owner asked for the sleeping sound to become a quieter, lower snore. A lower, softer triangle sweep was rejected as not snore-like. Three synthesized two-part snores, built from tones, flutter and filtered noise, were rejected too; one of them sounded like a cat purring and was kept for pets. A CC0 recording, measured and filtered to keep its energy low, was accepted.
+
+**Root cause.** A snore is a noisy, irregular sound from soft tissue. Envelope and pitch changes to one oscillator could make the cue quieter and lower, but not make it read as a snore. Frequency assertions and a design argument could not decide that; only listening could.
+
+**Prevention.** For a body or animal sound, search CC0 sources for recordings first and audition them with the owner before synthesizing. Measure each candidate's energy above 1 kHz and 2 kHz before offering it, because the owner wants very few high-pitched sounds in a game left playing in the background. Send rendered audio files for listening rather than describing a waveform.
+
+**Verify.** Each offered candidate has a recorded licence and a band-energy measurement, and the owner chose the shipped sound by ear. For the snore, ASSETS.md, "Sleeping snore recordings", records both.
+
+## [L-merge-struct-edits] Scope merge repairs to the owning type
+
+**What happened.** A queued-order merge repair matched shared field names and temporarily added order fields to target records and to orders that already had them. Compilation caught the invalid and duplicate fields.
+
+**Root cause.** The replacement matched a field sequence without identifying the enclosing Rust type.
+
+**Prevention.** Limit structural replacements to the owning type and inspect the complete diff before compiling. Check existing fields before adding defaults from an incoming type change.
+
+**Verify.** The diff changes only missing fields in the intended initializers. Run formatting, compile every target with warnings denied, and run the affected tests.
+
+## [L-exact-polygon-certificates] A float tolerance cannot prove a polygon winds once
+
+**What happened.** The toilet contact validator accepted a certificate polygon that traced half a cell twice, with its second circuit displaced by 1e-10 metres. Every vertex was distinct, every edge's convexity violation was below the 1e-12 square-metre tolerance, and the signed area equalled the whole cell. Three earlier validator designs had each been a tolerance variation on the same convexity check, and each left a nearby forgery open. A fresh-context review also found that many thin partitions, each overlapping its neighbour by just under the pairwise tolerance, could hide a hole as large as all those overlaps combined.
+
+**Root cause.** Signed area is only the true area of a simple polygon, and a half-plane test with a tolerance cannot distinguish one circuit from two. Summed partition areas minus nothing cannot prove coverage when each pairwise overlap is individually tolerated.
+
+**Prevention.** Judge geometry predicates exactly. Python floats convert to `fractions.Fraction` without loss, and the frozen `signed_area` and `clip_polygon` helpers run on rationals unchanged. Require a strictly positive turn at every vertex and exactly two sign changes of the edge x-direction, which is winding number one. Then bound the covered area from below by the exact sum of clipped pieces minus the exact sum of pairwise overlaps, and compare only that final shortfall with the declared area resolution. Keep producers frozen; put the exact checks in the importing validator and re-export into a new directory.
+
+**Verify.** `assets/models/bathroom/actions/test_bathroom_export_contract.py` accepts the authentic receipt and rejects exact and displaced double winding, a denormal displacement, a spike, a reversal, a clockwise cell, a zero-area sliver, two full cells, two copies of one half, overlapping three-quarter halves and two hundred thin overlapping strips. The handoff's standalone reproducer, since folded into that suite as the displaced double-winding test, returned exit 0 after the change.
+
+## [L-fixtures-stay-put-under-occupants] An object must not move when a body starts using it
+
+**What happened.** The first fitted toilet export registered its occupied scene 21 logical pixels above the empty toilet sprite. Every mechanical gate passed: the source comparison, the full-frame GPU proof against the decoded layers, picking, save and load. The owner opened the game and saw the toilet jump to a different spot the moment a housemate sat down, then jump back when they stood up. The exporter had written the scene anchor as the projected origin divided by eight and omitted the 21-pixel tile drop that the static prop catalogue and the seating renderer both apply.
+
+**Root cause.** The occupied scene and the empty fixture are two different sprites that must draw the same furniture in the same place. Nothing compared their anchors. The proofs compared the occupied scene with itself (its own decoded layers) and the empty sprite with itself, so a constant offset between the two was invisible to every automated check and only visible in play.
+
+**Prevention.** A furniture object never changes position, size or orientation because a body starts or stops an interaction. The only motion allowed inside an animation is motion the design calls for explicitly, such as a bin lid opening or a bike's pedals turning, and that motion is authored and reviewed as part of the loop. For every occupied scene, measure the offset between the empty fixture's anchor and the scene's anchor, and between their furniture alpha bounds after anchoring, before any browser proof; the importer must refuse a scene whose anchor differs from its empty fixture (`offline_bathroom.tables` does so when given the atlas anchors). Then watch the transition in the played game at the moment of sitting down and standing up, not only the seated frame.
+
+**Verify.** `test_export_toilet_loop.py` pins the anchor rule, `test_offline_bathroom.py` proves the importer rejects a mismatched anchor, and the dated evidence record for the delivery shows the empty and occupied toilet in the same place before, during and after use.

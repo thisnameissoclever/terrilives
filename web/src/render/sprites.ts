@@ -4,6 +4,9 @@ import { packDiningSupport } from './dining-support.js';
 import { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 export { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 
+import { loadDishCoverage } from './dish-coverage.js';
+import { loadBodyCoverage } from './body-coverage.js';
+import { GRIME_SPRITE_COUNT, grimeSpriteTable, uploadGrimePage } from './grime-decals.js';
 import {
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
@@ -157,7 +160,7 @@ export function validateAtlasPageCount(count: number, deviceLimit: number): void
  */
 export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
   validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
-  validateAtlasPageCount(ATLAS_PAGE_FILES.length, device.limits.maxTextureArrayLayers);
+  validateAtlasPageCount(ATLAS_PAGE_FILES.length+1, device.limits.maxTextureArrayLayers);
   let texture: GPUTexture | undefined;
   try {
     for (let page = 0; page < ATLAS_PAGE_FILES.length; page++) {
@@ -185,11 +188,13 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
               `${ATLAS_WIDTH}x${ATLAS_HEIGHT}; every sprite rect would be wrong`,
           );
         }
+        loadDishCoverage(bitmap, page);
+        loadBodyCoverage(bitmap, page);
         texture ??= device.createTexture({
           size: {
             width: bitmap.width,
             height: bitmap.height,
-            depthOrArrayLayers: ATLAS_PAGE_FILES.length,
+            depthOrArrayLayers: ATLAS_PAGE_FILES.length+1,
           },
           format: 'rgba8unorm',
           usage: GPUTextureUsage.TEXTURE_BINDING |
@@ -204,11 +209,13 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
         bitmap.close();
       }
     }
+    await uploadGrimePage(device,texture!);
     return texture!;
   } catch (error) {
     texture?.destroy();
     throw error;
   }
+
 }
 
 /**
@@ -225,6 +232,10 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
 export class SpriteRenderer {
   private readonly pipeline: GPURenderPipeline;
   private readonly lowWallPipeline: GPURenderPipeline;
+  private readonly grimePipeline: GPURenderPipeline;
+  private grimeOpacity = new Float32Array();
+  private grimeOpacityBuffer: GPUBuffer | null = null;
+  private grimeOpacityCapacity = 0;
   private readonly uniformBuffer: GPUBuffer;
   /** The atlas rect table, uploaded once; the atlas cannot change. */
   private readonly spriteBuffer: GPUBuffer;
@@ -254,6 +265,9 @@ export class SpriteRenderer {
   private staticCount = 0;
   private lowWalls: InstanceArray = new Float32Array();
   private lowWallCount = 0;
+  readonly grimeSpriteBase:number;
+  private grimeInstances:InstanceArray=new Float32Array();
+  private grimeCount=0;
 
   /**
    * Scratch for the per-frame uniform upload, allocated once and mutated
@@ -427,6 +441,12 @@ export class SpriteRenderer {
       depthStencil: { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less' },
     });
 
+    this.grimePipeline = gpu.device.createRenderPipeline({ ...descriptor,
+      vertex: { ...descriptor.vertex, entryPoint: 'vsGrime', buffers: [
+        ...descriptor.vertex.buffers!, {arrayStride:4,stepMode:'instance',attributes:[{shaderLocation:4,offset:0,format:'float32'}]}]},
+      fragment: { ...descriptor.fragment!, constants: { ...descriptor.fragment!.constants, grimePass: 1 } },
+      depthStencil: {format:'depth24plus',depthWriteEnabled:false,depthCompare:'less'},
+    });
     this.instanceBuffer = gpu.device.createBuffer({
       size: this.capacity * BYTES_PER_INSTANCE,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
@@ -447,8 +467,11 @@ export class SpriteRenderer {
     // committed artifact, so its rects are fixed for the session.
     const historical = packSpriteTable();
     const extra = architecture ? packSpriteTable(architecture.sprites, architecture.width, architecture.height, {}, {}) : new Float32Array();
-    const spriteTable = new Float32Array(historical.length + extra.length);
+    this.grimeSpriteBase=SPRITES.length+(architecture?.sprites.length??0);
+    const grime=grimeSpriteTable();
+    const spriteTable = new Float32Array(historical.length + extra.length + grime.length);
     spriteTable.set(historical); spriteTable.set(extra, historical.length);
+    spriteTable.set(grime,historical.length+extra.length);
     this.spriteBuffer = gpu.device.createBuffer({
       size: spriteTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -493,13 +516,13 @@ export class SpriteRenderer {
         { width: bitmap.width, height: bitmap.height });
       return texture;
     });
-    const bedTable = packVisibleSceneLayers(SPRITES.length + (architecture?.sprites.length ?? 0),
+    const bedTable = packVisibleSceneLayers(this.grimeSpriteBase+GRIME_SPRITE_COUNT,
       { ...BED_LAYERS, ...SEATING_LAYERS, ...BATHROOM_LAYERS });
     this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.bedBuffer);
     gpu.device.queue.writeBuffer(this.bedBuffer, 0, bedTable);
-    const diningTable = packDiningSupport(SPRITES.length + (architecture?.sprites.length ?? 0), SPRITE_DINING_SUPPORT);
+    const diningTable = packDiningSupport(this.grimeSpriteBase+GRIME_SPRITE_COUNT, SPRITE_DINING_SUPPORT);
     this.diningBuffer = gpu.device.createBuffer({ size: diningTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.diningBuffer);
@@ -564,6 +587,10 @@ export class SpriteRenderer {
     this.uploadStatic();
   }
 
+  setGrimeInstances(batch:{instances:InstanceArray;opacity:Float32Array<ArrayBuffer>;count:number}):void {
+    this.grimeInstances=batch.instances;this.grimeOpacity=batch.opacity;this.grimeCount=batch.count;
+  }
+
   private validateFinishSlots(rows: InstanceArray, count: number): void {
     for (let index = 0; index < count; index++) {
       const mode = decodeArchitectureMode(rows[index * FLOATS_PER_INSTANCE + 8]);
@@ -576,6 +603,7 @@ export class SpriteRenderer {
     if (this.destroyed) return;
     this.destroyed = true;
     this.depthTexture?.destroy();
+    this.grimeOpacityBuffer?.destroy();
     this.instanceBuffer.destroy();
     for (const resource of this.ownedTextures) resource.destroy();
     for (const resource of this.ownedBuffers) resource.destroy();
@@ -645,7 +673,7 @@ export class SpriteRenderer {
     ambient: Ambient = AMBIENT_NEUTRAL,
     skyShade = 0,
   ): void {
-    const total = this.staticCount + count;
+    const total = this.staticCount + count + this.grimeCount;
     if (total + this.lowWallCount === 0) return;
     this.ensureCapacity(total + this.lowWallCount);
 
@@ -671,10 +699,21 @@ export class SpriteRenderer {
         count * FLOATS_PER_INSTANCE,
       );
     }
+    if(this.grimeCount>0)this.gpu.device.queue.writeBuffer(this.instanceBuffer,(this.staticCount+count)*BYTES_PER_INSTANCE,
+      this.grimeInstances,0,this.grimeCount*FLOATS_PER_INSTANCE);
     if (this.lowWallCount > 0) {
       this.gpu.device.queue.writeBuffer(this.instanceBuffer, total * BYTES_PER_INSTANCE, this.lowWalls);
     }
 
+    if (this.grimeCount > 0) {
+      if (this.grimeCount > this.grimeOpacityCapacity) {
+        this.grimeOpacityBuffer?.destroy();
+        this.grimeOpacityCapacity = Math.max(16,this.grimeCount);
+        this.grimeOpacityBuffer = this.gpu.device.createBuffer({size:this.grimeOpacityCapacity*4,
+          usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
+      }
+      this.gpu.device.queue.writeBuffer(this.grimeOpacityBuffer!,0,this.grimeOpacity,0,this.grimeCount);
+    }
     const depth = this.ensureDepth(canvas.width, canvas.height);
     const encoder = this.gpu.device.createCommandEncoder();
     const pass = encoder.beginRenderPass({
@@ -698,7 +737,14 @@ export class SpriteRenderer {
     pass.setBindGroup(0, this.bindGroup);
     pass.setVertexBuffer(0, this.instanceBuffer);
     // Opaque floor, rear walls, objects and Sims establish depth first.
-    pass.draw(VERTICES_PER_QUAD, total);
+    pass.draw(VERTICES_PER_QUAD, this.staticCount + count);
+    if (this.grimeCount > 0) {
+      pass.setPipeline(this.grimePipeline);
+      pass.setVertexBuffer(0,this.instanceBuffer,(this.staticCount+count)*BYTES_PER_INSTANCE);
+      pass.setVertexBuffer(1,this.grimeOpacityBuffer!);
+      pass.draw(VERTICES_PER_QUAD,this.grimeCount);
+      pass.setVertexBuffer(0,this.instanceBuffer);
+    }
     if (this.lowWallCount > 0) {
       pass.setPipeline(this.lowWallPipeline);
       pass.draw(VERTICES_PER_QUAD, this.lowWallCount, 0, total);
