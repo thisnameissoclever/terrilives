@@ -3,6 +3,8 @@
 //! Every person holds one value per affinity kind, from -1.0 (hates) to
 //! 1.0 (loves), drawn once when the person is created ([OA-values]).
 
+use std::cmp::Ordering;
+
 use bevy_ecs::prelude::*;
 use terri_core::{
     Affinities, Agent, AtWork, Eating, Path, Position, Relationships, SimClock, SimId, SimName,
@@ -138,8 +140,8 @@ fn using_kind(world: &World, pack: &ContentPack, person: Entity) -> Option<u32> 
 
 /// The moodlets the things in `subject`'s room give - [OA-presence]: one
 /// per `presence` kind with at least one object in the room and a value
-/// whose magnitude is at least `affinity_presence_threshold`, in kinds
-/// order. Nobody in the yard, off the lot or at work gets one, and nothing
+/// that is not zero and whose magnitude is at least
+/// `affinity_presence_threshold`, in kinds order. Nobody in the yard, off the lot or at work gets one, and nothing
 /// outside the house counts.
 pub(crate) fn presence_moodlets(
     world: &World,
@@ -149,13 +151,6 @@ pub(crate) fn presence_moodlets(
     let Some(affinities) = world.get::<Affinities>(subject) else {
         return Vec::new();
     };
-    if !pack
-        .affinities
-        .iter()
-        .any(|kind| kind.reach == AffinityReach::Presence)
-    {
-        return Vec::new();
-    }
     let rooms = RoomRegions::from_world(world);
     let Some(room) = room_of(world, subject, &rooms) else {
         return Vec::new();
@@ -182,13 +177,16 @@ pub(crate) fn presence_moodlets(
             if value.abs() < tuning.affinity_presence_threshold {
                 return None;
             }
+            // A value of exactly zero is indifference whatever the
+            // threshold, so it has no sign to read.
+            let label = match value.partial_cmp(&0.0) {
+                Some(Ordering::Greater) => format!("Likes the {} here", kind.label),
+                Some(Ordering::Less) => format!("Bothered by the {} here", kind.label),
+                _ => return None,
+            };
             let extra = (count - 1).min(tuning.affinity_presence_extra_cap);
             Some(Moodlet {
-                label: if value > 0.0 {
-                    format!("Likes the {} here", kind.label)
-                } else {
-                    format!("Bothered by the {} here", kind.label)
-                },
+                label,
                 score: value
                     * (tuning.affinity_presence_points
                         + tuning.affinity_presence_extra_points * extra as f32),
@@ -205,7 +203,8 @@ struct Nuisance {
 }
 
 /// Everyone bothering `subject`: for each `use` kind, in kinds order, at
-/// which `subject` holds a value at or below `-affinity_presence_threshold`,
+/// which `subject` holds a negative value at or below
+/// `-affinity_presence_threshold`,
 /// every other living person in the same room actually using an object of
 /// that kind, in ascending entity-index order. A person's own use never
 /// counts, and a person who merely likes the kind is bothered by nobody.
@@ -225,7 +224,7 @@ fn nuisances(
         .enumerate()
         .filter(|(_, kind)| kind.reach == AffinityReach::Use)
         .map(|(index, _)| (index as u32, affinities.value(index as u32)))
-        .filter(|&(_, value)| value <= -threshold)
+        .filter(|&(_, value)| value < 0.0 && value <= -threshold)
         .collect();
     if hated.is_empty() {
         return Vec::new();
@@ -257,29 +256,29 @@ fn nuisances(
 
 /// The moodlets other people's use gives `subject` - [OA-use]: one
 /// `Bothered by {name} using the {kind}` per [`nuisances`] entry, worth
-/// `value * affinity_use_points`.
+/// `value * affinity_use_points`. A user without a name is skipped, as
+/// mood skips one among the people nearby.
 pub(crate) fn use_moodlets(world: &World, pack: &ContentPack, subject: Entity) -> Vec<Moodlet> {
     let rooms = RoomRegions::from_world(world);
     nuisances(world, pack, &rooms, subject)
         .into_iter()
-        .map(|nuisance| {
-            let name = world
-                .get::<SimName>(nuisance.user)
-                .map_or("Somebody", |name| name.0.as_str());
-            Moodlet {
+        .filter_map(|nuisance| {
+            let name = &world.get::<SimName>(nuisance.user)?.0;
+            Some(Moodlet {
                 label: format!(
                     "Bothered by {name} using the {}",
                     pack.affinities[nuisance.kind as usize].label
                 ),
                 score: nuisance.value * pack.tuning.affinity_use_points,
-            }
+            })
         })
         .collect()
 }
 
 /// The relationship half of [OA-use]: every person bothered by another's
 /// use feels `|value| * affinity_use_feeling_per_hour / 60` less toward
-/// the user this tick, recorded as a `Nuisance` effect. Bothered people in
+/// the user this tick, recorded as a `Nuisance` effect; a zero change is
+/// neither applied nor recorded. Bothered people in
 /// ascending entity-index order, then their users in the same order.
 /// Runs directly after `relationship_dynamics::tick`.
 pub(crate) fn bother(world: &mut World) {
@@ -306,6 +305,9 @@ pub(crate) fn bother(world: &mut World) {
             continue;
         };
         let requested = -nuisance.value.abs() * per_tick;
+        if requested == 0.0 {
+            continue;
+        }
         let mut feelings = world
             .get::<Relationships>(person)
             .cloned()

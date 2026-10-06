@@ -699,6 +699,141 @@ fn the_bother_belongs_to_the_kind_in_use() {
     assert_eq!(nuisances_this_tick(&sim).len(), 0);
 }
 
+/// Replaces the content's tuning with an edited copy, the way the
+/// boundary tests swap the `Content` resource.
+fn retune(sim: &mut Sim, edit: impl FnOnce(&mut terri_data::Tuning)) {
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    edit(&mut pack.tuning);
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+}
+
+/// Casey at the television by hand, Bill (who hates it) beside her in the
+/// living room, both read without ticking.
+fn bill_beside_a_watching_casey() -> (Sim, Entity, Entity) {
+    let (mut sim, bill, casey) = bill_and_casey();
+    set_values(&mut sim, bill, &[("television", -1.0)]);
+    stand(&mut sim, bill, 13.0, 1.0);
+    watching_by_hand(&mut sim, casey, 11.0, 4.0);
+    (sim, bill, casey)
+}
+
+/// The Nuisance effects one direct `bother` call records, from a clean
+/// diagnostics list.
+fn bother_once(sim: &mut Sim) -> Vec<RelationshipEffect> {
+    crate::relationship_effects::reset(sim.world_mut());
+    bother(sim.world_mut());
+    nuisances_this_tick(sim)
+}
+
+/// [OA-use]: using means the running interaction is the target's, object
+/// and row both. A person running the television's interaction while
+/// targeting the radio, or targeting the television on another row, is
+/// not using it and bothers nobody.
+#[test]
+fn a_running_interaction_that_differs_from_the_target_is_not_use() {
+    let (mut sim, bill, casey) = bill_beside_a_watching_casey();
+    assert_eq!(affinity_moodlets(&sim, bill), bothered_by_casey(-15.0));
+    assert_eq!(bother_once(&mut sim).len(), 1, "the matching pair counts");
+
+    let watch = row("television", "watch_tv");
+    let television = placed(&mut sim, "television");
+    let radio = placed(&mut sim, "radio");
+    for (target, interaction, case) in [
+        (radio, watch, "the target is another object on the same row"),
+        (
+            television,
+            watch + 1,
+            "the target is the television on another row",
+        ),
+    ] {
+        watching_by_hand(&mut sim, casey, 11.0, 4.0);
+        sim.world_mut().entity_mut(casey).insert(Target {
+            object: target,
+            interaction,
+        });
+        assert_eq!(
+            sim.world()
+                .get::<Eating>(casey)
+                .map(|e| (e.object, e.interaction)),
+            Some((object_def("television"), watch)),
+            "{case}: the television's interaction is still running"
+        );
+        assert_eq!(affinity_moodlets(&sim, bill), vec![], "{case}");
+        assert_eq!(bother_once(&mut sim).len(), 0, "{case}");
+    }
+}
+
+/// [OA-presence], [OA-use]: a value of exactly zero is indifference even
+/// when the threshold is zero, which the compiler allows. It gives no
+/// presence moodlet of either sign and is bothered by nobody, while the
+/// smallest value either side of it does read.
+#[test]
+fn a_zero_value_reads_nothing_under_a_zero_threshold() {
+    let mut sim = shipped();
+    retune(&mut sim, |tuning| tuning.affinity_presence_threshold = 0.0);
+    let tim = person(&mut sim, "Tim");
+    stand(&mut sim, tim, 14.0, 1.0);
+    for zero in [0.0, -0.0] {
+        set_values(&mut sim, tim, &[("plants", zero)]);
+        assert_eq!(affinity_moodlets(&sim, tim), vec![], "plants {zero:?}");
+    }
+    set_values(&mut sim, tim, &[("plants", 0.001)]);
+    assert_eq!(affinity_moodlets(&sim, tim), likes_plants(0.001 * 10.0));
+    set_values(&mut sim, tim, &[("plants", -0.001)]);
+    assert_eq!(
+        affinity_moodlets(&sim, tim),
+        vec![("Bothered by the plants here".to_string(), -0.001 * 10.0)]
+    );
+
+    let (mut sim, bill, _) = bill_beside_a_watching_casey();
+    retune(&mut sim, |tuning| tuning.affinity_presence_threshold = 0.0);
+    for zero in [0.0, -0.0] {
+        set_values(&mut sim, bill, &[("television", zero)]);
+        assert_eq!(affinity_moodlets(&sim, bill), vec![], "television {zero:?}");
+        assert_eq!(bother_once(&mut sim).len(), 0, "television {zero:?}");
+    }
+    set_values(&mut sim, bill, &[("television", -0.001)]);
+    assert_eq!(
+        affinity_moodlets(&sim, bill),
+        bothered_by_casey(-0.001 * 15.0)
+    );
+    assert_eq!(bother_once(&mut sim).len(), 1);
+}
+
+/// [OA-use]: with a feeling rate of zero, which the compiler allows, the
+/// moodlet still reads but the bother changes no feeling, adds no entry to
+/// the hashed relationships and records no effect, as
+/// `relationship_dynamics` skips a zero request.
+#[test]
+fn a_zero_feeling_rate_changes_and_records_nothing() {
+    let (mut sim, bill, casey) = bill_beside_a_watching_casey();
+    retune(&mut sim, |tuning| {
+        tuning.affinity_use_feeling_per_hour = 0.0
+    });
+    let casey_id = *sim.world().get::<SimId>(casey).unwrap();
+    let before = sim.world().get::<Relationships>(bill).cloned();
+    assert!(
+        before
+            .as_ref()
+            .is_none_or(|feelings| feelings.entries().iter().all(|(id, _)| *id != casey_id)),
+        "Bill starts with no entry for Casey"
+    );
+    assert_eq!(affinity_moodlets(&sim, bill), bothered_by_casey(-15.0));
+    assert_eq!(bother_once(&mut sim).len(), 0);
+    assert_eq!(sim.world().get::<Relationships>(bill).cloned(), before);
+}
+
+/// [OA-use]: the moodlet names the user; a user with no name is skipped,
+/// as mood skips one among the people nearby, rather than given an
+/// invented one.
+#[test]
+fn a_user_without_a_name_gives_no_moodlet() {
+    let (mut sim, bill, casey) = bill_beside_a_watching_casey();
+    sim.world_mut().entity_mut(casey).remove::<SimName>();
+    assert_eq!(affinity_moodlets(&sim, bill), vec![]);
+}
+
 #[test]
 fn band_words() {
     assert_eq!(band(1.0), "Loves");
