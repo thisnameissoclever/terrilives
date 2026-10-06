@@ -1115,8 +1115,10 @@ describe('SimBridge', () => {
   });
 
   it("reads each person's likes and dislikes through release wasm without changing saves", () => {
-    // [OA-hud]: four values per person in kind order. Bill wears Television
-    // devotee, which sets television to 0.8.
+    // [OA-hud]: four words per person in kind order, worded by the
+    // simulation from the edges in tuning. Bill wears Fish watcher, which
+    // sets the aquarium to 0.4 (Likes), and Television devotee, which sets
+    // television to 0.8 (Loves).
     const handle = SimHandle.from_lot();
     try {
       const bridge = new SimBridge(handle, wasmMemory);
@@ -1130,16 +1132,17 @@ describe('SimBridge', () => {
       const before = handle.save_bytes();
       const hash = bridge.worldHash();
       for (const person of people) {
-        const values = bridge.affinitiesOf(person);
-        expect(values).toHaveLength(4);
-        expect(values).toEqual(Array.from(handle.affinities_of(person)));
+        const words = bridge.affinityWordsOf(person);
+        expect(words).toHaveLength(4);
+        expect(words).toEqual(handle.affinity_words_of(person));
       }
-      expect(bridge.affinitiesOf(bill!)![2]).toBe(Math.fround(0.8));
+      const words = bridge.affinityWordsOf(bill!)!;
+      expect([words[1], words[2]]).toEqual(['Likes', 'Loves']);
       const object = ids.find((_, index) => kinds[index] !== 0)!;
       expect(object).toBeDefined();
-      expect(bridge.affinitiesOf(object)).toBeNull();
+      expect(bridge.affinityWordsOf(object)).toBeNull();
       for (const hostile of [-1, 1.5, Number.NaN, 2 ** 32, 0xffffffff]) {
-        expect(bridge.affinitiesOf(hostile)).toBeNull();
+        expect(bridge.affinityWordsOf(hostile)).toBeNull();
       }
       expect(handle.save_bytes()).toEqual(before);
       expect(bridge.worldHash()).toBe(hash);

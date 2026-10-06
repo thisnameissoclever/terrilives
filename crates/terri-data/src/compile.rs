@@ -2625,6 +2625,20 @@ fn check_affinity_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
             "affinity_use_feeling_per_hour",
             finite_and_not_negative(tuning.affinity_use_feeling_per_hour),
         ),
+        (
+            "affinity_band_likes",
+            tuning.affinity_band_likes > 0.0 && tuning.affinity_band_likes < 1.0,
+        ),
+        (
+            "affinity_band_loves",
+            tuning.affinity_band_loves > tuning.affinity_band_likes
+                && tuning.affinity_band_loves <= 1.0,
+        ),
+        (
+            "affinity_from_mild_trait",
+            tuning.affinity_from_mild_trait > 0.0
+                && tuning.affinity_from_mild_trait < tuning.affinity_from_trait,
+        ),
     ];
     match rules.into_iter().find(|(_, holds)| !holds) {
         Some((key, _)) => Err(ContentError::AffinityTuningOutOfRange { key }),
@@ -3241,6 +3255,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             affinity_use_feeling_per_hour: tuning.affinity_use_feeling_per_hour,
             affinity_loves_from: affinity.loves_from,
             affinity_hates_to: affinity.hates_to,
+            affinity_band_loves: tuning.affinity_band_loves,
+            affinity_band_likes: tuning.affinity_band_likes,
+            affinity_from_mild_trait: tuning.affinity_from_mild_trait,
         },
         circadian,
         tuning.sleep_tag,
@@ -4250,6 +4267,13 @@ mod tests {
     /// and `affinity_hates_to` follow the seven affinity knobs, on their own
     /// row: the fixture's floats 1.46875 and 0.28125. Every byte up to and
     /// including the affinity knobs kept its offset. 536 bytes to 544.
+    ///
+    /// **The word bands and the mild trait value moved it by twelve bytes,
+    /// appended to `Tuning` ([OA-hud] and [OA-values]).**
+    /// `affinity_band_loves`, `affinity_band_likes` and
+    /// `affinity_from_mild_trait` follow the trait bands, on their own row:
+    /// the fixture's floats 0.5625, 0.1875 and 0.34375. Every byte up to and
+    /// including the trait bands kept its offset. 544 bytes to 556.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Completion presentation appends None after activity in the sole interaction.
@@ -4283,6 +4307,7 @@ mod tests {
         4,
         0, 0, 48, 63, 0, 0, 152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60,
         0, 0, 188, 63, 0, 0, 144, 62,
+        0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
     ];
 
@@ -4534,6 +4559,9 @@ mod tests {
             affinity_presence_extra_cap: 27,
             affinity_use_points: 14.5,
             affinity_use_feeling_per_hour: 0.0234375,
+            affinity_band_loves: 0.5625,
+            affinity_band_likes: 0.1875,
+            affinity_from_mild_trait: 0.34375,
 
             decay_per_tick: NeedId::ALL
                 .iter()
@@ -5679,14 +5707,16 @@ mod tests {
         // empty skills vector ([SK-content]) before it; the voice clip,
         // portal, colourway and floor covering vectors before those; the
         // sleep tag, its length 5 and five letters; nine empty fields from
-        // personalities through circadian; the two trait bands
-        // ([TL-affinity]), the last eight bytes of `Tuning`; the seven
+        // personalities through circadian; the word bands and the mild trait
+        // value ([OA-hud], [OA-values]), the last twelve bytes of `Tuning`;
+        // the two trait bands ([TL-affinity]), the eight before them; the seven
         // affinity knobs ([OA-values]), the twenty-five bytes before them;
         // `first_weekday` ([CAL-week]), the byte before those; the five
         // overdoing knobs ([OD-content]), the twenty bytes before that; and
         // then the two ladder knobs. Everything before the ladder is the
         // established pack.
-        let bands_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let words_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let bands_end = words_end - 12;
         let affinity_end = bands_end - 8;
         let affinity_start = affinity_end - 25;
         let weekday = affinity_start - 1;
@@ -5738,7 +5768,16 @@ mod tests {
         assert_eq!(
             &bytes[affinity_end..bands_end],
             bands,
-            "the trait bands are the tail of Tuning"
+            "the trait bands precede the word bands"
+        );
+        let words: Vec<u8> = [0.5625f32, 0.1875, 0.34375]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[bands_end..words_end],
+            words,
+            "the word bands and the mild trait value are the tail of Tuning"
         );
         assert_eq!(
             &bytes[bytes.len() - 6..],
@@ -5806,6 +5845,9 @@ mod tests {
         assert_eq!(tuning.affinity_use_feeling_per_hour, 0.0234375);
         assert_eq!(tuning.affinity_loves_from, 1.46875);
         assert_eq!(tuning.affinity_hates_to, 0.28125);
+        assert_eq!(tuning.affinity_band_loves, 0.5625);
+        assert_eq!(tuning.affinity_band_likes, 0.1875);
+        assert_eq!(tuning.affinity_from_mild_trait, 0.34375);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -9261,7 +9303,7 @@ mod tests {
 
     /// [OA-values], [OA-presence], [OA-use]: every affinity knob, and both
     /// trait bands ([TL-affinity]) the spawn draw reads, reaches its own
-    /// compiled field. The fixture's nine values are pairwise distinct, so a
+    /// compiled field. The fixture's twelve values are pairwise distinct, so a
     /// knob copied from a neighbour moves exactly one assertion.
     #[test]
     fn every_affinity_knob_is_copied_to_its_own_compiled_field() {
@@ -9301,6 +9343,18 @@ mod tests {
                 |t| t.affinity_loves_from = 2.0,
             ),
             (|t| t.affinity_hates_to = 0.5, |t| t.affinity_hates_to = 0.5),
+            (
+                |t| t.affinity_band_loves = 0.75,
+                |t| t.affinity_band_loves = 0.75,
+            ),
+            (
+                |t| t.affinity_band_likes = 0.25,
+                |t| t.affinity_band_likes = 0.25,
+            ),
+            (
+                |t| t.affinity_from_mild_trait = 0.125,
+                |t| t.affinity_from_mild_trait = 0.125,
+            ),
         ];
         let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
         for (set_file, set_pack) in setters {
@@ -9326,7 +9380,7 @@ mod tests {
             assert!(error.to_string().starts_with(key), "{error}");
         };
         type Set = fn(&mut TuningFile, f32);
-        let setters: [(&'static str, Set); 6] = [
+        let setters: [(&'static str, Set); 9] = [
             ("affinity_from_trait", |t, v| t.affinity_from_trait = v),
             ("affinity_presence_threshold", |t, v| {
                 t.affinity_presence_threshold = v
@@ -9340,6 +9394,11 @@ mod tests {
             ("affinity_use_points", |t, v| t.affinity_use_points = v),
             ("affinity_use_feeling_per_hour", |t, v| {
                 t.affinity_use_feeling_per_hour = v
+            }),
+            ("affinity_band_loves", |t, v| t.affinity_band_loves = v),
+            ("affinity_band_likes", |t, v| t.affinity_band_likes = v),
+            ("affinity_from_mild_trait", |t, v| {
+                t.affinity_from_mild_trait = v
             }),
         ];
         for (key, set) in setters {
@@ -9370,11 +9429,41 @@ mod tests {
             tuning_where(|t| t.affinity_use_points = f32::NAN),
             "affinity_use_points",
         );
+        // The word bands: 0 < likes < loves <= 1. The likes rule is checked
+        // first, so a likes value that breaks both names itself.
+        refused(
+            tuning_where(|t| t.affinity_band_loves = 1.0625),
+            "affinity_band_loves",
+        );
+        refused(
+            tuning_where(|t| t.affinity_band_loves = 0.1875),
+            "affinity_band_loves",
+        );
+        refused(
+            tuning_where(|t| t.affinity_band_likes = 0.0),
+            "affinity_band_likes",
+        );
+        // The mild value is above 0 and below the strong one.
+        refused(
+            tuning_where(|t| t.affinity_from_mild_trait = 0.0),
+            "affinity_from_mild_trait",
+        );
+        refused(
+            tuning_where(|t| t.affinity_from_mild_trait = 0.6875),
+            "affinity_from_mild_trait",
+        );
 
         // The other side of every boundary is accepted.
         for accepted in [
             tuning_where(|t| t.affinity_from_trait = 1.0),
-            tuning_where(|t| t.affinity_from_trait = 0.0625),
+            tuning_where(|t| {
+                t.affinity_from_trait = 0.0625;
+                t.affinity_from_mild_trait = 0.03125;
+            }),
+            tuning_where(|t| t.affinity_band_loves = 1.0),
+            tuning_where(|t| t.affinity_band_loves = 0.203125),
+            tuning_where(|t| t.affinity_band_likes = 0.0078125),
+            tuning_where(|t| t.affinity_from_mild_trait = 0.671875),
             tuning_where(|t| t.affinity_presence_threshold = 0.0),
             tuning_where(|t| t.affinity_presence_threshold = 0.9375),
             tuning_where(|t| {

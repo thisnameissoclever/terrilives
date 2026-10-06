@@ -579,8 +579,9 @@ async function main(): Promise<void> {
   skillsBlock.addEventListener('toggle', () => {
     if (skillsBlock.open) skillsPanel.update(performance.now(), true);
   });
-  // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it
-  // reads nothing; opening it reads at once.
+  // [OA-hud]: the Likes and dislikes disclosure after Skills. Closed, it does
+  // no periodic reads; opening it reads at once, and the forced updates at
+  // start, after Load and after an edit read whether or not it is open.
   const affinitiesBlock = document.querySelector<HTMLDetailsElement>('#affinities-block');
   const affinitiesEmpty = document.querySelector<HTMLElement>('#affinities-empty');
   const affinityList = document.querySelector<HTMLElement>('#affinity-list');

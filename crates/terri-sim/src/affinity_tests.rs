@@ -834,17 +834,46 @@ fn a_user_without_a_name_gives_no_moodlet() {
     assert_eq!(affinity_moodlets(&sim, bill), vec![]);
 }
 
+/// [OA-hud]: the five words at the shipped edges, inclusive at each band,
+/// and the same words following retuned edges.
 #[test]
 fn band_words() {
-    assert_eq!(band(1.0), "Loves");
-    assert_eq!(band(0.6), "Loves");
-    assert_eq!(band(0.59), "Likes");
-    assert_eq!(band(0.2), "Likes");
-    assert_eq!(band(0.19), "Indifferent");
-    assert_eq!(band(0.0), "Indifferent");
-    assert_eq!(band(-0.19), "Indifferent");
-    assert_eq!(band(-0.2), "Dislikes");
-    assert_eq!(band(-0.59), "Dislikes");
-    assert_eq!(band(-0.6), "Hates");
-    assert_eq!(band(-1.0), "Hates");
+    let shipped = terri_data::pack().tuning;
+    assert_eq!(
+        (shipped.affinity_band_loves, shipped.affinity_band_likes),
+        (0.6, 0.2),
+        "the shipped edges"
+    );
+    for (value, word) in [
+        (1.0, "Loves"),
+        (0.6, "Loves"),
+        (0.59, "Likes"),
+        (0.2, "Likes"),
+        (0.19, "Indifferent"),
+        (0.0, "Indifferent"),
+        (-0.19, "Indifferent"),
+        (-0.2, "Dislikes"),
+        (-0.59, "Dislikes"),
+        (-0.6, "Hates"),
+        (-1.0, "Hates"),
+    ] {
+        assert_eq!(band(value, &shipped), word, "{value}");
+    }
+    let retuned = Tuning {
+        affinity_band_loves: 0.75,
+        affinity_band_likes: 0.375,
+        ..shipped
+    };
+    for (value, word) in [
+        (0.75, "Loves"),
+        (0.7, "Likes"),
+        (0.375, "Likes"),
+        (0.37, "Indifferent"),
+        (-0.37, "Indifferent"),
+        (-0.375, "Dislikes"),
+        (-0.7, "Dislikes"),
+        (-0.75, "Hates"),
+    ] {
+        assert_eq!(band(value, &retuned), word, "retuned {value}");
+    }
 }

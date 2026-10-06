@@ -2365,17 +2365,20 @@ impl SimHandle {
         self.sim.skill_levels().into_iter().map(u32::from).collect()
     }
 
-    /// The value the person carrying `entity_index` holds for every
-    /// affinity kind, in pack order, each in -1.0..=1.0 - the Likes and
-    /// dislikes view's read ([OA-hud]). Empty for anything that is not a
-    /// living person: an object, a retired index, or a number past the
-    /// last entity.
-    pub fn affinities_of(&self, entity_index: u32) -> Vec<f32> {
-        self.sim.affinities_of(entity_index).unwrap_or_default()
+    /// The word for each of the person's affinity values, in pack order,
+    /// from the edges in tuning - the Likes and dislikes view's read
+    /// ([OA-hud]). Empty for anything that is not a living person: an
+    /// object, a retired index, or a number past the last entity.
+    pub fn affinity_words_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .affinity_words_of(entity_index)
+            .map(|words| words.into_iter().map(str::to_string).collect())
+            .unwrap_or_default()
     }
 
-    /// One label per affinity kind, in pack order - what `affinities_of`'s
-    /// values resolve against. Read once at startup, like `skill_labels`.
+    /// One label per affinity kind, in pack order - what
+    /// `affinity_words_of`'s words resolve against. Read once at startup,
+    /// like `skill_labels`.
     pub fn affinity_labels(&self) -> Vec<String> {
         self.sim
             .affinity_labels()

@@ -758,9 +758,16 @@ fn the_shipped_household_draws_affinities_in_entity_order_after_each_instinct() 
     assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
     let bill = people.iter().find(|row| row.1 == "Bill").unwrap();
     assert_eq!(bill.3.value(television), 0.8, "Television devotee");
+    let aquarium = pack
+        .affinities
+        .iter()
+        .position(|kind| kind.id == "aquarium")
+        .unwrap() as u32;
+    assert_eq!(bill.3.value(aquarium), 0.4, "Fish watcher likes, mildly");
     for (_, name, _, values) in &people {
         if name != "Bill" {
             assert_ne!(values.value(television).abs(), 0.8, "{name}");
+            assert_ne!(values.value(aquarium).abs(), 0.4, "{name}");
         }
     }
 

@@ -2146,7 +2146,9 @@ impl fmt::Display for ContentError {
                  affinity_presence_threshold at least 0 and below 1; \
                  affinity_presence_points, affinity_presence_extra_points, \
                  affinity_use_points and affinity_use_feeling_per_hour finite \
-                 and not negative"
+                 and not negative; affinity_band_likes above 0 and below \
+                 affinity_band_loves, which is at most 1; \
+                 affinity_from_mild_trait above 0 and below affinity_from_trait"
             ),
             ContentError::UnknownSimTrait { sim, trait_id } => write!(
                 f,

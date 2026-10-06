@@ -838,6 +838,17 @@ pub struct Tuning {
     /// The score multiplier at or below which a disposition trait hates its
     /// tag, in `[0, 1)` - [TL-affinity], read at spawn as the line above.
     pub affinity_hates_to: f32,
+    /// At or above this an affinity value reads "Loves", at or below its
+    /// negative "Hates" - [OA-hud]. In `(affinity_band_likes, 1]`.
+    /// Appended, per the rule above, with the two knobs after it.
+    pub affinity_band_loves: f32,
+    /// At or above this a value reads "Likes", at or below its negative
+    /// "Dislikes", strictly between "Indifferent" - [OA-hud]. Above 0.
+    pub affinity_band_likes: f32,
+    /// The starting value a disposition trait between the verb bands sets:
+    /// this for one that likes its kind, its negative for one that dislikes
+    /// it - [OA-values]. Above 0 and below `affinity_from_trait`.
+    pub affinity_from_mild_trait: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1581,6 +1592,9 @@ mod tests {
             affinity_use_feeling_per_hour: 0.0234375,
             affinity_loves_from: 1.46875,
             affinity_hates_to: 0.28125,
+            affinity_band_loves: 0.5625,
+            affinity_band_likes: 0.1875,
+            affinity_from_mild_trait: 0.34375,
         }
     }
 
@@ -2286,7 +2300,9 @@ mod tests {
     /// ([OD-content]), which are the twenty before `first_weekday`
     /// ([CAL-week]), the byte before the seven affinity knobs ([OA-values]),
     /// which are the twenty-five before the two trait bands ([TL-affinity]),
-    /// the final eight; every established field stays put.
+    /// the eight before the word bands and the mild trait value
+    /// ([OA-hud], [OA-values]), the final twelve; every established field
+    /// stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2300,15 +2316,49 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // [TL-affinity]: the two trait bands are the last eight bytes, two
-        // floats in declaration order. Each changed float differs from the
-        // fixture's only in its third byte.
-        let bands = before.len() - 8;
+        // [OA-hud], [OA-values]: the two word bands and the mild trait value
+        // are the last twelve bytes, three floats in declaration order. Each
+        // changed float differs from the fixture's only in its third byte.
+        let words = before.len() - 12;
+        let expected: Vec<u8> = [0.5625f32, 0.1875, 0.34375]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(before[words..], expected);
+        for (offset, after) in [
+            (
+                2,
+                Tuning {
+                    affinity_band_loves: 0.59375,
+                    ..a_tuning()
+                },
+            ),
+            (
+                6,
+                Tuning {
+                    affinity_band_likes: 0.203125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                10,
+                Tuning {
+                    affinity_from_mild_trait: 0.359375,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![words + offset], "word {offset}");
+        }
+        // [TL-affinity]: the two trait bands are the eight bytes before them,
+        // two floats in declaration order. Each changed float differs from
+        // the fixture's only in its third byte.
+        let bands = words - 8;
         let expected: Vec<u8> = [1.46875f32, 0.28125]
             .into_iter()
             .flat_map(f32::to_le_bytes)
             .collect();
-        assert_eq!(before[bands..], expected);
+        assert_eq!(before[bands..words], expected);
         for (offset, after) in [
             (
                 2,

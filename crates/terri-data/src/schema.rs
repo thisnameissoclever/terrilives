@@ -310,6 +310,18 @@ pub struct TuningFile {
     /// How much a bothered person's feeling toward the user falls per game
     /// hour at -1.0. Finite and not negative - [OA-use].
     pub affinity_use_feeling_per_hour: f32,
+    /// At or above this a value reads "Loves", at or below its negative
+    /// "Hates" - [OA-hud]. Above `affinity_band_likes`, at most 1.
+    pub affinity_band_loves: f32,
+    /// At or above this a value reads "Likes", at or below its negative
+    /// "Dislikes", and strictly between the two "Indifferent" - [OA-hud].
+    /// Above 0.
+    pub affinity_band_likes: f32,
+    /// The starting value a disposition trait between the verb bands sets
+    /// for its affinity kind: this for a trait that likes the kind, its
+    /// negative for one that dislikes it - [OA-values]. Finite, above 0 and
+    /// below `affinity_from_trait`.
+    pub affinity_from_mild_trait: f32,
     #[serde(default)]
     pub relationships: crate::RelationshipTuning,
 }
@@ -1190,7 +1202,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 85] = [
+    const TUNING_LINES: [(&str, &str); 88] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1278,6 +1290,9 @@ mod tests {
         ("affinity_presence_extra_cap", "27"),
         ("affinity_use_points", "14.5"),
         ("affinity_use_feeling_per_hour", "0.0234375"),
+        ("affinity_band_loves", "0.5625"),
+        ("affinity_band_likes", "0.1875"),
+        ("affinity_from_mild_trait", "0.34375"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -1370,6 +1385,9 @@ mod tests {
         assert_eq!(parsed.affinity_presence_extra_points, 3.125);
         assert_eq!(parsed.affinity_presence_extra_cap, 27);
         assert_eq!(parsed.affinity_use_points, 14.5);
+        assert_eq!(parsed.affinity_band_loves, 0.5625);
+        assert_eq!(parsed.affinity_band_likes, 0.1875);
+        assert_eq!(parsed.affinity_from_mild_trait, 0.34375);
         assert_eq!(parsed.affinity_use_feeling_per_hour, 0.0234375);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());

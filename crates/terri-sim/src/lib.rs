@@ -2579,6 +2579,20 @@ impl Sim {
         )
     }
 
+    /// The word for each of the person's affinity values, in pack order -
+    /// `Loves`, `Likes`, `Indifferent`, `Dislikes` or `Hates`, from the
+    /// edges in tuning ([OA-hud], [`affinity::band`]). `None` for anything
+    /// that is not a living person, as [`Sim::affinities_of`].
+    pub fn affinity_words_of(&self, index: u32) -> Option<Vec<&'static str>> {
+        let tuning = &self.world.resource::<Content>().0.tuning;
+        Some(
+            self.affinities_of(index)?
+                .into_iter()
+                .map(|value| affinity::band(value, tuning))
+                .collect(),
+        )
+    }
+
     /// One label per affinity kind, in pack order - what
     /// [`Sim::affinities_of`]'s values resolve against ([OA-hud]).
     /// Borrowed from the `&'static` pack like [`Sim::skill_labels`].

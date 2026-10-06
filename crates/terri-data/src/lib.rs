@@ -763,8 +763,8 @@ mod tests {
     }
 
     /// [OA-kinds]: the four shipped kinds, in the order every person's values
-    /// are listed in, each with its reach, its one object and, for
-    /// television alone, a trait tag.
+    /// are listed in, each with its reach, its one object and, for the
+    /// aquarium and the television, a trait tag.
     #[test]
     fn the_shipped_pack_has_four_affinity_kinds() {
         let pack = pack();
@@ -787,7 +787,7 @@ mod tests {
             .iter()
             .map(|k| k.trait_tag.as_deref())
             .collect();
-        assert_eq!(tags, [None, None, Some("television"), None]);
+        assert_eq!(tags, [None, Some("aquarium"), Some("television"), None]);
 
         let index = |id: &str| pack.find(id).expect("a shipped object").0;
         for (kind, object) in ["potted_plant", "reference_shelf", "television", "radio"]
@@ -816,6 +816,9 @@ mod tests {
         assert_eq!(tuning.affinity_presence_extra_cap, 3);
         assert_eq!(tuning.affinity_use_points, 15.0);
         assert_eq!(tuning.affinity_use_feeling_per_hour, 0.03);
+        assert_eq!(tuning.affinity_band_loves, 0.6);
+        assert_eq!(tuning.affinity_band_likes, 0.2);
+        assert_eq!(tuning.affinity_from_mild_trait, 0.4);
     }
 
     /// [SK-learning]: learning left the capability trait for the skill.

@@ -1,6 +1,6 @@
-//! [OA-hud] in docs/specs/2026-10-06-object-affinities.md: each person's
-//! affinity values and the kind labels cross the boundary for the Likes
-//! and dislikes view. Run in release too (`cargo test -p terri-wasm
+//! [OA-hud] in docs/specs/2026-10-06-object-affinities.md: the word for
+//! each person's affinity values and the kind labels cross the boundary for
+//! the Likes and dislikes view. Run in release too (`cargo test -p terri-wasm
 //! --release affinity_boundary`), the profile `wasm-pack build` ships
 //! ([L12]).
 
@@ -73,10 +73,11 @@ fn affinity_labels_follow_pack_order() {
 }
 
 #[test]
-fn affinities_of_reads_each_persons_stored_values_in_kind_order() {
+fn affinity_words_of_words_each_persons_stored_values_in_kind_order() {
     let mut handle = SimHandle::from_lot();
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
+    let tuning = handle.sim.world().resource::<Content>().0.tuning;
     for name in ["Tim", "Bill", "Casey"] {
         let index = index_named(&handle, name);
         let entity = entity_named(&mut handle, name);
@@ -87,21 +88,32 @@ fn affinities_of_reads_each_persons_stored_values_in_kind_order() {
             .expect("a household member holds affinity values")
             .values()
             .to_vec();
-        let read = handle.affinities_of(index);
-        assert_eq!(read.len(), 4, "{name}: one value per kind");
-        assert_eq!(read, stored, "{name}");
         assert_eq!(
-            Some(read),
             handle.sim.affinities_of(index),
-            "{name}: the boundary copies the simulation's read"
+            Some(stored.clone()),
+            "{name}: the simulation reads the stored values"
+        );
+        let words = handle.affinity_words_of(index);
+        assert_eq!(words.len(), 4, "{name}: one word per kind");
+        assert_eq!(
+            words,
+            stored
+                .iter()
+                .map(|&value| terri_sim::affinity::band(value, &tuning))
+                .collect::<Vec<_>>(),
+            "{name}"
         );
     }
     // Bill wears Television devotee, which sets television, the third kind,
-    // to `affinity_from_trait`.
-    let bill = handle.affinities_of(index_named(&handle, "Bill"));
-    assert_eq!(bill[2], 0.8);
-    assert_eq!(handle.save_bytes(), bytes, "reading values saves nothing");
-    assert_eq!(handle.world_hash(), hash, "reading values hashes nothing");
+    // to `affinity_from_trait`, and Fish watcher, which sets the aquarium,
+    // the second, to `affinity_from_mild_trait`.
+    let bill = index_named(&handle, "Bill");
+    let values = handle.sim.affinities_of(bill).expect("Bill is a person");
+    assert_eq!((values[1], values[2]), (0.4, 0.8));
+    let words = handle.affinity_words_of(bill);
+    assert_eq!((words[1].as_str(), words[2].as_str()), ("Likes", "Loves"));
+    assert_eq!(handle.save_bytes(), bytes, "reading words saves nothing");
+    assert_eq!(handle.world_hash(), hash, "reading words hashes nothing");
 
     // The read follows the stored values, not a copy taken at spawn.
     let tim = index_named(&handle, "Tim");
@@ -110,15 +122,31 @@ fn affinities_of_reads_each_persons_stored_values_in_kind_order() {
         .sim
         .world_mut()
         .entity_mut(entity)
-        .insert(Affinities::from_values(vec![-1.0, 0.25, 0.0, 1.0]));
-    assert_eq!(handle.affinities_of(tim), [-1.0, 0.25, 0.0, 1.0]);
+        .insert(Affinities::from_values(vec![-1.0, 0.25, 0.0, 0.6]));
+    assert_eq!(
+        handle.affinity_words_of(tim),
+        ["Hates", "Likes", "Indifferent", "Loves"]
+    );
+
+    // And the word follows the edges in tuning, not edges of its own.
+    let mut retuned = handle.sim.world().resource::<Content>().0.clone();
+    retuned.tuning.affinity_band_loves = 0.75;
+    retuned.tuning.affinity_band_likes = 0.5;
+    handle
+        .sim
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(retuned))));
+    assert_eq!(
+        handle.affinity_words_of(tim),
+        ["Hates", "Indifferent", "Indifferent", "Likes"]
+    );
 }
 
 #[test]
-fn affinities_of_rejects_non_people_in_release() {
+fn affinity_words_of_rejects_non_people_in_release() {
     let mut handle = SimHandle::from_lot();
     let tim = index_named(&handle, "Tim");
-    assert_eq!(handle.affinities_of(tim).len(), 4);
+    assert_eq!(handle.affinity_words_of(tim).len(), 4);
 
     // Tim dies of hunger on the first tick it is empty, so his index is
     // retired the way a real death retires it.
@@ -152,11 +180,12 @@ fn affinities_of_rejects_non_people_in_release() {
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
     for index in [object, u32::MAX, tim] {
-        assert!(handle.affinities_of(index).is_empty(), "{index}");
+        assert!(handle.affinity_words_of(index).is_empty(), "{index}");
+        assert_eq!(handle.sim.affinities_of(index), None, "{index}");
     }
     let bill = index_named(&handle, "Bill");
     assert_eq!(
-        handle.affinities_of(bill).len(),
+        handle.affinity_words_of(bill).len(),
         4,
         "a living person still reads"
     );

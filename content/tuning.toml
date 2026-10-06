@@ -442,6 +442,17 @@ affinity_presence_extra_cap = 3
 affinity_use_points = 15.0
 # How much a bothered person's feeling toward the user falls per game hour at -1.0. Finite, not negative.
 affinity_use_feeling_per_hour = 0.03
+# The word Sim details shows for a value ([OA-hud]): at or above
+# affinity_band_loves "Loves", at or below its negative "Hates"; at or above
+# affinity_band_likes "Likes", at or below its negative "Dislikes"; strictly
+# between "Indifferent". 0 < affinity_band_likes < affinity_band_loves <= 1.
+affinity_band_loves = 0.6
+affinity_band_likes = 0.2
+# Starting value a disposition trait between the verb bands sets for its kind
+# ([OA-values]): this for a trait that likes (multiplier above 1 and below
+# affinity_loves_from), its negative for one that dislikes (below 1 and above
+# affinity_hates_to). Finite, above 0 and below affinity_from_trait.
+affinity_from_mild_trait = 0.4
 
 # Seed for fixed-seed constructors and tests. Browser new games supply fresh
 # cryptographic entropy. Saves persist the complete live generator state.

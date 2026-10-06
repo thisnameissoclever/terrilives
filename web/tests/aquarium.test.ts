@@ -49,7 +49,9 @@ it('loads an actual released-main save and changes only the aquarium artwork', (
     // Moved from 6601771059661594058 when the skill ladder became flat and the seeded practice changed.
     // Moved from 13907076554945442085 when loading began drawing each person's affinity values once
     // ([OA-values]): the draws advance the generator and the values join the hash. Measured natively.
-    expect(sim.worldHash().toString()).toBe('11804688860418536815');
+    // Moved from 11804688860418536815 when the aquarium kind took the trait tag `aquarium`, so Fish
+    // watcher sets a mild 0.4 in place of the drawn value; with the tag removed the old value returns.
+    expect(sim.worldHash().toString()).toBe('4526374402505414594');
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));

@@ -1,18 +1,20 @@
+import type { AffinityWord } from '../bridge.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
 // The selected person's likes and dislikes in plain words - [OA-hud] in
 // docs/specs/2026-10-06-object-affinities.md.
 //
 // A collapsed disclosure in the Overview sheet, after Skills. Every affinity
-// kind gets one row: its label with the first letter upper-cased, then one
-// word for the person's value. Like Skills, it reads nothing while closed.
+// kind gets one row: its label with the first letter upper-cased, then the
+// word the simulation gives the person's value. The edges between the words
+// live in content/tuning.toml and are applied in Rust, so this view keeps no
+// thresholds of its own. Like Skills, a closed section does no periodic
+// reads; the forced updates at start, after Load and after an edit still read.
 
 export interface AffinitiesPanelSource {
   selectedIndex(): number | null;
-  affinitiesOf(entity: number): number[] | null;
+  affinityWordsOf(entity: number): AffinityWord[] | null;
 }
-
-export type AffinityWord = 'Loves' | 'Likes' | 'Indifferent' | 'Dislikes' | 'Hates';
 
 export interface AffinityRow {
   readonly label: string;
@@ -30,22 +32,6 @@ export interface AffinitiesPanelSurface {
 
 const UNAVAILABLE: AffinitiesPanelState = { kind: 'unavailable' };
 
-/**
- * The word for a value, with the thresholds of `affinity::band` in
- * `crates/terri-sim/src/affinity.rs`: `Loves` at or above 0.6, `Likes` at or
- * above 0.2, `Hates` at or below -0.6, `Dislikes` at or below -0.2, and
- * `Indifferent` strictly between. Values arrive as f32 widened to f64; no
- * f32 lies between a threshold's f32 and its f64, so both sides agree on
- * every value the simulation can hold.
- */
-export function band(value: number): AffinityWord {
-  if (value >= 0.6) return 'Loves';
-  if (value >= 0.2) return 'Likes';
-  if (value <= -0.6) return 'Hates';
-  if (value <= -0.2) return 'Dislikes';
-  return 'Indifferent';
-}
-
 /** "plants" becomes "Plants": kind labels are lower case so they read inside the moodlet sentences. */
 function rowLabel(label: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
@@ -54,9 +40,9 @@ function rowLabel(label: string): string {
 export function affinitiesPanelState(source: AffinitiesPanelSource, labels: readonly string[]): AffinitiesPanelState {
   const selected = source.selectedIndex();
   if (selected === null) return { kind: 'unselected' };
-  const values = source.affinitiesOf(selected);
-  if (values === null || values.length === 0 || values.length !== labels.length) return UNAVAILABLE;
-  return { kind: 'ready', rows: values.map((value, index) => ({ label: rowLabel(labels[index]), word: band(value) })) };
+  const words = source.affinityWordsOf(selected);
+  if (words === null || words.length === 0 || words.length !== labels.length) return UNAVAILABLE;
+  return { kind: 'ready', rows: words.map((word, index) => ({ label: rowLabel(labels[index]), word })) };
 }
 
 /** A closed disclosure does no periodic reads; opening or loading forces a fresh one. */

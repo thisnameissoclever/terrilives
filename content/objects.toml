@@ -1052,7 +1052,8 @@ lightness = -0.04
 # docs/specs/2026-10-06-object-affinities.md. `reach` is "presence" (the
 # objects in the room move mood) or "use" (somebody else using one bothers a
 # person who hates the kind). `trait_tag` names the activity tag whose
-# disposition traits set a strong starting value. Order is kept: every
+# disposition traits set the starting value: strong for a trait that loves or
+# hates, mild for one that likes or dislikes. Order is kept: every
 # person's values are listed in it. Saves name a kind by id, not position.
 
 [[affinity]]
@@ -1066,6 +1067,7 @@ id = "aquarium"
 label = "aquarium"
 reach = "presence"
 objects = ["reference_shelf"]
+trait_tag = "aquarium"
 
 [[affinity]]
 id = "television"

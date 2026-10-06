@@ -10,7 +10,7 @@ use terri_core::{
     Affinities, Agent, AtWork, Eating, Path, Position, Relationships, SimClock, SimId, SimName,
     SimRng, SmartObject, Target, Traits,
 };
-use terri_data::{AffinityReach, CompiledTrait, CompiledTraitKind, ContentPack};
+use terri_data::{AffinityReach, CompiledTrait, CompiledTraitKind, ContentPack, Tuning};
 
 use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
 use crate::room_regions::RoomRegions;
@@ -18,10 +18,10 @@ use crate::{Content, Moodlet};
 
 /// A person's starting values: one uniform draw in -1.0..1.0 from `rng`
 /// per kind, in kinds order - [OA-values]. A worn disposition trait whose
-/// tag is a kind's trait tag replaces that kind's draw with
-/// `affinity_from_trait`, or its negative, when the trait loves or hates
-/// ([`trait_value`]). The draw is taken either way, so the generator
-/// advances by one value per kind whatever the person wears.
+/// tag is a kind's trait tag replaces that kind's draw with a value set by
+/// how strongly the trait pulls ([`trait_value`]). The draw is taken either
+/// way, so the generator advances by one value per kind whatever the person
+/// wears.
 pub fn draw(rng: &mut SimRng, pack: &ContentPack, worn: Option<&Traits>) -> Affinities {
     draw_with_defs(rng, pack, &pack.traits, worn)
 }
@@ -51,11 +51,14 @@ pub(crate) fn draw_with_defs(
     Affinities::from_values(values)
 }
 
-/// The value a worn disposition trait with tag `tag` sets: the first such
-/// trait, in worn order, whose score multiplier is at or above
-/// `affinity_loves_from` gives `affinity_from_trait`, and one at or below
-/// `affinity_hates_to` gives its negative. A disposition between the two
-/// bands, or a trait of another kind, sets nothing.
+/// The value the first worn disposition trait with tag `tag`, in worn
+/// order, sets - [OA-values]. A score multiplier at or above
+/// `affinity_loves_from` (the trait loves) gives `affinity_from_trait`;
+/// above 1 and below that (it likes) gives `affinity_from_mild_trait`;
+/// below 1 and above `affinity_hates_to` (it dislikes) gives the mild
+/// value's negative; at or below `affinity_hates_to` (it hates) gives the
+/// strong value's negative. A trait of another kind sets nothing, and so
+/// would a multiplier of exactly 1, which the compiler refuses.
 fn trait_value(
     pack: &ContentPack,
     trait_defs: &[CompiledTrait],
@@ -72,8 +75,12 @@ fn trait_value(
             None
         } else if score_multiplier >= tuning.affinity_loves_from {
             Some(tuning.affinity_from_trait)
+        } else if score_multiplier > 1.0 {
+            Some(tuning.affinity_from_mild_trait)
         } else if score_multiplier <= tuning.affinity_hates_to {
             Some(-tuning.affinity_from_trait)
+        } else if score_multiplier < 1.0 {
+            Some(-tuning.affinity_from_mild_trait)
         } else {
             None
         }
@@ -333,17 +340,18 @@ pub(crate) fn bother(world: &mut World) {
     }
 }
 
-/// The word the HUD shows for a value - [OA-hud]: `Loves` at or above
-/// 0.6, `Likes` at or above 0.2, `Hates` at or below -0.6, `Dislikes` at
-/// or below -0.2, and `Indifferent` strictly between -0.2 and 0.2.
-pub fn band(value: f32) -> &'static str {
-    if value >= 0.6 {
+/// The word Sim details shows for a value - [OA-hud]: `Loves` at or above
+/// `affinity_band_loves`, `Likes` at or above `affinity_band_likes`,
+/// `Hates` at or below the negative of the first, `Dislikes` at or below
+/// the negative of the second, and `Indifferent` strictly between.
+pub fn band(value: f32, tuning: &Tuning) -> &'static str {
+    if value >= tuning.affinity_band_loves {
         "Loves"
-    } else if value >= 0.2 {
+    } else if value >= tuning.affinity_band_likes {
         "Likes"
-    } else if value <= -0.6 {
+    } else if value <= -tuning.affinity_band_loves {
         "Hates"
-    } else if value <= -0.2 {
+    } else if value <= -tuning.affinity_band_likes {
         "Dislikes"
     } else {
         "Indifferent"
@@ -450,18 +458,23 @@ mod tests {
         let unrelated = draw(&mut rng, pack, Some(&Traits::default()));
         assert_eq!(unrelated, plain);
 
-        // The bands are inclusive at both ends, and a disposition between
-        // them leaves the draw.
+        // The bands are inclusive at both ends. A disposition between a
+        // band and 1 sets the mild value, and exactly 1 (which the compiler
+        // refuses) leaves the draw.
         let devotee = trait_index(pack, "television_devotee") as usize;
         let (loves, hates) = (
             pack.tuning.affinity_loves_from,
             pack.tuning.affinity_hates_to,
         );
+        let mild = pack.tuning.affinity_from_mild_trait;
+        assert_eq!(mild, 0.4, "the shipped mild value");
         for (multiplier, expected) in [
             (loves, from_trait),
-            (f32::from_bits(loves.to_bits() - 1), drawn_television),
+            (f32::from_bits(loves.to_bits() - 1), mild),
+            (f32::from_bits(1.0f32.to_bits() + 1), mild),
             (1.0, drawn_television),
-            (f32::from_bits(hates.to_bits() + 1), drawn_television),
+            (f32::from_bits(1.0f32.to_bits() - 1), -mild),
+            (f32::from_bits(hates.to_bits() + 1), -mild),
             (hates, -from_trait),
         ] {
             let mut edited = pack.clone();
@@ -474,6 +487,19 @@ mod tests {
             assert_eq!(drawn.value(television), expected, "multiplier {multiplier}");
             assert_eq!(rng, bare, "multiplier {multiplier}");
         }
+
+        // Fish watcher (x1.45) likes the aquarium: the mild value, with the
+        // same draws taken and the other kinds untouched.
+        let aquarium = kind(pack, "aquarium");
+        let mut rng = SimRng::from_seed(11);
+        let drawn = draw(&mut rng, pack, Some(&wearing(pack, &["fish_watcher"])));
+        assert_eq!(drawn.value(aquarium), mild);
+        for (index, value) in drawn.values().iter().enumerate() {
+            if index as u32 != aquarium {
+                assert_eq!(*value, plain.values()[index], "fish watcher kind {index}");
+            }
+        }
+        assert_eq!(rng, bare, "fish watcher: the same draws were taken");
 
         // A capability with the tag sets nothing: only a disposition does.
         let mut edited = pack.clone();

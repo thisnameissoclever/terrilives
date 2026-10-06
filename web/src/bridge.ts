@@ -26,6 +26,15 @@ export interface SkillStanding {
   readonly mastery: number;
 }
 
+/** The five words a person's feeling about an affinity kind reads as ([OA-hud]). */
+export type AffinityWord = 'Loves' | 'Likes' | 'Indifferent' | 'Dislikes' | 'Hates';
+
+const AFFINITY_WORDS: readonly string[] = ['Loves', 'Likes', 'Indifferent', 'Dislikes', 'Hates'];
+
+function isAffinityWord(word: string): word is AffinityWord {
+  return AFFINITY_WORDS.includes(word);
+}
+
 export interface BedPlace { readonly bed: number; readonly ordinal: number; }
 export interface BedPlaceStatus extends BedPlace {
   readonly label: string;
@@ -1644,17 +1653,18 @@ export class SimBridge {
   }
 
   /**
-   * The value the person at `entityIndex` holds for every affinity kind, in
-   * pack order, each from -1 (hates) to 1 (loves) - [OA-hud]. Null for
-   * anything that is not a living person and for a reading with a value
-   * outside that range. A copy across the boundary; the Likes and dislikes
-   * view reads it only while it is open.
+   * The word for each affinity value of the person at `entityIndex`, in
+   * pack order - Loves, Likes, Indifferent, Dislikes or Hates, worded by the
+   * simulation from the edges in tuning ([OA-hud]). Null for anything that
+   * is not a living person and for a reading holding any other word. A copy
+   * across the boundary; the Likes and dislikes view reads it only while it
+   * is open.
    */
-  affinitiesOf(entityIndex: number): number[] | null {
+  affinityWordsOf(entityIndex: number): AffinityWord[] | null {
     if (!isU32(entityIndex)) return null;
-    const values = Array.from(this.handle.affinities_of(entityIndex));
-    if (values.length === 0 || !values.every(value => value >= -1 && value <= 1)) return null;
-    return values;
+    const words = this.handle.affinity_words_of(entityIndex);
+    if (words.length === 0 || !words.every(isAffinityWord)) return null;
+    return words;
   }
 
   /** One label per affinity kind, in pack order. Read once, like skillLabels. */
