@@ -115,10 +115,13 @@ function formatTimeOfDay(tickInDay: number, dayTicks: number): string {
 }
 
 /**
- * Formats the simulation clock without borrowing the player's wall clock.
- * `weekday` is the simulation's own answer for the current tick; the shell
- * never works one out from the day number, because only the simulation
- * knows which weekday day 1 is.
+ * Formats the simulation clock without borrowing the player's wall clock,
+ * as two lines: `Day {n}, {Weekday}`, a newline, then `{hh}:{mm}`. The
+ * clock element keeps the newline (`white-space: pre-line`), so the HUD
+ * panel is two lines tall on every day rather than growing on days with
+ * longer names. `weekday` is the simulation's own answer for the current
+ * tick; the shell never works one out from the day number, because only
+ * the simulation knows which weekday day 1 is.
  */
 export function formatSimTime(tick: number, dayTicks: number, weekday: number): string {
   const name = weekdayName(weekday);
@@ -129,7 +132,7 @@ export function formatSimTime(tick: number, dayTicks: number, weekday: number): 
   const safeDayTicks = Math.max(1, Math.floor(dayTicks));
   const day = Math.floor(safeTick / safeDayTicks) + 1;
   const time = formatTimeOfDay(safeTick % safeDayTicks, safeDayTicks);
-  return `Day ${day}, ${name}, ${time}`;
+  return `Day ${day}, ${name}\n${time}`;
 }
 
 const EVERY_WEEKDAY = (1 << WEEKDAY_NAMES.length) - 1;

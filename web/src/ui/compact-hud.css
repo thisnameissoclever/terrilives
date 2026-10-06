@@ -19,6 +19,8 @@
 #household-summary .summary-row { gap: 4px; }
 #household-summary .summary-label { font-size: 10px; }
 #household-summary .summary-value { font-size: 12px; overflow-wrap: anywhere; }
+/* The clock is always two lines, day and weekday then time, so the panel keeps one height. */
+#clock-value { white-space: pre-line; }
 #hud-status { margin-top: 2px; }
 #world-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 #world-actions #builder-desktop { padding: 0; }

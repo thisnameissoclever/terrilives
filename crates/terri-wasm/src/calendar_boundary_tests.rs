@@ -116,3 +116,44 @@ fn career_schedule_of_rejects_non_people_in_release() {
     assert_eq!(handle.save_bytes(), bytes);
     assert_eq!(handle.world_hash(), hash);
 }
+
+#[test]
+fn career_schedule_of_rejects_a_dead_workers_retired_index_in_release() {
+    let mut handle = SimHandle::from_lot();
+    let tim = index_named(&handle, "Tim");
+    assert_eq!(handle.career_schedule_of(tim), [31, 360, 480]);
+
+    // Tim dies of hunger on the first tick it is empty, so his index is
+    // retired the way a real death retires it - the mortality path
+    // `skills_of_rejects_non_people_in_release` uses.
+    let mut retuned = handle.sim.world().resource::<Content>().0.clone();
+    retuned.tuning.death_after_ticks = 1;
+    handle
+        .sim
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(retuned))));
+    assert!(handle.set_death_enabled(true));
+    handle.flush_commands();
+    for _ in 0..8 {
+        if handle.sim_name(tim).is_empty() {
+            break;
+        }
+        let world = handle.sim.world_mut();
+        let mut people = world.query::<(&terri_core::SimName, &mut Needs)>();
+        for (name, mut needs) in people.iter_mut(world) {
+            if name.0 == "Tim" {
+                needs.set(NeedId::Hunger, 0.0);
+            }
+        }
+        handle.tick();
+    }
+    assert!(handle.sim_name(tim).is_empty(), "Tim died");
+    assert!(handle.sim.save_snapshot_v5().retired_indices.contains(&tim));
+
+    let bytes = handle.save_bytes();
+    let hash = handle.world_hash();
+    assert!(handle.career_schedule_of(tim).is_empty());
+    assert_eq!(handle.career_of(tim), "");
+    assert_eq!(handle.save_bytes(), bytes);
+    assert_eq!(handle.world_hash(), hash);
+}

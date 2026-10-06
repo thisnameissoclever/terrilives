@@ -59,12 +59,23 @@ describe('game HUD formatting', () => {
     expect(formatActivity(code, null, null)).toBe(label);
   });
   it('formats day boundaries and the authored day length', () => {
-    expect(formatSimTime(0, 1440, 0)).toBe('Day 1, Monday, 00:00');
-    expect(formatSimTime(359, 1440, 0)).toBe('Day 1, Monday, 05:59');
-    expect(formatSimTime(1440, 1440, 1)).toBe('Day 2, Tuesday, 00:00');
-    expect(formatSimTime(1440 * 6, 1440, 6)).toBe('Day 7, Sunday, 00:00');
+    expect(formatSimTime(0, 1440, 0)).toBe('Day 1, Monday\n00:00');
+    expect(formatSimTime(359, 1440, 0)).toBe('Day 1, Monday\n05:59');
+    expect(formatSimTime(1440, 1440, 1)).toBe('Day 2, Tuesday\n00:00');
+    expect(formatSimTime(1440 * 6, 1440, 6)).toBe('Day 7, Sunday\n00:00');
     // A nonstandard content day still maps across a 24-hour display.
-    expect(formatSimTime(50, 100, 0)).toBe('Day 1, Monday, 12:00');
+    expect(formatSimTime(50, 100, 0)).toBe('Day 1, Monday\n12:00');
+  });
+
+  it('keeps the day and the time on two lines whatever the weekday is called', () => {
+    // Two fixed lines, so the HUD panel does not change height at midnight.
+    for (const [weekday] of WEEKDAY_NAMES.entries()) {
+      expect(formatSimTime(1440 * 99 + 1439, 1440, weekday).split('\n')).toEqual([
+        `Day 100, ${WEEKDAY_NAMES[weekday]}`,
+        '23:59',
+      ]);
+    }
+    expect(formatSimTime(Number.NaN, 1440, 0)).not.toContain('\n');
   });
 
   it('names every weekday in full, Monday first', () => {
@@ -72,15 +83,15 @@ describe('game HUD formatting', () => {
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
     ]);
     WEEKDAY_NAMES.forEach((name, weekday) => {
-      expect(formatSimTime(0, 1440, weekday)).toBe(`Day 1, ${name}, 00:00`);
+      expect(formatSimTime(0, 1440, weekday)).toBe(`Day 1, ${name}\n00:00`);
     });
   });
 
   it('names the weekday the simulation reports instead of counting from the day number', () => {
     // A pack whose first day is a Sunday puts day 7 on a Saturday; only the
     // simulation knows first_weekday, so the clock prints what it is given.
-    expect(formatSimTime(1440 * 6, 1440, 5)).toBe('Day 7, Saturday, 00:00');
-    expect(formatSimTime(1440 * 6, 1440, 0)).toBe('Day 7, Monday, 00:00');
+    expect(formatSimTime(1440 * 6, 1440, 5)).toBe('Day 7, Saturday\n00:00');
+    expect(formatSimTime(1440 * 6, 1440, 0)).toBe('Day 7, Monday\n00:00');
   });
 
   it('shows no clock rather than a wrong or missing weekday', () => {
@@ -179,17 +190,17 @@ describe('GameHud', () => {
     hud.update(100, source());
     expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
     hud.update(200, source({ weekdayIndex: () => 2 }));
-    expect(view.clock.textContent).toBe('Day 2, Wednesday, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Wednesday\n01:30');
     expect(probes[0].writes).toBe(1);
     hud.update(300, source({ funds: () => 4321 }));
     expect(view.funds.textContent).toBe('4,321');
     expect(probes[1].writes).toBe(1);
-    expect(view.clock.textContent).toBe('Day 2, Tuesday, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30');
     expect(probes[0].writes).toBe(2);
     // The external edit is one write and the repair another.
     view.clock.textContent = 'External change';
     hud.update(400, source());
-    expect(view.clock.textContent).toBe('Day 2, Tuesday, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30');
     expect(probes[0].writes).toBe(4);
   });
 
@@ -198,7 +209,7 @@ describe('GameHud', () => {
     const hud = new GameHud(view, 100);
 
     expect(hud.update(0, source())).toBe(true);
-    expect(view.clock.textContent).toBe('Day 2, Tuesday, 01:30');
+    expect(view.clock.textContent).toBe('Day 2, Tuesday\n01:30');
     expect(view.funds.textContent).toBe('1,234');
     expect(view.satisfaction.textContent).toBe('12.3');
     expect(view.careerRow.hidden).toBe(false);
@@ -223,6 +234,23 @@ describe('GameHud', () => {
     hud.update(100, source({ careerScheduleOf: () => null }));
     expect(view.careerRow.hidden).toBe(false);
     expect(view.career.textContent).toBe('Office clerk');
+  });
+
+  it('hides the Career row and reads no schedule for a selected person without a job', () => {
+    const view = roots();
+    const hud = new GameHud(view, 100);
+    let scheduleReads = 0;
+    hud.update(0, source({
+      careerOf: () => null,
+      careerScheduleOf: () => {
+        scheduleReads++;
+        return { workingDays: 31, shiftStart: 360, shiftTicks: 480 };
+      },
+    }));
+    expect(view.careerRow.hidden).toBe(true);
+    expect(view.career.textContent).toBe('');
+    expect(scheduleReads).toBe(0);
+    expect(view.activity.textContent).toBe('Walking');
   });
 
   it('clears selection-only state and hides an absent career', () => {
