@@ -2823,9 +2823,6 @@ impl Sim {
         Some(shyness::of(&self.world, entity).value())
     }
 
-    /// Hashes all simulation-visible state. Entities are sorted by index
-    /// first, because ECS iteration order is an implementation detail and
-    /// must not affect the result.
     /// The archetype the editor may preselect for the person at this entity
     /// index, or `None` for "Keep current personality".
     pub fn personality_archetype_of(&self, index: u32) -> Option<u32> {
@@ -2835,6 +2832,9 @@ impl Sim {
         edit::archetype_of(self.world(), entity)
     }
 
+    /// Hashes all simulation-visible state. Entities are sorted by index
+    /// first, because ECS iteration order is an implementation detail and
+    /// must not affect the result.
     pub fn world_hash(&self) -> u64 {
         use terri_core::{Habituation, Needs, Position, Relationships, SimId, NEED_COUNT};
 
