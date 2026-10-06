@@ -98,10 +98,8 @@ impl Sim {
             && self.world.get::<AtWork>(person).is_none()
             && self.world.get::<Commuting>(person).is_none()
             && target.is_none_or(|intent| intent.interaction == crate::systems::chain::CHAIN_STEP);
-        let served = match served {
-            _ if !carrying_out_chain => served,
-            _ => self
-                .world
+        let served = if carrying_out_chain {
+            self.world
                 .get::<terri_core::ChainState>(person)
                 .and_then(|state| {
                     self.world
@@ -122,7 +120,8 @@ impl Sim {
                                 == Some(state.chain)
                         })
                 })
-                .or(served),
+        } else {
+            served
         };
         let current = if self.world.get::<AtWork>(person).is_some() {
             Some("At work".to_string())
@@ -454,5 +453,14 @@ mod tests {
         assert_eq!(labels[0], "Going to work");
         assert!(labels[1].starts_with("Grab a snack: "));
         assert!(labels[2].starts_with("Grab a snack: "));
+
+        sim.world_mut()
+            .entity_mut(person)
+            .remove::<Commuting>()
+            .insert(AtWork { remaining_ticks: 1 });
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(labels.len(), 3, "a shift interrupts the snack too");
+        assert_eq!(labels[0], "At work");
+        assert!(labels[1].starts_with("Grab a snack: "));
     }
 }
