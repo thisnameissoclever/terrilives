@@ -14,8 +14,11 @@ use crate::household::{
 use crate::placement::LotEditState;
 use crate::Content;
 
-/// Why an edit was refused, in the order the checks run. The numbers are
-/// the codes the boundary reports.
+/// Why an edit was refused. `validate` checks the person, the name, the
+/// personality, the traits, and then each tie in submitted order; within one
+/// tie it checks for a self-tie, then an unknown relative, then a repeated
+/// relative. The numbers are the codes the boundary reports, so the tie
+/// codes do not follow that order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum EditRefusal {

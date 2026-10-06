@@ -104,7 +104,12 @@ fn a_name_only_edit_changes_the_name_and_nothing_else() {
         .clone();
     let before_traits = traits_of(&sim, 0);
     let before_needs = *sim.world().get::<Needs>(before_entity).unwrap();
+    tie(&mut sim, 0, 1, Some(Relation::Parent));
     let before_ties = family(&sim).ties().to_vec();
+    assert!(
+        !before_ties.is_empty(),
+        "the comparison needs a tie to keep"
+    );
     let worn: Vec<u32> = before_traits.iter().map(|(index, _)| *index).collect();
     let result = edit(&mut sim, 0, "  Timothy  ", None, &worn, &[]);
     assert_eq!(result.reason, None);
@@ -266,9 +271,33 @@ fn keeping_the_personality_preserves_custom_effects_and_cleanliness() {
     custom.drain[0] = 3.5;
     custom.chronotype_offset_ticks = 41;
     sim.world_mut().entity_mut(entity).insert(custom.clone());
+    // A sentinel no archetype authors, so a rewrite from any archetype shows.
+    const SENTINEL: f32 = 0.123;
+    {
+        let mut domestic = sim.world_mut().resource_mut::<SavedDomestic>();
+        let row = domestic
+            .cleanliness
+            .iter_mut()
+            .find(|(index, _)| *index == entity.index_u32())
+            .expect("the tick filled this person's cleanliness row");
+        row.1 = SENTINEL;
+    }
+    let content = sim.world().resource::<crate::Content>().0;
+    assert!(content
+        .personalities
+        .iter()
+        .all(|p| p.cleanliness != SENTINEL));
     let row_before = sim.world().resource::<SavedDomestic>().cleanliness.clone();
     assert_eq!(edit(&mut sim, 0, "Tim", None, &[], &[]).reason, None);
     assert_eq!(sim.world().get::<Personality>(entity).unwrap(), &custom);
+    let row_after = sim
+        .world()
+        .resource::<SavedDomestic>()
+        .cleanliness
+        .iter()
+        .find(|(index, _)| *index == entity.index_u32())
+        .map(|(_, score)| *score);
+    assert_eq!(row_after, Some(SENTINEL));
     assert_eq!(
         sim.world().resource::<SavedDomestic>().cleanliness,
         row_before
@@ -359,7 +388,7 @@ fn every_invalid_field_refuses_the_whole_edit_without_writing() {
     let at_limit: String = "y".repeat(content.tuning.housemate_name_max_chars as usize);
     let cases: Vec<InvalidEdit> = vec![
         (
-            "retired id",
+            "never issued",
             99,
             "Tim",
             None,
@@ -493,7 +522,7 @@ fn every_invalid_field_refuses_the_whole_edit_without_writing() {
 }
 
 #[test]
-fn a_retired_sim_id_is_refused_even_when_its_entity_slot_is_reused() {
+fn a_retired_sim_id_is_refused_after_a_newcomer_arrives() {
     let mut sim = Sim::new_from_shipped_lot();
     let ann = move_in(&mut sim, "Ann", 0, &[]);
     let dead = person(&sim, ann);
@@ -535,14 +564,128 @@ fn world_replacement_restarts_the_handled_count() {
     let mut sim = Sim::new_from_shipped_lot();
     assert_eq!(edit(&mut sim, 0, "Tim", None, &[], &[]).handled, 1);
     assert_eq!(edit(&mut sim, 0, "Tim", None, &[], &[]).handled, 2);
+    // Load back into the same Sim, whose last answer is numbered 2, so a
+    // count carried across the replacement would show.
     let snapshot = sim.save_snapshot_v5();
-    let mut fresh = Sim::new_from_shipped_lot();
-    fresh.load_snapshot_v5(snapshot).unwrap();
+    sim.load_snapshot_v5(snapshot).unwrap();
     assert_eq!(
-        fresh.world().resource::<LotEditState>().last_edit_result,
+        sim.world().resource::<LotEditState>().last_edit_result,
         None
     );
-    assert_eq!(edit(&mut fresh, 0, "Tim", None, &[], &[]).handled, 1);
+    assert_eq!(edit(&mut sim, 0, "Tim", None, &[], &[]).handled, 1);
+}
+
+/// [ES-atomic]'s check order: person, name, personality, traits, then each
+/// tie in submitted order. Each case breaks two fields and expects the
+/// earlier check's refusal, which pins every adjacent pair in that order.
+///
+/// Within one tie the order (self-tie, unknown relative, repeated relative)
+/// cannot be observed: a self-tie names the living target, and a repeated
+/// relative's first appearance already passed the living check. The tie
+/// cases pin instead that the first bad tie in the list decides the answer.
+#[test]
+fn the_earliest_failing_check_decides_the_refusal() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<crate::Content>().0;
+    let max_traits = content.tuning.housemate_max_traits;
+    let unknown_trait = content.traits.len() as u32;
+    let unknown_personality = Some(content.personalities.len() as u32);
+    // More traits than the limit, the first of them unknown.
+    let too_many: Vec<u32> = std::iter::once(unknown_trait)
+        .chain(0..max_traits)
+        .collect();
+    let self_tie = (0, Some(Relation::Sibling));
+    let unknown_relative = (99, Some(Relation::Sibling));
+    let bill = (1, Some(Relation::Sibling));
+    let cases: Vec<InvalidEdit> = vec![
+        (
+            "person before name",
+            99,
+            "   ",
+            None,
+            vec![],
+            vec![],
+            EditRefusal::UnknownPerson,
+        ),
+        (
+            "name before personality",
+            0,
+            "   ",
+            unknown_personality,
+            vec![],
+            vec![],
+            EditRefusal::BadName,
+        ),
+        (
+            "personality before traits",
+            0,
+            "Tim",
+            unknown_personality,
+            vec![unknown_trait],
+            vec![],
+            EditRefusal::UnknownPersonality,
+        ),
+        (
+            "trait count before trait index",
+            0,
+            "Tim",
+            None,
+            too_many,
+            vec![],
+            EditRefusal::TooManyTraits,
+        ),
+        (
+            "trait index before repeat",
+            0,
+            "Tim",
+            None,
+            vec![1, 1, unknown_trait],
+            vec![],
+            EditRefusal::UnknownTrait,
+        ),
+        (
+            "traits before ties",
+            0,
+            "Tim",
+            None,
+            vec![1, 1],
+            vec![self_tie],
+            EditRefusal::RepeatedTrait,
+        ),
+        (
+            "an earlier self-tie before a later unknown relative",
+            0,
+            "Tim",
+            None,
+            vec![],
+            vec![self_tie, unknown_relative],
+            EditRefusal::SelfTie,
+        ),
+        (
+            "an earlier unknown relative before a later self-tie",
+            0,
+            "Tim",
+            None,
+            vec![],
+            vec![unknown_relative, self_tie],
+            EditRefusal::UnknownRelative,
+        ),
+        (
+            "an earlier repeat before a later unknown relative",
+            0,
+            "Tim",
+            None,
+            vec![],
+            vec![bill, bill, unknown_relative],
+            EditRefusal::RepeatedRelative,
+        ),
+    ];
+    let hash = sim.world_hash();
+    for (label, target, name, personality, traits, ties, expected) in cases {
+        let result = edit(&mut sim, target, name, personality, &traits, &ties);
+        assert_eq!(result.reason, Some(expected), "{label}");
+        assert_eq!(sim.world_hash(), hash, "{label} wrote something");
+    }
 }
 
 /// Ticks from `cooking_world`'s start to the middle of the first cooking
