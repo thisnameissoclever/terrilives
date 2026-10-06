@@ -274,9 +274,11 @@ pub fn front_door_line(content: &terri_data::ContentPack, width: u32) -> Option<
     front_portal(content).and_then(|portal| door_line(portal, width))
 }
 
-/// Whether `position` stands on `tile`, within the tolerance a walk's end is
-/// measured by: a commute clocks in, and a saved worker at work is judged, by
-/// this one test ([OS-street]).
+/// Whether `position` stands on `tile`, within a hundredth of a tile on each
+/// axis, inclusive: the tolerance a saved worker at work is judged by when
+/// the loader asks whether it stands on the street's exit ([OS-street]). A
+/// commute's end is not judged by it; the commute's direction says what the
+/// end means.
 pub fn on_tile(position: (f32, f32), tile: (u32, u32)) -> bool {
     (position.0 - tile.0 as f32).abs() <= 0.01 && (position.1 - tile.1 as f32).abs() <= 0.01
 }
@@ -1040,6 +1042,26 @@ mod tests {
             approaching,
             "projection starts only inside the final one-tile approach"
         );
+    }
+
+    /// Each axis separately, at the inclusive boundary and one float past
+    /// it, on the origin tile where a hundredth is exact in f32, and off a
+    /// nonzero tile ([L-door-arrival-needs-independent-axis-tests]).
+    #[test]
+    fn on_tile_is_inclusive_at_a_hundredth_on_each_axis() {
+        let past = 0.01f32.next_up();
+        for (case, position, tile, expected) in [
+            ("exact origin", (0.0, 0.0), (0, 0), true),
+            ("x at the boundary", (0.01, 0.0), (0, 0), true),
+            ("y at the boundary", (0.0, 0.01), (0, 0), true),
+            ("x one float past", (past, 0.0), (0, 0), false),
+            ("y one float past", (0.0, past), (0, 0), false),
+            ("x a fraction off", (5.3, 4.0), (5, 4), false),
+            ("y a fraction off", (5.0, 4.3), (5, 4), false),
+            ("exact nonzero tile", (5.0, 4.0), (5, 4), true),
+        ] {
+            assert_eq!(on_tile(position, tile), expected, "{case}");
+        }
     }
 
     #[test]
