@@ -2558,8 +2558,41 @@ describe('AudioController gesture and cue lifecycle', () => {
 
     const [sleep] = context.oscillators;
     expect(context.oscillators).toHaveLength(1);
-    expect(sleep?.type).toBe('sine');
-    expect(sleep?.stops[0]).toBeLessThanOrEqual(4.5);
+    expect(sleep?.type).toBe('triangle');
+    expect(sleep?.stops[0]).toBeLessThanOrEqual(4.6);
+  });
+
+  it('plays sleep as a soft, low snore that swells instead of clicking on', async () => {
+    // The owner asked for a quieter, lower sleeping sound with as little
+    // high-pitched content as possible, because the game is left playing in
+    // the background. Every scheduled frequency stays well under the old
+    // 250 Hz breath, the peak is lower than before, and the gain reaches its
+    // peak over a slow swell rather than the 8 ms attack the short cues use.
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    activityFrame(controller, [[9, 'sleep']]);
+    footstepFrame(controller, 3, 0);
+    footstepFrame(controller, 3, FOOTSTEP_DISTANCE_TILES);
+
+    const [snore, footstep] = context.oscillators;
+    expect(context.oscillators).toHaveLength(2);
+    const frequencies = snore?.frequency.calls
+      .map((call) => call.value)
+      .filter((value): value is number => value !== undefined);
+    expect(frequencies).toHaveLength(2);
+    expect(Math.max(...(frequencies ?? []))).toBeLessThanOrEqual(110);
+    expect(frequencies?.[0]).toBeGreaterThan(frequencies?.[1] ?? Number.NaN);
+
+    const snoreGain = snore?.connections[0] as FakeGain;
+    const snorePeak = snoreGain.gain.calls.find((call) => call.kind === 'ramp' && call.value === 0.008);
+    expect(snorePeak?.time).toBeGreaterThanOrEqual(context.currentTime + 0.15);
+    expect(Math.max(...snoreGain.gain.calls.map((call) => call.value ?? 0))).toBe(0.008);
+
+    const footstepGain = footstep?.connections[0] as FakeGain;
+    const footstepPeak = footstepGain.gain.calls.find((call) => call.kind === 'ramp' && call.value === 0.0225);
+    expect(footstepPeak?.time).toBeCloseTo(context.currentTime + 0.008);
   });
 
   it('keeps eating, reading, and exercise distinct without a bassy exercise thud', async () => {

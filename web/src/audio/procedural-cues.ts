@@ -43,6 +43,13 @@ interface CueShape {
   readonly startHz: number;
   readonly endHz: number;
   readonly oscillator: OscillatorType;
+  /**
+   * Seconds from silence to peak gain. Short impact cues keep the default
+   * 8 ms so they read as a tap; a sustained cue such as the sleep snore sets a
+   * longer swell so it fades in rather than switching on. Must stay below
+   * `durationSeconds`, because the fade back to silence ends there.
+   */
+  readonly attackSeconds?: number;
 }
 
 interface ActiveVoice {
@@ -52,6 +59,7 @@ interface ActiveVoice {
 }
 
 const SILENCE_GAIN = 0.0001;
+const DEFAULT_ATTACK_SECONDS = 0.008;
 export const MAX_ACTIVE_PROCEDURAL_VOICES = 8;
 
 const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
@@ -69,12 +77,19 @@ const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
     endHz: 130,
     oscillator: 'triangle',
   },
+  // A soft, low snore: one slow exhale every household sleep interval. The
+  // owner wants as little high-pitched sound as possible from a game left
+  // playing in the background, so this sits near the bottom of the voice
+  // range and swells in over a fifth of a second instead of clicking on. The
+  // triangle's faint odd harmonics give it the rasp of a snore; a pure sine
+  // this low is a hum that small speakers cannot reproduce at all.
   'sleep-breath': {
-    durationSeconds: 0.42,
-    peakGain: 0.012,
-    startHz: 250,
-    endHz: 185,
-    oscillator: 'sine',
+    durationSeconds: 0.6,
+    attackSeconds: 0.22,
+    peakGain: 0.008,
+    startHz: 92,
+    endHz: 68,
+    oscillator: 'triangle',
   },
   eating: {
     durationSeconds: 0.08,
@@ -151,7 +166,10 @@ export class ProceduralCuePlayer {
 
       gain.gain.cancelScheduledValues(now);
       gain.gain.setValueAtTime(SILENCE_GAIN, now);
-      gain.gain.linearRampToValueAtTime(shape.peakGain, now + 0.008);
+      gain.gain.linearRampToValueAtTime(
+        shape.peakGain,
+        now + (shape.attackSeconds ?? DEFAULT_ATTACK_SECONDS),
+      );
       gain.gain.linearRampToValueAtTime(
         SILENCE_GAIN,
         now + shape.durationSeconds,
