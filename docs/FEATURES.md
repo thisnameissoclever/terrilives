@@ -434,7 +434,7 @@ Edit Sims [B-edit-sims] shipped on 2026-10-05; see `specs/2026-09-30-edit-sims.m
 
 The first skills slice [S-skills] shipped on 2026-10-05: Cooking, Fitness and Reading grow with every completed attempt, set the fumble chance of the matching capability trait, and are listed in Sim details; see `specs/2026-10-05-skills.md`. Better outcomes, unlocks, career performance and any fuller skills panel remain open.
 
-Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an activity past saturation adds an `Overdoing {activity}` moodlet that grows with each further use, and too much food adds a temporary `Feeling sick` moodlet; appeal and need delivery are unchanged, and decay clears both. Novelty from purchases, part two, remains open; see `specs/2026-10-06-overdoing-it.md`.
+Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an activity past saturation adds an `Overdoing {activity}` moodlet that grows with each further use, and too much food adds a temporary `Feeling sick` moodlet; need delivery is unchanged, appeal never falls below its floor but stays there until decay brings the value back below saturation, and decay clears both. Novelty from purchases, part two, remains open; see `specs/2026-10-06-overdoing-it.md`.
 
 Remaining acceptance work runs separately from this build priority: owner art and
 sound review where still recorded as open, physical-phone touch/safe-area/daylight
