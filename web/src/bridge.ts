@@ -90,6 +90,34 @@ export function housemateReason(code: number): string | null {
   return code === 0 ? null : HOUSEMATE_REASONS[code] ?? 'They could not move in.';
 }
 
+/** The drain's answer to an edit of a living person ([ES-atomic]). */
+export interface EditResult {
+  /** Why the edit was refused, or null when it was applied. */
+  readonly reason: string | null;
+  /** The edited person's entity index, or null when nothing changed. */
+  readonly sim: number | null;
+  /** How many edits this world has handled, this one included. */
+  readonly handled: number;
+}
+
+/** Refusal lines for an edit, by the simulation's code ([ES-atomic]). Functional text: plain. */
+const EDIT_REASONS: Readonly<Record<number, string>> = {
+  1: 'That person is no longer here.',
+  2: 'Give them a name that fits.',
+  3: 'That personality is not available.',
+  4: 'Choose fewer traits.',
+  5: 'That trait is not available.',
+  6: 'Each trait once.',
+  7: 'That relative is no longer here.',
+  8: 'Each relative once.',
+  9: 'They cannot be their own relative.',
+};
+
+export function editReason(code: number): string | null {
+  if (code === 0) return null;
+  return EDIT_REASONS[code] ?? 'The changes could not be made.';
+}
+
 const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   1: 'Choose a whole tile and a supported direction.',
   2: 'That furniture is no longer available.',
@@ -1611,6 +1639,44 @@ export class SimBridge {
     return values.length === 0 ? null
       : { reason: housemateReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1],
         handled: values[2] };
+  }
+
+  /**
+   * Stages an edit of the living person with this SimId ([ES-atomic]): the
+   * name, the personality (null keeps the current one), the whole trait
+   * list and a relation code to each relative by SimId, `NO_RELATION`
+   * clearing one. Queue acceptance only; read the outcome from
+   * `lastEditResult`.
+   */
+  editHousemate(
+    sim: number,
+    name: string,
+    personality: number | null,
+    traits: readonly number[],
+    ties: readonly (readonly [number, number])[],
+  ): boolean {
+    const flat = new Float64Array(ties.length * 2);
+    ties.forEach(([relative, code], at) => {
+      flat[at * 2] = relative;
+      flat[at * 2 + 1] = code;
+    });
+    return this.handle.edit_housemate(
+      sim, name, personality === null, personality ?? 0, Float64Array.from(traits), flat,
+    );
+  }
+
+  /** The drain's answer to the last edit, or null before the first. */
+  lastEditResult(): EditResult | null {
+    const values = this.handle.last_edit_result();
+    return values.length === 0 ? null
+      : { reason: editReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1], handled: values[2] };
+  }
+
+  /** The archetype an editor may mark as current for this entity, or null for "Keep current personality". */
+  personalityIndexOf(entity: number): number | null {
+    if (!isU32(entity)) return null;
+    const index = this.handle.personality_index_of(entity);
+    return index === 0xffffffff ? null : index;
   }
 
   /**
