@@ -118,7 +118,8 @@ same graph and cannot bypass a zero voice gain.
 Each audible cue creates one oscillator and one gain envelope, then disconnects
 both nodes when ended or evicted. Rejection, footstep, and
 personal activity cues stop within 160 ms. The low-gain sleep-breath envelope
-lasts 420 ms. At most eight voices remain active. A ninth event stops and
+is a soft, low snore: it swells in over 220 ms and lasts 600 ms, sweeping from
+92 to 68 Hz. At most eight voices remain active. A ninth event stops and
 disconnects the oldest voice instead of building an invisible backlog. Recorded
 conversations use two buffer sources sharing one gain, with a separate cap of
 three pairs. The scheduler tracks each conversation independently and collapses
@@ -208,7 +209,7 @@ five seconds. Successful clips remain cached, and late recovery cannot revive
 an ended or globally invalidated pair. Explicit library loading can also retry
 missing slots. See `2026-10-01-voice-download-recovery.md` for the contract and proof.
 
-Sleep remains household-level. One quiet breath plays on entry,
+Sleep remains household-level. One quiet snore plays on entry,
 then once every 30 ticks while at least one Sim remains asleep. Multiple
 sleepers do not create synchronized breath stacks. Leaving an activity resets
 its cadence. Load, backgrounding, the first successful audio unlock, recovery

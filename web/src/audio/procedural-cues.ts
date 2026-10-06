@@ -46,8 +46,9 @@ interface CueShape {
   /**
    * Seconds from silence to peak gain. Short impact cues keep the default
    * 8 ms so they read as a tap; a sustained cue such as the sleep snore sets a
-   * longer swell so it fades in rather than switching on. Must stay below
-   * `durationSeconds`, because the fade back to silence ends there.
+   * longer swell so it fades in rather than switching on. The player clamps
+   * it below `durationSeconds`, where the fade back to silence ends, so the
+   * two ramps can never be scheduled out of order.
    */
   readonly attackSeconds?: number;
 }
@@ -82,7 +83,7 @@ const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
   // playing in the background, so this sits near the bottom of the voice
   // range and swells in over a fifth of a second instead of clicking on. The
   // triangle's faint odd harmonics give it the rasp of a snore; a pure sine
-  // this low is a hum that small speakers cannot reproduce at all.
+  // this low is a hum that small speakers barely reproduce.
   'sleep-breath': {
     durationSeconds: 0.6,
     attackSeconds: 0.22,
@@ -168,7 +169,7 @@ export class ProceduralCuePlayer {
       gain.gain.setValueAtTime(SILENCE_GAIN, now);
       gain.gain.linearRampToValueAtTime(
         shape.peakGain,
-        now + (shape.attackSeconds ?? DEFAULT_ATTACK_SECONDS),
+        now + attackSecondsFor(shape),
       );
       gain.gain.linearRampToValueAtTime(
         SILENCE_GAIN,
@@ -229,6 +230,11 @@ export class ProceduralCuePlayer {
     safeDisconnect(voice.oscillator);
     safeDisconnect(voice.gain);
   }
+}
+
+function attackSecondsFor(shape: CueShape): number {
+  const attack = shape.attackSeconds ?? DEFAULT_ATTACK_SECONDS;
+  return Math.min(attack, shape.durationSeconds / 2);
 }
 
 function safeDisconnect(node: AudioNodePort): void {
