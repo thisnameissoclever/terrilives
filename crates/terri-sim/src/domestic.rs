@@ -320,6 +320,19 @@ fn start_cleanup(world: &mut World, person: Entity, dishes: Vec<u32>, directed: 
     true
 }
 
+/// Whether `person`'s cleanup task is one the player ordered. A task the
+/// sim started for itself covers only the dishes the sim picked when it
+/// started and is dropped between steps once energy, hunger or bladder
+/// turns critical; a directed one covers every dish and is not.
+pub(crate) fn cleaning_under_orders(state: Option<&SavedDomestic>, person: Entity) -> bool {
+    state.is_some_and(|state| {
+        state
+            .cleanup
+            .iter()
+            .any(|task| task.person == person.index_u32() && task.directed)
+    })
+}
+
 /// Runs after player intents and before ordinary autonomous selection.
 pub(crate) fn tick(world: &mut World) {
     let Some(tuning) = world.resource::<Content>().0.tuning.domestic else {
@@ -768,11 +781,22 @@ pub(crate) fn gather_diners(world: &mut World) {
                         .any(|need| needs.get(*need) <= pack.tuning.mood_critical_need_level)
                 });
             }
-            // Player interruptions and queued orders must not hold the household at dinner.
+            // Player interruptions and waiting orders must not hold the household at
+            // dinner. The running chain's own order, queued until the chain ends, is
+            // not a waiting order.
             if target.is_some_and(|target| target.interaction != crate::systems::chain::CHAIN_STEP)
-                || world
-                    .get::<IntentQueue>(*person)
-                    .is_some_and(|queue| !queue.is_empty())
+                || world.get::<ChainState>(*person).is_none_or(|chain| {
+                    crate::systems::chain::outranked(
+                        pack,
+                        world.get::<IntentQueue>(*person),
+                        chain.chain,
+                        |object| {
+                            world
+                                .get::<terri_core::SmartObject>(object)
+                                .map(|placed| placed.0)
+                        },
+                    )
+                })
                 || world.get::<AtWork>(*person).is_some()
                 || world.get::<Commuting>(*person).is_some()
             {
@@ -1422,6 +1446,9 @@ pub(crate) fn directed_cleanup(world: &mut World, person: Entity) {
         .map(|dish| dish.id)
         .collect();
     if !start_cleanup(world, person, dishes, true) {
+        if let Some(chain) = world.get::<ChainState>(person).map(|state| state.chain) {
+            crate::systems::chain::settle_order(world, person, chain);
+        }
         world.entity_mut(person).remove::<ChainState>();
     }
 }

@@ -85,7 +85,9 @@ Order placement is now a property of the command ([I-plain-order-goes-first]):
 Queue mode and Ctrl or Cmd append every order, talks included, and a plain
 order goes to the front of the queue with the waiting orders kept behind it.
 Only the two cancel controls, Clear orders and the action menu's cancel row,
-empty a queue.
+empty a queue. A multi-step errand's order (a snack, a meal or a chore) stays
+in the queue until the errand ends, so orders queued behind it wait for it
+instead of replacing it.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
