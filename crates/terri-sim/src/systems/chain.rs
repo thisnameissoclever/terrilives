@@ -47,7 +47,7 @@ pub const CHAIN_STEP: u32 = u32::MAX;
 /// pre-expanded intents): the nearest free table when the plate is
 /// ready, not when the fridge was opened. All stations reserved means
 /// WAIT, the standing [C3] answer, with `Blocked` saying why.
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn advance_chains(
     mut commands: Commands,
     grid: Res<TileGrid>,
@@ -80,6 +80,7 @@ pub fn advance_chains(
         Option<&terri_core::ObjectFacing>,
     )>,
     mut domestic: Option<ResMut<terri_core::save::SavedDomestic>>,
+    chore_state: Option<Res<terri_core::chores::SavedChores>>,
     occupants: Query<
         (
             Entity,
@@ -143,6 +144,18 @@ pub fn advance_chains(
         }
         let step = &chain.steps[chain_state.step as usize];
         let cleanup = chain.id == crate::domestic::CLEANUP;
+        if cleanup
+            && chain_state.step == 0
+            && domestic.as_ref().is_some_and(|state| {
+                state
+                    .cleanup
+                    .iter()
+                    .any(|t| t.person == sim.index_u32() && t.dishes.is_empty())
+            })
+        {
+            commands.entity(sim).insert(Blocked);
+            continue;
+        }
         if cleanup
             && domestic.as_ref().is_none_or(|state| {
                 state
@@ -209,6 +222,12 @@ pub fn advance_chains(
                 continue;
             }
             any_station = true;
+            let reserved = reserved
+                || crate::chores::object_claimed(
+                    chore_state.as_deref(),
+                    station.index_u32(),
+                    sim.index_u32(),
+                );
             let to = (station_pos.x.round() as i32, station_pos.y.round() as i32);
             // The ORIENTED rectangle: a station the player has turned is
             // approached where it now lies.

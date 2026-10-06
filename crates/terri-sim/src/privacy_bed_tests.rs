@@ -425,6 +425,8 @@ fn privacy_detours_replace_historical_endpoints_with_the_held_places_current_app
             .entity_mut(actor)
             .insert(terri_core::IntentQueue::from_intents(vec![
                 terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: bed,
                     interaction: 0,
                 },

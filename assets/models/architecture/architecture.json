@@ -21,6 +21,16 @@
       "kind": "neutral-seating",
       "catalog": "assets/models/seating/export/neutral-03/manifest.json",
       "canonicalSha256": "2955c095bdfee70517c6d8d7a120299c02d4d72e0f1674d8a54838fcc2170589"
+    },
+    {
+      "kind": "table-sitting",
+      "catalog": "assets/models/domestic/table-sitting/proof.json",
+      "canonicalSha256": "4891e907df7ce70883e5af269c8f0502b50bd74ec438d78ad4b6ab05d3d19f33"
+    },
+    {
+      "kind": "cleaning",
+      "catalog": "assets/models/cleaning/export/manifest.json",
+      "canonicalSha256": "a1be4c0c5236ae1c5e99cc3ea5db758862dd750618f5c4f53dda2a96f134e855"
     }
   ],
   "historicalFiles": {

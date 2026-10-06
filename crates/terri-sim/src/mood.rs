@@ -39,6 +39,10 @@ impl Sim {
     }
 }
 
+pub(crate) fn score(world: &World, index: u32) -> Option<f32> {
+    derive_mood(world, index).map(|m| m.overall_score)
+}
+
 fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
     let pack = world.get_resource::<Content>()?.0;
     let mut subject_query = world.try_query_filtered::<(
@@ -53,6 +57,7 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         .find(|(entity, ..)| entity.index_u32() == index)?;
 
     let mut moodlets = Vec::new();
+    moodlets.extend(crate::chores::moodlets(world, subject));
     for need in NeedId::ALL {
         let level = needs.get(need);
         let (low_label, critical_label) = need_labels(need);

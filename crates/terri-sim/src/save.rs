@@ -159,6 +159,7 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
             queue
                 .as_slice()
                 .iter()
+                .filter(|intent| intent.cleanup.is_none() && intent.chore.is_none())
                 .map(|intent| SavedIntent {
                     object: intent.object.index_u32(),
                     interaction: intent.interaction,
@@ -244,6 +245,24 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
+        SimCommand::CleanChore { agent, key } => SavedCommand::CleanChore {
+            agent: *agent,
+            key: *key,
+        },
+        SimCommand::CleanChoreFirst { agent, key } => SavedCommand::CleanChoreFirst {
+            agent: *agent,
+            key: *key,
+        },
+        SimCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences,
+        } => SavedCommand::SetChoreProfile {
+            agent: *agent,
+            responsibility: *responsibility,
+            preferences: *preferences,
+        },
+        SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
         SimCommand::BuyObjectInColourway {
             definition,
@@ -329,6 +348,24 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             x: *x,
             y: *y,
             facing: *facing,
+        },
+        SimCommand::CleanDishes {
+            agent,
+            surface,
+            dishes,
+        } => SavedCommand::CleanDishes {
+            agent: *agent,
+            surface: *surface,
+            dishes: dishes.clone(),
+        },
+        SimCommand::CleanDishesFirst {
+            agent,
+            surface,
+            dishes,
+        } => SavedCommand::CleanDishesFirst {
+            agent: *agent,
+            surface: *surface,
+            dishes: dishes.clone(),
         },
         SimCommand::FitWindow { axis, x, y, model } => SavedCommand::FitWindow {
             axis: *axis,
@@ -634,6 +671,8 @@ fn restore_entity(
             .iter()
             .map(|intent| {
                 Ok(Intent {
+                    cleanup: None,
+                    chore: None,
                     object: resolve_entity(slots, intent.object)?,
                     interaction: intent.interaction,
                 })
@@ -844,6 +883,18 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
     match command {
+        SavedCommand::CleanChore { agent, key } => SimCommand::CleanChore { agent, key },
+        SavedCommand::CleanChoreFirst { agent, key } => SimCommand::CleanChoreFirst { agent, key },
+        SavedCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences,
+        } => SimCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences,
+        },
+        SavedCommand::SetChoreBoard { enabled } => SimCommand::SetChoreBoard { enabled },
         SavedCommand::BuildRoom {
             x0,
             y0,
@@ -877,6 +928,24 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             SimCommand::FitWindow { axis, x, y, model }
         }
         SavedCommand::RemoveWindow { axis, x, y } => SimCommand::RemoveWindow { axis, x, y },
+        SavedCommand::CleanDishes {
+            agent,
+            surface,
+            dishes,
+        } => SimCommand::CleanDishes {
+            agent,
+            surface,
+            dishes,
+        },
+        SavedCommand::CleanDishesFirst {
+            agent,
+            surface,
+            dishes,
+        } => SimCommand::CleanDishesFirst {
+            agent,
+            surface,
+            dishes,
+        },
         SavedCommand::SetWallEdge { axis, x, y, state } => {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
@@ -1184,7 +1253,29 @@ fn validate_command(
     pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
     match command {
+        SavedCommand::CleanChore { .. }
+        | SavedCommand::CleanChoreFirst { .. }
+        | SavedCommand::SetChoreBoard { .. } => Ok(()),
+        SavedCommand::SetChoreProfile {
+            responsibility,
+            preferences,
+            ..
+        } => {
+            if *responsibility <= 100 && preferences.iter().all(|v| (-100..=100).contains(v)) {
+                Ok(())
+            } else {
+                Err(SaveError::InvalidValue)
+            }
+        }
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
+        SavedCommand::CleanDishes { dishes, .. }
+        | SavedCommand::CleanDishesFirst { dishes, .. } => {
+            if crate::targeted_cleanup::valid_selection(dishes) {
+                Ok(())
+            } else {
+                Err(SaveError::InvalidValue)
+            }
+        }
         SavedCommand::FitWindow { axis, x, y, model } => terri_core::windows::WindowPlacement {
             line: terri_core::layout::WallLine {
                 axis: *axis,
@@ -1604,6 +1695,9 @@ fn validate_flyout_row(
 ) -> Result<(), SaveError> {
     reject_impossible_pre_aquarium_bike_row(object, row, pre_aquarium_bike)?;
     let id = resolve_object(pack, object)?;
+    if pack.object(id).id == "dining_table" && row == 1 {
+        return Ok(());
+    }
     let rows = pack.object(id).interactions.len()
         + pack
             .chains

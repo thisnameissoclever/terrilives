@@ -1,3 +1,5 @@
+import { buildGrimeInstances } from './render/grime-decals.js';
+import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
@@ -1241,6 +1243,7 @@ async function main(): Promise<void> {
     wallFade.configure(staticGeometry.lowInstances, staticGeometry.lowPanels, lot.width, lot.height);
     renderer.setArchitectureCamera(camera.originX, camera.originY);
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count, staticGeometry.lowInstances);
+
     cameraDirty = false;
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
@@ -1281,6 +1284,16 @@ async function main(): Promise<void> {
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
   if (!keyboardStatus) throw new Error('missing #keyboard-target');
   const keyboardTargets = new KeyboardTargetController(sim, keyboardStatus);
+  const choresDialog=document.createElement('dialog');choresDialog.id='chores-dialog';
+  const choresTitle=document.createElement('h2');choresTitle.id='chores-title';choresTitle.textContent='Chores';
+  choresDialog.setAttribute('aria-labelledby','chores-title');
+  const choresClose=document.createElement('button');choresClose.type='button';choresClose.className='hud-button';choresClose.textContent='Close';
+  const choresBoard=new ChoresBoard(sim,document,()=>choresDialog.close());
+  const choresHeader=document.createElement('header');choresHeader.className='chores-header';choresHeader.append(choresTitle,choresClose);
+  choresDialog.append(choresHeader,choresBoard.element());document.body.append(choresDialog);
+  choresClose.addEventListener('click',()=>choresDialog.close());
+  document.querySelector('#chores-toggle')!.addEventListener('click',()=>{optionsMenu.close();overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
+  choresDialog.addEventListener('close',()=>overlayPause.resume('chores'));
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
   let builderControls: BuilderControls;
@@ -1715,6 +1728,7 @@ async function main(): Promise<void> {
     buyTool.afterCommands();
     housemateForm.afterCommands();
     bedAssignmentPanel.afterCommands();
+    if(choresDialog.open)choresBoard.update();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
@@ -1736,6 +1750,8 @@ async function main(): Promise<void> {
     // camera-derived statics after that drain, before any instances are drawn.
     if (floorScene.visible) {
       if (cameraDirty) applyCamera();
+      renderer.setGrimeInstances(buildGrimeInstances(sim,lot.width,depthScale,camera.originX,camera.originY,camera.scale,renderer.grimeSpriteBase));
+
       // [PA-place]: after the camera settles, so the buttons follow this
       // frame's pan and zoom.
       placementButtons.frame(camera, stage.width, stage.height);

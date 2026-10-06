@@ -1,0 +1,30 @@
+[
+  {
+    "path": "web/src/render/grime-decals.ts",
+    "sha256": "95ae23fd1f13666c9c7db9bf8062a07963fe3991662b97e738b6a41932792374"
+  },
+  {
+    "path": "web/src/ui/chores-board.ts",
+    "sha256": "af48b92b3beb776735c22e961988ed579fef1e949420fa00d959f4c1eefab9d7"
+  },
+  {
+    "path": "crates/terri-sim/src/chores/groups.rs",
+    "sha256": "1f8dee6b755b9cbe69fde896b9bbf4f3f789741bbf1c760bca0ac5c13b6fb052"
+  },
+  {
+    "path": "crates/terri-sim/src/chores/work.rs",
+    "sha256": "b7316e77fc1c9208d62d6e884ea06207f7ef50d0a94a181dbd087d205d5fa8d7"
+  },
+  {
+    "path": "crates/terri-sim/src/dining/table_actions.rs",
+    "sha256": "f94ed247e97baf1b9546a829171f7786eb2dd4aafaf1c4fc45b406e479348e51"
+  },
+  {
+    "path": "web/public/grime/household-stains.png",
+    "sha256": "9af5875db07be05d7b5999007483a120ab7c21f69e85367ff7e22d9c01e85a1f"
+  },
+  {
+    "path": "assets/models/domestic/table-sitting/proof.json",
+    "sha256": "001415c1985491cabd6cc2c4508e88bce0ff241710ef7b8fd1136bd7abb7be11"
+  }
+]

@@ -1,0 +1,1224 @@
+{
+  "schema_version": 1,
+  "width": 38,
+  "height": 88,
+  "anchor": [
+    19.00001358985901,
+    100.00043803453445
+  ],
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "variant": "blue",
+  "pixel_density": 2,
+  "clips": {
+    "mop": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 8,
+      "sample_fps": 4,
+      "loop": true,
+      "source_action": "mop"
+    },
+    "wipe_counter": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 6,
+      "sample_fps": 4,
+      "loop": true,
+      "source_action": "wipe_counter"
+    },
+    "wipe_table": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 6,
+      "sample_fps": 4,
+      "loop": true,
+      "source_action": "wipe_table"
+    },
+    "empty_bin": {
+      "width": 96,
+      "height": 128,
+      "anchor": [
+        48.0000114440918,
+        120.00043678283691
+      ],
+      "world_origin": [
+        48.0000114440918,
+        99.00043678283691
+      ],
+      "camera_ortho_scale": 2.8284270763397217,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "frame_count": 8,
+      "sample_fps": 4,
+      "loop": false,
+      "source_action": "empty_bin"
+    }
+  },
+  "frames": [
+    {
+      "name": "rigSimBlueMopSE0",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 0,
+      "path": "mop-SE-0.png",
+      "sha256": "389a0a300ce975a241a1eb520da29bb8d3146ca9fc95c0c28e54f66de9032aad",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSE1",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 1,
+      "path": "mop-SE-1.png",
+      "sha256": "832c843bcbca4fe6d9fc42b0879215b1e6045b2ef64300b21af12d27afeabb4f",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSE2",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 2,
+      "path": "mop-SE-2.png",
+      "sha256": "2e98d5f13a78a153dddd905dd811c259827f8bcb5a7cbeab7a6bcb6162f67963",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSE3",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 3,
+      "path": "mop-SE-3.png",
+      "sha256": "51cb1f0dd9ea4471d1e2d4d355d41449b449c16c919188b16a135eb62fe8b3ee",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSE4",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 4,
+      "path": "mop-SE-4.png",
+      "sha256": "43b5a50ae89b97a139592600609ac8cb770b5a3dc3719088c2103af7ae1c3b13",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSE5",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 5,
+      "path": "mop-SE-5.png",
+      "sha256": "189fcef275a2b2afbf0555d98d6e921165f03f6fcc75d3f56e8d5818e5f831bc",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSE6",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 6,
+      "path": "mop-SE-6.png",
+      "sha256": "40ef9cfbe773f1d0c5d9149c9b0aba05f4278ee571e60d2141bd89fbdfffaf24",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSE7",
+      "action": "mop",
+      "facing": "SE",
+      "frame": 7,
+      "path": "mop-SE-7.png",
+      "sha256": "9798fa5330838d613aafaad62ec3c778251b26b86f33d2e105c35a5340a9d61c",
+      "eye_boxes": [
+        [
+          51.96541213989258,
+          49.878807067871094,
+          55.66544151306152,
+          51.734954833984375
+        ],
+        [
+          58.78348159790039,
+          45.442161560058594,
+          60.451961517333984,
+          48.446014404296875
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopNW0",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 0,
+      "path": "mop-NW-0.png",
+      "sha256": "66c2b051631db29f21bab43c945d3ab7e80ba11d60bf53ef73713531f307952c"
+    },
+    {
+      "name": "rigSimBlueMopNW1",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 1,
+      "path": "mop-NW-1.png",
+      "sha256": "9d9363b172cea77a8dbf9a186735435cbd198f8a140f41bde28ba489e365f2c5"
+    },
+    {
+      "name": "rigSimBlueMopNW2",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 2,
+      "path": "mop-NW-2.png",
+      "sha256": "22d43908e97867f873f31d0078ad48d1fe2233b9bc0e4a0175e1ab9b6435ea36"
+    },
+    {
+      "name": "rigSimBlueMopNW3",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 3,
+      "path": "mop-NW-3.png",
+      "sha256": "5c1873e4c78d58d9d363c95ce50fa7d7bb3a638b04801d29bed0ab5fa8f378c1"
+    },
+    {
+      "name": "rigSimBlueMopNW4",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 4,
+      "path": "mop-NW-4.png",
+      "sha256": "05f4e9169894e363f0648bece76c480b83bdb851985a11a18d67526d8b3537df"
+    },
+    {
+      "name": "rigSimBlueMopNW5",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 5,
+      "path": "mop-NW-5.png",
+      "sha256": "8efff690823e4f7e41f44b4adb920c0f71eec8adbafa2eb2c981c4fceaede3bc"
+    },
+    {
+      "name": "rigSimBlueMopNW6",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 6,
+      "path": "mop-NW-6.png",
+      "sha256": "c572758f8366af8ca3eadd4602cba1fe2af356ddb00880d6e8725613e020da84"
+    },
+    {
+      "name": "rigSimBlueMopNW7",
+      "action": "mop",
+      "facing": "NW",
+      "frame": 7,
+      "path": "mop-NW-7.png",
+      "sha256": "e991e76b670f50fcc9968638f53c7808bf1989390b58a73508ed0c5277d80a28"
+    },
+    {
+      "name": "rigSimBlueMopSW0",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 0,
+      "path": "mop-SW-0.png",
+      "sha256": "aae75da58dbd0aaae82698101c3adb871488027dcd855ea19e938e31c6890bda",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSW1",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 1,
+      "path": "mop-SW-1.png",
+      "sha256": "e78554abd8652ddc80c4244d0223a8569fe39cd83735c6696e36099e9f42c8f9",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSW2",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 2,
+      "path": "mop-SW-2.png",
+      "sha256": "e85fb5721c019138d767baeca0210e4611585ae1764d27011621fd56023af220",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSW3",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 3,
+      "path": "mop-SW-3.png",
+      "sha256": "e275a4f9321b7fdb7e25501911d90dcf1f4e4b8dd628422677f533d21f80e71a",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSW4",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 4,
+      "path": "mop-SW-4.png",
+      "sha256": "5dcb12db819fe6a9ad3f7118395b6819043bfcd27f3b24e1793e19b4c5ffe05d",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSW5",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 5,
+      "path": "mop-SW-5.png",
+      "sha256": "1e0b737ba9ffb3e1a18dbdb9a82fdaf8b0f76bc9a9d25a2d1ae2b45a71f4c7b2",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSW6",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 6,
+      "path": "mop-SW-6.png",
+      "sha256": "43ebf8572457ee07d536e5076db71af98f15212a0b3749eebed776a88fd3eca0",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopSW7",
+      "action": "mop",
+      "facing": "SW",
+      "frame": 7,
+      "path": "mop-SW-7.png",
+      "sha256": "9bc1257ee74f36dd441c6093df33a9277ff3f08539d07b2d40e11e54e416227f",
+      "eye_boxes": [
+        [
+          35.548081398010254,
+          45.44215393066406,
+          37.2165584564209,
+          48.446014404296875
+        ],
+        [
+          40.334598541259766,
+          49.878807067871094,
+          44.03462219238281,
+          51.734954833984375
+        ]
+      ]
+    },
+    {
+      "name": "rigSimBlueMopNE0",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 0,
+      "path": "mop-NE-0.png",
+      "sha256": "cbd97f827af6906fa1c2ce60326cc6e3e5e575ff6991df841eb6ce07d1215468"
+    },
+    {
+      "name": "rigSimBlueMopNE1",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 1,
+      "path": "mop-NE-1.png",
+      "sha256": "0e68ac83e0e0458a86c7024fbc84e91c05e156dd9ef12c62d20e657dada8093f"
+    },
+    {
+      "name": "rigSimBlueMopNE2",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 2,
+      "path": "mop-NE-2.png",
+      "sha256": "57c21d8ecbfe545401083f491713e10fd025f1590db2706de2f8c85603f8277d"
+    },
+    {
+      "name": "rigSimBlueMopNE3",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 3,
+      "path": "mop-NE-3.png",
+      "sha256": "7a297007dca4e6dc892b7ab3b87e11ddd2179485856e83d7bf15692537804a0f"
+    },
+    {
+      "name": "rigSimBlueMopNE4",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 4,
+      "path": "mop-NE-4.png",
+      "sha256": "4046ecd373650933949ed082fb2f66a58051cd35952904448e355411c91cb7b3"
+    },
+    {
+      "name": "rigSimBlueMopNE5",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 5,
+      "path": "mop-NE-5.png",
+      "sha256": "7758d58c5a67181e6979640a38989ca6255d5784dcf33fae3d81ad5ff5233048"
+    },
+    {
+      "name": "rigSimBlueMopNE6",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 6,
+      "path": "mop-NE-6.png",
+      "sha256": "56ce7fb2659214bd19ab6fa7f15622ce2018d5c7bc4ad545259101f625884c3d"
+    },
+    {
+      "name": "rigSimBlueMopNE7",
+      "action": "mop",
+      "facing": "NE",
+      "frame": 7,
+      "path": "mop-NE-7.png",
+      "sha256": "44eb6338e418fbc0f46484b91abb233b1a7e769bc1c0f07d9fb22a977547264e"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSE0",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 0,
+      "path": "wipe_counter-SE-0.png",
+      "sha256": "f0d9416d15d4246c4e2dece7a12f03eac63837bf1dbfa6acb89f533a882edbab"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSE1",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 1,
+      "path": "wipe_counter-SE-1.png",
+      "sha256": "9ccc107cf4cda1a460ce3e24809268635e51e706557216de5b3ac4769f2def76"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSE2",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 2,
+      "path": "wipe_counter-SE-2.png",
+      "sha256": "b2c756785dec7f9008d8e52435e9e99fc7a112445a81b2ee31ec00bb8a4d70b6"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSE3",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 3,
+      "path": "wipe_counter-SE-3.png",
+      "sha256": "4a0d3e4b0856469146664c938740d8d1ef2c01a8163dd5ee0eebe76fa5fb528c"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSE4",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 4,
+      "path": "wipe_counter-SE-4.png",
+      "sha256": "8b4730d080cb01f1807b5afc88b8b21b23d8cd61e49cc0d82f7a8099e1da7302"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSE5",
+      "action": "wipe_counter",
+      "facing": "SE",
+      "frame": 5,
+      "path": "wipe_counter-SE-5.png",
+      "sha256": "94ebf89c3090c82e78aa879d8c1c593982fb1314c5a732a79414c5421012d2fb"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNW0",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 0,
+      "path": "wipe_counter-NW-0.png",
+      "sha256": "6f7684d3db1b50a3ee4da403d9faee4e3654c3464c7d2028e35665db5427f368"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNW1",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 1,
+      "path": "wipe_counter-NW-1.png",
+      "sha256": "b14e5fbcde5c1feabf7d01a5a4143f160fd523edb8f4750fd2abc317ebe1cc62"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNW2",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 2,
+      "path": "wipe_counter-NW-2.png",
+      "sha256": "946441460b8b88871d9aad101f4e9c87ae3271e76bc8d9e2c96aa261abec2686"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNW3",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 3,
+      "path": "wipe_counter-NW-3.png",
+      "sha256": "018367f66e92f318fc81338fd65c736761dbc23c4392726af6920df38db02d30"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNW4",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 4,
+      "path": "wipe_counter-NW-4.png",
+      "sha256": "42a76c656d4a603ad7f246fff6ed6a92ba48e7917a4d8056f561000823580ece"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNW5",
+      "action": "wipe_counter",
+      "facing": "NW",
+      "frame": 5,
+      "path": "wipe_counter-NW-5.png",
+      "sha256": "1fe7f9b4c9b1743d22db38df619778e769a09f0601566534e3d83a93a397675b"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSW0",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 0,
+      "path": "wipe_counter-SW-0.png",
+      "sha256": "0bbe1a365491c03b475abd9a4a6b41673ed61399ddf4755d28ce27d65ad5ba40"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSW1",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 1,
+      "path": "wipe_counter-SW-1.png",
+      "sha256": "3cf40226ace1da00626835918835fb9f6a8bde875d74d0e8ad010cbd2e7da964"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSW2",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 2,
+      "path": "wipe_counter-SW-2.png",
+      "sha256": "05de980d1617eed855928980f98c1c2afac7e375acbcc945f05f2f31dd114a0b"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSW3",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 3,
+      "path": "wipe_counter-SW-3.png",
+      "sha256": "cbb5f345704ca7badc88f4c686a7d9140ea02c0f2a1cb6cecb15202bc9dbccaf"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSW4",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 4,
+      "path": "wipe_counter-SW-4.png",
+      "sha256": "0c82a6c36fc52f48181f1cf10868b12931537dc9b74f52f9760156a60c3d7710"
+    },
+    {
+      "name": "rigSimBlueWipeCounterSW5",
+      "action": "wipe_counter",
+      "facing": "SW",
+      "frame": 5,
+      "path": "wipe_counter-SW-5.png",
+      "sha256": "5e3571f908ced0e32eddad2744b7db1e4c45508d87706e9e378cc2d1bb85a782"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNE0",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 0,
+      "path": "wipe_counter-NE-0.png",
+      "sha256": "37a1828a41fb891b575bea632204bd33164e9bf2105b5bcafde0dbebf5abdf34"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNE1",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 1,
+      "path": "wipe_counter-NE-1.png",
+      "sha256": "225ab4fbb4c7da8e6d65aab3d5ca9bb60ce16ef63c89c47f700fbbbdf7883999"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNE2",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 2,
+      "path": "wipe_counter-NE-2.png",
+      "sha256": "49b4f8280ec1c2461bad81f0cffa527d15f5355484d1ea852043d6e45eb49d36"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNE3",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 3,
+      "path": "wipe_counter-NE-3.png",
+      "sha256": "63c615f44512f641a2cf89c6de93c283a89703db1ed1e816f18c66b8eafc65cb"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNE4",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 4,
+      "path": "wipe_counter-NE-4.png",
+      "sha256": "fd72fd0d7e3931cc5367ce8cc396c5f1e1f6b95f1f24bb8e594b886422871707"
+    },
+    {
+      "name": "rigSimBlueWipeCounterNE5",
+      "action": "wipe_counter",
+      "facing": "NE",
+      "frame": 5,
+      "path": "wipe_counter-NE-5.png",
+      "sha256": "a959b80cc65252bd282eb167519f7edd49a20da9df5c2e6f3eaf5fa2938f4f65"
+    },
+    {
+      "name": "rigSimBlueWipeTableSE0",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 0,
+      "path": "wipe_table-SE-0.png",
+      "sha256": "5a61478a096d6a6debbd809697742c96ef56cd4865942793b966371fdab0e58e"
+    },
+    {
+      "name": "rigSimBlueWipeTableSE1",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 1,
+      "path": "wipe_table-SE-1.png",
+      "sha256": "3cc20bbf621684eaa25ce72fba30e83de312f9ea6968477f999661cc85879635"
+    },
+    {
+      "name": "rigSimBlueWipeTableSE2",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 2,
+      "path": "wipe_table-SE-2.png",
+      "sha256": "dbc08c0d7692a4d59da0e36c07908f275cd03fedf2ff209911f8d63ffa24a419"
+    },
+    {
+      "name": "rigSimBlueWipeTableSE3",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 3,
+      "path": "wipe_table-SE-3.png",
+      "sha256": "5f5e420d3c29c8e520c2161a0fa175aeff26c904c4cd57c8d422c6d16b1c8b23"
+    },
+    {
+      "name": "rigSimBlueWipeTableSE4",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 4,
+      "path": "wipe_table-SE-4.png",
+      "sha256": "5da8e64244ac7f4509732ef85c6895213bbd11b6428542168a7e7a1bbf4cf5e9"
+    },
+    {
+      "name": "rigSimBlueWipeTableSE5",
+      "action": "wipe_table",
+      "facing": "SE",
+      "frame": 5,
+      "path": "wipe_table-SE-5.png",
+      "sha256": "984bb4be4286e170948d046429372ee8fe2ad87ce0ba9a1b4e56686da4ae77f1"
+    },
+    {
+      "name": "rigSimBlueWipeTableNW0",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 0,
+      "path": "wipe_table-NW-0.png",
+      "sha256": "1aceba69e34bee2347970c10f81327e91d9370a81cdb5186be0755d40ec08259"
+    },
+    {
+      "name": "rigSimBlueWipeTableNW1",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 1,
+      "path": "wipe_table-NW-1.png",
+      "sha256": "ff039191fad8230ed649fe814360098a1be8ae883c22be12d3f56fdcb0a4c429"
+    },
+    {
+      "name": "rigSimBlueWipeTableNW2",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 2,
+      "path": "wipe_table-NW-2.png",
+      "sha256": "c35367ab5989c76567b7c44a9755c78420736396c1451b90cc12df5753013d80"
+    },
+    {
+      "name": "rigSimBlueWipeTableNW3",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 3,
+      "path": "wipe_table-NW-3.png",
+      "sha256": "5100f9f512f4f04fb98e3bec322eef68e29e582a4680583fcea462d9e3ce5421"
+    },
+    {
+      "name": "rigSimBlueWipeTableNW4",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 4,
+      "path": "wipe_table-NW-4.png",
+      "sha256": "57da664d2953668dfec998959276d30f1cf00da310fe768aa6444b3fc33ed33d"
+    },
+    {
+      "name": "rigSimBlueWipeTableNW5",
+      "action": "wipe_table",
+      "facing": "NW",
+      "frame": 5,
+      "path": "wipe_table-NW-5.png",
+      "sha256": "d9515b0fe2afde49634b2f41f905c64e087af291f120bd8205782539deb76056"
+    },
+    {
+      "name": "rigSimBlueWipeTableSW0",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 0,
+      "path": "wipe_table-SW-0.png",
+      "sha256": "9e582e473181a442e45386e6fed005b3f2557d1c746480bc1ae1812bc0859609"
+    },
+    {
+      "name": "rigSimBlueWipeTableSW1",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 1,
+      "path": "wipe_table-SW-1.png",
+      "sha256": "558d871e4019de07ef839ad3e789b082399bce64489366fa4514bc31bbb8928b"
+    },
+    {
+      "name": "rigSimBlueWipeTableSW2",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 2,
+      "path": "wipe_table-SW-2.png",
+      "sha256": "579b0cf42ae64b9c6d886fcb6453e9beddfc705140a6b920f2d35f9c2b30d0b4"
+    },
+    {
+      "name": "rigSimBlueWipeTableSW3",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 3,
+      "path": "wipe_table-SW-3.png",
+      "sha256": "6ca19a6e3e8e3bfc8325350cbf5966a80a420b944b90b35ddc2cc37866a5fdee"
+    },
+    {
+      "name": "rigSimBlueWipeTableSW4",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 4,
+      "path": "wipe_table-SW-4.png",
+      "sha256": "bfa30400a92389daf6689dce0e469ecebb030713c7ae198b77e0e43f2b469358"
+    },
+    {
+      "name": "rigSimBlueWipeTableSW5",
+      "action": "wipe_table",
+      "facing": "SW",
+      "frame": 5,
+      "path": "wipe_table-SW-5.png",
+      "sha256": "1219976649f6670f5fb814e1357553ec8b6e0bf6c34526787055a772f261c22c"
+    },
+    {
+      "name": "rigSimBlueWipeTableNE0",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 0,
+      "path": "wipe_table-NE-0.png",
+      "sha256": "a714d06cf081e12c33c21c219e1b829109a5e5dfb9578ff861b6c9223e9fe869"
+    },
+    {
+      "name": "rigSimBlueWipeTableNE1",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 1,
+      "path": "wipe_table-NE-1.png",
+      "sha256": "02dc59b5a51d562b5318b58eca55caf15cc50a3f2d295fdc4b3c77f183380099"
+    },
+    {
+      "name": "rigSimBlueWipeTableNE2",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 2,
+      "path": "wipe_table-NE-2.png",
+      "sha256": "1ea67ec8dd5fdfb01ef6df4818550acf2904f87c230306be430816b2fd3f64b0"
+    },
+    {
+      "name": "rigSimBlueWipeTableNE3",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 3,
+      "path": "wipe_table-NE-3.png",
+      "sha256": "c92e81b1d8de64de49f0fb069aeb6190c7104af1082a88b5cb250c00d480c187"
+    },
+    {
+      "name": "rigSimBlueWipeTableNE4",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 4,
+      "path": "wipe_table-NE-4.png",
+      "sha256": "04b676c351ccedd223d082fdd817d293e98fa339fe4a1d241fe489030b56e018"
+    },
+    {
+      "name": "rigSimBlueWipeTableNE5",
+      "action": "wipe_table",
+      "facing": "NE",
+      "frame": 5,
+      "path": "wipe_table-NE-5.png",
+      "sha256": "389ba5e777ee5717bace693a3182d15be3cc9e67b4d1a44f983df59270c3ea39"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE0",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 0,
+      "path": "empty_bin-SE-0.png",
+      "sha256": "8ddc4edb1dce11348266835f7591914172ca54f9e8c584626401bfa424a4ce30"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE1",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 1,
+      "path": "empty_bin-SE-1.png",
+      "sha256": "4d238ba336701c65de4a91e9448d61612eee4117507146b9de989e44fbe15b2e"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE2",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 2,
+      "path": "empty_bin-SE-2.png",
+      "sha256": "fb573edb13cfa25998f576d4d3f262eac72b543b37f95e9be4af7e1dd748a153"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE3",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 3,
+      "path": "empty_bin-SE-3.png",
+      "sha256": "3ed1cd1f47e9818f14e39c817f87821d7fa8b3f6ef24e4a6b5eeb577a419151d"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE4",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 4,
+      "path": "empty_bin-SE-4.png",
+      "sha256": "be47678410c7ad6bfd16779c412693bbf1ae9896e66a8f5dbb7d2d8622002d9e"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE5",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 5,
+      "path": "empty_bin-SE-5.png",
+      "sha256": "533db81d69d5ca200f2ea5f7504b9d8b33f6b2908d193aeaf112f9a2e895068f"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE6",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 6,
+      "path": "empty_bin-SE-6.png",
+      "sha256": "f9087acada99e4f637101606d11198a1b1faca86a1865d8643f456bae817f267"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSE7",
+      "action": "empty_bin",
+      "facing": "SE",
+      "frame": 7,
+      "path": "empty_bin-SE-7.png",
+      "sha256": "9f8428207cc24eee6d8270f7878c1fdc0ed3543cdfd5699172eee67abd753d41"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW0",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 0,
+      "path": "empty_bin-NW-0.png",
+      "sha256": "6eb22d81681ab8e7c376e894c320f454c594a3e30d5065e180600ef7f55a9848"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW1",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 1,
+      "path": "empty_bin-NW-1.png",
+      "sha256": "dcbb3f49b2c57628e7c76cced991056f8fc85e2121fa0a4b3909057b59851000"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW2",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 2,
+      "path": "empty_bin-NW-2.png",
+      "sha256": "e763f861c794cb3e10904a769c850b23e2564ca389f3aaa1ace21ab2df903c42"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW3",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 3,
+      "path": "empty_bin-NW-3.png",
+      "sha256": "db9c8ece5033758305115a6601e48113542a5429a134fbd555252dddfe31a638"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW4",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 4,
+      "path": "empty_bin-NW-4.png",
+      "sha256": "84c107625898dab235a0c65ca0af998e6472f8199d2b05c02d64c16b30b0f27c"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW5",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 5,
+      "path": "empty_bin-NW-5.png",
+      "sha256": "5e417a3fc18f4364d2d30be984fc1cb6a53319f617f493c13dcfe955ccfe3e05"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW6",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 6,
+      "path": "empty_bin-NW-6.png",
+      "sha256": "524ee5185d6d0541e640ed9cf97a6cb64c70f802b71895ff8e1bdc336cf3b97f"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNW7",
+      "action": "empty_bin",
+      "facing": "NW",
+      "frame": 7,
+      "path": "empty_bin-NW-7.png",
+      "sha256": "b7b9a6df6978721ca28abab67ecefba279ce913bb11bb8f110873501dd4d54f9"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW0",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 0,
+      "path": "empty_bin-SW-0.png",
+      "sha256": "3f62e9984156904fec5326452488ca6c5811b6df897e09011cdffd4fc6f37daf"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW1",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 1,
+      "path": "empty_bin-SW-1.png",
+      "sha256": "a3d15e43fed42bf311c185b2785051de1722d23985c7d4022d2041c2fb0cdac9"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW2",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 2,
+      "path": "empty_bin-SW-2.png",
+      "sha256": "aa924bef7679dd5ba85c349248c4dbea594eeb011273bbdca2d81bed90010bfe"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW3",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 3,
+      "path": "empty_bin-SW-3.png",
+      "sha256": "2bf82d6bc7d4e9eb36e14feb05d77ec0726ae74667d63a72cfcf4693ab40ca99"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW4",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 4,
+      "path": "empty_bin-SW-4.png",
+      "sha256": "7258f74d35a2051eb231b7097f161dd2d7f146f71ca23bb2595e1ea90a480af5"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW5",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 5,
+      "path": "empty_bin-SW-5.png",
+      "sha256": "7d75eee30b628b4a3f132ddcb57923c6b9946d6faa8a1f158aaeee5c4b020914"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW6",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 6,
+      "path": "empty_bin-SW-6.png",
+      "sha256": "0f91f2482204fc898d6e237ddc95d6d234e6785dcd7c82f5cfa6e39c7411a6f4"
+    },
+    {
+      "name": "rigSimBlueEmptyBinSW7",
+      "action": "empty_bin",
+      "facing": "SW",
+      "frame": 7,
+      "path": "empty_bin-SW-7.png",
+      "sha256": "19fed191e1965f332cce4246640713d11c97c88af117afc0c47656f3f67154d8"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE0",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 0,
+      "path": "empty_bin-NE-0.png",
+      "sha256": "dbf5a70a4a73b89c9498874f8fa11efd684d2f80a7797638f671473740456cba"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE1",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 1,
+      "path": "empty_bin-NE-1.png",
+      "sha256": "61e5ff1bf58742c36e3f35755c6e98708f8c5fc6c16c85fc91c2647a1e3edd30"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE2",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 2,
+      "path": "empty_bin-NE-2.png",
+      "sha256": "445684ee2b3c21e22ac8228f6d581486f45d38c4b957ff507479590029fb09eb"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE3",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 3,
+      "path": "empty_bin-NE-3.png",
+      "sha256": "244834ad979cf9c56abaf002cfde8f6c2ee902df326073ad51c526aed60a586c"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE4",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 4,
+      "path": "empty_bin-NE-4.png",
+      "sha256": "1e770f18ffc147f192d0dee467aa0270003e2afe736373c282ee66efcd2337bf"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE5",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 5,
+      "path": "empty_bin-NE-5.png",
+      "sha256": "53144842dc6c4e8d40cc1466307caf80dc9a43345d655a0ec99d0b64b861888d"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE6",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 6,
+      "path": "empty_bin-NE-6.png",
+      "sha256": "ced9408399730d49ca19d6a0c224c3eb292a0410fc8f581f02b1f850e7e10250"
+    },
+    {
+      "name": "rigSimBlueEmptyBinNE7",
+      "action": "empty_bin",
+      "facing": "NE",
+      "frame": 7,
+      "path": "empty_bin-NE-7.png",
+      "sha256": "ff3b67412ce5c18705187038960959a2c21be8c6ff38ede7eeb93809524915ad"
+    }
+  ]
+}

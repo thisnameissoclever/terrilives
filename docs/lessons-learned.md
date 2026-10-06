@@ -1,5 +1,6 @@
 # Lessons Learned
 
+
 ## [L-proof-test-discovery] Check runner discovery when adding standalone proof tests
 
 **What happened.** A proof helper's Node test passed when run directly, but its
@@ -10276,3 +10277,196 @@ only the helper under test.
 **Verify.** The corrected fixture restores both travel and active use. Deleting
 the standing-contact consumer calls rejects its travel save. Restoring the
 calls returns the test to green without modifying runtime behavior.
+## [L-browser-evidence-export-boundary] Preserve completed checks when report export fails
+
+**What happened.** A browser proof completed its guarded dish-cleanup checks and
+saved screenshots, then failed while importing a filesystem module to write its
+report. Some screenshot labels also lagged the simulation state sampled by the
+proof.
+
+**Root cause.** The browser callback ran in a JavaScript virtual machine without
+a dynamic-import handler. A failed callback did not return its local results.
+Simulation stepping also did not wait for every presentation update.
+
+**Prevention.** Return plain data from browser callbacks and persist it through
+the controller's file tools. Capture each visual state after its presentation
+update. If export fails after checks completed, retain the failed tool status,
+the original guarded callback and artifact hashes. Distinguish control-flow
+evidence from visible pixels; never invent discarded values or a successful
+return.
+
+**Verify.** Require assertions before each capture, a normal structured return,
+and controller-side file verification. Where an earlier export failed, inspect
+the exact callback ordering and recorded error before making completion claims.
+
+## [L-chore-lifecycle-save-invariants] Reconcile chore state at every ownership transition
+
+**What happened.** Independent review found stale dish starts after cancellation
+and death, floor plans invalidated by room edits, outdated furniture contacts,
+lost contents after bin sales, unsupported saved tasks and duplicate midnight
+settlement. A final ownership check found chore interruption could erase a
+newly installed commute path.
+
+**Root cause.** The new chore resource shared existing movement and domestic
+state without covering every transition that changes their owners or targets.
+Runtime cleanup and load validation enforced different invariants.
+
+**Prevention.** Reconcile records on cancellation, death, furniture movement,
+sale and topology edits. Transfer conserved contents before removing sources.
+Validate only task variants the runtime constructs. Defer daily settlement for
+real active work and reject credit to settled episodes. Release shared paths
+only when no other activity owns them.
+
+**Verify.** Exercise actual furniture and wall commands, interruption and real
+washing across midnight. Save and reload at transition boundaries. Assert both
+the remaining resource state and movement ownership. Independently remove each
+guard, require its regression to fail, and restore exact original source bytes.
+
+## [L-transparent-body-picking] Do not let transparent character corners intercept furniture clicks
+
+**What happened.** Right-clicking visible table wood beside a Sim opened only
+Nothing. The isolated menu regression reproduced the same result.
+
+**Root cause.** Character picking treated the sprite's whole rectangle as solid,
+including transparent padding beside the head. The nearer Sim won that pick
+and its self menu hid the table's cleanup action.
+
+**Prevention.** Sample the displayed body frame's decoded alpha before assigning
+depth priority. Keep exact alpha for antialiased edges and existing paired-body
+and covered-bed ownership. Retain compact masks rather than the full atlas image.
+
+**Verify.** Click exposed table wood through a transparent body corner and require
+Clean up. Check that opaque body pixels still select the Sim, dish piles retain
+their fixed targets, and the behavior scales with zoom. Removing the alpha guard
+must reproduce the original Nothing menu.
+
+
+## Playable previews must preserve household needs
+
+**What happened.** A chore demonstration disabled need drain and forced other
+housemates away. The playable preview concealed ordinary household behavior.
+
+**Root cause.** An isolated regression fixture was presented as a gameplay demo.
+
+**Prevention.** Preserve normal personalities, need drain, autonomy and careers
+in playable previews. Seed only the mess needed to show a feature. Reserve frozen
+fixtures for narrow automated tests. State when a dialog pauses game time.
+
+**Verify.** Observe each need declining during normal ticks, then play chores in
+that household. Require table actions to reflect real chairs and prepared food.
+
+## Revalidate cleaning contact after building walls
+
+**What happened.** A retained wiping endpoint could pass geometric adjacency
+checks after a wall blocked contact. Failed grouped work could count as neglect.
+
+**Root cause.** Retained contacts used weaker checks than initial routing, and
+route failures discarded tasks without updating the daily duty episode.
+
+**Prevention.** Reuse the grid's edge-aware contact predicate and preserve route
+unavailability when terminating work, including build-mode pruning.
+
+**Verify.** Insert a wall during a chore. Require contact rejection and an
+unavailable daily outcome across midnight, without deleting grime.
+
+
+## Usage-driven dirt needs event and geometry boundaries
+
+**What happened.** Review found unordered ordinary completions sharing a random
+stream, diagonal cleaning across blocked tile corners, and a cancelled floor
+plan losing its unavailable-duty status after a room partition.
+
+**Root cause.** New dirt rolls made interaction iteration order observable.
+Wall-edge intersection alone did not represent legacy blocked wall tiles. The
+floor-plan pruning branch omitted an outcome update already present for objects.
+
+**Prevention.** Order completion events by stable entity identity. Check both
+wall edges and diagonal intermediate cells. Carry duty unavailability through
+all topology-driven task removal paths.
+
+**Verify.** Reverse insertion order for two identical completion bundles and
+require identical dirt targets. Block the orthogonal cells beside a diagonal.
+Partition a suspended cleaner's room and cross midnight without a neglect charge.
+
+## Test movement inside its actual lifecycle
+
+**What happened.** A bare test path was eligible for replacement by autonomy.
+Calling movement alone then failed because its interpersonal phase was absent;
+reusing that schedule after loading another world violated its world binding.
+
+**Root cause.** The fixture bypassed the ownership and lifecycle boundaries that
+production movement uses.
+
+**Prevention.** Use the established prepare, movement, apply phase when isolating
+walking. Create a fresh schedule for a newly loaded world. Compare the exact
+random-stream state as well as the resulting dirt amount.
+
+**Verify.** One final tile entry consumes one roll. Arrival, path removal,
+standing and save/load consume none. Deleting the movement hook must fail the test.
+
+## Verify the body motion when delivering an activity
+
+**What happened.** Cleaning logic and fading grime worked while the cleaner
+still used an idle body pose.
+
+**Root cause.** Work-state and effect checks were treated as evidence for the
+whole activity without observing the Sim's motion.
+
+**Prevention.** Review each activity's body clip, tool contact and furniture
+overlap in the running game. An activity label or disappearing dirt does not
+prove an animation. Derive work poses from the real activity lifecycle so
+travel, pause, cancellation and save/load remain consistent.
+
+**Verify.** Capture several work samples in every supported direction. Confirm
+the tool moves with the hands, the furniture hides the appropriate body parts,
+pause holds the pose, and cancellation removes the tool and closes moving lids.
+
+Native visual fixtures must call `sync_render_buffer()` after `Sim::tick()`
+before inspecting render rows. The browser handle performs both steps; the
+native simulation tick alone leaves the previous projection cached. Construct
+ordinary household members through `spawn_household()` to retain identity and
+personality initialization.
+
+## Preserve logical outline thickness and review the whole character
+
+**What happened.** A cleaning export rendered at four pixels per logical pixel
+using outlines authored for sixteen. Heavy ink filled the eyes, and a flat
+dark mop head concealed its cotton underside. Both passed a review focused
+on hand contact and furniture overlap.
+
+**Root cause.** The exporter changed render density without scaling outline
+width. Regrouping the character also removed the hair from its outline-selection
+collection. Visual review criteria omitted facial readability and tool identity.
+
+**Prevention.** Keep outline width divided by render density constant. Preserve
+authored line-selection membership when reorganizing scene collections. Show
+the full character and recognizable tool at native game size, ordinary zoom
+and close zoom. Give independent reviewers the owner's rejected capture as
+well as the new candidate, and require explicit checks of face and tool identity.
+
+**Verify.** Compare the approved outline settings and visible eye-white pixels
+in front-facing exported frames. Check every palette and facing, then inspect
+played captures at multiple zoom levels. Tests for hand contact and depth do
+not establish appearance quality.
+
+A point aligned with a tool does not prove a grip. A rigid relaxed hand cannot
+close its fingers by changing its orientation. Use a fitted grip pose or
+action-specific closed hand geometry, then check enclosure around the tool,
+opposing thumb placement, contact gaps and wrist continuity. Cotton strands
+should gather and hang; repeated radial loops create petals rather than yarn.
+
+## Preserve a separate save before a live development reload
+
+**What happened.** Texture and browser-module updates reloaded a paused game.
+Startup selected 1x speed, and autosave replaced the saved point as time advanced.
+
+**Root cause.** Saving into the game's single slot was treated as a backup.
+The same slot remains writable by autosave after a development reload.
+
+**Prevention.** Keep a separate copy of the save bytes before updating a live
+preview. Restore that copy when appropriate and reapply Pause after all reloads.
+Use isolated browser contexts for fixtures and automation.
+
+**Verify.** Compare the retained save's world hash after restoration and check
+the visible Pause control. A Saved game loaded message alone does not prove
+that the original time or state was restored.

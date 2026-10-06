@@ -73,6 +73,29 @@ pub struct SaveSnapshotV5 {
     /// Exact dining claims and deferred room cleanup opportunities. Optional tail
     /// preserves the published domestic record's positional wire layout.
     pub dining: Option<SavedDining>,
+    /// Scoped orders and active surface cleanup, appended after published records.
+    pub targeted_cleanup: Option<SavedTargetedCleanup>,
+    pub chores: Option<crate::chores::SavedChores>,
+    pub grime: Option<crate::grime::SavedGrime>,
+}
+
+#[derive(
+    bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize,
+)]
+pub struct SavedTargetedCleanup {
+    pub next_order: u32,
+    pub orders: Vec<SavedCleanupOrder>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedCleanupOrder {
+    pub id: u32,
+    pub person: u32,
+    pub surface: u32,
+    /// None keeps clearing the surface; Some captures a fixed visible pile.
+    pub dishes: Option<Vec<u32>>,
+    /// Position in the complete intent queue; None identifies an active chore.
+    pub queue_position: Option<u32>,
 }
 
 #[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
@@ -191,6 +214,9 @@ impl LocalBedSnapshotV5 {
             boundaries: self.boundaries,
             domestic: None,
             dining: None,
+            targeted_cleanup: None,
+            chores: None,
+            grime: None,
         }
     }
 }
@@ -747,6 +773,32 @@ pub enum SavedCommand {
         axis: crate::layout::EdgeAxis,
         x: u32,
         y: u32,
+    },
+    CleanDishes {
+        agent: u32,
+        surface: u32,
+        dishes: Option<Vec<u32>>,
+    },
+    CleanDishesFirst {
+        agent: u32,
+        surface: u32,
+        dishes: Option<Vec<u32>>,
+    },
+    CleanChore {
+        agent: u32,
+        key: crate::chores::ChoreKey,
+    },
+    CleanChoreFirst {
+        agent: u32,
+        key: crate::chores::ChoreKey,
+    },
+    SetChoreProfile {
+        agent: u32,
+        responsibility: u8,
+        preferences: [i8; 4],
+    },
+    SetChoreBoard {
+        enabled: bool,
     },
 }
 

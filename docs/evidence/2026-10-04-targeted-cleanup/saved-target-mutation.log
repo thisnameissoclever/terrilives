@@ -1,0 +1,24 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.41s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test domestic::tests::targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued ... FAILED
+
+failures:
+
+---- domestic::tests::targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued stdout ----
+
+thread 'domestic::tests::targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued' (45732) panicked at crates\terri-sim\src\domestic\tests.rs:59:5:
+assertion `left == right` failed
+  left: 8391775257584938746
+ right: 16487478471162581818
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    domestic::tests::targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 914 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

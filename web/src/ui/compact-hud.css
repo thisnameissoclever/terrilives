@@ -47,6 +47,41 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 }
 #sim-dock [hidden], #sim-dock[hidden] { display: none !important; }
 #sim-dock-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+#chores-dialog { font: 13px/1.45 system-ui, sans-serif; }
+#chores-dialog .chores-header {display:flex;align-items:center;justify-content:space-between;gap:20px;position:sticky;top:-20px;background:var(--hud-bg);padding-block:10px;z-index:1}
+#chores-dialog .chore-row {
+  padding: 14px 16px;
+  gap: 7px 18px;
+  border-radius: 8px;
+  background: #1d2229;
+  border-color: #343e49;
+  align-items: center;
+}
+#chores-dialog .chore-row strong { line-height: 1.4; }
+#chores-dialog .chore-row span { color: var(--hud-muted); line-height: 1.45; }
+#chores-dialog .chore-do-now {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid #75b9d7;
+  border-radius: 6px;
+  background: #294b5b;
+  color: #effaff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: center;
+}
+#chores-dialog .chore-do-now:hover:not(:disabled) { background: #356277; border-color: #a0dbf1; }
+#chores-dialog .chore-do-now:focus-visible { outline: 2px solid #c6eeff; outline-offset: 3px; }
+#chores-dialog .chore-do-now:disabled { opacity: .4; cursor: default; background: #26323a; border-color: #4d6370; }
+@media (max-width: 600px) {
+  #chores-dialog .chore-row { padding: 12px; gap: 7px 10px; }
+  #chores-dialog .chore-do-now { min-height: 44px; padding-inline: 12px; }
+}
 #sim-identity { flex: 1 0 60px; min-width: 0; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: baseline; gap: 0 10px; }
 #needs-caption { margin: 0; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock-activity { color: var(--hud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

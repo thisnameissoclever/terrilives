@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/targeted-dishes.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  20:06:24
+   Duration  676ms (transform 489ms, setup 0ms, import 576ms, tests 7ms, environment 0ms)
+

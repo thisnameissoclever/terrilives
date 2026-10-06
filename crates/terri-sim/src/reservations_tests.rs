@@ -59,6 +59,8 @@ fn fixture() -> (Sim, Entity, Entity, Entity, Target) {
                         remaining_ticks: 20,
                     },
                     IntentQueue::from_intents(vec![Intent {
+                        cleanup: None,
+                        chore: None,
                         object,
                         interaction: 0,
                     }]),
@@ -158,6 +160,8 @@ fn retargeting_another_object_preserves_the_other_occupant() {
     sim.world_mut()
         .entity_mut(first)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: other,
             interaction: 0,
         }]));
@@ -178,6 +182,8 @@ fn retargeting_a_conversation_preserves_the_other_occupant() {
     sim.world_mut()
         .entity_mut(first)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: other,
             interaction: 0,
         }]));
@@ -194,6 +200,8 @@ fn retargeting_a_chain_preserves_the_other_occupant() {
     sim.world_mut()
         .entity_mut(first)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction: 1,
         }]));

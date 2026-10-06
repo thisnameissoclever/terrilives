@@ -546,7 +546,7 @@ roles = ["eating_surface", "meal_table"]
   [[object.interaction]]
   id = "sit_properly"
   activity = "sitting"
-  label = "Sit down to eat"
+  label = "Sit"
   advertises = { comfort = 37.0, social = 11.0 }
   duration_ticks = 62
   slots = 2

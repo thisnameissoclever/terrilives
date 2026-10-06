@@ -167,6 +167,8 @@ fn a_sale_is_refused_for_each_reason_in_the_order_the_design_lists() {
     sim.world_mut()
         .entity_mut(sim_entity)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: fridge,
             interaction: 0,
         }]));
@@ -182,6 +184,8 @@ fn a_sale_is_refused_for_each_reason_in_the_order_the_design_lists() {
     sim.world_mut()
         .entity_mut(sim_entity)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: rack,
             interaction: 0,
         }]));

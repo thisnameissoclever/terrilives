@@ -109,9 +109,16 @@ impl Placement {
     /// report `Back`, which nothing reads.
     fn of(command: &SimCommand) -> Self {
         match command {
-            SimCommand::UseObjectFirst { .. } | SimCommand::TalkToFirst { .. } => Self::Front,
+            SimCommand::UseObjectFirst { .. }
+            | SimCommand::TalkToFirst { .. }
+            | SimCommand::CleanDishesFirst { .. }
+            | SimCommand::CleanChoreFirst { .. } => Self::Front,
             SimCommand::Select(_)
             | SimCommand::UseObject { .. }
+            | SimCommand::CleanDishes { .. }
+            | SimCommand::CleanChore { .. }
+            | SimCommand::SetChoreProfile { .. }
+            | SimCommand::SetChoreBoard { .. }
             | SimCommand::CancelIntents { .. }
             | SimCommand::SetSpeed(_)
             | SimCommand::TalkTo { .. }
@@ -326,6 +333,10 @@ pub(crate) fn drain_ordinary_commands(
     mut agents: Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
     objects: Query<Entity, With<SmartObject>>,
     chains: Query<(), With<terri_core::ChainState>>,
+    mut scoped: ResMut<terri_core::save::SavedTargetedCleanup>,
+    definitions: Query<&SmartObject>,
+    domestic: Option<Res<terri_core::save::SavedDomestic>>,
+    mut chores: Option<ResMut<terri_core::chores::SavedChores>>,
 ) {
     // Zero means unlimited; every positive cap also admits the first order.
     let cap = content.0.tuning.max_queued_intents as usize;
@@ -353,6 +364,86 @@ pub(crate) fn drain_ordinary_commands(
     for command in issued {
         let placement = Placement::of(&command);
         match command {
+            SimCommand::CleanChore { agent, key } | SimCommand::CleanChoreFirst { agent, key } => {
+                let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
+                    continue;
+                };
+                let Some(state) = chores.as_deref_mut() else {
+                    continue;
+                };
+                let Some(id) = crate::chores::issue(state, agent.index_u32(), key) else {
+                    continue;
+                };
+                place_intent(
+                    &mut commands,
+                    &mut agents,
+                    &mut fresh,
+                    &mut feedback,
+                    cap,
+                    agent,
+                    Intent {
+                        object: agent,
+                        interaction: 0,
+                        cleanup: None,
+                        chore: Some(id),
+                    },
+                    placement,
+                );
+            }
+            SimCommand::SetChoreProfile { .. } | SimCommand::SetChoreBoard { .. } => {
+                unreachable!("chore settings split ordinary command stretches")
+            }
+            SimCommand::CleanDishes {
+                agent,
+                surface,
+                dishes,
+            }
+            | SimCommand::CleanDishesFirst {
+                agent,
+                surface,
+                dishes,
+            } => {
+                let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
+                    continue;
+                };
+                let Some(object) = resolve(surface, objects.iter()) else {
+                    continue;
+                };
+                if !definitions
+                    .get(object)
+                    .is_ok_and(|o| crate::targeted_cleanup::is_surface(content.0, o.0))
+                    || dishes.as_ref().is_some_and(|ids| {
+                        domestic.as_ref().is_none_or(|s| {
+                            ids.iter().any(|id| {
+                                *id >= s.next_dish
+                                    || s.dishes.iter().any(|d| d.id == *id && d.surface != surface)
+                            })
+                        })
+                    })
+                {
+                    continue;
+                }
+                let Some(id) =
+                    crate::targeted_cleanup::issue(&mut scoped, agent.index_u32(), surface, dishes)
+                else {
+                    continue;
+                };
+                place_intent(
+                    &mut commands,
+                    &mut agents,
+                    &mut fresh,
+                    &mut feedback,
+                    cap,
+                    agent,
+                    Intent {
+                        object,
+                        interaction: 0,
+                        cleanup: Some(id),
+                        chore: None,
+                    },
+                    placement,
+                );
+            }
             SimCommand::PlaceObject { .. }
             | SimCommand::SetWallEdge { .. }
             | SimCommand::FitWindow { .. }
@@ -417,6 +508,8 @@ pub(crate) fn drain_ordinary_commands(
                 // replays as, and what an object with no interactions at
                 // all makes of any index whatsoever.
                 let intent = Intent {
+                    cleanup: None,
+                    chore: None,
                     object,
                     interaction,
                 };
@@ -509,6 +602,8 @@ pub(crate) fn drain_ordinary_commands(
                 let serving = match target {
                     Some(target) => {
                         let carrying_out = Intent {
+                            cleanup: None,
+                            chore: None,
                             object: target.object,
                             interaction: target.interaction,
                         };
@@ -590,6 +685,8 @@ pub(crate) fn drain_ordinary_commands(
                 // out-of-range front intent before anything indexes with
                 // it, and the check belongs where the data is used.
                 let intent = Intent {
+                    cleanup: None,
+                    chore: None,
                     object: target,
                     interaction,
                 };
@@ -968,6 +1065,8 @@ mod tests {
         assert_eq!(
             queue_of(&sim, second).front(),
             Some(Intent {
+                cleanup: None,
+                chore: None,
                 object: bed,
                 interaction: 0,
             }),
@@ -1034,6 +1133,8 @@ mod tests {
         assert_eq!(
             queue.front(),
             Some(Intent {
+                cleanup: None,
+                chore: None,
                 object: desk,
                 interaction: 1,
             }),
@@ -1044,6 +1145,8 @@ mod tests {
         assert_eq!(
             queue.front(),
             Some(Intent {
+                cleanup: None,
+                chore: None,
                 object: desk,
                 interaction: 0,
             }),
@@ -1081,6 +1184,8 @@ mod tests {
         assert_eq!(
             queue_of(&sim, agent).front(),
             Some(Intent {
+                cleanup: None,
+                chore: None,
                 object: desk,
                 interaction: u32::MAX,
             }),
@@ -2231,6 +2336,8 @@ mod tests {
         assert_eq!(
             queue.front(),
             Some(Intent {
+                cleanup: None,
+                chore: None,
                 object: fridge,
                 interaction: 0,
             }),
@@ -3038,6 +3145,8 @@ mod tests {
         assert_eq!(take_displacements(&mut sim), 1);
         assert!(
             !queue_of(&sim, agent).contains(Intent {
+                cleanup: None,
+                chore: None,
                 object: fridge,
                 interaction: 0
             }),
@@ -3109,6 +3218,8 @@ mod tests {
         );
         assert!(
             queue_of(&sim, agent).contains(Intent {
+                cleanup: None,
+                chore: None,
                 object: fridge,
                 interaction: 0
             }),
@@ -3166,6 +3277,8 @@ mod tests {
         drain_only(&mut sim);
         assert!(
             !queue_of(&sim, agent).contains(Intent {
+                cleanup: None,
+                chore: None,
                 object: bed,
                 interaction: 0
             }),
@@ -3209,6 +3322,8 @@ mod tests {
         assert_eq!(take_displacements(&mut sim), 1);
         assert!(
             !queue_of(&sim, agent).contains(Intent {
+                cleanup: None,
+                chore: None,
                 object: fridge,
                 interaction: 0
             }),
@@ -3236,6 +3351,8 @@ mod tests {
         assert_eq!(take_displacements(&mut sim), 1);
         assert!(
             queue_of(&sim, agent).contains(Intent {
+                cleanup: None,
+                chore: None,
                 object: fridge,
                 interaction: 0
             }),

@@ -34,7 +34,7 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
 
 // Serialize each appended field independently so historical-prefix fixtures
 // cannot accidentally cut a newer field that follows the intended boundary.
-pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 13] {
+pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 16] {
     [
         postcard::to_allocvec(&snapshot.floors).unwrap().len(),
         postcard::to_allocvec(&snapshot.family_by_index)
@@ -61,6 +61,11 @@ pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 13] {
         postcard::to_allocvec(&snapshot.shyness).unwrap().len(),
         postcard::to_allocvec(&snapshot.boundaries).unwrap().len(),
         postcard::to_allocvec(&snapshot.dining).unwrap().len(),
+        postcard::to_allocvec(&snapshot.targeted_cleanup)
+            .unwrap()
+            .len(),
+        postcard::to_allocvec(&snapshot.chores).unwrap().len(),
+        postcard::to_allocvec(&snapshot.grime).unwrap().len(),
     ]
 }
 
@@ -126,7 +131,7 @@ fn grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut() {
 #[test]
 fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
     let mut source = SimHandle::from_lot();
-    let saved = source.sim.save_snapshot_v5();
+    let mut saved = source.sim.save_snapshot_v5();
     let agent = saved
         .world
         .entities
@@ -134,6 +139,17 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         .find(|row| row.agent)
         .unwrap()
         .index;
+    // This fixture predates dining and chore tails. Keep other housemates from
+    // creating modern chair claims or cleaning paths while testing bed state.
+    for row in saved
+        .world
+        .entities
+        .iter_mut()
+        .filter(|row| row.agent && row.index != agent)
+    {
+        row.at_work_ticks = Some(10000);
+    }
+    source.sim.load_snapshot_v5(saved.clone()).unwrap();
     let bed = saved
         .world
         .entities
@@ -202,6 +218,8 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         snapshot.shyness.clear();
         snapshot.boundaries.clear();
         snapshot.dining = None;
+        snapshot.chores = None;
+        snapshot.grime = None;
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend_from_slice(&5u16.to_le_bytes());
         bytes.extend(prefix);
@@ -631,9 +649,9 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert_eq!(&plain[8..10], &[5, 0]);
     assert_eq!(plain, v5_bytes(&source.sim.save_snapshot_v5()));
     assert_eq!(
-        &plain[plain.len() - 6..],
-        &[1, 0, 0, 0, 0, 0],
-        "current saves carry sleeping places, shyness, boundary decisions and dining explicitly"
+        &plain[plain.len() - 9..],
+        &[1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "current saves carry sleeping places, shyness, boundary decisions, dining and scoped cleanup explicitly"
     );
     let chair = (0..16u32)
         .find(|&index| source.object_colourway(f64::from(index)) == 0)
@@ -1261,7 +1279,7 @@ fn optional_group_multibyte_cuts_and_frozen_bed_none_fail_closed() {
         snapshot.sleeping_places = places;
         let mut bytes = postcard::to_allocvec(&snapshot).unwrap();
         let lengths = v5_appended_lengths(&snapshot);
-        bytes.truncate(bytes.len() - lengths[12]); // Frozen local layout has no dining field.
+        bytes.truncate(bytes.len() - lengths[12..].iter().sum::<usize>()); // Frozen local layout has no dining or targeted cleanup fields.
         let domestic = bytes.len() - lengths[8..12].iter().sum::<usize>();
         assert_eq!(bytes.remove(domestic), 0); // Frozen local layout lacks this public field.
         if snapshot.sleeping_places.is_none() {

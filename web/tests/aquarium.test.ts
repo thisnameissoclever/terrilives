@@ -14,7 +14,7 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
-it('loads an actual released-main save and changes only the aquarium artwork', () => {
+it('loads a released-main save with its published state intact and empty chore extensions', () => {
   const bytes = Uint8Array.from(readFileSync('tests/fixtures/aquarium-released-main.sav'));
   expect(createHash('sha256').update(bytes).digest('hex'))
     .toBe('117f99a05d6e9ad879954ec46c6ccc84858a3d9d7c6d7b957847927600a6eea6');
@@ -22,7 +22,9 @@ it('loads an actual released-main save and changes only the aquarium artwork', (
   try {
     const sim = new SimBridge(handle, memory);
     expect(sim.loadBytes(bytes)).toBe(true);
-    expect(sim.saveBytes()).toEqual(bytes);
+    const migrated=sim.saveBytes();
+    expect(migrated.slice(0,bytes.length)).toEqual(bytes);
+    expect([...migrated.slice(bytes.length)]).toEqual([0,0,0]);
     expect(sim.worldHash().toString()).toBe('16205700675540473065');
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);

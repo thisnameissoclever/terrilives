@@ -1,8 +1,10 @@
 //! Exact chair and setting claims for meal chains, including standing fallback.
+mod table_actions;
 #[cfg(test)]
 mod tests;
 use crate::{Content, SaveError};
 use bevy_ecs::prelude::*;
+pub(crate) use table_actions::{ordinary_sitting, table_actions, take_prepared_food};
 use terri_core::{
     save::*, Agent, AtWork, Blocked, ChainState, Commuting, Eating, IntentQueue, ObjectFacing,
     Path, Position, Reserved, SimId, SmartObject, Socialising, StepWork, Target, TileGrid,
@@ -20,7 +22,7 @@ fn role(world: &World, e: Entity, name: &str) -> bool {
         pack.object(o.0)
             .roles
             .iter()
-            .any(|r| pack.roles[*r as usize] == name)
+            .any(|r| pack.roles.get(*r as usize).is_some_and(|role| role == name))
     })
 }
 
@@ -47,8 +49,12 @@ pub(crate) fn managed_step(
 }
 
 pub(crate) fn claim(world: &World, person: u32) -> Option<&SavedDiner> {
-    crate::seating::claim(world, person)
-        .filter(|d| crate::seating::kind(world, d) == Some(crate::seating::UseKind::Meal))
+    crate::seating::claim(world, person).filter(|d| {
+        matches!(
+            crate::seating::kind(world, d),
+            Some(crate::seating::UseKind::Meal | crate::seating::UseKind::TableSeat)
+        )
+    })
 }
 
 pub(crate) fn object_in_use(world: &World, object: u32) -> bool {
@@ -73,10 +79,19 @@ fn setting_for(world: &World, table: Entity, chair: Entity) -> Option<(u8, (i32,
     let facing = world
         .get::<ObjectFacing>(table)
         .map_or(terri_core::Facing::SouthEast, |f| f.0);
-    let front = world
+    let chair_facing = world
         .get::<ObjectFacing>(chair)
-        .map_or(terri_core::Facing::SouthEast, |f| f.0)
-        .rotate_axis(0, 1);
+        .map_or(terri_core::Facing::SouthEast, |f| f.0);
+    setting_at(*p, facing, *c, chair_facing).map(|slot| (slot, chair_approaches(world, chair)[0]))
+}
+
+pub(crate) fn setting_at(
+    p: Position,
+    facing: terri_core::Facing,
+    c: Position,
+    chair_facing: terri_core::Facing,
+) -> Option<u8> {
+    let front = chair_facing.rotate_axis(0, 1);
     let positions = [
         (0, -1, 0, (0, 1)),
         (1, -1, 1, (0, 1)),
@@ -96,7 +111,7 @@ fn setting_for(world: &World, table: Entity, chair: Entity) -> Option<(u8, (i32,
             == (p.x.round() as i32 + x, p.y.round() as i32 + y)
             && front == facing.rotate_axis(axis.0, axis.1)
         {
-            return Some((slot, chair_approaches(world, chair)[0]));
+            return Some(slot);
         }
     }
     None
@@ -230,10 +245,12 @@ pub(crate) fn maintain(world: &mut World) {
     }
     state.settings.sort_unstable();
     world.insert_resource(state);
+    crate::targeted_cleanup::split_legacy_piles(world);
 }
 
 /// Select and publish exact places before generic chain targeting runs.
 pub(crate) fn advance(world: &mut World) {
+    table_actions::route_sitting(world);
     maintain(world);
     let mut people: Vec<_> = world
         .query_filtered::<Entity, With<Agent>>()
@@ -489,6 +506,9 @@ pub(crate) fn advance(world: &mut World) {
 }
 
 pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketActionProjection> {
+    if let Some(projection) = table_actions::projection(world, person) {
+        return Some(projection);
+    }
     if world.get::<StepWork>(person).is_none()
         || world.get::<Eating>(person).is_some()
         || world.get::<Path>(person).is_some()
@@ -611,9 +631,10 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
         }
         let p = entity(world, d.person).ok_or(SaveError::InvalidValue)?;
         let station = entity(world, d.station).ok_or(SaveError::InvalidValue)?;
-        if !terminal(world, p)
+        if !(terminal(world, p) || ordinary_sitting(world, p) == Some(station))
             || (!role(world, station, "meal_table") && !role(world, station, "prep_surface"))
             || d.chair.is_some() != d.setting.is_some()
+            || (ordinary_sitting(world, p).is_some() && d.chair.is_none())
             || d.setting.is_some_and(|s| s >= 4)
             || !world
                 .resource::<TileGrid>()
@@ -653,14 +674,16 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
             return Err(SaveError::InvalidValue);
         }
         if world.get::<Target>(p).is_none_or(|t| {
-            t.interaction != crate::systems::chain::CHAIN_STEP || t.object != station
+            (t.interaction != crate::systems::chain::CHAIN_STEP
+                && ordinary_sitting(world, p) != Some(station))
+                || t.object != station
         }) {
             return Err(SaveError::InvalidValue);
         }
-        if let Some(target) = world
-            .get::<Target>(p)
-            .filter(|t| t.interaction == crate::systems::chain::CHAIN_STEP)
-        {
+        if let Some(target) = world.get::<Target>(p).filter(|t| {
+            t.interaction == crate::systems::chain::CHAIN_STEP
+                || ordinary_sitting(world, p).is_some()
+        }) {
             if target.object != station {
                 return Err(SaveError::InvalidValue);
             }
@@ -675,7 +698,7 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
                 {
                     return Err(SaveError::InvalidValue);
                 }
-            } else if world.get::<StepWork>(p).is_some() {
+            } else if world.get::<StepWork>(p).is_some() || world.get::<Eating>(p).is_some() {
                 let pos = world.get::<Position>(p).unwrap();
                 if (pos.x.round() as i32, pos.y.round() as i32) != d.endpoint {
                     return Err(SaveError::InvalidValue);

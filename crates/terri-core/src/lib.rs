@@ -37,6 +37,8 @@ pub use hash::FnvHasher;
 pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};
 pub use rng::SimRng;
+pub mod chores;
+pub mod grime;
 mod shyness;
 pub use save::{
     SaveSnapshotV1, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, SaveSnapshotV5,

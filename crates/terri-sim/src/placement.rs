@@ -448,6 +448,11 @@ fn plan_rectangle(
     if moving.is_some_and(|entity| {
         world.get::<Reserved>(entity).is_some()
             || crate::dining::object_in_use(world, entity.index_u32())
+            || crate::chores::object_claimed(
+                world.get_resource::<terri_core::chores::SavedChores>(),
+                entity.index_u32(),
+                u32::MAX,
+            )
             || entities
                 .iter(world)
                 .any(|e| e.get::<Target>().is_some_and(|t| t.object == entity))

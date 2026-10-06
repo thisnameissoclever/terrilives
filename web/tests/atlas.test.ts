@@ -384,7 +384,7 @@ describe('the atlas manifest', () => {
         ['', 'SW', 'NW', 'NE'].map(facing => `${base}Foreground${facing}`)),
     );
     const facings = ['SE', 'NW', 'SW', 'NE'];
-    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...Object.keys(manifest.clips), 'exercise', 'prepare', 'cook', 'wash', 'carry_walk', 'carry_idle', 'food_walk', 'food_idle', 'seated_eat', 'cook_v2'].sort());
+    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...Object.keys(manifest.clips), 'exercise', 'prepare', 'cook', 'wash', 'carry_walk', 'carry_idle', 'food_walk', 'food_idle', 'seated_eat', 'cook_v2', 'mop', 'wipe_counter', 'wipe_table', 'empty_bin'].sort());
     for (const frame of manifest.frames) {
       const index = spriteIndex(frame.name);
       expect(index).toBeGreaterThanOrEqual(368);

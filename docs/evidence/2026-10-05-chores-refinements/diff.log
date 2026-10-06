@@ -1,0 +1,10 @@
+warning: in the working copy of 'assets/models/architecture/architecture.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/ARCHITECTURE.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/FEATURES.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/GAME-SYSTEMS.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/changelog/2026-10-05-covered-bunks.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/lessons-learned.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/player-visible-strings.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/specs/2026-09-30-meals-and-cleanup.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'web/index.html', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'web/src/main.ts', CRLF will be replaced by LF the next time Git touches it

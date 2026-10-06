@@ -137,20 +137,25 @@ pub fn tick_interactions(
         Option<&mut terri_core::Traits>,
     )>,
 ) {
-    for (
-        entity,
-        mut eating,
-        mut needs,
-        target,
-        queue,
-        habituation,
-        personality,
-        satisfaction,
-        hobbies,
-        fumbled,
-        traits,
-    ) in &mut agents
-    {
+    let mut order: Vec<_> = agents.iter().map(|row| row.0).collect();
+    order.sort_by_key(|entity| entity.index_u32());
+    for actor in order {
+        let Ok((
+            entity,
+            mut eating,
+            mut needs,
+            target,
+            queue,
+            habituation,
+            personality,
+            satisfaction,
+            hobbies,
+            fumbled,
+            traits,
+        )) = agents.get_mut(actor)
+        else {
+            continue;
+        };
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -184,6 +189,12 @@ pub fn tick_interactions(
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            if was_positive && target.interaction != super::chain::CHAIN_STEP {
+                let station = target.object;
+                commands.queue(move |world: &mut bevy_ecs::world::World| {
+                    crate::chores::grime::used(world, entity, station)
+                });
+            }
             // Validate presentation independently; gameplay cleanup still runs.
             if was_positive
                 && eligible.contains(entity)
@@ -269,6 +280,8 @@ pub fn tick_interactions(
             // one to run a second time. See `IntentQueue::contains`.
             if let Some(mut queue) = queue {
                 queue.remove_first(terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: target.object,
                     interaction: target.interaction,
                 });
@@ -317,6 +330,9 @@ pub fn tick_interactions(
             // Check ownership after deferred target removals, so one
             // completion cannot free an object another person still uses.
             crate::reservations::release(&mut commands, entity, *target);
+            commands.queue(move |world: &mut World| {
+                crate::dining::release(world, entity.index_u32());
+            });
         }
     }
 }
@@ -1146,6 +1162,8 @@ mod tests {
                     remaining_ticks: 1,
                 },
                 IntentQueue::from_intents(vec![Intent {
+                    cleanup: None,
+                    chore: None,
                     object: queued,
                     interaction: 0,
                 }]),

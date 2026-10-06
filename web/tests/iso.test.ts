@@ -484,13 +484,13 @@ describe('depth sense contract with the render pipeline', () => {
   // Changing any one of those alone is the bug.
   const sprites = readFileSync('src/render/sprites.ts', 'utf8');
 
-  it('uses the same less-than depth sense for opaque and translucent walls', () => {
+  it('uses the same less-than depth sense for opaque geometry, translucent grime and walls', () => {
     const compares = [...sprites.matchAll(/depthCompare:\s*'([a-z-]+)'/g)];
     // Rule 5, and it is not hypothetical here: a rename or a reformat
     // could stop the regex matching, and a zero-match assertion on the
     // captured value would then pass while comparing nothing. Requiring
     // both means a second pipeline with a different sense fails.
-    expect(compares.map(match => match[1])).toEqual(['less', 'less']);
+    expect(compares.map(match => match[1])).toEqual(['less', 'less', 'less']);
   });
 
   it('clears the depth buffer to the far plane, so an undrawn pixel loses to everything', () => {
@@ -502,13 +502,13 @@ describe('depth sense contract with the render pipeline', () => {
     expect(Number(clears[0][1])).toBe(1.0);
   });
 
-  it('writes opaque depth but preserves the background depth under translucent walls', () => {
+  it('writes opaque depth but preserves the background depth under translucent grime and walls', () => {
     // With `depthWriteEnabled: false` the compare op above still runs but
     // every fragment tests against the cleared value, so the depth buffer
     // is inert and painter's order decides. That is the failure [V3] was
     // designed to detect on hardware; this is its CI-side counterpart.
     const writes = [...sprites.matchAll(/depthWriteEnabled:\s*(true|false)/g)];
-    expect(writes.map(match => match[1])).toEqual(['true', 'false']);
+    expect(writes.map(match => match[1])).toEqual(['true', 'false', 'false']);
   });
 });
 

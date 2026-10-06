@@ -6,6 +6,12 @@ The project writing direction is defined in [.agents/skills/natural-causes-writi
 
 ## Functional text that stays plain
 
+Targeted dish menus use Dishes, Do dishes and Clean up in
+`web/src/ui/object-menu.ts`. Dirty tables offer Clean up until their visible dishes have
+been collected; clean tables retain their authored interactions. The existing
+Nothing control remains available.
+Keyboard targeting identifies each pile with Dishes: {object}, pile {n}.
+
 These strings are controls, state, instructions, confirmations, or failures.
 They should remain literal even after the voice pass. A joke in a destructive
 confirmation is how somebody loses a save while the interface congratulates
@@ -110,3 +116,36 @@ acceptance above remains separate.
 The functional Windows chooser contains Sash, Cottage, Arched, Sliding, Steel-grid, Twin casement, Picture, Craftsman and Clerestory, their wall-unit widths, Fit window, Replace window and Remove window. N opens the chooser from Build; the selected model persists when returning. New refusal messages explain a missing straight wall, a junction or a partial-window Room edit. Sources are `web/src/ui/window-tool.ts`, `web/src/ui/window-tool-controls.ts`, `web/src/bridge.ts` and the Rust window catalogue.
 
 These labels describe implemented controls. The wider object-name/flavor review boundary remains unchanged; this entry does not approve unrelated copy or establish final owner visual acceptance.
+
+## Household chores controls
+
+Literal actions are Do dishes, Clean up, Clean floor, Wipe surface and Empty
+bin. Clean tables offer Sit and, when a portion is available, Eat prepared food.
+The main bottom bar includes Chores. Grouped board rows use Wipe counter surfaces
+and Wipe table surfaces with room names. Its panel uses Automatic weekly assignments,
+Do now, Recent daily outcomes, Performed by, Responsibility, Commitment history
+score, Dishes preference, Floor cleaning preference, Surface wiping preference,
+Bin emptying preference, Apply preferences and Close. Preferences use whole
+numbers from -100 to 100; responsibility uses 0 to 100. Positive preferences mean
+enjoyment and negative preferences mean dislike. History starts at 50 and records
+outcomes as a score, rather than a completion percentage.
+
+Duty outcomes are Pending, No work needed, Plans to do it, Skipped today, Done,
+Covered by a housemate, Missed and Unavailable. Missing identities display
+Unassigned or Former housemate. Progress uses Week, Day, Grime, Bin fill and
+Dirty dishes with the relevant values. Profile feedback reads Use whole numbers
+within the displayed ranges., Preference changes queued., or Those changes
+could not be sent. Mood reasons are Enjoying a chore, Dislikes this chore,
+Enjoyed a chore, Chore frustration and Grimy floor.
+
+Sources are `web/src/ui/chores-board.ts`, `web/src/ui/object-menu.ts`,
+`web/src/ui/traits-panel.ts` and `crates/terri-sim/src/chores/consequences.rs`.
+The approved scope is functional chore copy; unrelated object-name and flavor
+review remains separate.
+
+Grime mood labels are Grimy floor and Grimy surfaces. Both scale with the
+remaining grime amount during cleaning.
+
+Active cleaning labels are Mopping floor, Wiping surface and Emptying bin in
+`web/src/ui/game-hud.ts`. They describe the current work stage; queued orders
+retain their existing action labels.

@@ -1,0 +1,82 @@
+[
+  {
+    "name": "footstep-hook",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "actual_last_walking_step",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_exact_bytes": true,
+    "sha256": "9e90efc64a75921828ef183caed382af10b33ed0c56d3aef13cc7ddc6a2c2894"
+  },
+  {
+    "name": "completion-order",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "ordinary_completion_rolls",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_exact_bytes": true,
+    "sha256": "f18b3010df401e2765db60cc06949908745162f453539123685263170feb2f77"
+  },
+  {
+    "name": "wall-contact",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "patch_contact_rejects",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_exact_bytes": true,
+    "sha256": "ca77df0cb7571d4d888fc540bb560ac52a7d2dc721413dc35eedda1b7a6a46b1"
+  },
+  {
+    "name": "surface-probability",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "cleanliness_scales_rolls",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_exact_bytes": true,
+    "sha256": "be931bb596a7e1e2c5da5dde22dcb4818642a4eade40af261c245287a17906e5"
+  },
+  {
+    "name": "patch-persistence",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "nine_tiles_fade_together",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_exact_bytes": true,
+    "sha256": "8f3ea7e3053cb5d9876eef5951c36afd65ff780c11c4b27c1f1ded7e7d420519"
+  }
+]

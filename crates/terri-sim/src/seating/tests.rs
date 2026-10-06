@@ -81,6 +81,8 @@ fn fixture_with_device(
     sim.world_mut()
         .entity_mut(person)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: device,
             interaction: 0,
         }]));
@@ -528,6 +530,8 @@ fn standing_media_routes_restore_away_from_the_device_perimeter() {
     sim.world_mut()
         .entity_mut(person)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: device,
             interaction: 0,
         }]));
@@ -724,6 +728,8 @@ fn media_seats_refuse_move_rotation_and_sale_during_travel_and_use() {
     sim.world_mut()
         .entity_mut(person)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: device,
             interaction: 0,
         }]));
@@ -858,6 +864,8 @@ fn ordinary_ottoman_sitting_uses_the_fitted_body_without_a_media_lease() {
     sim.world_mut()
         .entity_mut(person)
         .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
             object: chair,
             interaction: 0,
         }]));

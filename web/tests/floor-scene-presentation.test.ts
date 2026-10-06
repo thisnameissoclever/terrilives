@@ -40,6 +40,7 @@ function fixture() {
   const overlayPause = new OverlayPauseController({ setSpeed: speed => speeds.push(speed) }, () => {}, 2);
   const renderer = () => ({ disposed: false, rows: new Float32Array(),
     setArchitectureCamera() {},
+    setGrimeInstances() {},grimeSpriteBase:0,
     setStaticGeometry(rows: Float32Array, count: number) { this.rows = rows.slice(0, count * 16); },
     draw(instances: Float32Array, _count: number, scale: number) {
       // Static and dynamic positions must belong to the same camera and loaded world.
@@ -55,11 +56,11 @@ function fixture() {
     camera: { originX: 100, originY: 200, scale: 1 }, cameraDirty: true, cameraInitialised: true,
     stage: { width: 500, height: 400, clientWidth: 500, clientHeight: 400 }, window: { devicePixelRatio: 1 },
     lightingDirty: false, lighting: null, sky: { width: 0, height: 0, values: new Float32Array() },
-    buildStaticInstances, depthScale: 16, clampCamera() {},
+    buildStaticInstances, buildGrimeInstances:()=>({instances:new Float32Array(),count:0}), depthScale: 16, clampCamera() {},
     lightingMode: { isFlat: () => true }, renderer: renderer(),
     wallFade: { configure() {}, update() {} },
     placementButtons: { frame() {} }, builder: { active: false, preview: null, colourway: 0 },
-    sim: { selectedIndex: () => 0, clockTick: () => 0, floorTiles: () => floors },
+    sim: { selectedIndex: () => 0, clockTick: () => 0, floorTiles: () => floors, floorGrime:()=>new Uint32Array() },
     alpha: 0, deltaMs: 0, reducedMotion: { matches: false }, AMBIENT_NEUTRAL: [1, 1, 1],
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null }, roomTool: { highlight: () => null },
     floorTool: { highlight: () => null, resourceStatus: null as string | null, resourceFailed: false,

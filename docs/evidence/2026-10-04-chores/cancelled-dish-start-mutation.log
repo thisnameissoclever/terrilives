@@ -1,0 +1,24 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.97s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records ... FAILED
+
+failures:
+
+---- chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records stdout ----
+
+thread 'chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records' (17404) panicked at crates\terri-sim\src\chores\lifecycle_tests.rs:177:5:
+assertion failed: sim.world().resource::<SavedChores>().dish_started.is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::lifecycle_tests::cancelled_or_dead_dish_actors_leave_no_start_records
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 934 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

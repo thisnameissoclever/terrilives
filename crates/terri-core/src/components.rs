@@ -151,6 +151,9 @@ pub struct Selected;
 /// today's values could never reach the difference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Intent {
+    /// Identity of a scoped cleanup order; ordinary object and social orders omit it.
+    pub cleanup: Option<u32>,
+    pub chore: Option<u32>,
     pub object: Entity,
     /// Index into that object's `interactions` in the content pack.
     pub interaction: u32,
@@ -993,6 +996,8 @@ mod intent_queue_tests {
 
     fn intent(object: Entity, interaction: u32) -> Intent {
         Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction,
         }

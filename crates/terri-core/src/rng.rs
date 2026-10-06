@@ -26,6 +26,11 @@ pub struct SimRng {
 const PCG_MULT: u64 = 6_364_136_223_846_793_005;
 
 impl SimRng {
+    /// Hash the exact state and stream without consuming a random draw.
+    pub fn hash_into(&self, hash: &mut crate::FnvHasher) {
+        hash.write_u64(self.state);
+        hash.write_u64(self.inc);
+    }
     pub fn from_seed(seed: u64) -> Self {
         let mut rng = SimRng {
             state: 0,

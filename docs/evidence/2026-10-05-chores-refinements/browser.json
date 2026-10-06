@@ -1,0 +1,49 @@
+{
+  "preview": "http://127.0.0.1:5193/?stress=0&audio=0",
+  "isolated_contexts_closed": true,
+  "desktop": {
+    "size": [
+      1280,
+      900
+    ],
+    "automatic": true,
+    "page_errors": []
+  },
+  "phone": {
+    "width": 390,
+    "scroll_width": 390,
+    "counter_grime_before": 850,
+    "counter_grime_after": 0,
+    "work_ticks": 83
+  },
+  "ordinary_sitting": {
+    "person": 34,
+    "table": 7,
+    "table_actions": [
+      1,
+      0
+    ],
+    "visual_action": 8,
+    "ticks_to_seat": 136,
+    "save_reload_identical_hash": true,
+    "hash": "15572137219624043056",
+    "needs_before": [
+      61.938,
+      99.949,
+      99.928,
+      99.898,
+      99.974,
+      77.938,
+      99.978
+    ],
+    "needs_after": [
+      53.506,
+      91.936,
+      95.32,
+      86.026,
+      96.615,
+      69.451,
+      99.141
+    ]
+  }
+}

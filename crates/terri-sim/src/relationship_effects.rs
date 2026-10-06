@@ -14,6 +14,8 @@ pub enum RelationshipCause {
     Incompatibility,
     Decay,
     HouseholdMess,
+    ChoreFulfilled,
+    ChoreNeglected,
 }
 
 #[derive(Debug, Clone, Copy)]

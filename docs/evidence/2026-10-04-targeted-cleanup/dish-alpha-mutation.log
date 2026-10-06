@@ -1,0 +1,45 @@
+
+> test
+> vitest run --maxWorkers=1 tests/targeted-dishes.test.ts -t transparent pixels
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/a8a4/terrilives/web
+
+ ❯ tests/targeted-dishes.test.ts (10 tests | 1 failed | 9 skipped) 7ms
+     × leaves transparent pixels inside a dish bounding box available to the furniture 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/targeted-dishes.test.ts > targeted dish input > leaves transparent pixels inside a dish bounding box available to the furniture
+AssertionError: expected { entity: 50, isAgent: false, …(1) } to deeply equal { entity: 50, isAgent: false }
+
+- Expected
++ Received
+
+  {
++   "cleanup": {
++     "dishes": [
++       7,
++     ],
++     "surface": 50,
++   },
+    "entity": 50,
+    "isAgent": false,
+  }
+
+ ❯ tests/targeted-dishes.test.ts:57:44
+     55|     const x = layout.points[0][0] + spriteDrawOffsetX(prop) - SPRITES[…
+     56|     const y = layout.points[0][1] + spriteDrawOffsetY(prop) + TILE_HAL…
+     57|     expect(pickSprite(source, x, y, 0, 0)).toEqual({ entity: 50, isAge…
+       |                                            ^
+     58|   });
+     59|   it.each(['', 'NW', 'SW', 'NE'])('picks only the visible pile in faci…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  19:59:54
+   Duration  641ms (transform 461ms, setup 0ms, import 538ms, tests 7ms, environment 0ms)
+

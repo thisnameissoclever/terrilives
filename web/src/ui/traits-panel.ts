@@ -13,6 +13,7 @@ export interface TraitsPanelSource {
   /** Interleaved [pack trait index, state, ...] pairs, or empty. */
   traitsOf(entity: number): Float32Array;
   cleanlinessOf?(entity: number): number | null;
+  choreProfileOf?(entity:number):Int32Array;
   selfPreservationOf?(entity: number): number | null;
 }
 
@@ -90,6 +91,13 @@ export function traitsPanelState(
   const worn = source.traitsOf(selected);
 
   const traits: TraitView[] = [];
+  const choreProfile=source.choreProfileOf?.(selected);
+  if(choreProfile&&choreProfile.length>0){
+    if(choreProfile.length!==6||choreProfile[0]<0||choreProfile[0]>100||choreProfile[1]<0||choreProfile[1]>100||[...choreProfile.slice(2)].some(v=>v< -100||v>100))return UNAVAILABLE;
+    traits.push({key:-10,label:'Responsibility',description:'Higher values make Sims more likely to follow through on assigned chores.',state:`${choreProfile[0]}%`});
+    traits.push({key:-11,label:'Commitment history score',description:'Starts at a neutral 50. Fulfilled or missed duties change future follow-through.',state:`${choreProfile[1]}/100`});
+    for(let i=0;i<4;i++){const preference=choreProfile[i+2];traits.push({key:-12-i,label:['Dishes preference','Floor cleaning preference','Surface wiping preference','Bin emptying preference'][i],description:'Enjoyment changes willingness and mood while doing this chore.',state:`${preference>0?'Enjoys':preference<0?'Dislikes':'Neutral'} (${preference})`});}
+  }
   const cleanliness = source.cleanlinessOf?.(selected);
   if (cleanliness !== undefined && cleanliness !== null) {
     if (!Number.isFinite(cleanliness) || cleanliness < 0 || cleanliness > 1) return UNAVAILABLE;

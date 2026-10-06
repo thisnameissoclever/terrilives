@@ -23,6 +23,18 @@ function source(selected: number | null = 4): KeyboardTargetSource {
 }
 
 describe('keyboard targets', () => {
+  it('includes dirty counters and each dish pile, using the same scoped menus as pointer input', () => {
+    const dirty = { ...source(), dishPiles: () => new Uint32Array([7, 0, 10, 7, 0, 11, 7, 2, 12]) };
+    const targets = keyboardTargets(dirty);
+    expect(targets.filter(t => t.entity === 7).map(t => t.kind)).toEqual(['object', 'dishes', 'dishes']);
+    const picker = new KeyboardTargetController(dirty, { hidden: true, textContent: '' });
+    picker.cycle(1); picker.cycle(1); picker.cycle(1);
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Clean up', action: { kind: 'clean', surface: 7, dishes: null } }, { label: 'Nothing' }] } });
+    picker.cycle(1);
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Do dishes', action: { kind: 'clean', surface: 7, dishes: [10, 11] } }, { label: 'Nothing' }] } });
+    picker.cycle(1);
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ action: { kind: 'clean', dishes: [12] } }, { label: 'Nothing' }] } });
+  });
   it('opens descriptions for decorative objects without inventing actions', () => {
     const details = { modelName: 'Perpetual Cycle', description: 'Decorative washing machine.' };
     const described = { ...source(), objectDetails: (id: number) => id === 7 ? details : undefined };

@@ -26,6 +26,8 @@ fn arrival(edge_mode: bool) -> (Sim, Entity, Entity) {
         .spawn((Agent, Position { x: 3.0, y: 2.0 }, Reserved))
         .id();
     let queue = IntentQueue::from_intents(vec![Intent {
+        cleanup: None,
+        chore: None,
         object: partner,
         interaction: 0,
     }]);

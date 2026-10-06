@@ -1,0 +1,20 @@
+✔ newest notes come first and only the latest date starts open (16.2579ms)
+✔ legacy anchors reject malformed collections and unsafe identifiers (4.3948ms)
+✔ editing, adding and deleting source notes changes the generated page (5.3819ms)
+✔ HTML is escaped while bold, code and HTTPS links remain usable (3.5769ms)
+✔ literal template markers in a note cannot expand into presentation code (3.1074ms)
+✔ invalid notes and empty collections fail instead of silently dropping content (3.2276ms)
+✔ wrapped summaries and continued list items preserve their meaning (0.1257ms)
+✔ public notes reject development references instead of publishing them (0.1868ms)
+✔ same-day notes must be consolidated and former links reach the dated update (3.7526ms)
+✔ dark is the default even on a light system; theme choices persist and blocked storage stays usable (1.8887ms)
+✔ expand and collapse switch controls and keep keyboard focus; old links open the right update (1.2216ms)
+✔ the repository history renders and the CLI writes the same standalone page (66.4925ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 183.8998

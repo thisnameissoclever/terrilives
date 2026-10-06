@@ -1,0 +1,11 @@
+{
+  "mechanism": "Body alpha sampling disabled in an isolated test module",
+  "exit": 1,
+  "killed": true,
+  "production_source_unchanged": true,
+  "source_sha256": {
+    "web\\src\\input.ts": "7d9f6452d7b3338a451a6c2b1aee7742bd0b4adec9bbd9a0bb12e6b19d5c2993",
+    "web\\src\\render\\body-coverage.ts": "cd9169ee64e9581622a8bc2ea467754b5825f3a21467ba2c4e401f3194c8ddbb",
+    "web\\src\\render\\sprites.ts": "682736b06eddc80fe605e9c05358351ec8720e0a4962016f40934509e770d3f1"
+  }
+}

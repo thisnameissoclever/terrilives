@@ -1,3 +1,4 @@
+import {cleaningFrame} from './render/cleaning-animation.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 /**
  * The frame loop's two halves: pacing the simulation, and turning the two
@@ -438,11 +439,23 @@ export function walkingFrame(
  * Each facing keeps its content-owned frame-zero picking envelope. Alternate
  * frames share its dimensions, anchor and bounds. The legacy pair still works.
  */
+const CLEANING_BINS = new Map<number, readonly number[]>(['SE','NW','SW','NE'].map(facing=>[
+  spriteIndex('offlineTrashcan'+(facing==='SE'?'':facing)),
+  Array.from({length:8},(_,i)=>spriteIndex(`cleaningBin${facing}${i}`))]));
+
+export function cleaningBinSprite(sprite:number,progress:number,reducedMotion:boolean):number {
+  const frames=CLEANING_BINS.get(sprite);
+  return frames && progress>0 ? frames[cleaningFrame(17,progress,frames.length,reducedMotion)] : sprite;
+}
+
 export function objectBodySprite(
   sourceSprite: number,
   simulationTick: number,
   reducedMotion: boolean,
+  choreProgress = 0,
 ): number {
+  const cleaning = cleaningBinSprite(sourceSprite,choreProgress,reducedMotion);
+  if (cleaning !== sourceSprite) return cleaning;
   const samples = AQUARIUM_SWIM_FRAMES.get(sourceSprite);
   if (samples) {
     return samples[tickAnimationFrame(simulationTick, 0, samples.length,
@@ -582,6 +595,7 @@ export function simSprite(_id: number, simId = 0xffff_ffff): number {
 const RIGGED_ACTIONS: readonly string[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
   'watch_fish', 'sit', 'sleep', 'prepare', 'cook_v2', 'wash', 'seated_eat',
+  'mop', 'wipe_counter', 'wipe_table', 'empty_bin',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
@@ -592,7 +606,7 @@ const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
 /** Sample the baked rig from simulation state, without an animation clock. */
 export function simBodySprite(
   id: number, visualAction: number, facing: number, simulationTick: number,
-  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff, carriedDishes = 0, carriedFood = false,
+  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff, carriedDishes = 0, carriedFood = false, choreProgress = 0,
 ): number {
   if (!validFacing(facing)) {
     if (carriedDishes === 0 && !carriedFood) return simSprite(id, simId);
@@ -605,6 +619,7 @@ export function simBodySprite(
     : RIGGED_ACTIONS[visualAction] ?? 'idle';
   const clip = RIGGED_SIM_VARIANTS[simShirtVariant(simId)][action];
   const frames = clip.frames[facing - 1];
+  if (visualAction >= 14 && visualAction <= 17) return frames[cleaningFrame(visualAction,choreProgress,frames.length,reducedMotion)];
   const halfCycle = ACTION_HALF_CYCLE_TICKS[visualAction] ?? 1;
   const phase = visualAction === VISUAL_ACTION_TALK
     ? (id & 1) * halfCycle : id % halfCycle;
@@ -881,10 +896,13 @@ export interface RenderSource {
    */
   carrying(): Uint32Array;
   dirtyDishes?(): Uint32Array;
+  surfaceGrime?(): Uint32Array;
+  binWaste?(): Uint32Array;
   dirtySettings?(): Uint32Array;
   soundActions?(): Uint32Array;
   soundSources?(): Uint32Array;
   carriedDishes?(): Uint32Array;
+  choreProgress?(): Uint32Array;
   mealPortions?(): Uint32Array;
   /**
    * One name per pack item kind - `carried_<kind>` atlas resolution's
@@ -1061,10 +1079,12 @@ export function buildInstanceBatch(
   const footprintWidths = source.footprintWidths?.();
   const footprintDepths = source.footprintDepths?.();
   const dirtyDishes = source.dirtyDishes?.();
+  const surfaceGrime=source.surfaceGrime?.(),binWaste=source.binWaste?.();
   const dirtySettings = source.dirtySettings?.();
   const cookingActions=source.soundActions?.();
   const cookingSources=source.soundSources?.();
   const carriedDishes = source.carriedDishes?.();
+  const choreProgress = source.choreProgress?.();
   const mealPortions = source.mealPortions?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
   const replacedRow = placementReplacedRow(source, selected, placement);
@@ -1123,8 +1143,9 @@ export function buildInstanceBatch(
             simIds?.[i],
             carriedDishes?.[i],
             carrying[i] === dinnerKind && (activities[i] <= 2),
+            choreProgress?.[i],
           )
-        : objectBodySprite(sprites[i], simulationTick, reducedMotion);
+        : objectBodySprite(sprites[i], simulationTick, reducedMotion, choreProgress?.[i]);
     const localLight = lighting === null
       ? EMISSIVE_NONE
       : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
@@ -1171,10 +1192,10 @@ export function buildInstanceBatch(
   let slot = count;
   for (let row = 0; row < count; row++) {
     const table = interactions.mealRows[row];
-    const body = interactions.bodies[row];
+    const body = interactions.bodies[row]>=0 ? interactions.bodies[row] : scratch[row*FLOATS_PER_INSTANCE+3];
     const meal = SPRITE_DINING_SUPPORT[body];
     if (table < 0 || !meal || row === replacedRow || table === replacedRow) continue;
-    const chair = interactions.targetRows[row];
+    const chair = interactions.targetRows[row]>=0 ? interactions.targetRows[row] : row;
     const wx = lerp(previous[chair * 2], current[chair * 2], alpha);
     const wy = lerp(previous[chair * 2 + 1], current[chair * 2 + 1], alpha);
     const tableX = lerp(previous[table * 2], current[table * 2], alpha);
@@ -1292,8 +1313,9 @@ export function buildInstanceBatch(
             simIds?.[i],
             carriedDishes?.[i],
             carrying[i] === dinnerKind && (activities[i] <= 2),
+            choreProgress?.[i],
           )
-        : objectBodySprite(sprites[i], simulationTick, reducedMotion);
+        : objectBodySprite(sprites[i], simulationTick, reducedMotion, choreProgress?.[i]);
     const bedOwner = interactions.bedScenes[i]?.owners[interactions.bedPlaces[i]];
     writeInstance(
       scratch,
@@ -1461,7 +1483,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
   const mealPortions = source.mealPortions?.();
   for (let i = 0; i < source.count; i++) {
     const mealTable = interactions.mealRows[i];
-    if (mealTable >= 0 && SPRITE_DINING_SUPPORT[interactions.bodies[i]]
+    if (mealTable >= 0 && (SPRITE_DINING_SUPPORT[interactions.bodies[i]] || (visualActions[i]>=15 && visualActions[i]<=17))
         && i !== replacedRow && mealTable !== replacedRow) extras++;
     if (i !== replacedRow && !interactions.suppressed[i]) {
       extras += surfaceItemCount(surfaceLayout(sprites[i]), dirtyDishes?.[i] ?? 0, mealPortions?.[i] ?? 0, dirtySettings?.[i], cookingSurface(ids[i],cookingActions,cookingSources,facings));

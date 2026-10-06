@@ -1419,6 +1419,80 @@ entity order; zero-only historical worlds retain their previous hash layout.
 See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
 ## Domestic state and presentation
 
+`SavedChores` appends an optional V5 envelope field after targeted cleanup.
+It owns indoor grime, surface grime, bin contents and pending unbinned waste,
+permanent-SimId profiles, scoped order records, timed work, weekly assignments,
+daily decisions and settled outcomes. Its separate seeded random stream,
+allocators and all future-affecting state enter deterministic hashing. Historical
+nested save records and ordinary intent encodings remain unchanged.
+
+The chores scheduler runs through normal ticks. Floor work captures reachable
+dirty cells in one architectural room; surface and bin work claim one real
+object and approach its footprint through the existing path mover. ChoreWork
+suppresses ordinary autonomous selection while work is active. Other orders
+and urgent needs can suspend work; cancellation releases its owned path and
+marker. Room edits cancel invalid floor plans. Object movement refreshes
+contacts, and selling a bin moves its contents to unbinned waste. Load validation
+rejects unsupported work variants and contacts before world adoption.
+
+Weekly assignments balance estimated work and sample chore preferences. Saved
+daily opportunities separate willingness from enjoyment. Actual work completion
+identifies its performer, updates commitment history and publishes bounded,
+directional relationship effects once per episode. Active work crossing midnight
+retains its original episode. The browser receives owned board/history arrays
+and aligned grime columns. `grime-decals.ts` adds transparent stain sprites in a
+separate atlas page, behind props on floors and at supporting surface depth.
+Material colors remain unchanged. Grime has a separate opacity vertex buffer
+and transparent draw between opaque geometry and cutaway walls, with depth tests
+but no depth writes. The optional `SavedGrime` V5 tail owns its independent random
+stream and exact active floor patches. Actual grime decreases during work; the
+renderer, board and mood calculations read that same value. Movement emits dirt
+opportunities only on real tile transitions; completed interactions provide the
+surface and adjacent-counter opportunities. Passive aging is disabled.
+Group kinds 4 and 5 append room-scoped counter
+and table wiping; legacy kind 2 retains individual-surface orders. Group tasks
+save visited and pending object identities and reconcile live room membership.
+Claims cover the current member, with edge-aware contact checks after build edits.
+Unavailable routes remain unavailable in daily history.
+
+`chores/presentation.rs` derives actions 14 through 17 and progress in thousandths
+from validated stationary work. The aligned `chore_progress` render column is
+derived, not saved. Active bins receive the same progress as their cleaner.
+`cleaning-animation.ts` samples mopping and wiping loops or the single bin lift
+from that progress. Drawing and picking share the bin-frame selector. The
+offline cleaning extension uses the approved Sim rig, registered anchors and
+geometry-owned hand/tool masks in the existing complementary furniture-depth
+passes. The historical `mealRows` support mapping also carries cleaning contacts.
+
+Table action queries distinguish ordinary chair-backed sitting from claiming an
+eligible prepared meal. Ordinary sitting reuses saved dining claims and appends
+quiet paired sprites from the existing fitted dining pose; eating sprites and
+published sprite indices remain unchanged. See the
+[chores specification](specs/2026-10-04-chores-and-weekly-board.md).
+
+Targeted dish cleanup adds explicit `CleanDishes` and `CleanDishesFirst` commands
+after the published command variants. Runtime intents carry a scoped request
+identity; the request contains a fixed dish selection or a continuing surface
+target. The optional V5 `targeted_cleanup` tail restores scoped intents at their
+original positions among ordinary orders, preserving published nested records.
+Its allocator, target, selection, queue position and active state enter the
+world hash. Command-boundary cancellation removes unused requests immediately.
+Active surface chores refresh claims during collection and restart collection
+after washing when dishes remain. Empty claims wait through simulation ticks
+for another cleaner to collect or release the remaining dishes.
+
+The browser reads surface, visual-setting and dish-identity triples from the
+simulation. Pointer picking uses the renderer's surface layouts, prop sprites,
+camera projection and furniture depth ordering. Dish menus dispatch captured
+identities through the command bridge; surface menus dispatch continuing scope.
+Prepared portions and carried dishes are excluded from surface picking.
+Dish picking samples alpha from the same decoded atlas bitmap used by the
+renderer. Transparent corners therefore remain furniture pixels. Pointer and
+keyboard targeting share menu construction; keyboard cycling exposes each pile
+as a separate target.
+The copied dish projection is read before zero-copy render views, because its
+boundary allocation can grow simulation memory and detach earlier views.
+
 [Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Dining claims resolve exact physical chairs, clean settings and approach endpoints before generic chain targeting. Other diners stand near the table, or a preparation counter when no table is reachable. Claims publish synchronously, with ownership-aware reservation release. Other uses remain exclusive.
 
 `SavedDomestic` is the appended optional V5 tail. It records cleanliness profiles, monotonically issued dish identities and their surfaces and responsible SimIds, canonical room-visit memory, exclusive cleanup claims, and shared-meal invite/claim/collection/completion state. Cancellation, chain replacement, washing, furniture sales and death maintain those references at their own transition. Loading validates both directions between claims and chains before adoption, then refreshes the render projection. Older bytes default the tail to absent. The exact structural bridge reconstructs the old four-step recipe and roles, validates the source, maps its terminal step 3 to 5, and preserves prior geometry migrations. Unreviewed structural destinations close the bridge.

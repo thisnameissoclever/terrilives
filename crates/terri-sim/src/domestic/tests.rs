@@ -40,6 +40,387 @@ fn household() -> (Sim, Vec<Entity>, Entity, Entity, Entity) {
 }
 
 #[test]
+fn targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued() {
+    let (mut sim, people, _, counter, table) = household();
+    add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
+    add_dishes(sim.world_mut(), table.index_u32(), 1, 1);
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishesFirst {
+            agent: people[0].index_u32(),
+            surface: table.index_u32(),
+            dishes: Some(vec![0]),
+        });
+    sim.flush_commands();
+    let saved = sim.save_snapshot_v5();
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v5(saved).unwrap();
+    assert_eq!(sim.world_hash(), loaded.world_hash());
+    sim.tick();
+    let task = sim
+        .world()
+        .resource::<SavedDomestic>()
+        .cleanup
+        .iter()
+        .find(|t| t.person == people[0].index_u32())
+        .unwrap();
+    assert_eq!(task.dishes, vec![0]);
+    assert!(task.directed);
+    assert!(sim.action_queue_of(people[0].index_u32())[0].contains("Collect dishes"));
+}
+
+#[test]
+fn targeted_cancel_while_paused_releases_queued_request_at_the_command_boundary() {
+    let (mut sim, people, _, counter, _) = household();
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 1);
+    let commands = &mut sim.world_mut().resource_mut::<CommandQueue>();
+    commands.push(SimCommand::CleanDishes {
+        agent: people[0].index_u32(),
+        surface: counter.index_u32(),
+        dishes: None,
+    });
+    commands.push(SimCommand::CancelIntents {
+        agent: people[0].index_u32(),
+    });
+    sim.flush_commands();
+    assert!(sim
+        .world()
+        .resource::<SavedTargetedCleanup>()
+        .orders
+        .is_empty());
+    assert_eq!(sim.world().resource::<SavedDomestic>().dishes.len(), 1);
+}
+
+fn targeted_fixture() -> (Sim, Entity, Entity, Entity) {
+    let (mut sim, people, _, counter, table) = household();
+    for (i, person) in people.iter().enumerate() {
+        *sim.world_mut().get_mut::<Needs>(*person).unwrap() = Needs::all_at(100.0);
+        if i > 0 {
+            sim.world_mut().entity_mut(*person).insert(AtWork {
+                remaining_ticks: 10_000,
+            });
+        }
+    }
+    (sim, people[0], counter, table)
+}
+
+#[test]
+fn targeted_surface_returns_for_new_dishes_and_preserves_other_surfaces_through_every_save() {
+    let (mut sim, person, counter, table) = targeted_fixture();
+    add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
+    add_dishes(sim.world_mut(), counter.index_u32(), 1, 3);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishesFirst {
+            agent: person.index_u32(),
+            surface: table.index_u32(),
+            dishes: None,
+        });
+    let mut added = false;
+    let mut returned = false;
+    let mut loads = BTreeSet::new();
+    for _ in 0..1500 {
+        sim.tick();
+        let step = sim.world().get::<ChainState>(person).map(|c| c.step);
+        if step == Some(1) && !added {
+            add_dishes(sim.world_mut(), table.index_u32(), 1, 1);
+            crate::dining::maintain(sim.world_mut());
+            added = true;
+        } else if added && step == Some(0) {
+            returned = true;
+        }
+        let saved = sim.save_snapshot_v5();
+        if crate::targeted_cleanup::has_active(sim.world(), person.index_u32()) {
+            loads.insert(step);
+        }
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded.load_snapshot_v5(saved).unwrap_or_else(|error| {
+            panic!(
+                "targeted cleanup failed to load at {:?}, step {:?}: {:?}",
+                sim.world().resource::<SimClock>().tick,
+                step,
+                error
+            )
+        });
+        assert_eq!(sim.world_hash(), loaded.world_hash());
+        if added && !crate::targeted_cleanup::has_active(sim.world(), person.index_u32()) {
+            break;
+        }
+    }
+    assert!(
+        added && returned,
+        "the chore must make a second trip for dishes added during washing"
+    );
+    assert!(loads.contains(&Some(0)) && loads.contains(&Some(1)));
+    let dishes = &sim.world().resource::<SavedDomestic>().dishes;
+    assert!(dishes.iter().all(|d| d.surface != table.index_u32()));
+    assert_eq!(
+        dishes
+            .iter()
+            .filter(|d| d.surface == counter.index_u32())
+            .map(|d| d.units)
+            .sum::<u32>(),
+        3
+    );
+}
+
+#[test]
+fn targeted_pile_skips_removed_identities_without_cleaning_replacements() {
+    let (mut sim, person, _, table) = targeted_fixture();
+    add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishesFirst {
+            agent: person.index_u32(),
+            surface: table.index_u32(),
+            dishes: Some(vec![0]),
+        });
+    sim.flush_commands();
+    sim.world_mut()
+        .resource_mut::<SavedDomestic>()
+        .dishes
+        .clear();
+    add_dishes(sim.world_mut(), table.index_u32(), 1, 1);
+    for _ in 0..300 {
+        sim.tick();
+    }
+    assert!(sim
+        .world()
+        .resource::<SavedDomestic>()
+        .dishes
+        .iter()
+        .any(|d| d.id == 1));
+    assert!(!crate::targeted_cleanup::has_active(
+        sim.world(),
+        person.index_u32()
+    ));
+}
+
+#[test]
+fn targeted_surface_waits_for_claimed_dishes_without_stealing_them() {
+    let (mut sim, person, _, table) = targeted_fixture();
+    let other = sim
+        .world_mut()
+        .query::<(Entity, &SimId)>()
+        .iter(sim.world())
+        .find(|(e, _)| *e != person)
+        .unwrap()
+        .0;
+    add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
+    assert!(start_cleanup(sim.world_mut(), other, vec![0], true));
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishesFirst {
+            agent: person.index_u32(),
+            surface: table.index_u32(),
+            dishes: None,
+        });
+    sim.tick();
+    let state = sim.world().resource::<SavedDomestic>();
+    assert_eq!(
+        state
+            .cleanup
+            .iter()
+            .find(|t| t.person == other.index_u32())
+            .unwrap()
+            .dishes,
+        vec![0]
+    );
+    assert!(state
+        .cleanup
+        .iter()
+        .find(|t| t.person == person.index_u32())
+        .unwrap()
+        .dishes
+        .is_empty());
+    let saved = sim.save_snapshot_v5();
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v5(saved).unwrap();
+    assert_eq!(sim.world_hash(), loaded.world_hash());
+    abandon(sim.world_mut(), other);
+    sim.world_mut().entity_mut(other).remove::<ChainState>();
+    sim.tick();
+    assert_eq!(
+        sim.world()
+            .resource::<SavedDomestic>()
+            .cleanup
+            .iter()
+            .find(|t| t.person == person.index_u32())
+            .unwrap()
+            .dishes,
+        vec![0]
+    );
+}
+
+#[test]
+fn targeted_legacy_multiset_piles_keep_distinct_visible_settings_and_conserve_units() {
+    let (mut sim, person, _, table) = targeted_fixture();
+    add_dishes(sim.world_mut(), table.index_u32(), 1, 3);
+    crate::dining::maintain(sim.world_mut());
+    let rows = sim.dish_piles();
+    assert_eq!(
+        rows.len(),
+        9,
+        "three legacy settings require independently targetable identities"
+    );
+    let chosen = rows[2];
+    let units_before: u32 = sim
+        .world()
+        .resource::<SavedDomestic>()
+        .dishes
+        .iter()
+        .map(|d| d.units)
+        .sum();
+    assert_eq!(units_before, 3);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishesFirst {
+            agent: person.index_u32(),
+            surface: table.index_u32(),
+            dishes: Some(vec![chosen]),
+        });
+    let mut started = false;
+    for _ in 0..600 {
+        sim.tick();
+        if crate::targeted_cleanup::has_active(sim.world(), person.index_u32()) {
+            started = true;
+        } else if started {
+            break;
+        }
+    }
+    assert!(started, "the clicked legacy pile must start a real cleanup");
+    let state = sim.world().resource::<SavedDomestic>();
+    assert_eq!(state.dishes.iter().map(|d| d.units).sum::<u32>(), 2);
+    assert!(state.dishes.iter().all(|d| d.owner == 1));
+    assert_eq!(sim.dish_piles().len(), 6);
+}
+
+#[test]
+fn targeted_stale_pile_does_not_interrupt_an_existing_meal() {
+    let (mut sim, person, _, table) = targeted_fixture();
+    let chain = sim
+        .world()
+        .resource::<Content>()
+        .0
+        .chains
+        .iter()
+        .position(|c| c.id == "cook_dinner")
+        .unwrap();
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(ChainState::begin(chain as u32));
+    for _ in 0..500 {
+        sim.tick();
+        if sim
+            .world()
+            .get::<ChainState>(person)
+            .is_some_and(|c| c.step == 1)
+            && sim
+                .world()
+                .get::<StepWork>(person)
+                .is_some_and(|w| w.remaining_ticks > 5)
+        {
+            break;
+        }
+    }
+    let before = sim.world().get::<Target>(person).copied().unwrap();
+    let work = sim.world().get::<StepWork>(person).copied().unwrap();
+    let carrying = sim.world().get::<terri_core::Carrying>(person).copied();
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishesFirst {
+            agent: person.index_u32(),
+            surface: table.index_u32(),
+            dishes: Some(vec![0]),
+        });
+    sim.tick();
+    assert_eq!(sim.world().get::<Target>(person), Some(&before));
+    assert_eq!(
+        sim.world().get::<StepWork>(person).unwrap().remaining_ticks,
+        work.remaining_ticks - 1
+    );
+    assert_eq!(
+        sim.world().get::<terri_core::Carrying>(person),
+        carrying.as_ref()
+    );
+    assert_eq!(
+        sim.world().get::<ChainState>(person).unwrap().chain,
+        chain as u32
+    );
+}
+
+#[test]
+fn targeted_hash_changes_causally_with_scope_selection_allocator_and_queue_order() {
+    let (mut sim, person, counter, table) = targeted_fixture();
+    add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
+    add_dishes(sim.world_mut(), table.index_u32(), 1, 1);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishes {
+            agent: person.index_u32(),
+            surface: table.index_u32(),
+            dishes: Some(vec![0]),
+        });
+    sim.flush_commands();
+    let baseline = sim.world_hash();
+    let original = sim.world().resource::<SavedTargetedCleanup>().clone();
+    for changed in [
+        {
+            let mut s = original.clone();
+            s.next_order += 1;
+            s
+        },
+        {
+            let mut s = original.clone();
+            s.orders[0].surface = counter.index_u32();
+            s
+        },
+        {
+            let mut s = original.clone();
+            s.orders[0].dishes = Some(vec![1]);
+            s
+        },
+        {
+            let mut s = original.clone();
+            s.orders[0].dishes = None;
+            s
+        },
+    ] {
+        sim.world_mut().insert_resource(changed);
+        assert_ne!(
+            sim.world_hash(),
+            baseline,
+            "scope state must affect the hash without advancing time"
+        );
+        sim.world_mut().insert_resource(original.clone());
+        assert_eq!(sim.world_hash(), baseline);
+    }
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::CleanDishes {
+            agent: person.index_u32(),
+            surface: table.index_u32(),
+            dishes: Some(vec![1]),
+        });
+    sim.flush_commands();
+    let baseline = sim.world_hash();
+    let queue = sim.world().get::<IntentQueue>(person).unwrap().clone();
+    let mut reversed = queue.as_slice().to_vec();
+    reversed.reverse();
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(IntentQueue::from_intents(reversed));
+    assert_ne!(
+        sim.world_hash(),
+        baseline,
+        "same objects and interaction indices still require cleanup order identity"
+    );
+    sim.world_mut().entity_mut(person).insert(queue);
+    assert_eq!(sim.world_hash(), baseline);
+}
+
+#[test]
 fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
     for cleanup in [false, true] {
         let (mut sim, people, fridge, counter, _) = household();
@@ -437,6 +818,12 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
     let (mut sim, people, _, counter, table) = household();
     for person in &people {
         *sim.world_mut().get_mut::<Needs>(*person).unwrap() = Needs::all_at(100.0);
+    }
+    // This test proves one cleaner's conservation; other housemates are off the lot.
+    for person in people.iter().skip(1) {
+        sim.world_mut().entity_mut(*person).insert(AtWork {
+            remaining_ticks: 10_000,
+        });
     }
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
     add_dishes(sim.world_mut(), table.index_u32(), 0, 1);

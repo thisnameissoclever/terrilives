@@ -1,0 +1,79 @@
+[
+  {
+    "check": "format",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 1.33
+  },
+  {
+    "check": "lint",
+    "command": [
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 5.88
+  },
+  {
+    "check": "wasm-build",
+    "command": [
+      "wasm-pack",
+      "build",
+      "crates/terri-wasm",
+      "--target",
+      "web",
+      "--out-dir",
+      "../../web/src/wasm"
+    ],
+    "exit": 0,
+    "seconds": 33.87
+  },
+  {
+    "check": "release-boundary",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-wasm",
+      "--release",
+      "targeted_cleanup_tests",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "seconds": 37.12
+  },
+  {
+    "check": "production",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "build"
+    ],
+    "exit": 0,
+    "seconds": 7.62
+  },
+  {
+    "check": "atlas-check",
+    "command": [
+      "python",
+      "assets/sprites/gen/build.py",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 62.69
+  }
+]

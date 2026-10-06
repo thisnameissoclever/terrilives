@@ -1,0 +1,14 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-wasm)
+    Finished `release` profile [optimized] target(s) in 20.86s
+     Running unittests src\lib.rs (target\release\deps\terri_wasm-cff635d51f739122.exe)
+
+running 5 tests
+test targeted_cleanup_tests::chore_boundary_rejects_invalid_numbers_without_mutating_saved_state ... ok
+test targeted_cleanup_tests::chores_optional_tail_rejects_each_interior_cut_transactionally ... ok
+test targeted_cleanup_tests::scoped_cleanup_boundary_rejects_invalid_numbers_and_noncanonical_selections ... ok
+test targeted_cleanup_tests::scoped_cleanup_invalid_semantics_cannot_break_a_paused_save ... ok
+test targeted_cleanup_tests::scoped_cleanup_optional_tail_rejects_every_interior_cut_transactionally ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 171 filtered out; finished in 0.05s
+

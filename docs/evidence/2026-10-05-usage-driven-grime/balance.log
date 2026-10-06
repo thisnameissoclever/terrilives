@@ -1,0 +1,10 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.72s
+     Running `target\debug\examples\grime_balance.exe`
+seed,cleanliness,ticks,peak_dirty_tiles,final_dirty_tiles,final_grime_units,floor_work_ticks,surface_work_ticks,unvisited_dirty_tiles
+72,0,4320,61,57,9600,247,44,0
+72,0.5,4320,39,39,5400,278,0,0
+72,1,4320,13,13,1800,0,0,0
+149,0,4320,50,48,8400,392,0,0
+149,0.5,4320,38,28,4300,352,0,0
+149,1,4320,16,16,1700,0,0,0
