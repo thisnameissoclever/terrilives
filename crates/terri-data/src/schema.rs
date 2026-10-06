@@ -191,6 +191,9 @@ pub struct TuningFile {
     /// ([E4]). At least 1; the shipped value makes a day a number a
     /// designer chose rather than a constant buried in a system.
     pub day_ticks: u32,
+    /// The weekday of the first day, 0 (Monday) to 6 (Sunday) - [CAL-week]
+    /// in `docs/specs/2026-10-06-calendar.md`.
+    pub first_weekday: u8,
     /// Need name to how much of that need drains per tick.
     ///
     /// A decay rate is a system-wide balance knob rather than part of a
@@ -984,7 +987,18 @@ pub struct CareerDef {
     /// drains a LIFE is a condition's business, not a paycheck's,
     /// which keeps [S1]'s writer list honest.
     pub satisfaction: f32,
+    /// The weekdays the shift runs, by name from [`WEEKDAY_NAMES`]: at
+    /// least one, none repeated - [CAL-careers] in
+    /// `docs/specs/2026-10-06-calendar.md`. Required, with no default, so
+    /// a career cannot quietly work a week nobody chose.
+    pub working_days: Vec<String>,
 }
+
+/// The weekday names `working_days` accepts, Monday first. A name's index
+/// is its weekday number and its bit in a compiled career's mask, and the
+/// count is the clock's week.
+pub const WEEKDAY_NAMES: [&str; terri_core::clock::WEEKDAY_COUNT as usize] =
+    ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
 /// The M1 household ceiling. Kept beside the authored schema so content
 /// validation, tests and any future household editor share one contract.
@@ -1129,7 +1143,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 77] = [
+    const TUNING_LINES: [(&str, &str); 78] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1169,6 +1183,7 @@ mod tests {
         ("at_work_decay_scale", "0.4"),
         ("neglect_bleed_per_tick", "0.0009765625"),
         ("day_ticks", "17"),
+        ("first_weekday", "4"),
         ("asleep_decay_scale", "0.6"),
         ("wander_radius_tiles", "29"),
         ("resale_fraction", "0.40625"),
@@ -1284,6 +1299,7 @@ mod tests {
         assert_eq!(parsed.at_work_decay_scale, 0.4);
         assert_eq!(parsed.neglect_bleed_per_tick, 0.0009765625);
         assert_eq!(parsed.day_ticks, 17);
+        assert_eq!(parsed.first_weekday, 4);
         assert_eq!(parsed.wander_radius_tiles, 29);
         assert_eq!(parsed.resale_fraction, 0.40625);
         assert_eq!(parsed.affinity_loves_from, 1.46875);
@@ -1369,6 +1385,35 @@ mod tests {
                 "the error must name the missing knob '{omitted}'; got {err}"
             );
         }
+    }
+
+    /// [CAL-careers]: `working_days` is required. A career written before
+    /// the week existed must fail to parse rather than default to a mask
+    /// nobody chose, and the error names the missing key.
+    #[test]
+    fn a_career_without_working_days_does_not_parse() {
+        let career = r#"
+            [[career]]
+            id = "office_job"
+            label = "Office clerk"
+            shift_start = 360
+            shift_ticks = 480
+            pay = 120
+            energy_cost = 15.0
+            satisfaction = 1.0
+            "#;
+        let err = toml::from_str::<CareersFile>(career)
+            .expect_err("a career without working_days must not parse");
+        assert!(err.to_string().contains("working_days"), "{err}");
+
+        let parsed: CareersFile =
+            toml::from_str(&format!("{career}working_days = [\"sun\", \"mon\"]\n"))
+                .expect("the same career with working days parses");
+        assert_eq!(
+            parsed.career[0].working_days,
+            vec!["sun".to_string(), "mon".to_string()],
+            "the authored list reaches the schema in declared order"
+        );
     }
 
     #[test]

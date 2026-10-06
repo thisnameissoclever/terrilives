@@ -2695,12 +2695,21 @@ impl Sim {
     /// read. The label rather than the index, because the pack lookup
     /// is a query over content this crate owns.
     pub fn career_of(&self, index: u32) -> Option<&'static str> {
+        self.career_definition_of(index)
+            .map(|career| career.label.as_str())
+    }
+
+    /// The compiled career held by the sim carrying `index`, or `None`
+    /// for the unemployed and everything else. The Career row reads its
+    /// working days and shift hours from it ([CAL-hud] in
+    /// `docs/specs/2026-10-06-calendar.md`).
+    pub fn career_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledCareer> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;
         state
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)
-            .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
+            .map(|(_, career)| &pack.careers[career.0 as usize])
     }
 
     /// The primary type, or legacy name, of a smart object. Includes decorative

@@ -1532,6 +1532,7 @@ fn edit_work_world() -> (Sim, Entity) {
             pay: 130,
             energy_cost: 11.5,
             satisfaction: 2.25,
+            working_days: 0b1111111,
         }],
         ..base.clone()
     });

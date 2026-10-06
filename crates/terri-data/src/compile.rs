@@ -15,9 +15,9 @@ use crate::pack::{
 };
 use crate::pack::{CompiledColourway, CompiledCovering, CompiledSkill, Facing, FacingSprites};
 use crate::schema::{
-    AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile, InteractionDef, LotFile,
-    NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile, TraitsFile, TuningFile,
-    VisualDef, VoiceFile,
+    AtlasFile, CareerDef, CareersFile, ChainsFile, ColourwayDef, HouseholdFile, InteractionDef,
+    LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile, TraitsFile,
+    TuningFile, VisualDef, VoiceFile, WEEKDAY_NAMES,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::layout::{EdgeAxis, WallEdge};
@@ -1154,6 +1154,7 @@ fn compile_careers(
                 value: def.satisfaction,
             });
         }
+        let working_days = compile_working_days(def)?;
         compiled.push(crate::pack::CompiledCareer {
             id: def.id.clone(),
             label: def.label.clone(),
@@ -1162,9 +1163,39 @@ fn compile_careers(
             pay: def.pay,
             energy_cost: def.energy_cost,
             satisfaction: def.satisfaction,
+            working_days,
         });
     }
     Ok(compiled)
+}
+
+/// Compiles a career's `working_days` names into the Monday-first mask
+/// `CompiledCareer::works_on` reads - [CAL-careers]. Names match
+/// [`WEEKDAY_NAMES`] exactly, so `Tue` is refused. The list must name at
+/// least one day and no day twice; a repeat is refused rather than merged
+/// because it is almost always a typo for a missing day.
+fn compile_working_days(def: &CareerDef) -> Result<u8, ContentError> {
+    if def.working_days.is_empty() {
+        return Err(ContentError::EmptyWorkingDays { id: def.id.clone() });
+    }
+    let mut mask = 0u8;
+    for day in &def.working_days {
+        let Some(weekday) = WEEKDAY_NAMES.iter().position(|name| name == day) else {
+            return Err(ContentError::UnknownWorkingDay {
+                id: def.id.clone(),
+                day: day.clone(),
+            });
+        };
+        let bit = 1u8 << weekday;
+        if mask & bit != 0 {
+            return Err(ContentError::RepeatedWorkingDay {
+                id: def.id.clone(),
+                day: day.clone(),
+            });
+        }
+        mask |= bit;
+    }
+    Ok(mask)
 }
 
 /// Validates `content/traits.toml` - [E3]'s three mechanisms, one file.
@@ -2857,6 +2888,13 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.day_ticks == 0 {
         return Err(ContentError::ZeroDayTicks);
     }
+    // [CAL-week]: a weekday is 0 (Monday) to 6 (Sunday). Past that, the
+    // first day would name no weekday at all.
+    if tuning.first_weekday >= terri_core::clock::WEEKDAY_COUNT {
+        return Err(ContentError::FirstWeekdayOutOfRange {
+            value: tuning.first_weekday,
+        });
+    }
 
     // The circadian curve, if authored. Every rule here converts a shape
     // of failure that would otherwise be silent into a build error, which
@@ -3053,6 +3091,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             overdoing_penalty: tuning.overdoing_penalty,
             sick_threshold: tuning.sick_threshold,
             sick_penalty: tuning.sick_penalty,
+            first_weekday: tuning.first_weekday,
         },
         circadian,
         tuning.sleep_tag,
@@ -4040,6 +4079,13 @@ mod tests {
     /// floats 3.25, 1.125, 17.5, 2.75 and 22.5 follow the ladder, on their
     /// own row, in declaration order. Every byte up to and including the
     /// ladder kept its offset. 489 bytes to 509.
+    ///
+    /// **The calendar moved it by one byte, appended to `Tuning`
+    /// ([CAL-week] in `docs/specs/2026-10-06-calendar.md`).** `first_weekday`
+    /// is a `u8`, one raw byte, and the fixture's 4 sits on its own row after
+    /// the overdoing floats. Careers add nothing here because the fixture
+    /// compiles none. Every byte up to and including the overdoing floats
+    /// kept its offset. 509 bytes to 510.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Completion presentation appends None after activity in the sole interaction.
@@ -4070,6 +4116,7 @@ mod tests {
         190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10, 0, 0, 160, 64, 0,
         0, 0, 176, 61, 0, 0, 172, 63,
         0, 0, 80, 64, 0, 0, 144, 63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65,
+        4,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0,
     ];
 
@@ -4253,6 +4300,9 @@ mod tests {
             overdoing_penalty: 17.5,
             sick_threshold: 2.75,
             sick_penalty: 22.5,
+            // [CAL-week]: a Friday, so a dropped field (0) is visible, and a
+            // number no integer knob here shares; the golden vector reads it.
+            first_weekday: 4,
             min_interaction_ticks: 3,
             contested_score_multiplier: 0.375,
             rng_seed: 300,
@@ -5450,10 +5500,12 @@ mod tests {
         // From the end: the empty skills vector ([SK-content]); the voice
         // clip, portal, colourway and floor covering vectors before it; the
         // sleep tag, its length 5 and five letters; nine empty fields from
-        // personalities through circadian; the five overdoing knobs
-        // ([OD-content]), the last twenty bytes of `Tuning`; and then the two
-        // ladder knobs. Everything before the ladder is the established pack.
-        let overdoing_end = GOLDEN_PACK_BYTES.len() - 1 - 4 - 6 - 9;
+        // personalities through circadian; `first_weekday` ([CAL-week]), the
+        // last byte of `Tuning`; the five overdoing knobs ([OD-content]), the
+        // twenty bytes before it; and then the two ladder knobs. Everything
+        // before the ladder is the established pack.
+        let weekday = GOLDEN_PACK_BYTES.len() - 1 - 4 - 6 - 9 - 1;
+        let overdoing_end = weekday;
         let ladder_end = overdoing_end - 20;
         let ladder_start = ladder_end - 8;
         assert_eq!(
@@ -5477,8 +5529,9 @@ mod tests {
         assert_eq!(
             &bytes[ladder_end..overdoing_end],
             overdoing,
-            "the overdoing knobs are the tail of Tuning"
+            "the overdoing knobs precede the first weekday"
         );
+        assert_eq!(bytes[weekday], 4, "first_weekday is the tail of Tuning");
         assert_eq!(
             &bytes[bytes.len() - 5..],
             &[0, 0, 0, 0, 0],
@@ -5535,6 +5588,7 @@ mod tests {
         assert_eq!(tuning.overdoing_penalty, 17.5);
         assert_eq!(tuning.sick_threshold, 2.75);
         assert_eq!(tuning.sick_penalty, 22.5);
+        assert_eq!(tuning.first_weekday, 4);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -7181,6 +7235,9 @@ mod tests {
             pay: 130,
             energy_cost: 11.5,
             satisfaction: 2.25,
+            // Tuesday, Thursday and Saturday: neither the shipped Monday to
+            // Friday nor a mask a reversed bit order would also produce.
+            working_days: vec!["tue".to_string(), "thu".to_string(), "sat".to_string()],
         }
     }
 
@@ -7201,6 +7258,7 @@ mod tests {
         second.pay = 55;
         second.energy_cost = 8.75;
         second.satisfaction = 0.5;
+        second.working_days = vec!["mon".to_string()];
 
         let pack = compile_people_full(
             vec![archetype("the_settled")],
@@ -7219,6 +7277,8 @@ mod tests {
         assert_eq!(first.pay, 130);
         assert_eq!(first.energy_cost, 11.5);
         assert_eq!(first.satisfaction, 2.25);
+        assert_eq!(first.working_days, 0b0101010, "tue, thu and sat");
+        assert_eq!(pack.careers[1].working_days, 0b0000001, "mon alone");
 
         assert_eq!(
             pack.household[0].career,
@@ -7253,6 +7313,77 @@ mod tests {
             ContentError::EmptyCareerLabel {
                 id: "office_job".into()
             }
+        );
+    }
+
+    /// [CAL-careers]: an empty list, a repeated day and a name outside
+    /// `mon` to `sun` are each refused, and each error names the career and,
+    /// where there is one, the offending day. `Tue` is refused although
+    /// `tue` is legal: names match exactly.
+    #[test]
+    fn rejects_empty_repeated_and_unknown_working_days() {
+        let refused = |days: &[&str]| {
+            let mut career = a_career("office_job");
+            career.working_days = days.iter().map(|day| day.to_string()).collect();
+            compile_people_full(vec![], vec![], vec![], vec![career]).unwrap_err()
+        };
+
+        let empty = refused(&[]);
+        assert_eq!(
+            empty,
+            ContentError::EmptyWorkingDays {
+                id: "office_job".into()
+            }
+        );
+        assert!(empty.to_string().contains("'office_job'"), "{empty}");
+
+        let repeated = refused(&["mon", "wed", "mon"]);
+        assert_eq!(
+            repeated,
+            ContentError::RepeatedWorkingDay {
+                id: "office_job".into(),
+                day: "mon".into()
+            }
+        );
+        let message = repeated.to_string();
+        assert!(
+            message.contains("'office_job'") && message.contains("'mon'"),
+            "{message}"
+        );
+
+        let unknown = refused(&["mon", "Tue"]);
+        assert_eq!(
+            unknown,
+            ContentError::UnknownWorkingDay {
+                id: "office_job".into(),
+                day: "Tue".into()
+            }
+        );
+        let message = unknown.to_string();
+        assert!(
+            message.contains("'office_job'") && message.contains("'Tue'"),
+            "{message}"
+        );
+    }
+
+    /// [CAL-careers]: bit 0 is Monday and bit 6 is Sunday, and the order the
+    /// days are written in does not matter. Sunday is in the list so a mask
+    /// that stopped at Saturday, or numbered the week from 1, is visible.
+    #[test]
+    fn compiles_working_days_to_a_monday_first_mask() {
+        let mask_of = |days: &[&str]| {
+            let mut career = a_career("office_job");
+            career.working_days = days.iter().map(|day| day.to_string()).collect();
+            compile_people_full(vec![], vec![], vec![], vec![career])
+                .expect("a valid working-day list")
+                .careers[0]
+                .working_days
+        };
+        assert_eq!(mask_of(&["mon", "wed", "sun"]), 0b1000101);
+        assert_eq!(mask_of(&["sun", "mon", "wed"]), 0b1000101);
+        assert_eq!(
+            mask_of(&["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+            0b1111111
         );
     }
 
@@ -7885,6 +8016,17 @@ mod tests {
             ContentError::ZeroDayTicks
         );
         assert!(compile_tuned(tuning_where(|t| t.day_ticks = 1)).is_ok());
+    }
+
+    /// [CAL-week]: `first_weekday` names a weekday, 0 (Monday) to 6
+    /// (Sunday). 7 is refused and 6 accepted, separating `> 6` from `>= 6`.
+    #[test]
+    fn rejects_a_first_weekday_past_sunday() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.first_weekday = 7)).unwrap_err(),
+            ContentError::FirstWeekdayOutOfRange { value: 7 }
+        );
+        assert!(compile_tuned(tuning_where(|t| t.first_weekday = 6)).is_ok());
     }
 
     // ---- The circadian curve -------------------------------------------

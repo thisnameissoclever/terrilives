@@ -31,7 +31,9 @@ Names in `code font` are what you will see in the debug overlay
 | --- | --- |
 | **tick** | The simulation's heartbeat. Everything happens on ticks; nothing happens between them. One tick is one **sim-minute**. |
 | **1x speed** | 10 ticks per second of real time. So one real second is ten sim-minutes, and one real minute is about ten sim-hours. `2x` and `3x` run 20 and 30 ticks a second - they change how many ticks run per frame, never how long a tick means. |
-| **day** | 1440 ticks (`day_ticks` in tuning), because 1440 minutes is a day. `tick % 1440` is the clock: 360 is 06:00. About 2.4 real minutes at 1x. |
+| **day** | 1440 ticks (`day_ticks` in tuning), because 1440 minutes is a day. `tick % 1440` is the clock: 360 is 06:00. About 2.4 real minutes at 1x. The HUD numbers days from 1 and names each one's weekday, with the time on a second line: `Day 1, Monday` above `06:00`. |
+| **weekday** | Which of the seven days of the week a day is, Monday to Sunday, numbered 0 to 6. It is worked out from the tick: day index `tick / day_ticks`, plus `first_weekday` from tuning (0, so day 1 is a Monday), modulo 7. Nothing about it is saved ([CAL-week] in `docs/specs/2026-10-06-calendar.md`). |
+| **weekend** | Saturday and Sunday. Nothing in the simulation reads the word; a job rests on a weekend only because its **working days** leave those days out. With the shipped tuning, days 6 and 7 are the first weekend. |
 
 ## Needs - the first axis
 
@@ -182,7 +184,8 @@ kinds, each doing exactly one thing:
 | Term | Means |
 | --- | --- |
 | `career:` | The sim's job, from `content/careers.toml`. |
-| **shift** | Starts at a tick of the day (`shift_start` 360 = 06:00) and lasts `shift_ticks` (480 = eight hours). |
+| **shift** | Starts at a tick of the day (`shift_start` 360 = 06:00) on each of the career's **working days**, and lasts `shift_ticks` (480 = eight hours). |
+| **working days** | The weekdays a career's shift runs, listed as `working_days` in `content/careers.toml` and compiled to a seven-bit mask with bit 0 for Monday. The office job works Monday to Friday. On any other day the worker stays home, and a shift already running when a rest day begins finishes as normal. The Career row in Sim details shows them with the shift hours ([CAL-careers]). |
 | **rabbit hole** | The industry term this design borrows: the sim walks off the lot and is simply GONE for the shift - no workplace is simulated. |
 | **needs at work** | They still decay, at `at_work_decay_scale` of the usual rate - an office has a toilet and a kettle in it. At the full rate the worker starved: measured at zero on six of seven needs every day of 25 ([A-19]). The job's price is the TIME, not hunger. |
 | **front door** | The lot tile a worker leaves from and returns to (`front_door` in `content/lot.toml`). |

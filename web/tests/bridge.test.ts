@@ -1075,6 +1075,13 @@ describe('SimBridge', () => {
 
     expect(bridge.funds()).toBe(0);
     expect(bridge.careerOf(tim)).toBe('Office clerk');
+    // [CAL-hud]: day 1 is a Monday, and the office job runs Monday to
+    // Friday (mask 31) from 06:00 for eight hours.
+    expect(bridge.weekdayIndex()).toBe(0);
+    expect(bridge.careerScheduleOf(tim)).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480 });
+    for (const hostile of [0, -1, 1.5, Number.NaN, 2 ** 32, 0xffffffff]) {
+      expect(bridge.careerScheduleOf(hostile)).toBeNull();
+    }
     const rowOf = (entity: number) => {
       const ids = bridge.ids();
       for (let row = 0; row < bridge.count; row++) {
