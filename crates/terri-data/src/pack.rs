@@ -827,6 +827,17 @@ pub struct Tuning {
     /// How much a bothered person's feeling toward the user falls per game
     /// hour at -1.0, not negative - [OA-use].
     pub affinity_use_feeling_per_hour: f32,
+    /// The score multiplier at or above which a disposition trait loves its
+    /// tag, above 1 - [TL-affinity] in
+    /// `docs/specs/2026-09-21-trait-library-and-traits-panel.md`. The
+    /// compiler also reads it to word each disposition's description; the
+    /// simulation reads it at spawn, where a worn trait that loves an
+    /// affinity kind's trait tag sets that kind's value ([OA-values]).
+    /// Appended, per the rule above.
+    pub affinity_loves_from: f32,
+    /// The score multiplier at or below which a disposition trait hates its
+    /// tag, in `[0, 1)` - [TL-affinity], read at spawn as the line above.
+    pub affinity_hates_to: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1568,6 +1579,8 @@ mod tests {
             affinity_presence_extra_cap: 27,
             affinity_use_points: 14.5,
             affinity_use_feeling_per_hour: 0.0234375,
+            affinity_loves_from: 1.46875,
+            affinity_hates_to: 0.28125,
         }
     }
 
@@ -2272,7 +2285,8 @@ mod tests {
     /// ([SK-model]) is the eight bytes before the five overdoing knobs
     /// ([OD-content]), which are the twenty before `first_weekday`
     /// ([CAL-week]), the byte before the seven affinity knobs ([OA-values]),
-    /// which are the final twenty-five; every established field stays put.
+    /// which are the twenty-five before the two trait bands ([TL-affinity]),
+    /// the final eight; every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2286,18 +2300,46 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // [TL-affinity]: the two trait bands are the last eight bytes, two
+        // floats in declaration order. Each changed float differs from the
+        // fixture's only in its third byte.
+        let bands = before.len() - 8;
+        let expected: Vec<u8> = [1.46875f32, 0.28125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(before[bands..], expected);
+        for (offset, after) in [
+            (
+                2,
+                Tuning {
+                    affinity_loves_from: 1.53125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                6,
+                Tuning {
+                    affinity_hates_to: 0.3125,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![bands + offset], "band {offset}");
+        }
         // [OA-values], [OA-presence], [OA-use]: the seven affinity knobs, in
-        // declaration order, are the last twenty-five bytes: four floats, the
-        // cap as a one-byte varint, and two more floats. Each changed float
-        // differs from the fixture's only in its third byte.
-        let affinity = before.len() - 25;
+        // declaration order, are the twenty-five bytes before the bands:
+        // four floats, the cap as a one-byte varint, and two more floats.
+        // Each changed float differs from the fixture's only in its third
+        // byte.
+        let affinity = bands - 25;
         let expected: Vec<u8> = [0.6875f32, 0.296875, 10.5, 3.125]
             .into_iter()
             .flat_map(f32::to_le_bytes)
             .chain([27])
             .chain([14.5f32, 0.0234375].into_iter().flat_map(f32::to_le_bytes))
             .collect();
-        assert_eq!(before[affinity..], expected);
+        assert_eq!(before[affinity..bands], expected);
         for (offset, after) in [
             (
                 2,

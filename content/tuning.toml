@@ -184,7 +184,9 @@ resale_fraction = 0.5
 # start to read as more than a preference. 0.5 halves what the activity
 # offers before the soft choice, while its walk still costs in full: a strong
 # push away but not a refusal, so the sim still does it when the need is
-# pressing enough.
+# pressing enough. The spawn draw reads both lines too: a worn disposition
+# at or beyond either one sets the starting value of the affinity kind its
+# tag names ([OA-values] in docs/specs/2026-10-06-object-affinities.md).
 affinity_loves_from = 1.5
 affinity_hates_to = 0.5
 

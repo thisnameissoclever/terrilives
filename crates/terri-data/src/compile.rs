@@ -3239,6 +3239,8 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             affinity_presence_extra_cap: tuning.affinity_presence_extra_cap,
             affinity_use_points: tuning.affinity_use_points,
             affinity_use_feeling_per_hour: tuning.affinity_use_feeling_per_hour,
+            affinity_loves_from: affinity.loves_from,
+            affinity_hates_to: affinity.hates_to,
         },
         circadian,
         tuning.sleep_tag,
@@ -4242,6 +4244,12 @@ mod tests {
     /// floats 14.5 and 0.0234375. `ContentPack` gained `affinities` after
     /// `skills`, the final empty byte; the fixture declares no kind. Every byte
     /// up to and including `first_weekday` kept its offset. 510 bytes to 536.
+    ///
+    /// **The trait bands moved it by eight bytes, appended to `Tuning`
+    /// ([TL-affinity], read at spawn by [OA-values]).** `affinity_loves_from`
+    /// and `affinity_hates_to` follow the seven affinity knobs, on their own
+    /// row: the fixture's floats 1.46875 and 0.28125. Every byte up to and
+    /// including the affinity knobs kept its offset. 536 bytes to 544.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Completion presentation appends None after activity in the sole interaction.
@@ -4274,6 +4282,7 @@ mod tests {
         0, 0, 80, 64, 0, 0, 144, 63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65,
         4,
         0, 0, 48, 63, 0, 0, 152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60,
+        0, 0, 188, 63, 0, 0, 144, 62,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
     ];
 
@@ -5670,13 +5679,15 @@ mod tests {
         // empty skills vector ([SK-content]) before it; the voice clip,
         // portal, colourway and floor covering vectors before those; the
         // sleep tag, its length 5 and five letters; nine empty fields from
-        // personalities through circadian; the seven affinity knobs
-        // ([OA-values]), the last twenty-five bytes of `Tuning`;
-        // `first_weekday` ([CAL-week]), the byte before them; the five
+        // personalities through circadian; the two trait bands
+        // ([TL-affinity]), the last eight bytes of `Tuning`; the seven
+        // affinity knobs ([OA-values]), the twenty-five bytes before them;
+        // `first_weekday` ([CAL-week]), the byte before those; the five
         // overdoing knobs ([OD-content]), the twenty bytes before that; and
         // then the two ladder knobs. Everything before the ladder is the
         // established pack.
-        let affinity_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let bands_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let affinity_end = bands_end - 8;
         let affinity_start = affinity_end - 25;
         let weekday = affinity_start - 1;
         let overdoing_end = weekday;
@@ -5718,7 +5729,16 @@ mod tests {
         assert_eq!(
             &bytes[affinity_start..affinity_end],
             affinity,
-            "the affinity knobs are the tail of Tuning"
+            "the affinity knobs precede the trait bands"
+        );
+        let bands: Vec<u8> = [1.46875f32, 0.28125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[affinity_end..bands_end],
+            bands,
+            "the trait bands are the tail of Tuning"
         );
         assert_eq!(
             &bytes[bytes.len() - 6..],
@@ -5784,6 +5804,8 @@ mod tests {
         assert_eq!(tuning.affinity_presence_extra_cap, 27);
         assert_eq!(tuning.affinity_use_points, 14.5);
         assert_eq!(tuning.affinity_use_feeling_per_hour, 0.0234375);
+        assert_eq!(tuning.affinity_loves_from, 1.46875);
+        assert_eq!(tuning.affinity_hates_to, 0.28125);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -9237,9 +9259,10 @@ mod tests {
         assert_eq!(pack.affinities[0].trait_tag.as_deref(), Some("broadcast"));
     }
 
-    /// [OA-values], [OA-presence], [OA-use]: every affinity knob reaches its
-    /// own compiled field. The fixture's seven values are pairwise distinct,
-    /// so a knob copied from a neighbour moves exactly one assertion.
+    /// [OA-values], [OA-presence], [OA-use]: every affinity knob, and both
+    /// trait bands ([TL-affinity]) the spawn draw reads, reaches its own
+    /// compiled field. The fixture's nine values are pairwise distinct, so a
+    /// knob copied from a neighbour moves exactly one assertion.
     #[test]
     fn every_affinity_knob_is_copied_to_its_own_compiled_field() {
         type SetFile = fn(&mut TuningFile);
@@ -9273,6 +9296,11 @@ mod tests {
                 |t| t.affinity_use_feeling_per_hour = 0.5,
                 |t| t.affinity_use_feeling_per_hour = 0.5,
             ),
+            (
+                |t| t.affinity_loves_from = 2.0,
+                |t| t.affinity_loves_from = 2.0,
+            ),
+            (|t| t.affinity_hates_to = 0.5, |t| t.affinity_hates_to = 0.5),
         ];
         let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
         for (set_file, set_pack) in setters {
