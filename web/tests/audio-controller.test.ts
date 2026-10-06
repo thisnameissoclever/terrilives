@@ -439,9 +439,11 @@ describe('recorded toilet completion', () => {
   );
 
   it.each([
-    ['door', DOOR_POLICY, 0.05, 4, 600],
-    ['toilet', TOILET_POLICY, 0.08, 4, 30],
-  ] as const)('keeps the %s recordings at their level, overlap and length', (_name, policy, level, voices, longest) => {
+    ['door', DOOR_POLICY, 0.05, 4, 600, Infinity],
+    ['toilet', TOILET_POLICY, 0.08, 4, 30, 30],
+  ] as const)('keeps the %s recordings at their level, overlap and length', (_name, policy, level, voices, longest, limit) => {
+    // Doors have no length limit; the toilet refuses a flush over 30 seconds.
+    expect(policy.maxClipSeconds).toBe(limit);
     const context = new FakeContext();
     const player = new RecordedCuePlayer(context, context.destination, policy);
     expect(player.play({ duration: longest }, 1)).toBe(true);
