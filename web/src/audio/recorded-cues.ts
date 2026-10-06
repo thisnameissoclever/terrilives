@@ -6,6 +6,7 @@ import type { AudioBufferPort, AudioBufferSourcePort, VoiceAudioContext } from '
  * player's Effects volume. `maxVoices` caps overlap; a start beyond it is
  * refused rather than queued. `minStartIntervalSeconds` is real (audio clock)
  * time between starts, so game speed cannot make the cue more frequent.
+ * Families without a length limit or spacing use `Infinity` and `0`.
  */
 export interface RecordedCuePolicy {
   readonly gain: number;
@@ -20,15 +21,20 @@ interface RecordedVoice {
   source: AudioBufferSourcePort;
   gain: GainNodePort;
   endsAt: number;
+  key: number | undefined;
 }
+
+/** The largest key is reserved, matching the bridge's "no object" sentinel. */
+const MAX_KEY = 0xffff_fffe;
 
 /**
  * Plays short recordings at their original rate, independently of game speed,
- * and owns every node until it ends or is stopped. The door and toilet players
- * predate this general form and still carry their own copies of the same logic.
+ * and owns every node until it ends or is stopped. Doors, the toilet flush and
+ * the sleeping snore each own one instance with their own policy.
  */
 export class RecordedCuePlayer {
   private readonly active = new Set<RecordedVoice>();
+  private readonly byKey = new Map<number, RecordedVoice>();
   private lastStartAt = Number.NEGATIVE_INFINITY;
 
   constructor(
@@ -37,9 +43,18 @@ export class RecordedCuePlayer {
     private readonly policy: RecordedCuePolicy,
   ) {}
 
-  play(buffer: AudioBufferPort): boolean {
+  /**
+   * Starts `buffer` unless a limit refuses it. A `key` names the thing making
+   * the sound, such as one toilet: while that key's recording plays, another
+   * start for the same key is refused. A key must be an integer from 0 to
+   * 0xfffffffe; any other key is refused.
+   */
+  play(buffer: AudioBufferPort, key?: number): boolean {
     this.sweep();
     const now = this.context.currentTime;
+    if (key !== undefined && (!Number.isInteger(key) || key < 0 || key > MAX_KEY || this.byKey.has(key))) {
+      return false;
+    }
     if (!Number.isFinite(buffer.duration) || buffer.duration < FADE_SECONDS * 2 ||
       buffer.duration > this.policy.maxClipSeconds ||
       this.active.size >= this.policy.maxVoices ||
@@ -58,9 +73,10 @@ export class RecordedCuePlayer {
       gain.gain.linearRampToValueAtTime(this.policy.gain, now + FADE_SECONDS);
       gain.gain.setValueAtTime(this.policy.gain, now + buffer.duration - FADE_SECONDS);
       gain.gain.linearRampToValueAtTime(0, now + buffer.duration);
-      voice = { source, gain, endsAt: now + buffer.duration };
+      voice = { source, gain, endsAt: now + buffer.duration, key };
       const registered = voice;
       this.active.add(registered);
+      if (key !== undefined) this.byKey.set(key, registered);
       source.onended = () => this.finish(registered);
       source.start(now);
       source.stop(registered.endsAt);
@@ -95,6 +111,7 @@ export class RecordedCuePlayer {
 
   private finish(voice: RecordedVoice, stop = false): void {
     if (!this.active.delete(voice)) return;
+    if (voice.key !== undefined && this.byKey.get(voice.key) === voice) this.byKey.delete(voice.key);
     voice.source.onended = null;
     if (stop) {
       try { voice.source.stop(this.context.currentTime); } catch { /* Cleanup continues. */ }
