@@ -60,7 +60,7 @@ an analyser and a zero-gain speaker output. After initial activation, native
 suspend/resume occurs without another controller gesture. The current action
 renders `0.14000000059604645`; an action that departed stays exactly silent.
 All seven existing offline cancellation sample checks also pass. The final
-recovery proof also requires an unfinished sleep cue to be disposed during the
+recovery proof also requires an unfinished eating cue to be disposed during the
 unavailable frame, so a frozen transient cannot contaminate the resumed output.
 
 The first version of this recovery proof used OfflineAudioContext. It exposed

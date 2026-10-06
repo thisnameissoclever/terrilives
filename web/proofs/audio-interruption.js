@@ -138,7 +138,8 @@ export async function proveAutomaticObjectRecovery() {
       controller.installObjectLoopClips(new Map([
         [2, { buffer, gain: 0.2, loopStart: 0, loopEnd: 0.1 }],
       ]));
-      controller.emit({ type: 'sim.sleep-breath', simId: 4, breathIndex: 0 });
+      // Eating is still a synthesized one-shot; sleep now plays a recording.
+      controller.emit({ type: 'sim.eating', simId: 4, biteIndex: 0 });
       if (controller.activeVoiceCount() !== 1) throw new Error('Pre-interruption transient did not start');
       await native.suspend();
       if (native.state !== 'suspended') throw new Error('Native clock did not suspend');

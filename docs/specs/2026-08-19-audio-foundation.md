@@ -209,9 +209,12 @@ five seconds. Successful clips remain cached, and late recovery cannot revive
 an ended or globally invalidated pair. Explicit library loading can also retry
 missing slots. See `2026-10-01-voice-download-recovery.md` for the contract and proof.
 
-Sleep remains household-level. One quiet snore plays on entry,
-then once every 30 ticks while at least one Sim remains asleep. Multiple
-sleepers do not create synchronized breath stacks. Leaving an activity resets
+Sleep remains household-level. The scheduler emits one sleep event on entry,
+then one every 30 ticks while at least one Sim remains asleep. Each event may
+start a recorded snore: the first event of a session only fetches the clips,
+one snore plays at a time, and starts are at least six real seconds apart, so
+at normal speed every second event snores. Multiple sleepers do not create
+synchronized snore stacks. Leaving an activity resets
 its cadence. Load, backgrounding, the first successful audio unlock, recovery
 from an externally suspended audio context, master mute changes, and Effects
 crossing zero reset shared activity state so silent intervals cannot delay or
@@ -376,7 +379,7 @@ The human listening pass must confirm:
 7. One isolated footstep reads as a light step rather than a bass thud.
 8. Conversation remains identifiable without sounding once per participant or
    once per fixed tick.
-9. Sleep breathing is audible at ordinary volume without becoming a dominant
+9. The sleep snore is audible at ordinary volume without becoming a dominant
    room loop.
 10. Eating, reading, and exercise cues remain quiet, distinct, and paced with
    their visible actions instead of sounding on every fixed tick.
