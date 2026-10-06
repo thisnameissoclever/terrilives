@@ -39,8 +39,8 @@
     },
     {
       "kind": "bathroom-actions",
-      "catalog": "assets/models/bathroom/actions/export/bath-01/manifest.json",
-      "canonicalSha256": "d9c1f96f7d393ccbe4f33dbf27d7175d02d99680e94ff2c3204f566ed2c5de29"
+      "catalog": "assets/models/bathroom/actions/export/bath-02/manifest.json",
+      "canonicalSha256": "30939f35999298b9cc590b14d1c7497b42a17a8356fe4613d47acfcdce455203"
     }
   ],
   "historicalFiles": {

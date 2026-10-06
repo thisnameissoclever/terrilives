@@ -43,19 +43,20 @@ fn active_bathtub(
 
 #[test]
 fn bathtub_projects_all_facings_without_changing_positions_or_saves() {
-    for (turn, direction) in [
-        (Facing::SouthEast, facing::POSITIVE_X),
-        (Facing::NorthWest, facing::NEGATIVE_X),
-        (Facing::SouthWest, facing::POSITIVE_Y),
-        (Facing::NorthEast, facing::NEGATIVE_Y),
+    for (turn, direction, centre) in [
+        (Facing::SouthEast, facing::POSITIVE_X, (20.5, 20.0)),
+        (Facing::NorthWest, facing::NEGATIVE_X, (20.5, 20.0)),
+        (Facing::SouthWest, facing::POSITIVE_Y, (20.0, 20.5)),
+        (Facing::NorthEast, facing::NEGATIVE_Y, (20.0, 20.5)),
     ] {
         let mut sim = Sim::new_with_lot(48, 48);
         let (user, fixture) = active_bathtub(&mut sim, turn);
         // The basin socket sits at the tub's origin, which the two-tile
-        // footprint turns around its centre, so the displayed body follows it.
+        // footprint turns around its centre, so the displayed body sits half a
+        // tile along the footprint's long axis from the placed position.
         let definition = sim.world().resource::<Content>().0.find("bathtub").unwrap();
         let socket = &terri_data::pack().object(definition).sockets_at(20.0, 20.0, turn)[0];
-        let centre = (socket.x, socket.y);
+        assert_eq!((socket.x, socket.y), centre);
         let before_position = *sim.world().get::<Position>(user).unwrap();
         let before_hash = sim.world_hash();
         let before_save = sim.save_snapshot_v5();

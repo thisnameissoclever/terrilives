@@ -3,11 +3,18 @@
 The bathing loop has one appearance for every shirt variant (the declared bathing appearance
 replaces the shirt with skin), so its source matrix is four facings by four frames by four
 owners plus sixteen body-ink passes. Support is the measured seat patch on the basin floor and
-the back patch against the head-end wall, each a complete finite grid; clearance is every one of
-the 54 body objects against all twelve fixture solids.
+the back patch against the head-end wall; clearance is every one of the 54 body objects against
+all twelve fixture solids. Matching hashes prove nothing about the evidence inside a receipt, so
+every certificate is re-derived here from its own witnesses and compared with what the receipt
+claims: support patches are recomputed from their witness cells, which must come from the
+complete grid; containment excusals must show even ray parity on all six axes with nothing within
+five millimetres above the hit; every static bone must equal the accepted pose exactly and the
+head may only nod by the loop's declared angle; the appearance must omit exactly the declared
+garment details; and the fixture geometry must be identical on every frame of a facing.
 """
 import itertools
 import json
+import math
 import re
 from pathlib import Path
 import sys
@@ -16,8 +23,11 @@ BASE = Path(__file__).resolve().parent
 MODELS = BASE.parents[1]
 sys.path.insert(0, str(MODELS/'seating'))
 sys.path.insert(0, str(BASE))
-from seat_export_contract import BODY_NAMES, BONE_NAMES, inside, checked_file, digest
+from seat_export_contract import BODY_NAMES, BONE_NAMES, inside, checked_file, digest, read_png
 from bathroom_export_contract import finite_tree, number, validate_ink_binding
+from bath_pose_geometry import validate_support_patch
+from bath_loop_v1 import MAX_NOD_DEGREES, STATIC_BONES, head_nod
+from shower_pose_geometry import OMITTED_GARMENT_DETAILS
 
 # Presentation body-action code shared with `render_buffer::visual_action::BATHE`.
 BATHE_ACTION = 19
@@ -27,6 +37,7 @@ SOLID_NAMES = {'Bathtub continuous shell', 'Bathtub curved spout', 'Bathtub drai
                'Bathtub overflow', 'Bathtub tap foot', 'Bathtub tap base -0.135', 'Bathtub tap base 0.135',
                'Bathtub tap stem -0.135', 'Bathtub tap stem 0.135', 'Bathtub tap handle -0.135',
                'Bathtub tap handle 0.135'}
+WATER_NAME = 'Bath opaque water surface'
 ACTION = dict(name='bath_idle_v1', samples=4, closure_frame=4, half_cycle_ticks=8, loop_ticks=16)
 ACCEPTED_BASE = 'bathroom/actions/review/bath/prototype-12-wall-backed-water'
 ACCEPTED_MODEL = ACCEPTED_BASE+'/bath-pose-authoring.blend'
@@ -36,7 +47,15 @@ LOOP_EXTRA_INPUTS = {'bathroom/actions/render_bath_loop.py', 'bathroom/actions/b
 ORIGINAL_DIMENSIONS = [1280, 1408]
 LOGICAL_CANVAS = [160, 176]
 RENDERED_BODY_COUNT = 41
-MIN_PATCH = dict(width=.025, depth=.03, area=.001)
+SKIN_BODIES = {'Overshirt body', 'Relaxed shirt sleeve', 'Relaxed shirt sleeve.001'}
+SKIN_MATERIAL = 'Warm ochre skin'
+TARGET_TOLERANCE = 1e-7
+NOD_TOLERANCE_DEGREES = .05
+MIN_CANVAS_MARGIN = 8
+REVIEW_CLEAR_ABOVE = .005
+CONTACT_MAX_GAP = .003
+PATCH_MAX_GAP = .01
+WITNESS_FIELDS = ('x', 'y', 'body_z', 'basin_z', 'gap')
 
 
 def validate_render_rows(rows, ink=False):
@@ -73,33 +92,108 @@ def validate_registration(record, accepted):
         raise ValueError('Bath camera or physical-origin registration differs from accepted source')
 
 
+def same_point(a, b):
+    return len(a) == 3 and len(b) == 3 and all(abs(number(x)-number(y)) <= TARGET_TOLERANCE for x, y in zip(a, b))
+
+
+def angle_degrees(a, b):
+    dot = sum(x*y for x, y in zip(a, b))
+    norms = math.sqrt(sum(x*x for x in a))*math.sqrt(sum(x*x for x in b))
+    if norms <= 0:
+        raise ValueError('Degenerate bone direction')
+    return math.degrees(math.acos(max(-1., min(1., dot/norms))))
+
+
+def validate_targets(targets, accepted_targets, nod_degrees):
+    """Every static bone equals the accepted pose; the head keeps its joint and nods by the declared angle."""
+    if set(targets) != BONE_NAMES or set(accepted_targets) != BONE_NAMES or set(STATIC_BONES) | {'head'} != BONE_NAMES:
+        raise ValueError('Bath joint targets are incomplete')
+    for name in STATIC_BONES:
+        for field in ('head', 'tail'):
+            if not same_point(targets[name][field], accepted_targets[name][field]):
+                raise ValueError('Bath sample moved a static accepted bone: '+name)
+    head, accepted_head = targets['head'], accepted_targets['head']
+    if not same_point(head['head'], accepted_head['head']):
+        raise ValueError('Bath sample moved the head joint')
+    nod = angle_degrees([number(a)-number(b) for a, b in zip(head['tail'], head['head'])],
+                        [number(a)-number(b) for a, b in zip(accepted_head['tail'], accepted_head['head'])])
+    if nod > MAX_NOD_DEGREES+NOD_TOLERANCE_DEGREES or abs(nod-number(nod_degrees)) > NOD_TOLERANCE_DEGREES:
+        raise ValueError('Bath sample head nod differs from the declared loop motion')
+    return nod
+
+
 def validate_closure(closure, accepted_targets):
     finite_tree(closure)
     flags = ('manual_exact_phase0', 'manual_exact_endpoint', 'saved_exact_phase0', 'saved_exact_endpoint',
              'all54_evaluated', 'head_nod_only')
     if (any(closure.get(key) is not True for key in flags) or closure.get('limb_movement') is not False
             or set(closure.get('complete_body_inventory', [])) != BODY_NAMES
-            or len(closure['complete_body_inventory']) != len(BODY_NAMES)
-            or set(closure.get('named_bones', {})) != BONE_NAMES):
+            or len(closure['complete_body_inventory']) != len(BODY_NAMES)):
         raise ValueError('Missing exact complete-body bath loop closure')
-    for name, target in closure['named_bones'].items():
+    named = closure.get('named_bones', {})
+    if set(named) != BONE_NAMES:
+        raise ValueError('Bath loop closure names an incomplete bone set')
+    for name, target in named.items():
         for field in ('head', 'tail'):
-            if len(target[field]) != 3 or any(abs(number(a)-number(b)) > 1e-7 for a, b in zip(target[field], accepted_targets[name][field])):
+            if not same_point(target[field], accepted_targets[name][field]):
                 raise ValueError('Bath loop closure left the accepted joint targets')
 
 
-def validate_patch(patch):
+def witness_key(cell):
+    return tuple(number(cell[field]) for field in WITNESS_FIELDS)
+
+
+def validate_patch(patch, grid):
+    """Recompute the finite patch from its witnesses, which must be cells of the complete grid."""
     if patch is None:
         raise ValueError('Bath support lacks a finite patch')
-    width, depth, area = number(patch['width']), number(patch['depth']), number(patch['area'])
-    if (width < MIN_PATCH['width'] or depth < MIN_PATCH['depth'] or area < MIN_PATCH['area']
-            or patch.get('complete_cartesian_surface_grid') is not True or type(patch['samples']) is not int
-            or patch['samples'] < 9 or not 0 <= number(patch['min_gap']) <= number(patch['max_gap']) <= .01
-            or len(patch['actual_witnesses']) != patch['samples']):
-        raise ValueError('Bath support patch is not a complete finite neighborhood')
+    witnesses = patch.get('actual_witnesses')
+    if not isinstance(witnesses, list) or type(patch.get('samples')) is not int or len(witnesses) != patch['samples']:
+        raise ValueError('Bath support patch witnesses do not match its sample count')
+    cells = {witness_key(cell) for cell in grid}
+    if any(witness_key(w) not in cells for w in witnesses):
+        raise ValueError('Bath support patch witness is not a cell of the measured grid')
+    recomputed = validate_support_patch([{field:number(w[field]) for field in WITNESS_FIELDS} for w in witnesses])
+    for key in ('area', 'width', 'depth', 'min_gap', 'max_gap', 'samples', 'xy_bounds'):
+        if patch.get(key) != recomputed[key]:
+            raise ValueError('Bath support patch claim differs from its recomputed witnesses: '+key)
+    if patch.get('complete_cartesian_surface_grid') is not True or recomputed['max_gap'] > PATCH_MAX_GAP:
+        raise ValueError('Bath support patch is not a complete grid within the contact interval')
+    return recomputed
 
 
-def validate_measurement(measurement):
+def validate_certificate(record):
+    grid = record.get('complete_actual_grid')
+    if (record.get('state') != 'passed' or not isinstance(grid, list) or not grid
+            or type(record.get('actual_surface_ray_hits')) is not int or record['actual_surface_ray_hits'] != len(grid)):
+        raise ValueError('Bath support certificate is not a passed actual-surface measurement')
+    for cell in grid:
+        if abs(number(cell['body_z'])-number(cell['basin_z'])-number(cell['gap'])) > 1e-7:
+            raise ValueError('Bath support grid cell is not an actual surface pair')
+    gaps = [number(cell['gap']) for cell in grid]
+    if record.get('min_gap') != min(gaps) or record.get('max_gap') != max(gaps):
+        raise ValueError('Bath support certificate extrema differ from its grid')
+    if not 0 <= min(gaps) <= CONTACT_MAX_GAP:
+        raise ValueError('Bath support minimum gap leaves the contact interval')
+    return validate_patch(record.get('finite_patch'), grid)
+
+
+def validate_reviewed_hit(hit):
+    review = hit.get('review', {})
+    crossings = review.get('crossings', {})
+    if (hit.get('kind') != 'chair_inside_body' or hit.get('body') not in BODY_NAMES or hit.get('fixture') not in SOLID_NAMES
+            or review.get('parity_inside') is not False
+            or set(crossings) != {'+z', '-z', '+x', '-x', '+y', '-y'}
+            or any(type(c) is not int or c < 0 or c % 2 for c in crossings.values())):
+        raise ValueError('Reviewed containment hit is not an even-parity open-mesh artifact')
+    above = review.get('first_surface_above')
+    if above is not None and not number(above) > REVIEW_CLEAR_ABOVE:
+        raise ValueError('Reviewed containment hit has a surface within five millimetres above it')
+    if len(hit.get('point', [])) != 3:
+        raise ValueError('Reviewed containment hit lacks its witness point')
+
+
+def validate_measurement(measurement, accepted_targets, nod_degrees):
     finite_tree(measurement)
     if measurement.get('support_state') != 'passed' or measurement.get('collisions'):
         raise ValueError('Bath sample lost support or gained a collision')
@@ -107,26 +201,18 @@ def validate_measurement(measurement):
     if set(support) != {'hip', 'back'}:
         raise ValueError('Bath support needs seat and wall certificates')
     for key in ('hip', 'back'):
-        record = support[key]
-        if record.get('state') != 'passed' or type(record['actual_surface_ray_hits']) is not int or record['actual_surface_ray_hits'] <= 0:
-            raise ValueError('Bath support certificate is not a passed actual-surface measurement')
-        if not 0 <= number(record['min_gap']) <= .003:
-            raise ValueError('Bath support minimum gap leaves the contact interval')
-        validate_patch(record['finite_patch'])
+        validate_certificate(support[key])
     errors = measurement['bone_length_errors']
     if set(errors) != BONE_NAMES or any(not 0 <= number(e) <= 1e-5 for e in errors.values()):
         raise ValueError('Bath sample changed anatomical lengths')
     if measurement.get('complete_body_fixture_pairs') != len(BODY_NAMES)*len(SOLID_NAMES):
         raise ValueError('Bath clearance did not test every body against every fixture solid')
     for hit in measurement.get('reviewed_open_mesh_containment_hits', []):
-        review = hit['review']
-        if review.get('parity_inside') is not False or any(type(c) is not int or c % 2 for c in review['crossings'].values()):
-            raise ValueError('Reviewed containment hit is not an even-parity open-mesh artifact')
-    if set(measurement['joint_targets']) != BONE_NAMES:
-        raise ValueError('Bath sample joint targets are incomplete')
+        validate_reviewed_hit(hit)
+    return validate_targets(measurement['joint_targets'], accepted_targets, nod_degrees)
 
 
-def validate_contacts(rows, expected_frames=range(5)):
+def validate_contacts(rows, accepted_targets, expected_frames=range(5)):
     expected, seen = set(expected_frames), set()
     for row in rows:
         frame = row['frame']
@@ -135,18 +221,34 @@ def validate_contacts(rows, expected_frames=range(5)):
         seen.add(frame)
         if row.get('support_state') != 'passed':
             raise ValueError('Bath contact sample is not passed')
-        validate_measurement(row['measurement'])
+        validate_measurement(row['measurement'], accepted_targets, head_nod(frame/4))
     if seen != expected or len(rows) != len(expected):
         raise ValueError('Missing complete bath sample/closure contact matrix')
 
 
-def validate_strokes(rows):
+def validate_geometry(rows, rendered_inventory):
+    expected, seen, fixtures = set(itertools.product(FACINGS, range(4))), set(), {}
+    for row in rows:
+        key = (row['facing'], row['frame'])
+        if key in seen or key not in expected or type(row['frame']) is not int:
+            raise ValueError('Duplicate or unexpected bath geometry check')
+        seen.add(key)
+        if number(row['minimum_canvas_margin']) < MIN_CANVAS_MARGIN:
+            raise ValueError('Bath render reaches its canvas border')
+        if set(row.get('body', {})) != set(rendered_inventory) or set(row.get('fixture', {})) != SOLID_NAMES | {WATER_NAME}:
+            raise ValueError('Bath geometry check does not digest every rendered body and fixture object')
+        if fixtures.setdefault(row['facing'], row['fixture']) != row['fixture']:
+            raise ValueError('Bath loop moved fixture or water geometry between frames')
+    if seen != expected:
+        raise ValueError('Missing complete bath geometry check matrix')
+
+
+def validate_strokes(rows, rendered_inventory):
     expected, seen = set(itertools.product(FACINGS, range(4))), set()
     for row in rows:
         key = (row['facing'], row['frame'])
-        inventory = set(row['body_owned_stroke_inventory'])
         if (key not in expected or key in seen or type(row['frame']) is not int
-                or len(row['body_owned_stroke_inventory']) != RENDERED_BODY_COUNT or not inventory <= BODY_NAMES
+                or row['body_owned_stroke_inventory'] != sorted(rendered_inventory)
                 or row['full_scene_occlusion'] is not True or row['fixture_geometry_hidden'] is not False
                 or row['body_and_fixture_holdout'] is not False):
             raise ValueError('Bath body-ink stroke ownership is incomplete')
@@ -157,10 +259,13 @@ def validate_strokes(rows):
 
 def validate_appearance(appearance, inventory):
     finite_tree(appearance)
+    omitted = appearance.get('omitted_render_details', [])
+    assignments = appearance.get('material_assignments', {})
     if (appearance.get('explicit_anatomy_added') is not False or appearance.get('preserved_geometry_weights') is not True
-            or len(appearance.get('omitted_render_details', [])) != 13
-            or set(inventory) | set(appearance['omitted_render_details']) != BODY_NAMES
-            or len(inventory) != RENDERED_BODY_COUNT):
+            or set(omitted) != OMITTED_GARMENT_DETAILS or len(omitted) != len(OMITTED_GARMENT_DETAILS)
+            or set(inventory) != BODY_NAMES-OMITTED_GARMENT_DETAILS or len(inventory) != RENDERED_BODY_COUNT
+            or set(assignments) != SKIN_BODIES
+            or any(record.get('shower_material') != SKIN_MATERIAL for record in assignments.values())):
         raise ValueError('Bath appearance is not the declared bathing appearance over the complete body')
 
 
@@ -194,15 +299,17 @@ def read_loop(path, *, process_exited):
     checked_file(path.parent, proof['editable_model'])
     validate_action(proof['action'])
     validate_registration(proof, accepted)
-    validate_closure(proof['closure'], accepted['measurement']['joint_targets'])
-    validate_measurement(accepted['measurement'])
+    accepted_targets = accepted['measurement']['joint_targets']
+    validate_measurement(accepted['measurement'], accepted_targets, 0)
+    validate_closure(proof['closure'], accepted_targets)
     if proof.get('palette_independent') is not True:
         raise ValueError('Bath loop must declare its single bathing appearance')
     validate_appearance(proof['bathing_appearance'], proof['rendered_body_inventory'])
     if proof['water'] != accepted['water'] or proof['plane'] != accepted['plane']:
         raise ValueError('Bath loop changed the accepted water or wall plane')
     for field in ('manual_contacts', 'contacts', 'reopened_contacts'):
-        validate_contacts(proof[field])
+        validate_contacts(proof[field], accepted_targets)
+    validate_geometry(proof['geometry_checks'], proof['rendered_body_inventory'])
     rows = validate_render_rows(proof['renders'])
     checks = {row['path']:row for row in proof['raster_checks']}
     if set(checks) != {row['path'] for row in rows.values()} or any(
@@ -210,7 +317,7 @@ def read_loop(path, *, process_exited):
             for check in checks.values()):
         raise ValueError('Bath raster checks do not cover every original render inside its canvas')
     for row in rows.values():
-        checked_file(path.parent, row)
+        read_png(path.parent, row, ORIGINAL_DIMENSIONS)
     return proof
 
 
@@ -220,10 +327,10 @@ def read_ink(path, source_path, source):
         raise ValueError('Body ink must stay in the owned bath review directory')
     ink = json.loads(path.read_text())
     validate_ink_binding(ink, source, digest(source_path))
-    validate_strokes(ink['stroke_ownership'])
+    validate_strokes(ink['stroke_ownership'], source['rendered_body_inventory'])
     if ink.get('producer_sha256') != digest(BASE/'render_bath_loop.py'):
         raise ValueError('Body-ink producer differs from its pinned implementation')
     rows = validate_render_rows(ink['renders'], ink=True)
     for row in rows.values():
-        checked_file(path.parent, row)
+        read_png(path.parent, row, ORIGINAL_DIMENSIONS)
     return ink, rows
