@@ -320,6 +320,18 @@ fn start_cleanup(world: &mut World, person: Entity, dishes: Vec<u32>, directed: 
     true
 }
 
+/// Whether `person`'s cleanup task is one the player ordered. A task the
+/// sim started for itself covers only its own dishes and yields to a
+/// critical need; a directed one covers every dish and does not.
+pub(crate) fn cleaning_under_orders(state: Option<&SavedDomestic>, person: Entity) -> bool {
+    state.is_some_and(|state| {
+        state
+            .cleanup
+            .iter()
+            .any(|task| task.person == person.index_u32() && task.directed)
+    })
+}
+
 /// Runs after player intents and before ordinary autonomous selection.
 pub(crate) fn tick(world: &mut World) {
     let Some(tuning) = world.resource::<Content>().0.tuning.domestic else {

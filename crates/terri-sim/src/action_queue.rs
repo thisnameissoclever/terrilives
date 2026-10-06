@@ -88,9 +88,15 @@ impl Sim {
         };
         // A running chain's own order stays queued until the chain ends,
         // and the current row already describes that chain, so the order
-        // is the served one unless an ordinary action has interrupted the
-        // chain - then the chain is waiting and its order is listed.
+        // is the served one while the sim is carrying the chain out: at a
+        // station, walking to one, or idle between steps. An ordinary
+        // action or a conversation, started or received, has interrupted
+        // the chain - then the chain is waiting and its order is listed.
+        let carrying_out_chain = social.is_none()
+            && partner_action.is_none()
+            && target.is_none_or(|intent| intent.interaction == crate::systems::chain::CHAIN_STEP);
         let served = match served {
+            _ if !carrying_out_chain => served,
             Some(intent) if intent.interaction != crate::systems::chain::CHAIN_STEP => Some(intent),
             _ => self
                 .world
@@ -415,6 +421,25 @@ mod tests {
             "the interrupted snack waits with its order"
         );
         assert!(labels[0].starts_with("Read a book: "));
+        assert!(labels[1].starts_with("Grab a snack: "));
+        assert!(labels[2].starts_with("Grab a snack: "));
+
+        // Talked to by somebody else: the chain waits for the talk to
+        // end, so its order is listed just as during the read.
+        sim.world_mut().entity_mut(person).remove::<Target>();
+        let other = sim
+            .world_mut()
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(sim.world())
+            .find(|candidate| *candidate != person)
+            .unwrap();
+        sim.world_mut().entity_mut(other).insert(Socialising {
+            partner: person,
+            interaction: 0,
+            remaining_ticks: 10,
+        });
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(labels.len(), 3, "a received talk interrupts the snack too");
         assert!(labels[1].starts_with("Grab a snack: "));
         assert!(labels[2].starts_with("Grab a snack: "));
     }

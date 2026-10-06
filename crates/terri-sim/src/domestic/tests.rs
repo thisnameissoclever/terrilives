@@ -1714,8 +1714,9 @@ fn queued_snack_orders_run_one_after_another() {
     for _ in 0..6000 {
         sim.tick();
         ticks += 1;
-        // Hunger is topped up so the person keeps obeying rather than
-        // cooking a meal on their own account.
+        // Hunger is topped up so no need turns critical during the run:
+        // a critical need would abandon the cleanup a finished snack may
+        // start on its own, and the run should measure snacks alone.
         sim.world_mut()
             .get_mut::<Needs>(person)
             .unwrap()
@@ -1745,5 +1746,90 @@ fn queued_snack_orders_run_one_after_another() {
     assert_eq!(
         finished, ORDERS,
         "every queued snack order must run as its own snack within {ticks} ticks"
+    );
+}
+
+/// A "Clean dishes" order given to a housemate already washing up on
+/// their own account widens the task to every dish and marks it
+/// directed, as it did when every chain order restarted its chain. The
+/// order then stays queued, served by the directed task, until the
+/// washing up is done.
+#[test]
+fn a_cleanup_order_takes_over_an_autonomous_cleanup() {
+    let (mut sim, people, _, counter, _) = household();
+    for person in &people {
+        *sim.world_mut().get_mut::<Needs>(*person).unwrap() = Needs::all_at(100.0);
+    }
+    let person = people[0];
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+    add_dishes(sim.world_mut(), counter.index_u32(), 1, 2);
+    assert!(start_cleanup(sim.world_mut(), person, vec![0], false));
+    let pack = sim.world().resource::<Content>().0;
+    let sink = sim
+        .world_mut()
+        .query::<(Entity, &SmartObject)>()
+        .iter(sim.world())
+        .find(|(_, object)| pack.object(object.0).id == "kitchen_sink")
+        .expect("the shipped lot has a sink")
+        .0;
+    let sink_def = sim.world().get::<SmartObject>(sink).unwrap().0;
+    let row = pack.object(sink_def).interactions.len() as u32
+        + pack
+            .chains
+            .iter()
+            .filter(|chain| chain.advertised_by == sink_def)
+            .position(|chain| chain.id == CLEANUP)
+            .expect("the sink advertises the cleanup") as u32;
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObject {
+            agent: person.index_u32(),
+            object: sink.index_u32(),
+            interaction: row,
+        });
+    sim.tick();
+    let task = |sim: &Sim| {
+        sim.world()
+            .resource::<SavedDomestic>()
+            .cleanup
+            .iter()
+            .find(|task| task.person == person.index_u32())
+            .cloned()
+    };
+    let taken_over = task(&sim).expect("the order keeps a cleanup task");
+    assert!(taken_over.directed, "the order makes the task directed");
+    assert_eq!(taken_over.dishes, vec![0, 1], "the order covers every dish");
+    assert_eq!(sim.queued_orders_of(person.index_u32()), 1);
+
+    let start = sim.world().resource::<terri_core::SimClock>().tick;
+    let mut ticks = 0_u64;
+    let mut finished = false;
+    for _ in 0..3000 {
+        sim.tick();
+        ticks += 1;
+        match task(&sim) {
+            Some(task) => {
+                assert!(
+                    task.directed,
+                    "tick {ticks}: the directed task is not restarted"
+                );
+                assert_eq!(sim.queued_orders_of(person.index_u32()), 1);
+            }
+            None => {
+                finished = true;
+                break;
+            }
+        }
+    }
+    assert_eq!(
+        sim.world().resource::<terri_core::SimClock>().tick,
+        start + ticks,
+        "one clock tick per loop tick"
+    );
+    assert!(finished, "the washing up finishes within the bound");
+    assert_eq!(
+        sim.queued_orders_of(person.index_u32()),
+        0,
+        "the order is settled with the task"
     );
 }

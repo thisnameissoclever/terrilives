@@ -408,6 +408,32 @@ mod sampler_tests {
     }
 }
 
+/// Records `chain` as the one the player ordered `agent` to run. The
+/// privacy rules read the record to tell a directed errand from one the
+/// sim chose for itself; `privacy::maintain` clears it once the sim no
+/// longer carries that chain.
+fn record_directed_chain(
+    boundaries: &mut crate::privacy::BoundaryDecisions,
+    identities: &Query<&SimId>,
+    agent: Entity,
+    chain: u32,
+) {
+    if let Ok(id) = identities.get(agent) {
+        boundaries
+            .0
+            .entry(id.0)
+            .or_insert(terri_core::save::SavedBoundaryDecision {
+                actor: id.0,
+                expires: 0,
+                lapse: false,
+                waiting_since: None,
+                goal: None,
+                directed_chain: None,
+            })
+            .directed_chain = Some(chain);
+    }
+}
+
 /// Turns each directed agent's front intent into a `Target`, taking
 /// precedence over whatever the sim had decided for itself - [D-3].
 ///
@@ -485,32 +511,6 @@ mod sampler_tests {
 /// [`select_action`]: the query tuple is what pushes past clippy's
 /// threshold, and a type alias would only move it somewhere less
 /// readable.
-/// Records `chain` as the one the player ordered `agent` to run. The
-/// privacy rules read the record to tell a directed errand from one the
-/// sim chose for itself; `privacy::maintain` clears it once the sim no
-/// longer carries that chain.
-fn record_directed_chain(
-    boundaries: &mut crate::privacy::BoundaryDecisions,
-    identities: &Query<&SimId>,
-    agent: Entity,
-    chain: u32,
-) {
-    if let Ok(id) = identities.get(agent) {
-        boundaries
-            .0
-            .entry(id.0)
-            .or_insert(terri_core::save::SavedBoundaryDecision {
-                actor: id.0,
-                expires: 0,
-                lapse: false,
-                waiting_since: None,
-                goal: None,
-                directed_chain: None,
-            })
-            .directed_chain = Some(chain);
-    }
-}
-
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn serve_intents(
     mut commands: Commands,
@@ -519,6 +519,7 @@ pub fn serve_intents(
     beds: BedState,
     mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
     identities: Query<&SimId>,
+    domestic: Option<Res<terri_core::save::SavedDomestic>>,
     // Work outranks the queue - [E4]. serve_intents deliberately sees
     // mid-walk and mid-meal sims because a player intent preempts, but
     // the clock's preemption is not preemptable back: a commuting or
@@ -749,13 +750,20 @@ pub fn serve_intents(
         let interactions = content.0.object(placed.0).interactions.len();
         match super::chain::ordered_chain(content.0, placed.0, intent.interaction) {
             Some(global) => {
-                if chain_state.is_some_and(|state| state.chain == global) {
-                    // Already carrying out this very chain - the
-                    // `Target` check above, for a chain. A chain the sim
-                    // chose for itself that the order happens to name is
-                    // adopted rather than restarted, and recorded as
-                    // directed so the privacy rules read it as the
-                    // player's errand from here on.
+                let chain = &content.0.chains[global as usize];
+                // Already carrying out this very chain - the `Target`
+                // check above, for a chain. A chain the sim chose for
+                // itself that the order happens to name is adopted
+                // rather than restarted, and recorded as directed so
+                // the privacy rules read it as the player's errand from
+                // here on. EXCEPT a cleanup the sim started on its own:
+                // that task covers only the sim's own dishes and is
+                // dropped the moment a need turns critical, neither of
+                // which is what "Clean dishes" orders, so it is
+                // restarted below as a directed task over every dish.
+                let adoptable = chain.id != crate::domestic::CLEANUP
+                    || crate::domestic::cleaning_under_orders(domestic.as_deref(), agent);
+                if adoptable && chain_state.is_some_and(|state| state.chain == global) {
                     record_directed_chain(&mut boundaries, &identities, agent, global);
                     continue;
                 }
@@ -776,7 +784,7 @@ pub fn serve_intents(
                     .insert(terri_core::ChainState::begin(global));
                 record_directed_chain(&mut boundaries, &identities, agent, global);
                 commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
-                if content.0.chains[global as usize].id == crate::domestic::CLEANUP {
+                if chain.id == crate::domestic::CLEANUP {
                     commands.queue(move |world: &mut World| {
                         crate::domestic::directed_cleanup(world, agent)
                     });
