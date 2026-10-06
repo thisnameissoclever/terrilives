@@ -4594,4 +4594,100 @@ mod tests {
         assert_eq!(loaded.world().resource::<CommandQueue>().len(), 1);
         assert_eq!(loaded.world_hash(), sim.world_hash());
     }
+
+    /// [ES-atomic]: an ID this pack lacks, or a personality unknown at
+    /// capture, restores as `u32::MAX`, past every table, so the drain
+    /// refuses the edit rather than adopting some other row.
+    #[test]
+    fn an_edit_naming_unknown_content_restores_past_every_table() {
+        use terri_core::layout::Relation;
+        let restored = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: "Ann".to_string(),
+                personality: Some(None),
+                traits: vec![
+                    Some("bookworm".to_string()),
+                    Some("not_a_trait".to_string()),
+                ],
+                ties: vec![(2, Some(Relation::Child)), (5, None)],
+            },
+            terri_data::pack(),
+        );
+        assert_eq!(
+            restored,
+            SimCommand::EditHousemate {
+                sim: 4,
+                name: "Ann".to_string(),
+                personality: Some(u32::MAX),
+                traits: vec![3, u32::MAX],
+                ties: vec![(2, Some(Relation::Child)), (5, None)],
+            }
+        );
+        let unknown_id = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: String::new(),
+                personality: Some(Some("not_a_personality".to_string())),
+                traits: Vec::new(),
+                ties: Vec::new(),
+            },
+            terri_data::pack(),
+        );
+        assert!(matches!(
+            unknown_id,
+            SimCommand::EditHousemate {
+                personality: Some(u32::MAX),
+                ..
+            }
+        ));
+        let kept = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: String::new(),
+                personality: None,
+                traits: Vec::new(),
+                ties: Vec::new(),
+            },
+            terri_data::pack(),
+        );
+        assert!(matches!(
+            kept,
+            SimCommand::EditHousemate {
+                personality: None,
+                ..
+            }
+        ));
+    }
+
+    /// [ES-atomic]: a saved edit is held to the name and list limits every
+    /// saved name and list is held to, each limit inclusive.
+    #[test]
+    fn a_saved_edit_is_held_to_the_name_and_list_limits() {
+        let edit = |name: String, traits: usize, ties: usize| SavedCommand::EditHousemate {
+            sim: 0,
+            name,
+            personality: None,
+            traits: vec![None; traits],
+            ties: vec![(0, None); ties],
+        };
+        let validate =
+            |command: SavedCommand| validate_command(&command, &[], terri_data::pack(), false);
+        assert_eq!(
+            validate(edit(
+                "n".repeat(MAX_TEXT_BYTES),
+                MAX_LIST_ENTRIES,
+                MAX_LIST_ENTRIES
+            )),
+            Ok(()),
+            "every limit is inclusive"
+        );
+        for (label, command) in [
+            ("name", edit("n".repeat(MAX_TEXT_BYTES + 1), 0, 0)),
+            ("traits", edit(String::new(), MAX_LIST_ENTRIES + 1, 0)),
+            ("ties", edit(String::new(), 0, MAX_LIST_ENTRIES + 1)),
+        ] {
+            assert_eq!(validate(command), Err(SaveError::InvalidValue), "{label}");
+        }
+    }
 }
