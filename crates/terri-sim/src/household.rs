@@ -49,6 +49,13 @@ pub(crate) fn spawn_member(
             .map(|&index| (index, authored_trait_state(&traits[index as usize])))
             .collect(),
     );
+    // [OA-values]: one draw per affinity kind, directly after the
+    // instinct's, whether or not a worn disposition then sets the value.
+    let affinities = {
+        let content = world.resource::<crate::Content>().0;
+        let mut rng = world.resource_mut::<terri_core::SimRng>();
+        crate::affinity::draw_with_defs(&mut rng, content, traits, Some(&worn))
+    };
     // Every person carries practice from the start, seeded so each worn
     // capability's start_level is reached as skill mastery ([SK-capability]).
     let mut skills = terri_core::Skills::default();
@@ -60,6 +67,7 @@ pub(crate) fn spawn_member(
     );
     let mut spawned = world.spawn((
         terri_core::SelfPreservation(instinct),
+        affinities,
         Agent,
         member.position,
         needs,

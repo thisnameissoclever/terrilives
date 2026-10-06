@@ -540,8 +540,9 @@ pub(crate) fn drain_ordinary_commands(
                 // REGARDLESS of the serving guard** - [K4]'s one
                 // destructive path. The guard protects autonomous
                 // actions from "stop doing what I told you", but a
-                // chain is a long visible errand whose starting intent
-                // is already spent, so stop means stop. The chain walk
+                // chain is a long visible errand, chosen or ordered, and
+                // stop means stop: an ordered chain's order goes with
+                // the rest of the queue cleared above. The chain walk
                 // is identifiable by its sentinel, which is what lets
                 // the station release here without touching the guard
                 // above; the counter and the carried item go

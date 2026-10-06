@@ -79,6 +79,21 @@ pub struct SaveSnapshotV5 {
     /// payload written before skills existed, and the loader then seeds
     /// practice once from each worn capability trait's saved state.
     pub skills: Option<SavedSkills>,
+    /// Each person's affinity values - [OA-values] in
+    /// `docs/specs/2026-10-06-object-affinities.md`. Current writers emit
+    /// Some, even empty, and a present field is authoritative. None appears
+    /// only in a payload written before affinities existed, and the loader
+    /// then draws every person's values once from the saved world generator.
+    pub affinities: Option<SavedAffinities>,
+}
+
+/// Saved affinity values: `(entity index, kind id, value)` rows, strictly
+/// ascending by entity index and then id, one per value a living person
+/// holds that is not exactly 0.0. The id is the content's authored kind id,
+/// so adding or reordering kinds never reinterprets a save.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct SavedAffinities {
+    pub rows: Vec<(u32, String, f32)>,
 }
 
 /// Saved skill practice: `(entity index, skill id, practice)` rows,
@@ -207,6 +222,7 @@ impl LocalBedSnapshotV5 {
             domestic: None,
             dining: None,
             skills: None,
+            affinities: None,
         }
     }
 }

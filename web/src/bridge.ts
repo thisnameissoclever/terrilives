@@ -26,6 +26,15 @@ export interface SkillStanding {
   readonly mastery: number;
 }
 
+/** The five words a person's feeling about an affinity kind reads as ([OA-hud]). */
+export type AffinityWord = 'Loves' | 'Likes' | 'Indifferent' | 'Dislikes' | 'Hates';
+
+const AFFINITY_WORDS: readonly string[] = ['Loves', 'Likes', 'Indifferent', 'Dislikes', 'Hates'];
+
+function isAffinityWord(word: string): word is AffinityWord {
+  return AFFINITY_WORDS.includes(word);
+}
+
 export interface BedPlace { readonly bed: number; readonly ordinal: number; }
 export interface BedPlaceStatus extends BedPlace {
   readonly label: string;
@@ -1641,6 +1650,26 @@ export class SimBridge {
   /** The top level of each content skill, aligned with skillLabels. */
   skillLevels(): number[] {
     return Array.from(this.handle.skill_levels());
+  }
+
+  /**
+   * The word for each affinity value of the person at `entityIndex`, in
+   * pack order - Loves, Likes, Indifferent, Dislikes or Hates, worded by the
+   * simulation from the edges in tuning ([OA-hud]). Null for anything that
+   * is not a living person and for a reading holding any other word. A copy
+   * across the boundary; the Likes and dislikes view reads it only while it
+   * is open.
+   */
+  affinityWordsOf(entityIndex: number): AffinityWord[] | null {
+    if (!isU32(entityIndex)) return null;
+    const words = this.handle.affinity_words_of(entityIndex);
+    if (words.length === 0 || !words.every(isAffinityWord)) return null;
+    return words;
+  }
+
+  /** One label per affinity kind, in pack order. Read once, like skillLabels. */
+  affinityLabels(): string[] {
+    return this.handle.affinity_labels();
   }
 
   /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */
