@@ -1360,7 +1360,7 @@ describe('SimBridge', () => {
       // SetColourway with no colourway, and `[0x0d, 0x00]` a truncated
       // BuyObjectInColourway. `[0x0e, 0x00]` then became a truncated
       // AddHousemate, and each later append moved the edge on to 23.
-      ['variant index 23, one past the twenty-three that exist', [23, 0x00]],
+      ['variant index 23, one past the twenty-three that exist', [0x17, 0x00]],
       ['BuyObjectInColourway missing its colourway', [0x0d, 0x01, 0x02, 0x03, 0x00]],
       ['SellObject missing its object', [0x0b]],
       ['SetColourway missing its colourway', [0x0c, 0x01]],

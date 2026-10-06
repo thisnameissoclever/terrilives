@@ -1138,10 +1138,8 @@ impl SimHandle {
         else {
             return false;
         };
-        let tuning = self.sim.world().resource::<Content>().0.tuning;
-        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
-            || traits.len() > tuning.housemate_max_traits as usize
-        {
+        let name = name.trim();
+        if !self.housemate_fields_within_bounds(name, traits.len(), 0) {
             return false;
         }
         let bytes = postcard::to_allocvec(&SimCommand::AddHousemate {
@@ -1174,10 +1172,8 @@ impl SimHandle {
         else {
             return false;
         };
-        let tuning = self.sim.world().resource::<Content>().0.tuning;
-        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
-            || traits.len() > tuning.housemate_max_traits as usize
-        {
+        let name = name.trim();
+        if !self.housemate_fields_within_bounds(name, traits.len(), 0) {
             return false;
         }
         let bytes = postcard::to_allocvec(&SimCommand::AddHousemateWithInstinct {
@@ -1192,10 +1188,13 @@ impl SimHandle {
 
     /// [ES-atomic]: stages one edit of a living person by SimId. `ties` is a
     /// flat list of relative SimId and relation code pairs; code 4 clears
-    /// the pair and codes 0 through 3 are `Relation` codes. Every number
-    /// passes `placement_u32` and the name, trait and tie bounds apply
-    /// before anything is serialized; `enqueue_command` checks the bounds
-    /// again for raw bytes. Queue acceptance only: read the outcome from
+    /// the pair and codes 0 through 3 are `Relation` codes. With
+    /// `keep_personality` set, `personality` is ignored whatever it holds,
+    /// NaN included, and never reaches the command; otherwise it must pass
+    /// `placement_u32`. Every other number passes `placement_u32`, and the
+    /// trimmed name, which is what gets serialized, must fit the name,
+    /// trait and tie bounds; `enqueue_command` checks the bounds again for
+    /// raw bytes. Queue acceptance only: read the outcome from
     /// `last_edit_result`.
     pub fn edit_housemate(
         &mut self,
@@ -1234,7 +1233,8 @@ impl SimHandle {
         else {
             return false;
         };
-        if !self.edit_within_bounds(name, traits.len(), ties.len()) {
+        let name = name.trim();
+        if !self.housemate_fields_within_bounds(name, traits.len(), ties.len()) {
             return false;
         }
         let bytes = postcard::to_allocvec(&SimCommand::EditHousemate {
@@ -2060,29 +2060,21 @@ impl SimHandle {
             return false;
         }
 
-        if let SimCommand::AddHousemateWithInstinct {
-            name,
-            traits,
-            instinct,
-            ..
-        } = &command
-        {
-            let tuning = self.sim.world().resource::<Content>().0.tuning;
-            if *instinct > 100
-                || name.trim().chars().count() > tuning.housemate_name_max_chars as usize
-                || traits.len() > tuning.housemate_max_traits as usize
-            {
-                return false;
+        // Raw bytes cannot be trimmed after the fact, so the untrimmed name
+        // is held to the byte limit here; see `housemate_fields_within_bounds`.
+        let within_bounds = match &command {
+            SimCommand::AddHousemateWithInstinct { instinct, .. } if *instinct > 100 => false,
+            SimCommand::AddHousemate { name, traits, .. }
+            | SimCommand::AddHousemateWithInstinct { name, traits, .. } => {
+                self.housemate_fields_within_bounds(name, traits.len(), 0)
             }
-        }
-
-        if let SimCommand::EditHousemate {
-            name, traits, ties, ..
-        } = &command
-        {
-            if !self.edit_within_bounds(name, traits.len(), ties.len()) {
-                return false;
-            }
+            SimCommand::EditHousemate {
+                name, traits, ties, ..
+            } => self.housemate_fields_within_bounds(name, traits.len(), ties.len()),
+            _ => true,
+        };
+        if !within_bounds {
+            return false;
         }
 
         if let SimCommand::FitWindow { axis, x, y, model } = &command {
@@ -2657,15 +2649,21 @@ impl SimHandle {
 }
 
 impl SimHandle {
-    /// Whether an edit's trimmed name, trait list and tie list fit the
-    /// creation bounds and the household size [ES-atomic].
-    /// `edit_housemate` asks before it serializes and `enqueue_command`
-    /// asks again for raw bytes. The drain checks the name and trait
-    /// bounds once more before mutation; it caps ties only through its
-    /// unique living relative rule, so this is the explicit tie bound.
-    fn edit_within_bounds(&self, name: &str, traits: usize, ties: usize) -> bool {
+    /// Whether a move-in's or an edit's name, trait list and tie list fit
+    /// [CS-command] and [ES-atomic]; a move-in passes 0 ties. The name's
+    /// byte length, untrimmed, must fit `terri_sim::MAX_TEXT_BYTES`, the
+    /// limit the loader holds every saved name to, so a save taken before
+    /// the drain always loads. The trimmed character count, the trait
+    /// count and the tie count must fit the creation bounds and the
+    /// household size. The exports trim before they ask and serialize the
+    /// trimmed name; `enqueue_command` asks again for raw bytes, whose
+    /// name it cannot trim. The drain checks the name and trait bounds once
+    /// more before mutation; it caps ties only through its unique living
+    /// relative rule, so this is the explicit tie bound.
+    fn housemate_fields_within_bounds(&self, name: &str, traits: usize, ties: usize) -> bool {
         let tuning = self.sim.world().resource::<Content>().0.tuning;
-        name.trim().chars().count() <= tuning.housemate_name_max_chars as usize
+        name.len() <= terri_sim::MAX_TEXT_BYTES
+            && name.trim().chars().count() <= tuning.housemate_name_max_chars as usize
             && traits <= tuning.housemate_max_traits as usize
             && ties <= terri_sim::household::MAX_HOUSEHOLD_SIZE
     }
@@ -8740,7 +8738,20 @@ mod instinct_boundary_tests {
         assert_eq!(handle.sim_name(tim), "Timothy");
         assert_eq!(handle.personality_index_of(tim), 1);
         assert_eq!(handle.family_ties(), vec![0, 1, 3]);
-        assert!(handle.edit_housemate(0.0, "Timothy", true, 0.0, &[1.0], &[1.0, 4.0]));
+        assert!(
+            handle.edit_housemate(0.0, "Timothy", true, f64::NAN, &[1.0], &[1.0, 4.0]),
+            "keep ignores the personality number, NaN included"
+        );
+        assert!(
+            matches!(
+                handle.sim.world().resource::<CommandQueue>().as_slice(),
+                [SimCommand::EditHousemate {
+                    personality: None,
+                    ..
+                }]
+            ),
+            "the NaN never reaches the command, which keeps the personality"
+        );
         handle.flush_commands();
         assert_eq!(handle.last_edit_result(), vec![0, tim, 2]);
         assert_eq!(
@@ -8774,6 +8785,103 @@ mod instinct_boundary_tests {
         assert_eq!(loaded.personality_index_of(tim), 2);
         assert_eq!(loaded.family_ties(), vec![0, 2, 0]);
         assert_eq!(loaded.world_hash(), handle.world_hash());
+    }
+
+    #[test]
+    fn a_whitespace_padded_edit_is_queued_trimmed_so_a_save_before_the_drain_loads() {
+        let mut handle = SimHandle::from_lot();
+        let tim = tim_index(&handle);
+        let padded = format!("{}Timothy{}", " ".repeat(1_100), " ".repeat(40));
+        assert!(padded.len() > terri_sim::MAX_TEXT_BYTES);
+        assert!(handle.edit_housemate(0.0, &padded, true, 0.0, &[], &[]));
+        let bytes = handle.save_bytes();
+        let mut loaded = SimHandle::from_lot();
+        assert!(
+            loaded.load_bytes(&bytes),
+            "a save taken before the drain loads"
+        );
+        assert!(matches!(
+            handle.sim.world().resource::<CommandQueue>().as_slice(),
+            [SimCommand::EditHousemate { name, .. }] if name == "Timothy"
+        ));
+        loaded.flush_commands();
+        assert_eq!(loaded.last_edit_result(), vec![0, tim, 1]);
+        assert_eq!(loaded.sim_name(tim), "Timothy");
+    }
+
+    #[test]
+    fn a_whitespace_padded_move_in_is_queued_trimmed_so_a_save_before_the_drain_loads() {
+        let mut handle = SimHandle::from_lot();
+        let padded = format!("{}Ann{}", " ".repeat(1_100), " ".repeat(40));
+        assert!(padded.len() > terri_sim::MAX_TEXT_BYTES);
+        assert!(handle.add_housemate(&padded, 0.0, &[]));
+        assert!(handle.add_housemate_with_instinct(&padded, 0.0, &[], 50.0));
+        assert!(matches!(
+            handle.sim.world().resource::<CommandQueue>().as_slice(),
+            [
+                SimCommand::AddHousemate { name: first, .. },
+                SimCommand::AddHousemateWithInstinct { name: second, .. },
+            ] if first == "Ann" && second == "Ann"
+        ));
+        let bytes = handle.save_bytes();
+        let mut loaded = SimHandle::from_lot();
+        assert!(
+            loaded.load_bytes(&bytes),
+            "a save taken before the drain loads"
+        );
+        loaded.flush_commands();
+        let result = loaded.last_housemate_result();
+        assert_eq!(
+            (result[0], result[2]),
+            (0, 2),
+            "both move-ins were accepted"
+        );
+        assert_eq!(loaded.sim_name(result[1]), "Ann");
+    }
+
+    #[test]
+    fn raw_housemate_names_are_held_to_the_saved_text_byte_limit() {
+        let commands = |name: String| {
+            [
+                SimCommand::AddHousemate {
+                    name: name.clone(),
+                    personality: 0,
+                    traits: Vec::new(),
+                },
+                SimCommand::AddHousemateWithInstinct {
+                    name: name.clone(),
+                    personality: 0,
+                    traits: Vec::new(),
+                    instinct: 50,
+                },
+                SimCommand::EditHousemate {
+                    sim: 0,
+                    name,
+                    personality: None,
+                    traits: Vec::new(),
+                    ties: Vec::new(),
+                },
+            ]
+        };
+        let padded = |bytes: usize| format!("{}Tim", " ".repeat(bytes - 3));
+        let mut handle = SimHandle::from_lot();
+        for command in commands(padded(terri_sim::MAX_TEXT_BYTES + 1)) {
+            let bytes = postcard::to_allocvec(&command).unwrap();
+            assert!(
+                !handle.enqueue_command(&bytes),
+                "over the limit: {command:?}"
+            );
+        }
+        assert_eq!(handle.sim.world().resource::<CommandQueue>().len(), 0);
+        for command in commands(padded(terri_sim::MAX_TEXT_BYTES)) {
+            let bytes = postcard::to_allocvec(&command).unwrap();
+            assert!(handle.enqueue_command(&bytes), "at the limit: {command:?}");
+        }
+        let saved = handle.save_bytes();
+        assert!(
+            SimHandle::from_lot().load_bytes(&saved),
+            "names at the limit still load"
+        );
     }
 
     #[test]

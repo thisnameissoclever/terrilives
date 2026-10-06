@@ -25,7 +25,10 @@ use terri_data::{ContentPack, ObjectDefId};
 const MAX_TILES: usize = 1_048_576;
 pub(super) const MAX_ENTITIES: usize = 100_000;
 const MAX_LIST_ENTRIES: usize = 100_000;
-const MAX_TEXT_BYTES: usize = 1_024;
+/// The most bytes any saved name may hold; the loader refuses a save with
+/// a longer one. Public so the wasm boundary can refuse a queued command
+/// whose name would make the next save unloadable ([CS-command]).
+pub const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 

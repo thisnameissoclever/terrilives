@@ -44,7 +44,7 @@ use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
 
 pub use mood::{MoodSnapshot, Moodlet};
-pub use save::SaveError;
+pub use save::{SaveError, MAX_TEXT_BYTES};
 
 /// The content pack, as a resource so systems can resolve object ids and
 /// decay rates. Holds a `&'static` because the pack is embedded at build
