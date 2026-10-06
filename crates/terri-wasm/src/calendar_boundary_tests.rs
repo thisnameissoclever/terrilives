@@ -157,3 +157,33 @@ fn career_schedule_of_rejects_a_dead_workers_retired_index_in_release() {
     assert_eq!(handle.save_bytes(), bytes);
     assert_eq!(handle.world_hash(), hash);
 }
+
+/// Review focus 4 at the boundary: the shell shows whatever `weekday_index`
+/// says, so the read has to apply the tuning offset the careers schedule
+/// by. With `first_weekday` 6 the first day is a Sunday and the second a
+/// Monday; a read that ignored the tuning would call day 1 a Monday while
+/// the office job stayed home on it.
+#[test]
+fn weekday_index_applies_the_tuning_offset() {
+    let mut handle = SimHandle::from_lot();
+    let day = u64::from(handle.day_ticks());
+    let mut retuned = handle.sim.world().resource::<Content>().0.clone();
+    retuned.tuning.first_weekday = 6;
+    handle
+        .sim
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(retuned))));
+    assert_eq!(
+        handle.weekday_index(),
+        6,
+        "day 1 is a Sunday under offset 6"
+    );
+
+    let mut set_tick = |tick: u64| {
+        handle.sim.world_mut().resource_mut::<SimClock>().tick = tick;
+        handle.weekday_index()
+    };
+    assert_eq!(set_tick(day - 1), 6, "the last minute of day 1");
+    assert_eq!(set_tick(day), 0, "day 2 is a Monday");
+    assert_eq!(set_tick(7 * day), 6, "day 8 is a Sunday again");
+}

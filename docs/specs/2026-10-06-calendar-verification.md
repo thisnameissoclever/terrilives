@@ -40,6 +40,7 @@ In the save test the source world is itself loaded once at tick 0 before it runs
 | The reduction of the day index before the offset in `terri_core::clock::weekday`, `tick / day_ticks as u64 % week + first_weekday as u64`, replaced by `tick / day_ticks as u64 + first_weekday as u64` | `weekday_counts_whole_days_of_any_length` | `attempt to add with overflow` on `weekday(u64::MAX, 1, 6)` | `a8ee4301e00f70d00b149de125021e1cf0faae53`, unchanged |
 | The working-day gate in `start_shift`, `&& works_today(career, &clock, &content.0.tuning)`, deleted | `the_shipped_worker_leaves_on_day_one_and_stays_home_on_day_six` | `the worker stays home on Saturday, tick 7560`: the shipped job's 06:00 shift started on day 6 | `d651460a1c0372e23ff9d8370bc8b054a9763967`, unchanged |
 | The same gate | `a_shift_running_into_the_weekend_still_pays` | `no departure on the weekend, tick 178` | `d651460a1c0372e23ff9d8370bc8b054a9763967`, unchanged |
+| The tuning offset in `SimHandle::weekday_index` in `crates/terri-wasm/src/lib.rs`, `tuning.first_weekday`, replaced by `0` | `weekday_index_applies_the_tuning_offset` | `day 1 is a Sunday under offset 6`, left `0`, right `6` | `d80a8fa2f17586bfb0d090a1c50bd29745b2800c`, unchanged |
 
 ## Boundary and HUD tests
 
@@ -49,6 +50,7 @@ These tests cover [CAL-evidence] item 5. The wasm boundary tests are in `crates/
 |---|---|
 | `weekday_index_starts_on_monday_and_turns_over_with_the_day` | On the shipped lot `weekday_index` is 0 at tick 0 and still 0 after `day_ticks - 1` real ticks; one more tick makes it 1. |
 | `weekday_index_reaches_sunday_and_wraps_to_monday` | With the clock set directly, the first and last ticks of day 7 read 6 and the first tick of day 8 reads 0; `u64::MAX` reads what `terri_core::clock::weekday` returns; the read leaves the save bytes unchanged. |
+| `weekday_index_applies_the_tuning_offset` | With content retuned to `first_weekday` 6, tick 0 and the last tick of day 1 read 6, the first tick of day 2 reads 0 and the first tick of day 8 reads 6, so the boundary applies the same offset the careers schedule by. |
 | `career_schedule_of_reports_working_days_and_hours` | Tim's schedule is `[31, 360, 480]`, the same three numbers as the compiled office job; Bill, who has no job, reads `[]`; the reads leave the save bytes and the world hash unchanged. |
 | `career_schedule_of_rejects_non_people_in_release` | Index 0, a placed object, `u32::MAX` and `u32::MAX - 1` all read `[]`, and the save bytes and world hash are unchanged. |
 | `career_schedule_of_rejects_a_dead_workers_retired_index_in_release` | Tim reads `[31, 360, 480]`, then dies of hunger through the mortality setting; his retired index reads `[]` and an empty career label, and the reads leave the save bytes and world hash unchanged. |
