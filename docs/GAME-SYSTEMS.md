@@ -165,7 +165,7 @@ The feed keeps a history the player can scroll back through. A muted notificatio
 
 ### [S-pets] Pets as full characters
 
-**Status: Not started.** No pet code or content exists. The aquarium is a piece of furniture with a "Watch the fish" action; no fish is simulated. [FEATURES.md](FEATURES.md) names pets in one paragraph under `[B-pets]`.
+**Status: Not started.** No pet code exists. One pet sound is ready: a cat purr the owner chose on 2026-10-06, kept unused in `assets/audio/future/cat-purr/` with a README on adopting it. The aquarium is a piece of furniture with a "Watch the fish" action; no fish is simulated. [FEATURES.md](FEATURES.md) names pets in one paragraph under `[B-pets]`.
 
 **The target.** A pet is a full character with the same depth as a person. It has its own needs, personality, preferences, relationships, and autonomous behaviour. It is never furniture.
 
@@ -521,7 +521,7 @@ alone does not establish a convincing seated pose.
 
 ### [S-audio] Sound, ambience, music, and voices
 
-**Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, and cues for sleeping, eating, reading, and exercise are in. Footsteps use a quieter peak amplitude without changing pitch or cadence. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Door opening is silent; closing plays a filtered 0.32-second thunk. Toilet audio plays a recorded flush after completed use; cancellation does not trigger it. The Cook step plays a provisional first-party synthetic cooking texture through the same object-owned player. Continuous indoor background noise is excluded from the sound design. Outdoor ambience, music, alarms and non-conversation voices remain future work. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
+**Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, a recorded snore while anyone sleeps, and cues for eating, reading, and exercise are in. Footsteps use a quieter peak amplitude without changing pitch or cadence. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Door opening is silent; closing plays a filtered 0.32-second thunk. Toilet audio plays a recorded flush after completed use; cancellation does not trigger it. The Cook step plays a provisional first-party synthetic cooking texture through the same object-owned player. Continuous indoor background noise is excluded from the sound design. Outdoor ambience, music, alarms and non-conversation voices remain future work. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
 
 ## Proposed additional systems
 
