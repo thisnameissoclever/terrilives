@@ -67,7 +67,7 @@ id = "cook_dinner"
 [action_template.properties]
 recipe = { set = { id = "cook_dinner", selected_step = 0 } }
 label = { set = "Cook dinner" }
-advertises = { set = { hunger = 70.0, comfort = 15.0 } }
+advertises = { set = { hunger = 70.0, social = 11.0 } }
 duration_ticks = { set = 330 }
 slots = { set = 1 }
 satisfaction = { set = 3.0 }
@@ -86,7 +86,7 @@ id = "sleeping"
 [action_template.properties]
 activity = { set = "sleeping" }
 label = { set = "Sleep" }
-advertises = { set = { energy = 100.0 } }
+advertises = { set = { energy = 100.0, comfort = 5.0 } }
 duration_ticks = { set = 180 }
 slots = { set = 1 }
 tags = { set = ["sleep"] }
@@ -107,6 +107,7 @@ sound_action = { set = "shower_water" }
 id = "relieve_self"
 [action_template.properties]
 completion_sound = { set = "toilet_flush" }
+visual = { set = { action = "use_toilet", anchor = "object_socket", facing = "socket", socket = "seat" } }
 tags = { set = ["bathroom_privacy"] }
 activity = { set = "using_toilet" }
 label = { set = "Use the toilet" }
@@ -167,7 +168,7 @@ id = "wash_up"
 activity = { set = "washing_hands" }
 label = { set = "Wash hands" }
 sound_action = { set = "sink_water" }
-advertises = { set = { hygiene = 20.0, comfort = -6.0 } }
+advertises = { set = { hygiene = 20.0 } }
 duration_ticks = { set = 23 }
 slots = { set = 1 }
 
@@ -178,7 +179,7 @@ seat_use = { set = "all" }
 activity = { set = "lounging" }
 label = { set = "Lie down" }
 tags = { set = ["lounging"] }
-advertises = { set = { comfort = 43.0, fun = 13.0, energy = 9.0 } }
+advertises = { set = { comfort = 43.0, energy = 9.0 } }
 duration_ticks = { set = 72 }
 slots = { set = 3 }
 
@@ -295,6 +296,8 @@ category = "hygiene"
 [object_type.properties]
 rooms = { set = ["bathroom"] }
 
+action_socket = { set = [{ id = "seat", x = 0.0, y = 0.0, facing = "SE" }] }
+
 [[object_type.action]]
 id = "relieve_self"
 template = "relieve_self"
@@ -394,7 +397,7 @@ id = "sit_properly"
 [object_type.action.properties]
 activity = { set = "sitting" }
 label = { set = "Sit" }
-advertises = { set = { comfort = 37.0, social = 11.0 } }
+advertises = { set = { comfort = 37.0 } }
 duration_ticks = { set = 62 }
 slots = { set = 2 }
 
@@ -412,6 +415,8 @@ label = "Dining chair"
 category = "seating"
 [object_type.properties]
 rooms = { set = ["dining_room", "kitchen"] }
+
+seat_comfort_per_tick = { set = 0.5967742 }
 
 [[object_type.action]]
 id = "sit"
@@ -449,7 +454,7 @@ template = "stretch_out"
 id = "sit"
 template = "lounge"
 [object_type.action.properties]
-advertises = { set = { comfort = 25.0, fun = 4.0 } }
+advertises = { set = { comfort = 25.0 } }
 duration_ticks = { set = 44 }
 
 [[object_type.action]]
@@ -568,6 +573,8 @@ label = "Office chair"
 category = "seating"
 [object_type.properties]
 rooms = { set = ["office", "bedroom"] }
+
+seat_comfort_per_tick = { set = 0.5967742 }
 
 [[object_type.action]]
 id = "sit"

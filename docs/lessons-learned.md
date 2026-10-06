@@ -1,5 +1,38 @@
 # Lessons Learned
 
+## [L-conditional-needs-and-first-friendships] Separate company from furniture rewards
+
+**What happened.** Solo media and empty-table sitting refilled Social through
+ordinary advertisements. Removing those benefits also removed a useful route
+for lonely strangers to establish their first friendship. An initial future
+friendship score then depended on an unsaved compatibility cache.
+
+**Root cause.** Authored need amounts were treated as unconditional delivery,
+participation and relationship development were conflated, and a derived cache
+was read before its restoration-time rebuild. Secondary seats also did not
+imply shared device ownership.
+Compatibility additionally treated valid recipe preference addresses as
+ordinary-action indices; resolve each address in its actual vocabulary.
+
+**Prevention.** Evaluate conditional positive rewards from actual simultaneous
+participation and the receiver's directional feeling. Preserve authored costs.
+Keep friendship development separate from immediate need delivery. Rebuild
+every derived input before its first scoring consumer, including after loading.
+Count travelling commitments against shared capacity and reserve distinct
+destinations before deferred commands flush. Do not infer active participation
+from a reservation or a valid travelling lease alone.
+
+Shared devices and tables define these groups; do not add room or proximity
+restrictions intended for passive affinity effects to an approved participation
+rule.
+
+**Verification.** Compare solo and communal rewards, asymmetric feelings,
+valid shared use across room boundaries, travelling partners, seated and standing diners, and
+partial overlap through terminal completion. Reject invalid shared ownership
+transactionally. Compare first-tick utility as well as world hashes after
+restoring idle compatible strangers with nonpositive affinity. Delete each
+load-bearing gate and require the relevant assertion to fail, then restore
+byte-identical source. Evidence: `docs/evidence/social-needs/`.
 
 ## [L-proof-test-discovery] Check runner discovery when adding standalone proof tests
 
@@ -6408,7 +6441,10 @@ as gain alone even though retained cadence is also presentation state.
 **Prevention rule.** An activity-listening fixture must discover Sims and
 interactions from fresh bridge views, stage one exact command, observe the
 intended entity's exact visual action and activity, require the named semantic
-cue counter to increase, and require Chrome to report a new oscillator. Reset
+cue counter to increase, and require Chrome to report a new node of the kind
+that cue plays through: an oscillator for a procedural cue, a buffer source for
+a recording. A recording that loads on first demand needs a wait long enough
+for the load and the next event. Reset
 every cadence scheduler on both edges of master mute and Effects zero so the
 first audible tick describes the action currently on screen. Keep acoustic
 isolation as a separate claim until the harness can prove it.
@@ -10326,6 +10362,124 @@ only the helper under test.
 **Verify.** The corrected fixture restores both travel and active use. Deleting
 the standing-contact consumer calls rejects its travel save. Restoring the
 calls returns the test to green without modifying runtime behavior.
+
+## [L-open-seat-support-symmetry] Verify mirrored support and natural placement separately
+
+**What happened.** A toilet prototype found two valid seat-ring patches, but
+the search selected different regions on the left and right. Its mechanically
+clear pose also perched too far forward to look like natural toilet sitting.
+
+**Root cause.** Independent patch searches did not require mirrored bounds.
+Moving the hips forward while fixing ankle position lowered the knees and
+cleared the ring by moving the thighs beyond it. Mechanical acceptance did
+not establish the intended seated position.
+
+**Prevention.** Require actual mirrored support neighborhoods on an open seat.
+Keep central sitting and clothing clearance as simultaneous pose constraints.
+Inspect every facing before accepting a mechanical pass. Diagnose deformation
+and coupled shoe/knee reachability before adding more positional guesses.
+
+**Verify.** Retain the front-perch prototype as a rejected visual control.
+Require actual ring hits, complete body clearance and a natural four-facing
+silhouette from its replacement.
+
+## [L-opaque-envelope] Prove coverage separately from connected decorations
+
+**What happened.** Overlapping shower cloud lobes formed a connected group but
+left clothing visible. Correcting one gap exposed another in a different view.
+
+**Root cause.** Connected geometry does not necessarily enclose a body. The
+diagnostic also stopped at the first failed facing and retained only a small
+sample of exposed vertices, hiding the extent of the remaining gaps.
+
+**Prevention.** Separate complete opaque coverage from decorative cloud shape.
+Use a closed rendered enclosure and certify its evaluated geometry against
+the complete protected surface. A convex enclosure with a positive margin
+around every vertex also contains every triangle. Check every facing and
+retain all exposure coordinates before reporting failure. Keep coverage
+non-solid and non-supporting so it cannot conceal failed contact checks.
+
+**Verify.** Remove a cap, open a side gap and shrink the enclosure through the
+protected body. Each corruption must fail its intended guard. Review the
+ordinary four-facing images separately; proven coverage can still look wrong.
+
+## [L-receipt-representation] Compare saved evidence in its serialized form
+
+**What happened.** A render-only correction was rejected as changed geometry,
+although the old and new saved measurements were identical.
+
+**Root cause.** The comparison mixed Python tuples in a live measurement with
+JSON lists in the saved receipt. Those containers compare differently even
+when their values are identical.
+
+**Prevention.** Normalize live measurements through the same finite JSON
+representation used for saved receipts before exact comparison. Do not add
+numeric tolerances to repair a container-type mismatch.
+
+**Verify.** Identical tuple/list encodings compare equal. A changed number,
+changed array order or non-finite value still fails the comparison.
+
+## [L-effect-shape-review] Check effect shape and shading as separate design choices
+
+**What happened.** Opaque shower coverage passed containment checks but looked
+like padded clothing. Removing dark outlines left the repeated solid tiers.
+Removing solid shading then left a smooth sack-shaped outline.
+
+**Root cause.** The effect reused a shirt material and a body-centered shape.
+Neither a connected cloud nor an asymmetric mesh guarantees that its projected
+outline reads as steam. Numerical shape descriptors did not establish that
+the bulges were visually meaningful from the actual game camera.
+
+**Prevention.** Give an effect its own shape and shading design. Preserve the
+geometry that guarantees coverage independently. Review the most revealing
+camera view before producing a full animation matrix. After repeated visual
+failure and an independent rethink, retain the rejected sources and proceed
+with another independent asset rather than adding more small variations.
+
+**Verify.** Inspect the actual rendered outline, interior shading and ordinary
+depth occlusion. Confirm that the effect is recognizable at the intended
+display size. Passing a mesh or material guard does not establish visual
+acceptance.
+
+## [L-import-evidence-semantics] Validate recorded evidence beyond its hashes
+
+**What happened.** An animation importer verified source files but accepted
+missing geometry and ink-ownership records, unsupported contact partitions,
+negative distances and colours that differed from the approved setter.
+
+**Root cause.** File hashes establish which bytes were read. They do not
+establish that the measurements and records in those bytes prove acceptance.
+Summed polygon areas also cannot establish coverage when partitions overlap.
+
+**Prevention.** Validate complete measurement matrices and their physical
+meaning. Require non-overlapping full-cell contact coverage. Compare loop
+closure targets with the accepted pose. Anchor colour changes to immutable
+source materials and the approved setter. Compare retained reconstructions
+with decoded layers rather than trusting their filenames or recorded hashes.
+
+**Verify.** Re-sign corrupted evidence after changing its contents. Reject
+missing records, overlapping half-cell copies, negative distances, changed
+closure coordinates and uniformly darkened palette changes. Authentic source
+evidence must still pass without relaxing acceptance limits.
+
+## [L-handoff-raw-inputs] Verify raw fixture receipts in a clean export
+
+**What happened.** A transfer inventory passed in the working folder but failed
+after a clean Git export. A bathtub fixture receipt had different newline
+bytes in the working folder and the committed version.
+
+**Root cause.** Git text normalization hid the byte difference from ordinary
+status checks. The diagnostic producer hashed the working file, but its
+snapshot preserved Python dependencies without that JSON input.
+
+**Prevention.** Retain exact bytes for every hash-bound input, including fixture
+receipts. Preserve historical inputs in versioned source snapshots rather than
+rewriting published fixtures. Verify a staged-only export without access to
+ignored working files before calling a handoff portable.
+
+**Verify.** Resolve every declared active input hash from the clean export or
+its retained snapshot. Report unavailable rejected-history inputs explicitly;
+never excuse an undeclared missing active dependency.
 ## [L-browser-evidence-export-boundary] Preserve completed checks when report export fails
 
 **What happened.** A browser proof completed its guarded dish-cleanup checks and
@@ -10520,6 +10674,52 @@ Use isolated browser contexts for fixtures and automation.
 the visible Pause control. A Saved game loaded message alone does not prove
 that the original time or state was restored.
 
+## [L-contextual-need-benefits] Decisions and delivery must use the same physical conditions
+
+**What happened.** Media reserved a seat without paying its Comfort, meals
+paid Comfort regardless of posture, and sink washing could replace bathing.
+Adding contextual alternatives also made an unrelated Energy substitution
+read private-room state that exists only during movement.
+Using prospective offers for friendship readiness also made failed sharing
+appear helpful and omitted actual chair Comfort during meals.
+
+**Root cause.** Need delivery and decisions read only the primary action's
+advertisements. Physical claims and partial cleaning were separate facts.
+The alternative search checked privacy before determining effective benefits.
+Future offers and current activity help were treated as the same information.
+
+**Prevention.** Calculate conditional benefits from actual participation and
+planned physical ownership. Use the same rules for scoring, urgency, privacy
+alternatives and waiting. Filter relevant benefits before reading temporary
+privacy state. Keep food, seat, company and cleanliness effects distinct.
+Separate prospective offers from current activity help. Rebuild participation
+inside consumers that also support direct calls outside the tick schedule.
+
+**Verify.** Assert real meter changes for solo and shared use, distinct seats,
+standing eating, both sinks, interruption and the first restored tick. Delete
+the caps, food checks and company guards separately. Require the corresponding
+tests to fail and restore byte-identical sources. Preserve the direct cleanup
+substitution regression outside the movement phase.
+Require failed sharing to leave critical loneliness unhelped and real meal
+seating to help critical Comfort. Remove the consumer's refresh to prove its
+ownership, without refreshing the fixture immediately before the call.
+
+## [L-type-scoped-field-edits] Scope field additions to their owning type
+
+**What happened.** A broad edit added a tuning field after similarly named
+relationship fields in saved entity records. Compilation caught the invalid
+fields. The content compiler's build-script imports also needed the new type.
+
+**Root cause.** A field-name match was used as a substitute for identifying
+the type's constructors and its separate build-script compilation path.
+
+**Prevention.** Scan references to the owning type before changing its shape.
+Edit its constructors explicitly. Inspect each changed file and shared source
+module import. Append serialized fields without moving established slots.
+
+**Verify.** Check every target, inspect the final diff, and preserve explicit
+serialization fixtures. Prove that balance metadata changes do not change
+the save compatibility fingerprint.
 ## [L-pinned-hash-search-includes-strings] Search for a moved hash in every written form
 
 **What happened.** Hashing personality effects moved the world hash of a released-main save that a web test loads. A search for pinned hash values matched only numeric and bigint literals, so it missed that test, which compares the hash as a decimal string, and the implementer reported that no web test pinned a moved value. The web suite failed on that test until the pin was updated.
@@ -10550,6 +10750,28 @@ that the original time or state was restored.
 
 **Verify.** `a_social_completion_teaches_both_participants` in `crates/terri-sim/src/skills_tests.rs` reads practice at tick 28 during the chat and at tick 60 after it. Moving the call into the per-tick delivery fails it with `nothing learned while the chat runs`, as recorded in `docs/specs/2026-10-05-skills-verification.md`.
 
+
+## [L-household-replay-control] Separate the rule from a household replay count
+
+**What happened.** Integrating needs changes moved a seed-specific sickness
+ordinal, removed an incidental toilet visit, and let a bystander carry the
+dish excluded from a cleaner's conservation assertion. No dish was lost:
+the trace showed four with the actor and one with a separate valid claim.
+
+**Root cause.** Household choices share the duration generator. Balance changes
+can change its later draws. Tests also counted one carrier while permitting
+other cleaners, or assumed an unrelated action would happen autonomously.
+
+**Prevention.** Keep exact replay observations as dated evidence. Test the
+threshold and measured accumulation independently. Order an unrelated
+completion explicitly when attribution needs a nonempty control. Isolate
+other cleaners through supported readiness rules when testing one owner.
+Repetition decay precedes the mood projection that drives life satisfaction.
+
+**Verify.** Assert the per-completion recurrence, threshold, refill and healing
+behavior. Match events to actual completion counters, retain save/load
+equality, and keep foreign-pile and quantity assertions. Verify the
+fixture's bystander constraint each tick.
 ## [L-walk-direction-is-state-not-position] Record which way a walk goes; do not read it off where it ends
 
 **What happened.** One `Commuting` marker covered both the walk out to a shift and the walk home, and `commute_and_work` told them apart by whether the worker's position was within a hundredth of a tile of the door or the street's exit when its path ran out. A worker a fraction of a tile from the door's centre when the shift started got the empty commute, arrived on the shift tick where it stood, was read as home from work, and lost the shift unpaid. A calendar test draft on a lot without wall edges hit it at tick 88 of a 30-tick day; the shipped lot's walls route every commute onto the tile's centre first, which is why the played game never showed it.
@@ -11100,3 +11322,53 @@ renormalize the index explicitly; an ordinary add can retain cached normalized
 blobs. Compare each staged blob with its original bytes before committing.
 Never change receipt hashes to conceal a conversion. Verify the importer
 against reconstructed index or commit files as well as the working tree.
+
+## [L-publish-generated-fixtures-atomically] Replace generated fixtures without truncating live inputs
+
+A fixture author tried to truncate a file that Windows still held through a
+mapped section. The write failed with error 1224. Write generated bytes to a
+separate staged file and rename it into place after the write completes.
+Preserve the existing target if publication fails. Verify both the published
+bytes and the still-valid old mapping; do not kill another reader to make a
+fixture writer succeed. Historical fixtures remain immutable.
+
+## [L-resolve-model-type-before-balance-assertions] Resolve historical model IDs before asserting type values
+
+A secondary-seat test changed its expected rate three times because the
+historical model ID `sofa` was mistaken for a sofa type, then for a dining
+chair. The model is an Ottoman and inherits its lounge action from a reusable
+template. Trace model, type and template definitions before updating balance
+assertions. Pin independent authored values and stable identities rather than
+using the production rate getter as its own expected result. Amplify a
+specialized action in a negative control so removing the specialization filter
+actually changes the result and fails the test.
+
+## [L-merge-struct-edits] Scope merge repairs to the owning type
+
+**What happened.** A queued-order merge repair matched shared field names and temporarily added order fields to target records and to orders that already had them. Compilation caught the invalid and duplicate fields.
+
+**Root cause.** The replacement matched a field sequence without identifying the enclosing Rust type.
+
+**Prevention.** Limit structural replacements to the owning type and inspect the complete diff before compiling. Check existing fields before adding defaults from an incoming type change.
+
+**Verify.** The diff changes only missing fields in the intended initializers. Run formatting, compile every target with warnings denied, and run the affected tests.
+
+## [L-exact-polygon-certificates] A float tolerance cannot prove a polygon winds once
+
+**What happened.** The toilet contact validator accepted a certificate polygon that traced half a cell twice, with its second circuit displaced by 1e-10 metres. Every vertex was distinct, every edge's convexity violation was below the 1e-12 square-metre tolerance, and the signed area equalled the whole cell. Three earlier validator designs had each been a tolerance variation on the same convexity check, and each left a nearby forgery open. A fresh-context review also found that many thin partitions, each overlapping its neighbour by just under the pairwise tolerance, could hide a hole as large as all those overlaps combined.
+
+**Root cause.** Signed area is only the true area of a simple polygon, and a half-plane test with a tolerance cannot distinguish one circuit from two. Summed partition areas minus nothing cannot prove coverage when each pairwise overlap is individually tolerated.
+
+**Prevention.** Judge geometry predicates exactly. Python floats convert to `fractions.Fraction` without loss, and the frozen `signed_area` and `clip_polygon` helpers run on rationals unchanged. Require a strictly positive turn at every vertex and exactly two sign changes of the edge x-direction, which is winding number one. A turn of exactly zero, a collinear vertex, is rejected as well; the frozen clipper can emit one when a triangle edge passes exactly through a cell corner, no accepted receipt contains one, and an honest future receipt would then fail loudly instead of passing falsely. The validator module is itself a hash-bound dependency of every export, so even a comment change there means a new export directory. Then bound the covered area from below by the exact sum of clipped pieces minus the exact sum of pairwise overlaps, and compare only that final shortfall with the declared area resolution. Keep producers frozen; put the exact checks in the importing validator and re-export into a new directory.
+
+**Verify.** `assets/models/bathroom/actions/test_bathroom_export_contract.py` accepts the authentic receipt and rejects exact and displaced double winding, a denormal displacement, a spike, a reversal, a clockwise cell, a zero-area sliver, two full cells, two copies of one half, overlapping three-quarter halves and a hundred thin strips whose float areas sum to the cell while each pairwise overlap stays under the tolerance; a companion test disables the exact bound and shows that forgery passing every other check. The handoff's standalone reproducer, since folded into that suite as the displaced double-winding test, returned exit 0 after the change.
+
+## [L-fixtures-stay-put-under-occupants] An object must not move when a body starts using it
+
+**What happened.** The first fitted toilet export registered its occupied scene 21 logical pixels above the empty toilet sprite. Every mechanical gate passed: the source comparison, the full-frame GPU proof against the decoded layers, picking, save and load. The owner opened the game and saw the toilet jump to a different spot the moment a housemate sat down, then jump back when they stood up. The exporter had written the scene anchor as the projected origin divided by eight and omitted the 21-pixel tile drop that the static prop catalogue and the seating renderer both apply.
+
+**Root cause.** The occupied scene and the empty fixture are two different sprites that must draw the same furniture in the same place. Nothing compared their anchors. The proofs compared the occupied scene with itself (its own decoded layers) and the empty sprite with itself, so a constant offset between the two was invisible to every automated check and only visible in play.
+
+**Prevention.** A furniture object never changes position, size or orientation because a body starts or stops an interaction. The only motion allowed inside an animation is motion the design calls for explicitly, such as a bin lid opening or a bike's pedals turning, and that motion is authored and reviewed as part of the loop. For every occupied scene, the importer must refuse a scene whose anchor differs from its empty fixture (`offline_bathroom.tables` does so when given the atlas anchors), and the reviewer compares the furniture alpha bounds of the empty sprite and the occupied furniture layer by hand before any browser proof; for the toilet the measured centres agree within half an export pixel in all four facings and the occupied layer is inset by three to four export pixels, the rim the separate ink layer covers; the dated evidence record holds the figures. Then watch the transition in the played game at the moment of sitting down and standing up, not only the seated frame.
+
+**Verify.** `test_export_toilet_loop.py` pins the anchor rule, `test_offline_bathroom.py` proves the importer rejects a mismatched anchor, and the dated evidence record for the delivery shows the empty and occupied toilet in the same place before, during and after use.

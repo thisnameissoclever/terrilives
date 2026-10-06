@@ -1,0 +1,49 @@
+# Frozen recorded lengths from b04cc50a. Do not read current WAV files.
+[[clip]]
+id = "sim-talking-1"
+ticks = 31
+sha256 = "d67da7c19ddfc91d7d571e42a9693343363f80f2656fc04e0a3bc64b837bb013"
+[[clip]]
+id = "sim-talking-2"
+ticks = 25
+sha256 = "7adf6eef720eaf9583090049fdbd04f1830c05f221617cb1604b55501e703717"
+[[clip]]
+id = "sim-talking-3"
+ticks = 33
+sha256 = "eb2e52c1a6e8654dc5b546e0473fb8f32efc7f0843e31c92434939fe0816ff8e"
+[[clip]]
+id = "sim-talking-4"
+ticks = 33
+sha256 = "a6e7f0232ab2424ddbebe0cc6bf6134d0fcd04ea3f099ae580ffc95c4c238e60"
+[[clip]]
+id = "sim-talking-5"
+ticks = 29
+sha256 = "dad7de2530ddf504ca4255668c847f50ce31f0ec0e9dc74d146a5228690f3a50"
+[[clip]]
+id = "sim-talking-6"
+ticks = 36
+sha256 = "799445ef7a1e4c1f0102cef603aa296fa1249564c5ff65d067e875ff4244dd07"
+[[clip]]
+id = "sim-talking-7"
+ticks = 33
+sha256 = "66b2a6d9bb15a80ac78ca291865844c8c7cef2f25b353ad2d5dd8b03b001f5cd"
+[[clip]]
+id = "sim-talking-8"
+ticks = 33
+sha256 = "2e4e79d013a15983f0a0ab4dc1fa8f5d12fa7f330b13e58cccb097b5663a76ff"
+[[clip]]
+id = "sim-talking-9"
+ticks = 31
+sha256 = "add01d80b1f5e2c87e4e8f85e122d92f90dc21119d0bfc845e8ea73aec838d18"
+[[clip]]
+id = "sim-talking-10"
+ticks = 35
+sha256 = "df951d5c29a79778a2aac0e9d368320eb90c772d7960bf496e9d9a1d199f8387"
+[[clip]]
+id = "sim-talking-11"
+ticks = 46
+sha256 = "3aa42dd4f74b84a00292506990dad218a9d92d0fa7b9b24ad5497c9d3c75e42d"
+[[clip]]
+id = "sim-talking-12"
+ticks = 38
+sha256 = "def27e3c8b2e3491f95d7fd041f4074303069d1a0b37027b5b8e018ac2cf850f"

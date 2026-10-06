@@ -46,6 +46,9 @@ export function modelFactsLabel(model: ModelFacts, needNames: readonly string[])
   }
   for (const action of model.actions) {
     const capacity = action.capacity === null ? 'Readers use separate copies elsewhere' : `${action.capacity} ${action.capacity === 1 ? 'user' : 'users'} at once`;
+    const seating = action.optionalRequirements.filter(requirement => requirement === 'meal_table' || requirement === 'dining_seat');
+    const conditional = action.additionalDetails ?? [];
+    const details = conditional.length ? ` Conditional details: ${conditional.join('; ')}.` : '';
     if (action.reading) {
       const [fun, comfort, satisfaction, rate] = action.readingBenefits;
       const gains = [
@@ -53,7 +56,7 @@ export function modelFactsLabel(model: ModelFacts, needNames: readonly string[])
         ...(comfort ? [`Comfort ${signed(comfort)} per hour`] : []),
         ...(satisfaction ? [`life satisfaction ${signed(satisfaction)} points per reading hour`] : []),
       ];
-      lines.push(`${action.label}: ${capacity}. Up to ${model.sessionTicks} minutes per session. ${rate === 1 ? 'Standard reading speed' : `${number(rate)} times standard reading speed`}. ${gains.join('; ')}. Requires an available shelved copy.`);
+      lines.push(`${action.label}: ${capacity}. Up to ${model.sessionTicks} minutes per session. ${rate === 1 ? 'Standard reading speed' : `${number(rate)} times standard reading speed`}. ${gains.join('; ')}. Requires an available shelved copy.${details}`);
       continue;
     }
     const gains = action.benefits.filter(([, value]) => value !== 0)
@@ -61,8 +64,8 @@ export function modelFactsLabel(model: ModelFacts, needNames: readonly string[])
     if (action.satisfactionPoints) gains.push(`life satisfaction ${signed(action.satisfactionPoints)} points`);
     const requirements = action.requirements.length ? ` Requires: ${action.requirements.map(requirement => action.workKind === 'dish_cleanup' && requirement === 'prep_surface' ? 'Dirty dishes to collect' : requirementLabel(requirement)).join(', ')}.` : '';
     const extra = action.workKind === 'dish_cleanup' ? ' Extra dishes and collection stops take longer.' : '';
-    const optional = action.optionalRequirements.length ? ` Optional seating: ${action.optionalRequirements.map(requirementLabel).join(', ')}. Without seating, eat beside a preparation counter.` : '';
-    lines.push(`${action.label}: ${capacity}; about ${action.durationTicks} minutes.${gains.length ? ` ${gains.join('; ')}.` : ''}${requirements}${optional}${extra}`);
+    const optional = seating.length ? ` Optional seating: ${seating.map(requirementLabel).join(', ')}. Without seating, eat beside a preparation counter.` : '';
+    lines.push(`${action.label}: ${capacity}; about ${action.durationTicks} minutes.${gains.length ? ` ${gains.join('; ')}.` : ''}${requirements}${optional}${details}${extra}`);
   }
   if (model.shelfCapacity && model.actions.some(action => action.reading)) lines.push('The chosen seat affects reading comfort and enjoyment.');
   if (model.actions.length) lines.push('Times are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration.');

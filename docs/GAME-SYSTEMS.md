@@ -89,9 +89,9 @@ These work in normal play today. They appear here because every new system must 
 
 | System | Status | What exists |
 |---|---|---|
-| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. |
+| Needs | Substantial | Seven needs: hunger, energy, hygiene, bladder, social, fun, comfort. Each decays at its own rate. Personality, being at work, and being asleep each scale the decay. [Needs and their interactions](NEEDS-INTERACTIONS.md) explains every reward, cost, condition and justification. |
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
-| Habituation | Substantial | Repeating the same action on the same object pays less each time and recovers with time. This is what makes people rotate between objects. |
+| Habituation | Substantial | Repeating the same action on the same object lowers its appeal, which recovers with time. This makes people rotate between objects; it does not reduce ordinary need delivery. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
 | Player orders | Substantial | Unlimited stored orders per person, front or back placement, and current/queued action cards. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
@@ -441,14 +441,14 @@ Future facial expressions and unique animations should reflect both current mood
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades feelings toward living people. Affinity toward a dead person is preserved for grief. The shipped waiting moodlet does not implement the relationship penalty in [H12]. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
+**Status: Partial.** Each person holds a separate feeling toward every other person. Completed chats, pleasant proximity and recognized shared activities can improve affinity; incompatible preferences create friction. Time slowly fades feelings toward living people, while affinity toward a dead person is preserved for grief. Chat refills Social only when the receiver likes the partner. Shared TV or radio use, simultaneous seated eating at the same table, and eligible shared reading, exercise or aquarium watching can also refill Social with liked company; solo activities and empty-table sitting cannot. The shipped waiting moodlet does not implement the relationship penalty in [H12]. See [Sim interpersonal relations](SIM-RELATIONSHIPS.md) for the implemented rules and the remaining relationship work.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
-- `[H13]` Slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
+- `[H13]` Implemented: slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
 - `[H14]` Autonomous friendly conversations above a positive threshold, and fights below a negative one.
 - `[H15]` Extroversion changing how readily a person starts either.
 
-Also missing: more social actions than chat, group conversations (the content already declares a slot count that nothing reads), and a romance axis.
+Also missing: more direct social actions than chat, group conversations, and a romance axis. Media interactions use their authored slot capacity; conversation groups remain separate work.
 
 ### [S-family] Family relationships and kinship
 
@@ -523,16 +523,15 @@ Shared meals and relationship rewards for some simultaneous activities provide
 foundations. Choosing compatible activities in order to spend time with liked
 Sims remains planned work.
 
-TV and radio use currently admit one active user per device. Seated listening
-or viewing does not establish shared device use, and an authored `slots` value
-does not override the exclusive admission rule. Shared-device activity needs an
-explicit admission and reservation contract before copy or purchase facts can
-promise it.
+TV and radio admit up to two active users per device, each with a distinct
+reachable seat or standing destination. Social benefit requires simultaneous
+use with a participant the receiving Sim likes. The physical chair supplies
+Comfort; standing media use does not acquire a chair's benefit.
 
-Save validation has an inherited exception to that runtime behavior: published
-builds accept some states with multiple users of one TV at distinct legal places,
-and current loading preserves them. Reconcile admission, saved ownership and
-capacity when implementing shared-device activity. Tightening validation alone
+Published builds accepted some multiple-user TV continuations before normal
+admission supported them. Current loading preserves those source-admissible
+continuations and validates capacity and distinct destinations before ownership
+reconciliation. Tightening validation alone
 would reject an already accepted household state or lose a participant's progress.
 Keep that compatibility decision separate from strict book-copy and physical-seat
 ownership.
@@ -549,7 +548,7 @@ and reachable positions. Coordinate this with [S-activity-seating].
 
 **Status: Partial; requested 2026-10-01 for the same early delivery.** Armchair
 sitting and seated reading already have poses and animations. TV and radio users
-can use suitable seats, with one active user per device. General seat preferences
+can use suitable seats, with up to two active users per device. General seat preferences
 and the remaining seat and activity combinations are planned.
 
 Sims should prefer suitable available seats when eating, reading, watching TV
@@ -570,7 +569,7 @@ alone does not establish a convincing seated pose.
 
 ### [S-action-animation] Action animation coverage
 
-**Status: Partial.** Walking, food transport, talking, standing and seated eating, cooking, washing dishes, mopping floors, wiping counters and tables, emptying bins, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, using the toilet, showering, watching television, and ordinary standing idle are static poses. Further systems need their own motion, including walking a dog, petting a cat and repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
+**Status: Partial.** Walking, food transport, talking, standing and seated eating, cooking, washing dishes, mopping floors, wiping counters and tables, emptying bins, sitting in the armchair and on other seats, seated reading, standing reading, watching the fish, cycling, seated television and radio use, using the toilet, and lower-bunk sleeping are animated. Double-bed sleeping, showering, bathing, sofa lying and ordinary standing idle are static poses. Further systems need their own motion, including walking a dog, petting a cat and repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
 
 ### [S-object-facing] Object facing and layered depth
 

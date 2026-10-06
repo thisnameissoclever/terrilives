@@ -1,6 +1,610 @@
 use crate::{Content, Sim};
 use terri_core::{Eating, Facing, Intent, IntentQueue, Path, Position, Target};
 
+#[test]
+fn needs_correction_media_gains_only_the_occupied_seats_comfort() {
+    for kind in ["television", "radio"] {
+        for (seat_x, seat_y, seated) in [(5., 3., true), (10., 12., false)] {
+            let (mut sim, person, _, _) = fixture_at(kind, seat_x, seat_y, Facing::SouthWest);
+            sim.world_mut()
+                .entity_mut(person)
+                .insert(terri_core::Personality::neutral());
+            for _ in 0..120 {
+                sim.tick();
+                if sim.world().get::<Eating>(person).is_some() {
+                    break;
+                }
+            }
+            assert!(sim.world().get::<Eating>(person).is_some());
+            assert_eq!(
+                crate::seating::claim(sim.world(), person.index_u32()).is_some(),
+                seated
+            );
+            sim.world_mut()
+                .get_mut::<terri_core::Needs>(person)
+                .unwrap()
+                .set(terri_core::NeedId::Comfort, 30.);
+            sim.world_mut()
+                .get_mut::<terri_core::Needs>(person)
+                .unwrap()
+                .set(terri_core::NeedId::Energy, 30.);
+            sim.world_mut()
+                .get_mut::<terri_core::Needs>(person)
+                .unwrap()
+                .set(terri_core::NeedId::Fun, 30.);
+            sim.tick();
+            let expected = 30. - 0.032 + if seated { 29. / 41. } else { 0. };
+            let actual = sim
+                .world()
+                .get::<terri_core::Needs>(person)
+                .unwrap()
+                .get(terri_core::NeedId::Comfort);
+            assert!(
+                (actual - expected).abs() < 0.00001,
+                "{kind}, seated={seated}: {actual} != {expected}"
+            );
+            let levels = sim.world().get::<terri_core::Needs>(person).unwrap();
+            let action = &sim
+                .world()
+                .resource::<Content>()
+                .0
+                .object(sim.world().resource::<Content>().0.find(kind).unwrap())
+                .interactions[0];
+            let fun = action
+                .advertises
+                .iter()
+                .find(|(n, _)| *n as usize == terri_core::NeedId::Fun.index())
+                .unwrap()
+                .1;
+            assert!(
+                (levels.get(terri_core::NeedId::Fun)
+                    - (30. - 0.048 + fun / action.duration_ticks as f32))
+                    .abs()
+                    < 0.00001
+            );
+            assert!((levels.get(terri_core::NeedId::Energy) - (30. - 0.051)).abs() < 0.00001);
+            let endpoint = crate::seating::claim(sim.world(), person.index_u32())
+                .map_or((0, 3), |lease| lease.endpoint);
+            sim.world_mut().entity_mut(person).insert(Path {
+                steps: vec![endpoint],
+                cursor: 0,
+            });
+            let before = *sim.world().get::<terri_core::Needs>(person).unwrap();
+            crate::need_interactions::tick(sim.world_mut());
+            assert_eq!(
+                *sim.world().get::<terri_core::Needs>(person).unwrap(),
+                before,
+                "A reserved seat supplies no Comfort while traveling"
+            );
+        }
+    }
+}
+
+#[test]
+fn secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy() {
+    use terri_core::{NeedId, Needs};
+    for (kind, facing, rate) in [
+        ("chair", Facing::SouthWest, 37. / 62.),
+        ("desk_chair", Facing::SouthWest, 37. / 62.),
+        ("armchair", Facing::SouthWest, 29. / 41.),
+        ("reading_chair", Facing::NorthWest, 29. / 41.),
+        ("long_sofa", Facing::SouthWest, 43. / 72.),
+        ("sofa", Facing::SouthEast, 20. / 40.),
+    ] {
+        let (mut sim, person, _, _) = fixture_with_device(
+            "television",
+            Position { x: 2., y: 3. },
+            Position { x: 5., y: 3. },
+            Facing::SouthEast,
+            facing,
+            kind,
+        );
+        if kind == "sofa" {
+            let pack = sim.world().resource::<Content>().0;
+            let ottoman = pack.object(pack.find(kind).unwrap());
+            assert_eq!(ottoman.metadata.as_ref().unwrap().type_id, "ottoman");
+            let lounge = ottoman
+                .interactions
+                .iter()
+                .find(|a| a.id == "lounge")
+                .unwrap();
+            assert!(!lounge.book_reading);
+            assert_eq!(lounge.duration_ticks, 40);
+            assert_eq!(lounge.advertises, [(NeedId::Comfort.index() as u8, 20.)]);
+        }
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(terri_core::Personality::neutral());
+        for _ in 0..120 {
+            sim.tick();
+            if sim.world().get::<Eating>(person).is_some() {
+                break;
+            }
+        }
+        assert!(
+            crate::seating::claim(sim.world(), person.index_u32()).is_some(),
+            "{kind} must actually be occupied"
+        );
+        *sim.world_mut().get_mut::<Needs>(person).unwrap() = Needs::all_at(30.);
+        crate::need_interactions::tick(sim.world_mut());
+        let needs = sim.world().get::<Needs>(person).unwrap();
+        assert!(
+            (needs.get(NeedId::Comfort) - (30. + rate)).abs() < 0.00001,
+            "{kind}"
+        );
+        assert_eq!(
+            needs.get(NeedId::Fun),
+            30.,
+            "A chair is not the entertainment source"
+        );
+        assert_eq!(needs.get(NeedId::Energy), 30., "Sitting is not reclining");
+    }
+}
+
+#[test]
+fn nuisance_crossing_zero_stops_social_that_minute_but_keeps_chair_comfort() {
+    use terri_core::{Affinities, NeedId, Needs, Personality, Relationships, SimId};
+    let (mut sim, first, device, _) = fixture_at("television", 5., 3., Facing::SouthWest);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.relationships.proximity_per_hour = 0.;
+    pack.tuning.relationships.friction_per_hour = 0.;
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    sim.world_mut()
+        .entity_mut(first)
+        .insert(Personality::neutral());
+    for _ in 0..120 {
+        sim.tick();
+        if sim.world().get::<Eating>(first).is_some() {
+            break;
+        }
+    }
+    assert!(crate::seating::claim(sim.world(), first.index_u32()).is_some());
+    let second = crate::household::spawn_member(
+        sim.world_mut(),
+        &pack.personalities,
+        &pack.traits,
+        crate::household::Member {
+            name: "Co-viewer".into(),
+            personality: 0,
+            position: Position { x: 3., y: 3. },
+            needs: [100.; 7],
+            hobbies: vec![],
+            traits: &[],
+            career: None,
+            instinct: Some(50),
+        },
+    );
+    sim.world_mut().entity_mut(second).insert((
+        Personality::neutral(),
+        Affinities::from_values(vec![0.; pack.affinities.len()]),
+        Target {
+            object: device,
+            interaction: 0,
+        },
+        Eating {
+            object: pack.find("television").unwrap(),
+            interaction: 0,
+            remaining_ticks: 1000,
+        },
+    ));
+    let other = *sim.world().get::<SimId>(second).unwrap();
+    let mut feelings = Relationships::default();
+    feelings.bump(other, 0.0001);
+    let mut likes = vec![0.; pack.affinities.len()];
+    let television = pack
+        .affinities
+        .iter()
+        .position(|a| a.id == "television")
+        .unwrap();
+    likes[television] = -1.;
+    sim.world_mut().entity_mut(first).insert((
+        feelings,
+        Affinities::from_values(likes),
+        Needs::all_at(30.),
+    ));
+    sim.tick();
+    assert!(
+        sim.world()
+            .get::<Relationships>(first)
+            .unwrap()
+            .feeling(other)
+            < 0.,
+        "Nuisance must really cross zero"
+    );
+    let needs = sim.world().get::<Needs>(first).unwrap();
+    assert!(
+        (needs.get(NeedId::Social) - (30. - pack.decay_per_tick[NeedId::Social.index()])).abs()
+            < 0.00001,
+        "Social uses the current feeling after nuisance"
+    );
+    assert!(
+        (needs.get(NeedId::Comfort)
+            - (30. - pack.decay_per_tick[NeedId::Comfort.index()] + 29. / 41.))
+            .abs()
+            < 0.00001,
+        "The chair remains physically comfortable"
+    );
+}
+
+#[test]
+fn solo_media_does_not_refill_social() {
+    for kind in ["television", "radio"] {
+        let (mut sim, person, _, _) = fixture_at(kind, 5., 3., Facing::SouthWest);
+        sim.world_mut()
+            .get_mut::<terri_core::Needs>(person)
+            .unwrap()
+            .set(terri_core::NeedId::Social, 30.);
+        for _ in 0..120 {
+            sim.tick();
+            if sim.world().get::<Eating>(person).is_some() {
+                break;
+            }
+        }
+        assert!(
+            sim.world().get::<Eating>(person).is_some(),
+            "{kind} must actually start"
+        );
+        let before = sim
+            .world()
+            .get::<terri_core::Needs>(person)
+            .unwrap()
+            .get(terri_core::NeedId::Social);
+        sim.tick();
+        let after = sim
+            .world()
+            .get::<terri_core::Needs>(person)
+            .unwrap()
+            .get(terri_core::NeedId::Social);
+        assert!(
+            after < before,
+            "Solo {kind} raised Social from {before} to {after}"
+        );
+    }
+}
+
+#[test]
+fn waiting_for_media_without_liked_company_does_not_claim_social_relief() {
+    let (mut sim, person, television, _) = fixture_at("television", 10., 12., Facing::SouthWest);
+    let pack = sim.world().resource::<Content>().0;
+    for (id, x) in [(101, 3.), (102, 4.)] {
+        sim.world_mut().spawn((
+            terri_core::Agent,
+            terri_core::SimId(id),
+            Position { x, y: 3. },
+            terri_core::Needs::all_at(100.),
+            Target {
+                object: television,
+                interaction: 0,
+            },
+            Eating {
+                object: pack.find("television").unwrap(),
+                interaction: 0,
+                remaining_ticks: 100,
+            },
+        ));
+    }
+    sim.world_mut()
+        .entity_mut(television)
+        .insert(terri_core::Reserved);
+    sim.world_mut()
+        .get_mut::<terri_core::Needs>(person)
+        .unwrap()
+        .set(terri_core::NeedId::Social, 0.);
+    sim.tick();
+    let waiting = sim
+        .world()
+        .get::<crate::waiting::WaitingNeeds>(person)
+        .expect("The queued request really waits for a slot");
+    assert_eq!(waiting.0 & (1 << terri_core::NeedId::Social.index()), 0);
+    assert_ne!(waiting.0 & (1 << terri_core::NeedId::Fun.index()), 0);
+}
+
+#[test]
+fn standing_shared_media_saves_preserve_capacity_and_distinct_endpoints() {
+    for kind in ["television", "radio"] {
+        let (mut sim, first, device, _) = fixture_at(kind, 10., 12., Facing::SouthWest);
+        let pack = sim.world().resource::<Content>().0;
+        let mut spawn = |name: &str, position: Position| {
+            crate::household::spawn_member(
+                sim.world_mut(),
+                &pack.personalities,
+                &pack.traits,
+                crate::household::Member {
+                    name: name.into(),
+                    personality: 0,
+                    position,
+                    needs: [100.; 7],
+                    hobbies: vec![],
+                    traits: &[],
+                    career: None,
+                    instinct: Some(50),
+                },
+            )
+        };
+        let second = spawn("Standing company", Position { x: 0., y: 4. });
+        let third = spawn("Capacity probe", Position { x: 6., y: 3. });
+        for person in [second, third] {
+            sim.world_mut()
+                .entity_mut(person)
+                .insert(IntentQueue::from_intents(vec![Intent {
+                    cleanup: None,
+                    chore: None,
+                    object: device,
+                    interaction: 0,
+                }]));
+        }
+        sim.tick();
+        assert_eq!(sim.world().get::<Target>(first).unwrap().object, device);
+        assert_eq!(sim.world().get::<Target>(second).unwrap().object, device);
+        assert!(
+            sim.world().get::<Target>(third).is_none(),
+            "Two media slots must not admit a third viewer"
+        );
+        assert_ne!(
+            sim.world().get::<Path>(first).unwrap().steps.last(),
+            sim.world().get::<Path>(second).unwrap().steps.last(),
+            "Standing viewers must claim distinct destinations"
+        );
+        let saved = sim.save_snapshot_v5();
+        assert!(
+            saved.dining.as_ref().unwrap().diners.is_empty(),
+            "Standing destinations are reconstructed without adding save fields"
+        );
+        let mut restored = Sim::new_with_lot(16, 16);
+        restored.load_snapshot_v5(saved).unwrap();
+        for _ in 0..3 {
+            sim.tick();
+            restored.tick();
+            assert_eq!(sim.world_hash(), restored.world_hash());
+        }
+        sim.world_mut()
+            .entity_mut(third)
+            .remove::<IntentQueue>()
+            .remove::<Path>()
+            .insert((
+                Position { x: 6., y: 3. },
+                Target {
+                    object: device,
+                    interaction: 0,
+                },
+                Eating {
+                    object: pack.find(kind).unwrap(),
+                    interaction: 0,
+                    remaining_ticks: 20,
+                },
+            ));
+        let before = restored.world_hash();
+        assert_eq!(
+            restored.load_snapshot_v5(sim.save_snapshot_v5()),
+            Err(crate::SaveError::InvalidValue)
+        );
+        assert_eq!(restored.world_hash(), before);
+        sim.world_mut()
+            .entity_mut(third)
+            .remove::<Target>()
+            .remove::<Eating>()
+            .remove::<terri_core::Agent>();
+        let endpoint = *sim
+            .world()
+            .get::<Path>(first)
+            .unwrap()
+            .steps
+            .last()
+            .unwrap();
+        sim.world_mut().get_mut::<Path>(second).unwrap().steps = vec![endpoint];
+        assert_eq!(
+            crate::media::validate_ownership(sim.world()),
+            Err(crate::SaveError::InvalidValue)
+        );
+    }
+}
+
+#[test]
+fn two_media_orders_share_the_device_but_reserve_distinct_positions() {
+    let (mut sim, first, device, _) = fixture();
+    let pack = sim.world().resource::<Content>().0;
+    let second = crate::household::spawn_member(
+        sim.world_mut(),
+        &pack.personalities,
+        &pack.traits,
+        crate::household::Member {
+            name: "Second viewer".into(),
+            personality: 0,
+            position: Position { x: 0., y: 4. },
+            needs: [100.; 7],
+            hobbies: vec![],
+            traits: &[],
+            career: None,
+            instinct: Some(50),
+        },
+    );
+    sim.world_mut()
+        .entity_mut(second)
+        .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
+            object: device,
+            interaction: 0,
+        }]));
+    sim.tick();
+    assert_eq!(sim.world().get::<Target>(first).unwrap().object, device);
+    assert_eq!(
+        sim.world().get::<Target>(second).map(|t| t.object),
+        Some(device)
+    );
+    assert_ne!(
+        sim.world().get::<Path>(first).unwrap().steps.last(),
+        sim.world().get::<Path>(second).unwrap().steps.last()
+    );
+}
+
+#[test]
+fn shared_media_refill_is_directional_and_stops_when_company_leaves() {
+    for kind in ["television", "radio"] {
+        let (mut sim, first, device, _) = fixture_at(kind, 5., 3., Facing::SouthWest);
+        let pack = sim.world().resource::<Content>().0;
+        let chair = sim.spawn_object(Position { x: 5., y: 4. }, pack.find("armchair").unwrap());
+        crate::apply_object_placement(
+            sim.world_mut(),
+            chair,
+            pack.object(pack.find("armchair").unwrap()),
+            Position { x: 5., y: 4. },
+            Facing::SouthWest,
+        );
+        let second = crate::household::spawn_member(
+            sim.world_mut(),
+            &pack.personalities,
+            &pack.traits,
+            crate::household::Member {
+                name: "Company".into(),
+                personality: 0,
+                position: Position { x: 0., y: 4. },
+                needs: [100.; 7],
+                hobbies: vec![],
+                traits: &[],
+                career: None,
+                instinct: Some(50),
+            },
+        );
+        for (me, other, affinity) in [(first, second, 0.5), (second, first, -0.5)] {
+            let mut feelings = terri_core::Relationships::default();
+            feelings.bump(
+                *sim.world().get::<terri_core::SimId>(other).unwrap(),
+                affinity,
+            );
+            sim.world_mut().entity_mut(me).insert(feelings);
+            sim.world_mut()
+                .get_mut::<terri_core::Needs>(me)
+                .unwrap()
+                .set(terri_core::NeedId::Social, 30.);
+        }
+        sim.world_mut()
+            .entity_mut(second)
+            .insert(IntentQueue::from_intents(vec![Intent {
+                cleanup: None,
+                chore: None,
+                object: device,
+                interaction: 0,
+            }]));
+        for _ in 0..120 {
+            sim.tick();
+            if [first, second]
+                .iter()
+                .all(|p| sim.world().get::<Eating>(*p).is_some())
+            {
+                break;
+            }
+        }
+        assert!(
+            [first, second]
+                .iter()
+                .all(|p| sim.world().get::<Eating>(*p).is_some()),
+            "{kind} must have two active participants"
+        );
+        let social = |sim: &Sim, p| {
+            sim.world()
+                .get::<terri_core::Needs>(p)
+                .unwrap()
+                .get(terri_core::NeedId::Social)
+        };
+        let before = (social(&sim, first), social(&sim, second));
+        sim.tick();
+        assert!(social(&sim, first) > before.0);
+        assert!(
+            social(&sim, second) < before.1,
+            "Disliked company cannot refill Social"
+        );
+        let saved = sim.save_snapshot_v5();
+        let mut replay = Sim::new_with_lot(16, 16);
+        replay.load_snapshot_v5(saved.clone()).unwrap();
+        for _ in 0..3 {
+            sim.tick();
+            replay.tick();
+            assert_eq!(sim.world_hash(), replay.world_hash());
+        }
+        let other_device = sim.spawn_object(Position { x: 2., y: 4. }, pack.find(kind).unwrap());
+        crate::apply_object_placement(
+            sim.world_mut(),
+            other_device,
+            pack.object(pack.find(kind).unwrap()),
+            Position { x: 2., y: 4. },
+            Facing::SouthEast,
+        );
+        sim.world_mut()
+            .entity_mut(other_device)
+            .insert(terri_core::Reserved);
+        sim.world_mut().get_mut::<Target>(second).unwrap().object = other_device;
+        sim.world_mut()
+            .resource_mut::<terri_core::save::SavedDining>()
+            .diners
+            .iter_mut()
+            .find(|d| d.person == second.index_u32())
+            .unwrap()
+            .station = other_device.index_u32();
+        let lease = crate::seating::claim(sim.world(), second.index_u32()).unwrap();
+        assert!(
+            crate::media::valid_lease(sim.world(), lease),
+            "The second device is actually being used"
+        );
+        crate::social_company::refresh(sim.world_mut());
+        assert!(
+            !sim.world()
+                .resource::<crate::social_company::SocialCompany>()
+                .active_allowed(
+                    first,
+                    sim.world().get::<terri_core::Relationships>(first).unwrap()
+                ),
+            "Watching different devices is not communal use"
+        );
+        let before = social(&sim, first);
+        sim.world_mut()
+            .entity_mut(second)
+            .remove::<Eating>()
+            .remove::<Target>();
+        crate::seating::release(sim.world_mut(), second.index_u32());
+        crate::social_company::refresh(sim.world_mut());
+        assert!(!sim
+            .world()
+            .resource::<crate::social_company::SocialCompany>()
+            .active_allowed(
+                first,
+                sim.world().get::<terri_core::Relationships>(first).unwrap()
+            ));
+        sim.world_mut()
+            .entity_mut(second)
+            .remove::<terri_core::Agent>();
+        sim.tick();
+        assert!(social(&sim, first) < before);
+        let mut invalid = saved;
+        let endpoint = invalid
+            .dining
+            .as_ref()
+            .unwrap()
+            .diners
+            .iter()
+            .find(|d| d.person == first.index_u32())
+            .unwrap()
+            .endpoint;
+        invalid
+            .dining
+            .as_mut()
+            .unwrap()
+            .diners
+            .iter_mut()
+            .find(|d| d.person == second.index_u32())
+            .unwrap()
+            .endpoint = endpoint;
+        let hash = replay.world_hash();
+        assert!(replay.load_snapshot_v5(invalid).is_err());
+        assert_eq!(
+            replay.world_hash(),
+            hash,
+            "Invalid shared ownership must be rejected transactionally"
+        );
+    }
+}
+
 fn fixture() -> (
     Sim,
     bevy_ecs::entity::Entity,
@@ -1443,7 +2047,7 @@ fn regression_stale_seat_release_preserves_a_reused_person_generation() {
 }
 
 #[test]
-fn endpoint_media_users_can_share_an_approach_on_distinct_sofa_seats() {
+fn media_users_keep_distinct_destinations_when_sofa_seats_share_one_approach() {
     let (mut sim, first, tv, sofa) = fixture_with_device(
         "television",
         Position { x: 2., y: 3. },
@@ -1472,21 +2076,106 @@ fn endpoint_media_users_can_share_an_approach_on_distinct_sofa_seats() {
     let viewer = sitter(&mut sim, tv, 0);
     let listener = sitter(&mut sim, radio, 0);
     sim.tick();
-    let a = super::claim(sim.world(), viewer.index_u32()).unwrap();
-    let b = super::claim(sim.world(), listener.index_u32()).unwrap();
-    assert_eq!(a.endpoint, (4, 4));
-    assert_eq!(b.endpoint, (4, 4));
-    assert_ne!(
-        sim.world()
-            .get::<super::PhysicalClaim>(viewer)
-            .unwrap()
-            .seat,
-        sim.world()
-            .get::<super::PhysicalClaim>(listener)
-            .unwrap()
-            .seat
+    let viewer_place = super::claim(sim.world(), viewer.index_u32())
+        .unwrap()
+        .clone();
+    assert_eq!(viewer_place.chair, Some(sofa.index_u32()));
+    let places = super::physical_places(sim.world_mut());
+    let listener_place = places
+        .iter()
+        .find(|p| p.person == listener.index_u32())
+        .unwrap();
+    assert_ne!(viewer_place.endpoint, listener_place.endpoint);
+    assert_eq!(sim.world().get::<Target>(listener).unwrap().object, radio);
+    assert!(
+        super::claim(sim.world(), listener.index_u32()).is_none(),
+        "a conflicting sofa approach uses a distinct standing endpoint"
     );
     let saved = sim.save_snapshot_v6();
     sim.load_snapshot_v6(saved.clone()).unwrap();
     assert_eq!(sim.save_snapshot_v6(), saved);
+}
+
+#[test]
+fn media_destinations_are_exclusive_while_reading_seat_approaches_can_be_shared() {
+    use super::{endpoints_conflict, EndpointUse, UseKind};
+    let mut world = bevy_ecs::world::World::new();
+    let first = world.spawn_empty().id();
+    let second = world.spawn_empty().id();
+    let reading = EndpointUse {
+        owner: first,
+        endpoint: (4, 4),
+        kind: UseKind::Media,
+    };
+    let other_reading = EndpointUse {
+        owner: second,
+        ..reading
+    };
+    assert!(!endpoints_conflict(reading, other_reading, false));
+    let viewer = EndpointUse {
+        owner: second,
+        kind: UseKind::MediaEndpoint,
+        ..reading
+    };
+    assert!(endpoints_conflict(reading, viewer, false));
+    assert!(endpoints_conflict(
+        EndpointUse {
+            kind: UseKind::MediaEndpoint,
+            ..reading
+        },
+        viewer,
+        false
+    ));
+}
+
+#[test]
+fn a_larger_book_reading_comfort_bonus_cannot_leak_into_media_seating() {
+    use terri_core::{NeedId, Needs, Personality};
+    let (mut sim, person, _, chair) = fixture_with_device(
+        "television",
+        Position { x: 2., y: 3. },
+        Position { x: 5., y: 3. },
+        Facing::SouthEast,
+        Facing::NorthWest,
+        "reading_chair",
+    );
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Personality::neutral());
+    for _ in 0..120 {
+        sim.tick();
+        if sim.world().get::<Eating>(person).is_some() {
+            break;
+        }
+    }
+    let lease = super::claim(sim.world(), person.index_u32()).unwrap();
+    assert_eq!(lease.chair, Some(chair.index_u32()));
+    assert!(crate::media::valid_lease(sim.world(), lease));
+    let ordinary_read = sim.reading_model_benefits("reading_chair", "settle_in")[1];
+    let mut amplified = sim.world().resource::<Content>().0.clone();
+    let id = amplified.find("reading_chair").unwrap();
+    let reading = amplified.objects[id.0 as usize]
+        .interactions
+        .iter_mut()
+        .find(|action| action.book_reading)
+        .unwrap();
+    reading
+        .advertises
+        .iter_mut()
+        .find(|(need, _)| *need as usize == NeedId::Comfort.index())
+        .unwrap()
+        .1 = 100.;
+    assert!(
+        100. / reading.duration_ticks as f32 > 29. / 41.,
+        "the counterfactual reading rate exceeds ordinary physical sitting"
+    );
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(amplified))));
+    assert!(sim.reading_model_benefits("reading_chair", "settle_in")[1] > ordinary_read);
+    *sim.world_mut().get_mut::<Needs>(person).unwrap() = Needs::all_at(30.);
+    crate::need_interactions::tick(sim.world_mut());
+    let needs = sim.world().get::<Needs>(person).unwrap();
+    assert!((needs.get(NeedId::Comfort) - 30. - 29. / 41.).abs() < 0.00001);
+    assert_eq!(needs.get(NeedId::Fun), 30.);
+    assert_eq!(needs.get(NeedId::Energy), 30.);
 }

@@ -1347,7 +1347,9 @@ has a generated foreground layer, so its upper mattress, near posts, rail, and
 ladder cover the horizontal body correctly. Cooking, dish carrying and washing,
 floor mopping, counter and table wiping, and bin emptying have action clips.
 Cleaning tools follow the hands; the bin lid follows the bag-lifting sequence.
-Double-bed sleeping, using a toilet and ordinary idling remain static poses.
+Using the toilet has a fitted seated loop on the fixture's seat socket in all
+four facings. Double-bed sleeping, showering, bathing and ordinary idling
+remain static poses.
 Tables use adjacent chairs and fitted sitting poses. Sit needs a matching chair;
 Eat prepared food needs an available prepared portion for the selected Sim.
 Moving a table does not move independently placed chairs. The generic

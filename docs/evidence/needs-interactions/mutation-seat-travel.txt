@@ -1,0 +1,21 @@
+
+running 1 test
+test seating::tests::needs_correction_media_gains_only_the_occupied_seats_comfort ... FAILED
+
+failures:
+
+failures:
+    seating::tests::needs_correction_media_gains_only_the_occupied_seats_comfort
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.02s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.12s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'seating::tests::needs_correction_media_gains_only_the_occupied_seats_comfort' (82728) panicked at crates\terri-sim\src\seating\tests.rs:74:13:
+assertion `left == right` failed: A reserved seat supplies no Comfort while traveling
+  left: Needs([98.88406, 29.949, 98.704025, 98.16405, 99.53198, 30.497454, 31.382635])
+ right: Needs([98.88406, 29.949, 98.704025, 98.16405, 99.53198, 30.497454, 30.675318])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

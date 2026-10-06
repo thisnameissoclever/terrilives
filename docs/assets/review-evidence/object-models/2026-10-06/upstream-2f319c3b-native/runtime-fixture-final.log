@@ -1,0 +1,22 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.59s
+     Running tests\inherited_runtime.rs (target\debug\deps\inherited_runtime-fcab9b62bb478e57.exe)
+
+running 1 test
+test inherited_runtime_fixture_compiles_real_model_actions_and_rounding ... FAILED
+
+failures:
+
+---- inherited_runtime_fixture_compiles_real_model_actions_and_rounding stdout ----
+
+thread 'inherited_runtime_fixture_compiles_real_model_actions_and_rounding' (64648) panicked at crates\terri-data\tests\inherited_runtime.rs:101:41:
+called `Result::unwrap()` on an `Err` value: Os { code: 1224, kind: Uncategorized, message: "The requested operation cannot be performed on a file with a user-mapped section open." }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    inherited_runtime_fixture_compiles_real_model_actions_and_rounding
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.09s
+
+error: test failed, to rerun pass `-p terri-data --test inherited_runtime`

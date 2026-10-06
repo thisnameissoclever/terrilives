@@ -517,6 +517,58 @@ pub(crate) fn tick(world: &mut World) {
         }
     }
 }
+pub(crate) fn active_need_benefits(world: &World, person: Entity) -> Option<Vec<(u8, f32)>> {
+    let journey = world.get::<ReadingJourney>(person)?;
+    if journey.stage != ReadingStage::Read {
+        return None;
+    }
+    let target = *world.get::<Target>(person)?;
+    let action = action(world, target)?;
+    let benefits = effective_benefits(world.resource::<Content>().0, action)?;
+    let library = world.resource::<BookLibrary>();
+    let title = &library.copy(journey.copy)?.title_id;
+    let id = *world.get::<SimId>(person)?;
+    let novelty = library
+        .memory(id, title)
+        .and_then(|m| m.pass_novelty)
+        .unwrap_or_else(|| {
+            let pack = world.resource::<Content>().0;
+            let book = pack
+                .books
+                .iter()
+                .find(|book| &book.id == title)
+                .expect("validated title");
+            let affinity =
+                crate::books::title_affinity(library.state().taste_seed, id, &book.genre, title);
+            with_book_world(world, |context| {
+                library.estimate_interest(id, title, context)
+            })
+            .expect("validated reading context")
+                / affinity
+        });
+    let taste = crate::books::taste_multiplier(world, person, target, title).ok()?;
+    let failure = match journey.outcome? {
+        ReadingOutcome::Success => 1.,
+        ReadingOutcome::Fumbled(scale) => scale,
+    };
+    let personality = world.get::<Personality>(person);
+    let scale = |need: NeedId| personality.map_or(1., |p| p.satisfaction[need.index()]);
+    Some(vec![
+        (
+            NeedId::Fun.index() as u8,
+            benefits.fun * benefits.work_per_tick / terri_data::books::READING_REFERENCE_TICKS
+                * novelty
+                * taste
+                * failure
+                * scale(NeedId::Fun),
+        ),
+        (
+            NeedId::Comfort.index() as u8,
+            benefits.comfort_for_ticks(1) * failure * scale(NeedId::Comfort),
+        ),
+    ])
+}
+
 fn read_tick(world: &mut World, person: Entity) {
     let j = world.get::<ReadingJourney>(person).unwrap().clone();
     let target = *world.get::<Target>(person).unwrap();

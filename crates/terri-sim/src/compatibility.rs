@@ -14,9 +14,18 @@ pub(crate) fn preferences(
     let mut weights: BTreeMap<String, (f32, usize)> = BTreeMap::new();
     if let Some(personality) = personality {
         for &(object, interaction, weight) in personality.dispositions() {
-            let mut tags = pack.object(object).interactions[interaction as usize]
-                .tags
-                .clone();
+            let definition = pack.object(object);
+            let mut tags = if let Some(action) = definition.interactions.get(interaction as usize) {
+                action.tags.clone()
+            } else {
+                let chain = pack
+                    .chains
+                    .iter()
+                    .filter(|chain| chain.advertised_by == object)
+                    .nth(interaction as usize - definition.interactions.len())
+                    .expect("Validated disposition names an action or offered recipe");
+                crate::systems::chain::chain_tags(chain)
+            };
             tags.sort();
             tags.dedup();
             for tag in tags {
@@ -78,6 +87,17 @@ pub(crate) fn between(subject: &Preferences, other: &Preferences) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn offered_recipe_dispositions_use_the_recipe_step_tags() {
+        let pack = terri_data::pack();
+        let fridge = pack.find("fridge").unwrap();
+        let row = pack.object(fridge).interactions.len() as u32;
+        let personality =
+            Personality::with_dispositions([1.; 7], [1.; 7], vec![(fridge, row, 1.5)]);
+        let interests = preferences(pack, Some(&personality), None, None);
+        assert_eq!(interests.get("cooking"), Some(&0.5));
+    }
+
     #[test]
     fn repeated_activity_tags_and_hobbies_count_once() {
         let mut pack = terri_data::pack().clone();

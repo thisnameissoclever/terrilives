@@ -16,6 +16,9 @@ struct Duration {
 
 pub fn compile(root: &Path) -> pack::ContentPack {
     let revision = fs::read_to_string(root.join("source-revision.txt")).ok();
+    let need_era = revision
+        .as_deref()
+        .is_some_and(|revision| revision.starts_with("2f319c3b"));
     let newest = revision
         .as_deref()
         .is_some_and(|revision| revision.starts_with("89040f82"));
@@ -26,7 +29,9 @@ pub fn compile(root: &Path) -> pack::ContentPack {
     for (name, expected) in [
         (
             "atlas.toml",
-            if newest {
+            if need_era {
+                0x8429ee5c4f22a5f2
+            } else if newest {
                 0x1524045b2ed57b45
             } else if affinity_era || has_skills {
                 0x7deb5c00c8a1ec61

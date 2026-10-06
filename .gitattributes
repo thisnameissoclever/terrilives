@@ -85,6 +85,8 @@ assets/models/seating/*.py -text whitespace=blank-at-eol,blank-at-eof,space-befo
 assets/models/bookcase/export/mask-01/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/bookcase/producer/shelf_complete_aggregate.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/seating/reader-subset-01/producer/*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# Animation checkpoints retain exact hash-bound producers, snapshots and receipts.
+assets/models/bathroom/actions/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
 # Architecture receipts bind exact exporter and receipt bytes.
 assets/models/bedroom/export/bunk-covered/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

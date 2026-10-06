@@ -4,10 +4,10 @@
 # A chain is a shared procedure across station roles (see objects.toml).
 # Public actions bind a recipe and retain their selected appliance through
 # its designated step. Other stages choose an available station by role.
-# Benefits arrive only at the last step: halfway through cooking is not fed.
+# Food arrives at the last step: halfway through cooking is not fed.
 #
 # These durations and benefits are internal defaults. Bound public actions
-# supply their resolved total work and terminal benefits; compilation allocates
+# supply resolved total work and need benefits; compilation allocates
 # that work across the steps. Tags ride per step: the hob step is what a cooking
 # hobby loves and a cooking capability may fumble.
 
@@ -16,12 +16,12 @@ id = "cook_dinner"
 # Label plain per [L58]; the voice pass happens with Tim in M2g.
 label = "Cook dinner"
 advertised_by = "fridge"
-# 70 hunger and 15 comfort, delivered at the table after eating.
+# Food pays at completion; chair Comfort and liked-company Social require actual use.
 # Public actions set total work for these six stages. Cooked meals give
-# more food and comfort than snacks and can supply invited hungry friends.
+# more food than snacks and can supply invited hungry friends.
 # Travel and gathering add time; urgency can make a snack the better choice.
 # Repetition affects appeal, without changing the delivered need benefits.
-advertises = { hunger = 70.0, comfort = 15.0 }
+advertises = { hunger = 70.0, social = 11.0 }
 # Above the retired stove meal's 2.5: a cooked-and-eaten dinner is the
 # fullest meal the game can express, and the satisfaction axis should
 # say so.
@@ -129,7 +129,7 @@ satisfaction = 0.0
 id = "eat_shared_meal"
 label = "Join meal"
 advertised_by = "fridge"
-advertises = { hunger = 70.0, comfort = 15.0 }
+advertises = { hunger = 70.0, social = 11.0 }
 satisfaction = 0.0
   [[chain.step]]
   role = "prep_surface"

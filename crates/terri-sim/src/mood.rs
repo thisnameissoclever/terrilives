@@ -1492,6 +1492,14 @@ mod tests {
                 "snack {snack}: one clock tick per loop tick"
             );
             let now = value(&sim);
+            let expected = ((before - decay * (ticks - 1) as f32).max(0.)
+                + tuning.habituation_per_use)
+                .min(tuning.habituation_max)
+                - decay;
+            assert!(
+                (now - expected).abs() < 0.0001,
+                "snack {snack}: measured duration must explain habituation {now} versus {expected}"
+            );
             assert!(
                 now > before - decay * ticks as f32,
                 "snack {snack} completed"

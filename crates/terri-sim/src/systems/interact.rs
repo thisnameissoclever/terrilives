@@ -70,6 +70,58 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
     ticks.max(floor)
 }
 
+#[cfg(test)]
+#[test]
+fn washing_hands_stops_at_partial_hygiene_without_charging_comfort() {
+    for (kind, initial, expected) in [
+        ("sink", 0., 40.),
+        ("kitchen_sink", 0., 40.),
+        ("sink", 80., 80.),
+        ("kitchen_sink", 80., 80.),
+        ("shower", 0., 100.),
+    ] {
+        let mut sim = crate::Sim::new_with_lot(8, 8);
+        let pack = sim.world().resource::<Content>().0;
+        let definition = pack.find(kind).unwrap();
+        let object = sim.spawn_object(terri_core::Position { x: 2., y: 2. }, definition);
+        let mut needs = Needs::all_at(50.);
+        needs.set(NeedId::Hygiene, initial);
+        let person = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::Position { x: 2., y: 3. },
+                needs,
+                Target {
+                    object,
+                    interaction: 0,
+                },
+                Eating {
+                    object: definition,
+                    interaction: 0,
+                    remaining_ticks: 1000,
+                },
+            ))
+            .id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(tick_interactions);
+        for _ in 0..100 {
+            schedule.run(sim.world_mut());
+        }
+        let needs = sim.world().get::<Needs>(person).unwrap();
+        assert!(
+            (needs.get(NeedId::Hygiene) - expected).abs() < 0.00001,
+            "{kind}: {}",
+            needs.get(NeedId::Hygiene)
+        );
+        assert_eq!(
+            needs.get(NeedId::Comfort),
+            50.,
+            "{kind} unexpectedly costs Comfort"
+        );
+    }
+}
+
 /// Advances in-progress interactions. When one finishes, the agent
 /// releases its reservation and becomes idle again.
 ///
@@ -106,10 +158,13 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 /// and `drain_commands`: the query tuple is what pushes past clippy's threshold,
 /// and a type alias would only move the same type somewhere less readable. It
 /// grew a sixth member when habituation arrived.
-#[allow(clippy::type_complexity)]
+// Social delivery adds disjoint reads of participation and directional feelings.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
+    company: Res<crate::social_company::SocialCompany>,
+    feelings: Query<&terri_core::Relationships>,
     mut completion_sounds: Option<ResMut<crate::completion_sounds::CompletionSounds>>,
     objects: Query<(&terri_core::SmartObject, &terri_core::Position)>,
     eligible: Query<
@@ -179,6 +234,13 @@ pub fn tick_interactions(
         }
         let duration = act.duration_ticks as f32;
         for (need_index, delta) in &act.advertises {
+            if *delta > 0.
+                && *need_index as usize == NeedId::Social.index()
+                && !company
+                    .active_allowed(entity, &feelings.get(entity).cloned().unwrap_or_default())
+            {
+                continue;
+            }
             // **The satisfaction multiplier scales what a positive delta
             // DELIVERS, matching what selection advertised** - [H3]. The two
             // read the same array so a sim seeks exactly what delivery
@@ -198,7 +260,14 @@ pub fn tick_interactions(
             // as a good one ([E3]).
             let fumble = fumbled.map_or(1.0, |f| f.delta_scale);
             let delta = super::advertise::scaled_delta(*delta, satisfaction * fumble);
-            needs.fill(NeedId::ALL[*need_index as usize], delta / duration);
+            let delta = crate::need_interactions::cap_delta(
+                content.0,
+                act,
+                &needs,
+                *need_index,
+                delta / duration,
+            );
+            needs.fill(NeedId::ALL[*need_index as usize], delta);
         }
         let was_positive = eating.remaining_ticks > 0;
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);

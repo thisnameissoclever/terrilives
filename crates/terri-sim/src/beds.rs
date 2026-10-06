@@ -53,6 +53,9 @@ pub(crate) fn action_capacity(
         ActionAdmission::BookSource => None,
         ActionAdmission::Seats => Some(object.seats.len() as u32),
         ActionAdmission::Sleep => Some(u32::from(capacity(pack, object))),
+        ActionAdmission::Exclusive if crate::seating::media_kind(object, action).is_some() => {
+            Some(u32::from(action.slots))
+        }
         ActionAdmission::WholeSeat | ActionAdmission::Exclusive => Some(1),
     }
 }
@@ -429,6 +432,21 @@ impl Occupancy {
                     ordinal: 0,
                     all: true,
                 })
+                .into_iter()
+                .collect();
+        }
+        if crate::seating::media_kind(object, interaction).is_some() {
+            let occupants: Vec<_> = self
+                .targets
+                .iter()
+                .filter(|(owner, known, _)| *owner != agent && known.object == target.object)
+                .collect();
+            return (!self.orphaned_markers.contains(&target.object)
+                && occupants
+                    .iter()
+                    .all(|(_, known, _)| known.interaction == target.interaction)
+                && occupants.len() < interaction.slots as usize)
+                .then_some(Admission::Exclusive)
                 .into_iter()
                 .collect();
         }

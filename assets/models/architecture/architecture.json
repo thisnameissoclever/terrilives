@@ -33,6 +33,11 @@
       "canonicalSha256": "a1be4c0c5236ae1c5e99cc3ea5db758862dd750618f5c4f53dda2a96f134e855"
     },
     {
+      "kind": "bathroom-actions",
+      "catalog": "assets/models/bathroom/actions/export/toilet-05/manifest.json",
+      "canonicalSha256": "361fd4f1d05fa357502f290548efbb5a1552e85cebcb51df72fb03da6cbddd97"
+    },
+    {
       "kind": "shelf-mask",
       "catalog": "assets/models/bookcase/export/mask-01/manifest.json",
       "canonicalSha256": "ca751a5cb860d9a6b8f84a6b208351c2e081388e6282a74ac540bc473465d112"

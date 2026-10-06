@@ -1,0 +1,22 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 2 tests
+test seating::tests::a_larger_book_reading_comfort_bonus_cannot_leak_into_media_seating ... FAILED
+test seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy ... ok
+
+failures:
+
+---- seating::tests::a_larger_book_reading_comfort_bonus_cannot_leak_into_media_seating stdout ----
+
+thread 'seating::tests::a_larger_book_reading_comfort_bonus_cannot_leak_into_media_seating' (42108) panicked at crates\terri-sim\src\seating\tests.rs:2178:5:
+assertion failed: (needs.get(NeedId::Comfort) - 30. - 29. / 41.).abs() < 0.00001
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    seating::tests::a_larger_book_reading_comfort_bonus_cannot_leak_into_media_seating
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 1261 filtered out; finished in 0.22s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

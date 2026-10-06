@@ -51,9 +51,18 @@ pub(crate) fn restore(
         }
         _ => false,
     };
+    let contextual = match &snapshot {
+        LegacySnapshot::V5(value) => terri_data::content_fingerprint_matches(
+            terri_data::contextual_pre_books_pack(),
+            value.world.content_fingerprint,
+        ),
+        _ => false,
+    };
     let frozen = match source {
+        Some(PreBookSource::Latest) if contextual => terri_data::contextual_pre_books_pack(),
         Some(PreBookSource::Latest) => terri_data::latest_pre_books_pack(),
         Some(PreBookSource::AffinitiesBeforeChores) => terri_data::affinity_pre_books_pack(),
+        None if modern && contextual => terri_data::contextual_pre_books_pack(),
         None if modern => terri_data::latest_pre_books_pack(),
         None if saved_affinities.is_some() => terri_data::affinity_pre_books_pack(),
         None if saved_skills.is_some() => terri_data::published_pre_books_pack(),

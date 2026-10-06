@@ -183,6 +183,7 @@ impl Operation<BTreeMap<String, f64>> {
 pub struct ObjectProperties {
     pub cooking_front: Operation<(i32, i32)>,
     pub shelf_capacity: Operation<f64>,
+    pub seat_comfort_per_tick: Operation<f64>,
     pub shelf_access: Operation<Vec<(i32, i32)>>,
     pub name: Operation<String>,
     pub sprite: Operation<String>,
@@ -275,6 +276,7 @@ pub struct ModelDef {
 struct ObjectState {
     cooking_front: Option<(i32, i32)>,
     shelf_capacity: Option<f64>,
+    seat_comfort_per_tick: Option<f64>,
     shelf_access: Vec<(i32, i32)>,
     name: Option<String>,
     sprite: Option<String>,
@@ -350,6 +352,11 @@ impl ObjectState {
             &mut self.shelf_capacity,
             true,
             &format!("{context}.shelf_capacity"),
+        )?;
+        properties.seat_comfort_per_tick.number(
+            &mut self.seat_comfort_per_tick,
+            true,
+            &format!("{context}.seat_comfort_per_tick"),
         )?;
         properties
             .price
@@ -668,6 +675,7 @@ pub fn resolve(mut source: ObjectsFile) -> Result<ObjectsFile, ContentError> {
             .map(|action| action.finish(&model.id))
             .collect::<Result<_, _>>()?;
         resolved.push(ObjectDef {
+            seat_comfort_per_tick: state.seat_comfort_per_tick.unwrap_or(0.0) as f32,
             cooking_front: state.cooking_front,
             shelf_access: state.shelf_access,
             shelf_capacity: integer(

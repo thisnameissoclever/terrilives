@@ -249,18 +249,9 @@ pub(crate) fn route(world: &mut World) {
         }
         let safe = phase.safe_grid(actor, world.resource::<TileGrid>());
         if world.get::<terri_core::Commuting>(actor).is_none() {
-            let helps = act
-                .map(|a| a.advertises.as_slice())
-                .or_else(|| {
-                    world.get::<terri_core::ChainState>(actor).map(|c| {
-                        crate::recipe_actions::benefits(
-                            pack,
-                            c,
-                            world.get::<crate::recipe_actions::Origin>(actor),
-                        )
-                    })
-                })
-                .unwrap_or(&[]);
+            let helps = target.map_or_else(Vec::new, |target| {
+                crate::need_interactions::goal_benefits(world, actor, target)
+            });
             let urgent = world.get::<Needs>(actor).and_then(|needs| {
                 let current = helps.iter().filter(|(_, delta)| *delta > 0.0)
                     .map(|(n,_)| needs.get(NeedId::ALL[*n as usize])).fold(100.0,f32::min);
@@ -423,17 +414,17 @@ pub(crate) fn route(world: &mut World) {
         }
         // A substitute must satisfy the original action's most depleted need.
         // This permits a bath instead of a shower, without mistaking a chair for a toilet.
-        let need = act.and_then(|a| {
+        let need = target.and_then(|target| {
             let needs = world.get::<Needs>(actor)?;
-            a.advertises
-                .iter()
-                .filter(|(_, delta)| *delta > 0.0)
+            crate::need_interactions::goal_benefits(world, actor, target)
+                .into_iter()
+                .filter(|(_, delta)| *delta > 0.)
                 .min_by(|(a, _), (b, _)| {
                     needs
                         .get(NeedId::ALL[*a as usize])
                         .total_cmp(&needs.get(NeedId::ALL[*b as usize]))
                 })
-                .map(|(n, _)| *n)
+                .map(|(n, _)| n)
         });
         let Some(need) = need else {
             continue;
@@ -636,6 +627,59 @@ pub(crate) fn substitute(
                     )
                 })
                 .flatten();
+            let social_available = media_plan.as_ref().is_some_and(|_| {
+                world
+                    .resource::<crate::social_company::SocialCompany>()
+                    .media_allowed(
+                        actor,
+                        object,
+                        next.interaction,
+                        &world
+                            .get::<terri_core::Relationships>(actor)
+                            .cloned()
+                            .unwrap_or_default(),
+                    )
+            });
+            let destination = access
+                .nearest(false)
+                .and_then(|r| r.route.path(safe, from))
+                .map(|steps| steps.last().copied().unwrap_or(from));
+            let shared = a.shared_activity.is_some()
+                && destination.is_some_and(|end| {
+                    world
+                        .resource::<crate::social_company::SocialCompany>()
+                        .shared_allowed(
+                            actor,
+                            object,
+                            next.interaction,
+                            &world
+                                .get::<terri_core::Relationships>(actor)
+                                .cloned()
+                                .unwrap_or_default(),
+                            end,
+                        )
+                });
+            let seat = media_plan
+                .as_ref()
+                .and_then(|plan| plan.lease.as_ref())
+                .and_then(|lease| lease.chair)
+                .and_then(|id| furniture.iter().find(|item| item.entity.index_u32() == id))
+                .map_or(0., |seat| pack.object(seat.definition).seat_comfort_rate());
+            let benefits =
+                crate::need_interactions::benefits(pack, a, &needs, social_available, seat, shared);
+            if !benefits.iter().any(|&(n, d)| n == need && d > 0.) {
+                continue;
+            }
+            if !allow_private_start
+                && a.tags
+                    .iter()
+                    .any(|tag| tag == crate::systems::interpersonal::PRIVATE_USE_TAG)
+                && world
+                    .resource::<crate::systems::interpersonal::InterpersonalPhase>()
+                    .start_blocked(actor, object)
+            {
+                continue;
+            }
             let available = occupancy.admissions(
                 pack,
                 definition,
@@ -665,7 +709,7 @@ pub(crate) fn substitute(
                         &needs,
                         &personality,
                         instinct,
-                        &a.advertises,
+                        &benefits,
                         a.duration_ticks,
                         if recipe_path.is_some() {
                             steps.len() as f32

@@ -439,6 +439,7 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
         toml::from_str(include_str!("fixtures/pre-hierarchy-objects.toml")).unwrap();
     let legacy = compile_objects(legacy).unwrap();
     let current = terri_data::pack();
+    let published = terri_data::contextual_pre_books_pack();
     assert_eq!(
         terri_data::content_fingerprint(&legacy),
         0xcf78_7472_e9e8_38f5
@@ -449,11 +450,16 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
         "new sitting actions belong to V6, not the published positional shape"
     );
     assert_eq!(current.objects.len(), legacy.objects.len());
-    for (actual, expected) in current.objects.iter().zip(&legacy.objects) {
+    for actual in &current.objects {
+        let expected = published.object(
+            published
+                .find(&actual.id)
+                .expect("published model retained"),
+        );
         let mut actual = actual.clone();
         actual.name = expected.name.clone();
         actual.price = expected.price;
-        actual.presentation = None;
+        actual.presentation = expected.presentation.clone();
         actual.metadata = None;
         actual.seats.clear();
         actual.shelf_access.clear();
@@ -468,11 +474,11 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
             .map(|r| current.roles[*r as usize].as_str())
             .collect();
         for role in &expected.roles {
-            assert!(roles.contains(&legacy.roles[*role as usize].as_str()));
+            assert!(roles.contains(&published.roles[*role as usize].as_str()));
         }
         assert!(roles
             .iter()
-            .all(|role| legacy.roles.iter().any(|r| r == role)
+            .all(|role| published.roles.iter().any(|r| r == role)
                 || matches!(*role, "dining_seat" | "turnable_seat")));
         actual.roles = expected.roles.clone();
         let changed_seating = matches!(
@@ -746,4 +752,57 @@ fn canonical_type_is_the_only_hierarchical_presentation_authority() {
     assert_eq!(presentation.description, "A plain corner unit.");
     let conflicting = authored.replace("description = { set = \"A plain corner unit.\" }", "presentation = { set = { object_type = \"Wrong\", description = \"A plain corner unit.\" } }");
     assert!(toml::from_str::<ObjectsFile>(&conflicting).is_err());
+}
+
+#[test]
+fn seat_comfort_inherits_category_type_and_model_operations() {
+    let source = SHOWER
+        .replace(
+            "price = { set = 40.0 }",
+            "price = { set = 40.0 }\nseat_comfort_per_tick = { set = 0.2 }",
+        )
+        .replace(
+            "price = { scale = 2.0 }",
+            "price = { scale = 2.0 }\nseat_comfort_per_tick = { scale = 2.0 }",
+        )
+        .replace(
+            "price = { scale = 1.5 }",
+            "price = { scale = 1.5 }\nseat_comfort_per_tick = { scale = 1.5 }",
+        );
+    assert!((resolve(&source).unwrap().object[0].seat_comfort_per_tick - 0.6).abs() < 0.00001);
+    let removed = source.replace(
+        "seat_comfort_per_tick = { scale = 1.5 }",
+        "seat_comfort_per_tick = { remove = true }",
+    );
+    assert_eq!(
+        resolve(&removed).unwrap().object[0].seat_comfort_per_tick,
+        0.
+    );
+}
+
+#[test]
+fn every_resolved_sitting_or_reclining_action_has_no_passive_fun() {
+    let pack = terri_data::pack();
+    for object in &pack.objects {
+        for action in &object.interactions {
+            if !action.book_reading
+                && matches!(
+                    action.activity,
+                    Some(
+                        terri_data::CompiledActivity::Sitting
+                            | terri_data::CompiledActivity::Lounging
+                    )
+                )
+            {
+                assert!(
+                    !action.advertises.iter().any(|(need, delta)| *need as usize
+                        == terri_core::NeedId::Fun.index()
+                        && *delta > 0.),
+                    "{} {}",
+                    object.id,
+                    action.id
+                );
+            }
+        }
+    }
 }

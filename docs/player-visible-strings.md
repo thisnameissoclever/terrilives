@@ -45,7 +45,7 @@ itself on having personality.
 | Room tool refusals | Choose the doorway on the room's outline.; This house's walls cannot be changed.; Keep the room inside the lot.; The room would cut through furniture.; Someone is using something across the room's outline.; Someone is standing on the room's outline.; The room would block someone's way.; The room would leave furniture out of reach.; The room would cut off the front door.; The room would cut off the front-door landing.; That room is not possible.; after the refusals for someone's way, furniture and the front-door landing, Choose a doorway. or Try the doorway on another line. | `web/src/bridge.ts`, `web/src/ui/room-tool.ts` |
 | Buy tool | Show; Everything; {need}, a need's name from `NeedId::as_str` with its first letter capitalised; Buy; Choose something to buy; Choose something to buy.; {name} ({price}); Price: {price}; Good for: {needs}; Good for: no need on its own; Facing: {direction}; Rotate; Cancel; Ready to buy.; Buying…; {name} bought.; The purchase could not be sent.; This position is unavailable.; the collapsed Shortcuts reference; Choose something, then tap a tile. Drag to pan; pinch to zoom. | `web/index.html`, `web/src/ui/buy-tool.ts`, `web/src/ui/buy-tool-controls.ts` |
 | Furniture buying facts | Room; Footprint; Useful as; Shelf space; Collect or return; Requires; Optional seating; Preparation counter; Fridge; Stove; Dining table; Reachable dining chairs; Kitchen sink; available shelved copy; base action benefits and duration; standard or multiplied reading speed | `web/src/ui/buy-tool-controls.ts`, `web/src/books/codec.ts`, `crates/terri-wasm/src/browser_books.rs` |
-| Books store and inventory | Books; Choose a title; Household inventory; No household books.; Buy; Move copy; Recover copy; Copy {n}; Destination for copy {n}; genre, price and approximate reading length; selected person's current interest and progress; shelved and reserved capacity; borrowed by {person}; home shelf and slot; Choose a title. Each purchase buys one copy.; Shelve a copy before reading.; Fetching and returning add time.; purchase and transfer confirmations | `web/index.html`, `web/src/ui/book-tool.ts`, `web/src/ui/book-tool-controls.ts` |
+| Books store and inventory | Books; Choose a title; Household inventory; Household books; No household books.; Buy; Move copy; Recover copy; Copy {n}; Destination for copy {n}; genre, price and approximate reading length; selected person's current interest and progress; shelved and reserved capacity; borrowed by {person}; home shelf and slot; Choose a title. Each purchase buys one copy.; Shelve a copy before reading.; Fetching and returning add time.; purchase and transfer confirmations | `web/index.html`, `web/src/ui/book-tool.ts`, `web/src/ui/book-tool-controls.ts` |
 | Book refusals | unavailable title, copy, person or shelf; insufficient Funds; borrowed copy; full shelf; current book must be returned; no readable shelved copy; unavailable reading action; full order queue; refused command or unavailable book information | `web/src/books/results.ts`, `web/src/ui/book-tool.ts` |
 | Reading journey and migration | Fetching: {title}; Going to read: {title}; Reading: {title}; Returning: {title}; Waiting to return: {title}; Picking up: {title}; Shelving: {title}; one-time notice that bookless reading ended and five starter titles were added, with excess copies in household inventory | `crates/terri-sim/src/reading.rs`, `web/src/ui/book-notice.ts` |
 | Buy tool refusals | every furniture refusal, and The household cannot afford that. | `web/src/bridge.ts` |
@@ -101,6 +101,11 @@ Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
 Not enough beds. Action cards combine existing interaction labels with object
 or person names. Build and Exit build now live in the upper-left world group.
 
+## Commute label added on 2026-10-06
+
+The queue reads Heading home while a housemate walks back from work, and
+Going to work only for the walk out. The owner chose the wording on
+2026-10-06. Source is `crates/terri-sim/src/action_queue.rs`.
 
 ## Self-preservation controls (2026-09-30)
 

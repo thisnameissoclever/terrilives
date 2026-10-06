@@ -1,0 +1,12 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bridge.test.ts tests/portal-bridge.test.ts tests/save-worker.test.ts tests/interaction-production.test.ts tests/media-seating-production.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/fa6c/terrilives/web
+
+
+ Test Files  5 passed (5)
+      Tests  124 passed (124)
+   Start at  11:12:23
+   Duration  17.39s (transform 9.34s, setup 0ms, import 10.32s, tests 5.22s, environment 0ms)

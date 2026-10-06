@@ -52,7 +52,13 @@ it('uses stable model/action identity, combines room/need filters and keeps brow
     const bookcase = models.find(model => model.id === 'bookshelf')!;
     expect([bookcase.shelfCapacity, bookcase.shelfAccessPoints]).toEqual([24, 1]);
     expect(bookcase.actions.find(action => action.id === 'read')!.capacity).toBeNull();
-    for (const id of ['television', 'radio']) expect(models.find(model => model.id === id)!.actions[0].capacity).toBe(1);
+    for (const id of ['television', 'radio']) {
+      const action = models.find(model => model.id === id)!.actions[0];
+      expect(action.capacity).toBe(2);
+      expect(action.optionalRequirements).toEqual([]);
+      expect(action.additionalDetails).toContain('Social requires liked company using the same device');
+      expect(action.additionalDetails).toContain('Comfort depends on the seat actually used');
+    }
     const armchairs = sim.catalogue().filter(item => item.model?.typeId === 'armchair');
     expect(armchairs.length).toBeGreaterThan(1); expect(new Set(armchairs.map(item => item.model!.id)).size).toBe(armchairs.length);
     const tool = new BuyTool(sim, handle.lot_width(), handle.lot_height(), { changed() {} }); tool.enter();

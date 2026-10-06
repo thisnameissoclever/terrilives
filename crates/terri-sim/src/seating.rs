@@ -6,6 +6,16 @@ use terri_core::{
     SmartObject, Target,
 };
 
+pub(crate) fn media_kind(
+    _definition: &terri_data::CompiledObject,
+    action: &terri_data::CompiledInteraction,
+) -> Option<u32> {
+    action.media.map(|kind| match kind {
+        terri_data::MediaBehavior::Television => crate::render_buffer::activity::WATCHING_TV,
+        terri_data::MediaBehavior::Radio => crate::render_buffer::activity::LISTENING_RADIO,
+    })
+}
+
 /// The only authority for occupied physical places, including travel.
 /// Entity generations protect live ownership; persistence resolves the envelope's saved indices.
 #[derive(Component, Clone, Debug, PartialEq, Eq)]
@@ -138,6 +148,7 @@ pub(crate) enum UseKind {
     Meal,
     TableSeat,
     Media,
+    MediaEndpoint,
     ShelfTransfer,
     Standing,
 }
@@ -154,6 +165,8 @@ pub(crate) fn endpoints_conflict(a: EndpointUse, b: EndpointUse, historical: boo
     a.owner != b.owner
         && a.endpoint == b.endpoint
         && (historical
+            || a.kind == UseKind::MediaEndpoint
+            || b.kind == UseKind::MediaEndpoint
             || a.kind == UseKind::Meal
             || b.kind == UseKind::Meal
             || a.kind == UseKind::ShelfTransfer
@@ -166,7 +179,10 @@ pub(crate) fn endpoint_use(world: &World, lease: &SavedDiner) -> Option<Endpoint
     Some(EndpointUse {
         owner: crate::dining::entity(world, lease.person)?,
         endpoint: lease.endpoint,
-        kind: kind(world, lease)?,
+        kind: match kind(world, lease)? {
+            UseKind::Media => UseKind::MediaEndpoint,
+            kind => kind,
+        },
     })
 }
 
@@ -391,7 +407,69 @@ pub(crate) fn occupancy(world: &mut World) -> crate::beds::Occupancy {
             }
         }
     }
+    for place in physical_places(world) {
+        if let Some(owner) = crate::dining::entity(world, place.person) {
+            if let Some(target) = world.get::<Target>(owner) {
+                if world
+                    .get::<SmartObject>(target.object)
+                    .is_some_and(|object| {
+                        media_activity(world.resource::<Content>().0, object.0, target.interaction)
+                            .is_some()
+                    })
+                {
+                    result.claim_endpoint(EndpointUse {
+                        owner,
+                        endpoint: place.endpoint,
+                        kind: UseKind::MediaEndpoint,
+                    });
+                }
+            }
+        }
+    }
     result
+}
+
+pub(crate) fn with_endpoints(
+    mut places: Vec<SavedDiner>,
+    endpoints: impl Iterator<Item = (Entity, Target, (i32, i32))>,
+) -> Vec<SavedDiner> {
+    for (owner, target, endpoint) in endpoints {
+        if !places.iter().any(|d| d.person == owner.index_u32()) {
+            places.push(SavedDiner {
+                person: owner.index_u32(),
+                station: target.object.index_u32(),
+                chair: None,
+                setting: None,
+                endpoint,
+                obstructing: vec![],
+            });
+        }
+    }
+    places
+}
+
+pub(crate) fn physical_places(world: &mut World) -> Vec<SavedDiner> {
+    let saved = world
+        .get_resource::<SavedDining>()
+        .map_or_else(Vec::new, |s| s.diners.clone());
+    let endpoints: Vec<_> = world
+        .query_filtered::<(
+            Entity,
+            &Target,
+            &terri_core::Position,
+            Option<&terri_core::Path>,
+        ), With<terri_core::Agent>>()
+        .iter(world)
+        .map(|(owner, target, position, path)| {
+            (
+                owner,
+                *target,
+                path.and_then(|p| p.steps.last().copied())
+                    .unwrap_or((position.x.round() as i32, position.y.round() as i32)),
+            )
+        })
+        .collect();
+    with_endpoints(saved, endpoints.into_iter())
 }
 
 #[cfg(test)]

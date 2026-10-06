@@ -1,0 +1,45 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-b67bfee9131ed119.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 129 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\terri_data-14b6a8285187343e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 309 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-f8dc83d73b9df06b.exe)
+
+running 1 test
+SNACK 1: ticks=132 before=0.00000000 after=0.33890000 decay=0.0011 sick_threshold=2.5
+SNACK 2: ticks=71 before=0.33890000 after=0.60079974 decay=0.0011 sick_threshold=2.5
+SNACK 3: ticks=104 before=0.60079974 after=0.82639939 decay=0.0011 sick_threshold=2.5
+SNACK 4: ticks=76 before=0.82639939 after=1.08279920 decay=0.0011 sick_threshold=2.5
+SNACK 5: ticks=80 before=1.08279920 after=1.33480346 decay=0.0011 sick_threshold=2.5
+SNACK 6: ticks=98 before=1.33480346 after=1.56700897 decay=0.0011 sick_threshold=2.5
+SNACK 7: ticks=73 before=1.56700897 after=1.82671309 decay=0.0011 sick_threshold=2.5
+SNACK 8: ticks=68 before=1.82671309 after=2.09191680 decay=0.0011 sick_threshold=2.5
+SNACK 9: ticks=79 before=2.09191680 after=2.34501171 decay=0.0011 sick_threshold=2.5
+SNACK 10: ticks=141 before=2.34501171 after=2.52990270 decay=0.0011 sick_threshold=2.5
+SNACK 11: ticks=113 before=2.52990270 after=2.74559546 decay=0.0011 sick_threshold=2.5
+SNACK 12: ticks=100 before=2.74559546 after=2.97558904 decay=0.0011 sick_threshold=2.5
+SNACK 13: ticks=93 before=2.97558904 after=2.99889994 decay=0.0011 sick_threshold=2.5
+
+thread 'mood::tests::repeated_snacks_make_a_person_sick_and_decay_heals_them' (78896) panicked at crates\terri-sim\src\mood.rs:1520:9:
+assertion `left == right` failed: the eleventh snack in a row makes Tim sick
+  left: 10
+ right: 11
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test mood::tests::repeated_snacks_make_a_person_sick_and_decay_heals_them ... FAILED
+
+failures:
+
+failures:
+    mood::tests::repeated_snacks_make_a_person_sick_and_decay_heals_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1065 filtered out; finished in 4.10s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

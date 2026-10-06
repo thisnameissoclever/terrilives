@@ -7,11 +7,23 @@ export interface BookCopy { id: number; titleId: string; location: BookLocation;
 export interface BookResult { sequence: bigint; copy: number | null; order: bigint | null; refusal: string | null }
 export interface BookMemory { simId: number; titleId: string; progressTicks: number; progressFraction: number;
   passNovelty: number | null; familiarity: number; lastReadTick: bigint; completedPasses: number }
+export type OptionalStationRole = 'prep_surface' | 'cold_storage' | 'hob' | 'meal_table' | 'dining_seat' | 'dish_sink' | 'eating_surface' | 'turnable_seat';
 export interface ModelAction { id: string; label: string; durationTicks: number; capacity: number | null;
-  reading: boolean; benefits: readonly [number, number][]; satisfactionPoints: number; readingBenefits: readonly number[]; requirements: readonly string[]; workKind: string; optionalRequirements: readonly string[] }
+  reading: boolean; benefits: readonly [number, number][]; satisfactionPoints: number; readingBenefits: readonly number[]; requirements: readonly string[]; workKind: string;
+  /** Canonical optional station-role IDs, separated from display-only condition notes. */
+  optionalRequirements: readonly OptionalStationRole[];
+  additionalDetails?: readonly string[] }
 export interface ModelFacts { definition: number; id: string; typeLabel: string; modelName: string; description: string;
   typeId: string; categoryId: string; categoryLabel: string; rooms: readonly string[];
   width: number; depth: number; shelfCapacity: number; shelfAccessPoints: number; sessionTicks: number; actions: readonly ModelAction[]; roles: readonly string[] }
+
+const STATION_ROLES = new Set(['prep_surface', 'cold_storage', 'hob', 'meal_table', 'dining_seat', 'dish_sink', 'eating_surface', 'turnable_seat']);
+
+/** The existing native wire tail carries role IDs and display notes; notes never determine eligibility. */
+export function splitBuyingDetails(wireTail: readonly string[]): Pick<ModelAction, 'optionalRequirements' | 'additionalDetails'> {
+  return { optionalRequirements: wireTail.filter((value): value is OptionalStationRole => STATION_ROLES.has(value)),
+    additionalDetails: wireTail.filter(value => !STATION_ROLES.has(value)) };
+}
 
 function requireValue(ok: boolean): asserts ok { if (!ok) throw new Error('Malformed native book projection.'); }
 export class PostcardReader {
@@ -127,8 +139,13 @@ export function decodeModelFacts(bytes: Uint8Array): ModelFacts[] {
     const definition = r.number(), id = r.text(), typeLabel = r.text(), modelName = r.text(), description = r.text(),
       typeId = r.text(), categoryId = r.text(), categoryLabel = r.text(), rooms = r.list(() => r.text()),
       width = r.number(), depth = r.number(), shelfCapacity = r.number(), shelfAccessPoints = r.number(), sessionTicks = r.number();
-    const actions = r.list(() => ({ id: r.text(), label: r.text(), durationTicks: r.number(), capacity: r.option(() => r.number()), reading: r.bool(),
-      benefits: r.list(() => [r.byte(), r.float()] as [number, number], 5), satisfactionPoints: r.float(), readingBenefits: r.list(() => r.float(), 4), requirements: r.list(() => r.text()), workKind: r.text(), optionalRequirements: r.list(() => r.text()) }), 11);
+    const actions = r.list(() => {
+      const action = { id: r.text(), label: r.text(), durationTicks: r.number(), capacity: r.option(() => r.number()), reading: r.bool(),
+        benefits: r.list(() => [r.byte(), r.float()] as [number, number], 5), satisfactionPoints: r.float(), readingBenefits: r.list(() => r.float(), 4), requirements: r.list(() => r.text()), workKind: r.text() };
+      const wireTail = r.list(() => r.text());
+      wireTail.forEach(nonblank); unique(wireTail, value => value);
+      return { ...action, ...splitBuyingDetails(wireTail) };
+    }, 11);
     const roles = r.list(() => r.text());
     return { definition, id, typeLabel, modelName, description, typeId, categoryId, categoryLabel, rooms, width, depth, shelfCapacity, shelfAccessPoints, sessionTicks, actions, roles };
   }, 14);

@@ -56,7 +56,7 @@ it('preserves sofa identity, placement, price and interaction metadata', () => {
   }
 });
 
-it('identifies Lie down without claiming a new body animation', () => {
+it('identifies Lie down and draws the accepted static whole-sofa recline pose', () => {
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
@@ -69,9 +69,13 @@ it('identifies Lie down without claiming a new body animation', () => {
       expect(sim.actionQueueOf(34).join(' ')).toContain('Lie down');
       expect(sim.visualActions()[row]).toBe(0);
       expect(sim.interactionTargets()[row]).toBe(0xffffffff);
+      expect(sim.seatedFurniture()[row]).toBe(11);
+      expect(sim.seatedWhole()[row]).toBe(1);
       const instances = buildInstances(sim, 1, 0, 0, 16);
       const sprite = instances[row * FLOATS_PER_INSTANCE + 3];
-      expect(atlas.SPRITES[sprite].name).toMatch(/^rigSimBlueIdle/);
+      expect(atlas.SPRITES[sprite].name).toMatch(/^ownedReading_recline_SE_0_1$/);
+      const furnitureRow = Array.from(sim.ids()).indexOf(11);
+      expect(instances[furnitureRow * FLOATS_PER_INSTANCE]).toBe(-1e6);
       observed = true;
     }
     expect(observed).toBe(true);

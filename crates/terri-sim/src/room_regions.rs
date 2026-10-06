@@ -2,6 +2,7 @@
 use bevy_ecs::world::World;
 use terri_core::layout::{EdgeAxis, SavedLayout, LEGACY_WALL_TILES};
 
+#[derive(Clone)]
 pub(crate) struct RoomRegions {
     cells: Vec<Option<u32>>,
     width: usize,

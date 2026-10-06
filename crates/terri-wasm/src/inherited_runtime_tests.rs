@@ -192,13 +192,35 @@ fn inherited_runtime_public_recipe_values_origin_and_final_v6() {
             "actual sampled work must match compiled values"
         );
         assert_eq!(work.iter().sum::<u32>(), action.duration_ticks);
+        let recipe = pack
+            .chains
+            .iter()
+            .find(|chain| chain.id == action.recipe.as_ref().unwrap().recipe)
+            .unwrap();
+        let standing_ticks: u32 = recipe
+            .steps
+            .iter()
+            .zip(&work)
+            .filter(|(step, _)| step.consumes.is_some())
+            .map(|(_, ticks)| *ticks)
+            .sum();
         let after = handle.sim.world().get::<Needs>(person).unwrap();
         for (need, gain) in [NeedId::Hunger, NeedId::Comfort, NeedId::Hygiene]
             .into_iter()
             .zip(gains)
         {
+            let expected = gain
+                - if need == NeedId::Comfort {
+                    standing_ticks as f32
+                        * pack
+                            .tuning
+                            .need_interactions
+                            .standing_meal_comfort_cost_per_tick
+                } else {
+                    0.
+                };
             assert!(
-                (after.get(need) - before.get(need) - gain).abs() < 0.001,
+                (after.get(need) - before.get(need) - expected).abs() < 0.001,
                 "{model}/{row}: {need:?}"
             );
         }

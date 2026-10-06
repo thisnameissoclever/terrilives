@@ -1,0 +1,32 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 126 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 281 filtered out; finished in 0.00s
+
+
+running 1 test
+test dining::tests::completing_a_meal_pays_only_the_social_minutes_actually_shared ... FAILED
+
+failures:
+
+failures:
+    dining::tests::completing_a_meal_pays_only_the_social_minutes_actually_shared
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 945 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 31.85s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-b67bfee9131ed119.exe)
+     Running unittests src\lib.rs (target\debug\deps\terri_data-14b6a8285187343e.exe)
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-f8dc83d73b9df06b.exe)
+
+thread 'dining::tests::completing_a_meal_pays_only_the_social_minutes_actually_shared' (49676) panicked at crates\terri-sim\src\dining\tests.rs:192:5:
+One shared minute must not pay a whole meal's Social: 41.096222 vs 30.096224
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

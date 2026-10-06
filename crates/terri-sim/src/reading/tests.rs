@@ -1809,3 +1809,111 @@ fn complete_queue_roundtrip_preserves_book_cleanup_chore_ids_and_finite_cap() {
     assert!(sim.load_snapshot_v6(saved).is_err());
     assert_eq!(sim.save_snapshot_v6(), before);
 }
+
+#[test]
+fn contextual_reading_relief_matches_delivery_and_never_double_pays_comfort() {
+    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    read(&mut sim, person, seat, &title, false);
+    until(&mut sim, person, ReadingStage::Read);
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Needs::all_at(30.));
+    crate::social_company::refresh(sim.world_mut());
+    let expected = crate::need_interactions::active_benefits(sim.world(), person);
+    let rate = expected
+        .iter()
+        .find(|(n, _)| *n as usize == NeedId::Comfort.index())
+        .unwrap()
+        .1;
+    assert_eq!(crate::need_interactions::seat_rate(sim.world(), person), 0.);
+    let before = sim
+        .world()
+        .get::<Needs>(person)
+        .unwrap()
+        .get(NeedId::Comfort);
+    sim.tick();
+    assert!(
+        (sim.world()
+            .get::<Needs>(person)
+            .unwrap()
+            .get(NeedId::Comfort)
+            - before
+            - rate)
+            .abs()
+            < 0.00001
+    );
+    assert!(request_return(sim.world_mut(), person));
+    crate::social_company::refresh(sim.world_mut());
+    assert!(
+        crate::need_interactions::active_benefits(sim.world(), person).is_empty(),
+        "return transport provides no reading relief"
+    );
+}
+
+#[test]
+fn owned_reading_company_requires_actual_read_stage_and_directional_liking() {
+    let (mut sim, first, shelf, seat, title) = fixture("reading_chair");
+    purchase(&mut sim, Some(shelf), &title);
+    purchase(&mut sim, Some(shelf), &title);
+    let pack = sim.world().resource::<Content>().0;
+    let other_seat = sim.spawn_object(
+        Position { x: 12., y: 5. },
+        pack.find("reading_chair").unwrap(),
+    );
+    let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    let second = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            id,
+            Position { x: 1., y: 2. },
+            Needs::all_at(80.),
+            IntentQueue::default(),
+            Personality::neutral(),
+            Relationships::default(),
+        ))
+        .id();
+    read(&mut sim, first, seat, &title, false);
+    read(&mut sim, second, other_seat, &title, false);
+    until(&mut sim, second, ReadingStage::Read);
+    assert_eq!(stage(&sim, first), Some(ReadingStage::Read));
+    let first_id = *sim.world().get::<SimId>(first).unwrap();
+    sim.world_mut()
+        .get_mut::<Relationships>(first)
+        .unwrap()
+        .bump(id, 0.5);
+    sim.world_mut()
+        .get_mut::<Relationships>(second)
+        .unwrap()
+        .bump(first_id, -0.5);
+    for person in [first, second] {
+        sim.world_mut()
+            .get_mut::<Needs>(person)
+            .unwrap()
+            .set(NeedId::Social, 30.);
+    }
+    crate::social_company::refresh(sim.world_mut());
+    let expected = pack.tuning.need_interactions.shared_social_per_tick;
+    crate::need_interactions::tick(sim.world_mut());
+    assert!(
+        (sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) - 30. - expected).abs()
+            < 0.00001
+    );
+    assert_eq!(
+        sim.world()
+            .get::<Needs>(second)
+            .unwrap()
+            .get(NeedId::Social),
+        30.
+    );
+    assert!(request_return(sim.world_mut(), second));
+    crate::social_company::refresh(sim.world_mut());
+    let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
+    crate::need_interactions::tick(sim.world_mut());
+    assert_eq!(
+        sim.world().get::<Needs>(first).unwrap().get(NeedId::Social),
+        before,
+        "mandatory return is no longer shared reading"
+    );
+}

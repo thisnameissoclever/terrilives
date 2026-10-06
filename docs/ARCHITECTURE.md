@@ -333,6 +333,14 @@ an override retains its inherited position, and a new action appends in authored
 order. Removing an inherited action is explicit. Action templates share behavior
 across unrelated types without additional category parents.
 
+Secondary-seat Comfort is an inherited model property, with the same explicit
+numeric set, scale and removal operations. It describes ordinary seated hardware
+comfort for meals and media. Owned reading supplies its own resolved Comfort
+rate; do not add secondary-seat Comfort again or derive it from a reading-only
+specialization. Shared Social depends on actual liked company, not a terminal
+reward from an activity label. Handwashing respects its configured Hygiene
+ceiling. Purchase facts expose these conditions alongside base values.
+
 Duration uses simulation ticks, each one game minute ([D2]). Scaling happens once
 at each authored layer, followed by rounding the final duration to a positive whole
 tick. Need names match `NeedId::as_str`; traits are defined in `content/traits.toml`.

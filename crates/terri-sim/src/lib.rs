@@ -31,6 +31,7 @@ pub mod household;
 mod media;
 mod mood;
 pub mod mortality;
+mod need_interactions;
 pub mod placement;
 pub mod portals;
 mod privacy;
@@ -45,6 +46,7 @@ mod save;
 mod seating;
 mod shyness;
 pub mod skills;
+mod social_company;
 pub mod systems;
 mod targeted_cleanup;
 #[cfg(test)]
@@ -457,6 +459,11 @@ fn authored_socket_action_visual(
             terri_data::CompiledVisualAnchor::ObjectSocket,
             terri_data::CompiledVisualFacing::Socket,
         ) => (visual_action::SLEEP, activity::SLEEPING),
+        (
+            terri_data::CompiledVisualAction::UseToilet,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        ) => (visual_action::USE_TOILET, activity::USING_TOILET),
         _ => return None,
     };
     let socket = sockets.0.get(visual.socket? as usize)?;
@@ -1234,6 +1241,7 @@ impl Sim {
         world.insert_resource(completion_sounds::CompletionSounds::default());
         world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
+        world.insert_resource(social_company::SocialCompany::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -1423,6 +1431,7 @@ impl Sim {
                     reading::reconcile,
                     systems::career::start_shift,
                     media::maintain,
+                    social_company::refresh,
                 )
                     .chain(),
                 // Strictly before selection, because a player-issued
@@ -1444,6 +1453,8 @@ impl Sim {
                     domestic::tick,
                     targeted_cleanup::tick,
                     chores::tick,
+                    social_company::refresh,
+                    relationship_dynamics::refresh_profiles,
                     systems::interpersonal::prepare,
                     systems::action::select_action,
                 )
@@ -1464,6 +1475,7 @@ impl Sim {
                 // to wait a tick would read as a hesitation.
                 systems::idle::wander,
                 (
+                    social_company::refresh,
                     privacy::route,
                     systems::interpersonal::refresh_routes,
                     systems::movement::follow_path,
@@ -1481,8 +1493,14 @@ impl Sim {
                 // reused). Handles clock-in, the countdown, and the
                 // paid return.
                 systems::career::commute_and_work,
-                (reading::tick, systems::interact::tick_interactions).chain(),
-                domestic::gather_diners,
+                (
+                    reading::tick,
+                    domestic::gather_diners,
+                    social_company::tick_meals,
+                    need_interactions::tick,
+                    systems::interact::tick_interactions,
+                )
+                    .chain(),
                 // Beside tick_interactions because it is the same job
                 // for chain steps: run the clock at the station, and
                 // pay - whole, terminal-only - when the last one ends.
@@ -1493,16 +1511,13 @@ impl Sim {
                 // begins delivering on the tick after arrival, exactly
                 // as a meal does.
                 systems::social::tick_social,
-                // Last two, and their positions are genuinely free - unlike
-                // every other line here. Each reads and writes one component
-                // per agent, shares no state, and nothing else reads its
-                // component on a tick it writes: `select_action` ran earlier
-                // and saw the previous tick's values. See `decay_habituation`.
+                // Decay after completion rewards and before the later mood
+                // projection. Mood-derived satisfaction reads both repetition
+                // and relationship state, so those values must already be current.
                 systems::habituation::decay_habituation,
                 systems::social::decay_relationships,
-                // Third of the genuinely-free family: reads Needs (which
-                // nothing later writes) and writes Satisfaction (which
-                // nothing else reads mid-tick). The hobby PAYOUT is not
+                // Neglect uses the current Needs before mood adds its separate
+                // contribution to Satisfaction. The hobby PAYOUT is not
                 // here - completions pay inside tick_interactions and
                 // tick_social, where the completion-only rule already
                 // lives.
@@ -4312,6 +4327,7 @@ mod lot_tests {
                 metadata: None,
                 seats: vec![],
                 sleep_places: Vec::new(),
+                seat_comfort_per_tick: 0.,
                 id: format!("object_{index}"),
                 name: format!("Object {index}"),
                 presentation: None,

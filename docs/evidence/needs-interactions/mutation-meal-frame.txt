@@ -1,0 +1,21 @@
+
+running 1 test
+test dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table ... FAILED
+
+failures:
+
+failures:
+    dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 959 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.31s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table' (32752) panicked at crates\terri-sim\src\dining\tests.rs:155:9:
+assertion `left == right` failed
+  left: 30.0
+ right: 30.122223
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-sim --lib`

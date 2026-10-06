@@ -1,6 +1,306 @@
 use super::*;
 use crate::Sim;
-use terri_core::{Carrying, Needs, Relationships, SimClock};
+use terri_core::{Carrying, NeedId, Needs, Relationships, SimClock};
+
+#[test]
+fn needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost() {
+    let (mut sim, people, _) = ready();
+    advance(sim.world_mut());
+    let places = sim.world().resource::<SavedDining>().diners.clone();
+    for person in &people {
+        let place = places
+            .iter()
+            .find(|p| p.person == person.index_u32())
+            .unwrap();
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<Path>()
+            .insert((
+                Position {
+                    x: place.endpoint.0 as f32,
+                    y: place.endpoint.1 as f32,
+                },
+                StepWork {
+                    remaining_ticks: 10,
+                },
+                Needs::all_at(30.),
+                terri_core::Personality::neutral(),
+            ));
+    }
+    sim.tick();
+    for person in &people {
+        let seated = places
+            .iter()
+            .find(|p| p.person == person.index_u32())
+            .unwrap()
+            .chair
+            .is_some();
+        let expected = 30. - 0.032 + if seated { 37. / 62. } else { -2. / 90. };
+        let actual = sim
+            .world()
+            .get::<Needs>(*person)
+            .unwrap()
+            .get(NeedId::Comfort);
+        assert!(
+            (actual - expected).abs() < 0.00001,
+            "seated={seated}: {actual} != {expected}"
+        );
+    }
+    let mut restored = Sim::new_from_shipped_lot();
+    restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    for _ in 0..3 {
+        sim.tick();
+        restored.tick();
+        assert_eq!(sim.world_hash(), restored.world_hash());
+    }
+}
+
+#[test]
+fn critical_comfort_relationship_help_recognizes_actual_meal_seating() {
+    let (mut sim, people, _) = ready();
+    advance(sim.world_mut());
+    let places = sim.world().resource::<SavedDining>().diners.clone();
+    for person in &people {
+        let place = places
+            .iter()
+            .find(|p| p.person == person.index_u32())
+            .unwrap();
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<Path>()
+            .remove::<terri_core::Traits>()
+            .insert((
+                Position {
+                    x: place.endpoint.0 as f32,
+                    y: place.endpoint.1 as f32,
+                },
+                StepWork {
+                    remaining_ticks: 10,
+                },
+                Needs::all_at(100.),
+                terri_core::Personality::neutral(),
+                Relationships::default(),
+            ));
+        sim.world_mut()
+            .get_mut::<Needs>(*person)
+            .unwrap()
+            .set(NeedId::Comfort, 10.);
+    }
+    crate::relationship_dynamics::tick(sim.world_mut());
+    for person in &people {
+        let seated = places
+            .iter()
+            .find(|p| p.person == person.index_u32())
+            .unwrap()
+            .chair
+            .is_some();
+        let feelings = sim.world().get::<Relationships>(*person).unwrap();
+        let gains: f32 = people
+            .iter()
+            .filter(|p| *p != person)
+            .map(|p| feelings.feeling(*sim.world().get::<SimId>(*p).unwrap()))
+            .sum();
+        assert_eq!(
+            gains > 0.,
+            seated,
+            "Only real chair Comfort helps the critical need"
+        );
+    }
+}
+
+#[test]
+fn meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table() {
+    let (mut sim, people, _) = ready();
+    advance(sim.world_mut());
+    let places = sim.world().resource::<SavedDining>().diners.clone();
+    for person in &people {
+        let place = places
+            .iter()
+            .find(|d| d.person == person.index_u32())
+            .unwrap();
+        let mut feelings = Relationships::default();
+        for other in &people {
+            if other != person {
+                feelings.bump(*sim.world().get::<SimId>(*other).unwrap(), 0.5);
+            }
+        }
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<Path>()
+            .insert((
+                Position {
+                    x: place.endpoint.0 as f32,
+                    y: place.endpoint.1 as f32,
+                },
+                StepWork {
+                    remaining_ticks: 10,
+                },
+                Needs::all_at(30.),
+                feelings,
+            ));
+    }
+    crate::social_company::tick_meals(sim.world_mut());
+    for person in &people {
+        let seated = places
+            .iter()
+            .find(|d| d.person == person.index_u32())
+            .unwrap()
+            .chair
+            .is_some();
+        let social = sim
+            .world()
+            .get::<Needs>(*person)
+            .unwrap()
+            .get(NeedId::Social);
+        // The 330-minute model action allocates 59 ticks to eating.
+        assert_eq!(social, if seated { 30. + 11. / 59. } else { 30. });
+    }
+    let first = people[0];
+    let second = people[1];
+    sim.world_mut()
+        .entity_mut(second)
+        .insert(Relationships::default());
+    let before_a = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
+    let before_b = sim
+        .world()
+        .get::<Needs>(second)
+        .unwrap()
+        .get(NeedId::Social);
+    crate::social_company::tick_meals(sim.world_mut());
+    assert!(sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) > before_a);
+    assert_eq!(
+        sim.world()
+            .get::<Needs>(second)
+            .unwrap()
+            .get(NeedId::Social),
+        before_b
+    );
+    let chair = entity(
+        sim.world(),
+        places
+            .iter()
+            .find(|d| d.person == second.index_u32())
+            .unwrap()
+            .chair
+            .unwrap(),
+    )
+    .unwrap();
+    let facing = *sim.world().get::<ObjectFacing>(chair).unwrap();
+    let away = if facing.0 == terri_core::Facing::SouthEast {
+        terri_core::Facing::NorthWest
+    } else {
+        terri_core::Facing::SouthEast
+    };
+    sim.world_mut().entity_mut(chair).insert(ObjectFacing(away));
+    let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
+    crate::social_company::tick_meals(sim.world_mut());
+    assert_eq!(
+        sim.world().get::<Needs>(first).unwrap().get(NeedId::Social),
+        before,
+        "A chair facing away from the table is not communal seating"
+    );
+    sim.world_mut().entity_mut(chair).insert(facing);
+    // Poor food does not erase the Social relief supplied by actual company.
+    for person in &people {
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<terri_core::Traits>()
+            .insert((
+                terri_core::Personality::neutral(),
+                terri_core::Hobbies(vec![]),
+                Needs::all_at(100.),
+            ));
+        sim.world_mut()
+            .get_mut::<Needs>(*person)
+            .unwrap()
+            .set(NeedId::Social, 0.);
+    }
+    sim.world_mut()
+        .get_mut::<ChainState>(first)
+        .unwrap()
+        .fumble_scale = 0.;
+    crate::social_company::refresh(sim.world_mut());
+    let other_id = *sim.world().get::<SimId>(second).unwrap();
+    let before = sim
+        .world()
+        .get::<Relationships>(first)
+        .unwrap()
+        .feeling(other_id);
+    crate::relationship_dynamics::tick(sim.world_mut());
+    assert!(
+        sim.world()
+            .get::<Relationships>(first)
+            .unwrap()
+            .feeling(other_id)
+            > before,
+        "Actual Social relief must count as helping even when the food reward is zero"
+    );
+    let food = sim.world().get::<Carrying>(second).unwrap().0;
+    sim.world_mut().entity_mut(second).remove::<Carrying>();
+    let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
+    crate::social_company::tick_meals(sim.world_mut());
+    assert_eq!(
+        sim.world().get::<Needs>(first).unwrap().get(NeedId::Social),
+        before,
+        "An eating pose without actual food is not a communal meal"
+    );
+    sim.world_mut().entity_mut(second).insert(Carrying(food));
+    sim.world_mut().entity_mut(second).remove::<StepWork>();
+    let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
+    crate::social_company::tick_meals(sim.world_mut());
+    assert_eq!(
+        sim.world().get::<Needs>(first).unwrap().get(NeedId::Social),
+        before,
+        "A standing diner or a seated diner who stopped eating is not social company"
+    );
+}
+
+#[test]
+fn completing_a_meal_pays_only_the_social_minutes_actually_shared() {
+    let (mut sim, people, _) = ready();
+    advance(sim.world_mut());
+    let places = sim.world().resource::<SavedDining>().diners.clone();
+    let pack = sim.world().resource::<Content>().0;
+    for person in &people {
+        let place = places
+            .iter()
+            .find(|d| d.person == person.index_u32())
+            .unwrap();
+        let mut feelings = Relationships::default();
+        for other in &people {
+            if other != person {
+                feelings.bump(*sim.world().get::<SimId>(*other).unwrap(), 0.5);
+            }
+        }
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<Path>()
+            .insert((
+                Position {
+                    x: place.endpoint.0 as f32,
+                    y: place.endpoint.1 as f32,
+                },
+                StepWork { remaining_ticks: 1 },
+                Needs::all_at(30.),
+                feelings,
+            ));
+    }
+    let first = people[0];
+    let personality = sim.world().get::<terri_core::Personality>(first).unwrap();
+    let expected = 30.
+        - pack.decay_per_tick[NeedId::Social.index()] * personality.drain[NeedId::Social.index()]
+        + 11. / 59. * personality.satisfaction[NeedId::Social.index()];
+    sim.tick();
+    assert!(
+        sim.world().get::<StepWork>(first).is_none(),
+        "The eating stage really completed"
+    );
+    let actual = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
+    assert!(
+        (actual - expected).abs() < 0.00001,
+        "One shared minute must not pay a whole meal's Social: {actual} vs {expected}"
+    );
+}
 
 fn ready() -> (Sim, Vec<Entity>, Entity) {
     ready_with_content(Content(terri_data::pack()))

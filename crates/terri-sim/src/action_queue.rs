@@ -153,8 +153,14 @@ impl Sim {
                 .get(eating.object.0 as usize)
                 .and_then(|o| o.interactions.get(eating.interaction as usize))
                 .map(|i| i.label.clone())
-        } else if self.world.get::<Commuting>(person).is_some() {
-            Some("Going to work".to_string())
+        } else if let Some(commute) = self.world.get::<Commuting>(person) {
+            Some(
+                match commute {
+                    Commuting::Outbound => "Going to work",
+                    Commuting::Inbound => "Heading home",
+                }
+                .to_string(),
+            )
         } else if self.world.get::<terri_core::StepWork>(person).is_some() {
             self.chain_status_of(index)
         } else if self.world.get::<Path>(person).is_some() {
@@ -385,6 +391,14 @@ mod tests {
             .remove::<Target>()
             .insert(Commuting::Outbound);
         assert_eq!(sim.action_queue_of(person.index_u32())[0], "Going to work");
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(Commuting::Inbound);
+        assert_eq!(
+            sim.action_queue_of(person.index_u32())[0],
+            "Heading home",
+            "the walk home after a shift is not a walk to work"
+        );
         sim.world_mut()
             .entity_mut(person)
             .remove::<Commuting>()

@@ -110,3 +110,6 @@ web/proofs/.covered-bunk-reference.json
 assets/models/cleaning/raw/
 assets/models/cleaning/preview-*/
 assets/models/cleaning/contacts/
+
+# Local gate logs and work queue; never published.
+.local-build/

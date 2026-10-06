@@ -242,6 +242,7 @@ pub(crate) fn restore_v5_seats(
             }
         }
     }
+    crate::media::validate_ownership(&candidate.world)?;
     if seats.is_none() && !terri_data::is_pre_books_pack(content) {
         crate::seating::validate(&candidate.world, candidate.world.resource::<TileGrid>())?;
     }
@@ -334,6 +335,7 @@ fn finish_restore(
 ) -> Result<Sim, SaveError> {
     let grid = candidate.world.resource_mut::<TileGrid>();
     apply_layout(grid.into_inner(), &layout, content.lot.house)?;
+    crate::media::validate_ownership(&candidate.world)?;
     if let Some(seats) = seats {
         crate::seating::restore_claims(&mut candidate.world, seats)?;
     } else {
@@ -358,6 +360,7 @@ fn finish_restore(
         crate::placement::windows::validate_restored_windows(&candidate.world)
             .map_err(|_| SaveError::InvalidGrid)?;
     }
+    crate::media::validate_ownership(&candidate.world)?;
     Ok(candidate)
 }
 
@@ -484,7 +487,9 @@ fn dining_contact(
                 Some(crate::seating::UseKind::Meal | crate::seating::UseKind::TableSeat) => true,
                 Some(crate::seating::UseKind::Media) => crate::media::valid_lease(world, d),
                 Some(
-                    crate::seating::UseKind::ShelfTransfer | crate::seating::UseKind::Standing,
+                    crate::seating::UseKind::ShelfTransfer
+                    | crate::seating::UseKind::Standing
+                    | crate::seating::UseKind::MediaEndpoint,
                 ) => false,
                 None => false,
             }

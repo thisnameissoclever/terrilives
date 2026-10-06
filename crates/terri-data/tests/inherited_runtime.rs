@@ -98,7 +98,10 @@ fn inherited_runtime_fixture_compiles_real_model_actions_and_rounding() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/inherited-runtime.pack");
     if std::env::var_os("TERRI_WRITE_RUNTIME_FIXTURE").is_some() {
-        std::fs::write(&path, &encoded).unwrap();
+        let staged = path.with_extension("pack.staged");
+        std::fs::write(&staged, &encoded).unwrap();
+        std::fs::rename(&staged, &path)
+            .expect("publish the generated fixture without truncating mapped input");
     } else {
         assert!(
             std::fs::read(path).unwrap() == encoded,

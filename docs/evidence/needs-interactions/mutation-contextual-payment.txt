@@ -1,0 +1,24 @@
+
+running 2 tests
+test dining::tests::needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost ... FAILED
+test seating::tests::needs_correction_media_gains_only_the_occupied_seats_comfort ... FAILED
+
+failures:
+
+failures:
+    dining::tests::needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost
+    seating::tests::needs_correction_media_gains_only_the_occupied_seats_comfort
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 958 filtered out; finished in 0.03s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.61s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+thread 'dining::tests::needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost' (82712) panicked at crates\terri-sim\src\dining\tests.rs:44:9:
+seated=true: 29.968 != 30.564775
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'seating::tests::needs_correction_media_gains_only_the_occupied_seats_comfort' (42880) panicked at crates\terri-sim\src\seating\tests.rs:42:13:
+television, seated=true: 29.968 != 30.675318
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -383,9 +383,9 @@ fn upstream_capacity_facts_follow_actual_media_admission_and_book_ownership() {
         let action = &pack.object(definition).interactions[0];
         assert_eq!(
             action.slots, 2,
-            "the old slot count is deliberately not the admitted count"
+            "published media slots determine actual device capacity"
         );
-        assert_eq!(sim.model_action_capacity(model, &action.id), Some(1));
+        assert_eq!(sim.model_action_capacity(model, &action.id), Some(2));
         let saved = sim.save_snapshot_v6();
         let object = saved
             .legacy
@@ -424,16 +424,28 @@ fn upstream_capacity_facts_follow_actual_media_admission_and_book_ownership() {
                 .iter()
                 .filter(|e| e.target.is_some_and(|t| t.object == object))
                 .count(),
-            1
+            2
         );
-        assert!(saved
+        let endpoints: Vec<_> = saved
             .legacy
             .world
             .entities
             .iter()
-            .any(|e| people.contains(&e.index)
-                && e.blocked
-                && e.intents.iter().flatten().any(|i| i.object == object)));
+            .filter(|e| people.contains(&e.index))
+            .map(|e| {
+                e.path
+                    .as_ref()
+                    .and_then(|path| path.steps.last().copied())
+                    .unwrap_or_else(|| {
+                        let p = e.position.unwrap();
+                        (p.x.round() as i32, p.y.round() as i32)
+                    })
+            })
+            .collect();
+        assert_ne!(
+            endpoints[0], endpoints[1],
+            "both media users have distinct destinations"
+        );
     }
     let sim = Sim::new_from_shipped_lot();
     assert_eq!(sim.model_action_capacity("bookshelf", "read"), None);

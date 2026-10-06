@@ -413,3 +413,81 @@ fn upstream_actual_pre_skills_media_and_dining_leases_migrate_strictly() {
         }
     }
 }
+
+#[test]
+fn genuine_published_2f_saves_load_and_continue_transactionally() {
+    for (name, bytes) in [
+        (
+            "initial",
+            include_bytes!("../tests/fixtures/published-2f319c3b/initial.bin").as_slice(),
+        ),
+        (
+            "played",
+            include_bytes!("../tests/fixtures/published-2f319c3b/played.bin").as_slice(),
+        ),
+        (
+            "handwash",
+            include_bytes!("../tests/fixtures/published-2f319c3b/active-handwash.bin").as_slice(),
+        ),
+        (
+            "toilet",
+            include_bytes!("../tests/fixtures/published-2f319c3b/active-toilet.bin").as_slice(),
+        ),
+        (
+            "pending",
+            include_bytes!("../tests/fixtures/published-2f319c3b/pending-23-28.bin").as_slice(),
+        ),
+        (
+            "television",
+            include_bytes!("../tests/fixtures/published-2f319c3b/two-viewer-tv.bin").as_slice(),
+        ),
+        (
+            "radio",
+            include_bytes!("../tests/fixtures/published-2f319c3b/two-listener-radio.bin")
+                .as_slice(),
+        ),
+    ] {
+        let before = decode_v5(&bytes[SAVE_HEADER_BYTES..]).expect(name);
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.load_bytes(bytes), "authentic {name} public load");
+        assert_eq!(handle.sim_tick(), before.world.tick, "{name} tick");
+        assert_eq!(
+            handle.sim.save_snapshot_v6().legacy.world.rng,
+            before.world.rng,
+            "{name} RNG"
+        );
+        if name == "television" || name == "radio" {
+            let model = if name == "television" {
+                "television"
+            } else {
+                "radio"
+            };
+            assert_eq!(
+                handle
+                    .sim
+                    .save_snapshot_v6()
+                    .legacy
+                    .world
+                    .entities
+                    .iter()
+                    .filter(|e| e.eating.as_ref().is_some_and(|a| a.object == model))
+                    .count(),
+                2,
+                "{name} keeps both actual viewers"
+            );
+        }
+        let current = handle.save_bytes();
+        let hash = handle.world_hash();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&current), "{name} current roundtrip");
+        assert_eq!(restored.save_bytes(), current);
+        assert_eq!(restored.world_hash(), hash);
+        handle.tick();
+        restored.tick();
+        assert_eq!(
+            restored.save_bytes(),
+            handle.save_bytes(),
+            "{name} deterministic next tick"
+        );
+    }
+}

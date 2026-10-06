@@ -80,6 +80,32 @@ impl SimHandle {
                             requirements.sort();
                             requirements.dedup();
                         }
+                        if action.is_handwashing() {
+                            optional_requirements.push(format!(
+                                "Handwashing raises Hygiene only up to {}",
+                                pack.tuning.need_interactions.handwashing_hygiene_ceiling
+                            ));
+                        }
+                        if action.media.is_some() {
+                            optional_requirements
+                                .push("Social requires liked company using the same device".into());
+                            optional_requirements
+                                .push("Comfort depends on the seat actually used".into());
+                        }
+                        if action.shared_activity.is_some() {
+                            optional_requirements.push(
+                                "Social requires liked company sharing this activity nearby".into(),
+                            );
+                        }
+                        if program.is_some()
+                            && action.advertises.iter().any(|(n, d)| {
+                                *n as usize == terri_core::NeedId::Social.index() && *d > 0.
+                            })
+                        {
+                            optional_requirements.push(
+                                "Social requires liked company seated at the meal table".into(),
+                            );
+                        }
                         (
                             action.id.clone(),
                             action.label.clone(),
@@ -183,7 +209,14 @@ mod tests {
         let fridge = facts.iter().find(|row| row.1 == "fridge").unwrap();
         let dinner = fridge.14.iter().find(|row| row.0 == "cook_dinner").unwrap();
         assert_eq!(dinner.8, ["cold_storage", "hob", "prep_surface"]);
-        assert_eq!(dinner.10, ["dining_seat", "meal_table"]);
+        assert_eq!(
+            dinner.10,
+            [
+                "dining_seat",
+                "meal_table",
+                "Social requires liked company seated at the meal table"
+            ]
+        );
         assert_eq!(counter.15, vec!["prep_surface"]);
         assert_eq!(sink.15, vec!["dish_sink"]);
         let catalogue = handle.catalogue();
@@ -585,7 +618,7 @@ mod tests {
         assert_eq!((shelf.11, shelf.12), (24, 1));
         assert_eq!(shelf.14.iter().find(|a| a.0 == "read").unwrap().3, None);
         for id in ["television", "radio"] {
-            assert_eq!(facts.iter().find(|r| r.1 == id).unwrap().14[0].3, Some(1));
+            assert_eq!(facts.iter().find(|r| r.1 == id).unwrap().14[0].3, Some(2));
         }
     }
 }

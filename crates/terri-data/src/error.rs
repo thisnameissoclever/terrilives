@@ -23,6 +23,7 @@ pub enum ContentError {
     },
     InvalidDomesticTuning,
     InvalidAutonomyTuning,
+    InvalidNeedInteractionTuning,
     EmptyObjectText {
         object: String,
         field: &'static str,
@@ -1821,7 +1822,7 @@ impl fmt::Display for ContentError {
                 "'{owner}' interaction '{interaction}' declares a visual \
                  contract without '{field}'; action, anchor, and facing are \
                  required when visual is present, and object-socket read, \
-                 exercise, sit, or sleep also requires socket"
+                 exercise, sit, sleep, or use_toilet also requires socket"
             ),
             ContentError::UnknownVisualAction {
                 owner,
@@ -1831,7 +1832,7 @@ impl fmt::Display for ContentError {
                 f,
                 "'{owner}' interaction '{interaction}' declares unknown \
                  visual action '{action}'; the current vocabulary is talk, eat, read, \
-                 exercise, watch, sit, sleep"
+                 exercise, watch, sit, sleep, use_toilet"
             ),
             ContentError::UnknownVisualAnchor {
                 owner,
@@ -2490,6 +2491,7 @@ impl fmt::Display for ContentError {
                 f,
                 "two floor coverings are both named {name}; a player choosing                  one could not tell which floor they were choosing"
             ),
+            ContentError::InvalidNeedInteractionTuning => write!(f, "contextual need rates must be finite and bounded; partial washing cannot exceed the odor threshold"),
             ContentError::InvalidAutonomyTuning => write!(f, "autonomy requires positive ordered temperatures and preservation anchors, exploration fractions in (0, 1), a smaller positive probability floor, and wander variance in [0, 1)"),
             ContentError::InvalidMoodTuning => write!(f, "mood tuning requires finite nonnegative values, ordered need and waiting bands, a positive radius, fractions at most one and a neutral band below 100"),
             ContentError::InvalidInterpersonalTuning => write!(f, "interpersonal penalties must be finite, from zero to one, with the critical penalty at least the low penalty"),

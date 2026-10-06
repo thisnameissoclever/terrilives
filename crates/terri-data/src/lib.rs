@@ -11,8 +11,10 @@ mod published_pack_wire;
 pub use books::{compile_books, BookDefinition, BooksFile, ReadingTuning};
 pub mod error;
 pub mod hierarchy;
+mod need_tuning;
 pub mod pack;
 mod relationship_tuning;
+pub use need_tuning::NeedInteractionTuning;
 pub use relationship_tuning::RelationshipTuning;
 pub mod schema;
 
@@ -93,8 +95,18 @@ pub fn latest_pre_books_pack() -> &'static ContentPack {
         .expect("frozen published pack decodes")
     })
 }
+pub fn contextual_pre_books_pack() -> &'static ContentPack {
+    static PACK: OnceLock<ContentPack> = OnceLock::new();
+    PACK.get_or_init(|| {
+        postcard::from_bytes(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/contextual_pre_books_pack.postcard"
+        )))
+        .expect("frozen contextual published pack decodes")
+    })
+}
 pub fn is_latest_pre_books_pack(pack: &ContentPack) -> bool {
-    std::ptr::eq(pack, latest_pre_books_pack())
+    std::ptr::eq(pack, latest_pre_books_pack()) || std::ptr::eq(pack, contextual_pre_books_pack())
 }
 
 /// Explicit historical adapters apply only to these two frozen source eras.
@@ -2463,6 +2475,34 @@ mod tests {
     }
 
     #[test]
+    fn the_shipped_toilet_declares_presentation_only_seat_metadata() {
+        let original = pack();
+        let id = original.find("toilet").unwrap();
+        let object = original.object(id);
+        let action = &object.interactions[0];
+        let visual = action.visual.expect("toilet use has a fitted visual");
+        assert_eq!(visual.action, CompiledVisualAction::UseToilet);
+        assert_eq!(visual.anchor, CompiledVisualAnchor::ObjectSocket);
+        assert_eq!(visual.facing, CompiledVisualFacing::Socket);
+        assert_eq!(visual.socket, Some(0));
+        assert_eq!(object.action_sockets.len(), 1);
+        assert_eq!(object.action_sockets[0].id, "seat");
+        assert_eq!(
+            (object.action_sockets[0].x, object.action_sockets[0].y),
+            (0.0, 0.0)
+        );
+        assert_eq!(
+            object.action_sockets[0].facing,
+            CompiledSocketFacing::PositiveX
+        );
+        assert_eq!((action.duration_ticks, action.slots), (24, 1));
+        let mut absent = original.clone();
+        absent.objects[id.0 as usize].interactions[0].visual = None;
+        absent.objects[id.0 as usize].action_sockets.clear();
+        assert_eq!(content_fingerprint(original), content_fingerprint(&absent));
+    }
+
+    #[test]
     fn the_shipped_armchair_carries_the_exact_sitting_contract() {
         let p = pack();
         let armchair = p.find("armchair").expect("shipped armchair");
@@ -2678,14 +2718,18 @@ mod tests {
         let p = pack();
 
         let sofa = p.object(p.find("long_sofa").expect("objects.toml declares a sofa"));
-        let lounge = sofa.interactions.iter().find(|a| a.id == "sit").unwrap();
+        let lounge = sofa
+            .interactions
+            .iter()
+            .find(|a| a.id == "stretch_out")
+            .unwrap();
         assert_eq!(
             lounge.advertises,
             vec![
-                (terri_core::NeedId::Fun.index() as u8, 4.0),
-                (terri_core::NeedId::Comfort.index() as u8, 25.0),
+                (terri_core::NeedId::Energy.index() as u8, 9.0),
+                (terri_core::NeedId::Comfort.index() as u8, 43.0),
             ],
-            "the sofa must advertise two needs, index-ordered"
+            "reclining advertises Energy and Comfort, index-ordered"
         );
 
         let shower = p.object(p.find("shower").expect("objects.toml declares a shower"));
@@ -3224,6 +3268,13 @@ mod tests {
 
         deltas.sort_unstable();
         for pair in deltas.windows(2) {
+            // The owner chose half the double bed's Comfort for bunks.
+            // Their five points intentionally equal the radio's conditional Social.
+            if pair[0].1 == "bed/sleep (comfort)" && pair[1].1 == "radio/listen (social)" {
+                assert_eq!(f32::from_bits(pair[0].0), 5.);
+                assert_eq!(f32::from_bits(pair[1].0), 5.);
+                continue;
+            }
             assert_ne!(
                 pair[0].0,
                 pair[1].0,

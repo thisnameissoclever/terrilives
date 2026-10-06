@@ -1,0 +1,31 @@
+
+running 1 test
+test compile::tests::need_and_seat_rules_are_validated_and_copied_at_the_authoring_boundary ... FAILED
+
+failures:
+
+failures:
+    compile::tests::need_and_seat_rules_are_validated_and_copied_at_the_authoring_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.00s
+
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\fa6c\terrilives\crates\terri-data)
+warning: method `valid` is never used
+  --> crates\terri-data\src\need_tuning.rs:23:19
+   |
+22 | impl NeedInteractionTuning {
+   | -------------------------- method in this implementation
+23 |     pub(crate) fn valid(self, odor_threshold: f32) -> bool {
+   |                   ^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-data` (build script) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.19s
+     Running unittests src\lib.rs (target\debug\deps\terri_data-c6b1992c464e518b.exe)
+
+thread 'compile::tests::need_and_seat_rules_are_validated_and_copied_at_the_authoring_boundary' (73124) panicked at crates\terri-data\src\compile.rs:4200:13:
+assertion failed: matches!(compile_tuned(tuning_where(|t| t.need_interactions = bad)),
+    Err(ContentError::InvalidNeedInteractionTuning))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p terri-data --lib`

@@ -1,0 +1,18 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.76s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-dd3bb79986d069a6.exe)
+
+running 8 tests
+test browser_books::tests::browser_books_capacity_postcard_witness ... ok
+test browser_books::tests::browser_books_facts_and_shared_unplaced_benefits_are_read_only ... ok
+test browser_books::tests::browser_books_death_capture_preserves_copy_for_living_household_recovery ... ok
+test browser_books::tests::browser_books_postcard_witnesses ... ok
+test browser_books::tests::browser_books_restored_pending_commands_have_an_explicit_barrier ... ok
+test browser_books::tests::browser_recipe_station_facts_use_admission_without_changing_saved_roles ... ok
+test browser_books::tests::browser_books_owned_reading_projection_fixtures ... ok
+test inherited_runtime_tests::inherited_runtime_public_recipe_values_origin_and_final_v6 ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 4.62s
+

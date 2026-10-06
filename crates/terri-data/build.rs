@@ -37,6 +37,9 @@ mod pack;
 #[path = "src/relationship_tuning.rs"]
 mod relationship_tuning;
 pub use relationship_tuning::RelationshipTuning;
+#[path = "src/need_tuning.rs"]
+mod need_tuning;
+pub use need_tuning::NeedInteractionTuning;
 #[path = "src/schema.rs"]
 mod schema;
 
@@ -335,4 +338,12 @@ fn main() {
         postcard::to_allocvec(&latest).expect("latest pack serialises"),
     )
     .expect("write latest frozen pack");
+    let contextual = build_pre_books::compile(
+        &workspace.join("crates/terri-data/tests/fixtures/pre-books-2f319c3b"),
+    );
+    fs::write(
+        out.with_file_name("contextual_pre_books_pack.postcard"),
+        postcard::to_allocvec(&contextual).expect("contextual pack serialises"),
+    )
+    .expect("write contextual frozen pack");
 }

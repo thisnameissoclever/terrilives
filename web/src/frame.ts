@@ -33,7 +33,7 @@ import {
   writeColourway,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, SPRITE_DINING_SUPPORT, BED_CATALOG, SEATING_SPRITES, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, SPRITE_DINING_SUPPORT, BED_CATALOG, SEATING_SPRITES, BATHROOM_SPRITES, spriteIndex } from './render/atlas.js';
 import { DINING_BACKGROUND, DINING_FOREGROUND } from './render/dining-support.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
@@ -586,8 +586,9 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
   return 'green';
 }
 
-const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
-const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
+const actionSprites = { ...SEATING_SPRITES, ...BATHROOM_SPRITES };
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, actionSprites, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, actionSprites, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
 
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {

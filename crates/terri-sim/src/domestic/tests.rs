@@ -601,6 +601,14 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 object: toilet.index_u32(),
                 interaction: 0,
             });
+        // Make the unrelated completion explicit instead of relying on exploration.
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObjectFirst {
+                agent: people[1].index_u32(),
+                object: toilet.index_u32(),
+                interaction: 0,
+            });
         let mut restored = None;
         let mut completions = 0;
         let mut resumed = false;
@@ -622,6 +630,14 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         for _ in 0..1800 {
             let actor_was_at_toilet = at_toilet(&sim, actor);
             let housemates_were_at_toilet = housemates_at_toilet(&sim);
+            let expected_finishes = people
+                .iter()
+                .filter(|&&person| {
+                    sim.world()
+                        .get::<Eating>(person)
+                        .is_some_and(|e| e.object == toilet_def && e.remaining_ticks == 1)
+                })
+                .count();
             sim.tick();
             // A housemate's own visit is a real completion, but not the
             // actor's. Attribute to it only the completion on the tick its
@@ -655,6 +671,10 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 .chunks_exact(2)
                 .filter(|pair| pair[1] == toilet.index_u32())
                 .count();
+            assert_eq!(
+                toilet_sounds, expected_finishes,
+                "Each actual toilet finish emits exactly one event"
+            );
             if housemate_finished {
                 housemate_completions += toilet_sounds;
             } else {
@@ -680,6 +700,7 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 resumed = true;
             }
             if resumed
+                && housemate_completions > 0
                 && sim
                     .world()
                     .get::<ChainState>(actor)
@@ -992,14 +1013,29 @@ fn complaints_are_directional_once_per_visit_and_stronger_for_neat_people() {
 #[test]
 fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
     let (mut sim, people, _, counter, table) = household();
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    // Zero is an authored, valid cutoff for critical-need cleanup willingness.
+    pack.tuning
+        .domestic
+        .as_mut()
+        .unwrap()
+        .critical_cleanup_scale = 0.;
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
     for person in &people {
         *sim.world_mut().get_mut::<Needs>(*person).unwrap() = Needs::all_at(100.0);
     }
-    // This test proves one cleaner's conservation; other housemates are off the lot.
-    for person in people.iter().skip(1) {
-        sim.world_mut().entity_mut(*person).insert(AtWork {
-            remaining_ticks: 10_000,
-        });
+    // Hold bystanders below cleanup readiness throughout this ownership test.
+    // Their zero Energy satisfaction prevents resting from releasing the constraint.
+    for other in &people[1..] {
+        sim.world_mut()
+            .get_mut::<Needs>(*other)
+            .unwrap()
+            .set(NeedId::Energy, 0.);
+        sim.world_mut()
+            .get_mut::<Personality>(*other)
+            .unwrap()
+            .satisfaction[NeedId::Energy.index()] = 0.;
     }
     add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
     add_dishes(sim.world_mut(), table.index_u32(), 0, 1);
@@ -1010,6 +1046,23 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
     let mut table_collection = false;
     for _ in 0..1000 {
         sim.tick();
+        for other in &people[1..] {
+            assert_eq!(
+                sim.world()
+                    .get::<Needs>(*other)
+                    .unwrap()
+                    .get(NeedId::Energy),
+                0.
+            );
+            assert!(
+                !sim.world()
+                    .resource::<SavedDomestic>()
+                    .cleanup
+                    .iter()
+                    .any(|claim| claim.person == other.index_u32()),
+                "Bystanders must stay outside the isolated ownership test"
+            );
+        }
         sim.sync_render_buffer();
         let carrier = sim
             .render_buffer()
@@ -1029,6 +1082,7 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
         }
         let saved = sim.save_snapshot_v6();
         let mut loaded = Sim::new_from_shipped_lot();
+        loaded.world_mut().insert_resource(Content(pack));
         loaded
             .load_snapshot_v6(saved)
             .expect("cleanup saves load, including washing completion");

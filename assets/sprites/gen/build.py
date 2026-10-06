@@ -938,7 +938,8 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              seating_profiles=None, seating_layers=None, seating_coverage=None, seating_masks=None,
              shelf_profiles=None, shelf_slots=None, shelf_coverage=None,
              shared_seat_catalog=None, shared_seat_layers=None, shared_seat_preview=None,
-             joint_scene_alpha_ids=None, reading_body_catalog=None, dropped_book_sprites=None, sofa_recline_catalog=None):
+             joint_scene_alpha_ids=None, reading_body_catalog=None, dropped_book_sprites=None, sofa_recline_catalog=None,
+             bathroom_profiles=None, bathroom_layers=None, bathroom_coverage=None, bathroom_masks=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -1052,6 +1053,11 @@ export const JOINT_SCENE_ALPHA_IDS: Readonly<Record<number, number>> = {json.dum
 export const READING_BODY_CATALOG: import('./reading-sprites.js').ReadingBodyCatalog = {json.dumps(reading_body_catalog or {}, separators=(',', ':'))};
 export const DROPPED_BOOK_SPRITES: readonly {{ readonly sprite: number; readonly alpha: number }}[] = {json.dumps(dropped_book_sprites or [])};
 export const SOFA_RECLINE_CATALOG: import('./shared-seat-sprites.js').ReclineCatalog = {json.dumps(sofa_recline_catalog or {}, separators=(',', ':'))};
+/** Fitted bathroom actions keep their ownership separate from older scenes. */
+export const BATHROOM_SPRITES: import('./interaction-sprites.js').ActionInteractionCatalog = {json.dumps(bathroom_profiles or {}, indent=2)};
+export const BATHROOM_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(bathroom_layers or {}, indent=2)};
+export const BATHROOM_COVERAGE: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(bathroom_coverage or {}, indent=2)};
+export const BATHROOM_MASKS: readonly import('./bed-sprites.js').EncodedCoverage[] = {json.dumps(bathroom_masks or [], indent=2)};
 export const SURFACE_LAYOUTS: Readonly<Record<number, import('./surface-items.js').SurfaceLayout>> = {surfaces_json};
 export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
 /** Whether a held meal is nearer the camera than the body at its grip. */
@@ -1409,7 +1415,6 @@ def main():
     tops.update(seating_data['tops'])
     bounds.update(seating_data['bounds'])
     densities.update(seating_data['density'])
-    visible_layers = {**bed_layers, **seating_data['layers']}
     from offline_table_sitting import load_table_sitting
     sitting = load_table_sitting(os.path.join(ROOT, 'assets/models/domestic/table-sitting'))
     sprites.extend(sitting.sprites)
@@ -1435,6 +1440,17 @@ def main():
         anchors[len(sprites)] = cleaning_anchors[sprite[0]]; densities[len(sprites)] = 2
         sprites.append(sprite)
     dining_meals.update(support_tables(sprites,cleaning_support,pair_masks))
+    from offline_bathroom import load_bathroom, records as bathroom_records, tables as bathroom_tables
+    bathroom = load_bathroom(Path(ROOT) / 'assets/models/bathroom/actions/export/toilet-05/manifest.json')
+    bathroom_rows = bathroom_records(bathroom)
+    assert not {row[0] for row in sprites}.intersection(row[0] for row in bathroom_rows), 'duplicate bathroom records'
+    sprites.extend(bathroom_rows)
+    bathroom_data = bathroom_tables(bathroom, sprites, anchors)
+    anchors.update(bathroom_data['anchors'])
+    tops.update(bathroom_data['tops'])
+    bounds.update(bathroom_data['bounds'])
+    densities.update(bathroom_data['density'])
+    visible_layers = {**bed_layers, **seating_data['layers'], **bathroom_data['layers']}
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     from offline_shelf import load_shelf
@@ -1515,7 +1531,10 @@ def main():
                   shelf_coverage=shelf_data['coverage'], shared_seat_layers={**reader_subset['layers'], **reading_actions['layers']},
                   shared_seat_preview=reader_subset['catalog'], shared_seat_catalog=reading_actions['catalog'],
                   joint_scene_alpha_ids={**reader_subset['joint_ids'], **reading_actions['joint_ids']}, reading_body_catalog=reading_actions['bodies'], dropped_book_sprites=dropped_books,
-                  sofa_recline_catalog=reading_actions['recline'])
+                  sofa_recline_catalog=reading_actions['recline'],
+                  bathroom_profiles={index: {profile['action']: profile} for index, profile in bathroom_data['profiles'].items()},
+                  bathroom_layers=bathroom_data['layers'], bathroom_coverage=bathroom_data['coverage'],
+                  bathroom_masks=bathroom_data['masks'])
 
     if args.check:
         bad = []

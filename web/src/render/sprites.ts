@@ -21,6 +21,7 @@ import {
   SEATING_LAYERS,
   SHELF_PROFILES,
   SHARED_SEAT_LAYERS,
+  BATHROOM_LAYERS,
   BED_LAYER_TRIMS,
   ATLAS_PAGE_FILES,
   SPRITE_DINING_SUPPORT,
@@ -528,7 +529,7 @@ export class SpriteRenderer {
     });
     const sceneCount = this.grimeSpriteBase + GRIME_SPRITE_COUNT;
     const bedTable = packShelfLayers(packPresentationLayers(sceneCount,
-      { ...BED_LAYERS, ...SEATING_LAYERS }, SHARED_SEAT_LAYERS, joint.layers), sceneCount, SHELF_PROFILES);
+      { ...BED_LAYERS, ...SEATING_LAYERS, ...BATHROOM_LAYERS }, SHARED_SEAT_LAYERS, joint.layers), sceneCount, SHELF_PROFILES);
     this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.bedBuffer);
