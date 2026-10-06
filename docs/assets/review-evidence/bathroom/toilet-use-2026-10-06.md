@@ -74,18 +74,21 @@ exact. `verify-sprite-preservation.py origin/main` produced the receipt
 ## Actual house
 
 A task-owned game served from this worktree at the `127.0.0.1:5174` origin,
-which has no saved household, was played in the browser pane. Tim was ordered
-to Use the toilet through the Porcelain Standard menu and arrived seated with
-the HUD reading Using the toilet, the activity bubble above him and the
-selection marker beneath. Casey was then ordered the same way, paused while
-seated and saved; the status read Game saved. After the clock ran on and Casey
-had left the toilet, which was drawn unoccupied again, Load restored the clock
-to 16:41 with Casey seated and the status Saved game loaded.
-`toilet-use-played.png` is the paused seated frame. No console error was
-reported. The game respects the operating system's reduced-motion preference;
-the played pass used the default preference, and the rest sample is covered by
-the production test above. The browser tab and the dev server were closed
-afterwards.
+which holds no save of the owner's, was played in the browser pane with the
+`toilet-05` atlas. In a new game on Day 1, Tim was ordered to Use the toilet
+through the Porcelain Standard menu; queue mode put the order behind his
+waiting actions, and Casey reached the toilet first on her own at 06:06.
+`toilet-empty-played.png` (01:45, menu open) and `toilet-use-played.png`
+(06:06, Casey seated with the activity bubble) are the same camera: the
+toilet bowl is drawn at the same screen position whether empty or occupied,
+which is the defect the owner saw with the earlier anchor and the check this
+record exists for. An earlier session on the superseded atlas also showed
+save and load restoring a seated housemate with the status Saved game loaded,
+and clicking the seated body keeping that housemate selected; the production
+test covers both on the current atlas. No console error was reported. The game
+respects the operating system's reduced-motion preference; the rest sample is
+covered by the production test. The browser pane was left open for the owner
+to watch and the dev server was stopped when the delivery finished.
 
 ## Local verification
 
@@ -95,8 +98,11 @@ afterwards.
 3. `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`: passed.
 4. `npm --prefix web test -- --maxWorkers=1`: 2,132 tests passed.
    Web typecheck and production build: passed.
-5. Bathroom action suite: 27 contract tests passed; the whole discovery run
-   still reports the intentionally missing `bath_wall_support` helper.
+5. Bathroom action suite (`assets/models/bathroom/actions`): 96 tests passed,
+   29 of them the contract and exporter tests. The intentionally red bath
+   wall-support test from the checkpoint is not part of this delivery; it
+   remains in history at ba38c907 for the bath track. CI discovers only the
+   eight top-level bathroom tests; the action suite is a local gate.
 6. Sprite generator suite: 204 tests passed after the content-bounds test
    learned to union bathroom scene layers and the prefix test counted the
    108 new records.
