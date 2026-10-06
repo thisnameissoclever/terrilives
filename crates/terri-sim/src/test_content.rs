@@ -351,6 +351,10 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         colourways: Vec::new(),
         coverings: Vec::new(),
         skills: Vec::new(),
+        // Empty: a kind lists object indices, and the shipped kinds' indices
+        // point into the shipped objects, not this fixture's. A test about
+        // affinities installs its own kinds.
+        affinities: Vec::new(),
     }))
 }
 

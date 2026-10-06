@@ -288,6 +288,28 @@ pub struct TuningFile {
     /// What each later level costs, as a multiple of the one before; finite
     /// and at least 1, so a later level never costs less - [SK-model].
     pub skill_level_growth: f32,
+    /// The starting value a disposition trait sets for its affinity kind, in
+    /// `(0, 1]`: this for a trait that loves the kind, its negative for one
+    /// that hates it - [OA-values] in
+    /// `docs/specs/2026-10-06-object-affinities.md`.
+    pub affinity_from_trait: f32,
+    /// Below this magnitude an affinity value gives no moodlet, in `[0, 1)` -
+    /// [OA-presence].
+    pub affinity_presence_threshold: f32,
+    /// The mood one object of a presence kind gives at a value of 1.0.
+    /// Finite and not negative - [OA-presence].
+    pub affinity_presence_points: f32,
+    /// The mood each further object of the kind adds at 1.0, up to
+    /// `affinity_presence_extra_cap`. Finite and not negative.
+    pub affinity_presence_extra_points: f32,
+    /// How many further objects count. Any value is legal, including 0.
+    pub affinity_presence_extra_cap: u32,
+    /// The mood each other person using a use kind costs at a value of -1.0.
+    /// Finite and not negative - [OA-use].
+    pub affinity_use_points: f32,
+    /// How much a bothered person's feeling toward the user falls per game
+    /// hour at -1.0. Finite and not negative - [OA-use].
+    pub affinity_use_feeling_per_hour: f32,
     #[serde(default)]
     pub relationships: crate::RelationshipTuning,
 }
@@ -316,6 +338,31 @@ pub struct ObjectsFile {
     /// `docs/specs/2026-09-22-colourways.md`. Absent means none.
     #[serde(default)]
     pub colourway: Vec<ColourwayDef>,
+    /// The kinds of thing a person can love or hate, in file order -
+    /// [OA-kinds] in `docs/specs/2026-10-06-object-affinities.md`. Absent
+    /// means none.
+    #[serde(default)]
+    pub affinity: Vec<AffinityKindDef>,
+}
+
+/// One affinity kind: a name a player reads and the objects it covers -
+/// [OA-kinds]. An object no kind lists carries no affinity.
+#[derive(Debug, Clone, Deserialize)]
+pub struct AffinityKindDef {
+    /// What a save records for the kind.
+    pub id: String,
+    /// What a player reads, in lower case so it fits inside a sentence.
+    pub label: String,
+    /// `presence` (the objects in the room move mood) or `use` (somebody
+    /// else using one bothers a person who hates the kind).
+    pub reach: String,
+    /// The object ids the kind covers: at least one, each covered by no
+    /// other kind.
+    pub objects: Vec<String>,
+    /// The activity tag whose disposition traits set a strong starting
+    /// value, if any.
+    #[serde(default)]
+    pub trait_tag: Option<String>,
 }
 
 /// One colourway: a colour shift the shader applies to an object's art.
@@ -1143,7 +1190,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 78] = [
+    const TUNING_LINES: [(&str, &str); 85] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1224,6 +1271,13 @@ mod tests {
         ("shyness_wander_reconsider_strength", "0.15"),
         ("skill_level_cost", "0.0859375"),
         ("skill_level_growth", "1.34375"),
+        ("affinity_from_trait", "0.6875"),
+        ("affinity_presence_threshold", "0.296875"),
+        ("affinity_presence_points", "10.5"),
+        ("affinity_presence_extra_points", "3.125"),
+        ("affinity_presence_extra_cap", "27"),
+        ("affinity_use_points", "14.5"),
+        ("affinity_use_feeling_per_hour", "0.0234375"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -1310,6 +1364,13 @@ mod tests {
         assert_eq!(parsed.daylight_reach_per_tile, 0.21875);
         assert_eq!(parsed.skill_level_cost, 0.0859375);
         assert_eq!(parsed.skill_level_growth, 1.34375);
+        assert_eq!(parsed.affinity_from_trait, 0.6875);
+        assert_eq!(parsed.affinity_presence_threshold, 0.296875);
+        assert_eq!(parsed.affinity_presence_points, 10.5);
+        assert_eq!(parsed.affinity_presence_extra_points, 3.125);
+        assert_eq!(parsed.affinity_presence_extra_cap, 27);
+        assert_eq!(parsed.affinity_use_points, 14.5);
+        assert_eq!(parsed.affinity_use_feeling_per_hour, 0.0234375);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {
@@ -1463,6 +1524,51 @@ mod tests {
         assert_eq!(act.advertises.get("hunger"), Some(&35.0));
         assert_eq!(act.advertises.len(), 1, "advert must stay sparse");
         assert_eq!(act.duration_ticks, 15);
+        assert!(
+            parsed.affinity.is_empty(),
+            "a file without [[affinity]] tables declares no kinds"
+        );
+    }
+
+    /// [OA-kinds]: `[[affinity]]` tables reach the schema in file order, with
+    /// their objects in authored order, and `trait_tag` is optional.
+    #[test]
+    fn parses_affinity_kinds_in_file_order() {
+        let parsed: ObjectsFile = toml::from_str(
+            r#"
+            [[object]]
+            id = "radio"
+            name = "Radio"
+            sprite = "radio"
+            interaction = []
+
+            [[affinity]]
+            id = "sound"
+            label = "sound"
+            reach = "use"
+            objects = ["radio", "television"]
+            trait_tag = "listening"
+
+            [[affinity]]
+            id = "greenery"
+            label = "greenery"
+            reach = "presence"
+            objects = ["potted_plant"]
+            "#,
+        )
+        .expect("valid objects toml");
+        let [first, second] = parsed.affinity.as_slice() else {
+            panic!("two kinds, got {:?}", parsed.affinity);
+        };
+        assert_eq!(first.id, "sound");
+        assert_eq!(first.label, "sound");
+        assert_eq!(first.reach, "use");
+        assert_eq!(first.objects, ["radio", "television"]);
+        assert_eq!(first.trait_tag.as_deref(), Some("listening"));
+        assert_eq!(second.id, "greenery");
+        assert_eq!(second.reach, "presence");
+        assert_eq!(second.objects, ["potted_plant"]);
+        assert_eq!(second.trait_tag, None);
     }
 
     /// Both halves of `#[serde(default)]` on `label`.

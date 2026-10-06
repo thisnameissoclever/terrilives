@@ -15,20 +15,21 @@ pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::SleepPlaceAccess;
 pub use pack::{
-    CompiledActionSocket, CompiledActivity, CompiledCareer, CompiledChain, CompiledChainStep,
-    CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
-    CompiledPlacement, CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge, CompiledSkill,
-    CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
-    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
-    ContentPack, DomesticTuning, Footprint, ObjectDefId, Tuning,
+    AffinityReach, CompiledActionSocket, CompiledActivity, CompiledAffinityKind, CompiledCareer,
+    CompiledChain, CompiledChainStep, CompiledHouseholdMember, CompiledInteraction, CompiledLot,
+    CompiledObject, CompiledPersonality, CompiledPlacement, CompiledPlacementSocket,
+    CompiledPortal, CompiledPortalHinge, CompiledSkill, CompiledSocketFacing, CompiledSoundAction,
+    CompiledTrait, CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
+    CompiledVisualFacing, CompiledVoiceClip, ContentPack, DomesticTuning, Footprint, ObjectDefId,
+    Tuning,
 };
 pub use pack::{Facing, FacingSprites};
 pub use schema::{
-    ActionSocketDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, FrontDoorDef,
-    FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile, NeedDef,
-    NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile, PlacementDef, PortalEntryDef, SkillDef,
-    SkillsFile, TraitDef, TraitsFile, TuningFile, VisualDef, VoiceClipDef, VoiceFile, WallDef,
-    MAX_HOUSEHOLD_SIZE, TRAIT_KINDS, WEEKDAY_NAMES,
+    ActionSocketDef, AffinityKindDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef,
+    FrontDoorDef, FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile,
+    NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile, PlacementDef, PortalEntryDef,
+    SkillDef, SkillsFile, TraitDef, TraitsFile, TuningFile, VisualDef, VoiceClipDef, VoiceFile,
+    WallDef, MAX_HOUSEHOLD_SIZE, TRAIT_KINDS, WEEKDAY_NAMES,
 };
 
 use std::sync::OnceLock;
@@ -759,6 +760,62 @@ mod tests {
             .find(|career| career.id == "office_job")
             .expect("the shipped pack declares the office job");
         assert_eq!(office.working_days, 0b0011111);
+    }
+
+    /// [OA-kinds]: the four shipped kinds, in the order every person's values
+    /// are listed in, each with its reach, its one object and, for
+    /// television alone, a trait tag.
+    #[test]
+    fn the_shipped_pack_has_four_affinity_kinds() {
+        let pack = pack();
+        let ids: Vec<&str> = pack.affinities.iter().map(|k| k.id.as_str()).collect();
+        assert_eq!(ids, ["plants", "aquarium", "television", "radio"]);
+        let labels: Vec<&str> = pack.affinities.iter().map(|k| k.label.as_str()).collect();
+        assert_eq!(labels, ["plants", "aquarium", "television", "radio"]);
+        let reaches: Vec<AffinityReach> = pack.affinities.iter().map(|k| k.reach).collect();
+        assert_eq!(
+            reaches,
+            [
+                AffinityReach::Presence,
+                AffinityReach::Presence,
+                AffinityReach::Use,
+                AffinityReach::Use
+            ]
+        );
+        let tags: Vec<Option<&str>> = pack
+            .affinities
+            .iter()
+            .map(|k| k.trait_tag.as_deref())
+            .collect();
+        assert_eq!(tags, [None, None, Some("television"), None]);
+
+        let index = |id: &str| pack.find(id).expect("a shipped object").0;
+        for (kind, object) in ["potted_plant", "reference_shelf", "television", "radio"]
+            .into_iter()
+            .enumerate()
+        {
+            assert_eq!(pack.affinities[kind].objects, [index(object)], "{object}");
+            assert_eq!(
+                pack.affinity_kind_of(index(object)),
+                Some(kind as u32),
+                "{object}"
+            );
+        }
+        assert_eq!(pack.affinity_kind_of(index("sofa")), None);
+    }
+
+    /// [OA-values], [OA-presence], [OA-use]: the shipped affinity knobs,
+    /// exactly as the plan names them.
+    #[test]
+    fn the_shipped_affinity_tuning_matches_the_spec() {
+        let tuning = pack().tuning;
+        assert_eq!(tuning.affinity_from_trait, 0.8);
+        assert_eq!(tuning.affinity_presence_threshold, 0.2);
+        assert_eq!(tuning.affinity_presence_points, 10.0);
+        assert_eq!(tuning.affinity_presence_extra_points, 3.0);
+        assert_eq!(tuning.affinity_presence_extra_cap, 3);
+        assert_eq!(tuning.affinity_use_points, 15.0);
+        assert_eq!(tuning.affinity_use_feeling_per_hour, 0.03);
     }
 
     /// [SK-learning]: learning left the capability trait for the skill.

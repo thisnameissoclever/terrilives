@@ -422,6 +422,25 @@ sick_threshold = 2.5
 # negative.
 sick_penalty = 25.0
 
+# Object affinities - [OA-values], [OA-presence] and [OA-use] in
+# docs/specs/2026-10-06-object-affinities.md.
+#
+# Starting value a disposition trait sets for its kind: this for a trait that
+# loves, its negative for one that hates. In (0, 1].
+affinity_from_trait = 0.8
+# Below this magnitude a value gives no moodlet. In [0, 1).
+affinity_presence_threshold = 0.2
+# Mood for one object of a presence kind at a value of 1.0. Finite, not negative.
+affinity_presence_points = 10.0
+# Mood each further object adds at 1.0, up to the cap. Finite, not negative.
+affinity_presence_extra_points = 3.0
+# How many further objects count.
+affinity_presence_extra_cap = 3
+# Mood each other person using a use kind costs at a value of -1.0. Finite, not negative.
+affinity_use_points = 15.0
+# How much a bothered person's feeling toward the user falls per game hour at -1.0. Finite, not negative.
+affinity_use_feeling_per_hour = 0.03
+
 # Seed for fixed-seed constructors and tests. Browser new games supply fresh
 # cryptographic entropy. Saves persist the complete live generator state.
 rng_seed = 20260728
