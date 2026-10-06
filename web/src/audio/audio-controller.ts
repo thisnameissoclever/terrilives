@@ -31,8 +31,8 @@ import {
   type ObjectRecordingFamily,
 } from './object-recordings.js';
 import { PortalAudioScheduler } from './portal-audio.js';
-import { RecordedDoorPlayer } from './recorded-doors.js';
-import { RecordedToiletPlayer, MAX_TOILET_CLIP_SECONDS } from './recorded-toilet.js';
+import { DOOR_POLICY } from './recorded-doors.js';
+import { TOILET_POLICY } from './recorded-toilet.js';
 import { RecordedCuePlayer } from './recorded-cues.js';
 import { SNORE_CLIP_URLS, SNORE_POLICY } from './recorded-snores.js';
 
@@ -146,8 +146,8 @@ export class AudioController implements GameAudioEventSink {
   private readonly objectRecordings = new Map<ObjectRecordingFamily, ObjectRecordingState>();
   private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
   private objectSoundsPaused = false;
-  private doors: RecordedDoorPlayer | null = null;
-  private toilet: RecordedToiletPlayer | null = null;
+  private doors: RecordedCuePlayer | null = null;
+  private toilet: RecordedCuePlayer | null = null;
   private snores: RecordedCuePlayer | null = null;
   private snoreClips: readonly AudioBufferPort[] = [];
   private snoreFetch: Promise<void> | null = null;
@@ -318,7 +318,7 @@ export class AudioController implements GameAudioEventSink {
     if (event.type === 'object.completed') {
       if (!this.objectCuesAudible() || event.action !== 1 || !Number.isInteger(event.sourceId) ||
         event.sourceId < 0 || event.sourceId >= 0xffff_ffff) return;
-      if (this.toiletClip !== null && this.toilet?.play(event.sourceId, this.toiletClip)) {
+      if (this.toiletClip !== null && this.toilet?.play(this.toiletClip, event.sourceId)) {
         this.playedCueCounts[8]++;
       }
       void this.loadToiletRecording();
@@ -460,7 +460,7 @@ export class AudioController implements GameAudioEventSink {
       const response = await fetch('audio/toilet/flush.wav');
       if (!response.ok) throw new Error(`toilet recording: ${response.status}`);
       const clip = await context.decodeAudioData(await response.arrayBuffer());
-      if (!Number.isFinite(clip.duration) || clip.duration < .024 || clip.duration > MAX_TOILET_CLIP_SECONDS) {
+      if (!Number.isFinite(clip.duration) || clip.duration < .024 || clip.duration > TOILET_POLICY.maxClipSeconds) {
         throw new Error('invalid toilet recording');
       }
       this.toiletClip = clip;
@@ -978,8 +978,8 @@ export class AudioController implements GameAudioEventSink {
         this.effectsGain = effectsGain;
         this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
-        this.doors = new RecordedDoorPlayer(context, effectsGain);
-        this.toilet = new RecordedToiletPlayer(context, effectsGain);
+        this.doors = new RecordedCuePlayer(context, effectsGain, DOOR_POLICY);
+        this.toilet = new RecordedCuePlayer(context, effectsGain, TOILET_POLICY);
         this.snores = new RecordedCuePlayer(context, effectsGain, SNORE_POLICY);
         this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
         this.objectLoops.setClips(this.objectLoopClips);

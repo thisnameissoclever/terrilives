@@ -9,8 +9,9 @@ import {
   type BrowserAudioContext,
 } from '../src/audio/audio-controller.js';
 import { FOOTSTEP_DISTANCE_TILES } from '../src/audio/footsteps.js';
-import { RecordedDoorPlayer } from '../src/audio/recorded-doors.js';
-import { RecordedToiletPlayer } from '../src/audio/recorded-toilet.js';
+import { RecordedCuePlayer } from '../src/audio/recorded-cues.js';
+import { DOOR_POLICY } from '../src/audio/recorded-doors.js';
+import { TOILET_POLICY } from '../src/audio/recorded-toilet.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { sampleSimAudioAfterTick, withObjectSoundPause } from '../src/audio/frame-audio.js';
 import { VISUAL_ACTION_TALK } from '../src/frame.js';
@@ -292,23 +293,23 @@ describe('recorded toilet completion', () => {
 
   it('bounds voices by source and total, validates input, and recovers source ownership after end', () => {
     const context = new FakeContext();
-    const player = new RecordedToiletPlayer(context, context.destination);
+    const player = new RecordedCuePlayer(context, context.destination, TOILET_POLICY);
     for (const source of [-1, NaN, Infinity, 1.5, 0xffff_ffff, 0x1_0000_0000]) {
-      expect(player.play(source, { duration: 1 })).toBe(false);
+      expect(player.play({ duration: 1 }, source)).toBe(false);
     }
-    for (const duration of [0, .01, -1, NaN, Infinity, 30.1]) expect(player.play(42, { duration })).toBe(false);
+    for (const duration of [0, .01, -1, NaN, Infinity, 30.1]) expect(player.play({ duration }, 42)).toBe(false);
     expect(context.bufferSources).toHaveLength(0);
-    expect(player.play(42, { duration: 1 })).toBe(true);
-    expect(player.play(42, { duration: 1 })).toBe(false);
-    for (const source of [77, 88, 99]) expect(player.play(source, { duration: 1 })).toBe(true);
-    expect(player.play(42, { duration: 1 })).toBe(false);
-    expect(player.play(100, { duration: 1 })).toBe(false);
+    expect(player.play({ duration: 1 }, 42)).toBe(true);
+    expect(player.play({ duration: 1 }, 42)).toBe(false);
+    for (const source of [77, 88, 99]) expect(player.play({ duration: 1 }, source)).toBe(true);
+    expect(player.play({ duration: 1 }, 42)).toBe(false);
+    expect(player.play({ duration: 1 }, 100)).toBe(false);
     expect(player.activeVoiceCount()).toBe(4);
     context.bufferSources[0].onended?.();
-    expect(player.play(42, { duration: 1 })).toBe(true);
+    expect(player.play({ duration: 1 }, 42)).toBe(true);
     context.currentTime = 5;
     expect(player.activeVoiceCount()).toBe(0);
-    expect(player.play(42, { duration: 1 })).toBe(true);
+    expect(player.play({ duration: 1 }, 42)).toBe(true);
     player.stopAll();
     expect(player.activeVoiceCount()).toBe(0);
   });
@@ -430,23 +431,40 @@ describe('recorded toilet completion', () => {
           return source;
         };
       }
-      const player = new RecordedToiletPlayer(context, context.destination);
-      expect(player.play(42, { duration: 1 })).toBe(false);
+      const player = new RecordedCuePlayer(context, context.destination, TOILET_POLICY);
+      expect(player.play({ duration: 1 }, 42)).toBe(false);
       expect(player.activeVoiceCount()).toBe(0);
       expect(context.bufferSources[0].disconnected).toBe(true);
     },
   );
 
+  it.each([
+    ['door', DOOR_POLICY, 0.05, 4, 600, Infinity],
+    ['toilet', TOILET_POLICY, 0.08, 4, 30, 30],
+  ] as const)('keeps the %s recordings at their level, overlap and length', (_name, policy, level, voices, longest, limit) => {
+    // Doors have no length limit; the toilet refuses a flush over 30 seconds.
+    expect(policy.maxClipSeconds).toBe(limit);
+    const context = new FakeContext();
+    const player = new RecordedCuePlayer(context, context.destination, policy);
+    expect(player.play({ duration: longest }, 1)).toBe(true);
+    const gain = context.gains[0]!;
+    const levels = gain.gain.calls.map((call) => call.value).filter((value): value is number => value !== undefined);
+    expect(Math.max(...levels)).toBe(level);
+    for (let key = 2; key <= voices; key++) expect(player.play({ duration: 1 }, key)).toBe(true);
+    expect(player.play({ duration: 1 }, voices + 1)).toBe(false);
+    expect(player.activeVoiceCount()).toBe(voices);
+  });
+
   it('a stale ended callback cannot release a newer flush from the same physical source', () => {
     const context = new FakeContext();
-    const player = new RecordedToiletPlayer(context, context.destination);
-    expect(player.play(42, { duration: 1 })).toBe(true);
+    const player = new RecordedCuePlayer(context, context.destination, TOILET_POLICY);
+    expect(player.play({ duration: 1 }, 42)).toBe(true);
     const staleEnd = context.bufferSources[0].onended;
     player.stopAll();
-    expect(player.play(42, { duration: 1 })).toBe(true);
+    expect(player.play({ duration: 1 }, 42)).toBe(true);
     staleEnd?.();
     expect(player.activeVoiceCount()).toBe(1);
-    expect(player.play(42, { duration: 1 })).toBe(false);
+    expect(player.play({ duration: 1 }, 42)).toBe(false);
     expect(context.bufferSources[1].disconnected).toBe(false);
   });
 });
@@ -755,7 +773,7 @@ describe('recorded physical doors', () => {
 
   it('rejects invalid recordings without nodes and sweeps ended sources even without callbacks', () => {
     const context = new FakeContext();
-    const player = new RecordedDoorPlayer(context, context.destination);
+    const player = new RecordedCuePlayer(context, context.destination, DOOR_POLICY);
     for (const duration of [0, 0.01, -1, NaN, Infinity]) expect(player.play({ duration })).toBe(false);
     expect(context.bufferSources).toHaveLength(0);
     expect(player.play({ duration: 1 })).toBe(true);
@@ -773,7 +791,7 @@ describe('recorded physical doors', () => {
       source[failure] = () => { throw new Error('hardware'); };
       return source;
     };
-    const player = new RecordedDoorPlayer(context, context.destination);
+    const player = new RecordedCuePlayer(context, context.destination, DOOR_POLICY);
     expect(player.play({ duration: 1 })).toBe(false);
     expect(player.activeVoiceCount()).toBe(0);
     expect(context.bufferSources[0].disconnected).toBe(true);
