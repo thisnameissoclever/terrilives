@@ -100,8 +100,8 @@ authorize unrelated replacement copy.
 
 ## Gameplay UI additions (2026-09-30)
 
-Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
-Not enough beds. Action cards combine existing interaction labels with object
+Functional labels: Now, Next, Queued, Going to work, Heading home (the walk
+back from work, 2026-10-06), Unavailable action, and Not enough beds. Action cards combine existing interaction labels with object
 or person names. Build and Exit build now live in the upper-left world group.
 
 
