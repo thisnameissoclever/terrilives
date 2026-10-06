@@ -276,6 +276,14 @@ Four unchanged originals from rubberduck's [100 CC0 SFX](https://opengameart.org
 
 The standalone `web/public/audio-review.html` embeds these bytes for comparison. They are not registered in the game audio catalog, and no existing cue is replaced. All four decoded as finite, unclipped stereo at 48 kHz. That is mechanical screening, not listening acceptance. The source, measurements and publication contract are in `docs/specs/2026-10-01-paper-sound-review.md`.
 
+## Future assets kept for unbuilt systems
+
+These files are deliberately committed but not yet used. Do not remove them as unreferenced assets.
+
+### Cat purr for pets
+
+`assets/audio/future/cat-purr/cat-purr-candidate.wav` is a first-party synthetic purr the owner chose on 2026-10-06 for the future pets system, `[S-pets]` in `docs/GAME-SYSTEMS.md`. It started as a rejected human-snore prototype. Mono 16-bit PCM at 48 kHz, 12.5 seconds, 1,200,044 bytes, SHA-256 `7025a85b832e12e498a854d9edee454a67531f46c31e7b4ccd6717ecedf4d860`. No third-party source and no licence obligations. `build_cat_purr.py` in the same folder regenerates it byte for byte, and the folder's README explains its level and how pets should adopt it.
+
 ## What was here before, and why it is gone
 
 The alpha shipped 39 isometric PNGs from the **Kenney Furniture Kit** (CC0,
