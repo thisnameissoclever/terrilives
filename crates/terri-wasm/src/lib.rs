@@ -29,6 +29,8 @@ mod skills_boundary_tests;
 #[cfg(test)]
 mod spawn_boundary_tests;
 #[cfg(test)]
+mod targeted_cleanup_tests;
+#[cfg(test)]
 mod unlimited_queue_tests;
 
 /// The level a non-finite hunger argument is replaced with. Either end of
@@ -334,23 +336,21 @@ fn decode_local_bed_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
 fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 15;
+    const APPENDED_LISTS: usize = 18;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                // Sleeping places are the sixth appended field from the
-                // tail: present unless the padding reached them.
-                if snapshot.sleeping_places.is_some() != (pad <= 5) {
+                if snapshot.sleeping_places.is_some() != (pad <= 8) {
                     return None;
                 }
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: affinities, skills, dining, boundaries,
-                // shyness, sleeping places, domestic, chronotypes, instincts,
-                // waiting, migration flag, mortality, SimId ties, legacy
-                // ties, floors. Asking every appended field to be empty at
-                // every pad level is how review finding [F1] on PR 131
-                // refused those saves.
+                // From the tail: grime, chores, targeted cleanup, affinities, skills,
+                // dining, boundaries, shyness, sleeping
+                // places, domestic, chronotypes, instincts, waiting, migration
+                // flag, mortality, SimId ties, legacy ties, floors. Asking every
+                // appended field to be empty at every pad level is how review
+                // finding [F1] on PR 131 refused those saves.
                 //
                 // And a padded payload must be exactly what this snapshot
                 // encodes to. Postcard writes every length in its shortest
@@ -368,6 +368,9 @@ fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
                 let invented: usize = [
+                    usize::from(snapshot.grime.is_some()),
+                    usize::from(snapshot.chores.is_some()),
+                    usize::from(snapshot.targeted_cleanup.is_some()),
                     usize::from(snapshot.affinities.is_some()),
                     usize::from(snapshot.skills.is_some()),
                     usize::from(snapshot.dining.is_some()),
@@ -1873,6 +1876,10 @@ impl SimHandle {
     pub fn visual_actions_ptr(&self) -> *const u32 {
         self.sim.render_buffer().visual_actions.as_ptr()
     }
+    /// Current work phase, aligned with entity rows, for cleaning animations.
+    pub fn chore_progress_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().chore_progress.as_ptr()
+    }
 
     /// Authored object-audio category per row. Re-read after every sync or
     /// memory growth like every other zero-copy render column.
@@ -2092,6 +2099,14 @@ impl SimHandle {
         // Raw bytes cannot be trimmed after the fact, so the untrimmed name
         // is held to the byte limit here; see `housemate_fields_within_bounds`.
         let within_bounds = match &command {
+            SimCommand::SetChoreProfile {
+                responsibility,
+                preferences,
+                ..
+            } => {
+                *responsibility <= 100
+                    && preferences.iter().all(|value| (-100..=100).contains(value))
+            }
             SimCommand::AddHousemateWithInstinct { instinct, .. } if *instinct > 100 => false,
             SimCommand::AddHousemate { name, traits, .. }
             | SimCommand::AddHousemateWithInstinct { name, traits, .. } => {
@@ -2106,6 +2121,15 @@ impl SimHandle {
             return false;
         }
 
+        if let SimCommand::CleanDishes { dishes, .. }
+        | SimCommand::CleanDishesFirst { dishes, .. } = &command
+        {
+            if dishes.as_ref().is_some_and(|ids| {
+                ids.is_empty() || ids.len() > 100_000 || ids.windows(2).any(|p| p[0] >= p[1])
+            }) {
+                return false;
+            }
+        }
         if let SimCommand::FitWindow { axis, x, y, model } = &command {
             let placement = terri_core::windows::WindowPlacement {
                 line: terri_core::layout::WallLine {
@@ -2146,6 +2170,169 @@ impl SimHandle {
                 .last_window_result = None;
         }
         true
+    }
+
+    /// Visible surface, setting and dish identity records for pointer targeting.
+    pub fn dish_piles(&self) -> Vec<u32> {
+        self.sim.dish_piles()
+    }
+
+    pub fn floor_grime_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().floor_grime.as_ptr()
+    }
+    pub fn floor_grime_len(&self) -> usize {
+        self.sim.render_buffer().floor_grime.len()
+    }
+    pub fn surface_grime_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().surface_grime.as_ptr()
+    }
+    pub fn bin_waste_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().bin_waste.as_ptr()
+    }
+    pub fn chore_rows(&self) -> Vec<u32> {
+        terri_sim::chores::rows(self.sim.world())
+    }
+    pub fn chore_history(&self) -> Vec<u32> {
+        terri_sim::chores::history_rows(self.sim.world())
+    }
+    pub fn table_action_rows(&self, entity: u32) -> Vec<u32> {
+        self.sim.table_action_rows(entity)
+    }
+    pub fn chore_location(&self, kind: u32, target: u32) -> String {
+        terri_core::chores::ChoreKind::ALL
+            .get(kind as usize)
+            .map_or_else(String::new, |kind| {
+                terri_sim::chores::location_label(
+                    self.sim.world(),
+                    terri_core::chores::ChoreKey {
+                        kind: *kind,
+                        target,
+                    },
+                )
+            })
+    }
+    pub fn chore_options(&self, entity: u32) -> Vec<u32> {
+        terri_sim::chores::options(self.sim.world(), entity)
+            .into_iter()
+            .flat_map(|k| [k.kind as u32, k.target])
+            .collect()
+    }
+    pub fn floor_chore_at(&self, x: f64, y: f64) -> Vec<u32> {
+        let (Some(x), Some(y)) = (placement_u32(x), placement_u32(y)) else {
+            return vec![];
+        };
+        if x > i32::MAX as u32 || y > i32::MAX as u32 {
+            return vec![];
+        }
+        terri_sim::chores::floor_at(self.sim.world(), x as i32, y as i32)
+            .map_or(vec![], |k| vec![k.kind as u32, k.target])
+    }
+    pub fn chore_profile(&self, person: u32) -> Vec<i32> {
+        terri_sim::chores::profile(self.sim.world(), person).map_or(vec![], |p| {
+            std::iter::once(i32::from(p.responsibility))
+                .chain(std::iter::once(i32::from(p.commitment)))
+                .chain(p.preferences.map(i32::from))
+                .collect()
+        })
+    }
+    pub fn chore_board_enabled(&self) -> bool {
+        self.sim
+            .world()
+            .get_resource::<terri_core::chores::SavedChores>()
+            .is_some_and(|s| s.board_enabled)
+    }
+    pub fn set_chore_board(&mut self, enabled: bool) -> bool {
+        self.enqueue_command(
+            &postcard::to_allocvec(&SimCommand::SetChoreBoard { enabled })
+                .expect("board command serializes"),
+        )
+    }
+    pub fn set_chore_profile(&mut self, person: f64, values: &[f64]) -> bool {
+        let Some(agent) = placement_u32(person) else {
+            return false;
+        };
+        if values.len() != 5
+            || values.iter().any(|v| !v.is_finite() || v.fract() != 0.0)
+            || !(0.0..=100.0).contains(&values[0])
+            || values[1..].iter().any(|v| !(-100.0..=100.0).contains(v))
+        {
+            return false;
+        }
+        let command = SimCommand::SetChoreProfile {
+            agent,
+            responsibility: values[0] as u8,
+            preferences: std::array::from_fn(|i| values[i + 1] as i8),
+        };
+        self.enqueue_command(&postcard::to_allocvec(&command).expect("chore profile serializes"))
+    }
+    pub fn clean_chore(&mut self, person: f64, kind: f64, target: f64, first: bool) -> bool {
+        let (Some(agent), Some(kind), Some(target)) = (
+            placement_u32(person),
+            placement_u32(kind),
+            placement_u32(target),
+        ) else {
+            return false;
+        };
+        let Some(kind) = terri_core::chores::ChoreKind::ALL
+            .get(kind as usize)
+            .copied()
+        else {
+            return false;
+        };
+        let key = terri_core::chores::ChoreKey { kind, target };
+        let command = if first {
+            SimCommand::CleanChoreFirst { agent, key }
+        } else {
+            SimCommand::CleanChore { agent, key }
+        };
+        self.enqueue_command(&postcard::to_allocvec(&command).expect("chore command serializes"))
+    }
+
+    /// Stage a scoped chore without narrowing invalid JavaScript numbers.
+    pub fn clean_dishes(
+        &mut self,
+        agent: f64,
+        surface: f64,
+        dishes: Option<Vec<f64>>,
+        first: bool,
+    ) -> bool {
+        let (Some(agent), Some(surface)) = (placement_u32(agent), placement_u32(surface)) else {
+            return false;
+        };
+        let dishes = match dishes {
+            Some(ids) => {
+                if ids.is_empty() || ids.len() > 100_000 {
+                    return false;
+                }
+                let Some(ids) = ids
+                    .into_iter()
+                    .map(placement_u32)
+                    .collect::<Option<Vec<_>>>()
+                else {
+                    return false;
+                };
+                if ids.windows(2).any(|p| p[0] >= p[1]) {
+                    return false;
+                }
+                Some(ids)
+            }
+            None => None,
+        };
+        let command = if first {
+            SimCommand::CleanDishesFirst {
+                agent,
+                surface,
+                dishes,
+            }
+        } else {
+            SimCommand::CleanDishes {
+                agent,
+                surface,
+                dishes,
+            }
+        };
+        let bytes = postcard::to_allocvec(&command).expect("scoped dish order serializes");
+        self.enqueue_command(&bytes)
     }
 
     /// Serialises the running game for browser-owned persistent storage.
@@ -7826,10 +8013,14 @@ mod boundary_tests {
             let mut queue = terri_core::IntentQueue::default();
             let object = world.spawn(()).id();
             queue.push(terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object,
                 interaction: 0,
             });
             queue.push(terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object,
                 interaction: 1,
             });
@@ -9124,6 +9315,9 @@ mod instinct_boundary_tests {
         assert_eq!(old.pop(), Some(0));
         assert_eq!(old.pop(), Some(0));
         assert_eq!(old.pop(), Some(0));
+        assert_eq!(old.pop(), Some(0));
+        assert_eq!(old.pop(), Some(0));
+        assert_eq!(old.pop(), Some(0));
         let decoded = decode_v5(&old).unwrap();
         assert_eq!(decoded.domestic, saved.domestic);
         assert!(decoded.dining.is_none());
@@ -9142,9 +9336,9 @@ mod instinct_boundary_tests {
             ..SavedDining::default()
         });
         let mut full = postcard::to_allocvec(&saved).unwrap();
-        // A dining-era save, written before skills and affinities existed.
-        assert_eq!(full.pop(), Some(0));
-        assert_eq!(full.pop(), Some(0));
+        // Keep the published dining-era prefix when testing cuts inside dining.
+        let lengths = crate::save_v3_tests::v5_appended_lengths(&saved);
+        full.truncate(full.len() - lengths[13..].iter().sum::<usize>());
         for removed in 1..=8 {
             let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
             truncated.extend(&full[..full.len() - removed]);

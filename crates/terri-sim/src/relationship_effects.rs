@@ -14,6 +14,8 @@ pub enum RelationshipCause {
     Incompatibility,
     Decay,
     HouseholdMess,
+    ChoreFulfilled,
+    ChoreNeglected,
     /// Another person using something the affected person hates - [OA-use].
     Nuisance,
 }

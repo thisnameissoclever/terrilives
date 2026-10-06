@@ -1,0 +1,24 @@
+{
+  "table": {
+    "x": 590,
+    "y": 315.5
+  },
+  "person": {
+    "x": 576,
+    "y": 336
+  },
+  "tablePick": {
+    "entity": 7,
+    "isAgent": false
+  },
+  "bodyPick": {
+    "entity": 34,
+    "isAgent": true
+  },
+  "actor": [
+    3.5,
+    3.5
+  ],
+  "menu": "Clean up",
+  "errors": []
+}

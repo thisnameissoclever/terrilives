@@ -259,6 +259,8 @@ pub fn tick_social(
         // is free.
         if let Ok(mut queue) = queues.get_mut(initiator) {
             queue.remove_first(terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: partner,
                 interaction: socialising.interaction,
             });
@@ -982,6 +984,8 @@ mod tests {
             .entity_mut(lonely)
             .insert(terri_core::IntentQueue::from_intents(vec![
                 terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: 0,
                 },
@@ -1361,6 +1365,8 @@ mod tests {
             .entity_mut(partner)
             .insert(terri_core::IntentQueue::from_intents(vec![
                 terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: 0,
                 },
@@ -2195,6 +2201,8 @@ mod tests {
         assert_eq!(
             front,
             Some(terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: c,
                 interaction: 0,
             }),

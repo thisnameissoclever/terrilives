@@ -1,0 +1,17 @@
+{
+  "tick": 49577,
+  "current_world_hash": "11064684446028606279",
+  "files": [
+    {
+      "role": "preview-source.sav",
+      "bytes": 5053,
+      "sha256": "9d6313b3883f7fce13d82580e9ac93a0b451ebb173d36a84953dc889d3967970"
+    },
+    {
+      "role": "preview-affinity-migrated.sav",
+      "bytes": 5255,
+      "sha256": "836b9d343b72dff2128526b6e128b89a0f4dae80770707a536766eaddc4c532e"
+    }
+  ],
+  "browser_slot_restored": false
+}

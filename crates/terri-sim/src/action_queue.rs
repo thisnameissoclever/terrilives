@@ -29,10 +29,40 @@ impl Sim {
         };
         let pack = content.0;
         let label = |intent: Intent| -> Option<String> {
+            if let Some(id) = intent.chore {
+                let order = self
+                    .world
+                    .get_resource::<terri_core::chores::SavedChores>()?
+                    .orders
+                    .iter()
+                    .find(|o| o.id == id)?;
+                return Some(order.key.kind.label().to_string());
+            }
+            if let Some(id) = intent.cleanup {
+                let order = self
+                    .world
+                    .get_resource::<terri_core::save::SavedTargetedCleanup>()?
+                    .orders
+                    .iter()
+                    .find(|o| o.id == id)?;
+                let object = self.world.get::<SmartObject>(intent.object)?;
+                let action = if order.dishes.is_some() {
+                    "Do dishes"
+                } else {
+                    "Clean up"
+                };
+                return Some(format!(
+                    "{}: {}",
+                    action,
+                    pack.object(object.0).display_name()
+                ));
+            }
             if let Some(object) = self.world.get::<SmartObject>(intent.object) {
                 let definition = pack.objects.get(object.0 .0 as usize)?;
                 let row = intent.interaction as usize;
-                let action = if row < definition.interactions.len() {
+                let action = if definition.id == "dining_table" && row == 1 {
+                    "Eat prepared food"
+                } else if row < definition.interactions.len() {
                     &definition.interactions[row].label
                 } else {
                     let chain = pack
@@ -60,6 +90,8 @@ impl Sim {
             }
         };
         let target = self.world.get::<Target>(person).map(|t| Intent {
+            cleanup: None,
+            chore: None,
             object: t.object,
             interaction: t.interaction,
         });
@@ -72,6 +104,8 @@ impl Sim {
                         .iter(&self.world)
                         .find(|(_, s)| s.partner == person)
                         .map(|(initiator, s)| Intent {
+                            cleanup: None,
+                            chore: None,
                             object: initiator,
                             interaction: s.interaction,
                         })
@@ -81,6 +115,8 @@ impl Sim {
         } else {
             social
                 .map(|s| Intent {
+                    cleanup: None,
+                    chore: None,
                     object: s.partner,
                     interaction: s.interaction,
                 })
@@ -98,35 +134,38 @@ impl Sim {
             && self.world.get::<AtWork>(person).is_none()
             && self.world.get::<Commuting>(person).is_none()
             && target.is_none_or(|intent| intent.interaction == crate::systems::chain::CHAIN_STEP);
-        let served = if carrying_out_chain {
-            self.world
-                .get::<terri_core::ChainState>(person)
-                .and_then(|state| {
-                    self.world
-                        .get::<IntentQueue>(person)?
-                        .as_slice()
-                        .iter()
-                        .copied()
-                        .find(|order| {
-                            self.world
-                                .get::<SmartObject>(order.object)
-                                .and_then(|placed| {
-                                    crate::systems::chain::ordered_chain(
-                                        pack,
-                                        placed.0,
-                                        order.interaction,
-                                    )
-                                })
-                                == Some(state.chain)
-                        })
-                })
-        } else {
-            served
-        };
+        let served =
+            if carrying_out_chain && !crate::targeted_cleanup::has_active(&self.world, index) {
+                self.world
+                    .get::<terri_core::ChainState>(person)
+                    .and_then(|state| {
+                        self.world
+                            .get::<IntentQueue>(person)?
+                            .as_slice()
+                            .iter()
+                            .copied()
+                            .find(|order| {
+                                self.world
+                                    .get::<SmartObject>(order.object)
+                                    .and_then(|placed| {
+                                        crate::systems::chain::ordered_chain(
+                                            pack,
+                                            placed.0,
+                                            order.interaction,
+                                        )
+                                    })
+                                    == Some(state.chain)
+                            })
+                    })
+            } else {
+                served
+            };
         let current = if self.world.get::<AtWork>(person).is_some() {
             Some("At work".to_string())
         } else if let Some(intent) = social
             .map(|s| Intent {
+                cleanup: None,
+                chore: None,
                 object: s.partner,
                 interaction: s.interaction,
             })
@@ -187,10 +226,14 @@ mod tests {
         let mut sim = test_content::sim_with(8, 8, test_content::pack(vec![object]));
         let object = sim.world_mut().spawn(SmartObject(ObjectDefId(0))).id();
         let first = Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction: 0,
         };
         let second = Intent {
+            cleanup: None,
+            chore: None,
             object,
             interaction: 1,
         };
@@ -257,6 +300,8 @@ mod tests {
                 interaction: 0,
             },
             IntentQueue::from_intents(vec![Intent {
+                cleanup: None,
+                chore: None,
                 object: a,
                 interaction: 0,
             }]),
@@ -295,14 +340,20 @@ mod tests {
             .entity_mut(person)
             .insert(IntentQueue::from_intents(vec![
                 Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: row,
                 },
                 Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: 0,
                 },
                 Intent {
+                    cleanup: None,
+                    chore: None,
                     object: fridge,
                     interaction: u32::MAX - 1,
                 },
@@ -396,6 +447,8 @@ mod tests {
             .position(|label| *label == "Grab a snack")
             .unwrap() as u32;
         let order = Intent {
+            cleanup: None,
+            chore: None,
             object: fridge,
             interaction: row,
         };

@@ -1,0 +1,20 @@
+[
+  {
+    "fault": "work-progress",
+    "test": "tests/cleaning-animation.test.ts",
+    "exit": 1,
+    "restored_sha256": "99b00eb2f1fd8bc0ee79d90571a1065d56233fd0424cc98f869fddd12e7e4918"
+  },
+  {
+    "fault": "bin-picking",
+    "test": "tests/cleaning-animation.test.ts",
+    "exit": 1,
+    "restored_sha256": "991e71090651cda0f1800fa71080c0d1d68533c0e4d4222bd6811dc5121d5c41"
+  },
+  {
+    "fault": "surface-contact",
+    "test": "tests/cleaning-production.test.ts",
+    "exit": 1,
+    "restored_sha256": "d11ea81f4930112887f568d7e9cdbea91dc2d5ee4e9292f612efc614480b2a1c"
+  }
+]

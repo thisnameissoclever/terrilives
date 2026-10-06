@@ -140,7 +140,10 @@ struct BedLayers { records: array<vec4u>, };
 struct DiningSupport { records: array<vec4f>, };
 @group(0) @binding(10) var<storage, read> dining: DiningSupport;
 
+override grimePass: bool = false;
+
 struct VertexOut {
+  @location(14) @interpolate(flat) grimeOpacity: f32,
   @builtin(position) clip: vec4<f32>,
   @location(0) uv: vec2<f32>,
   @location(2) @interpolate(flat) uvBounds: vec4<f32>,
@@ -170,14 +173,7 @@ const CORNERS = array<vec2<f32>, 6>(
   vec2f(0.0, 1.0), vec2f(1.0, 0.0), vec2f(1.0, 1.0),
 );
 
-@vertex
-fn vs(
-  @builtin(vertex_index) vi: u32,
-  @location(0) instance: vec4<f32>,
-  @location(1) tint: vec4<f32>,
-  @location(2) wall: vec4<f32>,
-  @location(3) colourway: vec4<f32>,
-) -> VertexOut {
+fn vertex(vi: u32, instance: vec4f, tint: vec4f, wall: vec4f, colourway: vec4f, opacity: f32) -> VertexOut {
   let sprite = atlas.sprites[u32(instance.w)];
   let corner = CORNERS[vi];
   let size = sprite.size.xy;
@@ -213,6 +209,7 @@ fn vs(
   );
 
   var out: VertexOut;
+  out.grimeOpacity = opacity;
   out.clip = vec4f(clipXy, instance.z, 1.0);
   out.uv = mix(sprite.uv.xy, sprite.uv.zw, textureCorner);
   out.uvBounds = sprite.uv;
@@ -236,6 +233,25 @@ fn vs(
   out.groundOrigin = vec2f((groundScreen.y / 21.0 + groundScreen.x / 32.0) * 0.5,
     (groundScreen.y / 21.0 - groundScreen.x / 32.0) * 0.5);
   return out;
+}
+
+@vertex
+fn vs(
+  @builtin(vertex_index) vi: u32,
+  @location(0) instance: vec4<f32>,
+  @location(1) tint: vec4<f32>,
+  @location(2) wall: vec4<f32>,
+  @location(3) colourway: vec4<f32>,
+) -> VertexOut {
+  return vertex(vi, instance, tint, wall, colourway, 1.0);
+}
+
+@vertex
+fn vsGrime(@builtin(vertex_index) vi: u32,
+  @location(0) instance: vec4f, @location(1) tint: vec4f,
+  @location(2) wall: vec4f, @location(3) colourway: vec4f,
+  @location(4) opacity: f32) -> VertexOut {
+  return vertex(vi, instance, tint, wall, colourway, opacity);
 }
 
 // [RC-shift]: turns a straight-alpha colour's hue and scales its colour
@@ -427,7 +443,7 @@ fn fs(in: VertexOut) -> FragmentOut {
   // 0.5 rather than 0: keeping the partially-covered edge texels means
   // they blend against whatever is behind, which is what the alpha blend
   // configured in sprites.ts is for.
-  if (colour.a < 0.5) {
+  if ((!grimePass && colour.a < 0.5) || (grimePass && colour.a <= 0.0)) {
     discard;
   }
   if (in.bed.x > 0u) {
@@ -458,6 +474,7 @@ fn fs(in: VertexOut) -> FragmentOut {
   let lit = mix(daylight, vec3f(1.0), in.tint.w);
   var out: FragmentOut;
   out.colour = vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
+  if (grimePass) { out.colour.a *= in.grimeOpacity; }
   out.depth = in.clip.z;
   if (architecture) {
     let localSum = textureLoad(architectureDepth, architecturePixel, 0).r;

@@ -1,0 +1,365 @@
+{
+  "state": "complete",
+  "source_sha256": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+  "producer_sha256": "cd92cc0d3563c033c635a88fa70d5845170ca1dffd36b5bcefce9fcf48e6bda4",
+  "anchor": [
+    40.000014305114746,
+    112.00043892860413
+  ],
+  "renders": [
+    {
+      "variant": "green",
+      "facing": "SE",
+      "owner": "beauty",
+      "path": "green-SE-beauty.png",
+      "sha256": "6c2625a2a862d65342d466d5c5efdc427321061071b74c0500dc51efa67bbd99"
+    },
+    {
+      "variant": "green",
+      "facing": "SE",
+      "owner": "sim",
+      "path": "green-SE-sim.png",
+      "sha256": "782b8be343a8d564794d88cf0d28d198c70874dc66eec50fa8fba829488f4802"
+    },
+    {
+      "variant": "green",
+      "facing": "SE",
+      "owner": "furniture",
+      "path": "green-SE-furniture.png",
+      "sha256": "71d4d86aebe059f778be2834f1c5462ae402128b47f09f5cef0ff47b7b7a3bfa"
+    },
+    {
+      "variant": "green",
+      "facing": "SE",
+      "owner": "lines",
+      "path": "green-SE-lines.png",
+      "sha256": "47332f0f49e9c954323d1fed13dc0a4d3a8c699791fa17dd02e810e8633a8985"
+    },
+    {
+      "variant": "green",
+      "facing": "SW",
+      "owner": "beauty",
+      "path": "green-SW-beauty.png",
+      "sha256": "7fa2138b94632e1212b6c7c3033b3e094a56e311f810d41e65a7afa1e16c39ea"
+    },
+    {
+      "variant": "green",
+      "facing": "SW",
+      "owner": "sim",
+      "path": "green-SW-sim.png",
+      "sha256": "ee4bbc6ff665a5f8deb55f9316a9f8c61cd0ed22554edff2dcccd8883ef2bd40"
+    },
+    {
+      "variant": "green",
+      "facing": "SW",
+      "owner": "furniture",
+      "path": "green-SW-furniture.png",
+      "sha256": "a453d1c131a292dbbd5936cf3443771d1b69c3afb3c552630d8aa9d852fb164d"
+    },
+    {
+      "variant": "green",
+      "facing": "SW",
+      "owner": "lines",
+      "path": "green-SW-lines.png",
+      "sha256": "0d1d1e8337da2be9dd86abcf88390d8c452ee4e0a4b874712a4c15d626a9948a"
+    },
+    {
+      "variant": "green",
+      "facing": "NW",
+      "owner": "beauty",
+      "path": "green-NW-beauty.png",
+      "sha256": "63871dbe2cc0803224da0e2465c8970b7f98712b93ac2bb653ca297415402cc3"
+    },
+    {
+      "variant": "green",
+      "facing": "NW",
+      "owner": "sim",
+      "path": "green-NW-sim.png",
+      "sha256": "3e2b0b78cfef8737ee570fcebef76cfd94ee75bd5d12bde4e95da2391624b250"
+    },
+    {
+      "variant": "green",
+      "facing": "NW",
+      "owner": "furniture",
+      "path": "green-NW-furniture.png",
+      "sha256": "0aa93184a42c84634bb4fa312cff0f2437ac0e7d7ecef5144fc56d17a7da4b34"
+    },
+    {
+      "variant": "green",
+      "facing": "NW",
+      "owner": "lines",
+      "path": "green-NW-lines.png",
+      "sha256": "e5dbcafe29908fb2cc0072feb061b482bc620bb50a25bf80a7b217c8d431c021"
+    },
+    {
+      "variant": "green",
+      "facing": "NE",
+      "owner": "beauty",
+      "path": "green-NE-beauty.png",
+      "sha256": "0739b605cc336e41b786e4b0d9fe1caad04f145b661797c33716ba536286705b"
+    },
+    {
+      "variant": "green",
+      "facing": "NE",
+      "owner": "sim",
+      "path": "green-NE-sim.png",
+      "sha256": "4d91c57b8896b5e6f32932a0a9cebdb37554fe8fcf2f7564f5a6855f344d8e9b"
+    },
+    {
+      "variant": "green",
+      "facing": "NE",
+      "owner": "furniture",
+      "path": "green-NE-furniture.png",
+      "sha256": "4845ed3e8e08fa4d10f5da416a6549b6fbfb44f1874871f1aca64114d91a036f"
+    },
+    {
+      "variant": "green",
+      "facing": "NE",
+      "owner": "lines",
+      "path": "green-NE-lines.png",
+      "sha256": "505e2d3e55d38169cd237f205ad7af7a14cef8ba512bee73527155e93e70a01f"
+    },
+    {
+      "variant": "blue",
+      "facing": "SE",
+      "owner": "beauty",
+      "path": "blue-SE-beauty.png",
+      "sha256": "d81d5a0de445ed74368c48a09cd75a17106f3d9f745889c3ea30b54d2754dd65"
+    },
+    {
+      "variant": "blue",
+      "facing": "SE",
+      "owner": "sim",
+      "path": "blue-SE-sim.png",
+      "sha256": "2ef93ce01bada4d4af5c92ed9e07cbc0733da054b695d4204ca8657652d3af50"
+    },
+    {
+      "variant": "blue",
+      "facing": "SE",
+      "owner": "furniture",
+      "path": "blue-SE-furniture.png",
+      "sha256": "6581bb6bb6360576e8eba2cd4e0acb3920cf303d448a2afb26786075f63c4cbb"
+    },
+    {
+      "variant": "blue",
+      "facing": "SE",
+      "owner": "lines",
+      "path": "blue-SE-lines.png",
+      "sha256": "c3c35294d972b8fdd8c5562a5b0851917680f01d8f6db35a3986fa6a93d7bc54"
+    },
+    {
+      "variant": "blue",
+      "facing": "SW",
+      "owner": "beauty",
+      "path": "blue-SW-beauty.png",
+      "sha256": "673e8008970991290383d926e0e8f49d6b04477a56ddf46119de4495abe56cd7"
+    },
+    {
+      "variant": "blue",
+      "facing": "SW",
+      "owner": "sim",
+      "path": "blue-SW-sim.png",
+      "sha256": "401160a4dcbe2bb8f619b660f03e5cf526fb9a36ff283871eda9105b37821122"
+    },
+    {
+      "variant": "blue",
+      "facing": "SW",
+      "owner": "furniture",
+      "path": "blue-SW-furniture.png",
+      "sha256": "887883e58ef996363a5c16e7bc69d9e09585ed2ca9deefe85783a51804b62c8e"
+    },
+    {
+      "variant": "blue",
+      "facing": "SW",
+      "owner": "lines",
+      "path": "blue-SW-lines.png",
+      "sha256": "27ce72f24a36f70961d115a3f1abfde28612eba2b87f427c9730e633782d762c"
+    },
+    {
+      "variant": "blue",
+      "facing": "NW",
+      "owner": "beauty",
+      "path": "blue-NW-beauty.png",
+      "sha256": "2f91398b2be12774030dd089879acf48b3126e0518fdaa2eb6beea47c0094653"
+    },
+    {
+      "variant": "blue",
+      "facing": "NW",
+      "owner": "sim",
+      "path": "blue-NW-sim.png",
+      "sha256": "d92493d9e8874dd30d6712cbe292745768ba2a769d1f2d30c3af26daed1109ae"
+    },
+    {
+      "variant": "blue",
+      "facing": "NW",
+      "owner": "furniture",
+      "path": "blue-NW-furniture.png",
+      "sha256": "ceee4859e58bc92fdc02c20197ae1714cb8ef1b4008d8d8656906c9817c23b79"
+    },
+    {
+      "variant": "blue",
+      "facing": "NW",
+      "owner": "lines",
+      "path": "blue-NW-lines.png",
+      "sha256": "2a2603a593c1aa548f6976ca77c5a0d5e888c676c48c2965bf3c12c3f48fe587"
+    },
+    {
+      "variant": "blue",
+      "facing": "NE",
+      "owner": "beauty",
+      "path": "blue-NE-beauty.png",
+      "sha256": "33e98b659b504cddcc860311b6ce667887404dd8ed39b67998f3a0f56444d5a5"
+    },
+    {
+      "variant": "blue",
+      "facing": "NE",
+      "owner": "sim",
+      "path": "blue-NE-sim.png",
+      "sha256": "3246b9e64c27282c0aad0d90df6e4447e51f319bdb4468f6a274ffdbeb41cf60"
+    },
+    {
+      "variant": "blue",
+      "facing": "NE",
+      "owner": "furniture",
+      "path": "blue-NE-furniture.png",
+      "sha256": "b839a7b640f32469b3c38cd82250c40506644c94d9d0cebb3c1b7a88220b1b8a"
+    },
+    {
+      "variant": "blue",
+      "facing": "NE",
+      "owner": "lines",
+      "path": "blue-NE-lines.png",
+      "sha256": "da42c473f3547158ef8221f77842f1c0c524a3cd6eb48a662f0ca5be0f81fe29"
+    },
+    {
+      "variant": "red",
+      "facing": "SE",
+      "owner": "beauty",
+      "path": "red-SE-beauty.png",
+      "sha256": "dcd17b7bff1d297ae78b0a7e8de5755eda04321a22949aa5ca83009730208cf5"
+    },
+    {
+      "variant": "red",
+      "facing": "SE",
+      "owner": "sim",
+      "path": "red-SE-sim.png",
+      "sha256": "b68cf040acc7702e12ff5a45aed9342fc0e1344533fc278bbb9595986e6de9d2"
+    },
+    {
+      "variant": "red",
+      "facing": "SE",
+      "owner": "furniture",
+      "path": "red-SE-furniture.png",
+      "sha256": "1b883c0a0aa29f2a72c7acad3549b52fa9dd3510d5d578193adc69aac7ce1fbf"
+    },
+    {
+      "variant": "red",
+      "facing": "SE",
+      "owner": "lines",
+      "path": "red-SE-lines.png",
+      "sha256": "dd17d7298e12c10f950ce29631c707137ee0b9483b5b2e9d2ae22ef276f52155"
+    },
+    {
+      "variant": "red",
+      "facing": "SW",
+      "owner": "beauty",
+      "path": "red-SW-beauty.png",
+      "sha256": "60562fe10e27825d2ecf2b25987d27d74e1324af0df6f669f3b9f93eb2145af4"
+    },
+    {
+      "variant": "red",
+      "facing": "SW",
+      "owner": "sim",
+      "path": "red-SW-sim.png",
+      "sha256": "b50f9f620e36c57f4e66247c053fc05f39e2794d5bed67a5a519c75a4d207292"
+    },
+    {
+      "variant": "red",
+      "facing": "SW",
+      "owner": "furniture",
+      "path": "red-SW-furniture.png",
+      "sha256": "b381ba6befc048921f62aadbc31b7aaf927d9d148722fd99e372b9a0702d64a6"
+    },
+    {
+      "variant": "red",
+      "facing": "SW",
+      "owner": "lines",
+      "path": "red-SW-lines.png",
+      "sha256": "446bec8f62a69f18bcf8451b62f899443f3a2a3e4a7222a638aa74eb00645877"
+    },
+    {
+      "variant": "red",
+      "facing": "NW",
+      "owner": "beauty",
+      "path": "red-NW-beauty.png",
+      "sha256": "8e973d5b8633cc5d840d5a29a62068f8ab3ce239d13e008da8587218aa6f2e83"
+    },
+    {
+      "variant": "red",
+      "facing": "NW",
+      "owner": "sim",
+      "path": "red-NW-sim.png",
+      "sha256": "fabc4fca5187cde823827ad1a970a046bf8b5e460377299d23e8bf2e8e056f60"
+    },
+    {
+      "variant": "red",
+      "facing": "NW",
+      "owner": "furniture",
+      "path": "red-NW-furniture.png",
+      "sha256": "4d28359f6d2469012df2eb0fb6be8ad0ddf4e57d48e628cbe40a53a9de6aeebb"
+    },
+    {
+      "variant": "red",
+      "facing": "NW",
+      "owner": "lines",
+      "path": "red-NW-lines.png",
+      "sha256": "f83c6ba0a5a7b10bfa0c5423932109370745c11fd3d8f6ac7dd869175de069e2"
+    },
+    {
+      "variant": "red",
+      "facing": "NE",
+      "owner": "beauty",
+      "path": "red-NE-beauty.png",
+      "sha256": "980e936950bf300e6ab992b028a3bee94317efea52eb1aa4918141571b13403a"
+    },
+    {
+      "variant": "red",
+      "facing": "NE",
+      "owner": "sim",
+      "path": "red-NE-sim.png",
+      "sha256": "8e291383fa0078be8bf862f725a19b2bf83f0f7ba76b19af4e9697f069409031"
+    },
+    {
+      "variant": "red",
+      "facing": "NE",
+      "owner": "furniture",
+      "path": "red-NE-furniture.png",
+      "sha256": "3df3fe1f536e466584be17896e177f81e775cf1d0a2758701680c2a3ee6405de"
+    },
+    {
+      "variant": "red",
+      "facing": "NE",
+      "owner": "lines",
+      "path": "red-NE-lines.png",
+      "sha256": "38b0c50eb5b3c115c828d88f61ac410133d9d7263caed908e86d0eb477926d52"
+    }
+  ],
+  "hidden_props": [
+    "Carried dinner",
+    "Ceramic dinner plate",
+    "Main serving",
+    "Vegetable piece",
+    "Vegetable piece.001",
+    "Vegetable piece.002",
+    "Dinner on table",
+    "Ceramic dinner plate.001",
+    "Main serving.001",
+    "Vegetable piece.003",
+    "Vegetable piece.004",
+    "Vegetable piece.005",
+    "Eating spoon",
+    "Used wooden spoon",
+    "Cooking spoon",
+    "Used wooden spoon.001"
+  ]
+}

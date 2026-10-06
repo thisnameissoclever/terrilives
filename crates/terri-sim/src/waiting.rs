@@ -428,6 +428,8 @@ mod tests {
                     .entity_mut(person)
                     .insert(terri_core::IntentQueue::from_intents(vec![
                         terri_core::Intent {
+                            cleanup: None,
+                            chore: None,
                             object: item,
                             interaction: 0,
                         },

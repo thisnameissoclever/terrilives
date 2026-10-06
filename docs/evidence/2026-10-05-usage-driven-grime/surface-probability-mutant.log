@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.04s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::grime_tests::cleanliness_scales_rolls_and_surface_probability_is_doubled ... FAILED
+
+failures:
+
+---- chores::grime_tests::cleanliness_scales_rolls_and_surface_probability_is_doubled stdout ----
+
+thread 'chores::grime_tests::cleanliness_scales_rolls_and_surface_probability_is_doubled' (88512) panicked at crates\terri-sim\src\chores\grime_tests.rs:163:9:
+assertion failed: (grime::chance(cleanliness, true) - floor * 2.0).abs() < 0.000001
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::grime_tests::cleanliness_scales_rolls_and_surface_probability_is_doubled
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 982 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

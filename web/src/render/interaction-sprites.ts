@@ -12,6 +12,7 @@ export interface InteractionProfile {
   readonly halfCycleTicks: number;
   readonly frames: Readonly<Record<ShirtVariant, readonly number[]>>;
   readonly facingFrames?: Readonly<Record<number, Readonly<Record<ShirtVariant, readonly number[]>>>>;
+  readonly idleFrames?: Readonly<Record<ShirtVariant, readonly number[]>>;
 }
 export type InteractionCatalog = Readonly<Record<number, InteractionProfile>>;
 export type ActionInteractionCatalog = Readonly<Record<number, Readonly<Record<number, InteractionProfile>>>>;
@@ -78,7 +79,8 @@ export class InteractionSelection {
     return this.owners[row] ?? -1;
   }
 
-  private profileFor(sprite: number, action: number): InteractionProfile | undefined {
+  private profileFor(sprite: number, action: number, atTable = false): InteractionProfile | undefined {
+    if (atTable && action === 8 && this.catalog[sprite]?.idleFrames) return this.catalog[sprite];
     const profile = this.actionCatalog[sprite]?.[action] ?? this.catalog[sprite];
     return profile?.action === action ? profile : undefined;
   }
@@ -207,7 +209,7 @@ export class InteractionSelection {
       if (this.bedPlaces[row] >= 0 || kinds[row] !== KIND_AGENT || activities[row] === ACTIVITY_AT_WORK || targets[row] === 0xffffffff) continue;
       const target = this.findRow(targets[row]);
       if (target === undefined || kinds[target] === KIND_AGENT || activities[target] === ACTIVITY_AT_WORK) continue;
-      const profile = this.profileFor(sprites[target], actions[row]);
+      const profile = this.profileFor(sprites[target], actions[row], columns.mealTables?.[row] !== undefined && columns.mealTables[row] !== 0xffffffff);
       if (!profile) continue;
       const owner = this.owners[target];
       if (owner < 0 || ids[row] < ids[owner]) this.owners[target] = row;
@@ -215,11 +217,12 @@ export class InteractionSelection {
     for (let target = 0; target < count; target++) {
       const row = this.owners[target];
       if (row < 0) continue;
-      const profile = this.profileFor(sprites[target], actions[row]);
+      const profile = this.profileFor(sprites[target], actions[row], columns.mealTables?.[row] !== undefined && columns.mealTables[row] !== 0xffffffff);
       if (!profile) throw new Error('Owned interaction lost its exact action profile');
       const variant = this.shirtVariant(simIds?.[row]);
-      const frames = (profile.facingFrames?.[columns.facings?.[row] ?? 0] ?? profile.frames)[variant];
-      const sample = tickAnimationFrame(tick, ids[row] % profile.halfCycleTicks,
+      const resting = actions[row] === 8 && profile.idleFrames;
+      const frames = (resting || profile.facingFrames?.[columns.facings?.[row] ?? 0] || profile.frames)[variant];
+      const sample = resting ? 0 : tickAnimationFrame(tick, ids[row] % profile.halfCycleTicks,
         frames.length, 2 * profile.halfCycleTicks / frames.length, reducedMotion);
       this.bodies[row] = frames[sample];
       this.targetRows[row] = target;
@@ -231,6 +234,12 @@ export class InteractionSelection {
           this.mealRows[row] = table;
         }
       }
+    }
+    // These generic body clips share the same complementary surface-depth pass.
+    for (let row=0;row<count;row++) {
+      if(kinds[row]!==KIND_AGENT || activities[row]===ACTIVITY_AT_WORK || actions[row]<15 || actions[row]>17) continue;
+      const support=this.findRow(targets[row]);
+      if(support!==undefined && kinds[support]!==KIND_AGENT) this.mealRows[row]=support;
     }
   }
 }

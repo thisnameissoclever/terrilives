@@ -1181,7 +1181,7 @@ describe('approved rigged Sim selector', () => {
   ] as const;
 
   it('selects every authored sample in all supported actions and four actual facings', () => {
-    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...actions.map(([name]) => name), 'carry_walk', 'carry_idle', 'food_walk', 'food_idle', 'cook'].sort());
+    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...actions.map(([name]) => name), 'carry_walk', 'carry_idle', 'food_walk', 'food_idle', 'cook', 'mop', 'wipe_counter', 'wipe_table', 'empty_bin'].sort());
     for (const [name, stem, action, halfCycle, count] of actions) {
       for (const [direction, suffix] of ['SE', 'NW', 'SW', 'NE'].entries()) {
         const facing = direction + 1;

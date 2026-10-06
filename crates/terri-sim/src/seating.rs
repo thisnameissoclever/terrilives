@@ -9,6 +9,7 @@ use terri_core::{
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum UseKind {
     Meal,
+    TableSeat,
     Media,
 }
 
@@ -80,6 +81,9 @@ pub(crate) fn kind(world: &World, lease: &SavedDiner) -> Option<UseKind> {
     if let Some(target) = world.get::<Target>(person) {
         if target.object.index_u32() != lease.station {
             return None;
+        }
+        if crate::dining::ordinary_sitting(world, person) == Some(target.object) {
+            return Some(UseKind::TableSeat);
         }
         if target.interaction != crate::systems::chain::CHAIN_STEP {
             let object = world.get::<SmartObject>(target.object)?;

@@ -915,7 +915,7 @@ describe('SimBridge', () => {
     // empty row count.
     const sleepingPlacesTail = [1, 0, 0];
     const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0,
-      1, 0, 1, 0];
+      1, 0, 1, 0, 0, 0, 0];
     expect(Array.from(legacyCells.slice(-tail.length))).toEqual(tail);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
@@ -944,15 +944,16 @@ describe('SimBridge', () => {
     const skillsTail = [1, 0];
     const affinitiesTail = [1, 0];
     const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0,
-      ...skillsTail, ...affinitiesTail];
+      ...skillsTail, ...affinitiesTail, 0, 0, 0];
     expect(Array.from(valid.slice(-tail.length))).toEqual(tail);
     // A save written before affinities lacks that field, and one written
     // before skills lacks both; a complete bed-era save also lacks dining
     // and both privacy fields. Earlier V5 saves also lack the whole grouped
     // bed record; all remain loadable.
-    const a = affinitiesTail.length;
+    const c = 3;
+    const a = c + affinitiesTail.length;
     const s = a + skillsTail.length;
-    for (const absent of [a, s, s + 1, s + 2, s + 3, s + 3 + sleepingPlacesTail.length,
+    for (const absent of [1, 2, 3, a, s, s + 1, s + 2, s + 3, s + 3 + sleepingPlacesTail.length,
       s + 4 + sleepingPlacesTail.length]) {
       const historical = new SimBridge(new SimHandle(4, 4), wasmMemory);
       expect(historical.loadBytes(valid.slice(0, -absent))).toBe(true);
@@ -965,7 +966,7 @@ describe('SimBridge', () => {
     // Cuts at historical field boundaries load. A cut inside affinities,
     // inside skills, inside mortality or before the appended fields remains
     // malformed.
-    const invalid = [valid.slice(0, -1), valid.slice(0, -a - 1), valid.slice(0, -4 - s),
+    const invalid = [valid.slice(0, -c - 1), valid.slice(0, -a - 1), valid.slice(0, -4 - s),
       valid.slice(0, -5 - s),
       valid.slice(0, -9 - s - sleepingPlacesTail.length),
       valid.slice(0, -16 - s - sleepingPlacesTail.length),
@@ -1378,7 +1379,11 @@ describe('SimBridge', () => {
     // Varied autonomy changes selection draws and hashes each person's instinct.
     // With no counter, snacks are ineligible and selection draws change.
     // Independently measured on native and rebuilt release WASM: identical.
-    expect(bridge.worldHash()).toBe(0x21c21e6232f46614n);
+    // Native and rebuilt WebAssembly independently measured the new chore
+    // digest, including its saved random stream and board work selection.
+    // Usage-driven grime adds its saved random stream and removes passive aging.
+    // This value is measured independently by the native fixed-scenario assertion.
+    expect(bridge.worldHash()).toBe(8890656731713008279n);
   });
 
   // ---- Player commands -------------------------------------------------

@@ -1,0 +1,171 @@
+[
+  {
+    "name": "final-native",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit": 0,
+    "seconds": 384.96
+  },
+  {
+    "name": "final-wasm",
+    "command": [
+      "wasm-pack",
+      "build",
+      "crates/terri-wasm",
+      "--target",
+      "web",
+      "--out-dir",
+      "../../web/src/wasm"
+    ],
+    "exit": 0,
+    "seconds": 76.06
+  },
+  {
+    "name": "release-boundary",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-wasm",
+      "--release",
+      "targeted_cleanup_tests",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "seconds": 35.32
+  },
+  {
+    "name": "final-web",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "test",
+      "--",
+      "--maxWorkers=1"
+    ],
+    "exit": 1,
+    "seconds": 66.98
+  },
+  {
+    "name": "final-web-rerun",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "test",
+      "--",
+      "--maxWorkers=1"
+    ],
+    "exit": 0,
+    "seconds": 54.32
+  },
+  {
+    "name": "typecheck",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "typecheck"
+    ],
+    "exit": 0,
+    "seconds": 27.29
+  },
+  {
+    "name": "production",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "build"
+    ],
+    "exit": 0,
+    "seconds": 12.15
+  },
+  {
+    "name": "changelog-tests",
+    "command": [
+      "node",
+      "--test",
+      "scripts/build-changelog.test.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.25
+  },
+  {
+    "name": "changelog-build",
+    "command": [
+      "node",
+      "scripts/build-changelog.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.07
+  },
+  {
+    "name": "doc-ids",
+    "command": [
+      "python",
+      "check-doc-ids.py"
+    ],
+    "exit": 0,
+    "seconds": 0.23
+  },
+  {
+    "name": "atlas-check",
+    "command": [
+      "python",
+      "assets/sprites/gen/build.py",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 152.41
+  },
+  {
+    "name": "format-final",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 1.43
+  },
+  {
+    "name": "lint-final",
+    "command": [
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 7.61
+  },
+  {
+    "name": "chores-final",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "chores::",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit": 0,
+    "seconds": 27.61
+  }
+]

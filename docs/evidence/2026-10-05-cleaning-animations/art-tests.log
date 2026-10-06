@@ -1,0 +1,83 @@
+........FFFFF.....D:\VIBES\.worktrees\a8a4\terrilives\assets\models\bedroom\double_bed_linear.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for parts in zip(*(image.getdata() for image in layers)):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\seating\seat_export_contract.py:157: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for red, green, blue, coverage in zip(*(band.getdata() for band in filtered)):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\bedroom\double_bed_layers.py:29: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for expected, result, *parts in zip(reference.getdata(), actual.getdata(),
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\bedroom\double_bed_layers.py:30: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  *(owner.getdata() for owner in owners)):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\furniture\layer_partition.py:22: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for sim, prop, ink in zip(body.getdata(), furniture.getdata(), outline.getdata()):
+D:\VIBES\.worktrees\a8a4\terrilives\assets\models\furniture\export_contributions.py:54: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for left,right in zip(actual.getdata(),reference.getdata()) if left[3] or right[3])
+........................................F.................D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_door_assets.py:43: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  covered = [(c, d) for c, d in zip(colour.getdata(), depth.getdata()) if c[3] >= 128]
+...D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_door_assets.py:53: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  covered = [(i, d) for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())) if c[3] >= 128]
+.D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_door_assets.py:64: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())):
+.......................................................................................................................
+======================================================================
+FAIL: test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves (test_aquarium_prefix.AquariumPrefixTests.test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_aquarium_prefix.py", line 35, in test_architecture_keeps_geometry_resources_and_local_order_when_its_base_moves
+    self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32 + 300 + 240)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3539 != 3055
+
+======================================================================
+FAIL: test_preserves_bed_dining_coverage_surface_and_other_registration_tables (test_aquarium_prefix.AquariumPrefixTests.test_preserves_bed_dining_coverage_surface_and_other_registration_tables) (table='SPRITE_PAIR_MASKS')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_aquarium_prefix.py", line 65, in test_preserves_bed_dining_coverage_surface_and_other_registration_tables
+    self.assertEqual(len(value), expected['count'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 239 != 143
+
+======================================================================
+FAIL: test_preserves_bed_dining_coverage_surface_and_other_registration_tables (test_aquarium_prefix.AquariumPrefixTests.test_preserves_bed_dining_coverage_surface_and_other_registration_tables) (table='INTERACTION_SPRITES')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_aquarium_prefix.py", line 68, in test_preserves_bed_dining_coverage_surface_and_other_registration_tables
+    self.assertEqual(digest, expected['sha256'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'f601b396869423abcd1c790f4426c52670ad720bd502d340191d211ab368234b' != 'e0ea9af300bcaf8049d2b1b17866c3c2af9100acabbcb0a52c707af3b7135a5b'
+- f601b396869423abcd1c790f4426c52670ad720bd502d340191d211ab368234b
++ e0ea9af300bcaf8049d2b1b17866c3c2af9100acabbcb0a52c707af3b7135a5b
+
+
+======================================================================
+FAIL: test_preserves_bed_dining_coverage_surface_and_other_registration_tables (test_aquarium_prefix.AquariumPrefixTests.test_preserves_bed_dining_coverage_surface_and_other_registration_tables) (table='RIGGED_SIM_CLIPS')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_aquarium_prefix.py", line 65, in test_preserves_bed_dining_coverage_surface_and_other_registration_tables
+    self.assertEqual(len(value), expected['count'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 23 != 19
+
+======================================================================
+FAIL: test_preserves_bed_dining_coverage_surface_and_other_registration_tables (test_aquarium_prefix.AquariumPrefixTests.test_preserves_bed_dining_coverage_surface_and_other_registration_tables) (table='RIGGED_SIM_VARIANTS')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_aquarium_prefix.py", line 68, in test_preserves_bed_dining_coverage_surface_and_other_registration_tables
+    self.assertEqual(digest, expected['sha256'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '579a3c35efa35dca416d2dfbe482353f64dc880c29319ff43c91e4574d330481' != '285af1cb86f92027d242ff201452891e093f1547b0fcddcc84ff105d2b21df06'
+- 579a3c35efa35dca416d2dfbe482353f64dc880c29319ff43c91e4574d330481
++ 285af1cb86f92027d242ff201452891e093f1547b0fcddcc84ff105d2b21df06
+
+
+======================================================================
+FAIL: test_sim_bodies_keep_their_whole_canvas_as_the_click_target (test_content_bounds.ShippedAtlasTests.test_sim_bodies_keep_their_whole_canvas_as_the_click_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\a8a4\terrilives\assets\sprites\gen\test_content_bounds.py", line 114, in test_sim_bodies_keep_their_whole_canvas_as_the_click_target
+    self.assertEqual(len(sim_bodies), 975 + 336)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1647 != 1311
+
+----------------------------------------------------------------------
+Ran 196 tests in 180.571s
+
+FAILED (failures=6)

@@ -190,6 +190,8 @@ fn privacy_player_chain_origin_survives_save_load_with_its_order_queued() {
         .entity_mut(a)
         .insert(terri_core::IntentQueue::from_intents(vec![
             terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: fridge,
                 interaction: pack.object(fridge_def).interactions.len() as u32,
             },
@@ -241,6 +243,8 @@ fn privacy_start_waits_and_player_order_or_relevant_emergency_can_override() {
                 .entity_mut(a)
                 .insert(terri_core::IntentQueue::from_intents(vec![
                     terri_core::Intent {
+                        cleanup: None,
+                        chore: None,
                         object: toilet,
                         interaction: 0,
                     },
@@ -431,6 +435,8 @@ fn shyness_autonomous_choice_prefers_privacy_but_player_orders_still_win() {
         .entity_mut(a)
         .insert(terri_core::IntentQueue::from_intents(vec![
             terri_core::Intent {
+                cleanup: None,
+                chore: None,
                 object: risky,
                 interaction: 0,
             },

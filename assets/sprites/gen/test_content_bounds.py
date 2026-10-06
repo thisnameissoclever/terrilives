@@ -110,8 +110,8 @@ class ShippedAtlasTests(unittest.TestCase):
         records = tomllib.loads((ROOT / "assets/sprites/atlas.toml").read_text())["sprite"]
         bounds = {int(index) for index in shipped_table("SPRITE_CONTENT_BOUNDS")}
         sim_bodies = shipped_sim_bodies(records)
-        # Preserve the existing figures and include every new dining pose.
-        self.assertEqual(len(sim_bodies), 975 + 336)
+        # Preserve the existing figures, dining poses and 336 cleaning samples.
+        self.assertEqual(len(sim_bodies), 975 + 336 + 336)
         self.assertEqual(sorted(sim_bodies & bounds), [])
 
 

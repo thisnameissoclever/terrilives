@@ -1396,6 +1396,31 @@ def main():
     bounds.update(seating_data['bounds'])
     densities.update(seating_data['density'])
     visible_layers = {**bed_layers, **seating_data['layers']}
+    from offline_table_sitting import load_table_sitting
+    sitting = load_table_sitting(os.path.join(ROOT, 'assets/models/domestic/table-sitting'))
+    sprites.extend(sitting.sprites)
+    a, t, b, d, p, profiles = furniture_tables(sitting, sprites)
+    anchors.update(a); tops.update(t); bounds.update(b); densities.update(d); pairs.update(p)
+    masks_for_sitting, sitting_masks = coverage_tables(sitting, sprites)
+    mask_offset = len(pair_masks)
+    pair_coverage.update({index: [value + mask_offset for value in mask] for index, mask in masks_for_sitting.items()})
+    pair_masks.extend(sitting_masks)
+    for chair, profile in profiles.items():
+        interactions[chair]['idleFrames'] = profile['frames']
+        for variant, frames in profile['frames'].items():
+            dining_meals[frames[0]] = dining_meals[interactions[chair]['frames'][variant][0]]
+    from offline_cleaning import load_cleaning, support_tables
+    cleaning_exports, cleaning_bins, cleaning_anchors, cleaning_support = load_cleaning(Path(ROOT)/'assets/models/cleaning/export/manifest.json')
+    for export in cleaning_exports:
+        sprites.extend(export.sprites)
+        more_anchors, _, more_tops, more_clips, _ = runtime_tables(export, sprites)
+        anchors.update(more_anchors); tops.update(more_tops); variants[export.variant].update(more_clips)
+        for offset, sprite in enumerate(export.sprites):
+            densities[len(sprites)-len(export.sprites)+offset] = export.pixel_density
+    for sprite in cleaning_bins:
+        anchors[len(sprites)] = cleaning_anchors[sprite[0]]; densities[len(sprites)] = 2
+        sprites.append(sprite)
+    dining_meals.update(support_tables(sprites,cleaning_support,pair_masks))
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     sync_generated_architecture(sprites, check=args.check)

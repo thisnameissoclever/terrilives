@@ -1,0 +1,10 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+error: expected `;`, found `}`
+   --> crates\terri-sim\src\systems\movement.rs:456:62
+    |
+456 |                 let _ = (world, entity, grime_from, grime_to)
+    |                                                              ^ help: add `;` here
+457 |             });
+    |             - unexpected token
+
+error: could not compile `terri-sim` (lib test) due to 1 previous error

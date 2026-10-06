@@ -764,6 +764,10 @@ export class SimBridge {
       this.count,
     );
   }
+  choreProgress(): Uint32Array {
+    return new Uint32Array(this.memory.buffer,this.handle.chore_progress_ptr(),this.count);
+  }
+
 
   /** Exact active socket target IDs, never inferred from position or row order. */
   interactionTargets(): Uint32Array {
@@ -1250,6 +1254,32 @@ export class SimBridge {
    */
   useObjectFirst(agent: number, object: number, interaction: number): boolean {
     return this.enqueueOrder(VARIANT_USE_OBJECT_FIRST, agent, object, interaction);
+  }
+
+  dishPiles(): Uint32Array { return this.handle.dish_piles(); }
+
+  floorGrime(): Uint32Array { return new Uint32Array(this.memory.buffer,this.handle.floor_grime_ptr(),this.handle.floor_grime_len()); }
+  lotWidth():number{return this.handle.lot_width();}
+  surfaceGrime(): Uint32Array {return new Uint32Array(this.memory.buffer,this.handle.surface_grime_ptr(),this.count);}
+  binWaste(): Uint32Array {return new Uint32Array(this.memory.buffer,this.handle.bin_waste_ptr(),this.count);}
+  choreRows(): Uint32Array {return this.handle.chore_rows();}
+  choreHistory(): Uint32Array {return this.handle.chore_history();}
+  tableActions(entity:number):Uint32Array{return this.handle.table_action_rows(entity);}
+  choreLocation(kind:number,target:number):string{return this.handle.chore_location(kind,target);}
+  choreOptions(entity:number): Uint32Array {return this.handle.chore_options(entity);}
+  floorChoreAt(x:number,y:number): Uint32Array {return this.handle.floor_chore_at(x,y);}
+  choreProfileOf(person:number): Int32Array {return this.handle.chore_profile(person);}
+  choreBoardEnabled():boolean{return this.handle.chore_board_enabled();}
+  setChoreBoard(enabled:boolean):boolean{return this.handle.set_chore_board(enabled);}
+  setChoreProfile(person:number,responsibility:number,preferences:readonly number[]):boolean{return this.handle.set_chore_profile(person,Float64Array.from([responsibility,...preferences]));}
+  cleanChore(person:number,kind:number,target:number,first:boolean):boolean{return this.handle.clean_chore(person,kind,target,first);}
+
+  cleanDishes(agent: number, surface: number, dishes: readonly number[] | null): boolean {
+    return this.handle.clean_dishes(agent, surface, dishes === null ? undefined : Float64Array.from(dishes), false);
+  }
+
+  cleanDishesFirst(agent: number, surface: number, dishes: readonly number[] | null): boolean {
+    return this.handle.clean_dishes(agent, surface, dishes === null ? undefined : Float64Array.from(dishes), true);
   }
 
   /**

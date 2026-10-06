@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-04",
+  "tool_status": "successful structured return",
+  "browser": "chromium",
+  "touch_mode": "Chromium touch emulation, not physical phone hardware",
+  "touch": {
+    "viewport": [390, 844],
+    "gesture": "trusted touch start, 600 ms hold, touch end, then menu tap",
+    "orders": ["", "Do dishes: Dining table"],
+    "carried": 2,
+    "remaining_piles": [1, 4, 3, 3, 4, 4, 7, 0, 1],
+    "screenshots": ["mobile-touch-menu.png", "mobile-touch-pickup.png"]
+  },
+  "keyboard": {
+    "viewport": [1280, 900],
+    "gesture": "canvas focus, arrow target cycling, Enter activation and menu selection",
+    "dirty_surface_menu": "Clean up without Sit down to eat",
+    "pile_menu": "Do dishes",
+    "orders": ["", "Do dishes: Dining table"],
+    "carried": 1,
+    "remaining_piles": [1, 4, 3, 3, 4, 4, 7, 2, 0, 7, 2, 2],
+    "screenshots": ["keyboard-surface-menu.png", "keyboard-pile-menu.png"]
+  },
+  "pass": true,
+  "cleanup": "Both task-owned browser contexts closed in finally",
+  "limits": "Simulation advanced through bounded manual ticks; no physical phone or real-time animation acceptance is claimed"
+}

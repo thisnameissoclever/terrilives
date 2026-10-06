@@ -1,0 +1,10 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 15s
+     Running unittests examples\migrate_chores_preview.rs (target\debug\examples\migrate_chores_preview-1e82605c9642584b.exe)
+
+running 1 test
+test tests::supplied_private_preview_preserves_state_and_continues_after_resave ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 2.97s
+

@@ -77,6 +77,8 @@ fn main() {
                         cursor: 0,
                     },
                     IntentQueue::from_intents(vec![Intent {
+                        cleanup: None,
+                        chore: None,
                         object: toilet,
                         interaction: 0,
                     }]),

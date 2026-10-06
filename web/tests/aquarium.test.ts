@@ -24,7 +24,7 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
-it('loads an actual released-main save and changes only the aquarium artwork', () => {
+it('loads a released-main save with its published state intact and empty chore extensions', () => {
   const bytes = Uint8Array.from(readFileSync('tests/fixtures/aquarium-released-main.sav'));
   expect(createHash('sha256').update(bytes).digest('hex'))
     .toBe('117f99a05d6e9ad879954ec46c6ccc84858a3d9d7c6d7b957847927600a6eea6');
@@ -52,6 +52,7 @@ it('loads an actual released-main save and changes only the aquarium artwork', (
     // Moved from 11804688860418536815 when the aquarium kind took the trait tag `aquarium`, so Fish
     // watcher sets a mild 0.4 in place of the drawn value; with the tag removed the old value returns.
     expect(sim.worldHash().toString()).toBe('4526374402505414594');
+    expect([...saved.slice(-3)]).toEqual([0, 0, 0]);
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));

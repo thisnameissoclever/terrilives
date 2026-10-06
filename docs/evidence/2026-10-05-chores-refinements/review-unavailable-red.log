@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\a8a4\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.43s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test chores::groups::tests::inaccessible_group_is_unavailable_at_midnight ... FAILED
+
+failures:
+
+---- chores::groups::tests::inaccessible_group_is_unavailable_at_midnight stdout ----
+
+thread 'chores::groups::tests::inaccessible_group_is_unavailable_at_midnight' (49672) panicked at crates\terri-sim\src\chores\groups.rs:193:9:
+assertion failed: state.episodes.iter().find(|e| e.key == key).unwrap().unavailable
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    chores::groups::tests::inaccessible_group_is_unavailable_at_midnight
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 948 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`
