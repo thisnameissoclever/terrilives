@@ -126,6 +126,83 @@ mod tests {
         );
     }
 
+    /// [OD-model] on the single-interaction path: `tick_interactions`, which
+    /// television, showers and every other non-chain activity complete
+    /// through, passes the tuned cap rather than 1. The agent is ordered to
+    /// watch the `telly` again after every completion; its habituation
+    /// passes 1, reaches the cap, and is never above it at any tick.
+    ///
+    /// A completion bumps before that tick's decay, so a capped completion
+    /// reads one tick's decay below the cap.
+    #[test]
+    fn repeated_single_interactions_pass_one_and_stop_at_the_tuned_cap() {
+        use terri_core::{CommandQueue, SimClock, SimCommand};
+
+        let (mut sim, object, agent) = scenario();
+        let tuning = test_content::tuning();
+        let max = tuning.habituation_max;
+        let decay = tuning.habituation_decay_per_tick;
+        assert_eq!(content().tuning.habituation_max, max);
+        let mut highest = 0.0_f32;
+        let mut capped = 0;
+        for watch in 1..=20 {
+            sim.world_mut()
+                .get_mut::<Needs>(agent)
+                .unwrap()
+                .set(NeedId::Fun, 5.0);
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObjectFirst {
+                    agent: agent.index_u32(),
+                    object: object.index_u32(),
+                    interaction: 0,
+                });
+            let start = sim.world().resource::<SimClock>().tick;
+            let before = habituation_of(&sim, agent);
+            let mut ticks = 0_u64;
+            let mut began = false;
+            let mut finished = false;
+            for _ in 0..DURATION * 4 {
+                sim.tick();
+                ticks += 1;
+                let now = habituation_of(&sim, agent);
+                assert!(now <= max, "watch {watch}: {now} is above the cap {max}");
+                let eating = sim.world().get::<Eating>(agent).is_some();
+                began |= eating;
+                if began && !eating {
+                    finished = true;
+                    break;
+                }
+            }
+            assert!(finished, "watch {watch} must finish within the bound");
+            assert_eq!(
+                sim.world().resource::<SimClock>().tick,
+                start + ticks,
+                "watch {watch}: one clock tick per loop tick"
+            );
+            let after = habituation_of(&sim, agent);
+            let at_cap = (after - (max - decay)).abs() < 1e-4;
+            // Below the cap every completion charges; at the cap a
+            // completion lands exactly where the last one did.
+            assert!(
+                after > before || at_cap,
+                "watch {watch} must charge habituation: {before} then {after}"
+            );
+            highest = highest.max(after);
+            if at_cap {
+                capped += 1;
+            }
+            if capped >= 2 {
+                break;
+            }
+        }
+        assert!(highest > 1.0, "repetition must pass 1; got {highest}");
+        assert_eq!(
+            capped, 2,
+            "two completions reach the cap; highest {highest}"
+        );
+    }
+
     /// **An interrupted interaction charges nothing.**
     ///
     /// Same rule the intent queue uses: only what completed counts. Without it,

@@ -2425,12 +2425,7 @@ fn compile_household(
     Ok(compiled)
 }
 
-/// Validates the system knobs from `content/tuning.toml`.
-///
-/// Presence is serde's job - `TuningFile` defaults nothing, so a missing
-/// knob is a parse error naming the field before this is reached. What
-/// is left is the meaning: a value can be present, well-typed, and still
-/// describe a simulation that divides by zero or contradicts itself.
+/// Checks the overdoing knobs for `compile_tuning`.
 ///
 /// [OD-content] in `docs/specs/2026-10-06-overdoing-it.md`: the five
 /// overdoing knobs, each written as its accepted range so NaN fails it too.
@@ -2467,6 +2462,13 @@ fn check_overdoing_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
     }
 }
 
+/// Validates the system knobs from `content/tuning.toml`.
+///
+/// Presence is serde's job - `TuningFile` defaults nothing, so a missing
+/// knob is a parse error naming the field before this is reached. What
+/// is left is the meaning: a value can be present, well-typed, and still
+/// describe a simulation that divides by zero or contradicts itself.
+///
 /// Every rule here exists because breaking it fails **quietly**, which
 /// is what [D9] converts into a build failure. A zero temperature makes
 /// every selection weight `NaN`, and `NaN` loses every comparison, so a

@@ -73,3 +73,29 @@ fn details_exports_reject_invalid_numbers_and_do_not_coerce_them_to_a_person() {
         assert!(handle.sim_details_labels_of(index).is_empty(), "{index}");
     }
 }
+
+/// [OD-model]: an overdone row, habituation 2.0, crosses the boundary as a
+/// full repetition meter, 1.0, which is the range `web/src/bridge.ts` accepts.
+#[test]
+fn an_overdone_row_projects_a_full_repetition_through_the_boundary() {
+    let mut handle = SimHandle::from_lot();
+    let cap = handle
+        .sim
+        .world()
+        .resource::<Content>()
+        .0
+        .tuning
+        .habituation_max;
+    assert!(cap >= 2.0, "the fixture needs room for 2.0");
+    let mut habits = Habituation::default();
+    habits.bump(ObjectDefId(2), 0, 2.0, cap);
+    assert_eq!(habits.get(ObjectDefId(2), 0), 2.0);
+    let entity = handle
+        .sim
+        .world_mut()
+        .spawn((Agent, Personality::neutral(), habits))
+        .id();
+    let values = handle.sim_details_of(f64::from(entity.index_u32()));
+    assert_eq!(values.len(), 18);
+    assert_eq!(&values[15..], &[2.0, 0.0, 1.0]);
+}

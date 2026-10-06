@@ -3865,7 +3865,16 @@ mod tests {
             overdone,
             "2.0 round-trips exactly"
         );
-        assert_ne!(loaded.world_hash(), hash, "the hash observes the value");
+        // The same row at 1.0, so the only difference is the value.
+        let mut saturated = Sim::new_from_shipped_lot();
+        saturated
+            .load_snapshot_v5(with_value(1.0))
+            .expect("a saturated value loads");
+        assert_ne!(
+            loaded.world_hash(),
+            saturated.world_hash(),
+            "the hash follows the value above 1"
+        );
     }
 
     #[test]
