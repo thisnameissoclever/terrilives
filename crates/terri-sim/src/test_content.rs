@@ -350,6 +350,7 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         portals: Vec::new(),
         colourways: Vec::new(),
         coverings: Vec::new(),
+        skills: Vec::new(),
     }))
 }
 

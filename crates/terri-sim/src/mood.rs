@@ -599,7 +599,6 @@ mod tests {
             kind: CompiledTraitKind::Capability {
                 start_level: 0.25,
                 fail_delta_scale: 0.0,
-                learn_per_attempt: 0.01,
             },
             description: String::new(),
         }

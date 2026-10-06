@@ -1,7 +1,8 @@
 //! What worn traits DO - [E3]'s three mechanisms at their four
 //! touchpoints: a disposition weighs scoring, a capability rolls at an
-//! attempt's start and learns at its end, and a condition scales the
-//! satisfaction accrual while tagged completions manage it down.
+//! attempt's start, and a condition scales the satisfaction accrual while
+//! tagged completions manage it down. Learning from an attempt belongs to
+//! skills ([SK-learning] in docs/specs/2026-10-05-skills.md).
 //!
 //! Pure helpers, called from the systems that own each touchpoint
 //! (`select_action`, `follow_path`, `tick_interactions`, `tick_social`)
@@ -85,11 +86,11 @@ pub fn roll_fumble(
     fumbled
 }
 
-/// A completion's trait consequences, pass or fail: every matching
-/// CAPABILITY learns `learn_per_attempt` toward 1 (failure is a lesson
-/// too - that is what makes "can't cook" resolvable rather than
-/// permanent), and every CONDITION whose tag the activity carries has
-/// its severity managed down by `manage_per_completion`.
+/// A completion's trait consequences, pass or fail: every CONDITION whose
+/// tag the activity carries has its severity managed down by
+/// `manage_per_completion`. A CAPABILITY no longer learns here; practice
+/// belongs to the skill with the same tag ([SK-learning] in
+/// `docs/specs/2026-10-05-skills.md`).
 pub fn learn_and_manage(traits: &mut Traits, pack: &ContentPack, tags: &[String]) {
     // Collected first: `set_state` borrows mutably and the entries
     // borrow does not survive it.
@@ -102,9 +103,8 @@ pub fn learn_and_manage(traits: &mut Traits, pack: &ContentPack, tags: &[String]
                 return None;
             }
             match def.kind {
-                CompiledTraitKind::Capability {
-                    learn_per_attempt, ..
-                } => Some((*index, state + learn_per_attempt)),
+                // practice moves to skills in Task 2
+                CompiledTraitKind::Capability { .. } => None,
                 CompiledTraitKind::Condition {
                     manage_per_completion,
                     ..
@@ -160,7 +160,7 @@ mod tests {
         }
     }
 
-    fn capability(tag: &str, fail_scale: f32, learn: f32) -> CompiledTrait {
+    fn capability(tag: &str, fail_scale: f32) -> CompiledTrait {
         CompiledTrait {
             starting_satisfaction_offset: 0.0,
             id: format!("k_{tag}"),
@@ -169,7 +169,6 @@ mod tests {
             kind: CompiledTraitKind::Capability {
                 start_level: 0.5,
                 fail_delta_scale: fail_scale,
-                learn_per_attempt: learn,
             },
             description: String::new(),
         }
@@ -235,7 +234,7 @@ mod tests {
 
     #[test]
     fn the_fumble_roll_is_level_shaped_and_consumes_rng_pass_or_fail() {
-        let pack = pack_with_traits(vec![capability("cooking", 0.25, 0.05)]);
+        let pack = pack_with_traits(vec![capability("cooking", 0.25)]);
         // Level 0: every roll fails (roll >= 0 always). Level 1: none
         // can (next_f32 is in [0, 1)). The two ends are what pin the
         // comparison's direction without depending on seed behaviour.
@@ -268,6 +267,7 @@ mod tests {
     /// on one meal, with level 0 so the roll's outcome is certain and
     /// the test is about the machinery rather than a seed.
     #[test]
+    #[ignore = "capability learning moves to skills in Task 2"]
     fn a_fumbled_meal_starves_the_soul_but_teaches_the_hands() {
         let mut cook_act =
             crate::test_content::interaction("cook", &[(terri_core::NeedId::Hunger, 40.0)], 20);
@@ -292,7 +292,6 @@ mod tests {
                 kind: CompiledTraitKind::Capability {
                     start_level: 0.0,
                     fail_delta_scale: 0.0,
-                    learn_per_attempt: 0.05,
                 },
                 description: String::new(),
             }],
@@ -729,9 +728,10 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "capability learning moves to skills in Task 2"]
     fn completion_teaches_capabilities_and_manages_conditions() {
         let pack = pack_with_traits(vec![
-            capability("cooking", 0.0, 0.05),
+            capability("cooking", 0.0),
             condition("cooking", 0.4, 0.02),
             disposition("cooking", 1.5),
         ]);

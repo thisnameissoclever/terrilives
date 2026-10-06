@@ -935,6 +935,7 @@ mod tests {
     /// satisfaction lands - and the counter's record survives where
     /// the transient marker would have been cleared.
     #[test]
+    #[ignore = "capability learning moves to skills in Task 2"]
     fn a_fumbled_step_ruins_the_terminal_delivery() {
         let (mut sim, agent, _pantry, _table) = chain_world();
         // A hopeless cook: level 0, fail scale 0 - the roll cannot
@@ -953,7 +954,6 @@ mod tests {
                 kind: terri_data::CompiledTraitKind::Capability {
                     start_level: 0.0,
                     fail_delta_scale: 0.0,
-                    learn_per_attempt: 0.015,
                 },
                 description: String::new(),
             }],

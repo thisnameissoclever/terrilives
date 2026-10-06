@@ -206,6 +206,11 @@ housemate_max_traits = 4
 interior_daylight_shade = 0.25
 daylight_reach_per_tile = 0.2
 
+# Skill ladder [SK-model]: level 1 costs skill_level_cost practice and each
+# later level costs skill_level_growth times the one before.
+skill_level_cost = 0.1
+skill_level_growth = 1.25
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

@@ -847,6 +847,37 @@ pub enum ContentError {
         id: String,
         kind: String,
     },
+    /// `skills.toml` declares the same skill id twice. Saves name a skill
+    /// by id, so two would be one row with two meanings - [SK-model].
+    DuplicateSkill(String),
+    /// A skill keyed on a tag no activity carries: practice nobody could
+    /// ever gain - [D9]'s dangling reference.
+    SkillAboutNothing {
+        id: String,
+        tag: String,
+    },
+    /// A skill with no levels or more than 100, or a practice step that is
+    /// not finite or outside `(0, 1]`.
+    SkillFieldOutOfRange {
+        id: String,
+        field: &'static str,
+    },
+    /// A skill with a blank label or description. The Overview sheet
+    /// prints both.
+    EmptySkillText {
+        id: String,
+        field: &'static str,
+    },
+    /// `skill_level_cost` not finite or not above 0. A free first level
+    /// would put a person past it before any practice.
+    SkillLevelCostOutOfRange {
+        value: f32,
+    },
+    /// `skill_level_growth` not finite or below 1. A later level would
+    /// cost less than the one before it.
+    SkillLevelGrowthBelowOne {
+        value: f32,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -1930,6 +1961,35 @@ impl fmt::Display for ContentError {
                 f,
                 "trait '{id}' declares kind '{kind}'; the kinds are {}",
                 crate::schema::TRAIT_KINDS.join(", ")
+            ),
+            ContentError::DuplicateSkill(id) => write!(
+                f,
+                "skill '{id}' is declared twice in skills.toml; saves name a \
+                 skill by its id"
+            ),
+            ContentError::SkillAboutNothing { id, tag } => write!(
+                f,
+                "skill '{id}' keys on tag '{tag}', which no interaction or \
+                 chain step in the pack carries, so nobody could practise it"
+            ),
+            ContentError::SkillFieldOutOfRange { id, field } => write!(
+                f,
+                "skill '{id}' has a {field} outside its range: levels 1 to \
+                 100, practice_per_attempt above 0 and at most 1"
+            ),
+            ContentError::EmptySkillText { id, field } => write!(
+                f,
+                "skill '{id}' needs a {field} in skills.toml"
+            ),
+            ContentError::SkillLevelCostOutOfRange { value } => write!(
+                f,
+                "skill_level_cost is {value}; must be finite and above 0, so \
+                 level 1 takes practice to reach"
+            ),
+            ContentError::SkillLevelGrowthBelowOne { value } => write!(
+                f,
+                "skill_level_growth is {value}; must be finite and at least 1, \
+                 so a later level never costs less than the one before"
             ),
             ContentError::UnknownSimTrait { sim, trait_id } => write!(
                 f,

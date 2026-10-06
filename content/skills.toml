@@ -1,0 +1,29 @@
+# Skills: one number per person per craft, learned by doing. [SK-content] in
+# docs/specs/2026-10-05-skills.md. Each skill keys on an activity tag; a
+# completed tagged attempt adds practice_per_attempt. Levels and progress come
+# from the ladder in tuning.toml (skill_level_cost, skill_level_growth).
+# Order is append-only: saves name skills by id, not position.
+
+[[skill]]
+id = "cooking"
+label = "Cooking"
+description = "Turning ingredients into a meal somebody will eat."
+tag = "cooking"
+levels = 10
+practice_per_attempt = 0.015
+
+[[skill]]
+id = "exercise"
+label = "Fitness"
+description = "Getting more out of a workout each time."
+tag = "exercise"
+levels = 10
+practice_per_attempt = 0.02
+
+[[skill]]
+id = "reading"
+label = "Reading"
+description = "Getting through a book, and getting something from it."
+tag = "reading"
+levels = 10
+practice_per_attempt = 0.012

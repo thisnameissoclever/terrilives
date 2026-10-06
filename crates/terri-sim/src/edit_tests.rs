@@ -727,7 +727,6 @@ fn cooking_world() -> (Sim, Entity) {
             kind: CompiledTraitKind::Capability {
                 start_level: 0.0,
                 fail_delta_scale: 0.0,
-                learn_per_attempt: 0.05,
             },
             description: String::new(),
         }],
