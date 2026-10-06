@@ -1949,3 +1949,112 @@ fn a_re_added_trait_saves_and_loads_at_its_authored_state() {
     );
     assert_eq!(traits_of(&loaded, 0), traits_of(&sim, 0));
 }
+
+// ---- The cleanliness row before the first domestic tick ------------------
+
+/// The cleanliness rows, as (entity index, score); none without domestic state.
+fn cleanliness_rows(sim: &Sim) -> Vec<(u32, f32)> {
+    sim.world()
+        .get_resource::<SavedDomestic>()
+        .map_or_else(Vec::new, |domestic| domestic.cleanliness.clone())
+}
+
+#[test]
+fn an_explicit_personality_change_creates_a_missing_cleanliness_row_in_index_order() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<crate::Content>().0;
+    let settled = content
+        .personalities
+        .iter()
+        .position(|p| p.id == "the_settled")
+        .unwrap() as u32;
+    let authored = content.personalities[settled as usize].cleanliness;
+    let [tim, bill, casey] = [0, 1, 2].map(|id| person(&sim, id).index_u32());
+    assert!(tim < bill && bill < casey, "the household spawns in order");
+
+    // Empty domestic state, as before the first domestic tick: the edit adds
+    // the row.
+    sim.world_mut().insert_resource(SavedDomestic::default());
+    assert_eq!(
+        edit(&mut sim, 0, "Tim", Some(settled), &[], &[]).reason,
+        None
+    );
+    assert_eq!(cleanliness_rows(&sim), vec![(tim, authored)]);
+
+    // Rows on either side of the edited person: the new row lands between
+    // them, and the neighbours keep their scores.
+    sim.world_mut().insert_resource(SavedDomestic {
+        cleanliness: vec![(tim, 0.125), (casey, 0.375)],
+        ..SavedDomestic::default()
+    });
+    assert_eq!(
+        edit(&mut sim, 1, "Bill", Some(settled), &[], &[]).reason,
+        None
+    );
+    assert_eq!(
+        cleanliness_rows(&sim),
+        vec![(tim, 0.125), (bill, authored), (casey, 0.375)]
+    );
+}
+
+/// Two archetypes with equal drain and refill multipliers, told apart only
+/// by a disposition and their cleanliness. The domestic fallback, which
+/// matches drain and refill alone, finds `first` for either of them. The
+/// pack's one object is what the dispositions name.
+fn twin_archetypes() -> &'static terri_data::ContentPack {
+    let base = crate::test_content::pack_tuned(
+        vec![crate::test_content::object(
+            "radio",
+            &[(terri_core::NeedId::Fun, 10.0)],
+            10,
+        )],
+        crate::test_content::tuning(),
+    );
+    let first = terri_data::CompiledPersonality {
+        cleanliness: 0.2,
+        ..fixture_personality("first_twin", 1.25)
+    };
+    let second = terri_data::CompiledPersonality {
+        cleanliness: 0.8,
+        dispositions: vec![(terri_core::ObjectDefId(0), 0, 0.5)],
+        ..fixture_personality("second_twin", 1.25)
+    };
+    Box::leak(Box::new(terri_data::ContentPack {
+        personalities: vec![first, second],
+        ..base.clone()
+    }))
+}
+
+#[test]
+fn an_explicit_change_without_domestic_state_keeps_the_archetype_after_a_tick() {
+    let pack = twin_archetypes();
+    let mut sim = crate::test_content::sim_with(8, 8, pack);
+    let entity = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            terri_core::SimId(0),
+            terri_core::Position { x: 2.0, y: 2.0 },
+            Needs::all_at(terri_core::NEED_MAX),
+            crate::household::personality_from(&pack.personalities[0]),
+        ))
+        .id();
+    sim.world_mut().remove_resource::<SavedDomestic>();
+    assert_eq!(sim.personality_archetype_of(entity.index_u32()), Some(0));
+
+    assert_eq!(edit(&mut sim, 0, "Twin", Some(1), &[], &[]).reason, None);
+    assert_eq!(
+        cleanliness_rows(&sim),
+        vec![(entity.index_u32(), 0.8)],
+        "the edit created the domestic state with the authored row"
+    );
+    assert_eq!(sim.personality_archetype_of(entity.index_u32()), Some(1));
+    let tick = tick_count(&sim);
+    sim.tick();
+    assert_eq!(tick_count(&sim), tick + 1);
+    assert_eq!(
+        sim.personality_archetype_of(entity.index_u32()),
+        Some(1),
+        "the second twin, not the first that shares its drain and refill"
+    );
+}

@@ -121,14 +121,25 @@ fn apply(world: &mut World, entity: Entity, name: String, edit: &Edit) {
     if let Some(index) = edit.personality {
         let compiled = &content.personalities[index as usize];
         world.entity_mut(entity).insert(personality_from(compiled));
-        if let Some(mut domestic) = world.get_resource_mut::<SavedDomestic>() {
-            if let Some(row) = domestic
+        // The person's cleanliness row holds the authored score from now on,
+        // even before the first domestic tick. Without a row,
+        // `domestic::cleanliness` falls back to the first archetype with the
+        // same drain and refill multipliers, which can be a different one. A
+        // world with no domestic state yet gets a default one holding just
+        // this row: `domestic::tick` starts from the same default and adds
+        // everyone else's rows, sorted by entity index, as it does here.
+        let mut domestic = world.get_resource_or_insert_with(SavedDomestic::default);
+        if let Some(row) = domestic
+            .cleanliness
+            .iter_mut()
+            .find(|(index, _)| *index == entity.index_u32())
+        {
+            row.1 = compiled.cleanliness;
+        } else {
+            domestic
                 .cleanliness
-                .iter_mut()
-                .find(|(index, _)| *index == entity.index_u32())
-            {
-                row.1 = compiled.cleanliness;
-            }
+                .push((entity.index_u32(), compiled.cleanliness));
+            domestic.cleanliness.sort_by_key(|(index, _)| *index);
         }
     }
     let current = world.get::<Traits>(entity).cloned().unwrap_or_default();

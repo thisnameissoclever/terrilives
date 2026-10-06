@@ -51,6 +51,10 @@ Status: implementation evidence for `2026-09-30-edit-sims.md`. Each table row na
 | The saved chronotype offset written back in `restore` in `crates/terri-sim/src/save/chronotype.rs`; replaced by 0 | `an_accepted_edit_saves_loads_and_replays_identically` | `assertion left == right failed: drain, refill, dispositions and chronotype all load`, the loaded personality with `chronotype_offset_ticks: 0` against 180 |
 | The same chronotype restore, checked from a historical save in terri-wasm | `an_edit_of_a_loaded_historical_save_survives_save_load_and_replays` | `assertion left == right failed`, left `None`, right `Some(2)`: the reloaded cook no longer matched the chosen archetype |
 | The saved trait state in `restore_entity` in `crates/terri-sim/src/save.rs`; every restored state replaced by 0 | `a_re_added_trait_saves_and_loads_at_its_authored_state` | `assertion left == right failed: the re-added trait loads at its authored state, not the removed one's`, left `Some(0.0)`, right `Some(0.6)` |
+| The `push` of a missing cleanliness row in `apply` in `crates/terri-sim/src/edit.rs` | `an_explicit_personality_change_creates_a_missing_cleanliness_row_in_index_order` | `assertion left == right failed`, left `[]`, right `[(34, 0.08)]` |
+| The same `push` | `an_explicit_change_without_domestic_state_keeps_the_archetype_after_a_tick` | `assertion left == right failed: the edit created the domestic state with the authored row`, left `[]`, right `[(0, 0.8)]` |
+| The `sort_by_key` after that `push` | `an_explicit_personality_change_creates_a_missing_cleanliness_row_in_index_order` | `assertion left == right failed`, left `[(34, 0.125), (36, 0.375), (35, 0.08)]`, right `[(34, 0.125), (35, 0.08), (36, 0.375)]` |
+| Creating the domestic state when it is absent; mutated to leave `apply` when there is none | `an_explicit_change_without_domestic_state_keeps_the_archetype_after_a_tick` | `assertion left == right failed: the edit created the domestic state with the authored row`, left `[]`, right `[(0, 0.8)]` |
 
 Every mutated build compiled, and each test failed at run time with exit code 101.
 
@@ -67,6 +71,8 @@ For the cleanliness, exact-bits, disposition-key, row-index and row-sort rows, t
 For the saved-name byte-limit and trim rows, the same script method mutated `crates/terri-wasm/src/lib.rs`, and `git hash-object` before and after matched: `1feead79d4fd2a150de03e1958426a250ba0a25f`. `housemate_fields_within_bounds` is the helper that the earlier wasm boundary rows call `edit_within_bounds`; it now also serves move-ins and holds the untrimmed name to `terri_sim::MAX_TEXT_BYTES`.
 
 For the satisfaction and disposition-weight exact-bits rows and the chronotype and trait-state restore rows, the same script method ran each mutation, the wasm row through `cargo test -p terri-wasm --release -- --exact <test>`, and `git hash-object` before and after matched: `crates/terri-sim/src/lib.rs` was `6c025e0009022befb8d7e7e7effe275457c237ae`, `crates/terri-sim/src/save/chronotype.rs` was `e00f32dfa4a6daf313fc8c275d6c269d131192b6` and `crates/terri-sim/src/save.rs` was `7fe8126bcc63caee3491eaf1c005f6e80a6422d5`.
+
+For the cleanliness-row materialization rows, the same script method ran each mutation, and `git hash-object` before and after matched: `crates/terri-sim/src/edit.rs` was `409e3c7080a0a029fe49ec93850c0fcdaecc807d`.
 
 ## Delivery
 
