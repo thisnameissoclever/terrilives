@@ -31,12 +31,7 @@ pub(crate) fn spawn_member(
 ) -> Entity {
     let sim_id = world.resource_mut::<terri_core::SimIdAllocator>().issue();
     let compiled = &personalities[member.personality as usize];
-    let mut personality = terri_core::Personality::with_dispositions(
-        compiled.drain,
-        compiled.satisfaction,
-        compiled.dispositions.clone(),
-    );
-    personality.chronotype_offset_ticks = compiled.chronotype_offset_ticks;
+    let personality = personality_from(compiled);
     let mut needs = terri_core::Needs::all_at(NEED_MAX);
     for id in terri_core::NeedId::ALL {
         needs.set(id, member.needs[id.index()]);
@@ -62,18 +57,7 @@ pub(crate) fn spawn_member(
             member
                 .traits
                 .iter()
-                .map(|&index| {
-                    let state = match traits[index as usize].kind {
-                        terri_data::CompiledTraitKind::Capability { start_level, .. } => {
-                            start_level
-                        }
-                        terri_data::CompiledTraitKind::Condition { start_severity, .. } => {
-                            start_severity
-                        }
-                        terri_data::CompiledTraitKind::Disposition { .. } => 0.0,
-                    };
-                    (index, state)
-                })
+                .map(|&index| (index, authored_trait_state(&traits[index as usize])))
                 .collect(),
         ),
     ));
@@ -192,35 +176,76 @@ pub fn validate_housemate(
     personality: u32,
     traits: &[u32],
 ) -> Result<String, HousemateRefusal> {
-    use HousemateRefusal::*;
     let content = world.resource::<Content>().0;
     if household_size(world) >= MAX_HOUSEHOLD_SIZE {
-        return Err(HouseholdFull);
+        return Err(HousemateRefusal::HouseholdFull);
     }
+    let name = validate_name(content, name)?;
+    if personality as usize >= content.personalities.len() {
+        return Err(HousemateRefusal::UnknownPersonality);
+    }
+    validate_traits(content, traits)?;
+    Ok(name)
+}
+
+/// The trimmed name, non-empty and within the tuned character limit.
+pub(crate) fn validate_name(
+    content: &terri_data::ContentPack,
+    name: &str,
+) -> Result<String, HousemateRefusal> {
     let name = name.trim();
     if name.is_empty() || name.chars().count() > content.tuning.housemate_name_max_chars as usize {
-        return Err(BadName);
+        return Err(HousemateRefusal::BadName);
     }
-    if personality as usize >= content.personalities.len() {
-        return Err(UnknownPersonality);
-    }
+    Ok(name.to_string())
+}
+
+/// At most the tuned count, every index known, none repeated, in that order.
+pub(crate) fn validate_traits(
+    content: &terri_data::ContentPack,
+    traits: &[u32],
+) -> Result<(), HousemateRefusal> {
     if traits.len() > content.tuning.housemate_max_traits as usize {
-        return Err(TooManyTraits);
+        return Err(HousemateRefusal::TooManyTraits);
     }
     if traits
         .iter()
         .any(|&index| index as usize >= content.traits.len())
     {
-        return Err(UnknownTrait);
+        return Err(HousemateRefusal::UnknownTrait);
     }
     if traits
         .iter()
         .enumerate()
         .any(|(at, index)| traits[..at].contains(index))
     {
-        return Err(RepeatedTrait);
+        return Err(HousemateRefusal::RepeatedTrait);
     }
-    Ok(name.to_string())
+    Ok(())
+}
+
+/// A worn trait's opening state ([E3]): a capability at its start level,
+/// a condition at its start severity, a disposition stateless at 0.
+pub(crate) fn authored_trait_state(worn: &terri_data::CompiledTrait) -> f32 {
+    match worn.kind {
+        terri_data::CompiledTraitKind::Capability { start_level, .. } => start_level,
+        terri_data::CompiledTraitKind::Condition { start_severity, .. } => start_severity,
+        terri_data::CompiledTraitKind::Disposition { .. } => 0.0,
+    }
+}
+
+/// Every effect of an archetype, including the chronotype offset that
+/// `Personality::with_dispositions` alone would leave at zero.
+pub(crate) fn personality_from(
+    compiled: &terri_data::CompiledPersonality,
+) -> terri_core::Personality {
+    let mut personality = terri_core::Personality::with_dispositions(
+        compiled.drain,
+        compiled.satisfaction,
+        compiled.dispositions.clone(),
+    );
+    personality.chronotype_offset_ticks = compiled.chronotype_offset_ticks;
+    personality
 }
 
 /// [CS-arrival]: where the newcomer appears and the walk it starts on. The

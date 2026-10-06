@@ -13,6 +13,7 @@ mod dining;
 pub mod domestic;
 #[cfg(test)]
 mod ecs_lifecycle_tests;
+pub mod edit;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
