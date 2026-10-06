@@ -757,10 +757,11 @@ pub fn serve_intents(
                 // rather than restarted, and recorded as directed so
                 // the privacy rules read it as the player's errand from
                 // here on. EXCEPT a cleanup the sim started on its own:
-                // that task covers only the sim's own dishes and is
-                // dropped the moment a need turns critical, neither of
-                // which is what "Clean dishes" orders, so it is
-                // restarted below as a directed task over every dish.
+                // that task covers only the dishes the sim picked when it
+                // started and is dropped between steps once a need turns
+                // critical, neither of which is what "Clean dishes"
+                // orders, so it is restarted below as a directed task
+                // over every dish.
                 let adoptable = chain.id != crate::domestic::CLEANUP
                     || crate::domestic::cleaning_under_orders(domestic.as_deref(), agent);
                 if adoptable && chain_state.is_some_and(|state| state.chain == global) {

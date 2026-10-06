@@ -90,14 +90,16 @@ impl Sim {
         // and the current row already describes that chain, so the order
         // is the served one while the sim is carrying the chain out: at a
         // station, walking to one, or idle between steps. An ordinary
-        // action or a conversation, started or received, has interrupted
-        // the chain - then the chain is waiting and its order is listed.
+        // action, a conversation started or received, a commute or a
+        // shift has interrupted the chain - then the chain is waiting and
+        // its order is listed.
         let carrying_out_chain = social.is_none()
             && partner_action.is_none()
+            && self.world.get::<AtWork>(person).is_none()
+            && self.world.get::<Commuting>(person).is_none()
             && target.is_none_or(|intent| intent.interaction == crate::systems::chain::CHAIN_STEP);
         let served = match served {
             _ if !carrying_out_chain => served,
-            Some(intent) if intent.interaction != crate::systems::chain::CHAIN_STEP => Some(intent),
             _ => self
                 .world
                 .get::<terri_core::ChainState>(person)
@@ -440,6 +442,16 @@ mod tests {
         });
         let labels = sim.action_queue_of(person.index_u32());
         assert_eq!(labels.len(), 3, "a received talk interrupts the snack too");
+        assert!(labels[1].starts_with("Grab a snack: "));
+        assert!(labels[2].starts_with("Grab a snack: "));
+
+        // Called to work: the chain waits for the return, so its order
+        // is listed beneath the commute.
+        sim.world_mut().entity_mut(other).remove::<Socialising>();
+        sim.world_mut().entity_mut(person).insert(Commuting);
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(labels.len(), 3, "a commute interrupts the snack too");
+        assert_eq!(labels[0], "Going to work");
         assert!(labels[1].starts_with("Grab a snack: "));
         assert!(labels[2].starts_with("Grab a snack: "));
     }

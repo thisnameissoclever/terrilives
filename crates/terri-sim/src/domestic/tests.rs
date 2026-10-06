@@ -1714,13 +1714,6 @@ fn queued_snack_orders_run_one_after_another() {
     for _ in 0..6000 {
         sim.tick();
         ticks += 1;
-        // Hunger is topped up so no need turns critical during the run:
-        // a critical need would abandon the cleanup a finished snack may
-        // start on its own, and the run should measure snacks alone.
-        sim.world_mut()
-            .get_mut::<Needs>(person)
-            .unwrap()
-            .set(NeedId::Hunger, 60.0);
         let now = sim
             .world()
             .get::<ChainState>(person)
