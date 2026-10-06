@@ -138,7 +138,7 @@ The current semantic events are:
    `sim.conversation-ended { voice }`: start the simulation-selected recorded
    pair, or fade only that instance when the observed conversation ends.
 6. `sim.sleep-breath { simId, breathIndex }`: sleep began or reached its next
-   slow breathing interval.
+   slow snore interval.
 7. `sim.eating { simId, biteIndex }`: one Sim began eating or reached its next
    sparse bite interval.
 8. `sim.page-turn { simId, pageIndex }`: one Sim began reading or reached its
@@ -213,7 +213,7 @@ Sleep remains household-level. The scheduler emits one sleep event on entry,
 then one every 30 ticks while at least one Sim remains asleep. Each event may
 start a recorded snore: the first event of a session only fetches the clips,
 one snore plays at a time, and starts are at least six real seconds apart, so
-at normal speed every second event snores. Multiple sleepers do not create
+at normal speed about every second event snores, occasionally every third. Multiple sleepers do not create
 synchronized snore stacks. Leaving an activity resets
 its cadence. Load, backgrounding, the first successful audio unlock, recovery
 from an externally suspended audio context, master mute changes, and Effects

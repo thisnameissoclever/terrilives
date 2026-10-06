@@ -2617,6 +2617,20 @@ describe('AudioController gesture and cue lifecycle', () => {
     } finally { fetcher.mockRestore(); }
   });
 
+  it('plays installed snore clips without fetching and refuses invalid ones', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    expect(() => controller.installSnoreClips([])).toThrow();
+    expect(() => controller.installSnoreClips([{ duration: 9 }])).toThrow();
+    const clip = { duration: 2 };
+    controller.installSnoreClips([clip]);
+    expect(context.bufferSources).toHaveLength(0);
+    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+    expect(context.bufferSources[0]?.buffer).toBe(clip);
+    expect(controller.activeSnoreVoiceCount()).toBe(1);
+  });
+
   it('silences a snore when the simulation pauses or the player mutes', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, memoryStore());

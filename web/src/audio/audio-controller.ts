@@ -413,6 +413,16 @@ export class AudioController implements GameAudioEventSink {
     finally { if (this.snoreFetch === fetching) this.snoreFetch = null; }
   }
 
+  /**
+   * Replaces the snore rotation with already-decoded clips. Browser proofs use
+   * it to play a known buffer without serving the recordings; the game loads
+   * its clips through `loadSnoreRecordings`. Installing never plays anything.
+   */
+  installSnoreClips(clips: readonly AudioBufferPort[]): void {
+    if (clips.length === 0 || !clips.every(validSnoreClip)) throw new Error('invalid snore clips');
+    this.snoreClips = [...clips];
+  }
+
   /** All five or none, so the rotation never shrinks to a subset after a partial failure. */
   private async fetchSnoreClips(context: BrowserAudioContext): Promise<void> {
     try {
@@ -420,8 +430,7 @@ export class AudioController implements GameAudioEventSink {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`snore recording: ${response.status}`);
         const clip = await context.decodeAudioData(await response.arrayBuffer());
-        if (!Number.isFinite(clip.duration) || clip.duration < 0.024 ||
-          clip.duration > SNORE_POLICY.maxClipSeconds) throw new Error('invalid snore recording');
+        if (!validSnoreClip(clip)) throw new Error('invalid snore recording');
         return clip;
       }));
       this.snoreClips = clips;
@@ -1120,6 +1129,11 @@ function compactClips(
   clips: readonly (AudioBufferPort | undefined)[],
 ): readonly AudioBufferPort[] {
   return clips.map((clip) => clip ?? { duration: 0 });
+}
+
+function validSnoreClip(clip: AudioBufferPort): boolean {
+  return Number.isFinite(clip.duration) && clip.duration >= 0.024 &&
+    clip.duration <= SNORE_POLICY.maxClipSeconds;
 }
 
 function cueForEvent(event: GameAudioEvent): ProceduralCue | null {

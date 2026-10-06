@@ -138,14 +138,18 @@ export async function proveAutomaticObjectRecovery() {
       controller.installObjectLoopClips(new Map([
         [2, { buffer, gain: 0.2, loopStart: 0, loopEnd: 0.1 }],
       ]));
-      // Eating is still a synthesized one-shot; sleep now plays a recording.
-      controller.emit({ type: 'sim.eating', simId: 4, biteIndex: 0 });
-      if (controller.activeVoiceCount() !== 1) throw new Error('Pre-interruption transient did not start');
+      // A two-second snore outlasts the suspend call, so the unavailable
+      // frame below must dispose it; a short tone could end on its own first.
+      const snore = native.createBuffer(1, RATE * 2, RATE);
+      snore.getChannelData(0).fill(1);
+      controller.installSnoreClips([snore]);
+      controller.emit({ type: 'sim.sleep-breath', simId: 4, breathIndex: 0 });
+      if (controller.activeSnoreVoiceCount() !== 1) throw new Error('Pre-interruption transient did not start');
       await native.suspend();
       if (native.state !== 'suspended') throw new Error('Native clock did not suspend');
       observe(controller, [41, 2]);
       if (controller.activeObjectLoopCount() !== 0) throw new Error('Suspended action created playback');
-      if (controller.activeVoiceCount() !== 0) throw new Error('Suspended transient retained its frozen tail');
+      if (controller.activeSnoreVoiceCount() !== 0) throw new Error('Suspended transient retained its frozen tail');
       if (!remainsActive) observe(controller);
       await native.resume();
       if (native.state !== 'running') throw new Error('Native clock did not resume');
