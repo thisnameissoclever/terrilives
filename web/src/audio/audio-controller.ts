@@ -110,6 +110,7 @@ export interface AudioCuePlayCounts {
   readonly 'door-opened': number;
   readonly 'door-closed': number;
   readonly 'toilet-flush': number;
+  readonly conversation: number;
 }
 
 export type AudioResetBoundary = 'load' | 'background';
@@ -184,7 +185,7 @@ export class AudioController implements GameAudioEventSink {
   private readonly footsteps: FootstepScheduler;
   private readonly activities: ActivityCueScheduler;
   private readonly objectSounds: ObjectSoundCueScheduler;
-  private readonly playedCueCounts = new Uint32Array(9);
+  private readonly playedCueCounts = new Uint32Array(10);
 
   constructor(
     private readonly createContext: AudioContextFactory = createBrowserAudioContext,
@@ -895,8 +896,10 @@ export class AudioController implements GameAudioEventSink {
       // Held rather than dropped. The usual reason a play fails is that the
       // library has not finished decoding, and that resolves on its own
       // moments later while this conversation is still going.
-      if (played) this.pendingVoices.delete(key);
-      else this.pendingVoices.set(key, voice);
+      if (played) {
+        this.pendingVoices.delete(key);
+        this.playedCueCounts[9]++;
+      } else this.pendingVoices.set(key, voice);
     } catch {
       // Sound is presentation. A node failure may drop one conversation but
       // may never terminate the simulation frame that observed it.
@@ -944,6 +947,7 @@ export class AudioController implements GameAudioEventSink {
       'door-opened': this.playedCueCounts[6] ?? 0,
       'door-closed': this.playedCueCounts[7] ?? 0,
       'toilet-flush': this.playedCueCounts[8] ?? 0,
+      conversation: this.playedCueCounts[9] ?? 0,
     };
   }
 
