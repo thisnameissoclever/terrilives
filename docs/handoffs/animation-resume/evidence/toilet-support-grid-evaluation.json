@@ -1,0 +1,24 @@
+{
+  "diagnostic_only": true,
+  "source_sha256": "e6ebc11863f4e151c70e423b2d0cadbff9e1532c8a45600a82e77ff24c319d9a",
+  "points": 1202,
+  "grid_step": 0.003,
+  "minimal_shapes": [
+    [
+      5,
+      16
+    ],
+    [
+      6,
+      13
+    ],
+    [
+      7,
+      12
+    ]
+  ],
+  "complete_paired_rectangles_tested": 370,
+  "support_candidates": [],
+  "whole_body_collision_acceptance": false,
+  "limitation": "This retained-grid height analysis does not apply a pose or certify final collision clearance."
+}

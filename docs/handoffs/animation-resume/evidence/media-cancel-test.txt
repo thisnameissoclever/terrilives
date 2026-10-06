@@ -1,0 +1,9 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.45s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test seating::tests::cancellation_releases_media_seat_without_advancing_the_clock ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 918 filtered out; finished in 0.01s
+

@@ -21,6 +21,11 @@
       "kind": "neutral-seating",
       "catalog": "assets/models/seating/export/neutral-03/manifest.json",
       "canonicalSha256": "2955c095bdfee70517c6d8d7a120299c02d4d72e0f1674d8a54838fcc2170589"
+    },
+    {
+      "kind": "bathroom-actions",
+      "catalog": "assets/models/bathroom/actions/export/toilet-03/manifest.json",
+      "canonicalSha256": "73b7d178dda60eaec4899d38d668b574c2dc3a2cd9e9eeea288b298360213fa0"
     }
   ],
   "historicalFiles": {

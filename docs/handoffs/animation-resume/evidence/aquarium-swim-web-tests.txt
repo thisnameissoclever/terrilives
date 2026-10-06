@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web
+
+
+ Test Files  147 passed (147)
+      Tests  1971 passed (1971)
+   Start at  06:56:12
+   Duration  40.57s (transform 2.01s, setup 0ms, import 10.40s, tests 16.02s, environment 8ms)
+

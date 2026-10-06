@@ -1,0 +1,86 @@
+{
+  "passed": true,
+  "base": "b04cc50ad8a576e76c78ef66a30ef8596d3cee50",
+  "preserved_sprites": 2483,
+  "atlas_pages": {
+    "atlas-7983d26635b5e0041656946f99a2306a5f7ffdf00cd0a260d20a2e19d14512c3.png": "7983d26635b5e0041656946f99a2306a5f7ffdf00cd0a260d20a2e19d14512c3",
+    "atlas-f95f1c0eecf6980d3bbecd284a401f8e0a19fd326e212bd516c0a0e1dace4c28.png": "f95f1c0eecf6980d3bbecd284a401f8e0a19fd326e212bd516c0a0e1dace4c28",
+    "atlas-da9a4d6a4a32df431ffc193e9887a686d1d79d78f49a166f5f9b343da2e97af0.png": "da9a4d6a4a32df431ffc193e9887a686d1d79d78f49a166f5f9b343da2e97af0",
+    "atlas-484f5d2d534e88f0933d3ae9308b3b88c2a0ba6f5dde6b60c081e67df5fcb77a.png": "484f5d2d534e88f0933d3ae9308b3b88c2a0ba6f5dde6b60c081e67df5fcb77a",
+    "atlas-858e0634981369ab96f8fb0223fa5582c47a7dd3f3d24e697d5f2b1089d1a4dd.png": "858e0634981369ab96f8fb0223fa5582c47a7dd3f3d24e697d5f2b1089d1a4dd",
+    "atlas-672e008a1f9558289a0c50f0c324338c9850f70acbcdc0bfbee8b14fefce00ee.png": "672e008a1f9558289a0c50f0c324338c9850f70acbcdc0bfbee8b14fefce00ee",
+    "atlas-c594b416a25365bb7855695a6b2e72c5ca77c33564af2ea0f60b205611090143.png": "c594b416a25365bb7855695a6b2e72c5ca77c33564af2ea0f60b205611090143",
+    "atlas-305f6acc3df461bfaa86a481c048088e3d3d347ce918dbdec36ceba1241d73e9.png": "305f6acc3df461bfaa86a481c048088e3d3d347ce918dbdec36ceba1241d73e9",
+    "atlas-d10a9488a7cb5568ced35749a1d08bac78c0df2e72e525fbed3e78bf146ba051.png": "d10a9488a7cb5568ced35749a1d08bac78c0df2e72e525fbed3e78bf146ba051",
+    "atlas-75d75db2fe034f5a46bb70fc01668a09a383edac1dd108064f3d1ca5f8c24501.png": "75d75db2fe034f5a46bb70fc01668a09a383edac1dd108064f3d1ca5f8c24501",
+    "atlas-1fd2ac07fd62825f42d72b2f5d5503fb44d8f1dd0d464a81d62e66e4817e3025.png": "1fd2ac07fd62825f42d72b2f5d5503fb44d8f1dd0d464a81d62e66e4817e3025",
+    "atlas-0b9f204c5a56e7c2f75b48da8deacd71d636eb96f992d71f6b380bc7aa79c8d3.png": "0b9f204c5a56e7c2f75b48da8deacd71d636eb96f992d71f6b380bc7aa79c8d3",
+    "atlas-6a777e61900c113a57977985fc2597b7e305106022822fd4bba39e73608d5b50.png": "6a777e61900c113a57977985fc2597b7e305106022822fd4bba39e73608d5b50",
+    "atlas-9275cf44b1fa939a3cf5a9ee0614c883fafa734de39c13110791cc16824d9c7b.png": "9275cf44b1fa939a3cf5a9ee0614c883fafa734de39c13110791cc16824d9c7b",
+    "atlas-8919035281d51dd3b0f04c2674ca3a71b794d17ba23a7412a9358758cb5a7b97.png": "8919035281d51dd3b0f04c2674ca3a71b794d17ba23a7412a9358758cb5a7b97",
+    "atlas-459d052cc97e0dfb408f9c05276f211a3e598b53beed55be887b72f8938208db.png": "459d052cc97e0dfb408f9c05276f211a3e598b53beed55be887b72f8938208db",
+    "atlas-6ff8f1f3f64df0602b98a6a7c8f795011137ddcffbc9be7630ca9cbd6c4c4e7b.png": "6ff8f1f3f64df0602b98a6a7c8f795011137ddcffbc9be7630ca9cbd6c4c4e7b"
+  },
+  "metadata": [
+    {
+      "name": "SPRITE_ANCHORS",
+      "preserved_entries": 1971,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_CONTENT_TOPS",
+      "preserved_entries": 1436,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_CONTENT_BOUNDS",
+      "preserved_entries": 916,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_PAIRS",
+      "preserved_entries": 336,
+      "additional_entries": []
+    },
+    {
+      "name": "INTERACTION_SPRITES",
+      "preserved_entries": 20,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_HAND_ANCHORS",
+      "preserved_entries": 48,
+      "additional_entries": []
+    },
+    {
+      "name": "SPRITE_HAND_FOREGROUND",
+      "preserved_entries": 48,
+      "additional_entries": []
+    },
+    {
+      "name": "RIGGED_SIM_CLIPS",
+      "preserved_entries": 19,
+      "additional_entries": []
+    },
+    {
+      "name": "RIGGED_SIM_VARIANTS",
+      "preserved_entries": 3,
+      "additional_entries": []
+    },
+    {
+      "name": "SURFACE_LAYOUTS",
+      "preserved_entries": 16,
+      "additional_entries": []
+    },
+    {
+      "name": "BED_CATALOG",
+      "preserved_entries": 8,
+      "additional_entries": []
+    },
+    {
+      "name": "BED_LAYERS",
+      "preserved_entries": 76,
+      "additional_entries": []
+    }
+  ]
+}

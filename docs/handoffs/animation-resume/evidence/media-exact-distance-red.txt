@@ -1,0 +1,88 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-core)
+error[E0599]: no method named `distance_to_tile` found for struct `TileDistanceField` in the current scope
+  --> crates\terri-core\src\grid\distance_tests.rs:8:22
+   |
+ 8 |     assert_eq!(field.distance_to_tile((1,1)),Some(0));
+   |                      ^^^^^^^^^^^^^^^^
+   |
+  ::: crates\terri-core\src\grid.rs:41:1
+   |
+41 | pub struct TileDistanceField {
+   | ---------------------------- method `distance_to_tile` not found for this struct
+   |
+help: there is a method `distance_at` with a similar name
+   |
+ 8 -     assert_eq!(field.distance_to_tile((1,1)),Some(0));
+ 8 +     assert_eq!(field.distance_at((1,1)),Some(0));
+   |
+
+error[E0599]: no method named `distance_to_tile` found for struct `TileDistanceField` in the current scope
+  --> crates\terri-core\src\grid\distance_tests.rs:9:22
+   |
+ 9 |     assert_eq!(field.distance_to_tile((0,2)),Some(2));
+   |                      ^^^^^^^^^^^^^^^^
+   |
+  ::: crates\terri-core\src\grid.rs:41:1
+   |
+41 | pub struct TileDistanceField {
+   | ---------------------------- method `distance_to_tile` not found for this struct
+   |
+help: there is a method `distance_at` with a similar name
+   |
+ 9 -     assert_eq!(field.distance_to_tile((0,2)),Some(2));
+ 9 +     assert_eq!(field.distance_at((0,2)),Some(2));
+   |
+
+error[E0599]: no method named `distance_to_tile` found for struct `TileDistanceField` in the current scope
+  --> crates\terri-core\src\grid\distance_tests.rs:11:26
+   |
+11 |         assert_eq!(field.distance_to_tile(tile),None,"{tile:?}");
+   |                          ^^^^^^^^^^^^^^^^
+   |
+  ::: crates\terri-core\src\grid.rs:41:1
+   |
+41 | pub struct TileDistanceField {
+   | ---------------------------- method `distance_to_tile` not found for this struct
+   |
+help: there is a method `distance_at` with a similar name
+   |
+11 -         assert_eq!(field.distance_to_tile(tile),None,"{tile:?}");
+11 +         assert_eq!(field.distance_at(tile),None,"{tile:?}");
+   |
+
+error[E0599]: no method named `distance_to_tile` found for struct `TileDistanceField` in the current scope
+  --> crates\terri-core\src\grid\distance_tests.rs:14:22
+   |
+14 |     assert_eq!(field.distance_to_tile((3,1)),None,"The distance field retains its grid snapshot");
+   |                      ^^^^^^^^^^^^^^^^
+   |
+  ::: crates\terri-core\src\grid.rs:41:1
+   |
+41 | pub struct TileDistanceField {
+   | ---------------------------- method `distance_to_tile` not found for this struct
+   |
+help: there is a method `distance_at` with a similar name
+   |
+14 -     assert_eq!(field.distance_to_tile((3,1)),None,"The distance field retains its grid snapshot");
+14 +     assert_eq!(field.distance_at((3,1)),None,"The distance field retains its grid snapshot");
+   |
+
+error[E0599]: no method named `distance_to_tile` found for struct `TileDistanceField` in the current scope
+  --> crates\terri-core\src\grid\distance_tests.rs:15:52
+   |
+15 |     assert_eq!(grid.distance_field((1,1)).unwrap().distance_to_tile((3,1)),Some(2));
+   |                                                    ^^^^^^^^^^^^^^^^
+   |
+  ::: crates\terri-core\src\grid.rs:41:1
+   |
+41 | pub struct TileDistanceField {
+   | ---------------------------- method `distance_to_tile` not found for this struct
+   |
+help: there is a method `distance_at` with a similar name
+   |
+15 -     assert_eq!(grid.distance_field((1,1)).unwrap().distance_to_tile((3,1)),Some(2));
+15 +     assert_eq!(grid.distance_field((1,1)).unwrap().distance_at((3,1)),Some(2));
+   |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `terri-core` (lib test) due to 5 previous errors

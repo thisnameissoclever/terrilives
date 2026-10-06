@@ -1,0 +1,20 @@
+E
+======================================================================
+ERROR: test_toilet_support_planner (unittest.loader._FailedTest.test_toilet_support_planner)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_toilet_support_planner
+Traceback (most recent call last):
+  File "C:\Users\myema\AppData\Local\Programs\Python\Python314\Lib\unittest\loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "C:\Users\myema\AppData\Local\Programs\Python\Python314\Lib\unittest\loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\assets\models\bathroom\actions\test_toilet_support_planner.py", line 3, in <module>
+    from toilet_support_planner import height_interval, minimal_grid_rectangles
+ModuleNotFoundError: No module named 'toilet_support_planner'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

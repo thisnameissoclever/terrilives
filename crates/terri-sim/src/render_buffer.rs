@@ -265,6 +265,8 @@ pub mod visual_action {
     pub const COOK: u32 = 11;
     pub const WASH: u32 = 12;
     pub const SEATED_EAT: u32 = 13;
+    /// Sitting on the exact target toilet's authored seat socket.
+    pub const USE_TOILET: u32 = 15;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -281,6 +283,10 @@ pub mod facing {
 
 #[cfg(test)]
 mod tests {
+    mod toilet_projection_tests {
+        include!("render_buffer/toilet_projection_tests.rs");
+    }
+
     fn neutral_instincts(sim: &mut Sim) {
         let people: Vec<_> = sim
             .world_mut()
@@ -3780,7 +3786,7 @@ mod tests {
                 "toilet",
                 "relieve_self",
                 activity::USING_TOILET,
-                visual_action::NONE,
+                visual_action::USE_TOILET,
             ),
             (
                 "television",

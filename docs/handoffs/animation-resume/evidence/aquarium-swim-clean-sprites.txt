@@ -1,0 +1,11 @@
+.......................................................................D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\output\aquarium-swim-staged-ecaccc10\assets\sprites\gen\test_door_assets.py:43: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  covered = [(c, d) for c, d in zip(colour.getdata(), depth.getdata()) if c[3] >= 128]
+...D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\output\aquarium-swim-staged-ecaccc10\assets\sprites\gen\test_door_assets.py:53: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  covered = [(i, d) for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())) if c[3] >= 128]
+.D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\output\aquarium-swim-staged-ecaccc10\assets\sprites\gen\test_door_assets.py:64: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())):
+..................................................................................................................
+----------------------------------------------------------------------
+Ran 189 tests in 41.788s
+
+OK

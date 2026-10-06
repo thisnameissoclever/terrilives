@@ -1,0 +1,33 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 51.92s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 2 tests
+test seating::tests::seated_viewer_projects_chair_contact_with_television_activity ... FAILED
+test seating::tests::television_order_routes_to_available_front_seat_but_keeps_device_target ... FAILED
+
+failures:
+
+---- seating::tests::seated_viewer_projects_chair_contact_with_television_activity stdout ----
+
+thread 'seating::tests::seated_viewer_projects_chair_contact_with_television_activity' (82476) panicked at crates\terri-sim\src\seating\tests.rs:39:82:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- seating::tests::television_order_routes_to_available_front_seat_but_keeps_device_target stdout ----
+
+thread 'seating::tests::television_order_routes_to_available_front_seat_but_keeps_device_target' (26344) panicked at crates\terri-sim\src\seating\tests.rs:28:5:
+assertion `left == right` failed: A suitable seat must replace the ordinary device-perimeter route
+  left: Some((1, 3))
+ right: Some((4, 3))
+
+
+failures:
+    seating::tests::seated_viewer_projects_chair_contact_with_television_activity
+    seating::tests::television_order_routes_to_available_front_seat_but_keeps_device_target
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 907 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

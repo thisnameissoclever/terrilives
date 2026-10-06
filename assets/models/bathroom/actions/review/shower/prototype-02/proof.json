@@ -1,0 +1,4108 @@
+{
+  "state": "complete",
+  "mode": "green-four-facing-source-prototype",
+  "inputs": {
+    "bathroom/actions/render_shower_use.py": "c66f1bf71e6f645653e2cd228f9d126554d22cccc49abd0793dea2fe00bc50aa",
+    "bathroom/actions/shower_contact.py": "4c293b058efe8d42968c305add5cb7db9c786cdf5684145b9474765073b3a51e",
+    "bathroom/actions/shower_pose.py": "5e0cbaa202a67e702989be1c17d861501bc45d9c8f20d6c9a238100ac52720fa",
+    "bathroom/actions/shower_pose_geometry.py": "c4af4e0887f68fc2487d029801daa8cdc385b3908ee8556d0c41dc49baf70714",
+    "bathroom/check_shower_scene.py": "c35946b547ac9008a59e6fe73a5fbad2672c90b89e69c11301445da410161c19",
+    "bathroom/check_toilet_scene.py": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4",
+    "bathroom/owner-review-pending/shower/candidate-01/proof.json": "b2205a3bcefad7a4e641c00b6f07939e153e5cbb1b4f817284ecfe218c744e16",
+    "bathroom/owner-review-pending/shower/candidate-01/shower-authoring.blend": "c57a911a5e3964e4d23278e1a48150e2fcf3e940ad91183b9480db8a78e60865",
+    "bathroom/shower_geometry.py": "06a7f9fbfc9a35e90f11af38e83067f16e861bed0e624d1778f9e80da76f947f",
+    "bathroom/shower_model.py": "9d95832a5326c20d22bca270b7125cbe5d67bb0ea90b7887739cbdfed3299809",
+    "bedroom/bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+    "furniture/animation_export.py": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "furniture/preview.py": "436143c11bb564924af62356dfe4adf22d7c76c175b3ddb876dac2e7714ce54c",
+    "kitchen/check_counter_scene.py": "e074ca3b32d290f8637056062d4b539acfda6698baf892eff03a7ddc577cb4e1",
+    "kitchen/check_stove_scene.py": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485",
+    "living/armchair_contact.py": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab",
+    "living/armchair_layout.py": "c5cd8cc02aba1779a1e8676cb1a6a5b808005a455b6b58cb96bd113acb1fb8c8",
+    "living/armchair_support.py": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40",
+    "sims/sim-01/build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "sims/sim-01/food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+    "sims/sim-01/render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122",
+    "sims/sim-01/rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+  },
+  "blender_version": "4.5.14 LTS",
+  "renders": [
+    {
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "path": "SE-green-0-beauty.png",
+      "sha256": "829e94a999ea213e3edb08eebdb975fd63e915578e38fa10354de175733d2a9b"
+    },
+    {
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "path": "NW-green-0-beauty.png",
+      "sha256": "f5f033e6ebf0cb11d8a6174176582975a6d7c57a804e06e12091ba9bf2a67782"
+    },
+    {
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "path": "SW-green-0-beauty.png",
+      "sha256": "f9b8ffd957aafe839c21c5d42718e86c4edb3d6d827580d22bd9cacda6f97113"
+    },
+    {
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "path": "NE-green-0-beauty.png",
+      "sha256": "a8b5a991dfa988eb8622da995e33f85d7e07665f83d37b5d59c5b7f7b9251090"
+    }
+  ],
+  "residual_limits": [
+    "One quiet phase only; no full loop or palette matrix.",
+    "Steam is opaque modeled coverage, not fluid simulation or structural support.",
+    "No measured hand-control contact or spray simulation is claimed.",
+    "Source mechanics do not certify visual acceptance or runtime picking."
+  ],
+  "fixture_validation": {
+    "state": "passed",
+    "floor_height": 0.05500030517578125,
+    "drain_supported": true,
+    "arm_endpoints_connected": true,
+    "contact_witnesses": {
+      "Shower rear panel / Shower recessed tray": [
+        -0.34200000762939453,
+        0.39149999618530273,
+        0.1323000192642212
+      ],
+      "Shower side panel / Shower recessed tray": [
+        -0.4230000078678131,
+        -0.3240000009536743,
+        0.1332000195980072
+      ],
+      "Shower rear panel / Shower side panel": [
+        -0.4230000078678131,
+        0.38475000858306885,
+        0.3068000376224518
+      ],
+      "Shower arm flange / Shower rear panel": [
+        -0.03440000116825104,
+        0.3825500011444092,
+        1.6713999509811401
+      ],
+      "Shower head / Shower nozzle face": [
+        -0.058399997651576996,
+        -0.04878268390893936,
+        1.6947413682937622
+      ],
+      "Shower control plate / Shower rear panel": [
+        -0.06399999558925629,
+        0.3825500011444092,
+        0.9399999380111694
+      ],
+      "Shower control dial / Shower control plate": [
+        -0.025600001215934753,
+        0.36570000648498535,
+        1.0271999835968018
+      ],
+      "Shower control lever / Shower control dial": [
+        -0.0036000018008053303,
+        0.3352000117301941,
+        1.0144000053405762
+      ]
+    }
+  },
+  "original_render_dimensions": [
+    768,
+    960
+  ],
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "colour_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "initial_fit": {
+    "body_inventory": [
+      "Collar stand",
+      "Dark pupil",
+      "Dark pupil.001",
+      "Ear",
+      "Ear.001",
+      "Eye white",
+      "Eye white.001",
+      "Fitted rounded shoe sole",
+      "Fitted rounded shoe sole.001",
+      "Folded fabric collar leaf",
+      "Folded fabric collar leaf.001",
+      "Forearm with elbow and wrist sections",
+      "Forearm with elbow and wrist sections.001",
+      "HAIR_01_TRIPO_CURL",
+      "Hazel iris",
+      "Hazel iris.001",
+      "Inner ear",
+      "Inner ear.001",
+      "Natural neck",
+      "One sewn breast pocket",
+      "Overshirt body",
+      "Pocket top seam",
+      "Quiet closed smile",
+      "Relaxed palm",
+      "Relaxed palm.001",
+      "Relaxed shirt sleeve",
+      "Relaxed shirt sleeve.001",
+      "Resting thumb",
+      "Resting thumb.001",
+      "Sculpted head",
+      "Shaped shoe",
+      "Shaped shoe.001",
+      "Shirt lower hem",
+      "Shirt placket",
+      "Shoe apron stitch",
+      "Shoe apron stitch.001",
+      "Small eye catchlight",
+      "Small eye catchlight.001",
+      "Small horn button",
+      "Small horn button.001",
+      "Small horn button.002",
+      "Small horn button.003",
+      "Small rounded nose",
+      "Soft eyebrow",
+      "Soft eyebrow.001",
+      "Tailored trouser leg",
+      "Tailored trouser leg.001",
+      "Trouser hem",
+      "Trouser hem.001",
+      "Trouser hip bridge",
+      "Turned sleeve cuff",
+      "Turned sleeve cuff.001",
+      "Upper lid outline",
+      "Upper lid outline.001"
+    ],
+    "fixture_solids": [
+      "Shower arm flange",
+      "Shower control dial",
+      "Shower control lever",
+      "Shower control plate",
+      "Shower curved arm",
+      "Shower drain",
+      "Shower head",
+      "Shower nozzle face",
+      "Shower rear panel",
+      "Shower recessed tray",
+      "Shower side panel",
+      "Shower trim corner",
+      "Shower trim left edge",
+      "Shower trim right edge"
+    ],
+    "excluded_non_solid": [
+      "Shower opaque steam coverage"
+    ],
+    "complete_body_solid_pairs": 756,
+    "collisions": [],
+    "soles": {
+      "Fitted rounded shoe sole": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            -0.20097720623016357,
+            -0.1550580859184265,
+            0.07414808124303818
+          ],
+          [
+            -0.01697278395295143,
+            0.11968722939491272,
+            0.12315129488706589
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414808124303818,
+        "min_floor_gap": 0.01914801448583603,
+        "max_floor_gap": 0.06815122812986374,
+        "actual_floor_rays": 1346
+      },
+      "Fitted rounded shoe sole.001": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            0.046972811222076416,
+            -0.15505807101726532,
+            0.07414808124303818
+          ],
+          [
+            0.23097725212574005,
+            0.11968722939491272,
+            0.12315129488706589
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414808124303818,
+        "min_floor_gap": 0.01914801448583603,
+        "max_floor_gap": 0.06815098971128464,
+        "actual_floor_rays": 1346
+      }
+    },
+    "bone_length_errors": {
+      "root": 2.0489095975406713e-09,
+      "hips": 4.666469627379044e-09,
+      "spine": 9.500732928158229e-08,
+      "head": 1.6455556806072025e-08,
+      "upper_arm.L": 1.2781837338549096e-07,
+      "forearm.L": 2.466515248711332e-07,
+      "hand.L": 5.830054766731152e-08,
+      "upper_arm.R": 1.6659113521999558e-07,
+      "forearm.R": 1.1640046029826046e-07,
+      "hand.R": 1.1912026215421534e-07,
+      "thigh.L": 2.6751106940725577e-08,
+      "shin.L": 1.1059972160332165e-08,
+      "foot.L": 2.341611071710048e-10,
+      "thigh.R": 2.6751106940725577e-08,
+      "shin.R": 1.105997238237677e-08,
+      "foot.R": 2.341611071710048e-10,
+      "book": 1.6763830879007457e-09
+    },
+    "joint_targets": {
+      "root": {
+        "head": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tail": [
+          0.0,
+          0.0,
+          0.10000000149011612
+        ]
+      },
+      "hips": {
+        "head": [
+          0.014999999664723873,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.14999999105930328,
+          1.0299999713897705
+        ]
+      },
+      "spine": {
+        "head": [
+          0.014999999664723873,
+          -0.15000000596046448,
+          1.0299999713897705
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.2731272578239441,
+          1.3682892322540283
+        ]
+      },
+      "head": {
+        "head": [
+          0.015000000596046448,
+          -0.27654746174812317,
+          1.3776862621307373
+        ],
+        "tail": [
+          0.015000000596046448,
+          -0.4509776532649994,
+          1.8569295406341553
+        ]
+      },
+      "upper_arm.L": {
+        "head": [
+          -0.21500001847743988,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          -0.25853896141052246,
+          -0.23406369984149933,
+          1.0027031898498535
+        ]
+      },
+      "forearm.L": {
+        "head": [
+          -0.2585388720035553,
+          -0.23406359553337097,
+          1.0027029514312744
+        ],
+        "tail": [
+          -0.11500078439712524,
+          -0.29500049352645874,
+          1.1500000953674316
+        ]
+      },
+      "hand.L": {
+        "head": [
+          -0.11500000953674316,
+          -0.29499998688697815,
+          1.149999976158142
+        ],
+        "tail": [
+          -0.09739727526903152,
+          -0.3243374228477478,
+          1.2556147575378418
+        ]
+      },
+      "upper_arm.R": {
+        "head": [
+          0.24500000476837158,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          0.02577880024909973,
+          -0.3758937120437622,
+          1.1610798835754395
+        ]
+      },
+      "forearm.R": {
+        "head": [
+          0.02577785961329937,
+          -0.3758929669857025,
+          1.1610803604125977
+        ],
+        "tail": [
+          0.14500032365322113,
+          -0.29499948024749756,
+          1.31999933719635
+        ]
+      },
+      "hand.R": {
+        "head": [
+          0.14499996602535248,
+          -0.2950000464916229,
+          1.320000171661377
+        ],
+        "tail": [
+          0.127396821975708,
+          -0.3243370056152344,
+          1.4256149530410767
+        ]
+      },
+      "thigh.L": {
+        "head": [
+          -0.10899999737739563,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          -0.10899999737739563,
+          -0.14238664507865906,
+          0.5037188529968262
+        ]
+      },
+      "shin.L": {
+        "head": [
+          -0.10899998992681503,
+          -0.14238665997982025,
+          0.5037188529968262
+        ],
+        "tail": [
+          -0.10899999737739563,
+          0.02500005066394806,
+          0.1850000023841858
+        ]
+      },
+      "foot.L": {
+        "head": [
+          -0.10899998992681503,
+          0.02499999664723873,
+          0.1850000023841858
+        ],
+        "tail": [
+          -0.10899998992681503,
+          -0.11500000208616257,
+          0.1850000023841858
+        ]
+      },
+      "thigh.R": {
+        "head": [
+          0.13899999856948853,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.13899999856948853,
+          -0.14238664507865906,
+          0.5037188529968262
+        ]
+      },
+      "shin.R": {
+        "head": [
+          0.13899999856948853,
+          -0.14238665997982025,
+          0.5037188529968262
+        ],
+        "tail": [
+          0.13900001347064972,
+          0.02500005066394806,
+          0.1850000023841858
+        ]
+      },
+      "foot.R": {
+        "head": [
+          0.13900001347064972,
+          0.02500000409781933,
+          0.18500001728534698
+        ],
+        "tail": [
+          0.13900001347064972,
+          -0.11499999463558197,
+          0.18500001728534698
+        ]
+      },
+      "book": {
+        "head": [
+          0.0,
+          -0.4000000059604645,
+          0.8899999856948853
+        ],
+        "tail": [
+          0.0,
+          -0.4000000059604645,
+          0.9900000095367432
+        ]
+      }
+    },
+    "hardware_panel_clearances": [
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.14168038964271545
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.06900212913751602
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.06328923255205154
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5487289428710938
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.17631401121616364
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.112162746489048
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.03713878616690636
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.0333007276058197
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5485332012176514
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.1508890986442566
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.4229755401611328
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.38065066933631897
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3791098892688751
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5333899855613708
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.04287916421890259
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.44248372316360474
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.39770156145095825
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3961651623249054
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5538536310195923
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.41466909646987915
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.5914290547370911
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.5572524070739746
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.5565271377563477
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5745537281036377
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.09612146019935608
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.46073445677757263
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.4231075942516327
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.41883113980293274
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.656022310256958
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.3937748968601227
+      }
+    ],
+    "immutable_fixture_signature": {
+      "Shower arm flange": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "5622edc63252ae511549d2b79b54497b8f3e50a4a6f3e34baeadb1a9113066c4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.3700000047683716
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.6799999475479126
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control dial": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "3ccedf9158feab11cbc5dce692e62f8a054caaf41953ce1036aa93c92f803bab",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.35350000858306885
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.0399999618530273
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control lever": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "a13f629e23e062c2623e54d96d67338c94bb94c4dc2cd93a8245942508ce080b",
+        "local_matrix": [
+          [
+            -1.0,
+            8.74227694680485e-08,
+            -8.742279078433057e-08,
+            0.0
+          ],
+          [
+            8.742277657347586e-08,
+            1.0,
+            -8.74227694680485e-08,
+            0.328000009059906
+          ],
+          [
+            8.742277657347586e-08,
+            -8.742277657347586e-08,
+            -1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control plate": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "4c29a2fb22aaaf552b4d302ede9b4c29004810638fe512041c38d03c2285abba",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.37400001287460327
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0199999809265137
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower curved arm": {
+        "type": "CURVE",
+        "vertices": 546,
+        "evaluated_sha256": "cf169ecbbae65a0cd4351e96f6beffaeb733ff2a50c665742df789bb242fc6fe",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower drain": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "cd801935c49ac73825486f496a58b93b154ebd74b946a9e673416ecb07631326",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.20000000298023224
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.11999999731779099
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.057999998331069946
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower head": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "e47269e4d4e5a5aa1cbe789e38578d815096243abc821cfe2231762da03f0cb1",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8479980230331421,
+            -0.5299993753433228,
+            -0.0625
+          ],
+          [
+            0.0,
+            0.5299993753433228,
+            -0.8479980230331421,
+            1.7300000190734863
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower nozzle face": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "2a4eabe7edcf8dbe1b718b113bd13ed529964384b039da58fa3b9fe9a74bbcc4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8944284915924072,
+            -0.44721096754074097,
+            -0.0754999965429306
+          ],
+          [
+            0.0,
+            0.44721096754074097,
+            -0.8944284915924072,
+            1.7089999914169312
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower rear panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "8e50a47b51ad19af64e0bfe435a839ac2404f5baf841a381738f8179fa501243",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower recessed tray": {
+        "type": "MESH",
+        "vertices": 720,
+        "evaluated_sha256": "32fd93dbe1f6e5aaa9882c6cce2b29895c293ec61f970226469dff625b7e04b5",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower side panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "7c9e2a00bdc2ec44b4870e4be0f980da0c6e430d1459f54b354faf382e5413e2",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim corner": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "ab0ff1656a09a07eb494790cd3fc8a1d4004f70f0f41f50d4e0a2497454356ff",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.41200000047683716
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.41200000047683716
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim left edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "30200925d71766a98cac9db38702b92f6a9489670293e550fb75a9a547ec7463",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim right edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "d2de262d36c8e4cace82a9f32b207b75b2e0eb60c1880ce430abcc4c5ab7da97",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      }
+    },
+    "steam": {
+      "opaque": true,
+      "structural_support": false,
+      "collision_solid": false,
+      "footprint": {
+        "vertex_count": 512,
+        "bounds": [
+          [
+            -0.3485738933086395,
+            -0.35557258129119873,
+            0.07900000363588333
+          ],
+          [
+            0.3567449152469635,
+            0.35113248229026794,
+            1.4199999570846558
+          ]
+        ]
+      }
+    },
+    "control_hand_contact_claimed": false
+  },
+  "fitted_ankle_z": 0.18499998551416397,
+  "fitted_diagnostics": {
+    "body_inventory": [
+      "Collar stand",
+      "Dark pupil",
+      "Dark pupil.001",
+      "Ear",
+      "Ear.001",
+      "Eye white",
+      "Eye white.001",
+      "Fitted rounded shoe sole",
+      "Fitted rounded shoe sole.001",
+      "Folded fabric collar leaf",
+      "Folded fabric collar leaf.001",
+      "Forearm with elbow and wrist sections",
+      "Forearm with elbow and wrist sections.001",
+      "HAIR_01_TRIPO_CURL",
+      "Hazel iris",
+      "Hazel iris.001",
+      "Inner ear",
+      "Inner ear.001",
+      "Natural neck",
+      "One sewn breast pocket",
+      "Overshirt body",
+      "Pocket top seam",
+      "Quiet closed smile",
+      "Relaxed palm",
+      "Relaxed palm.001",
+      "Relaxed shirt sleeve",
+      "Relaxed shirt sleeve.001",
+      "Resting thumb",
+      "Resting thumb.001",
+      "Sculpted head",
+      "Shaped shoe",
+      "Shaped shoe.001",
+      "Shirt lower hem",
+      "Shirt placket",
+      "Shoe apron stitch",
+      "Shoe apron stitch.001",
+      "Small eye catchlight",
+      "Small eye catchlight.001",
+      "Small horn button",
+      "Small horn button.001",
+      "Small horn button.002",
+      "Small horn button.003",
+      "Small rounded nose",
+      "Soft eyebrow",
+      "Soft eyebrow.001",
+      "Tailored trouser leg",
+      "Tailored trouser leg.001",
+      "Trouser hem",
+      "Trouser hem.001",
+      "Trouser hip bridge",
+      "Turned sleeve cuff",
+      "Turned sleeve cuff.001",
+      "Upper lid outline",
+      "Upper lid outline.001"
+    ],
+    "fixture_solids": [
+      "Shower arm flange",
+      "Shower control dial",
+      "Shower control lever",
+      "Shower control plate",
+      "Shower curved arm",
+      "Shower drain",
+      "Shower head",
+      "Shower nozzle face",
+      "Shower rear panel",
+      "Shower recessed tray",
+      "Shower side panel",
+      "Shower trim corner",
+      "Shower trim left edge",
+      "Shower trim right edge"
+    ],
+    "excluded_non_solid": [
+      "Shower opaque steam coverage"
+    ],
+    "complete_body_solid_pairs": 756,
+    "collisions": [],
+    "soles": {
+      "Fitted rounded shoe sole": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            -0.20097720623016357,
+            -0.15505807101726532,
+            0.07414806634187698
+          ],
+          [
+            -0.01697278395295143,
+            0.11968722939491272,
+            0.12315128743648529
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414806634187698,
+        "min_floor_gap": 0.019147999584674835,
+        "max_floor_gap": 0.06815122067928314,
+        "actual_floor_rays": 1346
+      },
+      "Fitted rounded shoe sole.001": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            0.046972811222076416,
+            -0.15505807101726532,
+            0.07414806634187698
+          ],
+          [
+            0.23097725212574005,
+            0.11968722939491272,
+            0.1231512799859047
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414806634187698,
+        "min_floor_gap": 0.019147999584674835,
+        "max_floor_gap": 0.06815097481012344,
+        "actual_floor_rays": 1346
+      }
+    },
+    "bone_length_errors": {
+      "root": 2.0489095975406713e-09,
+      "hips": 4.666469627379044e-09,
+      "spine": 9.500732928158229e-08,
+      "head": 1.6455556806072025e-08,
+      "upper_arm.L": 1.2781837338549096e-07,
+      "forearm.L": 2.466515248711332e-07,
+      "hand.L": 5.830054766731152e-08,
+      "upper_arm.R": 1.6659113521999558e-07,
+      "forearm.R": 1.1640046029826046e-07,
+      "hand.R": 1.1912026215421534e-07,
+      "thigh.L": 2.454865505319148e-08,
+      "shin.L": 1.1059972160332165e-08,
+      "foot.L": 2.341611071710048e-10,
+      "thigh.R": 2.454865505319148e-08,
+      "shin.R": 1.105997238237677e-08,
+      "foot.R": 2.341611071710048e-10,
+      "book": 1.6763830879007457e-09
+    },
+    "joint_targets": {
+      "root": {
+        "head": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tail": [
+          0.0,
+          0.0,
+          0.10000000149011612
+        ]
+      },
+      "hips": {
+        "head": [
+          0.014999999664723873,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.14999999105930328,
+          1.0299999713897705
+        ]
+      },
+      "spine": {
+        "head": [
+          0.014999999664723873,
+          -0.15000000596046448,
+          1.0299999713897705
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.2731272578239441,
+          1.3682892322540283
+        ]
+      },
+      "head": {
+        "head": [
+          0.015000000596046448,
+          -0.27654746174812317,
+          1.3776862621307373
+        ],
+        "tail": [
+          0.015000000596046448,
+          -0.4509776532649994,
+          1.8569295406341553
+        ]
+      },
+      "upper_arm.L": {
+        "head": [
+          -0.21500001847743988,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          -0.25853896141052246,
+          -0.23406369984149933,
+          1.0027031898498535
+        ]
+      },
+      "forearm.L": {
+        "head": [
+          -0.2585388720035553,
+          -0.23406359553337097,
+          1.0027029514312744
+        ],
+        "tail": [
+          -0.11500078439712524,
+          -0.29500049352645874,
+          1.1500000953674316
+        ]
+      },
+      "hand.L": {
+        "head": [
+          -0.11500000953674316,
+          -0.29499998688697815,
+          1.149999976158142
+        ],
+        "tail": [
+          -0.09739727526903152,
+          -0.3243374228477478,
+          1.2556147575378418
+        ]
+      },
+      "upper_arm.R": {
+        "head": [
+          0.24500000476837158,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          0.02577880024909973,
+          -0.3758937120437622,
+          1.1610798835754395
+        ]
+      },
+      "forearm.R": {
+        "head": [
+          0.02577785961329937,
+          -0.3758929669857025,
+          1.1610803604125977
+        ],
+        "tail": [
+          0.14500032365322113,
+          -0.29499948024749756,
+          1.31999933719635
+        ]
+      },
+      "hand.R": {
+        "head": [
+          0.14499996602535248,
+          -0.2950000464916229,
+          1.320000171661377
+        ],
+        "tail": [
+          0.127396821975708,
+          -0.3243370056152344,
+          1.4256149530410767
+        ]
+      },
+      "thigh.L": {
+        "head": [
+          -0.10899999737739563,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          -0.10899999737739563,
+          -0.14238663017749786,
+          0.5037188529968262
+        ]
+      },
+      "shin.L": {
+        "head": [
+          -0.10899998992681503,
+          -0.14238663017749786,
+          0.5037188529968262
+        ],
+        "tail": [
+          -0.10899999737739563,
+          0.025000080466270447,
+          0.1850000023841858
+        ]
+      },
+      "foot.L": {
+        "head": [
+          -0.10899998992681503,
+          0.02500000037252903,
+          0.1849999874830246
+        ],
+        "tail": [
+          -0.10899998992681503,
+          -0.11500000208616257,
+          0.1849999874830246
+        ]
+      },
+      "thigh.R": {
+        "head": [
+          0.13899999856948853,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.13899999856948853,
+          -0.14238663017749786,
+          0.5037188529968262
+        ]
+      },
+      "shin.R": {
+        "head": [
+          0.13899999856948853,
+          -0.14238663017749786,
+          0.5037188529968262
+        ],
+        "tail": [
+          0.13900001347064972,
+          0.025000080466270447,
+          0.1850000023841858
+        ]
+      },
+      "foot.R": {
+        "head": [
+          0.13900001347064972,
+          0.02500000037252903,
+          0.1849999874830246
+        ],
+        "tail": [
+          0.13900001347064972,
+          -0.11500000208616257,
+          0.1849999874830246
+        ]
+      },
+      "book": {
+        "head": [
+          0.0,
+          -0.4000000059604645,
+          0.8899999856948853
+        ],
+        "tail": [
+          0.0,
+          -0.4000000059604645,
+          0.9900000095367432
+        ]
+      }
+    },
+    "hardware_panel_clearances": [
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.14168038964271545
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.06900212913751602
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.06328923255205154
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5487289428710938
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.17631401121616364
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.112162746489048
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.03713878616690636
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.0333007276058197
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5485332012176514
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.1508890986442566
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.4229755401611328
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.38065066933631897
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3791098892688751
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5333899855613708
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.04287916421890259
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.44248372316360474
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.39770156145095825
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3961651623249054
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5538536310195923
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.41466909646987915
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.5914290547370911
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.5572524070739746
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.5565271377563477
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5745537281036377
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.09612146019935608
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.46073445677757263
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.4231075942516327
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.41883113980293274
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.656022310256958
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.3937748968601227
+      }
+    ],
+    "immutable_fixture_signature": {
+      "Shower arm flange": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "5622edc63252ae511549d2b79b54497b8f3e50a4a6f3e34baeadb1a9113066c4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.3700000047683716
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.6799999475479126
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control dial": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "3ccedf9158feab11cbc5dce692e62f8a054caaf41953ce1036aa93c92f803bab",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.35350000858306885
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.0399999618530273
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control lever": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "a13f629e23e062c2623e54d96d67338c94bb94c4dc2cd93a8245942508ce080b",
+        "local_matrix": [
+          [
+            -1.0,
+            8.74227694680485e-08,
+            -8.742279078433057e-08,
+            0.0
+          ],
+          [
+            8.742277657347586e-08,
+            1.0,
+            -8.74227694680485e-08,
+            0.328000009059906
+          ],
+          [
+            8.742277657347586e-08,
+            -8.742277657347586e-08,
+            -1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control plate": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "4c29a2fb22aaaf552b4d302ede9b4c29004810638fe512041c38d03c2285abba",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.37400001287460327
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0199999809265137
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower curved arm": {
+        "type": "CURVE",
+        "vertices": 546,
+        "evaluated_sha256": "cf169ecbbae65a0cd4351e96f6beffaeb733ff2a50c665742df789bb242fc6fe",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower drain": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "cd801935c49ac73825486f496a58b93b154ebd74b946a9e673416ecb07631326",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.20000000298023224
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.11999999731779099
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.057999998331069946
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower head": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "e47269e4d4e5a5aa1cbe789e38578d815096243abc821cfe2231762da03f0cb1",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8479980230331421,
+            -0.5299993753433228,
+            -0.0625
+          ],
+          [
+            0.0,
+            0.5299993753433228,
+            -0.8479980230331421,
+            1.7300000190734863
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower nozzle face": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "2a4eabe7edcf8dbe1b718b113bd13ed529964384b039da58fa3b9fe9a74bbcc4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8944284915924072,
+            -0.44721096754074097,
+            -0.0754999965429306
+          ],
+          [
+            0.0,
+            0.44721096754074097,
+            -0.8944284915924072,
+            1.7089999914169312
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower rear panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "8e50a47b51ad19af64e0bfe435a839ac2404f5baf841a381738f8179fa501243",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower recessed tray": {
+        "type": "MESH",
+        "vertices": 720,
+        "evaluated_sha256": "32fd93dbe1f6e5aaa9882c6cce2b29895c293ec61f970226469dff625b7e04b5",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower side panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "7c9e2a00bdc2ec44b4870e4be0f980da0c6e430d1459f54b354faf382e5413e2",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim corner": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "ab0ff1656a09a07eb494790cd3fc8a1d4004f70f0f41f50d4e0a2497454356ff",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.41200000047683716
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.41200000047683716
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim left edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "30200925d71766a98cac9db38702b92f6a9489670293e550fb75a9a547ec7463",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim right edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "d2de262d36c8e4cace82a9f32b207b75b2e0eb60c1880ce430abcc4c5ab7da97",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      }
+    },
+    "steam": {
+      "opaque": true,
+      "structural_support": false,
+      "collision_solid": false,
+      "footprint": {
+        "vertex_count": 512,
+        "bounds": [
+          [
+            -0.3485738933086395,
+            -0.35557258129119873,
+            0.07900000363588333
+          ],
+          [
+            0.3567449152469635,
+            0.35113248229026794,
+            1.4199999570846558
+          ]
+        ]
+      }
+    },
+    "control_hand_contact_claimed": false
+  },
+  "contact": {
+    "body_inventory": [
+      "Collar stand",
+      "Dark pupil",
+      "Dark pupil.001",
+      "Ear",
+      "Ear.001",
+      "Eye white",
+      "Eye white.001",
+      "Fitted rounded shoe sole",
+      "Fitted rounded shoe sole.001",
+      "Folded fabric collar leaf",
+      "Folded fabric collar leaf.001",
+      "Forearm with elbow and wrist sections",
+      "Forearm with elbow and wrist sections.001",
+      "HAIR_01_TRIPO_CURL",
+      "Hazel iris",
+      "Hazel iris.001",
+      "Inner ear",
+      "Inner ear.001",
+      "Natural neck",
+      "One sewn breast pocket",
+      "Overshirt body",
+      "Pocket top seam",
+      "Quiet closed smile",
+      "Relaxed palm",
+      "Relaxed palm.001",
+      "Relaxed shirt sleeve",
+      "Relaxed shirt sleeve.001",
+      "Resting thumb",
+      "Resting thumb.001",
+      "Sculpted head",
+      "Shaped shoe",
+      "Shaped shoe.001",
+      "Shirt lower hem",
+      "Shirt placket",
+      "Shoe apron stitch",
+      "Shoe apron stitch.001",
+      "Small eye catchlight",
+      "Small eye catchlight.001",
+      "Small horn button",
+      "Small horn button.001",
+      "Small horn button.002",
+      "Small horn button.003",
+      "Small rounded nose",
+      "Soft eyebrow",
+      "Soft eyebrow.001",
+      "Tailored trouser leg",
+      "Tailored trouser leg.001",
+      "Trouser hem",
+      "Trouser hem.001",
+      "Trouser hip bridge",
+      "Turned sleeve cuff",
+      "Turned sleeve cuff.001",
+      "Upper lid outline",
+      "Upper lid outline.001"
+    ],
+    "fixture_solids": [
+      "Shower arm flange",
+      "Shower control dial",
+      "Shower control lever",
+      "Shower control plate",
+      "Shower curved arm",
+      "Shower drain",
+      "Shower head",
+      "Shower nozzle face",
+      "Shower rear panel",
+      "Shower recessed tray",
+      "Shower side panel",
+      "Shower trim corner",
+      "Shower trim left edge",
+      "Shower trim right edge"
+    ],
+    "excluded_non_solid": [
+      "Shower opaque steam coverage"
+    ],
+    "complete_body_solid_pairs": 756,
+    "collisions": [],
+    "soles": {
+      "Fitted rounded shoe sole": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            -0.20097720623016357,
+            -0.15505807101726532,
+            0.07414806634187698
+          ],
+          [
+            -0.01697278395295143,
+            0.11968722939491272,
+            0.12315128743648529
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414806634187698,
+        "min_floor_gap": 0.019147999584674835,
+        "max_floor_gap": 0.06815122067928314,
+        "actual_floor_rays": 1346
+      },
+      "Fitted rounded shoe sole.001": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            0.046972811222076416,
+            -0.15505807101726532,
+            0.07414806634187698
+          ],
+          [
+            0.23097725212574005,
+            0.11968722939491272,
+            0.1231512799859047
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414806634187698,
+        "min_floor_gap": 0.019147999584674835,
+        "max_floor_gap": 0.06815097481012344,
+        "actual_floor_rays": 1346
+      }
+    },
+    "bone_length_errors": {
+      "root": 2.0489095975406713e-09,
+      "hips": 4.666469627379044e-09,
+      "spine": 9.500732928158229e-08,
+      "head": 1.6455556806072025e-08,
+      "upper_arm.L": 1.2781837338549096e-07,
+      "forearm.L": 2.466515248711332e-07,
+      "hand.L": 5.830054766731152e-08,
+      "upper_arm.R": 1.6659113521999558e-07,
+      "forearm.R": 1.1640046029826046e-07,
+      "hand.R": 1.1912026215421534e-07,
+      "thigh.L": 2.454865505319148e-08,
+      "shin.L": 1.1059972160332165e-08,
+      "foot.L": 2.341611071710048e-10,
+      "thigh.R": 2.454865505319148e-08,
+      "shin.R": 1.105997238237677e-08,
+      "foot.R": 2.341611071710048e-10,
+      "book": 1.6763830879007457e-09
+    },
+    "joint_targets": {
+      "root": {
+        "head": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tail": [
+          0.0,
+          0.0,
+          0.10000000149011612
+        ]
+      },
+      "hips": {
+        "head": [
+          0.014999999664723873,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.14999999105930328,
+          1.0299999713897705
+        ]
+      },
+      "spine": {
+        "head": [
+          0.014999999664723873,
+          -0.15000000596046448,
+          1.0299999713897705
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.2731272578239441,
+          1.3682892322540283
+        ]
+      },
+      "head": {
+        "head": [
+          0.015000000596046448,
+          -0.27654746174812317,
+          1.3776862621307373
+        ],
+        "tail": [
+          0.015000000596046448,
+          -0.4509776532649994,
+          1.8569295406341553
+        ]
+      },
+      "upper_arm.L": {
+        "head": [
+          -0.21500001847743988,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          -0.25853896141052246,
+          -0.23406369984149933,
+          1.0027031898498535
+        ]
+      },
+      "forearm.L": {
+        "head": [
+          -0.2585388720035553,
+          -0.23406359553337097,
+          1.0027029514312744
+        ],
+        "tail": [
+          -0.11500078439712524,
+          -0.29500049352645874,
+          1.1500000953674316
+        ]
+      },
+      "hand.L": {
+        "head": [
+          -0.11500000953674316,
+          -0.29499998688697815,
+          1.149999976158142
+        ],
+        "tail": [
+          -0.09739727526903152,
+          -0.3243374228477478,
+          1.2556147575378418
+        ]
+      },
+      "upper_arm.R": {
+        "head": [
+          0.24500000476837158,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          0.02577880024909973,
+          -0.3758937120437622,
+          1.1610798835754395
+        ]
+      },
+      "forearm.R": {
+        "head": [
+          0.02577785961329937,
+          -0.3758929669857025,
+          1.1610803604125977
+        ],
+        "tail": [
+          0.14500032365322113,
+          -0.29499948024749756,
+          1.31999933719635
+        ]
+      },
+      "hand.R": {
+        "head": [
+          0.14499996602535248,
+          -0.2950000464916229,
+          1.320000171661377
+        ],
+        "tail": [
+          0.127396821975708,
+          -0.3243370056152344,
+          1.4256149530410767
+        ]
+      },
+      "thigh.L": {
+        "head": [
+          -0.10899999737739563,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          -0.10899999737739563,
+          -0.14238663017749786,
+          0.5037188529968262
+        ]
+      },
+      "shin.L": {
+        "head": [
+          -0.10899998992681503,
+          -0.14238663017749786,
+          0.5037188529968262
+        ],
+        "tail": [
+          -0.10899999737739563,
+          0.025000080466270447,
+          0.1850000023841858
+        ]
+      },
+      "foot.L": {
+        "head": [
+          -0.10899998992681503,
+          0.02500000037252903,
+          0.1849999874830246
+        ],
+        "tail": [
+          -0.10899998992681503,
+          -0.11500000208616257,
+          0.1849999874830246
+        ]
+      },
+      "thigh.R": {
+        "head": [
+          0.13899999856948853,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.13899999856948853,
+          -0.14238663017749786,
+          0.5037188529968262
+        ]
+      },
+      "shin.R": {
+        "head": [
+          0.13899999856948853,
+          -0.14238663017749786,
+          0.5037188529968262
+        ],
+        "tail": [
+          0.13900001347064972,
+          0.025000080466270447,
+          0.1850000023841858
+        ]
+      },
+      "foot.R": {
+        "head": [
+          0.13900001347064972,
+          0.02500000037252903,
+          0.1849999874830246
+        ],
+        "tail": [
+          0.13900001347064972,
+          -0.11500000208616257,
+          0.1849999874830246
+        ]
+      },
+      "book": {
+        "head": [
+          0.0,
+          -0.4000000059604645,
+          0.8899999856948853
+        ],
+        "tail": [
+          0.0,
+          -0.4000000059604645,
+          0.9900000095367432
+        ]
+      }
+    },
+    "hardware_panel_clearances": [
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.14168038964271545
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.06900212913751602
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.06328923255205154
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5487289428710938
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.17631401121616364
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.112162746489048
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.03713878616690636
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.0333007276058197
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5485332012176514
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.1508890986442566
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.4229755401611328
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.38065066933631897
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3791098892688751
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5333899855613708
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.04287916421890259
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.44248372316360474
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.39770156145095825
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3961651623249054
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5538536310195923
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.41466909646987915
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.5914290547370911
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.5572524070739746
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.5565271377563477
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5745537281036377
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.09612146019935608
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.46073445677757263
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.4231075942516327
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.41883113980293274
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.656022310256958
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.3937748968601227
+      }
+    ],
+    "immutable_fixture_signature": {
+      "Shower arm flange": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "5622edc63252ae511549d2b79b54497b8f3e50a4a6f3e34baeadb1a9113066c4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.3700000047683716
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.6799999475479126
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control dial": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "3ccedf9158feab11cbc5dce692e62f8a054caaf41953ce1036aa93c92f803bab",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.35350000858306885
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.0399999618530273
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control lever": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "a13f629e23e062c2623e54d96d67338c94bb94c4dc2cd93a8245942508ce080b",
+        "local_matrix": [
+          [
+            -1.0,
+            8.74227694680485e-08,
+            -8.742279078433057e-08,
+            0.0
+          ],
+          [
+            8.742277657347586e-08,
+            1.0,
+            -8.74227694680485e-08,
+            0.328000009059906
+          ],
+          [
+            8.742277657347586e-08,
+            -8.742277657347586e-08,
+            -1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control plate": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "4c29a2fb22aaaf552b4d302ede9b4c29004810638fe512041c38d03c2285abba",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.37400001287460327
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0199999809265137
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower curved arm": {
+        "type": "CURVE",
+        "vertices": 546,
+        "evaluated_sha256": "cf169ecbbae65a0cd4351e96f6beffaeb733ff2a50c665742df789bb242fc6fe",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower drain": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "cd801935c49ac73825486f496a58b93b154ebd74b946a9e673416ecb07631326",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.20000000298023224
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.11999999731779099
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.057999998331069946
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower head": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "e47269e4d4e5a5aa1cbe789e38578d815096243abc821cfe2231762da03f0cb1",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8479980230331421,
+            -0.5299993753433228,
+            -0.0625
+          ],
+          [
+            0.0,
+            0.5299993753433228,
+            -0.8479980230331421,
+            1.7300000190734863
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower nozzle face": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "2a4eabe7edcf8dbe1b718b113bd13ed529964384b039da58fa3b9fe9a74bbcc4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8944284915924072,
+            -0.44721096754074097,
+            -0.0754999965429306
+          ],
+          [
+            0.0,
+            0.44721096754074097,
+            -0.8944284915924072,
+            1.7089999914169312
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower rear panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "8e50a47b51ad19af64e0bfe435a839ac2404f5baf841a381738f8179fa501243",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower recessed tray": {
+        "type": "MESH",
+        "vertices": 720,
+        "evaluated_sha256": "32fd93dbe1f6e5aaa9882c6cce2b29895c293ec61f970226469dff625b7e04b5",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower side panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "7c9e2a00bdc2ec44b4870e4be0f980da0c6e430d1459f54b354faf382e5413e2",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim corner": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "ab0ff1656a09a07eb494790cd3fc8a1d4004f70f0f41f50d4e0a2497454356ff",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.41200000047683716
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.41200000047683716
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim left edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "30200925d71766a98cac9db38702b92f6a9489670293e550fb75a9a547ec7463",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim right edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "d2de262d36c8e4cace82a9f32b207b75b2e0eb60c1880ce430abcc4c5ab7da97",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      }
+    },
+    "steam": {
+      "opaque": true,
+      "structural_support": false,
+      "collision_solid": false,
+      "footprint": {
+        "vertex_count": 512,
+        "bounds": [
+          [
+            -0.3485738933086395,
+            -0.35557258129119873,
+            0.07900000363588333
+          ],
+          [
+            0.3567449152469635,
+            0.35113248229026794,
+            1.4199999570846558
+          ]
+        ]
+      }
+    },
+    "control_hand_contact_claimed": false,
+    "state": "passed"
+  },
+  "negative_controls": [
+    {
+      "control": "hidden-required-panel",
+      "caught": "Required shower or coverage geometry is hidden"
+    },
+    {
+      "control": "shifted-nozzle",
+      "caught": "Immutable fixture geometry or transforms changed"
+    },
+    {
+      "control": "raised-feet",
+      "caught": "Complete shoes lost rounded-floor support or inherited clearance"
+    },
+    {
+      "control": "steam-as-support",
+      "caught": "Steam must remain non-solid coverage, not support"
+    }
+  ],
+  "four_facing_canvas": {
+    "SE": {
+      "normalized_bounds": [
+        [
+          0.20407292246818542,
+          0.0542173907160759
+        ],
+        [
+          0.7959273457527161,
+          0.8908362984657288
+        ]
+      ],
+      "min_source_pixel_margin": 52.04869508743286
+    },
+    "NW": {
+      "normalized_bounds": [
+        [
+          0.2040729522705078,
+          0.0542173907160759
+        ],
+        [
+          0.7959273457527161,
+          0.9033017754554749
+        ]
+      ],
+      "min_source_pixel_margin": 52.04869508743286
+    },
+    "SW": {
+      "normalized_bounds": [
+        [
+          0.2040729522705078,
+          0.0542173907160759
+        ],
+        [
+          0.7959273457527161,
+          0.8930191397666931
+        ]
+      ],
+      "min_source_pixel_margin": 52.04869508743286
+    },
+    "NE": {
+      "normalized_bounds": [
+        [
+          0.20407292246818542,
+          0.0542173907160759
+        ],
+        [
+          0.7959273457527161,
+          0.8815431594848633
+        ]
+      ],
+      "min_source_pixel_margin": 52.04869508743286
+    }
+  },
+  "editable_model": {
+    "path": "shower-pose-authoring.blend",
+    "sha256": "c08846badcfb0bbdd199fa7ce658dafc35ceafcb45df0e535016c9cba88804df"
+  },
+  "saved_scene_contact": {
+    "body_inventory": [
+      "Collar stand",
+      "Dark pupil",
+      "Dark pupil.001",
+      "Ear",
+      "Ear.001",
+      "Eye white",
+      "Eye white.001",
+      "Fitted rounded shoe sole",
+      "Fitted rounded shoe sole.001",
+      "Folded fabric collar leaf",
+      "Folded fabric collar leaf.001",
+      "Forearm with elbow and wrist sections",
+      "Forearm with elbow and wrist sections.001",
+      "HAIR_01_TRIPO_CURL",
+      "Hazel iris",
+      "Hazel iris.001",
+      "Inner ear",
+      "Inner ear.001",
+      "Natural neck",
+      "One sewn breast pocket",
+      "Overshirt body",
+      "Pocket top seam",
+      "Quiet closed smile",
+      "Relaxed palm",
+      "Relaxed palm.001",
+      "Relaxed shirt sleeve",
+      "Relaxed shirt sleeve.001",
+      "Resting thumb",
+      "Resting thumb.001",
+      "Sculpted head",
+      "Shaped shoe",
+      "Shaped shoe.001",
+      "Shirt lower hem",
+      "Shirt placket",
+      "Shoe apron stitch",
+      "Shoe apron stitch.001",
+      "Small eye catchlight",
+      "Small eye catchlight.001",
+      "Small horn button",
+      "Small horn button.001",
+      "Small horn button.002",
+      "Small horn button.003",
+      "Small rounded nose",
+      "Soft eyebrow",
+      "Soft eyebrow.001",
+      "Tailored trouser leg",
+      "Tailored trouser leg.001",
+      "Trouser hem",
+      "Trouser hem.001",
+      "Trouser hip bridge",
+      "Turned sleeve cuff",
+      "Turned sleeve cuff.001",
+      "Upper lid outline",
+      "Upper lid outline.001"
+    ],
+    "fixture_solids": [
+      "Shower arm flange",
+      "Shower control dial",
+      "Shower control lever",
+      "Shower control plate",
+      "Shower curved arm",
+      "Shower drain",
+      "Shower head",
+      "Shower nozzle face",
+      "Shower rear panel",
+      "Shower recessed tray",
+      "Shower side panel",
+      "Shower trim corner",
+      "Shower trim left edge",
+      "Shower trim right edge"
+    ],
+    "excluded_non_solid": [
+      "Shower opaque steam coverage"
+    ],
+    "complete_body_solid_pairs": 756,
+    "collisions": [],
+    "soles": {
+      "Fitted rounded shoe sole": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            -0.20097720623016357,
+            -0.15505807101726532,
+            0.07414806634187698
+          ],
+          [
+            -0.01697278395295143,
+            0.11968722939491272,
+            0.12315128743648529
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414806634187698,
+        "min_floor_gap": 0.019147999584674835,
+        "max_floor_gap": 0.06815122067928314,
+        "actual_floor_rays": 1346
+      },
+      "Fitted rounded shoe sole.001": {
+        "vertex_count": 1346,
+        "bounds": [
+          [
+            0.046972811222076416,
+            -0.15505807101726532,
+            0.07414806634187698
+          ],
+          [
+            0.23097725212574005,
+            0.11968722939491272,
+            0.1231512799859047
+          ]
+        ],
+        "state": "passed",
+        "min_z": 0.07414806634187698,
+        "min_floor_gap": 0.019147999584674835,
+        "max_floor_gap": 0.06815097481012344,
+        "actual_floor_rays": 1346
+      }
+    },
+    "bone_length_errors": {
+      "root": 2.0489095975406713e-09,
+      "hips": 4.666469627379044e-09,
+      "spine": 9.500732928158229e-08,
+      "head": 1.6455556806072025e-08,
+      "upper_arm.L": 1.2781837338549096e-07,
+      "forearm.L": 2.466515248711332e-07,
+      "hand.L": 5.830054766731152e-08,
+      "upper_arm.R": 1.6659113521999558e-07,
+      "forearm.R": 1.1640046029826046e-07,
+      "hand.R": 1.1912026215421534e-07,
+      "thigh.L": 2.454865505319148e-08,
+      "shin.L": 1.1059972160332165e-08,
+      "foot.L": 2.341611071710048e-10,
+      "thigh.R": 2.454865505319148e-08,
+      "shin.R": 1.105997238237677e-08,
+      "foot.R": 2.341611071710048e-10,
+      "book": 1.6763830879007457e-09
+    },
+    "joint_targets": {
+      "root": {
+        "head": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "tail": [
+          0.0,
+          0.0,
+          0.10000000149011612
+        ]
+      },
+      "hips": {
+        "head": [
+          0.014999999664723873,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.14999999105930328,
+          1.0299999713897705
+        ]
+      },
+      "spine": {
+        "head": [
+          0.014999999664723873,
+          -0.15000000596046448,
+          1.0299999713897705
+        ],
+        "tail": [
+          0.014999999664723873,
+          -0.2731272578239441,
+          1.3682892322540283
+        ]
+      },
+      "head": {
+        "head": [
+          0.015000000596046448,
+          -0.27654746174812317,
+          1.3776862621307373
+        ],
+        "tail": [
+          0.015000000596046448,
+          -0.4509776532649994,
+          1.8569295406341553
+        ]
+      },
+      "upper_arm.L": {
+        "head": [
+          -0.21500001847743988,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          -0.25853896141052246,
+          -0.23406369984149933,
+          1.0027031898498535
+        ]
+      },
+      "forearm.L": {
+        "head": [
+          -0.2585388720035553,
+          -0.23406359553337097,
+          1.0027029514312744
+        ],
+        "tail": [
+          -0.11500078439712524,
+          -0.29500049352645874,
+          1.1500000953674316
+        ]
+      },
+      "hand.L": {
+        "head": [
+          -0.11500000953674316,
+          -0.29499998688697815,
+          1.149999976158142
+        ],
+        "tail": [
+          -0.09739727526903152,
+          -0.3243374228477478,
+          1.2556147575378418
+        ]
+      },
+      "upper_arm.R": {
+        "head": [
+          0.24500000476837158,
+          -0.24234545230865479,
+          1.2837169170379639
+        ],
+        "tail": [
+          0.02577880024909973,
+          -0.3758937120437622,
+          1.1610798835754395
+        ]
+      },
+      "forearm.R": {
+        "head": [
+          0.02577785961329937,
+          -0.3758929669857025,
+          1.1610803604125977
+        ],
+        "tail": [
+          0.14500032365322113,
+          -0.29499948024749756,
+          1.31999933719635
+        ]
+      },
+      "hand.R": {
+        "head": [
+          0.14499996602535248,
+          -0.2950000464916229,
+          1.320000171661377
+        ],
+        "tail": [
+          0.127396821975708,
+          -0.3243370056152344,
+          1.4256149530410767
+        ]
+      },
+      "thigh.L": {
+        "head": [
+          -0.10899999737739563,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          -0.10899999737739563,
+          -0.14238663017749786,
+          0.5037188529968262
+        ]
+      },
+      "shin.L": {
+        "head": [
+          -0.10899998992681503,
+          -0.14238663017749786,
+          0.5037188529968262
+        ],
+        "tail": [
+          -0.10899999737739563,
+          0.025000080466270447,
+          0.1850000023841858
+        ]
+      },
+      "foot.L": {
+        "head": [
+          -0.10899998992681503,
+          0.02500000037252903,
+          0.1849999874830246
+        ],
+        "tail": [
+          -0.10899998992681503,
+          -0.11500000208616257,
+          0.1849999874830246
+        ]
+      },
+      "thigh.R": {
+        "head": [
+          0.13899999856948853,
+          -0.09185660630464554,
+          0.870252251625061
+        ],
+        "tail": [
+          0.13899999856948853,
+          -0.14238663017749786,
+          0.5037188529968262
+        ]
+      },
+      "shin.R": {
+        "head": [
+          0.13899999856948853,
+          -0.14238663017749786,
+          0.5037188529968262
+        ],
+        "tail": [
+          0.13900001347064972,
+          0.025000080466270447,
+          0.1850000023841858
+        ]
+      },
+      "foot.R": {
+        "head": [
+          0.13900001347064972,
+          0.02500000037252903,
+          0.1849999874830246
+        ],
+        "tail": [
+          0.13900001347064972,
+          -0.11500000208616257,
+          0.1849999874830246
+        ]
+      },
+      "book": {
+        "head": [
+          0.0,
+          -0.4000000059604645,
+          0.8899999856948853
+        ],
+        "tail": [
+          0.0,
+          -0.4000000059604645,
+          0.9900000095367432
+        ]
+      }
+    },
+    "hardware_panel_clearances": [
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.14168038964271545
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.06900212913751602
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.06328923255205154
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5487289428710938
+      },
+      {
+        "body": "Sculpted head",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.17631401121616364
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.112162746489048
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.03713878616690636
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.0333007276058197
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5485332012176514
+      },
+      {
+        "body": "HAIR_01_TRIPO_CURL",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.1508890986442566
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.4229755401611328
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.38065066933631897
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3791098892688751
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5333899855613708
+      },
+      {
+        "body": "Relaxed shirt sleeve",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.04287916421890259
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.44248372316360474
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.39770156145095825
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.3961651623249054
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5538536310195923
+      },
+      {
+        "body": "Relaxed shirt sleeve.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.41466909646987915
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.5914290547370911
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.5572524070739746
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.5565271377563477
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.5745537281036377
+      },
+      {
+        "body": "Forearm with elbow and wrist sections",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.09612146019935608
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower curved arm",
+        "min_vertex_surface_distance": 0.46073445677757263
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower head",
+        "min_vertex_surface_distance": 0.4231075942516327
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower nozzle face",
+        "min_vertex_surface_distance": 0.41883113980293274
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower rear panel",
+        "min_vertex_surface_distance": 0.656022310256958
+      },
+      {
+        "body": "Forearm with elbow and wrist sections.001",
+        "fixture": "Shower side panel",
+        "min_vertex_surface_distance": 0.3937748968601227
+      }
+    ],
+    "immutable_fixture_signature": {
+      "Shower arm flange": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "5622edc63252ae511549d2b79b54497b8f3e50a4a6f3e34baeadb1a9113066c4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.3700000047683716
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.6799999475479126
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control dial": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "3ccedf9158feab11cbc5dce692e62f8a054caaf41953ce1036aa93c92f803bab",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -1.6292068494294654e-07,
+            -1.0,
+            0.35350000858306885
+          ],
+          [
+            0.0,
+            1.0,
+            -1.6292068494294654e-07,
+            1.0399999618530273
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control lever": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "a13f629e23e062c2623e54d96d67338c94bb94c4dc2cd93a8245942508ce080b",
+        "local_matrix": [
+          [
+            -1.0,
+            8.74227694680485e-08,
+            -8.742279078433057e-08,
+            0.0
+          ],
+          [
+            8.742277657347586e-08,
+            1.0,
+            -8.74227694680485e-08,
+            0.328000009059906
+          ],
+          [
+            8.742277657347586e-08,
+            -8.742277657347586e-08,
+            -1.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower control plate": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "4c29a2fb22aaaf552b4d302ede9b4c29004810638fe512041c38d03c2285abba",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.37400001287460327
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0199999809265137
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower curved arm": {
+        "type": "CURVE",
+        "vertices": 546,
+        "evaluated_sha256": "cf169ecbbae65a0cd4351e96f6beffaeb733ff2a50c665742df789bb242fc6fe",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower drain": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "cd801935c49ac73825486f496a58b93b154ebd74b946a9e673416ecb07631326",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.20000000298023224
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.11999999731779099
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.057999998331069946
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower head": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "e47269e4d4e5a5aa1cbe789e38578d815096243abc821cfe2231762da03f0cb1",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8479980230331421,
+            -0.5299993753433228,
+            -0.0625
+          ],
+          [
+            0.0,
+            0.5299993753433228,
+            -0.8479980230331421,
+            1.7300000190734863
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower nozzle face": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "2a4eabe7edcf8dbe1b718b113bd13ed529964384b039da58fa3b9fe9a74bbcc4",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            -0.8944284915924072,
+            -0.44721096754074097,
+            -0.0754999965429306
+          ],
+          [
+            0.0,
+            0.44721096754074097,
+            -0.8944284915924072,
+            1.7089999914169312
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower rear panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "8e50a47b51ad19af64e0bfe435a839ac2404f5baf841a381738f8179fa501243",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower recessed tray": {
+        "type": "MESH",
+        "vertices": 720,
+        "evaluated_sha256": "32fd93dbe1f6e5aaa9882c6cce2b29895c293ec61f970226469dff625b7e04b5",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower side panel": {
+        "type": "MESH",
+        "vertices": 152,
+        "evaluated_sha256": "7c9e2a00bdc2ec44b4870e4be0f980da0c6e430d1459f54b354faf382e5413e2",
+        "local_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.00600004196167
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim corner": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "ab0ff1656a09a07eb494790cd3fc8a1d4004f70f0f41f50d4e0a2497454356ff",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.41200000047683716
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.41200000047683716
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim left edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "30200925d71766a98cac9db38702b92f6a9489670293e550fb75a9a547ec7463",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            -0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "Shower trim right edge": {
+        "type": "MESH",
+        "vertices": 512,
+        "evaluated_sha256": "d2de262d36c8e4cace82a9f32b207b75b2e0eb60c1880ce430abcc4c5ab7da97",
+        "local_matrix": [
+          [
+            -1.0,
+            1.5099580252808664e-07,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            -1.5099580252808664e-07,
+            -1.0,
+            0.0,
+            0.4050000011920929
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            1.0110000371932983
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      }
+    },
+    "steam": {
+      "opaque": true,
+      "structural_support": false,
+      "collision_solid": false,
+      "footprint": {
+        "vertex_count": 512,
+        "bounds": [
+          [
+            -0.3485738933086395,
+            -0.35557258129119873,
+            0.07900000363588333
+          ],
+          [
+            0.3567449152469635,
+            0.35113248229026794,
+            1.4199999570846558
+          ]
+        ]
+      }
+    },
+    "control_hand_contact_claimed": false,
+    "state": "passed"
+  },
+  "saved_scene_fixture": {
+    "state": "passed",
+    "floor_height": 0.05500030517578125,
+    "drain_supported": true,
+    "arm_endpoints_connected": true,
+    "contact_witnesses": {
+      "Shower rear panel / Shower recessed tray": [
+        -0.34200000762939453,
+        0.39149999618530273,
+        0.1323000192642212
+      ],
+      "Shower side panel / Shower recessed tray": [
+        -0.4230000078678131,
+        -0.3240000009536743,
+        0.1332000195980072
+      ],
+      "Shower rear panel / Shower side panel": [
+        -0.4230000078678131,
+        0.38475000858306885,
+        0.3068000376224518
+      ],
+      "Shower arm flange / Shower rear panel": [
+        -0.03440000116825104,
+        0.3825500011444092,
+        1.6713999509811401
+      ],
+      "Shower head / Shower nozzle face": [
+        -0.058399997651576996,
+        -0.04878268390893936,
+        1.6947413682937622
+      ],
+      "Shower control plate / Shower rear panel": [
+        -0.06399999558925629,
+        0.3825500011444092,
+        0.9399999380111694
+      ],
+      "Shower control dial / Shower control plate": [
+        -0.025600001215934753,
+        0.36570000648498535,
+        1.0271999835968018
+      ],
+      "Shower control lever / Shower control dial": [
+        -0.0036000018008053303,
+        0.3352000117301941,
+        1.0144000053405762
+      ]
+    }
+  },
+  "immutable_sources_byte_identical": true
+}

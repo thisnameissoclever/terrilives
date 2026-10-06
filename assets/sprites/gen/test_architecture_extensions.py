@@ -1,5 +1,6 @@
 """Reviewed extensions cannot alter or replace the frozen base sprite prefix."""
 import copy
+import hashlib
 import json
 import unittest
 
@@ -79,6 +80,15 @@ class ArchitectureExtensions(unittest.TestCase):
         escaping['historicalExtensions'][0]['catalog'] = '../outside.json'
         with self.assertRaisesRegex(AssertionError, 'architecture resource escapes batch'):
             offline_architecture.load_historical_extensions(escaping)
+
+    def test_loads_the_pinned_bathroom_extension_without_replacing_history(self):
+        catalog = 'assets/models/bathroom/actions/export/toilet-03/manifest.json'
+        data = json.loads((offline_architecture.ROOT/catalog).read_text())
+        canonical = hashlib.sha256(json.dumps(data, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+        config = {'historicalExtensions':[dict(kind='bathroom-actions', catalog=catalog, canonicalSha256=canonical)]}
+        sprites = offline_architecture.load_historical_extensions(config)
+        self.assertEqual(len(sprites), 108)
+        self.assertEqual(sum(row[0].startswith('bathroomToilet_') for row in sprites), 48)
 
 
 if __name__ == '__main__':

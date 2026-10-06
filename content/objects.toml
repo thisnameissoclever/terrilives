@@ -160,6 +160,12 @@ name = "Porcelain Standard"
 price = 150
 sprite = "offlineToilet"
 
+  [[object.action_socket]]
+  id = "seat"
+  x = 0.0
+  y = 0.0
+  facing = "SE"
+
   # Cheap, fast and near-total. Bladder is the fastest-draining need
   # (0.139 per tick), so this has to be able to interrupt anything, and the
   # 95 delta is what achieves that without needing a special case.
@@ -175,6 +181,7 @@ sprite = "offlineToilet"
   [[object.interaction]]
   id = "relieve_self"
   completion_sound = "toilet_flush"
+  visual = { action = "use_toilet", anchor = "object_socket", facing = "socket", socket = "seat" }
   tags = ["bathroom_privacy"]
   activity = "using_toilet"
   label = "Use the toilet"

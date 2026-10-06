@@ -2211,6 +2211,34 @@ mod tests {
     }
 
     #[test]
+    fn the_shipped_toilet_declares_presentation_only_seat_metadata() {
+        let original = pack();
+        let id = original.find("toilet").unwrap();
+        let object = original.object(id);
+        let action = &object.interactions[0];
+        let visual = action.visual.expect("toilet use has a fitted visual");
+        assert_eq!(visual.action, CompiledVisualAction::UseToilet);
+        assert_eq!(visual.anchor, CompiledVisualAnchor::ObjectSocket);
+        assert_eq!(visual.facing, CompiledVisualFacing::Socket);
+        assert_eq!(visual.socket, Some(0));
+        assert_eq!(object.action_sockets.len(), 1);
+        assert_eq!(object.action_sockets[0].id, "seat");
+        assert_eq!(
+            (object.action_sockets[0].x, object.action_sockets[0].y),
+            (0.0, 0.0)
+        );
+        assert_eq!(
+            object.action_sockets[0].facing,
+            CompiledSocketFacing::PositiveX
+        );
+        assert_eq!((action.duration_ticks, action.slots), (24, 1));
+        let mut absent = original.clone();
+        absent.objects[id.0 as usize].interactions[0].visual = None;
+        absent.objects[id.0 as usize].action_sockets.clear();
+        assert_eq!(content_fingerprint(original), content_fingerprint(&absent));
+    }
+
+    #[test]
     fn the_shipped_armchair_carries_the_exact_sitting_contract() {
         let p = pack();
         let armchair = p.find("armchair").expect("shipped armchair");

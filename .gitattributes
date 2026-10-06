@@ -68,6 +68,11 @@ docs/alpha-feel-notes.md merge=union
 assets/models/seating/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/seating/*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
+# Animation checkpoints retain exact hash-bound producers, snapshots and receipts.
+assets/models/bathroom/actions/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/handoffs/animation-resume/evidence/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/handoffs/animation-resume/deferred-shower/*.patch -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
 # Architecture receipts bind exact exporter and receipt bytes.
 assets/models/bedroom/export/bunk-covered/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/architecture/render_review.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

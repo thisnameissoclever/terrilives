@@ -1,0 +1,31 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-sim)
+error[E0425]: cannot find value `WATCH_FISH` in module `crate::render_buffer::visual_action`
+   --> crates\terri-sim\src\media.rs:117:60
+    |
+117 |         visual_action:crate::render_buffer::visual_action::WATCH_FISH,activity})
+    |                                                            ^^^^^^^^^^ not found in `crate::render_buffer::visual_action`
+
+error[E0277]: the trait bound `CompiledPlacementSocket: Copy` is not satisfied
+  --> crates\terri-sim\src\media.rs:40:93
+   |
+40 |     definition.sockets_at(seat.position.x,seat.position.y,seat.facing).get(socket as usize).copied()
+   |                                                                                             ^^^^^^ the trait `Copy` is not implemented for `CompiledPlacementSocket`
+   |
+note: required by a bound in `Option::<&T>::copied`
+  --> /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library\core\src\option.rs:2076:4
+
+error[E0599]: no method named `distance_to` found for reference `&TileDistanceField` in the current scope
+   --> crates\terri-sim\src\media.rs:80:43
+    |
+ 80 |             if let Some(distance) = field.distance_to(tile) {
+    |                                           ^^^^^^^^^^^
+    |
+help: there is a method `distance_to_contact` with a similar name, but with different arguments
+   --> crates\terri-core\src\grid.rs:595:5
+    |
+595 |     pub fn distance_to_contact(&self, approach: (i32, i32), contact: (i32, i32)) -> Option<u32> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0277, E0425, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `terri-sim` (lib test) due to 3 previous errors

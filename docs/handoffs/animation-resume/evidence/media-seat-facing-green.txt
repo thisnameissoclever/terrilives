@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/interaction-sprites.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  09:05:31
+   Duration  210ms (transform 49ms, setup 0ms, import 65ms, tests 6ms, environment 0ms)
+

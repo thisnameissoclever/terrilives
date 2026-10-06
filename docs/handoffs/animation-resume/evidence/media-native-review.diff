@@ -1,0 +1,2339 @@
+diff --git a/crates/terri-core/src/grid.rs b/crates/terri-core/src/grid.rs
+index 337986b4..85fc3486 100644
+--- a/crates/terri-core/src/grid.rs
++++ b/crates/terri-core/src/grid.rs
+@@ -5,6 +5,8 @@ use std::collections::{BinaryHeap, VecDeque};
+ #[cfg(test)]
+ mod segment_tests;
+ 
++#[cfg(test)]
++mod distance_tests;
+ #[cfg(test)]
+ mod edge_tests;
+ 
+@@ -591,6 +593,11 @@ impl TileGrid {
+ }
+ 
+ impl TileDistanceField {
++    /// Shortest distance to an exact walkable tile in this field's snapshot.
++    pub fn distance_to_tile(&self, tile: (i32, i32)) -> Option<u32> {
++        let distance = self.distance_at(tile);
++        (distance != u32::MAX).then_some(distance)
++    }
+     /// Distance to an exact approach tile with an open cardinal contact edge.
+     pub fn distance_to_contact(&self, approach: (i32, i32), contact: (i32, i32)) -> Option<u32> {
+         if contact.0 < 0
+diff --git a/crates/terri-core/src/grid/distance_tests.rs b/crates/terri-core/src/grid/distance_tests.rs
+new file mode 100644
+index 00000000..f378f14f
+--- /dev/null
++++ b/crates/terri-core/src/grid/distance_tests.rs
+@@ -0,0 +1,27 @@
++use super::*;
++
++#[test]
++fn exact_distance_rejects_blocked_unreachable_and_outside_tiles() {
++    let mut grid = TileGrid::new(4, 3);
++    for y in 0..3 {
++        grid.set_blocked(2, y, true);
++    }
++    let field = grid.distance_field((1, 1)).unwrap();
++    assert_eq!(field.distance_to_tile((1, 1)), Some(0));
++    assert_eq!(field.distance_to_tile((0, 2)), Some(2));
++    for tile in [(2, 1), (3, 1), (-1, 0), (4, 0), (0, 3)] {
++        assert_eq!(field.distance_to_tile(tile), None, "{tile:?}");
++    }
++    grid.set_blocked(2, 1, false);
++    assert_eq!(
++        field.distance_to_tile((3, 1)),
++        None,
++        "The distance field retains its grid snapshot"
++    );
++    assert_eq!(
++        grid.distance_field((1, 1))
++            .unwrap()
++            .distance_to_tile((3, 1)),
++        Some(2)
++    );
++}
+diff --git a/crates/terri-sim/src/activity_tests.rs b/crates/terri-sim/src/activity_tests.rs
+index cde4252f..f51be82d 100644
+--- a/crates/terri-sim/src/activity_tests.rs
++++ b/crates/terri-sim/src/activity_tests.rs
+@@ -512,6 +512,10 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
+                 expected,
+                 if object == "double_bed" {
+                     visual_action::SLEEP
++                } else if matches!(object, "television" | "radio") {
++                    visual_action::WATCH
++                } else if object == "sofa" {
++                    visual_action::SIT
+                 } else {
+                     visual_action::NONE
+                 },
+diff --git a/crates/terri-sim/src/beds.rs b/crates/terri-sim/src/beds.rs
+index 8c59f904..44b338c1 100644
+--- a/crates/terri-sim/src/beds.rs
++++ b/crates/terri-sim/src/beds.rs
+@@ -279,6 +279,18 @@ impl Occupancy {
+                 .any(|(owner, target, _)| *owner != agent && target.object == object)
+     }
+ 
++    pub(crate) fn physical_claim(&mut self, owner: Entity, object: Entity) {
++        self.orphaned_markers.remove(&object);
++        self.targets.push((
++            owner,
++            Target {
++                object,
++                interaction: 0,
++            },
++            None,
++        ));
++    }
++
+     pub(crate) fn admissions(
+         &self,
+         pack: &ContentPack,
+diff --git a/crates/terri-sim/src/dining.rs b/crates/terri-sim/src/dining.rs
+index 1c2c8d09..0de20bce 100644
+--- a/crates/terri-sim/src/dining.rs
++++ b/crates/terri-sim/src/dining.rs
+@@ -47,25 +47,17 @@ pub(crate) fn managed_step(
+ }
+ 
+ pub(crate) fn claim(world: &World, person: u32) -> Option<&SavedDiner> {
+-    world
+-        .get_resource::<SavedDining>()?
+-        .diners
+-        .iter()
+-        .find(|d| d.person == person)
++    crate::seating::claim(world, person)
++        .filter(|d| crate::seating::kind(world, d) == Some(crate::seating::UseKind::Meal))
+ }
+ 
+ pub(crate) fn object_in_use(world: &World, object: u32) -> bool {
+-    world.get_resource::<SavedDining>().is_some_and(|s| {
+-        s.diners
+-            .iter()
+-            .any(|d| d.station == object || d.chair == Some(object))
+-    })
++    crate::seating::object_in_use(world, object)
+ }
+ 
+ pub(crate) fn release(world: &mut World, person: u32) -> Option<SavedDiner> {
+-    let mut state = world.get_resource_mut::<SavedDining>()?;
+-    let i = state.diners.iter().position(|d| d.person == person)?;
+-    Some(state.diners.remove(i))
++    claim(world, person)?;
++    crate::seating::release(world, person)
+ }
+ 
+ /// Four authored place settings: two along each long edge, rotated with the table.
+@@ -204,7 +196,7 @@ pub(crate) fn maintain(world: &mut World) {
+         .retain(|(id, _)| dishes.iter().any(|d| d.id == *id));
+     state
+         .diners
+-        .retain(|d| entity(world, d.person).is_some_and(|e| terminal(world, e)));
++        .retain(|d| crate::seating::kind(world, d).is_some());
+     for diner in &mut state.diners {
+         diner.obstructing.retain(|id| {
+             world.get_resource::<SavedDomestic>().is_some_and(|s| {
+@@ -607,6 +599,16 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
+         return Err(SaveError::InvalidValue);
+     }
+     for (i, d) in state.diners.iter().enumerate() {
++        if crate::seating::kind(world, d) == Some(crate::seating::UseKind::Media) {
++            if !crate::media::valid_lease(world, d)
++                || state.diners[..i]
++                    .iter()
++                    .any(|other| other.chair == d.chair || other.endpoint == d.endpoint)
++            {
++                return Err(SaveError::InvalidValue);
++            }
++            continue;
++        }
+         let p = entity(world, d.person).ok_or(SaveError::InvalidValue)?;
+         let station = entity(world, d.station).ok_or(SaveError::InvalidValue)?;
+         if !terminal(world, p)
+diff --git a/crates/terri-sim/src/lib.rs b/crates/terri-sim/src/lib.rs
+index 9a487e4c..4dfa59d8 100644
+--- a/crates/terri-sim/src/lib.rs
++++ b/crates/terri-sim/src/lib.rs
+@@ -17,6 +17,7 @@ mod ecs_lifecycle_tests;
+ mod facing_tests;
+ pub mod family;
+ pub mod household;
++mod media;
+ mod mood;
+ pub mod mortality;
+ pub mod placement;
+@@ -30,6 +31,7 @@ mod reservations;
+ mod reservations_tests;
+ mod room_regions;
+ mod save;
++mod seating;
+ mod shyness;
+ pub mod systems;
+ #[cfg(test)]
+@@ -1273,7 +1275,7 @@ impl Sim {
+                 // and `select_action`, which both skip a commuting or
+                 // working sim outright. After `advance_clock`, because
+                 // the day clock it reads must be THIS tick's.
+-                systems::career::start_shift,
++                (systems::career::start_shift, media::maintain).chain(),
+                 // Strictly before selection, because a player-issued
+                 // intent overrides autonomy rather than competing with
+                 // it - [D-3]. Running it first means the object is
+@@ -1616,6 +1618,7 @@ impl Sim {
+         self.clear_completion_sounds();
+         self.command_schedule.run(&mut self.world);
+         privacy::maintain(&mut self.world);
++        media::maintain(&mut self.world);
+         // Paused frames can remove components too; keep the same observation window.
+         self.world.clear_trackers();
+     }
+@@ -1967,6 +1970,8 @@ impl Sim {
+             };
+             let station_visual = if is_agent && !socially_active && !at_work {
+                 dining::projection(&self.world, entity)
++                    .or_else(|| media::projection(&self.world, entity))
++                    .or_else(|| seating::ordinary_projection(&self.world, entity))
+                     .or_else(|| cooking_projection(&self.world, entity))
+             } else {
+                 None
+diff --git a/crates/terri-sim/src/media.rs b/crates/terri-sim/src/media.rs
+new file mode 100644
+index 00000000..baaac5a0
+--- /dev/null
++++ b/crates/terri-sim/src/media.rs
+@@ -0,0 +1,539 @@
++//! Deterministic viewing routes and physical seat projections for media use.
++use crate::beds::{
++    navigation::{Reachable, Route},
++    Occupancy,
++};
++use crate::systems::interpersonal::BoundaryFurniture;
++use crate::Content;
++use bevy_ecs::prelude::*;
++use terri_core::{
++    save::SavedDiner, Eating, Position, SmartObject, Target, TileDistanceField, TileGrid,
++};
++use terri_data::CompiledSocketFacing;
++
++#[derive(Clone)]
++pub(crate) struct Plan {
++    pub access: Reachable,
++    pub lease: Option<SavedDiner>,
++}
++
++fn direction(facing: CompiledSocketFacing) -> (i32, i32) {
++    match facing {
++        CompiledSocketFacing::PositiveX => (1, 0),
++        CompiledSocketFacing::NegativeX => (-1, 0),
++        CompiledSocketFacing::PositiveY => (0, 1),
++        CompiledSocketFacing::NegativeY => (0, -1),
++    }
++}
++
++fn cone(origin: (f32, f32), front: (i32, i32), point: (f32, f32)) -> bool {
++    let (x, y) = (point.0 - origin.0, point.1 - origin.1);
++    let forward = x * front.0 as f32 + y * front.1 as f32;
++    let lateral = x * front.1 as f32 - y * front.0 as f32;
++    forward > 0. && lateral.abs() <= forward && x * x + y * y <= 49.
++}
++
++fn seat_socket(
++    pack: &terri_data::ContentPack,
++    seat: &BoundaryFurniture,
++    toward: (f32, f32),
++) -> Option<terri_data::CompiledPlacementSocket> {
++    let definition = pack.object(seat.definition);
++    if matches!(definition.id.as_str(), "armchair" | "reading_chair") {
++        let socket = definition.interactions.iter().find_map(|action| {
++            action
++                .visual
++                .as_ref()
++                .filter(|v| {
++                    matches!(
++                        v.action,
++                        terri_data::CompiledVisualAction::Sit
++                            | terri_data::CompiledVisualAction::Read
++                    )
++                })
++                .and_then(|v| v.socket)
++        })?;
++        return definition
++            .sockets_at(seat.position.x, seat.position.y, seat.facing)
++            .get(socket as usize)
++            .cloned();
++    }
++    if !matches!(
++        definition.id.as_str(),
++        "chair" | "desk_chair" | "long_sofa" | "sofa"
++    ) {
++        return None;
++    }
++    let footprint = definition.footprint_at(seat.facing);
++    let x = seat.position.x + (footprint.width as f32 - 1.) * 0.5;
++    let y = seat.position.y + (footprint.depth as f32 - 1.) * 0.5;
++    let front = if definition.id == "sofa" {
++        axis_facing(wire_facing(toward.0 - x, toward.1 - y))
++    } else {
++        seat.facing.rotate_axis(0, 1)
++    };
++    Some(terri_data::CompiledPlacementSocket {
++        x,
++        y,
++        facing: match front {
++            (1, 0) => CompiledSocketFacing::PositiveX,
++            (-1, 0) => CompiledSocketFacing::NegativeX,
++            (0, 1) => CompiledSocketFacing::PositiveY,
++            _ => CompiledSocketFacing::NegativeY,
++        },
++    })
++}
++
++fn axis_facing(facing: u32) -> (i32, i32) {
++    match facing {
++        1 => (1, 0),
++        2 => (-1, 0),
++        3 => (0, 1),
++        _ => (0, -1),
++    }
++}
++
++fn approaches(
++    pack: &terri_data::ContentPack,
++    seat: &BoundaryFurniture,
++    socket: &terri_data::CompiledPlacementSocket,
++) -> Vec<((i32, i32), (i32, i32))> {
++    let footprint = pack.object(seat.definition).footprint_at(seat.facing);
++    let origin = (
++        seat.position.x.round() as i32,
++        seat.position.y.round() as i32,
++    );
++    let front = direction(socket.facing);
++    let mut result = vec![];
++    for y in 0..footprint.depth as i32 {
++        for x in 0..footprint.width as i32 {
++            if (front.0 == 1 && x != footprint.width as i32 - 1)
++                || (front.0 == -1 && x != 0)
++                || (front.1 == 1 && y != footprint.depth as i32 - 1)
++                || (front.1 == -1 && y != 0)
++            {
++                continue;
++            }
++            let contact = (origin.0 + x, origin.1 + y);
++            result.push(((contact.0 + front.0, contact.1 + front.1), contact));
++        }
++    }
++    result
++}
++
++pub(crate) struct Planning<'a> {
++    pub pack: &'a terri_data::ContentPack,
++    pub grid: &'a TileGrid,
++    pub field: &'a TileDistanceField,
++    pub objects: &'a [BoundaryFurniture],
++    pub occupancy: &'a Occupancy,
++    pub claims: &'a [SavedDiner],
++}
++
++pub(crate) fn plan(
++    planning: Planning<'_>,
++    person: Entity,
++    device: &BoundaryFurniture,
++) -> Option<Plan> {
++    let Planning {
++        pack,
++        grid,
++        field,
++        objects,
++        occupancy,
++        claims,
++    } = planning;
++    let origin = (device.position.x, device.position.y);
++    let front = device.facing.rotate_axis(1, 0);
++    let mut candidates = vec![];
++    for seat in objects {
++        let Some(socket) = seat_socket(pack, seat, origin) else {
++            continue;
++        };
++        let point = (socket.x, socket.y);
++        let seat_front = direction(socket.facing);
++        if !cone(origin, front, point)
++            || !cone(point, seat_front, origin)
++            || !grid.segment_can_cross(point, origin)
++            || !occupancy.exclusive_available(person, seat.entity)
++            || claims
++                .iter()
++                .any(|d| d.person != person.index_u32() && d.chair == Some(seat.entity.index_u32()))
++        {
++            continue;
++        }
++        let best = approaches(pack, seat, &socket)
++            .into_iter()
++            .filter(|(endpoint, _)| {
++                !claims
++                    .iter()
++                    .any(|d| d.person != person.index_u32() && d.endpoint == *endpoint)
++            })
++            .filter_map(|(endpoint, contact)| {
++                field
++                    .distance_to_contact(endpoint, contact)
++                    .map(|distance| (distance, endpoint))
++            })
++            .min();
++        let Some((distance, endpoint)) = best else {
++            continue;
++        };
++        let device_distance = (point.0 - origin.0).powi(2) + (point.1 - origin.1).powi(2);
++        candidates.push((device_distance, seat.entity.index_u32(), distance, endpoint));
++    }
++    candidates.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
++    if let Some((_, chair, distance, endpoint)) = candidates.first().copied() {
++        return Some(Plan {
++            access: Reachable {
++                route: Route::Exact(endpoint),
++                distance,
++            },
++            lease: Some(SavedDiner {
++                person: person.index_u32(),
++                station: device.entity.index_u32(),
++                chair: Some(chair),
++                setting: None,
++                endpoint,
++                obstructing: vec![],
++            }),
++        });
++    }
++    let mut standing = vec![];
++    for dx in -7..=7 {
++        for dy in -7..=7 {
++            let tile = (origin.0.round() as i32 + dx, origin.1.round() as i32 + dy);
++            let point = (tile.0 as f32, tile.1 as f32);
++            if !cone(origin, front, point)
++                || !grid.is_walkable(tile.0, tile.1)
++                || !grid.segment_can_cross(point, origin)
++            {
++                continue;
++            }
++            if let Some(distance) = field.distance_to_tile(tile) {
++                standing.push((dx * dx + dy * dy, distance, tile));
++            }
++        }
++    }
++    standing.sort_unstable();
++    standing.first().map(|(_, distance, tile)| Plan {
++        access: Reachable {
++            route: Route::Exact(*tile),
++            distance: *distance,
++        },
++        lease: None,
++    })
++}
++
++pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketActionProjection> {
++    let target = world.get::<Target>(person)?;
++    let object = world.get::<SmartObject>(target.object)?;
++    let eating = world.get::<Eating>(person)?;
++    if eating.object != object.0
++        || eating.interaction != target.interaction
++        || world.get::<terri_core::StepWork>(person).is_some()
++        || world.get::<terri_core::Path>(person).is_some()
++    {
++        return None;
++    }
++    let pack = world.resource::<Content>().0;
++    let activity = crate::seating::media_activity(pack, object.0, target.interaction)?;
++    if let Some(lease) = crate::seating::claim(world, person.index_u32())
++        .filter(|d| crate::seating::kind(world, d) == Some(crate::seating::UseKind::Media))
++    {
++        let chair = crate::dining::entity(world, lease.chair?)?;
++        let position = *world.get::<Position>(chair)?;
++        let definition = world.get::<SmartObject>(chair)?.0;
++        let seat = BoundaryFurniture {
++            entity: chair,
++            position,
++            definition,
++            facing: world
++                .get::<terri_core::ObjectFacing>(chair)
++                .map_or(pack.object(definition).base_facing, |f| f.0),
++        };
++        let device = world.get::<Position>(target.object)?;
++        let socket = seat_socket(pack, &seat, (device.x, device.y))?;
++        let front = direction(socket.facing);
++        return Some(crate::SocketActionProjection {
++            x: socket.x,
++            y: socket.y,
++            facing: wire_facing(front.0 as f32, front.1 as f32),
++            target_entity: chair.index_u32(),
++            visual_action: crate::render_buffer::visual_action::SIT,
++            activity,
++        });
++    }
++    let position = world.get::<Position>(person)?;
++    let device = world.get::<Position>(target.object)?;
++    Some(crate::SocketActionProjection {
++        x: position.x,
++        y: position.y,
++        facing: wire_facing(device.x - position.x, device.y - position.y),
++        target_entity: u32::MAX,
++        visual_action: crate::render_buffer::visual_action::WATCH,
++        activity,
++    })
++}
++
++pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
++    let Some(person) = crate::dining::entity(world, lease.person) else {
++        return false;
++    };
++    let Some(device) = crate::dining::entity(world, lease.station) else {
++        return false;
++    };
++    let Some(chair) = lease.chair.and_then(|id| crate::dining::entity(world, id)) else {
++        return false;
++    };
++    if lease.setting.is_some()
++        || !lease.obstructing.is_empty()
++        || world.get::<terri_core::Agent>(person).is_none()
++        || world.get::<terri_core::AtWork>(person).is_some()
++        || world.get::<terri_core::Socialising>(person).is_some()
++        || world
++            .get::<Target>(person)
++            .is_none_or(|t| t.object != device)
++    {
++        return false;
++    }
++    if world.get::<terri_core::Reserved>(chair).is_some()
++        || world
++            .try_query::<(Entity, &Target)>()
++            .is_some_and(|mut query| {
++                query
++                    .iter(world)
++                    .any(|(owner, target)| owner != person && target.object == chair)
++            })
++    {
++        return false;
++    }
++    let pack = world.resource::<Content>().0;
++    let item = |entity: Entity| -> Option<BoundaryFurniture> {
++        let position = *world.get::<Position>(entity)?;
++        let definition = world.get::<SmartObject>(entity)?.0;
++        Some(BoundaryFurniture {
++            entity,
++            position,
++            definition,
++            facing: world
++                .get::<terri_core::ObjectFacing>(entity)
++                .map_or(pack.object(definition).base_facing, |f| f.0),
++        })
++    };
++    let Some(device) = item(device) else {
++        return false;
++    };
++    let Some(seat) = item(chair) else {
++        return false;
++    };
++    let target = *world.get::<Target>(person).unwrap();
++    if crate::seating::media_activity(pack, device.definition, target.interaction).is_none() {
++        return false;
++    }
++    let origin = (device.position.x, device.position.y);
++    let Some(socket) = seat_socket(pack, &seat, origin) else {
++        return false;
++    };
++    let front = direction(socket.facing);
++    let point = (socket.x, socket.y);
++    let grid = world.resource::<TileGrid>();
++    let contact = approaches(pack, &seat, &socket)
++        .into_iter()
++        .find(|(end, _)| *end == lease.endpoint);
++    if contact.is_none()
++        || !grid.is_walkable(lease.endpoint.0, lease.endpoint.1)
++        || !contact.is_some_and(|(_, tile)| {
++            grid.can_interact_with_rect(lease.endpoint, tile, terri_core::Footprint::SINGLE)
++        })
++        || !cone(origin, device.facing.rotate_axis(1, 0), point)
++        || !cone(point, front, origin)
++        || !grid.segment_can_cross(point, origin)
++    {
++        return false;
++    }
++    let Some(position) = world.get::<Position>(person) else {
++        return false;
++    };
++    if let Some(path) = world.get::<terri_core::Path>(person) {
++        return path
++            .steps
++            .last()
++            .copied()
++            .unwrap_or((position.x.round() as i32, position.y.round() as i32))
++            == lease.endpoint;
++    }
++    world
++        .get::<Eating>(person)
++        .is_some_and(|e| e.object == device.definition && e.interaction == target.interaction)
++        && (position.x.round() as i32, position.y.round() as i32) == lease.endpoint
++}
++
++fn wire_facing(x: f32, y: f32) -> u32 {
++    if x.abs() >= y.abs() {
++        if x >= 0. {
++            1
++        } else {
++            2
++        }
++    } else if y >= 0. {
++        3
++    } else {
++        4
++    }
++}
++
++pub(crate) fn valid_standing_contact(
++    world: &World,
++    person: u32,
++    station: u32,
++    endpoint: (i32, i32),
++) -> bool {
++    if crate::seating::claim(world, person).is_some() {
++        return false;
++    }
++    let Some(person) = crate::dining::entity(world, person) else {
++        return false;
++    };
++    let Some(device) = crate::dining::entity(world, station) else {
++        return false;
++    };
++    let Some(target) = world.get::<Target>(person).filter(|t| t.object == device) else {
++        return false;
++    };
++    let Some(object) = world.get::<SmartObject>(device) else {
++        return false;
++    };
++    let pack = world.resource::<Content>().0;
++    if crate::seating::media_activity(pack, object.0, target.interaction).is_none()
++        || world.get::<terri_core::StepWork>(person).is_some()
++        || world.get::<terri_core::Socialising>(person).is_some()
++        || world.get::<terri_core::AtWork>(person).is_some()
++        || world
++            .get::<Eating>(person)
++            .is_some_and(|e| e.object != object.0 || e.interaction != target.interaction)
++    {
++        return false;
++    }
++    let Some(position) = world.get::<Position>(device) else {
++        return false;
++    };
++    let origin = (position.x, position.y);
++    let point = (endpoint.0 as f32, endpoint.1 as f32);
++    let facing = world
++        .get::<terri_core::ObjectFacing>(device)
++        .map_or(pack.object(object.0).base_facing, |f| f.0);
++    let grid = world.resource::<TileGrid>();
++    grid.is_walkable(endpoint.0, endpoint.1)
++        && cone(origin, facing.rotate_axis(1, 0), point)
++        && grid.segment_can_cross(point, origin)
++}
++
++fn cancel(world: &mut World, person: Entity, target: Target) {
++    crate::reservations::release_now(world, person, target);
++    world
++        .entity_mut(person)
++        .remove::<Target>()
++        .remove::<terri_core::Path>()
++        .remove::<Eating>();
++}
++
++/// A changed viewing position interrupts its current use and resumes after arrival.
++pub(crate) fn maintain(world: &mut World) {
++    let pack = world.resource::<Content>().0;
++    let mut people: Vec<_> = world
++        .query_filtered::<(Entity, &Target), (
++            With<terri_core::Agent>,
++            Without<terri_core::AtWork>,
++            Without<terri_core::Commuting>,
++            Without<terri_core::Socialising>,
++        )>()
++        .iter(world)
++        .filter(|(_, target)| {
++            world.get::<SmartObject>(target.object).is_some_and(|o| {
++                crate::seating::media_activity(pack, o.0, target.interaction).is_some()
++            })
++        })
++        .map(|(person, target)| (person, *target))
++        .collect();
++    people.sort_by_key(|(person, _)| person.index_u32());
++    for (person, target) in people {
++        let held = crate::seating::claim(world, person.index_u32()).cloned();
++        if held.as_ref().is_some_and(|lease| valid_lease(world, lease)) {
++            continue;
++        }
++        if held.is_none() && world.get::<Eating>(person).is_none() {
++            continue;
++        }
++        if held.is_none()
++            && world
++                .get::<Eating>(person)
++                .is_some_and(|e| e.remaining_ticks <= 1)
++        {
++            continue;
++        }
++        let Some(position) = world.get::<Position>(person).copied() else {
++            continue;
++        };
++        let furniture: Vec<_> = world
++            .query::<(
++                Entity,
++                &Position,
++                &SmartObject,
++                Option<&terri_core::ObjectFacing>,
++            )>()
++            .iter(world)
++            .map(|(entity, position, object, facing)| BoundaryFurniture {
++                entity,
++                position: *position,
++                definition: object.0,
++                facing: facing.map_or(pack.object(object.0).base_facing, |f| f.0),
++            })
++            .collect();
++        let Some(device) = furniture.iter().find(|d| d.entity == target.object) else {
++            continue;
++        };
++        let claims = world
++            .get_resource::<terri_core::save::SavedDining>()
++            .map_or_else(Vec::new, |s| s.diners.clone());
++        let occupancy = crate::seating::occupancy(world);
++        let grid = world.resource::<TileGrid>();
++        let from = (position.x.round() as i32, position.y.round() as i32);
++        let Some(field) = grid.distance_field(from) else {
++            cancel(world, person, target);
++            continue;
++        };
++        let next = plan(
++            Planning {
++                pack,
++                grid,
++                field: &field,
++                objects: &furniture,
++                occupancy: &occupancy,
++                claims: &claims,
++            },
++            person,
++            device,
++        );
++        let Some(next) = next else {
++            cancel(world, person, target);
++            continue;
++        };
++        if held.is_none() && next.lease.is_none() {
++            continue;
++        }
++        let Some(steps) = next
++            .access
++            .route
++            .path(grid, from)
++            .and_then(|p| grid.anchor_path((position.x, position.y), p))
++        else {
++            cancel(world, person, target);
++            continue;
++        };
++        crate::seating::replace(world, person, next.lease);
++        world
++            .entity_mut(person)
++            .remove::<Eating>()
++            .insert(terri_core::Path { steps, cursor: 0 });
++    }
++}
+diff --git a/crates/terri-sim/src/privacy.rs b/crates/terri-sim/src/privacy.rs
+index 88d07a79..e1f570ad 100644
+--- a/crates/terri-sim/src/privacy.rs
++++ b/crates/terri-sim/src/privacy.rs
+@@ -428,22 +428,7 @@ pub(crate) fn route(world: &mut World) {
+ }
+ 
+ fn occupancy(world: &mut World) -> crate::beds::Occupancy {
+-    let targets: Vec<_> = world
+-        .query::<(
+-            Entity,
+-            &terri_core::Target,
+-            Option<&terri_core::SleepPlace>,
+-            Has<terri_core::Agent>,
+-        )>()
+-        .iter(world)
+-        .map(|(e, t, p, agent)| (e, *t, p.copied().filter(|_| agent)))
+-        .collect();
+-    crate::beds::Occupancy::new(
+-        targets.into_iter(),
+-        world
+-            .query_filtered::<Entity, With<terri_core::Reserved>>()
+-            .iter(world),
+-    )
++    crate::seating::occupancy(world)
+ }
+ 
+ pub(crate) fn substitute(
+@@ -483,12 +468,28 @@ pub(crate) fn substitute(
+     };
+     let mut candidates = Vec::new();
+     let mut objects = world.query::<(Entity, &Position, &SmartObject, Option<&ObjectFacing>)>();
+-    for (object, position, placed, facing) in objects.iter(world) {
+-        let definition = pack.object(placed.0);
++    let furniture: Vec<_> = objects
++        .iter(world)
++        .map(|(entity, position, object, facing)| {
++            crate::systems::interpersonal::BoundaryFurniture {
++                entity,
++                position: *position,
++                definition: object.0,
++                facing: facing.map_or(pack.object(object.0).base_facing, |f| f.0),
++            }
++        })
++        .collect();
++    let physical_claims = world
++        .get_resource::<terri_core::save::SavedDining>()
++        .map_or_else(Vec::new, |state| state.diners.clone());
++    for item in &furniture {
++        let object = item.entity;
++        let position = &item.position;
++        let definition = pack.object(item.definition);
+         let access = crate::beds::navigation::Access::new(
+             definition,
+             &pack.sleep_tag,
+-            facing.map_or(definition.base_facing, |f| f.0),
++            item.facing,
+             (position.x.round() as i32, position.y.round() as i32),
+             &field,
+         );
+@@ -514,6 +515,24 @@ pub(crate) fn substitute(
+                 object,
+                 interaction: interaction as u32,
+             };
++            let media =
++                crate::seating::media_activity(pack, item.definition, next.interaction).is_some();
++            let media_plan = media
++                .then(|| {
++                    crate::media::plan(
++                        crate::media::Planning {
++                            pack,
++                            grid: safe,
++                            field: &field,
++                            objects: &furniture,
++                            occupancy: &occupancy,
++                            claims: &physical_claims,
++                        },
++                        actor,
++                        item,
++                    )
++                })
++                .flatten();
+             let available = occupancy.admissions(
+                 pack,
+                 definition,
+@@ -527,7 +546,11 @@ pub(crate) fn substitute(
+             let chosen = available
+                 .into_iter()
+                 .filter_map(|admission| {
+-                    let route = access.for_admission(admission)?;
++                    let route = if media {
++                        media_plan.as_ref()?.access
++                    } else {
++                        access.for_admission(admission)?
++                    };
+                     let steps = route.route.path(safe, from)?;
+                     let steps = safe.anchor_path((pos.x, pos.y), steps)?;
+                     let risk = crate::systems::autonomy::survival_penalty(
+@@ -562,14 +585,15 @@ pub(crate) fn substitute(
+                         ordinal,
+                         admission,
+                         steps,
++                        media_plan.as_ref().and_then(|p| p.lease.clone()),
+                     ))
+                 })
+                 .min_by(|a, b| {
+                     a.0.total_cmp(&b.0)
+                         .then_with(|| (a.1, a.2, a.3, a.4).cmp(&(b.1, b.2, b.3, b.4)))
+                 })
+-                .map(|(risk, _, _, _, _, admission, steps)| (risk, admission, steps));
+-            if let Some((risk, admission, steps)) = chosen {
++                .map(|(risk, _, _, _, _, admission, steps, lease)| (risk, admission, steps, lease));
++            if let Some((risk, admission, steps, lease)) = chosen {
+                 candidates.push((
+                     steps.len(),
+                     object.index_u32(),
+@@ -578,6 +602,7 @@ pub(crate) fn substitute(
+                     admission,
+                     steps,
+                     risk,
++                    lease,
+                 ));
+             }
+         }
+@@ -592,8 +617,10 @@ pub(crate) fn substitute(
+     let eligible: std::collections::HashSet<_> =
+         choices.into_iter().map(|row| (row.0, row.1)).collect();
+     candidates.retain(|row| eligible.contains(&(row.3, row.2)));
+-    candidates.sort_by_key(|(length, index, act, _, _, _, _)| (*length, *index, *act));
+-    if let Some((_, _, interaction, object, admission, steps, _)) = candidates.into_iter().next() {
++    candidates.sort_by_key(|(length, index, act, _, _, _, _, _)| (*length, *index, *act));
++    if let Some((_, _, interaction, object, admission, steps, _, lease)) =
++        candidates.into_iter().next()
++    {
+         crate::domestic::suspend_cleanup(world, actor);
+         if let Some(t) = target {
+             crate::reservations::release_now(world, actor, t);
+@@ -616,6 +643,7 @@ pub(crate) fn substitute(
+             },
+             Path { steps, cursor: 0 },
+         ));
++        crate::seating::replace(world, actor, lease);
+         return true;
+     }
+     false
+diff --git a/crates/terri-sim/src/render_buffer.rs b/crates/terri-sim/src/render_buffer.rs
+index eff03229..ad9bb9bf 100644
+--- a/crates/terri-sim/src/render_buffer.rs
++++ b/crates/terri-sim/src/render_buffer.rs
+@@ -3762,7 +3762,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    fn every_shipped_interaction_projects_its_exact_activity_without_inventing_body_art() {
++    fn every_shipped_interaction_projects_its_exact_activity_and_supported_body_pose() {
+         use crate::render_buffer::{activity, visual_action};
+         use terri_core::Target;
+ 
+@@ -3786,9 +3786,9 @@ mod tests {
+                 "television",
+                 "watch_tv",
+                 activity::WATCHING_TV,
+-                visual_action::NONE,
++                visual_action::WATCH,
+             ),
+-            ("sofa", "lounge", activity::SITTING, visual_action::NONE),
++            ("sofa", "lounge", activity::SITTING, visual_action::SIT),
+             (
+                 "sink",
+                 "wash_hands",
+@@ -3829,7 +3829,7 @@ mod tests {
+                 "radio",
+                 "listen",
+                 activity::LISTENING_RADIO,
+-                visual_action::NONE,
++                visual_action::WATCH,
+             ),
+             (
+                 "double_bed",
+diff --git a/crates/terri-sim/src/reservations.rs b/crates/terri-sim/src/reservations.rs
+index 984d7db4..0e4cf7a3 100644
+--- a/crates/terri-sim/src/reservations.rs
++++ b/crates/terri-sim/src/reservations.rs
+@@ -13,6 +13,7 @@ pub(crate) fn release(commands: &mut Commands, owner: Entity, expected: Target)
+ /// action state. A replacement target on the same object remains an owner,
+ /// as does every other Sim still travelling or acting.
+ pub(crate) fn release_now(world: &mut World, owner: Entity, expected: Target) {
++    crate::seating::release_exact(world, owner, expected);
+     if world
+         .get::<Target>(owner)
+         .is_none_or(|target| *target == expected)
+diff --git a/crates/terri-sim/src/save/architecture.rs b/crates/terri-sim/src/save/architecture.rs
+index 31109f99..1ebf8122 100644
+--- a/crates/terri-sim/src/save/architecture.rs
++++ b/crates/terri-sim/src/save/architecture.rs
+@@ -338,6 +338,12 @@ pub(super) fn validate_edge_world(
+                     let endpoint = remaining.last().copied().unwrap_or(tile);
+                     if !valid_contact(grid, endpoint, at, footprint)
+                         && !dining_contact(world, entity.index, target.object, endpoint)
++                        && !crate::media::valid_standing_contact(
++                            world,
++                            entity.index,
++                            target.object,
++                            endpoint,
++                        )
+                     {
+                         return Err(SaveError::InvalidGrid);
+                     }
+@@ -364,6 +370,7 @@ pub(super) fn validate_edge_world(
+             let footprint = restored_footprint(target, world, content)?;
+             if !valid_contact(grid, tile, at, footprint)
+                 && !dining_contact(world, entity.index, index, tile)
++                && !crate::media::valid_standing_contact(world, entity.index, index, tile)
+             {
+                 return Err(SaveError::InvalidGrid);
+             }
+@@ -378,9 +385,15 @@ fn dining_contact(
+     station: u32,
+     endpoint: (i32, i32),
+ ) -> bool {
+-    crate::dining::entity(world, person).is_some_and(|e| crate::dining::terminal(world, e))
+-        && crate::dining::claim(world, person)
+-            .is_some_and(|d| d.station == station && d.endpoint == endpoint)
++    crate::seating::claim(world, person).is_some_and(|d| {
++        d.station == station
++            && d.endpoint == endpoint
++            && match crate::seating::kind(world, d) {
++                Some(crate::seating::UseKind::Meal) => true,
++                Some(crate::seating::UseKind::Media) => crate::media::valid_lease(world, d),
++                None => false,
++            }
++    })
+ }
+ 
+ fn restored_footprint(
+diff --git a/crates/terri-sim/src/seating.rs b/crates/terri-sim/src/seating.rs
+new file mode 100644
+index 00000000..05e8438e
+--- /dev/null
++++ b/crates/terri-sim/src/seating.rs
+@@ -0,0 +1,170 @@
++//! Physical-place ownership shared by meal and media interactions.
++use crate::Content;
++use bevy_ecs::prelude::*;
++use terri_core::{
++    save::{SavedDiner, SavedDining},
++    SmartObject, Target,
++};
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub(crate) enum UseKind {
++    Meal,
++    Media,
++}
++
++pub(crate) fn media_activity(
++    pack: &terri_data::ContentPack,
++    object: terri_core::ObjectDefId,
++    interaction: u32,
++) -> Option<u32> {
++    let definition = pack.objects.get(object.0 as usize)?;
++    let action = definition.interactions.get(interaction as usize)?;
++    match (definition.id.as_str(), action.id.as_str()) {
++        ("television", "watch_tv") => Some(crate::render_buffer::activity::WATCHING_TV),
++        ("radio", "listen") => Some(crate::render_buffer::activity::LISTENING_RADIO),
++        _ => None,
++    }
++}
++
++pub(crate) fn ordinary_projection(
++    world: &World,
++    person: Entity,
++) -> Option<crate::SocketActionProjection> {
++    let target = world.get::<Target>(person)?;
++    let object = world.get::<SmartObject>(target.object)?;
++    let eating = world.get::<terri_core::Eating>(person)?;
++    if eating.object != object.0
++        || eating.interaction != target.interaction
++        || world.get::<terri_core::Path>(person).is_some()
++        || world.get::<terri_core::StepWork>(person).is_some()
++    {
++        return None;
++    }
++    let pack = world.resource::<Content>().0;
++    let definition = pack.object(object.0);
++    let interaction = definition.interactions.get(target.interaction as usize)?;
++    if definition.id != "sofa" || interaction.id != "lounge" || interaction.visual.is_some() {
++        return None;
++    }
++    let position = *world.get::<terri_core::Position>(target.object)?;
++    let facing = world
++        .get::<terri_core::ObjectFacing>(target.object)
++        .map_or(definition.base_facing, |f| f.0);
++    let (dx, dy) = facing.rotate_axis(0, 1);
++    Some(crate::SocketActionProjection {
++        x: position.x,
++        y: position.y,
++        facing: match (dx, dy) {
++            (1, 0) => 1,
++            (-1, 0) => 2,
++            (0, 1) => 3,
++            _ => 4,
++        },
++        target_entity: target.object.index_u32(),
++        visual_action: crate::render_buffer::visual_action::SIT,
++        activity: crate::render_buffer::activity::SITTING,
++    })
++}
++
++pub(crate) fn claim(world: &World, person: u32) -> Option<&SavedDiner> {
++    world
++        .get_resource::<SavedDining>()?
++        .diners
++        .iter()
++        .find(|d| d.person == person)
++}
++
++pub(crate) fn kind(world: &World, lease: &SavedDiner) -> Option<UseKind> {
++    let person = crate::dining::entity(world, lease.person)?;
++    world.get::<terri_core::Agent>(person)?;
++    if let Some(target) = world.get::<Target>(person) {
++        if target.object.index_u32() != lease.station {
++            return None;
++        }
++        if target.interaction != crate::systems::chain::CHAIN_STEP {
++            let object = world.get::<SmartObject>(target.object)?;
++            return media_activity(world.resource::<Content>().0, object.0, target.interaction)
++                .map(|_| UseKind::Media);
++        }
++    }
++    crate::dining::terminal(world, person).then_some(UseKind::Meal)
++}
++
++pub(crate) fn object_in_use(world: &World, object: u32) -> bool {
++    world.get_resource::<SavedDining>().is_some_and(|s| {
++        s.diners
++            .iter()
++            .any(|d| d.station == object || d.chair == Some(object))
++    })
++}
++
++pub(crate) fn release(world: &mut World, person: u32) -> Option<SavedDiner> {
++    let mut state = world.get_resource_mut::<SavedDining>()?;
++    let index = state.diners.iter().position(|d| d.person == person)?;
++    Some(state.diners.remove(index))
++}
++
++/// A stale release cannot remove the physical place of a replacement target.
++pub(crate) fn release_exact(world: &mut World, owner: Entity, expected: Target) {
++    if claim(world, owner.index_u32()).is_some_and(|d| d.station == expected.object.index_u32())
++        && world
++            .get::<Target>(owner)
++            .is_none_or(|current| *current == expected)
++    {
++        release(world, owner.index_u32());
++    }
++}
++
++pub(crate) fn replace(world: &mut World, owner: Entity, lease: Option<SavedDiner>) {
++    release(world, owner.index_u32());
++    if let Some(lease) = lease {
++        let mut state = world.get_resource_or_insert_with(terri_core::save::SavedDining::default);
++        assert!(
++            !state
++                .diners
++                .iter()
++                .any(|d| d.chair == lease.chair || d.endpoint == lease.endpoint),
++            "Physical seat claims must be exclusive before commit"
++        );
++        state.diners.push(lease);
++        state.diners.sort_by_key(|d| d.person);
++    }
++}
++
++pub(crate) fn occupancy(world: &mut World) -> crate::beds::Occupancy {
++    let targets: Vec<_> = world
++        .query::<(
++            Entity,
++            &Target,
++            Option<&terri_core::SleepPlace>,
++            Has<terri_core::Agent>,
++        )>()
++        .iter(world)
++        .map(|(owner, target, place, agent)| (owner, *target, place.copied().filter(|_| agent)))
++        .collect();
++    let markers: Vec<_> = world
++        .query_filtered::<Entity, With<terri_core::Reserved>>()
++        .iter(world)
++        .collect();
++    let mut result = crate::beds::Occupancy::new(targets.into_iter(), markers.into_iter());
++    if let Some(state) = world.get_resource::<SavedDining>() {
++        for lease in &state.diners {
++            let Some(owner) = crate::dining::entity(world, lease.person) else {
++                continue;
++            };
++            let Some(chair) = lease.chair.and_then(|id| crate::dining::entity(world, id)) else {
++                continue;
++            };
++            if world
++                .get::<Target>(owner)
++                .is_some_and(|t| t.object.index_u32() == lease.station)
++            {
++                result.physical_claim(owner, chair);
++            }
++        }
++    }
++    result
++}
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/terri-sim/src/seating/tests.rs b/crates/terri-sim/src/seating/tests.rs
+new file mode 100644
+index 00000000..6aeff3fd
+--- /dev/null
++++ b/crates/terri-sim/src/seating/tests.rs
+@@ -0,0 +1,869 @@
++use crate::{Content, Sim};
++use terri_core::{Eating, Facing, Intent, IntentQueue, Path, Position, Target};
++
++fn fixture() -> (
++    Sim,
++    bevy_ecs::entity::Entity,
++    bevy_ecs::entity::Entity,
++    bevy_ecs::entity::Entity,
++) {
++    fixture_at("television", 5., 3., Facing::SouthWest)
++}
++
++fn fixture_at(
++    device_kind: &str,
++    x: f32,
++    y: f32,
++    facing: Facing,
++) -> (
++    Sim,
++    bevy_ecs::entity::Entity,
++    bevy_ecs::entity::Entity,
++    bevy_ecs::entity::Entity,
++) {
++    fixture_with_device(
++        device_kind,
++        Position { x: 2., y: 3. },
++        Position { x, y },
++        Facing::SouthEast,
++        facing,
++        "armchair",
++    )
++}
++
++fn fixture_with_device(
++    device_kind: &str,
++    device_position: Position,
++    seat_position: Position,
++    device_facing: Facing,
++    seat_facing: Facing,
++    seat_kind: &str,
++) -> (
++    Sim,
++    bevy_ecs::entity::Entity,
++    bevy_ecs::entity::Entity,
++    bevy_ecs::entity::Entity,
++) {
++    let mut sim = Sim::new_with_lot(16, 16);
++    let pack = sim.world().resource::<Content>().0;
++    let device = sim.spawn_object(device_position, pack.find(device_kind).unwrap());
++    crate::apply_object_placement(
++        sim.world_mut(),
++        device,
++        pack.object(pack.find(device_kind).unwrap()),
++        device_position,
++        device_facing,
++    );
++    let chair = sim.spawn_object(seat_position, pack.find(seat_kind).unwrap());
++    let definition = pack.object(pack.find(seat_kind).unwrap());
++    crate::apply_object_placement(
++        sim.world_mut(),
++        chair,
++        definition,
++        seat_position,
++        seat_facing,
++    );
++    let person = crate::household::spawn_member(
++        sim.world_mut(),
++        &pack.personalities,
++        &pack.traits,
++        crate::household::Member {
++            name: "Viewer".into(),
++            personality: 0,
++            position: Position { x: 0., y: 3. },
++            needs: [100.; 7],
++            hobbies: vec![],
++            traits: &[],
++            career: None,
++            instinct: Some(50),
++        },
++    );
++    sim.world_mut()
++        .entity_mut(person)
++        .insert(IntentQueue::from_intents(vec![Intent {
++            object: device,
++            interaction: 0,
++        }]));
++    (sim, person, device, chair)
++}
++
++#[test]
++fn television_order_routes_to_available_front_seat_but_keeps_device_target() {
++    let (mut sim, person, device, _) = fixture();
++    sim.tick();
++    assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++    assert_eq!(
++        sim.world().get::<Path>(person).unwrap().steps.last(),
++        Some(&(4, 3)),
++        "A suitable seat must replace the ordinary device-perimeter route"
++    );
++}
++
++#[test]
++fn media_cone_includes_its_angle_and_radius_edges_but_excludes_outside_seats() {
++    for (x, y, facing, wanted) in [
++        (9., 3., Facing::SouthWest, (8, 3)),
++        (5., 6., Facing::SouthWest, (4, 6)),
++        (10., 3., Facing::SouthWest, (3, 3)),
++        (7., 8., Facing::SouthWest, (3, 3)),
++        (4., 6., Facing::SouthWest, (3, 3)),
++        (1., 3., Facing::NorthEast, (3, 3)),
++        (5., 3., Facing::SouthEast, (3, 3)),
++    ] {
++        let (mut sim, person, device, _) = fixture_at("television", x, y, facing);
++        sim.tick();
++        assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++        assert_eq!(
++            sim.world().get::<Path>(person).unwrap().steps.last(),
++            Some(&wanted),
++            "Seat at {x},{y}, facing {facing:?}"
++        );
++    }
++}
++
++#[test]
++fn radio_uses_the_same_seat_with_its_own_activity() {
++    let (mut sim, person, device, chair) = fixture_at("radio", 5., 3., Facing::SouthWest);
++    for _ in 0..120 {
++        sim.tick();
++        if sim.world().get::<Eating>(person).is_some() {
++            sim.sync_render_buffer();
++            let buffer = sim.render_buffer();
++            let row = buffer
++                .ids
++                .iter()
++                .position(|id| *id == person.index_u32())
++                .unwrap();
++            assert_eq!(buffer.activities[row], 18);
++            assert_eq!(buffer.visual_actions[row], 8);
++            assert_eq!(buffer.interaction_targets[row], chair.index_u32());
++            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++            return;
++        }
++    }
++    panic!("Radio listener never reached the seat");
++}
++
++#[test]
++fn every_media_rotation_uses_its_physical_front_and_seat_front() {
++    for (device_facing, seat_facing, seat, endpoint) in [
++        (Facing::SouthEast, Facing::SouthWest, (11., 8.), (10, 8)),
++        (Facing::SouthWest, Facing::NorthWest, (8., 11.), (8, 10)),
++        (Facing::NorthWest, Facing::NorthEast, (5., 8.), (6, 8)),
++        (Facing::NorthEast, Facing::SouthEast, (8., 5.), (8, 6)),
++    ] {
++        let (mut sim, person, device, _) = fixture_with_device(
++            "television",
++            Position { x: 8., y: 8. },
++            Position {
++                x: seat.0,
++                y: seat.1,
++            },
++            device_facing,
++            seat_facing,
++            "armchair",
++        );
++        sim.tick();
++        assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++        assert_eq!(
++            sim.world().get::<Path>(person).unwrap().steps.last(),
++            Some(&endpoint)
++        );
++    }
++}
++
++#[test]
++fn farther_available_seat_beats_a_nearer_occupied_or_unreachable_seat() {
++    for occupied in [false, true] {
++        let (mut sim, person, device, chair) = fixture();
++        let pack = sim.world().resource::<Content>().0;
++        let far = sim.spawn_object(Position { x: 6., y: 4. }, pack.find("armchair").unwrap());
++        crate::apply_object_placement(
++            sim.world_mut(),
++            far,
++            pack.object(pack.find("armchair").unwrap()),
++            Position { x: 6., y: 4. },
++            Facing::SouthWest,
++        );
++        if occupied {
++            let other = sim
++                .world_mut()
++                .spawn((
++                    terri_core::Agent,
++                    Position { x: 4., y: 3. },
++                    Target {
++                        object: chair,
++                        interaction: 0,
++                    },
++                    Eating {
++                        object: pack.find("armchair").unwrap(),
++                        interaction: 0,
++                        remaining_ticks: 30,
++                    },
++                    terri_core::Needs::all_at(100.),
++                ))
++                .id();
++            sim.world_mut()
++                .entity_mut(chair)
++                .insert(terri_core::Reserved);
++            assert_ne!(other, person);
++        } else {
++            sim.world_mut()
++                .resource_mut::<terri_core::TileGrid>()
++                .set_blocked(4, 3, true);
++        }
++        sim.tick();
++        assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++        assert_eq!(
++            sim.world().get::<Path>(person).unwrap().steps.last(),
++            Some(&(5, 4))
++        );
++    }
++}
++
++#[test]
++fn every_fitted_seat_type_can_supply_a_media_place() {
++    for (kind, facing) in [
++        ("armchair", Facing::SouthWest),
++        ("chair", Facing::SouthWest),
++        ("desk_chair", Facing::SouthWest),
++        ("long_sofa", Facing::SouthWest),
++        ("reading_chair", Facing::NorthWest),
++        ("sofa", Facing::SouthEast),
++    ] {
++        let (mut sim, person, device, chair) = fixture_with_device(
++            "television",
++            Position { x: 2., y: 3. },
++            Position { x: 5., y: 3. },
++            Facing::SouthEast,
++            facing,
++            kind,
++        );
++        sim.tick();
++        let lease = sim
++            .world()
++            .resource::<terri_core::save::SavedDining>()
++            .diners
++            .iter()
++            .find(|d| d.person == person.index_u32());
++        assert_eq!(
++            lease.and_then(|d| d.chair),
++            Some(chair.index_u32()),
++            "{kind}"
++        );
++        assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++        assert!(
++            sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok(),
++            "{kind} lease must load"
++        );
++    }
++}
++
++#[test]
++fn autonomous_media_choice_uses_the_same_physical_seat_route() {
++    let (mut sim, person, device, _) = fixture();
++    sim.world_mut().entity_mut(person).remove::<IntentQueue>();
++    sim.world_mut()
++        .get_mut::<terri_core::Needs>(person)
++        .unwrap()
++        .set(terri_core::NeedId::Fun, 0.);
++    sim.tick();
++    assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++    assert_eq!(
++        sim.world().get::<Path>(person).unwrap().steps.last(),
++        Some(&(4, 3))
++    );
++}
++
++#[test]
++fn a_viewing_seat_does_not_require_reaching_the_device_perimeter() {
++    for directed in [false, true] {
++        let (mut sim, person, device, _) = fixture();
++        for (x, y) in [(1, 3), (2, 2), (2, 4), (3, 3)] {
++            sim.world_mut()
++                .resource_mut::<terri_core::TileGrid>()
++                .set_blocked(x, y, true);
++        }
++        if !directed {
++            sim.world_mut().entity_mut(person).remove::<IntentQueue>();
++            sim.world_mut()
++                .get_mut::<terri_core::Needs>(person)
++                .unwrap()
++                .set(terri_core::NeedId::Fun, 0.);
++        }
++        sim.tick();
++        assert_eq!(
++            sim.world().get::<Target>(person).map(|t| t.object),
++            Some(device),
++            "directed={directed}"
++        );
++        assert_eq!(
++            sim.world().get::<Path>(person).unwrap().steps.last(),
++            Some(&(4, 3))
++        );
++    }
++}
++
++#[test]
++fn cancellation_releases_media_seat_without_advancing_the_clock() {
++    let (mut sim, person, _, chair) = fixture();
++    sim.tick();
++    let tick = sim.world().resource::<terri_core::SimClock>().tick;
++    assert!(crate::seating::object_in_use(
++        sim.world(),
++        chair.index_u32()
++    ));
++    sim.world_mut()
++        .resource_mut::<terri_core::CommandQueue>()
++        .push(terri_core::SimCommand::CancelIntents {
++            agent: person.index_u32(),
++        });
++    sim.flush_commands();
++    assert_eq!(sim.world().resource::<terri_core::SimClock>().tick, tick);
++    assert!(!crate::seating::object_in_use(
++        sim.world(),
++        chair.index_u32()
++    ));
++    assert!(sim.world().get::<Target>(person).is_none());
++    assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
++}
++
++#[test]
++fn an_invalidated_viewing_seat_replans_to_another_available_seat() {
++    let (mut sim, person, device, chair) = fixture();
++    let pack = sim.world().resource::<Content>().0;
++    let other = sim.spawn_object(Position { x: 6., y: 4. }, pack.find("armchair").unwrap());
++    crate::apply_object_placement(
++        sim.world_mut(),
++        other,
++        pack.object(pack.find("armchair").unwrap()),
++        Position { x: 6., y: 4. },
++        Facing::SouthWest,
++    );
++    sim.tick();
++    assert_eq!(
++        crate::seating::claim(sim.world(), person.index_u32())
++            .unwrap()
++            .chair,
++        Some(chair.index_u32())
++    );
++    sim.world_mut()
++        .resource_mut::<terri_core::TileGrid>()
++        .set_edge_blocked((4, 3), (5, 3), true);
++    sim.tick();
++    assert_eq!(
++        crate::seating::claim(sim.world(), person.index_u32())
++            .unwrap()
++            .chair,
++        Some(other.index_u32())
++    );
++    assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++    assert_eq!(
++        sim.world().get::<Path>(person).unwrap().steps.last(),
++        Some(&(5, 4))
++    );
++    assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
++}
++
++#[test]
++fn media_seat_restores_during_travel_and_active_use() {
++    let (mut sim, person, _, _) = fixture();
++    let mut active = false;
++    for tick in 0..120 {
++        sim.tick();
++        if tick == 0 || sim.world().get::<Eating>(person).is_some() {
++            let snapshot = sim.save_snapshot_v5();
++            let hash = sim.world_hash();
++            assert!(
++                sim.load_snapshot_v5(snapshot.clone()).is_ok(),
++                "Exact media claims must restore at tick {tick}"
++            );
++            assert_eq!(sim.save_snapshot_v5(), snapshot);
++            assert_eq!(sim.world_hash(), hash);
++            if tick > 0 {
++                active = true;
++                break;
++            }
++        }
++    }
++    assert!(
++        active,
++        "The round-trip must include actual use, not only its path"
++    );
++}
++
++#[test]
++fn seated_viewer_projects_chair_contact_with_television_activity() {
++    let (mut sim, person, device, chair) = fixture();
++    for _ in 0..120 {
++        sim.tick();
++        if sim.world().get::<Eating>(person).is_some() {
++            sim.sync_render_buffer();
++            let buffer = sim.render_buffer();
++            let row = buffer
++                .ids
++                .iter()
++                .position(|id| *id == person.index_u32())
++                .unwrap();
++            assert_eq!(buffer.activities[row], 14);
++            assert_eq!(buffer.visual_actions[row], 8);
++            assert_eq!(buffer.interaction_targets[row], chair.index_u32());
++            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++            return;
++        }
++    }
++    panic!("Viewer did not arrive within the bounded route");
++}
++
++#[test]
++fn suspended_meal_cleanup_does_not_release_the_current_media_seat() {
++    let (mut sim, person, device, chair) = fixture();
++    let pack = sim.world().resource::<Content>().0;
++    let chain = pack
++        .chains
++        .iter()
++        .position(|c| c.id == "cook_dinner")
++        .unwrap() as u32;
++    sim.world_mut().entity_mut(person).insert((
++        Target {
++            object: device,
++            interaction: 0,
++        },
++        terri_core::ChainState {
++            step: 5,
++            ..terri_core::ChainState::begin(chain)
++        },
++    ));
++    let lease = terri_core::save::SavedDiner {
++        person: person.index_u32(),
++        station: device.index_u32(),
++        chair: Some(chair.index_u32()),
++        setting: None,
++        endpoint: (4, 3),
++        obstructing: vec![],
++    };
++    sim.world_mut()
++        .insert_resource(terri_core::save::SavedDining {
++            diners: vec![lease.clone()],
++            ..Default::default()
++        });
++    crate::domestic::suspend_cleanup(sim.world_mut(), person);
++    crate::dining::maintain(sim.world_mut());
++    assert_eq!(
++        sim.world()
++            .resource::<terri_core::save::SavedDining>()
++            .diners,
++        vec![lease],
++        "A suspended meal must not own the live television seat"
++    );
++    assert!(
++        crate::dining::claim(sim.world(), person.index_u32()).is_none(),
++        "Media ownership must not justify a meal station"
++    );
++}
++
++#[test]
++fn standing_media_routes_restore_away_from_the_device_perimeter() {
++    let (mut sim, person, _, chair) = fixture();
++    sim.world_mut()
++        .entity_mut(chair)
++        .insert(terri_core::ObjectFacing(Facing::SouthEast));
++    for (x, y) in [
++        (1, 2),
++        (1, 3),
++        (1, 4),
++        (2, 2),
++        (2, 4),
++        (3, 2),
++        (3, 3),
++        (3, 4),
++    ] {
++        sim.world_mut()
++            .resource_mut::<terri_core::TileGrid>()
++            .set_blocked(x, y, true);
++    }
++    for tick in 0..120 {
++        sim.tick();
++        if tick == 0 || sim.world().get::<Eating>(person).is_some() {
++            assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
++            let saved = sim.save_snapshot_v5();
++            assert!(
++                sim.load_snapshot_v5(saved.clone()).is_ok(),
++                "standing tick {tick}"
++            );
++            assert_eq!(sim.save_snapshot_v5(), saved);
++            if tick > 0 {
++                return;
++            }
++        }
++    }
++    panic!("Standing viewer never arrived");
++}
++
++#[test]
++fn an_invalid_current_endpoint_releases_the_media_commitment() {
++    let (mut sim, person, _, chair) = fixture();
++    for _ in 0..120 {
++        sim.tick();
++        if sim.world().get::<Eating>(person).is_some() {
++            let endpoint = crate::seating::claim(sim.world(), person.index_u32())
++                .unwrap()
++                .endpoint;
++            sim.world_mut()
++                .resource_mut::<terri_core::TileGrid>()
++                .set_blocked(endpoint.0 as usize, endpoint.1 as usize, true);
++            crate::media::maintain(sim.world_mut());
++            assert!(sim.world().get::<Target>(person).is_none());
++            assert!(sim.world().get::<Eating>(person).is_none());
++            assert!(!crate::seating::object_in_use(
++                sim.world(),
++                chair.index_u32()
++            ));
++            return;
++        }
++    }
++    panic!("Viewer never arrived");
++}
++
++#[test]
++fn media_lease_cannot_share_a_chair_with_an_ordinary_sitter() {
++    let (mut sim, person, _, chair) = fixture();
++    sim.tick();
++    let other = crate::household::spawn_member(
++        sim.world_mut(),
++        &terri_data::pack().personalities,
++        &terri_data::pack().traits,
++        crate::household::Member {
++            name: "Sitter".into(),
++            personality: 0,
++            position: Position { x: 4., y: 3. },
++            needs: [100.; 7],
++            hobbies: vec![],
++            traits: &[],
++            career: None,
++            instinct: Some(50),
++        },
++    );
++    sim.world_mut().entity_mut(other).insert(Target {
++        object: chair,
++        interaction: 0,
++    });
++    let lease = crate::seating::claim(sim.world(), person.index_u32()).unwrap();
++    assert!(!crate::media::valid_lease(sim.world(), lease));
++    let snapshot = sim.save_snapshot_v5();
++    let hash = sim.world_hash();
++    assert!(sim.load_snapshot_v5(snapshot.clone()).is_err());
++    assert_eq!(sim.save_snapshot_v5(), snapshot);
++    assert_eq!(sim.world_hash(), hash);
++}
++
++#[test]
++fn privacy_substitution_routes_directly_to_the_media_seat() {
++    let (mut sim, person, device, chair) = fixture();
++    sim.world_mut().entity_mut(person).remove::<IntentQueue>();
++    sim.world_mut()
++        .get_mut::<terri_core::Needs>(person)
++        .unwrap()
++        .set(terri_core::NeedId::Fun, 0.);
++    let mut safe = sim.world().resource::<terri_core::TileGrid>().clone();
++    for (x, y) in [(1, 3), (2, 2), (2, 4), (3, 3)] {
++        safe.set_blocked(x, y, true);
++    }
++    assert!(crate::privacy::substitute(
++        sim.world_mut(),
++        person,
++        terri_core::NeedId::Fun.index() as u8,
++        &safe,
++        false
++    ));
++    assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
++    assert_eq!(
++        sim.world().get::<Path>(person).unwrap().steps.last(),
++        Some(&(4, 3))
++    );
++    assert_eq!(
++        crate::seating::claim(sim.world(), person.index_u32())
++            .unwrap()
++            .chair,
++        Some(chair.index_u32())
++    );
++}
++
++#[test]
++fn media_seats_refuse_move_rotation_and_sale_during_travel_and_use() {
++    let pack = terri_data::pack();
++    let mut lot = pack.lot.clone();
++    lot.walls.clear();
++    lot.wall_edges.clear();
++    lot.placements = [
++        ("television", 2., 3., Facing::SouthEast),
++        ("armchair", 5., 3., Facing::SouthWest),
++    ]
++    .into_iter()
++    .map(|(kind, x, y, facing)| {
++        let object = pack.find(kind).unwrap();
++        let def = pack.object(object);
++        terri_data::CompiledPlacement {
++            object,
++            x,
++            y,
++            facing,
++            sprite: def.facing_sprites.get(facing).unwrap(),
++            action_sockets: def.sockets_at(x, y, facing),
++            foreground_sprite: def.facing_foreground_sprites.get(facing),
++        }
++    })
++    .collect();
++    let mut sim = Sim::new_from_lot(&lot, &pack.objects);
++    let objects: Vec<_> = sim
++        .world_mut()
++        .query::<(bevy_ecs::entity::Entity, &terri_core::SmartObject)>()
++        .iter(sim.world())
++        .map(|(e, o)| (e, o.0))
++        .collect();
++    let device = objects
++        .iter()
++        .find(|(_, o)| *o == pack.find("television").unwrap())
++        .unwrap()
++        .0;
++    let chair = objects
++        .iter()
++        .find(|(_, o)| *o == pack.find("armchair").unwrap())
++        .unwrap()
++        .0;
++    let person = crate::household::spawn_member(
++        sim.world_mut(),
++        &pack.personalities,
++        &pack.traits,
++        crate::household::Member {
++            name: "Viewer".into(),
++            personality: 0,
++            position: Position { x: 0., y: 3. },
++            needs: [100.; 7],
++            hobbies: vec![],
++            traits: &[],
++            career: None,
++            instinct: Some(50),
++        },
++    );
++    assert!(crate::placement::validate_placement(
++        sim.world(),
++        chair.index_u32(),
++        (6, 3),
++        Facing::SouthWest
++    )
++    .is_ok());
++    assert!(crate::placement::sale::validate_sale(sim.world(), chair.index_u32()).is_ok());
++    sim.world_mut()
++        .entity_mut(person)
++        .insert(IntentQueue::from_intents(vec![Intent {
++            object: device,
++            interaction: 0,
++        }]));
++    for tick in 0..120 {
++        sim.tick();
++        if tick == 0 || sim.world().get::<Eating>(person).is_some() {
++            let position = *sim.world().get::<Position>(chair).unwrap();
++            for (origin, facing) in [
++                ((6, 3), Facing::SouthWest),
++                ((position.x as u32, position.y as u32), Facing::NorthWest),
++            ] {
++                let result = crate::placement::validate_placement(
++                    sim.world(),
++                    chair.index_u32(),
++                    origin,
++                    facing,
++                );
++                assert!(
++                    matches!(result, Err(crate::placement::PlacementRefusal::InUse)),
++                    "{result:?}"
++                );
++            }
++            assert!(matches!(
++                crate::placement::sale::validate_sale(sim.world(), chair.index_u32()),
++                Err(crate::placement::PlacementRefusal::InUse)
++            ));
++            if tick > 0 {
++                return;
++            }
++        }
++    }
++    panic!("Viewer never arrived");
++}
++
++#[test]
++fn a_standing_viewer_takes_a_seat_when_it_becomes_available() {
++    let (mut sim, person, _, chair) = fixture();
++    sim.world_mut()
++        .entity_mut(chair)
++        .insert(terri_core::ObjectFacing(Facing::SouthEast));
++    for _ in 0..120 {
++        sim.tick();
++        if sim.world().get::<Eating>(person).is_some() {
++            assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
++            sim.world_mut()
++                .entity_mut(chair)
++                .insert(terri_core::ObjectFacing(Facing::SouthWest));
++            crate::media::maintain(sim.world_mut());
++            assert_eq!(
++                crate::seating::claim(sim.world(), person.index_u32())
++                    .unwrap()
++                    .chair,
++                Some(chair.index_u32())
++            );
++            assert!(sim.world().get::<Eating>(person).is_none());
++            assert!(sim.world().get::<Path>(person).is_some());
++            return;
++        }
++    }
++    panic!("Standing viewer never arrived");
++}
++
++#[test]
++fn exact_release_does_not_remove_a_replacement_media_lease() {
++    let (mut sim, person, device, _) = fixture();
++    sim.tick();
++    let pack = sim.world().resource::<Content>().0;
++    let radio = sim.spawn_object(Position { x: 2., y: 4. }, pack.find("radio").unwrap());
++    let previous = *sim.world().get::<Target>(person).unwrap();
++    sim.world_mut().entity_mut(person).insert(Target {
++        object: radio,
++        interaction: 0,
++    });
++    sim.world_mut()
++        .resource_mut::<terri_core::save::SavedDining>()
++        .diners[0]
++        .station = radio.index_u32();
++    crate::reservations::release_now(sim.world_mut(), person, previous);
++    assert_eq!(
++        crate::seating::claim(sim.world(), person.index_u32())
++            .unwrap()
++            .station,
++        radio.index_u32()
++    );
++    assert_eq!(sim.world().get::<Target>(person).unwrap().object, radio);
++    assert_ne!(radio, device);
++}
++
++#[test]
++fn exact_release_removes_the_live_media_lease_before_any_maintenance() {
++    let (mut sim, person, _, _) = fixture();
++    sim.tick();
++    let expected = *sim.world().get::<Target>(person).unwrap();
++    assert!(crate::seating::claim(sim.world(), person.index_u32()).is_some());
++    crate::seating::release_exact(sim.world_mut(), person, expected);
++    assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
++    assert_eq!(sim.world().get::<Target>(person), Some(&expected));
++}
++
++#[test]
++fn media_completion_releases_its_secondary_chair() {
++    let (mut sim, person, _, chair) = fixture();
++    for _ in 0..120 {
++        sim.tick();
++        if sim.world().get::<Eating>(person).is_some() {
++            sim.world_mut()
++                .get_mut::<Eating>(person)
++                .unwrap()
++                .remaining_ticks = 1;
++            sim.tick();
++            assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
++            assert!(!crate::seating::object_in_use(
++                sim.world(),
++                chair.index_u32()
++            ));
++            return;
++        }
++    }
++    panic!("Viewer never arrived");
++}
++
++#[test]
++fn ordinary_ottoman_sitting_uses_the_fitted_body_without_a_media_lease() {
++    let (mut sim, person, _, chair) = fixture_with_device(
++        "television",
++        Position { x: 2., y: 3. },
++        Position { x: 5., y: 3. },
++        Facing::SouthEast,
++        Facing::SouthEast,
++        "sofa",
++    );
++    sim.world_mut()
++        .entity_mut(person)
++        .insert(IntentQueue::from_intents(vec![Intent {
++            object: chair,
++            interaction: 0,
++        }]));
++    for _ in 0..120 {
++        sim.tick();
++        if sim.world().get::<Eating>(person).is_some() {
++            sim.sync_render_buffer();
++            let buffer = sim.render_buffer();
++            let row = buffer
++                .ids
++                .iter()
++                .position(|id| *id == person.index_u32())
++                .unwrap();
++            assert_eq!(buffer.visual_actions[row], 8);
++            assert_eq!(buffer.interaction_targets[row], chair.index_u32());
++            assert_eq!(
++                buffer.activities[row],
++                crate::render_buffer::activity::SITTING
++            );
++            assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
++            assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
++            return;
++        }
++    }
++    panic!("Sitter never arrived");
++}
++
++#[test]
++fn explicit_ottoman_visual_keeps_its_authored_socket_instead_of_the_neutral_fallback() {
++    let shipped = terri_data::pack();
++    let mut pack = shipped.clone();
++    let sofa = pack.find("sofa").unwrap();
++    let armchair = pack.find("armchair").unwrap();
++    pack.objects[sofa.0 as usize].interactions[0].visual =
++        pack.object(armchair).interactions[0].visual;
++    let pack = Box::leak(Box::new(pack));
++    let mut sim = Sim::new_with_lot(16, 16);
++    sim.world_mut().insert_resource(Content(pack));
++    let chair = sim.spawn_object(Position { x: 5., y: 3. }, sofa);
++    sim.world_mut()
++        .entity_mut(chair)
++        .insert(crate::ResolvedActionSockets(vec![
++            terri_data::CompiledPlacementSocket {
++                x: 7.25,
++                y: 8.5,
++                facing: terri_data::CompiledSocketFacing::NegativeX,
++            },
++        ]));
++    let person = sim
++        .world_mut()
++        .spawn((
++            terri_core::Agent,
++            Position { x: 4., y: 3. },
++            Target {
++                object: chair,
++                interaction: 0,
++            },
++            Eating {
++                object: sofa,
++                interaction: 0,
++                remaining_ticks: 20,
++            },
++        ))
++        .id();
++    assert!(crate::seating::ordinary_projection(sim.world(), person).is_none());
++    sim.sync_render_buffer();
++    let b = sim.render_buffer();
++    let row = b
++        .ids
++        .iter()
++        .position(|id| *id == person.index_u32())
++        .unwrap();
++    assert_eq!(&b.positions[row * 2..row * 2 + 2], &[7.25, 8.5]);
++    assert_eq!(b.facings[row], 2);
++    assert_eq!(b.visual_actions[row], 8);
++}
+diff --git a/crates/terri-sim/src/systems/action.rs b/crates/terri-sim/src/systems/action.rs
+index 46e25d76..ebca77c1 100644
+--- a/crates/terri-sim/src/systems/action.rs
++++ b/crates/terri-sim/src/systems/action.rs
+@@ -74,6 +74,8 @@ use crate::Content;
+ #[derive(SystemParam)]
+ pub struct BedState<'w, 's> {
+     pub(super) assignments: Res<'w, crate::beds::BedAssignments>,
++    places: Option<Res<'w, terri_core::save::SavedDining>>,
++    objects: Query<'w, 's, Entity, With<SmartObject>>,
+     targets: Query<
+         'w,
+         's,
+@@ -90,12 +92,34 @@ pub struct BedState<'w, 's> {
+ 
+ impl BedState<'_, '_> {
+     pub(super) fn occupancy(&self) -> crate::beds::Occupancy {
+-        crate::beds::Occupancy::new(
++        let mut result = crate::beds::Occupancy::new(
+             self.targets.iter().map(|(owner, target, place, agent)| {
+                 (owner, *target, place.copied().filter(|_| agent))
+             }),
+             self.reservations.iter(),
+-        )
++        );
++        for place in self.physical_places() {
++            if let Some(chair) = place.chair {
++                if let Some((owner, _, _, _)) =
++                    self.targets.iter().find(|(owner, target, _, agent)| {
++                        *agent
++                            && owner.index_u32() == place.person
++                            && target.object.index_u32() == place.station
++                    })
++                {
++                    if let Some(object) = self.objects.iter().find(|e| e.index_u32() == chair) {
++                        result.physical_claim(owner, object);
++                    }
++                }
++            }
++        }
++        result
++    }
++
++    fn physical_places(&self) -> Vec<terri_core::save::SavedDiner> {
++        self.places
++            .as_ref()
++            .map_or_else(Vec::new, |s| s.diners.clone())
+     }
+ }
+ 
+@@ -482,6 +506,7 @@ pub fn serve_intents(
+         ),
+     >,
+     objects: Query<(
++        Entity,
+         &Position,
+         &SmartObject,
+         Has<Reserved>,
+@@ -518,6 +543,18 @@ pub fn serve_intents(
+ 
+     let mut claimed: Vec<Entity> = Vec::new();
+     let mut occupancy = beds.occupancy();
++    let mut physical_places = beds.physical_places();
++    let furniture: Vec<_> = objects
++        .iter()
++        .map(
++            |(entity, position, placed, _, facing)| super::interpersonal::BoundaryFurniture {
++                entity,
++                position: *position,
++                definition: placed.0,
++                facing: facing.map_or(content.0.object(placed.0).base_facing, |f| f.0),
++            },
++        )
++        .collect();
+ 
+     for agent in directed {
+         // Infallible: the list was just collected from this query and
+@@ -568,7 +605,7 @@ pub fn serve_intents(
+         // mistaken for contention with somebody else.
+         let held_here = target.is_some_and(|t| t.object == intent.object);
+ 
+-        let Ok((object_pos, placed, _, facing)) = objects.get(intent.object) else {
++        let Ok((_, object_pos, placed, _, facing)) = objects.get(intent.object) else {
+             // **Not an object - perhaps a PERSON.** A TalkTo intent
+             // carries the target sim's entity in the same field a
+             // UseObject carries a fridge's, and this is where the two
+@@ -770,7 +807,33 @@ pub fn serve_intents(
+             to,
+             &field,
+         );
+-        if access.nearest(sleep).is_none() {
++        let media_requested =
++            crate::seating::media_activity(content.0, placed.0, intent.interaction).is_some();
++        let media_plan = if media_requested {
++            let device = furniture
++                .iter()
++                .find(|item| item.entity == intent.object)
++                .expect("known media device");
++            let Some(plan) = crate::media::plan(
++                crate::media::Planning {
++                    pack: content.0,
++                    grid: &grid,
++                    field: &field,
++                    objects: &furniture,
++                    occupancy: &occupancy,
++                    claims: &physical_places,
++                },
++                agent,
++                device,
++            ) else {
++                queue.pop();
++                continue;
++            };
++            Some(plan)
++        } else {
++            None
++        };
++        if !media_requested && access.nearest(sleep).is_none() {
+             queue.pop();
+             continue;
+         }
+@@ -786,8 +849,10 @@ pub fn serve_intents(
+             &beds.assignments,
+         );
+         let chosen = available.into_iter().find_map(|admission| {
+-            access
+-                .for_admission(admission)
++            media_plan
++                .as_ref()
++                .map(|plan| plan.access)
++                .or_else(|| access.for_admission(admission))
+                 .map(|reachable| (admission, reachable))
+         });
+         let Some((admission, reachable)) = chosen else {
+@@ -859,6 +924,20 @@ pub fn serve_intents(
+                 Path { steps, cursor: 0 },
+             ));
+         admission.apply(&mut commands.entity(agent));
++        if let Some(plan) = media_plan {
++            physical_places.retain(|d| d.person != agent.index_u32());
++            if let Some(lease) = &plan.lease {
++                let chair = furniture
++                    .iter()
++                    .find(|item| Some(item.entity.index_u32()) == lease.chair)
++                    .expect("planned physical seat")
++                    .entity;
++                occupancy.physical_claim(agent, chair);
++                physical_places.push(lease.clone());
++            }
++            commands
++                .queue(move |world: &mut World| crate::seating::replace(world, agent, plan.lease));
++        }
+     }
+ }
+ 
+@@ -1037,6 +1116,17 @@ pub fn select_action(
+         })
+         .collect();
+     placed_objects.sort_by_key(|(e, ..)| e.index());
++    let furniture: Vec<_> = placed_objects
++        .iter()
++        .map(
++            |(entity, position, placed, _, _, facing)| super::interpersonal::BoundaryFurniture {
++                entity: *entity,
++                position: *position,
++                definition: placed.0,
++                facing: *facing,
++            },
++        )
++        .collect();
+ 
+     let mut company: Vec<(Entity, Position, SimId, bool)> = people
+         .iter()
+@@ -1051,6 +1141,7 @@ pub fn select_action(
+ 
+     let mut decisions = Vec::new();
+     let mut occupancy = beds.occupancy();
++    let mut physical_places = beds.physical_places();
+     for (
+         agent,
+         agent_pos,
+@@ -1074,6 +1165,7 @@ pub fn select_action(
+         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
+         let mut admissions = std::collections::HashMap::new();
+         let mut routes = std::collections::HashMap::new();
++        let mut media_plans = std::collections::HashMap::new();
+         let mut risks = Vec::new();
+         let deprivation = mortality
+             .counts
+@@ -1093,21 +1185,41 @@ pub fn select_action(
+             let object = *object;
+             let contested = *reserved || claimed.contains(&object);
+             let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
+-            let Some(distance) =
+-                distances.and_then(|field| field.distance_to_adjacent(to, *footprint))
++            let Some(field) = distances else {
++                continue;
++            };
++            let definition = content.0.object(placed.0);
++            let mut viewing = std::collections::HashMap::new();
++            for (index, _) in definition.interactions.iter().enumerate() {
++                if crate::seating::media_activity(content.0, placed.0, index as u32).is_some() {
++                    let device = furniture
++                        .iter()
++                        .find(|item| item.entity == object)
++                        .expect("known media device");
++                    if let Some(plan) = crate::media::plan(
++                        crate::media::Planning {
++                            pack: content.0,
++                            grid: &grid,
++                            field,
++                            objects: &furniture,
++                            occupancy: &occupancy,
++                            claims: &physical_places,
++                        },
++                        agent,
++                        device,
++                    ) {
++                        viewing.insert(index as u32, plan);
++                    }
++                }
++            }
++            let perimeter_distance = field.distance_to_adjacent(to, *footprint);
++            let Some(distance) = perimeter_distance
++                .or_else(|| viewing.values().map(|plan| plan.access.distance).min())
+             else {
+                 continue;
+             };
+             let distance = distance as f32;
+-
+-            let definition = content.0.object(placed.0);
+-            let access = Access::new(
+-                definition,
+-                &content.0.sleep_tag,
+-                *facing,
+-                to,
+-                distances.expect("reachable perimeter has a distance field"),
+-            );
++            let access = Access::new(definition, &content.0.sleep_tag, *facing, to, field);
+             for (index, advert) in definition.interactions.iter().enumerate() {
+                 let sleep =
+                     !content.0.sleep_tag.is_empty() && advert.tags.contains(&content.0.sleep_tag);
+@@ -1122,12 +1234,18 @@ pub fn select_action(
+                     },
+                     &beds.assignments,
+                 );
++                let media_requested =
++                    crate::seating::media_activity(content.0, placed.0, index as u32).is_some();
++                let media_plan = viewing.get(&(index as u32)).cloned();
+                 let reachable: Vec<_> = available
+                     .into_iter()
+                     .filter_map(|admission| {
+-                        access
+-                            .for_admission(admission)
+-                            .map(|route| (admission, route))
++                        (if media_requested {
++                            media_plan.as_ref().map(|plan| plan.access)
++                        } else {
++                            access.for_admission(admission)
++                        })
++                        .map(|route| (admission, route))
+                     })
+                     .collect();
+                 let snack = (advert.id == "grab_snack")
+@@ -1231,6 +1349,9 @@ pub fn select_action(
+                     risks.push(risk);
+                     admissions.insert((object, index as u32), admission);
+                     routes.insert((object, index as u32), route.route);
++                    if let Some(plan) = media_plan {
++                        media_plans.insert((object, index as u32), plan);
++                    }
+                 } else if let Some(route) = access.nearest(sleep) {
+                     let (score, _) = score_at(route.distance);
+                     waiting_rows.push((
+@@ -1242,6 +1363,9 @@ pub fn select_action(
+             }
+ 
+             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
++            if perimeter_distance.is_none() {
++                continue;
++            }
+             let mut chain_row = 0u32;
+             for chain in content.0.chains.iter() {
+                 if chain.advertised_by != placed.0 {
+@@ -1570,6 +1694,20 @@ pub fn select_action(
+             Path { steps, cursor: 0 },
+         ));
+         admission.apply(&mut commands.entity(agent));
++        if let Some(plan) = media_plans.remove(&(object, interaction)) {
++            physical_places.retain(|d| d.person != agent.index_u32());
++            if let Some(lease) = &plan.lease {
++                let chair = furniture
++                    .iter()
++                    .find(|item| Some(item.entity.index_u32()) == lease.chair)
++                    .expect("planned physical seat")
++                    .entity;
++                occupancy.physical_claim(agent, chair);
++                physical_places.push(lease.clone());
++            }
++            commands
++                .queue(move |world: &mut World| crate::seating::replace(world, agent, plan.lease));
++        }
+     }
+     commands.insert_resource(super::autonomy::DecisionTelemetry(decisions));
+ }

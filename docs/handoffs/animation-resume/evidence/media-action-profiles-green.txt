@@ -1,0 +1,37 @@
+
+> test
+> vitest run --maxWorkers=1 tests/interaction-sprites.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web
+
+ ❯ tests/interaction-sprites.test.ts (7 tests | 1 failed) 7ms
+     × adds a neutral seat action without replacing the accepted reading profile 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/interaction-sprites.test.ts > exact registered interaction selection > adds a neutral seat action without replacing the accepted reading profile
+AssertionError: expected 414 to be 900 // Object.is equality
+
+- Expected
++ Received
+
+- 900
++ 414
+
+ ❯ tests/interaction-sprites.test.ts:29:32
+     27|     cols.actions[2]=8;
+     28|     selected.update(cols,0,false);
+     29|     expect(selected.bodies[2]).toBe(900);
+       |                                ^
+     30|     selected.update(cols,6,false);
+     31|     expect(selected.bodies[2]).toBe(901);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  08:24:21
+   Duration  194ms (transform 31ms, setup 0ms, import 41ms, tests 7ms, environment 0ms)
+

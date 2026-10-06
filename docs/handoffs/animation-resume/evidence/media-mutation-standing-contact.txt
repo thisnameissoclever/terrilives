@@ -1,0 +1,9 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.35s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test seating::tests::standing_media_routes_restore_away_from_the_device_perimeter ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 930 filtered out; finished in 0.04s
+

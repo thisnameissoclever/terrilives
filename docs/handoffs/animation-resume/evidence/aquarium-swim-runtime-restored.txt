@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/aquarium.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  07:06:04
+   Duration  1.07s (transform 618ms, setup 0ms, import 742ms, tests 234ms, environment 0ms)
+

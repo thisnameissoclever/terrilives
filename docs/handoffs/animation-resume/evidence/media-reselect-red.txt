@@ -1,0 +1,24 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\terrilives\bike-chair-four-facings\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.20s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test seating::tests::an_invalidated_viewing_seat_replans_to_another_available_seat ... FAILED
+
+failures:
+
+---- seating::tests::an_invalidated_viewing_seat_replans_to_another_available_seat stdout ----
+
+thread 'seating::tests::an_invalidated_viewing_seat_replans_to_another_available_seat' (48012) panicked at crates\terri-sim\src\seating\tests.rs:333:5:
+assertion `left == right` failed
+  left: Some(1)
+ right: Some(3)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    seating::tests::an_invalidated_viewing_seat_replans_to_another_available_seat
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 919 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

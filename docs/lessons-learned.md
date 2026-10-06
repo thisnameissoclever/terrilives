@@ -10276,3 +10276,102 @@ only the helper under test.
 **Verify.** The corrected fixture restores both travel and active use. Deleting
 the standing-contact consumer calls rejects its travel save. Restoring the
 calls returns the test to green without modifying runtime behavior.
+
+## [L-open-seat-support-symmetry] Verify mirrored support and natural placement separately
+
+**What happened.** A toilet prototype found two valid seat-ring patches, but
+the search selected different regions on the left and right. Its mechanically
+clear pose also perched too far forward to look like natural toilet sitting.
+
+**Root cause.** Independent patch searches did not require mirrored bounds.
+Moving the hips forward while fixing ankle position lowered the knees and
+cleared the ring by moving the thighs beyond it. Mechanical acceptance did
+not establish the intended seated position.
+
+**Prevention.** Require actual mirrored support neighborhoods on an open seat.
+Keep central sitting and clothing clearance as simultaneous pose constraints.
+Inspect every facing before accepting a mechanical pass. Diagnose deformation
+and coupled shoe/knee reachability before adding more positional guesses.
+
+**Verify.** Retain the front-perch prototype as a rejected visual control.
+Require actual ring hits, complete body clearance and a natural four-facing
+silhouette from its replacement.
+
+## [L-opaque-envelope] Prove coverage separately from connected decorations
+
+**What happened.** Overlapping shower cloud lobes formed a connected group but
+left clothing visible. Correcting one gap exposed another in a different view.
+
+**Root cause.** Connected geometry does not necessarily enclose a body. The
+diagnostic also stopped at the first failed facing and retained only a small
+sample of exposed vertices, hiding the extent of the remaining gaps.
+
+**Prevention.** Separate complete opaque coverage from decorative cloud shape.
+Use a closed rendered enclosure and certify its evaluated geometry against
+the complete protected surface. A convex enclosure with a positive margin
+around every vertex also contains every triangle. Check every facing and
+retain all exposure coordinates before reporting failure. Keep coverage
+non-solid and non-supporting so it cannot conceal failed contact checks.
+
+**Verify.** Remove a cap, open a side gap and shrink the enclosure through the
+protected body. Each corruption must fail its intended guard. Review the
+ordinary four-facing images separately; proven coverage can still look wrong.
+
+## [L-receipt-representation] Compare saved evidence in its serialized form
+
+**What happened.** A render-only correction was rejected as changed geometry,
+although the old and new saved measurements were identical.
+
+**Root cause.** The comparison mixed Python tuples in a live measurement with
+JSON lists in the saved receipt. Those containers compare differently even
+when their values are identical.
+
+**Prevention.** Normalize live measurements through the same finite JSON
+representation used for saved receipts before exact comparison. Do not add
+numeric tolerances to repair a container-type mismatch.
+
+**Verify.** Identical tuple/list encodings compare equal. A changed number,
+changed array order or non-finite value still fails the comparison.
+
+## [L-effect-shape-review] Check effect shape and shading as separate design choices
+
+**What happened.** Opaque shower coverage passed containment checks but looked
+like padded clothing. Removing dark outlines left the repeated solid tiers.
+Removing solid shading then left a smooth sack-shaped outline.
+
+**Root cause.** The effect reused a shirt material and a body-centered shape.
+Neither a connected cloud nor an asymmetric mesh guarantees that its projected
+outline reads as steam. Numerical shape descriptors did not establish that
+the bulges were visually meaningful from the actual game camera.
+
+**Prevention.** Give an effect its own shape and shading design. Preserve the
+geometry that guarantees coverage independently. Review the most revealing
+camera view before producing a full animation matrix. After repeated visual
+failure and an independent rethink, retain the rejected sources and proceed
+with another independent asset rather than adding more small variations.
+
+**Verify.** Inspect the actual rendered outline, interior shading and ordinary
+depth occlusion. Confirm that the effect is recognizable at the intended
+display size. Passing a mesh or material guard does not establish visual
+acceptance.
+
+## [L-import-evidence-semantics] Validate recorded evidence beyond its hashes
+
+**What happened.** An animation importer verified source files but accepted
+missing geometry and ink-ownership records, unsupported contact partitions,
+negative distances and colours that differed from the approved setter.
+
+**Root cause.** File hashes establish which bytes were read. They do not
+establish that the measurements and records in those bytes prove acceptance.
+Summed polygon areas also cannot establish coverage when partitions overlap.
+
+**Prevention.** Validate complete measurement matrices and their physical
+meaning. Require non-overlapping full-cell contact coverage. Compare loop
+closure targets with the accepted pose. Anchor colour changes to immutable
+source materials and the approved setter. Compare retained reconstructions
+with decoded layers rather than trusting their filenames or recorded hashes.
+
+**Verify.** Re-sign corrupted evidence after changing its contents. Reject
+missing records, overlapping half-cell copies, negative distances, changed
+closure coordinates and uniformly darkened palette changes. Authentic source
+evidence must still pass without relaxing acceptance limits.

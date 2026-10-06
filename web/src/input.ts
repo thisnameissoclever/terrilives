@@ -33,7 +33,8 @@ import { sampleBedCoverage } from './render/bed-sprites.js';
 
 import { SPRITES, INTERACTION_SPRITES, BED_CATALOG, BED_COVERAGE, SPRITE_CONTENT_BOUNDS,
   SPRITE_PAIR_COVERAGE, SPRITE_PAIR_MASKS, SPRITE_DINING_SUPPORT,
-  SEATING_SPRITES, SEATING_COVERAGE, SEATING_MASKS } from './render/atlas.js';
+  SEATING_SPRITES, SEATING_COVERAGE, SEATING_MASKS,
+  BATHROOM_SPRITES, BATHROOM_COVERAGE, BATHROOM_MASKS } from './render/atlas.js';
 import { visibleSceneOwner } from './render/visible-scene-coverage.js';
 import { sampleDiningSupport } from './render/dining-support.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
@@ -348,7 +349,8 @@ export function clientToWorld(
  * loop's timing; the miss is small and only at the boundary, so it has not been
  * done.
  */
-const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES);
+const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG,
+  { ...SEATING_SPRITES, ...BATHROOM_SPRITES });
 
 export function pickSprite(
   source: PickSource,
@@ -414,7 +416,8 @@ export function pickSprite(
         : facings?.[row] ?? 0;
     const pairedOwner = interactions.ownerForTarget(row);
     const occupiedSprite = pairedOwner >= 0 ? interactions.bodies[pairedOwner] : -1;
-    const displayedSprite = occupiedSprite >= 0 && (SPRITE_PAIR_COVERAGE[occupiedSprite] || SEATING_COVERAGE[occupiedSprite])
+    const displayedSprite = occupiedSprite >= 0 && (SPRITE_PAIR_COVERAGE[occupiedSprite]
+      || SEATING_COVERAGE[occupiedSprite] || BATHROOM_COVERAGE[occupiedSprite])
       ? occupiedSprite : interactions.bodies[row] >= 0 ? interactions.bodies[row] :
       kinds[row] === KIND_AGENT && visualActions !== null && facings !== null
         ? simBodySprite(
@@ -465,10 +468,11 @@ export function pickSprite(
     const bed = interactions.bedScenes[row];
     const place = interactions.bedPlaces[row];
     let coverage = -1;
-    const seatingCoverage = SEATING_COVERAGE[displayedSprite];
-    const pairCoverage = seatingCoverage ?? SPRITE_PAIR_COVERAGE[displayedSprite];
+    const sceneCoverage = SEATING_COVERAGE[displayedSprite] ?? BATHROOM_COVERAGE[displayedSprite];
+    const pairCoverage = sceneCoverage ?? SPRITE_PAIR_COVERAGE[displayedSprite];
     if (pairCoverage) {
-      const masks = seatingCoverage ? SEATING_MASKS : SPRITE_PAIR_MASKS;
+      const masks = SEATING_COVERAGE[displayedSprite] ? SEATING_MASKS
+        : BATHROOM_COVERAGE[displayedSprite] ? BATHROOM_MASKS : SPRITE_PAIR_MASKS;
       const x = (px - left) / scale * (sprite.pixel_density ?? 1) - 0.5;
       const y = (py - top) / scale * (sprite.pixel_density ?? 1) - 0.5;
       const body = sampleBedCoverage(masks[pairCoverage[0]], x, y);
@@ -476,7 +480,7 @@ export function pickSprite(
       const ink = sampleBedCoverage(masks[pairCoverage[2]], x, y);
       const bodyInk = sampleBedCoverage(masks[pairCoverage[3]], x, y);
       const isBody = kinds[row] === KIND_AGENT;
-      if (seatingCoverage) {
+      if (sceneCoverage) {
         const owner = visibleSceneOwner(body, wood, ink, bodyInk);
         if (owner === null || isBody !== (owner === 'body')) continue;
       } else {

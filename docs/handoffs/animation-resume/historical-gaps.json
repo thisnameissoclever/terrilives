@@ -1,0 +1,10 @@
+{
+  "purpose": "Unavailable producer bytes for rejected early toilet attempts; not active animation dependencies",
+  "bindings": [
+    {"receipt": "assets/models/bathroom/actions/review/toilet/prototype-01/proof.json", "path": "bathroom/actions/render_toilet_use.py", "sha256": "d8b550d28fe97ddd06c19802218756afc5cdc35c15503b116cbb91c140cf04ca"},
+    {"receipt": "assets/models/bathroom/actions/review/toilet/prototype-01/proof.json", "path": "bathroom/actions/toilet_contact.py", "sha256": "f0c9f710090ec6679d68a21ab628b8f1c85777deaebfb502e362f0a67b231e2f"},
+    {"receipt": "assets/models/bathroom/actions/review/toilet/prototype-01/proof.json", "path": "bathroom/actions/toilet_pose.py", "sha256": "3987956596a34391a9f079ac88248415e4c708afc3f892567d6bb0f4381fee51"},
+    {"receipt": "assets/models/bathroom/actions/review/toilet/prototype-02/proof.json", "path": "bathroom/actions/render_toilet_use.py", "sha256": "d8b550d28fe97ddd06c19802218756afc5cdc35c15503b116cbb91c140cf04ca"},
+    {"receipt": "assets/models/bathroom/actions/review/toilet/prototype-02/proof.json", "path": "bathroom/actions/toilet_pose.py", "sha256": "5b0fb9f26543c4f0636c3350684d640eadacd26c82716e600cedb8415aae8f34"}
+  ]
+}

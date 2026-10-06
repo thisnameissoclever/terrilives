@@ -935,7 +935,8 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              hands=None, tops=None, clips=None, hand_fronts=None, variants=None, densities=None,
              pairs=None, interactions=None, bounds=None, surfaces=None, bed_catalog=None, bed_layers=None, bed_coverage=None,
              pair_coverage=None, pair_masks=None, dining_meals=None, pages=None, page_files=None, bed_trims=None,
-             seating_profiles=None, seating_layers=None, seating_coverage=None, seating_masks=None):
+             seating_profiles=None, seating_layers=None, seating_coverage=None, seating_masks=None,
+             bathroom_profiles=None, bathroom_layers=None, bathroom_coverage=None, bathroom_masks=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -1038,6 +1039,11 @@ export const SEATING_SPRITES: import('./interaction-sprites.js').ActionInteracti
 export const SEATING_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(seating_layers or {}, indent=2)};
 export const SEATING_COVERAGE: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(seating_coverage or {}, indent=2)};
 export const SEATING_MASKS: readonly import('./bed-sprites.js').EncodedCoverage[] = {json.dumps(seating_masks or [], indent=2)};
+/** Fitted bathroom actions keep their ownership separate from older scenes. */
+export const BATHROOM_SPRITES: import('./interaction-sprites.js').ActionInteractionCatalog = {json.dumps(bathroom_profiles or {}, indent=2)};
+export const BATHROOM_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(bathroom_layers or {}, indent=2)};
+export const BATHROOM_COVERAGE: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(bathroom_coverage or {}, indent=2)};
+export const BATHROOM_MASKS: readonly import('./bed-sprites.js').EncodedCoverage[] = {json.dumps(bathroom_masks or [], indent=2)};
 export const SURFACE_LAYOUTS: Readonly<Record<number, import('./surface-items.js').SurfaceLayout>> = {surfaces_json};
 export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
 /** Whether a held meal is nearer the camera than the body at its grip. */
@@ -1395,7 +1401,17 @@ def main():
     tops.update(seating_data['tops'])
     bounds.update(seating_data['bounds'])
     densities.update(seating_data['density'])
-    visible_layers = {**bed_layers, **seating_data['layers']}
+    from offline_bathroom import load_bathroom, records as bathroom_records, tables as bathroom_tables
+    bathroom = load_bathroom(Path(ROOT) / 'assets/models/bathroom/actions/export/toilet-03/manifest.json')
+    bathroom_rows = bathroom_records(bathroom)
+    assert not {row[0] for row in sprites}.intersection(row[0] for row in bathroom_rows), 'duplicate bathroom records'
+    sprites.extend(bathroom_rows)
+    bathroom_data = bathroom_tables(bathroom, sprites)
+    anchors.update(bathroom_data['anchors'])
+    tops.update(bathroom_data['tops'])
+    bounds.update(bathroom_data['bounds'])
+    densities.update(bathroom_data['density'])
+    visible_layers = {**bed_layers, **seating_data['layers'], **bathroom_data['layers']}
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     sync_generated_architecture(sprites, check=args.check)
@@ -1452,7 +1468,10 @@ def main():
                   pages=pages, page_files=page_files, bed_trims=bed_trims,
                   seating_profiles={index: {profile['action']: profile} for index, profile in seating_data['profiles'].items()},
                   seating_layers=seating_data['layers'],
-                  seating_coverage=seating_data['coverage'], seating_masks=seating_data['masks'])
+                  seating_coverage=seating_data['coverage'], seating_masks=seating_data['masks'],
+                  bathroom_profiles={index: {profile['action']: profile} for index, profile in bathroom_data['profiles'].items()},
+                  bathroom_layers=bathroom_data['layers'], bathroom_coverage=bathroom_data['coverage'],
+                  bathroom_masks=bathroom_data['masks'])
 
     if args.check:
         bad = []
