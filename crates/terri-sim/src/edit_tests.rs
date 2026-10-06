@@ -921,6 +921,41 @@ fn the_world_hash_observes_each_personality_effect_and_not_the_name() {
         "restoring the step restores the hash"
     );
 
+    // The same for a refill multiplier and a disposition weight.
+    let original = sim.world().get::<Personality>(entity).unwrap().satisfaction[4];
+    replace_personality(&mut sim, entity, |p| {
+        p.satisfaction[4] = f32::from_bits(original.to_bits() + 1);
+        p.clone()
+    });
+    assert_ne!(
+        sim.world_hash(),
+        base,
+        "a one-step satisfaction change is hashed"
+    );
+    replace_personality(&mut sim, entity, |p| {
+        p.satisfaction[4] = original;
+        p.clone()
+    });
+    assert_eq!(sim.world_hash(), base, "restoring the satisfaction step");
+    let step_weight = |up: bool| {
+        move |p: &mut Personality| {
+            let mut dispositions = p.dispositions().to_vec();
+            let bits = dispositions[0].2.to_bits();
+            dispositions[0].2 = f32::from_bits(if up { bits + 1 } else { bits - 1 });
+            let mut next = Personality::with_dispositions(p.drain, p.satisfaction, dispositions);
+            next.chronotype_offset_ticks = p.chronotype_offset_ticks;
+            next
+        }
+    };
+    replace_personality(&mut sim, entity, step_weight(true));
+    assert_ne!(
+        sim.world_hash(),
+        base,
+        "a one-step disposition weight change is hashed"
+    );
+    replace_personality(&mut sim, entity, step_weight(false));
+    assert_eq!(sim.world_hash(), base, "restoring the weight step");
+
     sim.world_mut().get_mut::<SimName>(entity).unwrap().0 = "Somebody Else".to_string();
     assert_eq!(sim.world_hash(), base, "names stay out of the hash");
 }
@@ -1259,4 +1294,658 @@ fn a_changed_cleanliness_score_breaks_the_match_until_an_explicit_edit() {
         sim.personality_archetype_of(entity.index_u32()),
         Some(correspondent)
     );
+}
+
+// ---- Evidence item 7: an edit leaves every running action alone ----------
+
+/// Appends what an editable fixture person needs to a mid-action fixture
+/// pack, which carries no personalities or traits of its own: personalities
+/// `before_edit` (index 0) and `after_edit` (index 1), and one trait (index
+/// 0). Both personalities keep every drain and refill multiplier at 1 and
+/// carry no dispositions; they differ only in chronotype, which these packs
+/// cannot act on because they have no circadian curve. The trait is a
+/// disposition on a tag no fixture activity carries. The edit therefore
+/// changes the person's name, personality and traits without changing what
+/// the new values would make them do, which isolates what these tests ask:
+/// whether the edit disturbs a running action, chain, reservation,
+/// conversation or shift.
+fn with_edit_fixtures(base: &terri_data::ContentPack) -> &'static terri_data::ContentPack {
+    let personality = |id: &str, chronotype: i32| terri_data::CompiledPersonality {
+        cleanliness: 0.5,
+        id: id.to_string(),
+        drain: [1.0; terri_core::NEED_COUNT],
+        satisfaction: [1.0; terri_core::NEED_COUNT],
+        dispositions: Vec::new(),
+        chronotype_offset_ticks: chronotype,
+        description: String::new(),
+    };
+    Box::leak(Box::new(terri_data::ContentPack {
+        personalities: vec![
+            personality("before_edit", 0),
+            personality("after_edit", AFTER_EDIT_CHRONOTYPE),
+        ],
+        traits: vec![terri_data::CompiledTrait {
+            starting_satisfaction_offset: 0.0,
+            id: "edit_fixture".to_string(),
+            label: "Edit fixture".to_string(),
+            tag: "edit_fixture".to_string(),
+            kind: terri_data::CompiledTraitKind::Disposition {
+                score_multiplier: 1.0,
+            },
+            description: String::new(),
+        }],
+        ..base.clone()
+    }))
+}
+
+const BEFORE_EDIT: u32 = 0;
+const AFTER_EDIT: u32 = 1;
+const AFTER_EDIT_CHRONOTYPE: i32 = 90;
+const FIXTURE_TRAIT: u32 = 0;
+
+/// Gives a fixture person what an edit acts on: a SimId, a name, the
+/// `before_edit` personality and the fixture trait.
+fn make_editable(sim: &mut Sim, entity: Entity, sim_id: u32) {
+    let content = sim.world().resource::<crate::Content>().0;
+    let personality =
+        crate::household::personality_from(&content.personalities[BEFORE_EDIT as usize]);
+    sim.world_mut().entity_mut(entity).insert((
+        terri_core::SimId(sim_id),
+        SimName("Before".to_string()),
+        personality,
+        Traits::from_entries(vec![(FIXTURE_TRAIT, 0.0)]),
+    ));
+}
+
+/// The mid-action edit, checked to have landed: a new name, the other
+/// personality, and the trait removed.
+fn edit_mid_action(sim: &mut Sim, sim_id: u32) {
+    let result = edit(sim, sim_id, "After", Some(AFTER_EDIT), &[], &[]);
+    assert_eq!(result.reason, None, "the mid-action edit is accepted");
+    let entity = person(sim, sim_id);
+    assert_eq!(name_of(sim, sim_id), "After");
+    assert_eq!(
+        sim.world()
+            .get::<Personality>(entity)
+            .unwrap()
+            .chronotype_offset_ticks,
+        AFTER_EDIT_CHRONOTYPE
+    );
+    assert_eq!(traits_of(sim, sim_id), vec![]);
+}
+
+/// Ticks two sims the same fixed count.
+fn tick_both(edited: &mut Sim, control: &mut Sim, ticks: u64) {
+    for _ in 0..ticks {
+        edited.tick();
+        control.tick();
+    }
+}
+
+/// A copy of `a_chain` in `systems/chain.rs`'s tests: fetch at the pantry
+/// for 16 ticks, eat at the table for 20, paying 2.5 satisfaction at the end.
+fn edit_test_chain() -> terri_data::CompiledChain {
+    let step = |role: u32, label: &str, duration_ticks: u32| terri_data::CompiledChainStep {
+        role,
+        label: label.to_string(),
+        duration_ticks,
+        tags: vec![],
+        yields: None,
+        transforms: None,
+        consumes: None,
+        visual: None,
+        sound_action: None,
+        activity: None,
+    };
+    terri_data::CompiledChain {
+        id: "cook_dinner".to_string(),
+        label: "Cook dinner".to_string(),
+        advertised_by: terri_data::ObjectDefId(0),
+        advertises: vec![(0, 48.0), (6, 12.0)],
+        satisfaction: 2.5,
+        steps: vec![
+            terri_data::CompiledChainStep {
+                yields: Some(0),
+                ..step(0, "Fetch", 16)
+            },
+            terri_data::CompiledChainStep {
+                tags: vec!["cooking".to_string()],
+                consumes: Some(0),
+                ..step(1, "Eat", 20)
+            },
+        ],
+    }
+}
+
+/// `chain_world` from `systems/chain.rs`'s tests with the chain begun and
+/// the agent made editable as SimId 0. Returns (sim, agent, fridge, pantry,
+/// table).
+fn edit_chain_world() -> (Sim, Entity, Entity, Entity, Entity) {
+    use crate::test_content;
+    let mut pantry = test_content::object_offering("pantry", vec![]);
+    pantry.roles = vec![0];
+    let mut table = test_content::object_offering("table", vec![]);
+    table.roles = vec![1];
+    let fridge = test_content::object("fridge", &[(terri_core::NeedId::Hunger, 40.0)], 30);
+    let base = test_content::pack_tuned(
+        vec![fridge, pantry, table],
+        terri_data::Tuning {
+            duration_variance: 0.0,
+            choice_temperature: 0.0001,
+            ..test_content::tuning()
+        },
+    );
+    let pack = with_edit_fixtures(&terri_data::ContentPack {
+        roles: vec!["pantry_shelf".to_string(), "eating_surface".to_string()],
+        item_kinds: vec!["dinner".to_string()],
+        chains: vec![edit_test_chain()],
+        ..base.clone()
+    });
+    let mut sim = test_content::sim_with(12, 8, pack);
+    let station = |sim: &mut Sim, id: &str, x: f32| {
+        let def = pack.find(id).expect("fixture");
+        sim.world_mut()
+            .spawn((
+                terri_core::Position { x, y: 1.0 },
+                terri_core::SmartObject(def),
+            ))
+            .id()
+    };
+    let fridge = station(&mut sim, "fridge", 1.0);
+    let pantry = station(&mut sim, "pantry", 4.0);
+    let table = station(&mut sim, "table", 8.0);
+    let mut needs = Needs::all_at(80.0);
+    needs.set(terri_core::NeedId::Hunger, 20.0);
+    let agent = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            terri_core::Position { x: 2.0, y: 4.0 },
+            needs,
+            terri_core::Satisfaction::from_value(0.0),
+            terri_core::Hobbies(vec!["cooking".to_string()]),
+        ))
+        .id();
+    make_editable(&mut sim, agent, 0);
+    sim.world_mut()
+        .entity_mut(agent)
+        .insert(terri_core::ChainState::begin(0));
+    (sim, agent, fridge, pantry, table)
+}
+
+/// `chat_pack` and `household_of_two` from `systems/social.rs`'s tests:
+/// a lonely initiator (SimId 0) three tiles from a partner (SimId 1), both
+/// made editable. Returns (sim, initiator, partner).
+fn edit_talk_world() -> (Sim, Entity, Entity) {
+    use crate::test_content;
+    let base = test_content::pack_with_social(
+        vec![],
+        vec![test_content::interaction(
+            "chat",
+            &[(terri_core::NeedId::Social, 30.0)],
+            40,
+        )],
+        test_content::tuning(),
+    );
+    let pack = with_edit_fixtures(base);
+    let mut sim = test_content::sim_with(8, 8, pack);
+    let initiator = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            terri_core::Position { x: 1.0, y: 1.0 },
+            Needs::with(terri_core::NeedId::Social, 20.0),
+        ))
+        .id();
+    let partner = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            terri_core::Position { x: 4.0, y: 1.0 },
+            Needs::with(terri_core::NeedId::Social, 60.0),
+        ))
+        .id();
+    make_editable(&mut sim, initiator, 0);
+    make_editable(&mut sim, partner, 1);
+    (sim, initiator, partner)
+}
+
+/// `career_pack` and `a_worker` from `systems/career.rs`'s tests: a 6-tick
+/// shift from day-tick 3 of a 30-tick day paying 130, 11.5 energy and 2.25
+/// satisfaction, and one worker near the front door, made editable as SimId
+/// 0. Returns (sim, worker).
+fn edit_work_world() -> (Sim, Entity) {
+    use crate::test_content;
+    let base = test_content::pack_tuned(
+        vec![],
+        terri_data::Tuning {
+            day_ticks: 30,
+            duration_variance: 0.0,
+            ..test_content::tuning()
+        },
+    );
+    let pack = with_edit_fixtures(&terri_data::ContentPack {
+        careers: vec![terri_data::CompiledCareer {
+            id: "office_job".to_string(),
+            label: "Office clerk".to_string(),
+            shift_start: 3,
+            shift_ticks: 6,
+            pay: 130,
+            energy_cost: 11.5,
+            satisfaction: 2.25,
+        }],
+        ..base.clone()
+    });
+    let mut sim = test_content::sim_with(16, 12, pack);
+    let worker = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            terri_core::Position { x: 13.0, y: 2.0 },
+            Needs::all_at(80.0),
+            terri_core::Satisfaction::from_value(0.0),
+            terri_core::Career(0),
+        ))
+        .id();
+    make_editable(&mut sim, worker, 0);
+    (sim, worker)
+}
+
+fn satisfaction_of(sim: &Sim, entity: Entity) -> f32 {
+    sim.world()
+        .get::<terri_core::Satisfaction>(entity)
+        .unwrap()
+        .value()
+}
+
+/// One chain payout, read the way `a_chain_runs_both_stations_and_pays_only_at_the_end`
+/// in `systems/chain.rs` reads it: base satisfaction times the hobby
+/// multiplier, on the reward scale.
+fn one_chain_payout() -> f32 {
+    2.5 * crate::test_content::tuning().hobby_multiplier * terri_core::Satisfaction::REWARD_SCALE
+}
+
+/// Tick 40 of `edit_chain_world` is inside the tagged eating step (the
+/// chain moves to step 1 on tick 32); the chain completes on tick 68.
+const CHAIN_EDIT_TICK: u64 = 40;
+const CHAIN_DONE_TICK: u64 = 68;
+
+#[test]
+fn an_edit_mid_chain_leaves_the_chain_to_finish_once_and_release_its_stations() {
+    let (mut edited, agent, _fridge, pantry, table) = edit_chain_world();
+    let (mut control, ..) = edit_chain_world();
+    tick_both(&mut edited, &mut control, CHAIN_EDIT_TICK);
+    for sim in [&edited, &control] {
+        let chain = sim.world().get::<terri_core::ChainState>(agent);
+        assert_eq!(chain.map(|c| c.step), Some(1), "mid-chain at the edit");
+    }
+    edit_mid_action(&mut edited, 0);
+    control.flush_commands();
+    tick_both(
+        &mut edited,
+        &mut control,
+        CHAIN_DONE_TICK - CHAIN_EDIT_TICK - 1,
+    );
+    assert_eq!(tick_count(&edited), CHAIN_DONE_TICK - 1);
+    for sim in [&edited, &control] {
+        assert!(
+            sim.world().get::<terri_core::ChainState>(agent).is_some(),
+            "the chain is still running one tick before it completes"
+        );
+    }
+    let before_payout = satisfaction_of(&edited, agent);
+    tick_both(&mut edited, &mut control, 1);
+    assert_eq!(tick_count(&edited), CHAIN_DONE_TICK);
+    let world = edited.world();
+    assert!(
+        world.get::<terri_core::ChainState>(agent).is_none(),
+        "the edited person's chain completed on schedule"
+    );
+    assert!(world.get::<terri_core::Carrying>(agent).is_none());
+    assert!(
+        world.get::<terri_core::Reserved>(pantry).is_none()
+            && world.get::<terri_core::Reserved>(table).is_none(),
+        "every station released"
+    );
+    let paid = satisfaction_of(&edited, agent) - before_payout;
+    assert!(
+        (paid - one_chain_payout()).abs() < 0.001,
+        "one payout of {} at completion; got {paid}",
+        one_chain_payout()
+    );
+    assert_eq!(
+        satisfaction_of(&edited, agent),
+        satisfaction_of(&control, agent),
+        "the edited run pays exactly what the unedited run pays"
+    );
+    assert_eq!(
+        edited.world().get::<Needs>(agent),
+        control.world().get::<Needs>(agent)
+    );
+}
+
+/// In `edit_chain_world`, a snack ordered after tick 10 is being eaten by
+/// tick 20 with the chain held; the chain resumes on tick 43 and completes
+/// on tick 98.
+const SNACK_ORDER_TICK: u64 = 10;
+const SNACK_EDIT_TICK: u64 = 20;
+const CHAIN_RESUMED_TICK: u64 = 43;
+const RESUMED_DONE_TICK: u64 = 98;
+
+#[test]
+fn an_edit_during_an_interrupting_order_lets_the_chain_resume_and_pay_once() {
+    let (mut edited, agent, fridge, pantry, table) = edit_chain_world();
+    let (mut control, ..) = edit_chain_world();
+    tick_both(&mut edited, &mut control, SNACK_ORDER_TICK);
+    for sim in [&mut edited, &mut control] {
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            });
+    }
+    tick_both(
+        &mut edited,
+        &mut control,
+        SNACK_EDIT_TICK - SNACK_ORDER_TICK,
+    );
+    for sim in [&edited, &control] {
+        let world = sim.world();
+        assert!(world.get::<terri_core::Eating>(agent).is_some(), "snacking");
+        assert!(
+            world.get::<terri_core::ChainState>(agent).is_some(),
+            "with the chain held"
+        );
+    }
+    edit_mid_action(&mut edited, 0);
+    control.flush_commands();
+    tick_both(
+        &mut edited,
+        &mut control,
+        CHAIN_RESUMED_TICK - SNACK_EDIT_TICK,
+    );
+    for sim in [&edited, &control] {
+        let world = sim.world();
+        assert!(
+            world.get::<terri_core::Eating>(agent).is_none(),
+            "snack done"
+        );
+        assert_eq!(
+            world.get::<terri_core::ChainState>(agent).map(|c| c.step),
+            Some(0),
+            "the chain resumed where the order interrupted it"
+        );
+        assert!(
+            world.get::<terri_core::Target>(agent).is_some(),
+            "and is heading for its station again"
+        );
+    }
+    tick_both(
+        &mut edited,
+        &mut control,
+        RESUMED_DONE_TICK - CHAIN_RESUMED_TICK - 1,
+    );
+    for sim in [&edited, &control] {
+        assert!(sim.world().get::<terri_core::ChainState>(agent).is_some());
+    }
+    let before_payout = satisfaction_of(&edited, agent);
+    tick_both(&mut edited, &mut control, 1);
+    assert_eq!(tick_count(&edited), RESUMED_DONE_TICK);
+    let world = edited.world();
+    assert!(world.get::<terri_core::ChainState>(agent).is_none());
+    assert!(
+        world.get::<terri_core::Reserved>(pantry).is_none()
+            && world.get::<terri_core::Reserved>(table).is_none(),
+        "every station released"
+    );
+    let paid = satisfaction_of(&edited, agent) - before_payout;
+    assert!(
+        (paid - one_chain_payout()).abs() < 0.001,
+        "the resumed chain pays once; got {paid}"
+    );
+    assert_eq!(
+        satisfaction_of(&edited, agent),
+        satisfaction_of(&control, agent)
+    );
+}
+
+/// In `edit_talk_world` the conversation runs from tick 9 and ends on tick 41.
+const TALK_EDIT_TICK: u64 = 20;
+const TALK_DONE_TICK: u64 = 41;
+
+#[test]
+fn an_edit_of_either_participant_lets_the_conversation_end_normally() {
+    for edited_id in [0, 1] {
+        let (mut edited, initiator, partner) = edit_talk_world();
+        let (mut control, ..) = edit_talk_world();
+        tick_both(&mut edited, &mut control, TALK_EDIT_TICK);
+        for sim in [&edited, &control] {
+            let world = sim.world();
+            assert!(world.get::<terri_core::Socialising>(initiator).is_some());
+            assert!(world.get::<terri_core::Reserved>(partner).is_some());
+        }
+        edit_mid_action(&mut edited, edited_id);
+        control.flush_commands();
+        tick_both(
+            &mut edited,
+            &mut control,
+            TALK_DONE_TICK - TALK_EDIT_TICK - 1,
+        );
+        for sim in [&edited, &control] {
+            assert!(
+                sim.world()
+                    .get::<terri_core::Socialising>(initiator)
+                    .is_some(),
+                "editing SimId {edited_id}: the talk still runs one tick before its end"
+            );
+        }
+        tick_both(&mut edited, &mut control, 1);
+        assert_eq!(tick_count(&edited), TALK_DONE_TICK);
+        let world = edited.world();
+        assert!(
+            world.get::<terri_core::Socialising>(initiator).is_none(),
+            "editing SimId {edited_id}: the talk ended on schedule"
+        );
+        assert!(
+            world.get::<terri_core::Reserved>(partner).is_none()
+                && world.get::<terri_core::Socialising>(partner).is_none(),
+            "editing SimId {edited_id}: the partner is released, not stranded"
+        );
+        for who in [initiator, partner] {
+            assert_eq!(
+                edited.world().get::<Needs>(who),
+                control.world().get::<Needs>(who),
+                "editing SimId {edited_id}: both sides were filled as usual"
+            );
+            assert_eq!(
+                edited.world().get::<terri_core::Relationships>(who),
+                control.world().get::<terri_core::Relationships>(who),
+                "editing SimId {edited_id}: both sides remember the talk as usual"
+            );
+        }
+    }
+}
+
+/// In `edit_work_world` the worker clocks in on tick 13 and returns on
+/// tick 19.
+const WORK_EDIT_TICK: u64 = 15;
+const WORK_DONE_TICK: u64 = 19;
+
+/// Ticks both work worlds with mood satisfaction off, as
+/// `a_shift_walks_to_the_door_vanishes_and_the_return_pays` does, so the
+/// career's satisfaction is the only satisfaction that lands.
+fn tick_both_at_work(edited: &mut Sim, control: &mut Sim, ticks: u64) {
+    for _ in 0..ticks {
+        for sim in [&mut *edited, &mut *control] {
+            crate::test_content::disable_mood_satisfaction(sim);
+            sim.tick();
+        }
+    }
+}
+
+#[test]
+fn an_edit_at_work_keeps_one_wage_and_the_return() {
+    let (mut edited, worker) = edit_work_world();
+    let (mut control, _) = edit_work_world();
+    tick_both_at_work(&mut edited, &mut control, WORK_EDIT_TICK);
+    for sim in [&edited, &control] {
+        assert!(sim.world().get::<terri_core::AtWork>(worker).is_some());
+        assert_eq!(sim.funds(), 0);
+    }
+    edit_mid_action(&mut edited, 0);
+    control.flush_commands();
+    tick_both_at_work(
+        &mut edited,
+        &mut control,
+        WORK_DONE_TICK - WORK_EDIT_TICK - 1,
+    );
+    for sim in [&edited, &control] {
+        assert!(
+            sim.world().get::<terri_core::AtWork>(worker).is_some(),
+            "still at work one tick before the return"
+        );
+    }
+    tick_both_at_work(&mut edited, &mut control, 1);
+    assert_eq!(tick_count(&edited), WORK_DONE_TICK);
+    assert!(
+        edited.world().get::<terri_core::AtWork>(worker).is_none(),
+        "the edited worker came back on schedule"
+    );
+    assert_eq!(edited.funds(), 130, "one shift, one pay packet");
+    assert_eq!(
+        satisfaction_of(&edited, worker),
+        2.25 * terri_core::Satisfaction::REWARD_SCALE,
+        "the career's satisfaction lands exactly once"
+    );
+    assert_eq!(
+        edited.world().get::<terri_core::Position>(worker),
+        control.world().get::<terri_core::Position>(worker),
+        "the return puts the worker where the unedited run puts them"
+    );
+    assert_eq!(
+        edited.world().get::<Needs>(worker),
+        control.world().get::<Needs>(worker)
+    );
+}
+
+// ---- Evidence items 2, 3 and 6: an accepted edit saves and loads ---------
+
+/// Ticks both sims run after a load before their hashes are compared.
+const REPLAY_TICKS: u64 = 300;
+
+#[test]
+fn an_accepted_edit_saves_loads_and_replays_identically() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<crate::Content>().0;
+    let flitting = content
+        .personalities
+        .iter()
+        .position(|p| p.id == "the_flitting")
+        .unwrap() as u32;
+    assert_ne!(
+        content.personalities[flitting as usize].chronotype_offset_ticks, 0,
+        "the test needs a nonzero authored offset"
+    );
+    let removed = content_index_of_kind(&sim, "bookworm");
+    let added = content_index_of_kind(&sim, "cannot_cook");
+    let mut traits: Vec<u32> = traits_of(&sim, 0)
+        .into_iter()
+        .map(|(index, _)| index)
+        .filter(|&index| index != removed)
+        .collect();
+    assert_eq!(traits.len(), 2, "Tim wore bookworm and two others");
+    traits.push(added);
+    let result = edit(
+        &mut sim,
+        0,
+        "Timothy",
+        Some(flitting),
+        &traits,
+        &[(1, Some(Relation::Sibling))],
+    );
+    assert_eq!(result.reason, None);
+    let entity = person(&sim, 0);
+    let personality = sim.world().get::<Personality>(entity).unwrap().clone();
+    assert!(!personality.dispositions().is_empty());
+    let worn = traits_of(&sim, 0);
+    assert!(worn.iter().any(|(index, _)| *index == added));
+    assert!(worn.iter().all(|(index, _)| *index != removed));
+    assert_eq!(
+        sim.personality_archetype_of(entity.index_u32()),
+        Some(flitting)
+    );
+
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    let loaded_entity = person(&loaded, 0);
+    assert_eq!(
+        loaded.world().get::<Personality>(loaded_entity).unwrap(),
+        &personality,
+        "drain, refill, dispositions and chronotype all load"
+    );
+    assert_eq!(traits_of(&loaded, 0), worn);
+    assert_eq!(name_of(&loaded, 0), "Timothy");
+    assert_eq!(family(&loaded), family(&sim));
+    assert_eq!(family(&loaded).relation(0, 1), Some(Relation::Sibling));
+    assert_eq!(
+        loaded.personality_archetype_of(loaded_entity.index_u32()),
+        Some(flitting)
+    );
+    assert_eq!(loaded.world_hash(), sim.world_hash());
+
+    let tick = tick_count(&sim);
+    for _ in 0..REPLAY_TICKS {
+        sim.tick();
+        loaded.tick();
+    }
+    assert_eq!(tick_count(&sim), tick + REPLAY_TICKS);
+    assert_eq!(tick_count(&loaded), tick + REPLAY_TICKS);
+    assert_eq!(
+        loaded.world_hash(),
+        sim.world_hash(),
+        "the loaded world replays the edited one"
+    );
+}
+
+#[test]
+fn a_re_added_trait_saves_and_loads_at_its_authored_state() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let condition = content_index_of_kind(&sim, "low_spirits");
+    let content = sim.world().resource::<crate::Content>().0;
+    let authored = crate::household::authored_trait_state(&content.traits[condition as usize]);
+    let others: Vec<u32> = traits_of(&sim, 0)
+        .into_iter()
+        .map(|(index, _)| index)
+        .filter(|&index| index != condition)
+        .collect();
+    let custom = if authored > 0.5 { 0.25 } else { 0.75 };
+    let entity = person(&sim, 0);
+    sim.world_mut()
+        .get_mut::<Traits>(entity)
+        .unwrap()
+        .set_state(condition, custom);
+    assert_eq!(
+        sim.world().get::<Traits>(entity).unwrap().state(condition),
+        Some(custom)
+    );
+    assert_eq!(edit(&mut sim, 0, "Tim", None, &others, &[]).reason, None);
+    let mut readded = others.clone();
+    readded.push(condition);
+    assert_eq!(edit(&mut sim, 0, "Tim", None, &readded, &[]).reason, None);
+
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    let loaded_entity = person(&loaded, 0);
+    assert_eq!(
+        loaded
+            .world()
+            .get::<Traits>(loaded_entity)
+            .unwrap()
+            .state(condition),
+        Some(authored),
+        "the re-added trait loads at its authored state, not the removed one's"
+    );
+    assert_eq!(traits_of(&loaded, 0), traits_of(&sim, 0));
 }

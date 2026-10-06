@@ -360,6 +360,67 @@ fn public_main_meal_preserves_personality_tail_and_migrates_recipe_counter() {
     }
 }
 
+/// [ES-save]: an edit applied to a world loaded from a historical save,
+/// here the cook mid-recipe in `public-main-meal.hex`, saves and loads with
+/// the edit intact and replays identically afterwards.
+#[test]
+fn an_edit_of_a_loaded_historical_save_survives_save_load_and_replays() {
+    let hex = include_str!("../tests/fixtures/public-main-meal.hex").trim();
+    let bytes: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+        .collect();
+    let mut edited = SimHandle::from_lot();
+    assert!(edited.load_bytes(&bytes));
+    let pack = edited.sim.world().resource::<Content>().0;
+    let flitting = pack
+        .personalities
+        .iter()
+        .position(|p| p.id == "the_flitting")
+        .unwrap();
+    let cannot_cook = pack
+        .traits
+        .iter()
+        .position(|worn| worn.id == "cannot_cook")
+        .unwrap();
+    let (cook, other) = (34, 35);
+    let relative = edited.sim_id_of(other);
+    assert!(edited.edit_housemate(
+        f64::from(edited.sim_id_of(cook)),
+        "  Edited Cook  ",
+        false,
+        flitting as f64,
+        &[cannot_cook as f64],
+        &[
+            f64::from(relative),
+            f64::from(terri_core::layout::Relation::Sibling.code())
+        ],
+    ));
+    edited.flush_commands();
+    assert_eq!(edited.last_edit_result(), vec![0, cook, 1], "accepted");
+    assert_eq!(edited.sim_name(cook), "Edited Cook");
+    assert_eq!(
+        edited.sim.personality_archetype_of(cook),
+        Some(flitting as u32)
+    );
+
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&edited.save_bytes()));
+    assert_eq!(resumed.sim_name(cook), "Edited Cook");
+    assert_eq!(
+        resumed.sim.personality_archetype_of(cook),
+        Some(flitting as u32)
+    );
+    assert_eq!(resumed.world_hash(), edited.world_hash());
+    for _ in 0..160 {
+        edited.tick();
+        resumed.tick();
+    }
+    assert_eq!(resumed.world_hash(), edited.world_hash());
+    assert_eq!(resumed.sim_name(cook), "Edited Cook");
+    assert_eq!(edited.sim_name(cook), "Edited Cook");
+}
+
 #[test]
 fn chronotype_v5_roundtrips_exact_signed_offsets_and_legacy_defaults() {
     let source = SimHandle::from_lot();

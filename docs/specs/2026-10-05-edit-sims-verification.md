@@ -46,6 +46,11 @@ Status: implementation evidence for `2026-09-30-edit-sims.md`. Each table row na
 | Both the `name.trim()` in `edit_housemate` and the byte limit, which reproduces the defect where a queued edit made the save unloadable | `a_whitespace_padded_edit_is_queued_trimmed_so_a_save_before_the_drain_loads` | `a save taken before the drain loads` |
 | The `name.trim()` before serialization in `add_housemate` | `a_whitespace_padded_move_in_is_queued_trimmed_so_a_save_before_the_drain_loads` | `assertion failed: handle.add_housemate(&padded, 0.0, &[])` |
 | The `name.trim()` before serialization in `add_housemate_with_instinct` | `a_whitespace_padded_move_in_is_queued_trimmed_so_a_save_before_the_drain_loads` | `assertion failed: handle.add_housemate_with_instinct(&padded, 0.0, &[], 50.0)` |
+| Exact bits for the satisfaction multipliers in the `personality-effects-v1` block of `Sim::world_hash`; replaced by the rounding `write_f32` | `the_world_hash_observes_each_personality_effect_and_not_the_name` | `assertion left != right failed: a one-step satisfaction change is hashed`, both sides `17581613007712230570` |
+| Exact bits for the disposition weights in the same block; replaced by the rounding `write_f32` | `the_world_hash_observes_each_personality_effect_and_not_the_name` | `assertion left != right failed: a one-step disposition weight change is hashed`, both sides `13319110605540426305` |
+| The saved chronotype offset written back in `restore` in `crates/terri-sim/src/save/chronotype.rs`; replaced by 0 | `an_accepted_edit_saves_loads_and_replays_identically` | `assertion left == right failed: drain, refill, dispositions and chronotype all load`, the loaded personality with `chronotype_offset_ticks: 0` against 180 |
+| The same chronotype restore, checked from a historical save in terri-wasm | `an_edit_of_a_loaded_historical_save_survives_save_load_and_replays` | `assertion left == right failed`, left `None`, right `Some(2)`: the reloaded cook no longer matched the chosen archetype |
+| The saved trait state in `restore_entity` in `crates/terri-sim/src/save.rs`; every restored state replaced by 0 | `a_re_added_trait_saves_and_loads_at_its_authored_state` | `assertion left == right failed: the re-added trait loads at its authored state, not the removed one's`, left `Some(0.0)`, right `Some(0.6)` |
 
 Every mutated build compiled, and each test failed at run time with exit code 101.
 
@@ -60,6 +65,8 @@ For the wasm boundary rows, a script mutated one exact span, ran `cargo test -p 
 For the cleanliness, exact-bits, disposition-key, row-index and row-sort rows, the same script method ran each mutation, and `git hash-object` before and after matched: `crates/terri-sim/src/edit.rs` was `a57d036b40db5d2f5300e4482c32e13cf4a93ba2` and `crates/terri-sim/src/lib.rs` was `93eb76e95ad28181d5a1bfeca8577956febf0990`.
 
 For the saved-name byte-limit and trim rows, the same script method mutated `crates/terri-wasm/src/lib.rs`, and `git hash-object` before and after matched: `1feead79d4fd2a150de03e1958426a250ba0a25f`. `housemate_fields_within_bounds` is the helper that the earlier wasm boundary rows call `edit_within_bounds`; it now also serves move-ins and holds the untrimmed name to `terri_sim::MAX_TEXT_BYTES`.
+
+For the satisfaction and disposition-weight exact-bits rows and the chronotype and trait-state restore rows, the same script method ran each mutation, the wasm row through `cargo test -p terri-wasm --release -- --exact <test>`, and `git hash-object` before and after matched: `crates/terri-sim/src/lib.rs` was `6c025e0009022befb8d7e7e7effe275457c237ae`, `crates/terri-sim/src/save/chronotype.rs` was `e00f32dfa4a6daf313fc8c275d6c269d131192b6` and `crates/terri-sim/src/save.rs` was `7fe8126bcc63caee3491eaf1c005f6e80a6422d5`.
 
 ## Delivery
 
@@ -80,6 +87,8 @@ Console errors: none from the page. The only error entry was the server's 404 fo
 Keyboard: opening the dialog focused the name field, Next moved focus to the first enabled trait box, and Escape, Cancel, Confirm changes and the load closure each returned focus to the Edit button.
 
 Not checked: the in-app pane's own mobile preset, a person whose ties came from a saved game rather than from this session's edit, a personality or trait change through the displayed form, landscape phone sizes, and screen reader output.
+
+The displayed passes also showed neither a refusal from the command drain nor the pending state, in which the dialog waits for the drain's answer. The Phone refusal image shows the form's own empty-name check, which runs before anything is queued. Unit tests in `web/tests/housemate-form.test.ts` cover both paths: `shows the refusal and stays open` for a drain refusal, and `takes only the answer to its own edit, never an older one` and `refuses a tie to somebody not shown and a code it does not know, and holds still while pending` for the pending state.
 
 1. [Desktop page one](../assets/review-evidence/edit-sims/desktop-page-one.png)
 2. [Desktop page two](../assets/review-evidence/edit-sims/desktop-page-two.png)
