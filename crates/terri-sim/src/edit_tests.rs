@@ -2058,3 +2058,82 @@ fn an_explicit_change_without_domestic_state_keeps_the_archetype_after_a_tick() 
         "the second twin, not the first that shares its drain and refill"
     );
 }
+
+/// [OA-values] in `docs/specs/2026-10-06-object-affinities.md`: a trait
+/// added or removed later through Edit Sims leaves the stored affinity
+/// values alone. Tim gains Television devotee, and a newcomer who moved in
+/// wearing Hates television loses it; both people's values, including the
+/// television value the newcomer's trait set at spawn, are exactly what they
+/// were, on the edit's tick and after more ticks.
+#[test]
+fn a_trait_edit_leaves_the_stored_affinity_values_alone() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let devotee = content_index_of_kind(&sim, "television_devotee");
+    let averse = content_index_of_kind(&sim, "television_averse");
+    let television = sim
+        .world()
+        .resource::<crate::Content>()
+        .0
+        .affinities
+        .iter()
+        .position(|kind| kind.id == "television")
+        .expect("the shipped television kind") as u32;
+    let newcomer = move_in(&mut sim, "Ann", 0, &[averse]);
+    let tim = {
+        let world = sim.world_mut();
+        let index = world
+            .query::<(Entity, &SimName)>()
+            .iter(world)
+            .find(|(_, name)| name.0 == "Tim")
+            .expect("Tim lives here")
+            .0
+            .index_u32();
+        crate::family::sim_id_at(sim.world(), index).expect("Tim has a SimId")
+    };
+    let values = |sim: &Sim, who: u32| {
+        sim.world()
+            .get::<terri_core::Affinities>(person(sim, who))
+            .expect("a person holds affinity values")
+            .clone()
+    };
+    let (tim_before, newcomer_before) = (values(&sim, tim), values(&sim, newcomer));
+    assert_eq!(
+        newcomer_before.value(television),
+        -0.8,
+        "Hates television set the value at spawn"
+    );
+    assert_ne!(tim_before.value(television), 0.8, "Tim's drawn value");
+
+    let mut tim_traits: Vec<u32> = traits_of(&sim, tim)
+        .iter()
+        .map(|(index, _)| *index)
+        .collect();
+    assert!(!tim_traits.contains(&devotee));
+    tim_traits.push(devotee);
+    let tim_name = name_of(&sim, tim);
+    assert_eq!(
+        edit(&mut sim, tim, &tim_name, None, &tim_traits, &[]).reason,
+        None
+    );
+    assert_eq!(edit(&mut sim, newcomer, "Ann", None, &[], &[]).reason, None);
+    assert!(traits_of(&sim, tim)
+        .iter()
+        .any(|(index, _)| *index == devotee));
+    assert!(traits_of(&sim, newcomer).is_empty());
+
+    assert_eq!(values(&sim, tim), tim_before, "Tim after the edit");
+    assert_eq!(
+        values(&sim, newcomer),
+        newcomer_before,
+        "Ann after the edit"
+    );
+    for _ in 0..30 {
+        sim.tick();
+    }
+    assert_eq!(values(&sim, tim), tim_before, "Tim thirty ticks on");
+    assert_eq!(
+        values(&sim, newcomer),
+        newcomer_before,
+        "Ann thirty ticks on"
+    );
+}

@@ -12,12 +12,12 @@ their original save versions, sprite counts and measurements describe those rele
 | Area | Completed and shipped | Still open |
 |---|---|---|
 | Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
-| Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie, and editing a living person's name, personality, traits and family ties | Appearance and gender choices, random generation and deeper traits |
+| Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie, editing a living person's name, personality, traits and family ties, and each person's likes and dislikes for plants, the aquarium, the television and the radio, shown in Sim details; likes and dislikes shipped 2026-10-06 | Appearance and gender choices, random generation, deeper traits, colour preferences and editing likes and dislikes |
 | Skills | Cooking, Fitness and Reading, learned by every completed attempt, read by the matching capability trait's fumble roll, saved with the household and listed in Sim details; shipped 2026-10-05 | Better outcomes and unlocks at higher levels, more skills, career performance, and a fuller skills panel if the owner wants one |
 | Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
 | Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
-| Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration, overdoing an activity and feeling sick from overeating, and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
+| Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration, overdoing an activity and feeling sick from overeating, liked or disliked plants and aquarium in the room, being bothered by another's television or radio, and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
 | Grief duration | 10 game days for neutral acquaintances to 60 for closest affinity, with a linear fade; PR #141 | Longer-term play balance remains subject to feedback |
 | Careers and money | One office job working Monday to Friday, its days and hours shown in Sim details, wages, purchase costs and sale proceeds; working days shipped 2026-10-06 | Player-directed career paths, skills, bills, recurring costs, a ledger, and the dates bills and pay days need |
 | Art and audio | Shared rigged Sim with shirt variants, reviewed furniture replacements, action-specific animation and the audio foundation | Appearance variety, remaining action poses, sound content and recorded owner/device acceptance checks |
@@ -427,10 +427,7 @@ an unchanged design target is not an unchanged measurement.
    and listening. Preserve activity-specific locations: watching fish stays
    near the tank. Reuse existing sitting and seated-reading art, and deliver
    missing sitting poses and animations with this slice [A-animations].
-2. **Later priorities remain proposals.** Object affinities [B-object-affinities]
-   are the recommended follow-up, alongside the colour-preference design
-   [B-colour-preferences]. Aging [DE-slice-age] is the next death slice, but needs
-   an age and lifespan design. Neither is selected ahead of communal activities.
+2. **Later priorities remain proposals.** The first object-affinities slice [B-object-affinities] shipped on 2026-10-06; the colour-preference design [B-colour-preferences] is the recommended follow-up. Aging [DE-slice-age] is the next death slice, but needs an age and lifespan design. Neither is selected ahead of communal activities.
 
 Edit Sims [B-edit-sims] shipped on 2026-10-05; see `specs/2026-09-30-edit-sims.md`.
 
@@ -439,6 +436,8 @@ The first skills slice [S-skills] shipped on 2026-10-05: Cooking, Fitness and Re
 Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an activity past saturation adds an `Overdoing {activity}` moodlet that grows with each further use, and too much food adds a temporary `Feeling sick` moodlet; need delivery is unchanged, appeal never falls below its floor but stays there until decay brings the value back below saturation, and decay clears both. Novelty from purchases, part two, remains open; see `specs/2026-10-06-overdoing-it.md`.
 
 The first calendar slice [S-calendar] shipped on 2026-10-06: the clock names the weekday, a new game starts on a Monday, each career lists its working days, and the office job rests on Saturday and Sunday. The Career row in Sim details shows the job's days and hours. Dates, seasons, pay days and scheduled events remain open; see `specs/2026-10-06-calendar.md`.
+
+The first object-affinities slice [B-object-affinities] shipped on 2026-10-06: every person has a value for plants, the aquarium, the television and the radio, shown as Loves to Hates under Likes and dislikes in Sim details. Plants and the aquarium in a person's room lift or lower their mood, and somebody else using a television or radio a person dislikes in the same room lowers their mood and their feeling toward that person. Colour preferences, editing the values, the general nuisance field and pets remain open; see `specs/2026-10-06-object-affinities.md`.
 
 Remaining acceptance work runs separately from this build priority: owner art and
 sound review where still recorded as open, physical-phone touch/safe-area/daylight
@@ -1066,7 +1065,7 @@ Once gender exists, the relationship list can say "sister" or "brother" instead 
 
 ### [B-object-affinities] Things one housemate loves can bother another
 
-**Status: Not started.**
+**Status: Partial.** The first slice shipped on 2026-10-06 ([OA-kinds] to [OA-hud] in `docs/specs/2026-10-06-object-affinities.md`). Every person holds a value from -1 to 1 for plants, the aquarium, the television and the radio, drawn at random when they are created, set by a matching disposition trait (strongly by Television devotee and Hates television, mildly by Fish watcher), saved with the household, and shown as Loves, Likes, Indifferent, Dislikes or Hates under Likes and dislikes in Sim details. Plants and the aquarium in a person's room lift or lower their mood. A person who dislikes the television or the radio is bothered when somebody else in the same room uses it, and their feeling toward that person falls. Still open: colour preferences [B-colour-preferences], editing the values [S-advanced-controls], the general nuisance field with distance falloff [P-nuisance], and pets [S-pets].
 
 The owner asked on 2026-09-29 that objects stop being good for everybody alike. Every item should have at least the possibility of being a net good for some members of the household and a net bad for others.
 
@@ -1077,8 +1076,8 @@ The owner asked on 2026-09-29 that objects stop being good for everybody alike. 
 
 **Design notes, not yet decided.**
 - For a kind of item with no affinity, such as a sofa or a fridge, colour ([B-colour-preferences]) is one way it can still be good for one sim and bad for another.
-- The random starting values can come from the seeded generator, so a replay draws the same, and which kinds carry an affinity can be listed in content.
-- The disposition traits that already exist, such as "Hates television", can become strong starting values for the same affinity. One of them, "Avoids the couch" (`couch_averse` in `content/traits.toml`, "Hates sofas and armchairs"), is about a kind this entry says carries no affinity, so the design must either keep it as a trait about using a sofa rather than being near one, or retire it.
+- The first slice's choice, an autonomous ruling recorded in `docs/specs/2026-10-06-object-affinities.md` that the owner has not confirmed: the random starting values come from the seeded generator, so a replay draws the same, and `content/objects.toml` lists which kinds carry an affinity.
+- The first slice's choice, also an autonomous ruling the owner has not confirmed: a matching disposition trait sets the starting value, strongly for Television devotee and Hates television and mildly for Fish watcher. "Avoids the couch" (`couch_averse` in `content/traits.toml`, "Hates sofas and armchairs") stays a trait about using a sofa or armchair, and the sofa carries no affinity.
 - Several systems already describe these values and should share one model with this entry: item and colour affinities in [S-acclimation], species affinity in [S-pets], and the rule in [S-deep-traits] (all in `docs/GAME-SYSTEMS.md`) that such values live in one place. The owner's earlier direction in [S-acclimation] is that a possession stops bringing joy but does not cause unhappiness, in most cases. A hated kind of item is one of the cases that does.
 - Being bothered by somebody else's use is the same shape as the nuisance mechanism [P-nuisance] proposes for a barking dog or a loud television, and should share it. [S-sensitivities] is the neighbouring value for how strongly a sim reacts.
 

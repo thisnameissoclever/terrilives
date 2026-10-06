@@ -44,7 +44,7 @@ fn furniture_rejects_internal_edges_and_accepts_its_outer_perimeter() {
         } else {
             assert_eq!(outcome, Ok(()), "perimeter edge {from:?} -> {to:?}");
             let mut expected = saved.clone();
-            expected.world = super::super::tests::after_legacy_instinct_migration(expected.world);
+            expected.world = super::super::tests::after_legacy_load_draws(expected.world);
             assert_eq!(live.save_snapshot_v2(), expected);
         }
     }
@@ -73,7 +73,7 @@ fn repeated_path_tiles_are_valid_and_a_walking_target_need_not_be_in_contact_yet
     let mut live = Sim::new();
     live.load_snapshot_v2(saved.clone()).unwrap();
     let mut expected = saved.clone();
-    expected.world = super::super::tests::after_legacy_instinct_migration(expected.world);
+    expected.world = super::super::tests::after_legacy_load_draws(expected.world);
     assert_eq!(live.save_snapshot_v2(), expected);
 
     saved
@@ -85,7 +85,7 @@ fn repeated_path_tiles_are_valid_and_a_walking_target_need_not_be_in_contact_yet
         .path = None;
     live.load_snapshot_v2(saved.clone()).unwrap();
     let mut expected = saved;
-    expected.world = super::super::tests::after_legacy_instinct_migration(expected.world);
+    expected.world = super::super::tests::after_legacy_load_draws(expected.world);
     assert_eq!(
         live.save_snapshot_v2(),
         expected,

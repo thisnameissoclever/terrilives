@@ -132,6 +132,13 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 .skill-label { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
 .skill-standing { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 #skill-list .skill-description { margin: 0; color: var(--hud-muted); font-size: 12px; overflow-wrap: anywhere; }
+/* [OA-hud]: the Likes and dislikes disclosure under Skills, one short line per kind. */
+#affinities-block { border-top: 1px solid var(--hud-edge); margin-top: 10px; padding-top: 2px; }
+#affinities-block summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; }
+#affinities-block summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#affinity-list { display: grid; gap: 3px; margin: 0 0 6px; padding: 0; list-style: none; }
+#affinity-list[hidden] { display: none; }
+.affinity-row { overflow-wrap: anywhere; }
 .bed-assignment { min-width: 0; margin: 12px 0 0; padding: 8px; border: 1px solid var(--hud-edge); }
 .bed-assignment fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
 .bed-assignment:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
