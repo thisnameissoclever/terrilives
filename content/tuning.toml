@@ -567,10 +567,18 @@ neglect_floor = 15.0
 # The length of a day in ticks - [E4]. One tick is one sim-minute, so
 # 1440 IS the day, read straight off the clock: `tick % day_ticks` is
 # minutes past midnight, and careers.toml writes shift times in it.
-# 2.4 real minutes at 1x. No calendar and no weekday until something
-# needs one. Must be at least 1 - a zero-tick day divides by zero the
-# first time a career asks the hour.
+# 2.4 real minutes at 1x. Seven days make a week, counted from
+# first_weekday below - [CAL-week] in docs/specs/2026-10-06-calendar.md.
+# There is no month or year. Must be at least 1 - a zero-tick day divides
+# by zero the first time a career asks the hour.
 day_ticks = 1440
+
+# The weekday of the first day, 0 (Monday) to 6 (Sunday) - [CAL-week].
+# 0 starts a new game on a Monday, so days 6 and 7 are the first weekend
+# and the office job's first shift is on the first morning. The weekday
+# is worked out from the tick and this number, so nothing about it is
+# saved; changing it moves every saved game to a different weekday.
+first_weekday = 0
 
 # Satisfaction lost PER NEGLECTED NEED per tick below the floor:
 # One crisis costs about 0.0144 points per game day, alongside its mood

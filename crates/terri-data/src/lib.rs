@@ -28,7 +28,7 @@ pub use schema::{
     FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile, NeedDef,
     NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile, PlacementDef, PortalEntryDef, SkillDef,
     SkillsFile, TraitDef, TraitsFile, TuningFile, VisualDef, VoiceClipDef, VoiceFile, WallDef,
-    MAX_HOUSEHOLD_SIZE, TRAIT_KINDS,
+    MAX_HOUSEHOLD_SIZE, TRAIT_KINDS, WEEKDAY_NAMES,
 };
 
 use std::sync::OnceLock;
@@ -744,6 +744,21 @@ mod tests {
         assert_eq!(tuning.overdoing_penalty, 20.0);
         assert_eq!(tuning.sick_threshold, 2.5);
         assert_eq!(tuning.sick_penalty, 25.0);
+    }
+
+    /// [CAL-week] and [CAL-careers]: a new game starts on a Monday, and the
+    /// office job works Monday to Friday, so days 6 and 7 are its first
+    /// weekend.
+    #[test]
+    fn the_shipped_calendar_content_matches_the_spec() {
+        let pack = pack();
+        assert_eq!(pack.tuning.first_weekday, 0);
+        let office = pack
+            .careers
+            .iter()
+            .find(|career| career.id == "office_job")
+            .expect("the shipped pack declares the office job");
+        assert_eq!(office.working_days, 0b0011111);
     }
 
     /// [SK-learning]: learning left the capability trait for the skill.

@@ -946,6 +946,20 @@ pub enum ContentError {
         id: String,
         value: f32,
     },
+    /// A career that works no day of the week - [CAL-careers].
+    EmptyWorkingDays {
+        id: String,
+    },
+    /// A career that lists the same working day twice.
+    RepeatedWorkingDay {
+        id: String,
+        day: String,
+    },
+    /// A working day that is not one of `mon` to `sun`.
+    UnknownWorkingDay {
+        id: String,
+        day: String,
+    },
     /// A household sim holding a career `careers.toml` does not declare.
     UnknownSimCareer {
         sim: String,
@@ -953,6 +967,10 @@ pub enum ContentError {
     },
     /// A zero-tick day - `tick % day_ticks` would divide by zero.
     ZeroDayTicks,
+    /// A `first_weekday` past 6 (Sunday) - [CAL-week].
+    FirstWeekdayOutOfRange {
+        value: u8,
+    },
     /// A circadian curve with nothing to interpolate between.
     CircadianTooFewPoints {
         points: usize,
@@ -2080,6 +2098,20 @@ impl fmt::Display for ContentError {
                  satisfaction is non-negative - a job that drains a life \
                  is authored as a condition"
             ),
+            ContentError::EmptyWorkingDays { id } => write!(
+                f,
+                "career '{id}' has no working_days; list at least one of \
+                 mon, tue, wed, thu, fri, sat and sun"
+            ),
+            ContentError::RepeatedWorkingDay { id, day } => write!(
+                f,
+                "career '{id}' lists working day '{day}' more than once"
+            ),
+            ContentError::UnknownWorkingDay { id, day } => write!(
+                f,
+                "career '{id}' lists working day '{day}', which is not one \
+                 of mon, tue, wed, thu, fri, sat and sun"
+            ),
             ContentError::UnknownSimCareer { sim, career } => write!(
                 f,
                 "household sim '{sim}' holds career '{career}', which \
@@ -2089,6 +2121,10 @@ impl fmt::Display for ContentError {
                 f,
                 "day_ticks must be at least 1 - a zero-tick day divides \
                  by zero the first time a career asks the hour"
+            ),
+            ContentError::FirstWeekdayOutOfRange { value } => write!(
+                f,
+                "first_weekday is {value}; it must be 0 (Monday) to 6 (Sunday)"
             ),
             ContentError::CircadianTooFewPoints { points } => write!(
                 f,
