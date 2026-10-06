@@ -10550,3 +10550,26 @@ normal simulation running and retain a per-tick monotonicity assertion.
 **Verify.** Record the first upward score transition and the active chain.
 Require the recovery scenario to avoid renewed use, then verify its score and
 mood heal without disabling production systems.
+
+
+## Release fixture ownership before replacing an autonomous target
+
+**What happened.** A busy-table meal test left the cook's Sit order waiting,
+then failed when a guest used a chair. Changing the activity duration did not
+fix the missing ownership precondition.
+
+**Root cause.** CancelIntents deliberately preserves an autonomous ordinary
+activity. The fixture manually replaced that activity's target without releasing
+its reservation, leaving an unowned table marker that blocked the real Sit order.
+The original injected cook target bypassed admission and masked the bad fixture.
+
+**Prevention.** Release the previous target through the existing reservation
+mechanism before replacing it in a fixture. Establish busy surfaces through real
+orders and physical-place routes. When sustained occupancy is the precondition,
+use a bounded authored duration in test-only content and install identical
+content before restoring the comparison world.
+
+**Verify.** Require the cook's actual Sit target at each guest's first meal
+claim. Require both guests to perform standing work, save during that work,
+and compare original and restored hashes through consumption. Trace the
+reservation owner when admission fails; do not clear markers blindly.

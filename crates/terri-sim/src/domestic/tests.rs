@@ -462,8 +462,32 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         let mut completions = 0;
         let mut resumed = false;
         let mut toilet_finished = false;
+        let mut housemate_completions = 0;
+        let toilet_def = terri_data::pack().find("toilet").unwrap();
+        let at_toilet = |sim: &Sim, who: Entity| {
+            sim.world()
+                .get::<Eating>(who)
+                .is_some_and(|e| e.object == toilet_def)
+        };
+        let housemates_at_toilet = |sim: &Sim| -> Vec<Entity> {
+            people
+                .iter()
+                .copied()
+                .filter(|&person| person != actor && at_toilet(sim, person))
+                .collect()
+        };
         for _ in 0..1800 {
+            let actor_was_at_toilet = at_toilet(&sim, actor);
+            let housemates_were_at_toilet = housemates_at_toilet(&sim);
             sim.tick();
+            // A housemate's own visit is a real completion, but not the
+            // actor's. Attribute to it only the completion on the tick its
+            // toilet use ends while the actor was not at the toilet; the
+            // count of these is asserted below so nothing else can hide here.
+            let housemate_finished = !actor_was_at_toilet
+                && housemates_were_at_toilet
+                    .iter()
+                    .any(|&person| !at_toilet(&sim, person));
             if let Some(loaded) = restored.as_mut() {
                 let loaded: &mut Sim = loaded;
                 loaded.tick();
@@ -483,11 +507,16 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 assert_eq!(loaded.world_hash(), sim.world_hash());
                 restored = Some(loaded);
             }
-            completions += sim
+            let toilet_sounds = sim
                 .completion_sounds()
                 .chunks_exact(2)
                 .filter(|pair| pair[1] == toilet.index_u32())
                 .count();
+            if housemate_finished {
+                housemate_completions += toilet_sounds;
+            } else {
+                completions += toilet_sounds;
+            }
             if restored.is_some()
                 && !toilet_finished
                 && sim
@@ -518,6 +547,14 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         }
         assert!(restored.is_some(), "interrupted action must save and load");
         assert_eq!(completions, 1, "one real toilet completion");
+        // On the shipped lot one housemate visits the toilet after the
+        // actor's meal resumes; the cleanup finishes before any housemate
+        // visit, so that run attributes nothing to a housemate.
+        let housemate_visits = usize::from(!cleanup);
+        assert_eq!(
+            housemate_completions, housemate_visits,
+            "only a housemate's own visit may complete the toilet besides the actor"
+        );
         assert!(resumed, "the suspended work must resume");
         assert!(
             sim.world()
@@ -1254,6 +1291,11 @@ fn plate_with_guests_finishing_their_activity() -> (Sim, Vec<Entity>, Entity) {
             .get_mut::<Needs>(*person)
             .unwrap()
             .set(NeedId::Hunger, 30.0);
+        // CancelIntents keeps an autonomous ordinary use. Release its actual
+        // place before replacing that target with the fixture's final tick.
+        if let Some(previous) = sim.world().get::<Target>(*person).copied() {
+            crate::reservations::release_now(sim.world_mut(), *person, previous);
+        }
         sim.world_mut()
             .entity_mut(*person)
             .remove::<Path>()
@@ -1461,44 +1503,81 @@ fn gathering_yields_to_critical_needs_player_interruptions_and_table_capacity() 
 #[test]
 fn guests_stand_to_eat_when_the_table_is_busy_and_the_cook_has_left() {
     let (mut sim, people, table) = plate_with_guests_finishing_their_activity();
+    // The fixture requires a busy table across both guests' arrival. Keep a
+    // real Sit long enough through authored test content, not a fabricated
+    // countdown that routing can replace or loading can reject.
+    let mut fixture_content = sim.world().resource::<Content>().0.clone();
+    let table_kind = sim.world().get::<SmartObject>(table).unwrap().0;
+    fixture_content.objects[table_kind.0 as usize].interactions[0].duration_ticks = 1000;
+    let fixture_content = Box::leak(Box::new(fixture_content));
+    sim.world_mut().insert_resource(Content(fixture_content));
     sim.world_mut()
         .resource_mut::<CommandQueue>()
         .push(SimCommand::CancelIntents {
             agent: people[0].index_u32(),
         });
     sim.flush_commands();
-    let object = sim.world().get::<SmartObject>(table).unwrap().0;
     *sim.world_mut().get_mut::<Position>(people[0]).unwrap() = Position { x: 2.0, y: 2.0 };
-    sim.world_mut().entity_mut(people[0]).insert((
-        Target {
-            object: table,
+    // Occupy the table through a real Sit order and its physical chair lease.
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::UseObjectFirst {
+            agent: people[0].index_u32(),
+            object: table.index_u32(),
             interaction: 0,
-        },
-        Eating {
-            object,
-            interaction: 0,
-            remaining_ticks: 190,
-        },
-    ));
-    sim.world_mut().entity_mut(table).insert(Reserved);
-    let mut saw_standing = false;
+        });
+    sim.flush_commands();
+    let mut standing_guests = BTreeSet::new();
+    let mut claimed_guests = BTreeSet::new();
+    let mut standing_replay: Option<Sim> = None;
     for _ in 0..180 {
         sim.tick();
+        if let Some(restored) = &mut standing_replay {
+            restored.tick();
+            assert_eq!(restored.world_hash(), sim.world_hash());
+        }
         if let Some(state) = sim.world().get_resource::<SavedDining>() {
             for diner in &state.diners {
-                if people[1..].iter().any(|p| p.index_u32() == diner.person) {
-                    assert_eq!(diner.chair, None);
-                    saw_standing = true;
+                let Some(guest) = people[1..].iter().find(|p| p.index_u32() == diner.person) else {
+                    continue;
+                };
+                // A later ordinary Sit owns a chair legitimately. Only actual
+                // shared-meal work proves that the food was eaten standing.
+                if crate::seating::kind(sim.world(), diner) != Some(crate::seating::UseKind::Meal) {
+                    continue;
                 }
+                if claimed_guests.insert(diner.person) {
+                    assert_eq!(
+                        crate::dining::ordinary_sitting(sim.world(), people[0]),
+                        Some(table)
+                    );
+                }
+                assert_eq!(diner.chair, None);
+                if sim.world().get::<StepWork>(*guest).is_none() {
+                    continue;
+                }
+                standing_guests.insert(diner.person);
             }
         }
+        if standing_replay.is_none() && !standing_guests.is_empty() {
+            let mut restored = Sim::new_from_shipped_lot();
+            restored
+                .world_mut()
+                .insert_resource(Content(fixture_content));
+            restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+            assert_eq!(restored.world_hash(), sim.world_hash());
+            standing_replay = Some(restored);
+        }
     }
-    assert!(saw_standing);
-    let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
-    assert_eq!(restored.world_hash(), sim.world_hash());
+    assert_eq!(
+        standing_guests,
+        people[1..].iter().map(|p| p.index_u32()).collect()
+    );
+    let mut restored = standing_replay.expect("saved during standing meal work");
     for _ in 0..500 {
         sim.tick();
+        restored.tick();
+        assert_eq!(restored.world_hash(), sim.world_hash());
     }
     assert!(sim.world().resource::<SavedDomestic>().meals.is_empty());
     for guest in &people[1..] {

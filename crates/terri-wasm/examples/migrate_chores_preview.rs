@@ -55,11 +55,47 @@ fn migrate(bytes: &[u8]) -> Result<(Vec<u8>, u64, u64), String> {
     let current = sim.save_snapshot_v5();
     let mut retained = current.clone();
     retained.skills = None;
-    if retained != snapshot {
+    let expected = expected_affinity_migration(&sim, snapshot)?;
+    if retained != expected {
         return Err("adoption changed retained preview state; output was not written".into());
     }
     let migrated = encode_current(&current)?;
     Ok((migrated, tick, hash))
+}
+
+/// Verify the published one-time affinity draws against the original generator.
+/// Every other preview field remains authoritative, including active chore state.
+fn expected_affinity_migration(
+    sim: &Sim,
+    mut source: SaveSnapshotV5,
+) -> Result<SaveSnapshotV5, String> {
+    let world = sim.world();
+    let pack = world.resource::<terri_sim::Content>().0;
+    let mut people: Vec<_> = world
+        .try_query::<(
+            terri_core::Entity,
+            &terri_core::Agent,
+            Option<&terri_core::Traits>,
+        )>()
+        .ok_or("cannot enumerate restored housemates")?
+        .iter(world)
+        .map(|(person, _, worn)| (person.index_u32(), worn.cloned()))
+        .collect();
+    people.sort_by_key(|row| row.0);
+    let mut rng = source.world.rng.clone();
+    let mut rows = Vec::new();
+    for (index, worn) in people {
+        let drawn = terri_sim::affinity::draw(&mut rng, pack, worn.as_ref());
+        for (kind, &value) in pack.affinities.iter().zip(drawn.values()) {
+            if value != 0.0 {
+                rows.push((index, kind.id.clone(), value));
+            }
+        }
+    }
+    rows.sort_by(|a, b| (a.0, &a.1).cmp(&(b.0, &b.1)));
+    source.world.rng = rng;
+    source.affinities = Some(terri_core::save::SavedAffinities { rows });
+    Ok(source)
 }
 
 fn migrate_file(input: &Path, output: &Path) -> Result<(), String> {
@@ -254,9 +290,13 @@ mod tests {
         assert!(rest.is_empty());
         let mut retained = saved.clone();
         retained.skills = None;
-        assert_eq!(retained, expected);
         let mut direct = Sim::new_from_shipped_lot();
-        direct.load_snapshot_v5(expected).unwrap();
+        direct.load_snapshot_v5(expected.clone()).unwrap();
+        assert_eq!(
+            retained,
+            expected_affinity_migration(&direct, expected.clone()).unwrap()
+        );
+
         let mut restored = Sim::new_from_shipped_lot();
         restored.load_snapshot_v5(saved).unwrap();
         assert_eq!(restored.world_hash(), hash);

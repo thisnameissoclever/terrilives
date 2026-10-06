@@ -1,0 +1,12 @@
+{
+  "upstream": "f3cb7a1c993d66dd3e1e6d40085da7d94b5e0805",
+  "files": {
+    "crates/terri-core/src/save.rs": "1799ac5b4a815e40577f752270883b6123328d69f06f5ef42a094ee77904d269",
+    "crates/terri-core/src/command.rs": "97e84cb2b7a7809fb05095ec5bb483c9fe96f0c3c6e3045b8f012f8cef30c371",
+    "crates/terri-wasm/src/lib.rs": "ee4fd4bb322d8a20755caab36b5c385b3ea2d9c9b4c7bfd2004790fbc9e8e4ea",
+    "crates/terri-wasm/examples/migrate_chores_preview.rs": "b6a6aa3a8d46d799cf5361a58a5b3482ffb9d4bff040893ee42ce4d180dc4cc2",
+    "crates/terri-sim/src/domestic/tests.rs": "a18ae229b2f262d8482cd28cf81532161ceaabf595cc4112b8947f065cdbbcd2",
+    "crates/terri-sim/src/mood.rs": "32a0e5b54a8d96de2a055d3ee483cb312cf9a0e443e95610bc2ffd56f4ddfaae"
+  },
+  "representation": "staged Git blob bytes"
+}

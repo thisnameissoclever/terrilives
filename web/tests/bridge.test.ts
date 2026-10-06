@@ -911,9 +911,11 @@ describe('SimBridge', () => {
     // The tail includes floors, both family lists, enabled mortality,
     // the applied migration flag, waiting, instincts and chronotype offsets.
     // Some(SavedSleepingPlaces) adds its tag and two empty vector lengths;
-    // Some(SavedSkills) adds its tag and an empty row count.
+    // Some(SavedSkills) and Some(SavedAffinities) each add a tag and an
+    // empty row count.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 1, 0, 0, 0, 0];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0,
+      1, 0, 1, 0, 0, 0, 0];
     expect(Array.from(legacyCells.slice(-tail.length))).toEqual(tail);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
@@ -936,14 +938,23 @@ describe('SimBridge', () => {
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // Current tail: layout and appended lists, mortality, migration,
     // waiting, instincts and chronotypes, then sleeping places, the privacy
-    // fields, dining (none), skills (Some of no rows), then the three
-    // absent cleanup, chores and grime extensions.
+    // fields, dining (none), skills (Some of no rows) and affinities (Some
+    // of no rows).
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 1, 0, 0, 0, 0];
+    const skillsTail = [1, 0];
+    const affinitiesTail = [1, 0];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0,
+      ...skillsTail, ...affinitiesTail, 0, 0, 0];
     expect(Array.from(valid.slice(-tail.length))).toEqual(tail);
-    // A complete bed-era save lacks both privacy fields. Earlier V5 saves
-    // also lack the whole grouped bed record; both remain loadable.
-    for (const absent of [1, 2, 3, 5, 6, 7, 8, 8 + sleepingPlacesTail.length, 9 + sleepingPlacesTail.length]) {
+    // A save written before affinities lacks that field, and one written
+    // before skills lacks both; a complete bed-era save also lacks dining
+    // and both privacy fields. Earlier V5 saves also lack the whole grouped
+    // bed record; all remain loadable.
+    const c = 3;
+    const a = c + affinitiesTail.length;
+    const s = a + skillsTail.length;
+    for (const absent of [1, 2, 3, a, s, s + 1, s + 2, s + 3, s + 3 + sleepingPlacesTail.length,
+      s + 4 + sleepingPlacesTail.length]) {
       const historical = new SimBridge(new SimHandle(4, 4), wasmMemory);
       expect(historical.loadBytes(valid.slice(0, -absent))).toBe(true);
       expect(historical.saveBytes()).toEqual(valid);
@@ -952,10 +963,13 @@ describe('SimBridge', () => {
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
-    // Cuts at historical field boundaries load. A cut inside mortality
-    // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -4), valid.slice(0, -9), valid.slice(0, -10),
-      valid.slice(0, -14 - sleepingPlacesTail.length), valid.slice(0, -21 - sleepingPlacesTail.length),
+    // Cuts at historical field boundaries load. A cut inside affinities,
+    // inside skills, inside mortality or before the appended fields remains
+    // malformed.
+    const invalid = [valid.slice(0, -c - 1), valid.slice(0, -a - 1), valid.slice(0, -4 - s),
+      valid.slice(0, -5 - s),
+      valid.slice(0, -9 - s - sleepingPlacesTail.length),
+      valid.slice(0, -16 - s - sleepingPlacesTail.length),
       valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
@@ -1099,6 +1113,41 @@ describe('SimBridge', () => {
     expect(returnedAt).toBeDefined();
     expect(bridge.activities()[rowOf(tim)]).not.toBe(6);
     expect(bridge.funds()).toBe(120);
+  });
+
+  it("reads each person's likes and dislikes through release wasm without changing saves", () => {
+    // [OA-hud]: four words per person in kind order, worded by the
+    // simulation from the edges in tuning. Bill wears Fish watcher, which
+    // sets the aquarium to 0.4 (Likes), and Television devotee, which sets
+    // television to 0.8 (Loves).
+    const handle = SimHandle.from_lot();
+    try {
+      const bridge = new SimBridge(handle, wasmMemory);
+      expect(bridge.affinityLabels()).toEqual(['plants', 'aquarium', 'television', 'radio']);
+      const ids = Array.from(bridge.ids());
+      const kinds = bridge.kinds();
+      const people = ids.filter((_, index) => kinds[index] === 0);
+      expect(people.length).toBeGreaterThan(0);
+      const bill = people.find(id => bridge.simName(id) === 'Bill');
+      expect(bill).toBeDefined();
+      const before = handle.save_bytes();
+      const hash = bridge.worldHash();
+      for (const person of people) {
+        const words = bridge.affinityWordsOf(person);
+        expect(words).toHaveLength(4);
+        expect(words).toEqual(handle.affinity_words_of(person));
+      }
+      const words = bridge.affinityWordsOf(bill!)!;
+      expect([words[1], words[2]]).toEqual(['Likes', 'Loves']);
+      const object = ids.find((_, index) => kinds[index] !== 0)!;
+      expect(object).toBeDefined();
+      expect(bridge.affinityWordsOf(object)).toBeNull();
+      for (const hostile of [-1, 1.5, Number.NaN, 2 ** 32, 0xffffffff]) {
+        expect(bridge.affinityWordsOf(hostile)).toBeNull();
+      }
+      expect(handle.save_bytes()).toEqual(before);
+      expect(bridge.worldHash()).toBe(hash);
+    } finally { handle.free(); }
   });
 
   it('a shipped dinner becomes visible: hands fill, the status line reads', () => {

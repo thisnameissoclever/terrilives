@@ -390,6 +390,7 @@ impl From<PreviewSnapshotV5> for SaveSnapshotV5 {
             chores: snapshot.chores,
             grime: snapshot.grime,
             skills: None,
+            affinities: None,
         }
     }
 }

@@ -6,6 +6,7 @@
 //! "every `NeedId` appears exactly once" are not shapes.
 
 use crate::error::ContentError;
+use crate::pack::{AffinityReach, CompiledAffinityKind};
 use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledActionSocket, CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement,
@@ -15,9 +16,9 @@ use crate::pack::{
 };
 use crate::pack::{CompiledColourway, CompiledCovering, CompiledSkill, Facing, FacingSprites};
 use crate::schema::{
-    AtlasFile, CareerDef, CareersFile, ChainsFile, ColourwayDef, HouseholdFile, InteractionDef,
-    LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile, TraitsFile,
-    TuningFile, VisualDef, VoiceFile, WEEKDAY_NAMES,
+    AffinityKindDef, AtlasFile, CareerDef, CareersFile, ChainsFile, ColourwayDef, HouseholdFile,
+    InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile,
+    TraitsFile, TuningFile, VisualDef, VoiceFile, WEEKDAY_NAMES,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::layout::{EdgeAxis, WallEdge};
@@ -110,6 +111,9 @@ pub fn compile(
     // Colourways ride in objects.toml but apply to every object; they are
     // validated last, on their own.
     let colourway_defs = objects.colourway.clone();
+    // Affinity kinds ride in objects.toml too and resolve against the
+    // compiled objects and the activity tags, so they wait for both.
+    let affinity_kind_defs = objects.affinity.clone();
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
         sprite: SIM_SPRITE.to_string(),
     })? as u32;
@@ -573,6 +577,9 @@ pub fn compile(
     // resolves against them at compile time.
     let skills = compile_skills(skills, &known_tags)?;
     check_skill_ladders(&skills, tuning.skill_level_cost, tuning.skill_level_growth)?;
+    // [OA-kinds]: affinity kinds list objects by id and name a trait tag
+    // from the same universe as traits and skills.
+    let affinities = compile_affinities(&affinity_kind_defs, &compiled, &known_tags)?;
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
     let careers = compile_careers(careers, &tuning)?;
@@ -615,6 +622,7 @@ pub fn compile(
         colourways,
         coverings,
         skills,
+        affinities,
     })
 }
 
@@ -1520,6 +1528,97 @@ fn check_skill_ladders(
         }
     }
     Ok(())
+}
+
+/// Validates the affinity kinds declared in `content/objects.toml` -
+/// [OA-kinds] in `docs/specs/2026-10-06-object-affinities.md`. Each kind has a
+/// unique id and a label, a reach of `presence` or `use`, at least one object,
+/// and objects no other kind lists; a `use` kind's objects each have an
+/// interaction, and a trait tag, when present, is one some activity carries.
+/// File order is kept, because every person's values are listed in it; a
+/// kind's objects compile to ascending indices into `objects`.
+pub fn compile_affinities(
+    defs: &[AffinityKindDef],
+    objects: &[CompiledObject],
+    known_tags: &BTreeSet<String>,
+) -> Result<Vec<CompiledAffinityKind>, ContentError> {
+    let mut seen = BTreeSet::new();
+    // Object index to the id of the first kind that listed it.
+    let mut claimed: BTreeMap<u32, String> = BTreeMap::new();
+    let mut compiled = Vec::with_capacity(defs.len());
+    for def in defs {
+        let id = || def.id.clone();
+        if !seen.insert(def.id.as_str()) {
+            return Err(ContentError::DuplicateAffinityKind(id()));
+        }
+        for (field, text) in [("id", &def.id), ("label", &def.label)] {
+            if text.trim().is_empty() {
+                return Err(ContentError::EmptyAffinityText { id: id(), field });
+            }
+        }
+        let reach = match def.reach.as_str() {
+            "presence" => AffinityReach::Presence,
+            "use" => AffinityReach::Use,
+            _ => {
+                return Err(ContentError::UnknownAffinityReach {
+                    id: id(),
+                    reach: def.reach.clone(),
+                })
+            }
+        };
+        let mut indices = Vec::with_capacity(def.objects.len());
+        for object in &def.objects {
+            let Some(index) = objects.iter().position(|o| &o.id == object) else {
+                return Err(ContentError::AffinityObjectUnknown {
+                    id: id(),
+                    object: object.clone(),
+                });
+            };
+            let index = index as u32;
+            if let Some(first) = claimed.get(&index) {
+                return Err(ContentError::AffinityObjectShared {
+                    first: first.clone(),
+                    second: id(),
+                    object: object.clone(),
+                });
+            }
+            claimed.insert(index, id());
+            indices.push(index);
+        }
+        if indices.is_empty() {
+            return Err(ContentError::AffinityObjectEmpty { id: id() });
+        }
+        if reach == AffinityReach::Use {
+            // In authored order, so the first object the author wrote is the
+            // one reported.
+            if let Some(&index) = indices
+                .iter()
+                .find(|&&index| objects[index as usize].interactions.is_empty())
+            {
+                return Err(ContentError::UseAffinityWithoutInteractions {
+                    id: id(),
+                    object: objects[index as usize].id.clone(),
+                });
+            }
+        }
+        if let Some(tag) = &def.trait_tag {
+            if !known_tags.contains(tag) {
+                return Err(ContentError::AffinityTraitTagAboutNothing {
+                    id: id(),
+                    tag: tag.clone(),
+                });
+            }
+        }
+        indices.sort_unstable();
+        compiled.push(CompiledAffinityKind {
+            id: id(),
+            label: def.label.clone(),
+            reach,
+            objects: indices,
+            trait_tag: def.trait_tag.clone(),
+        });
+    }
+    Ok(compiled)
 }
 
 /// Validates `content/social.toml` and compiles the interactions every sim
@@ -2493,6 +2592,60 @@ fn check_overdoing_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
     }
 }
 
+/// Checks the affinity knobs for `compile_tuning`.
+///
+/// [OA-values], [OA-presence] and [OA-use] in
+/// `docs/specs/2026-10-06-object-affinities.md`: each rule is written as the
+/// accepted range so NaN fails it too. `affinity_presence_extra_cap` has no
+/// rule; any count of further objects, including none, is legal.
+fn check_affinity_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
+    let finite_and_not_negative = |value: f32| value.is_finite() && value >= 0.0;
+    let rules = [
+        (
+            "affinity_from_trait",
+            tuning.affinity_from_trait > 0.0 && tuning.affinity_from_trait <= 1.0,
+        ),
+        (
+            "affinity_presence_threshold",
+            tuning.affinity_presence_threshold >= 0.0 && tuning.affinity_presence_threshold < 1.0,
+        ),
+        (
+            "affinity_presence_points",
+            finite_and_not_negative(tuning.affinity_presence_points),
+        ),
+        (
+            "affinity_presence_extra_points",
+            finite_and_not_negative(tuning.affinity_presence_extra_points),
+        ),
+        (
+            "affinity_use_points",
+            finite_and_not_negative(tuning.affinity_use_points),
+        ),
+        (
+            "affinity_use_feeling_per_hour",
+            finite_and_not_negative(tuning.affinity_use_feeling_per_hour),
+        ),
+        (
+            "affinity_band_likes",
+            tuning.affinity_band_likes > 0.0 && tuning.affinity_band_likes < 1.0,
+        ),
+        (
+            "affinity_band_loves",
+            tuning.affinity_band_loves > tuning.affinity_band_likes
+                && tuning.affinity_band_loves <= 1.0,
+        ),
+        (
+            "affinity_from_mild_trait",
+            tuning.affinity_from_mild_trait > 0.0
+                && tuning.affinity_from_mild_trait < tuning.affinity_from_trait,
+        ),
+    ];
+    match rules.into_iter().find(|(_, holds)| !holds) {
+        Some((key, _)) => Err(ContentError::AffinityTuningOutOfRange { key }),
+        None => Ok(()),
+    }
+}
+
 /// Validates the system knobs from `content/tuning.toml`.
 ///
 /// Presence is serde's job - `TuningFile` defaults nothing, so a missing
@@ -2895,6 +3048,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             value: tuning.first_weekday,
         });
     }
+    check_affinity_tuning(&tuning)?;
 
     // The circadian curve, if authored. Every rule here converts a shape
     // of failure that would otherwise be silent into a build error, which
@@ -3092,6 +3246,18 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             sick_threshold: tuning.sick_threshold,
             sick_penalty: tuning.sick_penalty,
             first_weekday: tuning.first_weekday,
+            affinity_from_trait: tuning.affinity_from_trait,
+            affinity_presence_threshold: tuning.affinity_presence_threshold,
+            affinity_presence_points: tuning.affinity_presence_points,
+            affinity_presence_extra_points: tuning.affinity_presence_extra_points,
+            affinity_presence_extra_cap: tuning.affinity_presence_extra_cap,
+            affinity_use_points: tuning.affinity_use_points,
+            affinity_use_feeling_per_hour: tuning.affinity_use_feeling_per_hour,
+            affinity_loves_from: affinity.loves_from,
+            affinity_hates_to: affinity.hates_to,
+            affinity_band_loves: tuning.affinity_band_loves,
+            affinity_band_likes: tuning.affinity_band_likes,
+            affinity_from_mild_trait: tuning.affinity_from_mild_trait,
         },
         circadian,
         tuning.sleep_tag,
@@ -4086,6 +4252,28 @@ mod tests {
     /// the overdoing floats. Careers add nothing here because the fixture
     /// compiles none. Every byte up to and including the overdoing floats
     /// kept its offset. 509 bytes to 510.
+    ///
+    /// **Object affinities moved it by twenty-six bytes, all appended
+    /// ([OA-kinds] and [OA-values] in
+    /// `docs/specs/2026-10-06-object-affinities.md`).** `Tuning` gained seven
+    /// knobs after `first_weekday`, on their own row: the floats 0.6875,
+    /// 0.296875, 10.5 and 3.125, the cap 27 as a one-byte varint, and the
+    /// floats 14.5 and 0.0234375. `ContentPack` gained `affinities` after
+    /// `skills`, the final empty byte; the fixture declares no kind. Every byte
+    /// up to and including `first_weekday` kept its offset. 510 bytes to 536.
+    ///
+    /// **The trait bands moved it by eight bytes, appended to `Tuning`
+    /// ([TL-affinity], read at spawn by [OA-values]).** `affinity_loves_from`
+    /// and `affinity_hates_to` follow the seven affinity knobs, on their own
+    /// row: the fixture's floats 1.46875 and 0.28125. Every byte up to and
+    /// including the affinity knobs kept its offset. 536 bytes to 544.
+    ///
+    /// **The word bands and the mild trait value moved it by twelve bytes,
+    /// appended to `Tuning` ([OA-hud] and [OA-values]).**
+    /// `affinity_band_loves`, `affinity_band_likes` and
+    /// `affinity_from_mild_trait` follow the trait bands, on their own row:
+    /// the fixture's floats 0.5625, 0.1875 and 0.34375. Every byte up to and
+    /// including the trait bands kept its offset. 544 bytes to 556.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Completion presentation appends None after activity in the sole interaction.
@@ -4117,7 +4305,10 @@ mod tests {
         0, 0, 176, 61, 0, 0, 172, 63,
         0, 0, 80, 64, 0, 0, 144, 63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65,
         4,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0,
+        0, 0, 48, 63, 0, 0, 152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60,
+        0, 0, 188, 63, 0, 0, 144, 62,
+        0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -4205,6 +4396,7 @@ mod tests {
     fn three_objects() -> ObjectsFile {
         ObjectsFile {
             colourway: Vec::new(),
+            affinity: Vec::new(),
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
@@ -4357,6 +4549,19 @@ mod tests {
             // in binary32; the golden vector reads these bytes.
             skill_level_cost: 0.0859375,
             skill_level_growth: 1.34375,
+            // [OA-values], [OA-presence] and [OA-use]: distinct from every
+            // knob above and exact in binary32; the golden vector reads these
+            // bytes.
+            affinity_from_trait: 0.6875,
+            affinity_presence_threshold: 0.296875,
+            affinity_presence_points: 10.5,
+            affinity_presence_extra_points: 3.125,
+            affinity_presence_extra_cap: 27,
+            affinity_use_points: 14.5,
+            affinity_use_feeling_per_hour: 0.0234375,
+            affinity_band_loves: 0.5625,
+            affinity_band_likes: 0.1875,
+            affinity_from_mild_trait: 0.34375,
 
             decay_per_tick: NeedId::ALL
                 .iter()
@@ -4480,6 +4685,7 @@ mod tests {
     fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
             colourway: Vec::new(),
+            affinity: Vec::new(),
             object: vec![ObjectDef {
                 sleep_place: Vec::new(),
                 roles: vec![],
@@ -5497,14 +5703,23 @@ mod tests {
             !GOLDEN_PACK_BYTES.is_empty(),
             "an emptied vector would assert nothing"
         );
-        // From the end: the empty skills vector ([SK-content]); the voice
-        // clip, portal, colourway and floor covering vectors before it; the
+        // From the end: the empty affinity kinds vector ([OA-kinds]) and the
+        // empty skills vector ([SK-content]) before it; the voice clip,
+        // portal, colourway and floor covering vectors before those; the
         // sleep tag, its length 5 and five letters; nine empty fields from
-        // personalities through circadian; `first_weekday` ([CAL-week]), the
-        // last byte of `Tuning`; the five overdoing knobs ([OD-content]), the
-        // twenty bytes before it; and then the two ladder knobs. Everything
-        // before the ladder is the established pack.
-        let weekday = GOLDEN_PACK_BYTES.len() - 1 - 4 - 6 - 9 - 1;
+        // personalities through circadian; the word bands and the mild trait
+        // value ([OA-hud], [OA-values]), the last twelve bytes of `Tuning`;
+        // the two trait bands ([TL-affinity]), the eight before them; the seven
+        // affinity knobs ([OA-values]), the twenty-five bytes before them;
+        // `first_weekday` ([CAL-week]), the byte before those; the five
+        // overdoing knobs ([OD-content]), the twenty bytes before that; and
+        // then the two ladder knobs. Everything before the ladder is the
+        // established pack.
+        let words_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
+        let bands_end = words_end - 12;
+        let affinity_end = bands_end - 8;
+        let affinity_start = affinity_end - 25;
+        let weekday = affinity_start - 1;
         let overdoing_end = weekday;
         let ladder_end = overdoing_end - 20;
         let ladder_start = ladder_end - 8;
@@ -5531,10 +5746,42 @@ mod tests {
             overdoing,
             "the overdoing knobs precede the first weekday"
         );
-        assert_eq!(bytes[weekday], 4, "first_weekday is the tail of Tuning");
         assert_eq!(
-            &bytes[bytes.len() - 5..],
-            &[0, 0, 0, 0, 0],
+            bytes[weekday], 4,
+            "first_weekday precedes the affinity knobs"
+        );
+        let affinity: Vec<u8> = [0.6875f32, 0.296875, 10.5, 3.125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .chain([27])
+            .chain([14.5f32, 0.0234375].into_iter().flat_map(f32::to_le_bytes))
+            .collect();
+        assert_eq!(
+            &bytes[affinity_start..affinity_end],
+            affinity,
+            "the affinity knobs precede the trait bands"
+        );
+        let bands: Vec<u8> = [1.46875f32, 0.28125]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[affinity_end..bands_end],
+            bands,
+            "the trait bands precede the word bands"
+        );
+        let words: Vec<u8> = [0.5625f32, 0.1875, 0.34375]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[bands_end..words_end],
+            words,
+            "the word bands and the mild trait value are the tail of Tuning"
+        );
+        assert_eq!(
+            &bytes[bytes.len() - 6..],
+            &[0, 0, 0, 0, 0, 0],
             "each empty vector at the pack tail costs exactly one byte"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
@@ -5589,6 +5836,18 @@ mod tests {
         assert_eq!(tuning.sick_threshold, 2.75);
         assert_eq!(tuning.sick_penalty, 22.5);
         assert_eq!(tuning.first_weekday, 4);
+        assert_eq!(tuning.affinity_from_trait, 0.6875);
+        assert_eq!(tuning.affinity_presence_threshold, 0.296875);
+        assert_eq!(tuning.affinity_presence_points, 10.5);
+        assert_eq!(tuning.affinity_presence_extra_points, 3.125);
+        assert_eq!(tuning.affinity_presence_extra_cap, 27);
+        assert_eq!(tuning.affinity_use_points, 14.5);
+        assert_eq!(tuning.affinity_use_feeling_per_hour, 0.0234375);
+        assert_eq!(tuning.affinity_loves_from, 1.46875);
+        assert_eq!(tuning.affinity_hates_to, 0.28125);
+        assert_eq!(tuning.affinity_band_loves, 0.5625);
+        assert_eq!(tuning.affinity_band_likes, 0.1875);
+        assert_eq!(tuning.affinity_from_mild_trait, 0.34375);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -7099,6 +7358,7 @@ mod tests {
     fn sized_objects(sized: &[(&str, u32, u32)]) -> ObjectsFile {
         ObjectsFile {
             colourway: Vec::new(),
+            affinity: Vec::new(),
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
@@ -8791,6 +9051,432 @@ mod tests {
             }
         );
         assert_eq!(with_skill(10, 3.0).expect("finite").skills.len(), 1);
+    }
+
+    // ---- Affinity kinds - [OA-kinds] ------------------------------------
+
+    /// An unplaced object for the affinity tests, drawn with art
+    /// `test_atlas` holds.
+    fn affinity_object(id: &str, interaction: Vec<InteractionDef>) -> ObjectDef {
+        ObjectDef {
+            sleep_place: Vec::new(),
+            roles: vec![],
+            action_socket: vec![],
+            id: id.into(),
+            name: id.to_uppercase(),
+            presentation: None,
+            sprite: "couch_art".into(),
+            foreground_sprite: None,
+            base_facing: None,
+            footprint: Footprint::SINGLE,
+            interaction,
+            price: None,
+        }
+    }
+
+    /// A sofa, a potted plant with no interaction, a television whose one
+    /// interaction carries the `broadcast` tag, and a radio, at indices 0 to
+    /// 3. The tag is not an object id, so a trait tag that compiles was
+    /// checked against activity tags, not object ids. Only the `noise` kind
+    /// below lists the sofa; in every other kind no first object sits at
+    /// index 0 and none sits at the kind's own index.
+    fn affinity_objects(kinds: Vec<AffinityKindDef>) -> ObjectsFile {
+        let mut watch = snack();
+        watch.id = "watch".into();
+        watch.tags = vec!["broadcast".into()];
+        ObjectsFile {
+            colourway: Vec::new(),
+            affinity: kinds,
+            object: vec![
+                affinity_object("sofa", vec![snack()]),
+                affinity_object("potted_plant", vec![]),
+                affinity_object("television", vec![watch]),
+                affinity_object("radio", vec![snack()]),
+            ],
+        }
+    }
+
+    fn affinity_kind(id: &str, reach: &str, objects: &[&str]) -> AffinityKindDef {
+        AffinityKindDef {
+            id: id.into(),
+            label: id.replace('_', " "),
+            reach: reach.into(),
+            objects: objects.iter().map(|object| (*object).into()).collect(),
+            trait_tag: None,
+        }
+    }
+
+    fn compile_affinity_kinds(kinds: Vec<AffinityKindDef>) -> Result<ContentPack, ContentError> {
+        compile_objects(full_needs(), affinity_objects(kinds))
+    }
+
+    /// [OA-kinds]: kinds keep file order, each object id resolves to its
+    /// index in the compiled objects, and the reach and trait tag reach the
+    /// pack. A kind's indices are ascending whatever order the author wrote.
+    #[test]
+    fn compiles_affinity_kinds_in_file_order_with_object_indices() {
+        let television = AffinityKindDef {
+            trait_tag: Some("broadcast".into()),
+            ..affinity_kind("television", "use", &["television"])
+        };
+        let pack = compile_affinity_kinds(vec![
+            affinity_kind("plants", "presence", &["potted_plant"]),
+            television,
+        ])
+        .expect("two valid kinds");
+        assert_eq!(
+            pack.affinities,
+            vec![
+                CompiledAffinityKind {
+                    id: "plants".into(),
+                    label: "plants".into(),
+                    reach: AffinityReach::Presence,
+                    objects: vec![1],
+                    trait_tag: None,
+                },
+                CompiledAffinityKind {
+                    id: "television".into(),
+                    label: "television".into(),
+                    reach: AffinityReach::Use,
+                    objects: vec![2],
+                    trait_tag: Some("broadcast".into()),
+                },
+            ]
+        );
+        assert_eq!(pack.affinity_kind_of(2), Some(1), "the television");
+        assert_eq!(pack.affinity_kind_of(1), Some(0), "the potted plant");
+        assert_eq!(pack.affinity_kind_of(0), None, "the sofa");
+
+        let pack = compile_affinity_kinds(vec![affinity_kind(
+            "noise",
+            "use",
+            &["radio", "sofa", "television"],
+        )])
+        .expect("one valid kind");
+        assert_eq!(pack.affinities[0].objects, vec![0, 2, 3]);
+        assert_eq!(pack.affinities[0].label, "noise");
+
+        let pack = compile_affinity_kinds(vec![]).expect("no kinds is legal");
+        assert!(pack.affinities.is_empty());
+    }
+
+    /// [OA-kinds]: one case per refusal, each asserting the exact error and
+    /// the kind it names.
+    #[test]
+    fn rejects_bad_affinity_kinds() {
+        let refused = |kinds: Vec<AffinityKindDef>| compile_affinity_kinds(kinds).unwrap_err();
+        let plants = || affinity_kind("plants", "presence", &["potted_plant"]);
+
+        let duplicate = refused(vec![plants(), affinity_kind("plants", "use", &["radio"])]);
+        assert_eq!(
+            duplicate,
+            ContentError::DuplicateAffinityKind("plants".into())
+        );
+        assert!(duplicate.to_string().contains("'plants'"), "{duplicate}");
+
+        for (kind, field) in [
+            (
+                AffinityKindDef {
+                    label: " \t".into(),
+                    ..plants()
+                },
+                "label",
+            ),
+            (
+                AffinityKindDef {
+                    id: String::new(),
+                    ..plants()
+                },
+                "id",
+            ),
+        ] {
+            let id = kind.id.clone();
+            assert_eq!(
+                refused(vec![kind]),
+                ContentError::EmptyAffinityText { id, field }
+            );
+        }
+
+        let smell = refused(vec![affinity_kind("plants", "smell", &["potted_plant"])]);
+        assert_eq!(
+            smell,
+            ContentError::UnknownAffinityReach {
+                id: "plants".into(),
+                reach: "smell".into(),
+            }
+        );
+        assert!(smell.to_string().contains("'smell'"), "{smell}");
+
+        assert_eq!(
+            refused(vec![affinity_kind("plants", "presence", &["unicorn"])]),
+            ContentError::AffinityObjectUnknown {
+                id: "plants".into(),
+                object: "unicorn".into(),
+            }
+        );
+
+        let shared = refused(vec![
+            plants(),
+            affinity_kind("greenery", "presence", &["potted_plant"]),
+        ]);
+        assert_eq!(
+            shared,
+            ContentError::AffinityObjectShared {
+                first: "plants".into(),
+                second: "greenery".into(),
+                object: "potted_plant".into(),
+            }
+        );
+        let message = shared.to_string();
+        assert!(
+            message.contains("'plants'")
+                && message.contains("'greenery'")
+                && message.contains("'potted_plant'"),
+            "{message}"
+        );
+        assert_eq!(
+            refused(vec![affinity_kind(
+                "plants",
+                "presence",
+                &["potted_plant", "potted_plant"],
+            )]),
+            ContentError::AffinityObjectShared {
+                first: "plants".into(),
+                second: "plants".into(),
+                object: "potted_plant".into(),
+            },
+            "one kind listing an object twice"
+        );
+
+        assert_eq!(
+            refused(vec![affinity_kind("plants", "presence", &[])]),
+            ContentError::AffinityObjectEmpty {
+                id: "plants".into()
+            }
+        );
+
+        // The object with no interaction is reported even when it is not the
+        // first the kind lists.
+        for objects in [&["potted_plant"][..], &["radio", "potted_plant"][..]] {
+            assert_eq!(
+                refused(vec![affinity_kind("plants", "use", objects)]),
+                ContentError::UseAffinityWithoutInteractions {
+                    id: "plants".into(),
+                    object: "potted_plant".into(),
+                },
+                "{objects:?}"
+            );
+        }
+
+        let flying = refused(vec![AffinityKindDef {
+            trait_tag: Some("flying".into()),
+            ..affinity_kind("radio", "use", &["radio"])
+        }]);
+        assert_eq!(
+            flying,
+            ContentError::AffinityTraitTagAboutNothing {
+                id: "radio".into(),
+                tag: "flying".into(),
+            }
+        );
+        assert!(flying.to_string().contains("'flying'"), "{flying}");
+
+        // The shipped kind's tag, `television`, is here an object id and no
+        // activity's tag, so it is refused; the activity tag compiles.
+        let with_tag = |tag: &str| {
+            compile_affinity_kinds(vec![AffinityKindDef {
+                trait_tag: Some(tag.into()),
+                ..affinity_kind("television", "use", &["television"])
+            }])
+        };
+        assert_eq!(
+            with_tag("television").unwrap_err(),
+            ContentError::AffinityTraitTagAboutNothing {
+                id: "television".into(),
+                tag: "television".into(),
+            },
+            "an object id is not an activity tag"
+        );
+        let pack = with_tag("broadcast").expect("the television's activity tag");
+        assert_eq!(pack.affinities[0].trait_tag.as_deref(), Some("broadcast"));
+    }
+
+    /// [OA-values], [OA-presence], [OA-use]: every affinity knob, and both
+    /// trait bands ([TL-affinity]) the spawn draw reads, reaches its own
+    /// compiled field. The fixture's twelve values are pairwise distinct, so a
+    /// knob copied from a neighbour moves exactly one assertion.
+    #[test]
+    fn every_affinity_knob_is_copied_to_its_own_compiled_field() {
+        type SetFile = fn(&mut TuningFile);
+        type SetPack = fn(&mut Tuning);
+        let setters: &[(SetFile, SetPack)] = &[
+            (
+                |t| t.affinity_from_trait = 0.5,
+                |t| t.affinity_from_trait = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_threshold = 0.5,
+                |t| t.affinity_presence_threshold = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_points = 0.5,
+                |t| t.affinity_presence_points = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_extra_points = 0.5,
+                |t| t.affinity_presence_extra_points = 0.5,
+            ),
+            (
+                |t| t.affinity_presence_extra_cap = 2,
+                |t| t.affinity_presence_extra_cap = 2,
+            ),
+            (
+                |t| t.affinity_use_points = 0.5,
+                |t| t.affinity_use_points = 0.5,
+            ),
+            (
+                |t| t.affinity_use_feeling_per_hour = 0.5,
+                |t| t.affinity_use_feeling_per_hour = 0.5,
+            ),
+            (
+                |t| t.affinity_loves_from = 2.0,
+                |t| t.affinity_loves_from = 2.0,
+            ),
+            (|t| t.affinity_hates_to = 0.5, |t| t.affinity_hates_to = 0.5),
+            (
+                |t| t.affinity_band_loves = 0.75,
+                |t| t.affinity_band_loves = 0.75,
+            ),
+            (
+                |t| t.affinity_band_likes = 0.25,
+                |t| t.affinity_band_likes = 0.25,
+            ),
+            (
+                |t| t.affinity_from_mild_trait = 0.125,
+                |t| t.affinity_from_mild_trait = 0.125,
+            ),
+        ];
+        let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
+        for (set_file, set_pack) in setters {
+            let actual = compile_tuned(tuning_where(set_file)).unwrap().tuning;
+            let mut expected = baseline;
+            set_pack(&mut expected);
+            assert_eq!(actual, expected);
+        }
+    }
+
+    /// [OA-values], [OA-presence], [OA-use]: each affinity knob's accepted
+    /// range, with the value on each side of every boundary. A refusal names
+    /// the knob whose rule broke, and the cap takes any count.
+    #[test]
+    fn rejects_affinity_tuning_out_of_range() {
+        let refused = |tuning: TuningFile, key: &'static str| {
+            let error = compile_tuned(tuning).unwrap_err();
+            assert_eq!(
+                error,
+                ContentError::AffinityTuningOutOfRange { key },
+                "{key}"
+            );
+            assert!(error.to_string().starts_with(key), "{error}");
+        };
+        type Set = fn(&mut TuningFile, f32);
+        let setters: [(&'static str, Set); 9] = [
+            ("affinity_from_trait", |t, v| t.affinity_from_trait = v),
+            ("affinity_presence_threshold", |t, v| {
+                t.affinity_presence_threshold = v
+            }),
+            ("affinity_presence_points", |t, v| {
+                t.affinity_presence_points = v
+            }),
+            ("affinity_presence_extra_points", |t, v| {
+                t.affinity_presence_extra_points = v
+            }),
+            ("affinity_use_points", |t, v| t.affinity_use_points = v),
+            ("affinity_use_feeling_per_hour", |t, v| {
+                t.affinity_use_feeling_per_hour = v
+            }),
+            ("affinity_band_loves", |t, v| t.affinity_band_loves = v),
+            ("affinity_band_likes", |t, v| t.affinity_band_likes = v),
+            ("affinity_from_mild_trait", |t, v| {
+                t.affinity_from_mild_trait = v
+            }),
+        ];
+        for (key, set) in setters {
+            for value in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, -0.0625] {
+                refused(tuning_where(|t| set(t, value)), key);
+            }
+        }
+
+        // A trait sets a value inside (0, 1].
+        refused(
+            tuning_where(|t| t.affinity_from_trait = 0.0),
+            "affinity_from_trait",
+        );
+        refused(
+            tuning_where(|t| t.affinity_from_trait = 1.5),
+            "affinity_from_trait",
+        );
+        // The threshold is a magnitude in [0, 1).
+        refused(
+            tuning_where(|t| t.affinity_presence_threshold = 1.0),
+            "affinity_presence_threshold",
+        );
+        refused(
+            tuning_where(|t| t.affinity_presence_threshold = -0.1),
+            "affinity_presence_threshold",
+        );
+        refused(
+            tuning_where(|t| t.affinity_use_points = f32::NAN),
+            "affinity_use_points",
+        );
+        // The word bands: 0 < likes < loves <= 1. The likes rule is checked
+        // first, so a likes value that breaks both names itself.
+        refused(
+            tuning_where(|t| t.affinity_band_loves = 1.0625),
+            "affinity_band_loves",
+        );
+        refused(
+            tuning_where(|t| t.affinity_band_loves = 0.1875),
+            "affinity_band_loves",
+        );
+        refused(
+            tuning_where(|t| t.affinity_band_likes = 0.0),
+            "affinity_band_likes",
+        );
+        // The mild value is above 0 and below the strong one.
+        refused(
+            tuning_where(|t| t.affinity_from_mild_trait = 0.0),
+            "affinity_from_mild_trait",
+        );
+        refused(
+            tuning_where(|t| t.affinity_from_mild_trait = 0.6875),
+            "affinity_from_mild_trait",
+        );
+
+        // The other side of every boundary is accepted.
+        for accepted in [
+            tuning_where(|t| t.affinity_from_trait = 1.0),
+            tuning_where(|t| {
+                t.affinity_from_trait = 0.0625;
+                t.affinity_from_mild_trait = 0.03125;
+            }),
+            tuning_where(|t| t.affinity_band_loves = 1.0),
+            tuning_where(|t| t.affinity_band_loves = 0.203125),
+            tuning_where(|t| t.affinity_band_likes = 0.0078125),
+            tuning_where(|t| t.affinity_from_mild_trait = 0.671875),
+            tuning_where(|t| t.affinity_presence_threshold = 0.0),
+            tuning_where(|t| t.affinity_presence_threshold = 0.9375),
+            tuning_where(|t| {
+                t.affinity_presence_points = 0.0;
+                t.affinity_presence_extra_points = 0.0;
+                t.affinity_use_points = 0.0;
+                t.affinity_use_feeling_per_hour = 0.0;
+            }),
+            tuning_where(|t| t.affinity_presence_extra_cap = 0),
+            tuning_where(|t| t.affinity_presence_extra_cap = u32::MAX),
+        ] {
+            compile_tuned(accepted).expect("inside every affinity range");
+        }
     }
 
     /// One trait, worn once - the review finding: `Traits` keys state
@@ -10812,6 +11498,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![reading_object()],
             },
         )
@@ -10865,6 +11552,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![object],
                 },
             )
@@ -10968,6 +11656,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![donor, reader],
                 }
             )
@@ -11103,6 +11792,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![reading_object()],
                 },
                 lot,
@@ -11164,6 +11854,7 @@ mod tests {
                     full_needs(),
                     ObjectsFile {
                         colourway: Vec::new(),
+                        affinity: Vec::new(),
                         object: vec![object],
                     },
                     bare_lot(),
@@ -11216,6 +11907,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![object],
                 },
                 lot,
@@ -11254,6 +11946,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![object],
             },
             lot,
@@ -11625,6 +12318,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0), ("sink", 3.0, 1.0)]),
@@ -12052,6 +12746,7 @@ mod tests {
             full_needs(),
             ObjectsFile {
                 colourway: Vec::new(),
+                affinity: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0)]),
@@ -12142,6 +12837,7 @@ mod tests {
                 full_needs(),
                 ObjectsFile {
                     colourway: Vec::new(),
+                    affinity: Vec::new(),
                     object: vec![fridge],
                 },
             )

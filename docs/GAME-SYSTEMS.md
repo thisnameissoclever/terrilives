@@ -78,7 +78,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-communal-activities] | Planned; next build | Liked Sims prefer compatible shared activities; existing shared meals and relationship rewards are foundations |
 | [S-activity-seating] | Partial; next build, with [S-communal-activities] | Armchair sitting and seated reading exist; seat preferences and remaining sitting poses are planned |
 | [B-gender] | Not started | Gender and saved appearance choices; new bodies and clothing need art |
-| [B-object-affinities] | Not started | Individual reactions to kinds of objects and others' use |
+| [B-object-affinities] | Partial; first slice shipped 2026-10-06 | Each Sim's likes and dislikes for plants, the aquarium, the television and the radio, room mood and being bothered by another's use; colour, editing, the general nuisance field and pets remain |
 | [B-colour-preferences] | Not started | Colour-family preferences, distinct from shipped recolour controls |
 
 FEATURES.md records their requested behaviour and unresolved design choices.
@@ -308,7 +308,7 @@ Part one, specified in [OD-model] and [OD-moodlets] of `docs/specs/2026-10-06-ov
 
 An action's effect on its need is separate from its effect on happiness. Eating always reduces hunger. Eating again and again when not hungry lowers happiness and eventually makes the Sim feel sick. The first version of feeling sick can be a temporary condition with a moodlet; the full version belongs to [P-health].
 
-**Owner direction, part two: new things.** Buy mode now supplies the purchase event, but the novelty boost is not built. The proposal gives every Sim a positive happiness boost when something new is bought, sized by item and colour affinity. Reconcile this with the later hated-item direction in [B-object-affinities] before implementation.
+**Owner direction, part two: new things.** Buy mode now supplies the purchase event, but the novelty boost is not built. The proposal gives every Sim a positive happiness boost when something new is bought, sized by item and colour affinity. Item affinity now exists as each Sim's value for each kind of thing, and a hated plant or aquarium already lowers mood in its room ([OA-values] and [OA-presence] in `docs/specs/2026-10-06-object-affinities.md`). Decide before implementation whether buying a kind a Sim hates gives any boost. Colour affinity is still unbuilt ([B-colour-preferences]).
 
 Being near the new thing keeps boosting the Sim for a while. The boost fades as the Sim grows used to the thing. It can return only after the Sim has spent long enough away from the thing, or has stopped doing the activity for long enough. The rate of fading belongs to each pairing of one Sim and one item, and it follows from that Sim's preferences.
 
@@ -326,7 +326,7 @@ The game has two values a player might call happiness: mood, which moves minute 
 
 **Status: Foundation only.**
 
-**What exists.** Fifteen traits across three kinds, and three personality types with multipliers on need decay, activity benefits and attraction. The Traits panel shows assigned traits. Numeric novelty-seeking, empathy and hidden sub-traits remain unbuilt.
+**What exists.** Fifteen traits across three kinds, and three personality types with multipliers on need decay, activity benefits and attraction. The Traits panel shows assigned traits. Every Sim also holds one value from -1 to 1 for each kind of thing they can love or hate (plants, the aquarium, the television and the radio), drawn when they are created, saved, and shown as Loves to Hates in the Likes and dislikes section of Sim details ([OA-values] and [OA-hud] in `docs/specs/2026-10-06-object-affinities.md`). They are graded values of the kind this entry describes, without hidden parts. Numeric novelty-seeking, empathy and hidden sub-traits remain unbuilt.
 
 **Owner direction.** The behaviour systems need to become much deeper, fed by a large set of traits. Each visible trait, such as novelty-seeking, is broken down into sub-traits that work under the hood. The owner's example: two Sims who both score eight for novelty-seeking should not have the same appetite for skydiving.
 
@@ -630,10 +630,7 @@ infrastructure. FEATURES.md owns the same current priority.
    reading, TV and listening. Keep location-bound activities at their objects,
    including watching fish near the tank. Deliver missing sitting poses and
    animations in this slice rather than leaving them in the later art backlog.
-2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
-   Recommended follow-up: connect different people's preferences to the shared
-   room and the shipped mood-to-satisfaction mechanism. Reconcile novelty and
-   nuisance rules before choosing the first playable slice.
+2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].** The first object-affinities slice shipped on 2026-10-06: each Sim holds a value for plants, the aquarium, the television and the radio, the first two move mood in their room, and a Sim who dislikes the television or the radio is bothered when another Sim uses it in the same room. Colour preferences remain, with editing the values, the general nuisance field [P-nuisance] and pets.
 3. **[S-skills] consequences and [S-sim-details].** The first skills slice
    shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
    existing and newly added values in the details panel.

@@ -661,6 +661,46 @@ impl Skills {
     }
 }
 
+/// [OA-values]: how this person feels about each affinity kind, one value
+/// per kind in the pack's kinds order, each in -1.0 (hates) ..= 1.0
+/// (loves). See `docs/specs/2026-10-06-object-affinities.md`. In the world
+/// hash through the `affinities-v1` block, which reads only values that are
+/// not exactly 0.0, so a person holding none hashes as one with no
+/// component.
+///
+/// Dense rather than the sorted pairs of [`Skills`]: every person is drawn
+/// a value for every kind at spawn, so nearly every entry is non-zero.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Affinities(Vec<f32>);
+
+impl Affinities {
+    /// One value per kind, in kinds order. Each is clamped into
+    /// -1.0..=1.0, and NaN is stored as 0.0, so a stored value is always
+    /// one a save can carry.
+    pub fn from_values(values: Vec<f32>) -> Self {
+        Self(
+            values
+                .into_iter()
+                .map(|value| {
+                    if value.is_nan() {
+                        0.0
+                    } else {
+                        value.clamp(-1.0, 1.0)
+                    }
+                })
+                .collect(),
+        )
+    }
+    /// The value for the kind at `kind`, or 0.0 past the end of the list.
+    pub fn value(&self, kind: u32) -> f32 {
+        self.0.get(kind as usize).copied().unwrap_or(0.0)
+    }
+    /// Every value, in kinds order.
+    pub fn values(&self) -> &[f32] {
+        &self.0
+    }
+}
+
 /// This attempt is FAILING - a capability roll came up short when the
 /// interaction began ([E3]). Carried beside `Eating` for the length of
 /// the attempt; `delta_scale` is what the advertised BENEFITS deliver

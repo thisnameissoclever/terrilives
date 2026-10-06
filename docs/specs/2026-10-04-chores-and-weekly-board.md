@@ -118,7 +118,7 @@ The panel retains eight days of episodes and identifies actual performers.
 
 ## Persistence and boundaries
 
-Append targeted cleanup after the published V5 skill field, then append chores
+Append targeted cleanup after the published V5 skill and affinity fields, then append chores
 after targeted cleanup. Keep every published command tag, including EditHousemate.
 An additional optional grime field stores its random stream, active patch members
 and legacy floor-task markers. Historical active floor tasks finish their saved
@@ -129,6 +129,26 @@ settled episodes. Hash every value that affects future simulation. Validate
 references, numeric bounds, ordering and exclusive claims before adoption.
 Older saves adopt clean surfaces and neutral history without rerolling existing
 work or changing existing dish responsibility.
+
+### Unpublished preview saves
+
+The early chores preview used a different V5 field order and command tags.
+Its content fingerprint also appears in published saves, so the normal loader
+must not guess which format it received. Published V5 saves use the normal
+loader; only known early chore-preview files use the explicit offline converter.
+
+1. Keep an untouched copy of the preview save outside the browser's single save slot.
+2. Run `cargo run -p terri-wasm --example migrate_chores_preview -- INPUT.sav OUTPUT.sav` with a new output path.
+3. Load the output in the updated game while paused.
+4. Check the household, clock and pending chores before resuming.
+
+The converter refuses an existing output file, incomplete records, trailing
+bytes and invalid state. It maps preview commands by meaning, retains the saved
+clock and existing chore state, and applies the published one-time skill and
+affinity migrations. It verifies the exact affinity draws and resulting random
+generator state before writing. Every other retained snapshot field must match
+the source. Conversion does not modify the input file or automatically replace
+browser storage.
 
 Use the existing renderer and assets where they support the behavior. Grime
 uses localized transparent stain, scuff, dust and grease sprites. Amount controls
