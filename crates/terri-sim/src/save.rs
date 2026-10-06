@@ -807,7 +807,12 @@ fn restore_entity(
         target.insert(Career(index as u32));
     }
     if saved.commuting {
-        target.insert(Commuting);
+        // One saved bit, two directions: the walk's destination says which.
+        let destination = saved
+            .path
+            .as_ref()
+            .and_then(|path| path.steps.last().copied());
+        target.insert(crate::systems::career::saved_commute(pack, destination));
     }
     if let Some(remaining_ticks) = saved.at_work_ticks {
         target.insert(AtWork { remaining_ticks });

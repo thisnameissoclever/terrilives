@@ -15,7 +15,10 @@
 //! vanishes into `AtWork` for `shift_ticks`; the return restores it where
 //! it vanished, pays the shift, then walks it home to the door's landing
 //! when the door has authored portal routing. Legacy lots still reappear
-//! on the door tile.
+//! on the door tile. The two walks carry the same marker with its
+//! direction written in, `Commuting::Outbound` and `Commuting::Inbound`,
+//! so the end of a walk is read by the direction that started it and
+//! never by where the worker stands.
 //! Needs keep decaying at work - a shift is tiring, and hungry - and
 //! that time-tax on the second axis is the career's real price, which
 //! is [S1]'s framing and the reason career satisfaction never needs to
@@ -68,8 +71,8 @@ use crate::Content;
 /// whose shifts start on the same tick, a worker walking toward the
 /// OTHER worker has its fresh commute `Path` removed by that worker's
 /// sweep, which still sees the old `Target`, and `commute_and_work` then
-/// reads `Commuting` with no `Path` as an arrival. Whoever adds a second
-/// career owns closing it; [B-jobs-careers] is where that lands.
+/// reads an outbound `Commuting` with no `Path` as an arrival. Whoever adds
+/// a second career owns closing it; [B-jobs-careers] is where that lands.
 #[allow(clippy::type_complexity)]
 pub fn start_shift(
     mut commands: Commands,
@@ -142,8 +145,9 @@ pub fn start_shift(
 
         // The commute, to the street's exit where the door opens onto a
         // yard ([OS-street]), else to the door. A worker standing on the
-        // commute's end gets the empty path, walks it in zero steps, and
-        // clocks in on this same tick's `commute_and_work`.
+        // commute's end tile gets the empty path, walks it in zero steps,
+        // and clocks in on this same tick's `commute_and_work`, wherever on
+        // that tile it stands: the walk is outbound by construction.
         let from = if grid.blocked_edges().next().is_some() {
             (pos.x.round() as i32, pos.y.round() as i32)
         } else {
@@ -162,7 +166,7 @@ pub fn start_shift(
             Some(steps) => {
                 commands
                     .entity(worker)
-                    .insert((Commuting, Path { steps, cursor: 0 }));
+                    .insert((Commuting::Outbound, Path { steps, cursor: 0 }));
             }
             // Unreachable on shipped content - the door is validated
             // connected, a sim never stands on a blocked tile, and the
@@ -195,6 +199,30 @@ pub(crate) fn works_today(
     ))
 }
 
+/// The direction of a saved commute, read back off the saved walk's
+/// destination, because a save carries the marker and not its direction
+/// (Save V1's `commuting` is one bit, and postcard writes an entity's
+/// fields back to back, so a direction field could not be appended the way
+/// a trailing snapshot field can).
+///
+/// A walk home ends on the front door's landing and nowhere else, and no
+/// outbound walk ends there: the commute's end is the street's exit or the
+/// door tile ([OS-street]), both outside the landing. A saved commuter with
+/// no walk at all is outbound, the only direction that can be saved
+/// without one, and loads to clock in where it stands.
+pub(crate) fn saved_commute(
+    content: &terri_data::ContentPack,
+    destination: Option<(i32, i32)>,
+) -> Commuting {
+    let landing = crate::portals::front_portal(content)
+        .map(|portal| (portal.inward.0 as i32, portal.inward.1 as i32));
+    if destination.is_some() && destination == landing {
+        Commuting::Inbound
+    } else {
+        Commuting::Outbound
+    }
+}
+
 /// Clocks departures in, counts shifts down, pays returns, and finishes arrivals.
 ///
 /// Runs after `follow_path`: a commuter whose `Path` is gone has
@@ -202,11 +230,15 @@ pub(crate) fn works_today(
 /// target-less path; that is the wander shape, reused on purpose so
 /// there is exactly one mover. The same-tick handoff works because
 /// command effects apply between systems: `follow_path` removes the
-/// Path, this system sees `Commuting` without `Path` and swaps it for
-/// [`AtWork`] when the walk ended on the street's exit or the door's tile.
-/// The same marker also owns the walk home to the landing. Once that walk
-/// ends away from both, the marker is removed rather than clocking the
-/// worker straight back in.
+/// Path, this system sees `Commuting` without `Path` and reads the
+/// marker's direction. An outbound walk's end is the clock-in, swapped
+/// for [`AtWork`]; an inbound walk's end is home, and the marker is
+/// removed rather than clocking the worker straight back in. The
+/// direction is never inferred from the position: a worker already on
+/// the commute's end tile when the shift starts arrives on the shift
+/// tick a fraction of a tile from the tile's centre, and reading that as
+/// "not on the door, so home" is the bug that sent it back to the sofa
+/// unpaid.
 ///
 /// The countdown starts on the tick AFTER arrival because the insert is
 /// deferred. The office absence therefore occupies `shift_ticks + 1` ticks.
@@ -227,7 +259,7 @@ pub fn commute_and_work(
             &mut Needs,
             &mut Satisfaction,
             Option<&mut AtWork>,
-            Has<Commuting>,
+            Option<&Commuting>,
             Has<Path>,
         ),
         With<Agent>,
@@ -237,7 +269,7 @@ pub fn commute_and_work(
     // the discipline is cheaper than the argument for skipping it.
     let mut working: Vec<Entity> = workers.iter().map(|(entity, ..)| entity).collect();
     working.sort_by_key(|entity| entity.index());
-    let exit = crate::portals::street_exit(content.0, grid.width() as u32);
+    let front_portal = crate::portals::front_portal(content.0);
 
     for worker in working {
         let Ok((_, career, position, mut needs, mut satisfaction, at_work, commuting, has_path)) =
@@ -246,41 +278,30 @@ pub fn commute_and_work(
             continue;
         };
         let career = &content.0.careers[career.0 as usize];
-        let front_portal = content.0.lot.front_door.and_then(|door| {
-            content
-                .0
-                .portals
-                .iter()
-                .find(|portal| portal.position == door)
-        });
 
-        if commuting && !has_path {
-            if let Some(portal) = front_portal {
-                let on = |tile| crate::portals::on_tile((position.x, position.y), tile);
-                if !on(portal.position) && !exit.is_some_and(on) {
-                    // The same marker covers both directions. An outbound
-                    // commuter exhausts its path on the street's exit, or on
-                    // the door tile where there is no street or the walk was
-                    // saved before there was one ([OS-street]); an inbound
-                    // commuter exhausts it on the landing inside. Position
-                    // therefore distinguishes the two without adding Save V1
-                    // state.
-                    commands.entity(worker).remove::<Commuting>();
-                    continue;
-                }
+        match commuting {
+            Some(Commuting::Inbound) if !has_path => {
+                // Home on the landing. The walk was a normal one and the
+                // shift was paid when it began, so there is nothing to do
+                // but take the marker off.
+                commands.entity(worker).remove::<Commuting>();
+                continue;
             }
-            // Arrived. The rabbit hole swallows the sim: render skips
-            // it, selection and the people loops exclude it, and its
-            // Position stays frozen where it vanished, on the street's
-            // exit or the door, so its hash row (and its render slot)
-            // survive the absence.
-            commands
-                .entity(worker)
-                .remove::<Commuting>()
-                .insert(AtWork {
-                    remaining_ticks: career.shift_ticks,
-                });
-            continue;
+            Some(Commuting::Outbound) if !has_path => {
+                // Arrived. The rabbit hole swallows the sim: render skips
+                // it, selection and the people loops exclude it, and its
+                // Position stays frozen where it vanished, on the street's
+                // exit or the door, so its hash row (and its render slot)
+                // survive the absence.
+                commands
+                    .entity(worker)
+                    .remove::<Commuting>()
+                    .insert(AtWork {
+                        remaining_ticks: career.shift_ticks,
+                    });
+                continue;
+            }
+            _ => {}
         }
 
         let Some(mut at_work) = at_work else {
@@ -308,7 +329,7 @@ pub fn commute_and_work(
                     .find_path(from, landing)
                     .and_then(|steps| grid.anchor_path((position.x, position.y), steps))
                     .unwrap_or_else(|| vec![landing]);
-                returning.insert((Commuting, Path { steps, cursor: 0 }));
+                returning.insert((Commuting::Inbound, Path { steps, cursor: 0 }));
             }
             needs.drain(NeedId::Energy, career.energy_cost);
             funds.0 += career.pay as i64;
@@ -531,7 +552,7 @@ mod tests {
             let mut sim = test_content::sim_with(8, 8, pack);
             let worker = a_worker(&mut sim, door.0 as f32, door.1 as f32);
             sim.world_mut().entity_mut(worker).insert((
-                Commuting,
+                Commuting::Inbound,
                 Path {
                     steps: vec![(inward.0 as i32, inward.1 as i32)],
                     cursor: 0,
@@ -562,17 +583,87 @@ mod tests {
         }
     }
 
+    /// A worker standing a fraction of a tile off the door tile when the
+    /// shift starts routes from the door tile it stands on, so its commute
+    /// is the empty walk and it arrives on the shift tick. That arrival is
+    /// outbound whatever the position reads, on each axis separately
+    /// ([L-door-arrival-needs-independent-axis-tests]): the worker clocks
+    /// in, the shift runs, and the return pays once. Clock-in and pay are
+    /// observed, never predicted
+    /// ([L-career-tests-follow-events-not-guessed-ticks]).
     #[test]
-    fn outbound_arrival_accepts_the_exact_door_and_each_tolerance_boundary() {
+    fn a_worker_a_fraction_off_the_door_at_shift_start_still_clocks_in_and_is_paid_once() {
+        let shift_start = a_career().shift_start as u64;
+        for (axis, position) in [
+            ("x", Position { x: 15.3, y: 2.0 }),
+            ("y", Position { x: 15.0, y: 2.3 }),
+        ] {
+            let pack = career_pack_with_portal();
+            let mut sim = test_content::sim_with_portals(16, 12, pack);
+            let worker = a_worker(&mut sim, 15.0, 2.0);
+
+            // Idle wandering moves the worker before the shift, so the
+            // position is pinned on the tick before the shift starts, as
+            // a wander the clock interrupts mid-step would leave it. The
+            // 16x12 test lot has no wall edges, so the commute routes
+            // from the tile the position truncates to, the door's own.
+            for _ in 1..shift_start {
+                sim.tick();
+            }
+            assert_eq!(clock(&sim), shift_start - 1, "one tick per Sim::tick");
+            sim.world_mut()
+                .entity_mut(worker)
+                .remove::<Path>()
+                .insert(position);
+
+            let mut clocked_in_at = None;
+            for tick in shift_start..=29u64 {
+                sim.tick();
+                if clocked_in_at.is_none() && sim.world().get::<AtWork>(worker).is_some() {
+                    clocked_in_at = Some(tick);
+                }
+            }
+            assert_eq!(clock(&sim), 29, "one tick per Sim::tick");
+
+            assert_eq!(
+                clocked_in_at,
+                Some(shift_start),
+                "the {axis}-axis worker is on the door tile already, so it clocks \
+                 in on the shift tick instead of being read as home from work"
+            );
+            assert!(
+                !away(&sim, worker),
+                "the {axis}-axis worker's 6-tick shift is over well before tick 29"
+            );
+            assert_eq!(
+                sim.funds(),
+                a_career().pay as i64,
+                "the {axis}-axis worker's one shift pays once"
+            );
+        }
+    }
+
+    /// An outbound commute that has ended is the clock-in, read from the
+    /// marker's direction and not from where the worker stands: exactly on
+    /// the door, a hair off it on either axis, a fraction of a tile off on
+    /// either axis, and on the landing a walk home would end on
+    /// ([L-door-arrival-needs-independent-axis-tests]).
+    #[test]
+    fn an_outbound_commute_that_has_ended_clocks_in_wherever_the_worker_stands() {
         for (case, door, position) in [
             ("nonzero exact door", (5, 4), Position { x: 5.0, y: 4.0 }),
-            ("x tolerance", (0, 0), Position { x: 0.01, y: 0.0 }),
-            ("y tolerance", (0, 0), Position { x: 0.0, y: 0.01 }),
+            ("x hair off", (0, 0), Position { x: 0.01, y: 0.0 }),
+            ("y hair off", (0, 0), Position { x: 0.0, y: 0.01 }),
+            ("x fraction off", (5, 4), Position { x: 5.3, y: 4.0 }),
+            ("y fraction off", (5, 4), Position { x: 5.0, y: 4.3 }),
+            ("on the landing", (5, 4), Position { x: 5.0, y: 5.0 }),
         ] {
             let pack = career_pack_with_portal_route(door, (door.0, door.1 + 1));
             let mut sim = test_content::sim_with(8, 8, pack);
             let worker = a_worker(&mut sim, position.x, position.y);
-            sim.world_mut().entity_mut(worker).insert(Commuting);
+            sim.world_mut()
+                .entity_mut(worker)
+                .insert(Commuting::Outbound);
 
             sim.tick();
 
@@ -585,7 +676,13 @@ mod tests {
                     .get::<AtWork>(worker)
                     .map(|work| work.remaining_ticks),
                 Some(a_career().shift_ticks),
-                "{case} is inside the inclusive arrival tolerance"
+                "{case} clocks in: the walk out has ended"
+            );
+            let settled = sim.world().get::<Position>(worker).unwrap();
+            assert_eq!(
+                (settled.x, settled.y),
+                (position.x, position.y),
+                "{case} vanishes where it stood"
             );
         }
     }

@@ -4500,7 +4500,7 @@ mod boundary_tests {
             .spawn((
                 Agent,
                 Position { x: 15.0, y: 3.25 },
-                terri_core::Commuting,
+                terri_core::Commuting::Outbound,
                 terri_core::Path {
                     steps: vec![(15, 2)],
                     cursor: 0,

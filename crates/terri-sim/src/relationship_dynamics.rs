@@ -469,7 +469,7 @@ mod tests {
                     sim.world_mut().get_mut::<Position>(b).unwrap().x = 7.0;
                 }
                 "commute" => {
-                    sim.world_mut().entity_mut(b).insert(Commuting);
+                    sim.world_mut().entity_mut(b).insert(Commuting::Outbound);
                 }
                 "work" => {
                     sim.world_mut().entity_mut(b).insert(AtWork {

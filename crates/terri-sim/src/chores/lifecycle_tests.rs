@@ -231,7 +231,7 @@ fn commute_interruption_keeps_the_career_path_when_chore_is_suspended_or_cancell
     };
     sim.world_mut()
         .entity_mut(person)
-        .insert((terri_core::Commuting, path.clone()));
+        .insert((terri_core::Commuting::Outbound, path.clone()));
     let mut state = sim.world_mut().remove_resource::<SavedChores>().unwrap();
     work::advance(sim.world_mut(), &mut state);
     assert!(state.tasks[0].suspended);

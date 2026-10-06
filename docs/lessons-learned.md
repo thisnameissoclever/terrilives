@@ -10602,6 +10602,16 @@ Repetition decay precedes the mood projection that drives life satisfaction.
 behavior. Match events to actual completion counters, retain save/load
 equality, and keep foreign-pile and quantity assertions. Verify the
 fixture's bystander constraint each tick.
+## [L-walk-direction-is-state-not-position] Record which way a walk goes; do not read it off where it ends
+
+**What happened.** One `Commuting` marker covered both the walk out to a shift and the walk home, and `commute_and_work` told them apart by whether the worker's position was within a hundredth of a tile of the door or the street's exit when its path ran out. A worker a fraction of a tile from the door's centre when the shift started got the empty commute, arrived on the shift tick where it stood, was read as home from work, and lost the shift unpaid. A calendar test draft on a lot without wall edges hit it at tick 88 of a 30-tick day; the shipped lot's walls route every commute onto the tile's centre first, which is why the played game never showed it.
+
+**Root cause.** A direction known at the moment a walk starts was discarded and reconstructed from a tolerance check on the walk's end. Any end position outside the tolerance, including the start position of a zero-step walk, turned a departure into a return.
+
+**Prevention.** When two walks share a marker and a mover, write the direction into the marker when the walk starts (`Commuting::Outbound`, `Commuting::Inbound`) and read only that at the end. Keep a tolerance check for what it measures, a position, and never use it to decide which lifecycle an event belongs to. On load, where a save carries one bit, derive the direction from the saved walk's destination, which is authored, not from the position, which is wherever movement left it.
+
+**Verify.** `a_worker_a_fraction_off_the_door_at_shift_start_still_clocks_in_and_is_paid_once` and `an_outbound_commute_that_has_ended_clocks_in_wherever_the_worker_stands` in `crates/terri-sim/src/systems/career.rs` fail with `left: None` when the positional check is put back into the outbound arm; `a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street` in `crates/terri-sim/src/systems/street_tests.rs` pins the shipped lot.
+
 ## Keep chore state available during mood-based decisions
 
 **What happened.** Daily cleaning decisions omitted grime and chore feelings,

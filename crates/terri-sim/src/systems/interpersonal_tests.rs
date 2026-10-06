@@ -151,7 +151,9 @@ fn privacy_commutes_can_take_a_required_route_and_exiting_is_always_allowed() {
             cursor: 0,
         });
         if commute {
-            sim.world_mut().entity_mut(a).insert(terri_core::Commuting);
+            sim.world_mut()
+                .entity_mut(a)
+                .insert(terri_core::Commuting::Outbound);
         }
         let mut schedule = Schedule::default();
         schedule.add_systems(
