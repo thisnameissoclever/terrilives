@@ -1389,6 +1389,22 @@ describe('AudioController object loops', () => {
     expect(context.bufferSources.map(source => source.stops)).toEqual(stops);
   });
 
+  it('counts a conversation only once its recordings start', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    await controller.unlockFromGesture();
+    const voice = { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 };
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+    try {
+      controller.emit({ type: 'sim.conversation-started', simId: 4, voice });
+      expect(controller.cuePlayCounts().conversation).toBe(0);
+      await controller.loadVoiceLibrary(['a', 'b']);
+    } finally { globalThis.fetch = originalFetch; }
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+    expect(controller.cuePlayCounts().conversation).toBe(1);
+  });
+
   it('does not let a stale object stop erase a changed pending action', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, memoryStore());
