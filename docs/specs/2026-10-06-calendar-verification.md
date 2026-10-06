@@ -57,36 +57,34 @@ The web tests are in `web/tests/game-hud.test.ts` and `web/tests/bridge.test.ts`
 
 ## Displayed browser
 
-Screenshots checked: the working tree of `twcl/calendar` on top of `63e3142b`, with the first version of this task's changes, before they were committed. That version printed the clock on one line; the two-line clock was measured afterwards, as described below. The bundle `assets/index-BwR1pszi.js` was built with `npm run build` after `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, and served with `npx vite preview --port 4173 --strictPort` from `web/` at `https://localhost:4173/`.
+Code checked: the working tree of `twcl/calendar` on top of `0b94e565`, with the stacked Time row, before it was committed. The bundle `assets/index-BWj0fjLn.js` was built with `npm run build` from the wasm package built by `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, and served with `npx vite preview --port 4173 --strictPort` from `web/` at `https://localhost:4173/`.
 
-The in-app browser pane loaded the bundle but was hidden and delivered no animation frames in two seconds, so the check used the Playwright plugin's Chromium (Chrome 154 on Windows, with `navigator.gpu` present), which ran 58 frames a second. Sound was muted before the game ran by setting `terrilives.audio-preferences.v1` to `{"version":1,"muted":true,"effectsLevel":0,"voicesLevel":0}` and reloading; the Options flyout showed `Sound: off`. The first-run Help was already dismissed in that browser profile.
+The in-app browser pane loaded the game but was hidden and delivered no animation frames in two seconds, so the check used the Playwright plugin's Chromium (Chrome 154 on Windows, with `navigator.gpu` present), which ran about 58 frames a second. `terrilives.audio-preferences.v1` held `{"version":1,"muted":true,"effectsLevel":0,"voicesLevel":0}`, and the Options flyout showed `Sound: off` before and after New game. The first-run Help was already dismissed in that browser profile.
 
-That profile held another session's saved household (3488 bytes, SHA-256 `1b47dbca...2a3eec`). It was copied to a backup file in the same browser storage, `New game` then `Start over` gave the shipped lot, and after the check the backup was written back over the save, compared byte for byte and found equal, with the same SHA-256, and the backup removed. The page was closed on Day 1 at 12:17, before the next day's autosave.
+That profile held another session's saved household (3488 bytes, SHA-256 `1b47dbca...2a3eec`). It was copied to a backup file in the same browser storage, `New game` then `Start over` gave the shipped lot, and in the script's final step the backup was written back over the save, compared byte for byte and found equal, with the same SHA-256, and the backup removed. The page was closed on Day 1 at 00:47, long before the next day's autosave.
 
 Tim was selected and Sim details opened on Overview.
 
-1. [Desktop, 1280 by 800](../assets/review-evidence/calendar/desktop-clock.png): the clock reads `Day 1, Monday, 03:02` and the Career row reads `Office clerk, Monday to Friday, 06:00 to 14:00`.
-2. [Phone, 375 by 812](../assets/review-evidence/calendar/phone-clock.png): the clock reads `Day 1, Monday, 10:03`, Tim's activity reads `At work`, and the Career row shows the same text on one line. The document's scroll width equalled its 375-pixel client width.
+1. [Desktop, 1280 by 800](../assets/review-evidence/calendar/desktop-clock.png): the household panel shows the `Time` label above the clock `Day 1, Monday` and `00:30`, and the Career row reads `Office clerk, Monday to Friday, 06:00 to 14:00`.
+2. [Phone, 375 by 812](../assets/review-evidence/calendar/phone-clock.png): the compact panel keeps the `Time` label beside the clock `Day 1, Monday` and `00:46`, and the Career row shows the same text on one line. No element extended past the right edge, and the document's scroll width equalled its 375-pixel client width.
 
-Two-line clock: the working tree on top of `1b372a2c` with the two-line change, bundle `assets/index-B-iq77M0.js`, served the same way and opened in the same Playwright Chromium. The clock element's computed `white-space` was `pre-line`. Each text below was set in place on `#clock-value` and the household panel measured, then the live text was put back. The saved household in that profile was not replaced for this measurement; its SHA-256 was the same before and after.
+On the desktop layout, where the panel is 144 pixels wide, the Time row is stacked: the computed `flex-direction` of `#clock-row` was `column`, and the clock had the panel's full inner width of 126 pixels. The compact layout, used below 601 pixels wide or 481 pixels tall and on coarse pointers, keeps the label beside the clock in a 182-pixel panel; its `flex-direction` was `row`. The clock element's computed `white-space` was `pre-line` in both. Each text below was set in place on `#clock-value` and the household panel measured, then the live text was put back.
 
-| Clock text | Desktop, 1280 by 800: lines, panel height | Phone, 375 by 812: lines, panel height |
+| Clock text | Desktop: lines, panel height | Phone: lines, panel height |
 |---|---|---|
-| `Day 1, Monday` / `00:00` | 2, 83.2 px | 2, 83.2 px |
-| `Day 5, Friday` / `12:00` | 2, 83.2 px | 2, 83.2 px |
-| `Day 3, Wednesday` / `23:59` | 3, 100.0 px | 2, 83.2 px |
-| `Day 13, Wednesday` / `23:59` | 3, 100.0 px | 2, 83.2 px |
-| `Day 100, Wednesday` / `23:59` | 3, 100.0 px | 2, 83.2 px |
-| `Day 1000, Wednesday` / `23:59` | 3, 100.0 px | 2, 83.2 px |
-| `Day and time unavailable` | 2, 83.2 px | 2, 83.2 px |
+| `Day 1, Monday` / `00:00` | 2, 97.19 px | 2, 83.19 px |
+| `Day 3, Wednesday` / `23:59` | 2, 97.19 px | 2, 83.19 px |
+| `Day 100, Wednesday` / `23:59` | 2, 97.19 px | 2, 83.19 px |
+| `Day 100, Saturday` / `23:59` | 2, 97.19 px | 2, 83.19 px |
+| `Day 1000, Thursday` / `23:59` | 2, 97.19 px | 2, 83.19 px |
 
-On the phone viewport the panel height is the same for every text. On desktop it is not: the value column beside the `Time` label is 100 pixels wide inside the 144-pixel panel, and `Day 3, Wednesday` needs 104 pixels on one line, so the first line wraps and the panel grows by 16.8 pixels, moving the controls below it. Checking every weekday at 23:59 on days 1, 10 and 100, the panel grew on every Wednesday, and from day 100 also on Thursdays and Saturdays; the other weekdays kept 83.2 pixels. Nothing overflowed the panel and the document's scroll width equalled its client width at both sizes. Measured with the first line kept unwrapped (`white-space: pre`), the widths are 104 pixels for `Day 3, Wednesday`, 117 for `Day 100, Wednesday` and 124 for `Day 1000, Wednesday`; the panel's inner width is 126 pixels, so the full width fits them only if the `Time` label does not share the line. After this measurement the Playwright pages were closed, the preview server was stopped, and port 4173 was free.
+The panel height is identical for all five texts at each size, so the Pause, speed, Build and Options controls do not move at midnight. On the phone the widest of them, `Day 100, Wednesday`, measured 117 pixels beside the label and did not wrap or clip.
 
-Console, across the three page loads: 57 entries, all periodic frame-timing logs except one error, the 404 for `favicon.ico`. No warnings.
+Console: every page load logged periodic frame-timing entries and one error, the 404 for `favicon.ico`. No warnings.
 
-Cleanup: the viewport was reset to 1280 by 800, the Playwright page was closed, the in-app pane's only tab was closed, the preview server was stopped, and `Get-NetTCPConnection -LocalPort 4173 -State Listen` then returned nothing.
+Cleanup: the viewport was reset to 1280 by 800 and the Playwright page closed in the script's final step, the in-app pane's only tab was closed, the preview server was stopped, and `Get-NetTCPConnection -LocalPort 4173 -State Listen` then returned nothing.
 
-Not checked: a weekend day in the browser (the shift tests and the boundary tests cover it); a physical phone; the phone check used a resized desktop viewport without a mobile user agent or touch input; light and dark theme variants.
+Not checked: a weekend day in the browser (the shift tests and the boundary tests cover it); a physical phone; the phone check used a resized desktop viewport without a mobile user agent or touch input; Build mode, whose wider panel keeps the label beside the clock; light and dark theme variants.
 
 ## Delivery
 
