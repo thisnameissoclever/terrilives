@@ -27,7 +27,10 @@ pub const WEEKDAY_COUNT: u8 = 7;
 /// compiler rejects a zero-tick day, so a value read from a compiled
 /// pack's tuning is never 0.
 pub fn weekday(tick: u64, day_ticks: u32, first_weekday: u8) -> u8 {
-    ((tick / day_ticks as u64 + first_weekday as u64) % WEEKDAY_COUNT as u64) as u8
+    let week = WEEKDAY_COUNT as u64;
+    // Reduced before the offset is added, so a one-tick day at the top of
+    // the tick range cannot overflow.
+    ((tick / day_ticks as u64 % week + first_weekday as u64) % week) as u8
 }
 
 #[derive(Resource, Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -128,5 +131,8 @@ mod tests {
             weekday(u64::MAX, 1440, 3),
             ((u64::MAX / 1440 + 3) % 7) as u8
         );
+        // A one-tick day near the top of the range: adding the offset
+        // before the modulo would overflow.
+        assert_eq!(weekday(u64::MAX, 1, 6), ((u64::MAX % 7 + 6) % 7) as u8);
     }
 }

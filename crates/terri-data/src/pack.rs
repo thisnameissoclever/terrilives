@@ -1181,10 +1181,11 @@ pub struct CompiledCareer {
 
 impl CompiledCareer {
     /// Whether the shift runs on `weekday`, 0 (Monday) to 6 (Sunday), as
-    /// `terri_core::clock::weekday` returns it. A weekday of 8 or more
-    /// overflows the shift; the clock never returns one.
+    /// `terri_core::clock::weekday` returns it. Any larger weekday is no
+    /// working day, whatever the mask's spare bit holds; the clock never
+    /// returns one.
     pub fn works_on(&self, weekday: u8) -> bool {
-        self.working_days & (1 << weekday) != 0
+        weekday < terri_core::clock::WEEKDAY_COUNT && self.working_days & (1 << weekday) != 0
     }
 }
 
@@ -2131,6 +2132,25 @@ mod tests {
         };
         let worked: Vec<u8> = (0..7).filter(|day| career.works_on(*day)).collect();
         assert_eq!(worked, vec![0, 2, 6]);
+    }
+
+    /// A weekday past Sunday is no working day, even for a mask whose
+    /// eighth bit is set: weekday 7 would read that bit, and weekday 200
+    /// would overflow the shift and panic in a debug build.
+    #[test]
+    fn works_on_refuses_a_weekday_past_sunday() {
+        let career = CompiledCareer {
+            id: "every_bit".to_string(),
+            label: "Every bit".to_string(),
+            shift_start: 1,
+            shift_ticks: 2,
+            pay: 3,
+            energy_cost: 4.0,
+            satisfaction: 5.0,
+            working_days: 0xFF,
+        };
+        assert!(!career.works_on(7));
+        assert!(!career.works_on(200));
     }
 
     /// A new tuning knob belongs at the end of the serialized `Tuning`

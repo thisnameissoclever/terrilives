@@ -8,8 +8,10 @@
 //! `follow_path` establishes.
 //!
 //! What a shift does, end to end: at `tick % day_ticks == shift_start`
-//! the worker drops whatever it holds, walks out to the street's exit, or
-//! to the front door on a lot with no yard beyond it ([OS-street]), and
+//! on one of the career's working days (`works_today`, [CAL-careers]
+//! in docs/specs/2026-10-06-calendar.md) the worker drops whatever it
+//! holds, walks out to the street's exit, or to the front door on a lot
+//! with no yard beyond it ([OS-street]), and
 //! vanishes into `AtWork` for `shift_ticks`; the return restores it where
 //! it vanished, pays the shift, then walks it home to the door's landing
 //! when the door has authored portal routing. Legacy lots still reappear
@@ -29,7 +31,9 @@ use crate::Content;
 
 /// Sends every worker whose shift starts THIS tick out to the street's
 /// exit, or to the front door where there is no street or the exit cannot be
-/// reached ([OS-street]).
+/// reached ([OS-street]). A shift starts at the career's `shift_start`
+/// day-tick on a day `works_today` accepts; on a rest day the worker
+/// stays home and nothing else about the day changes.
 ///
 /// Runs before `serve_intents` and `select_action`, so on the shift
 /// tick neither can hand the worker something new: the commute is
@@ -93,6 +97,7 @@ pub fn start_shift(
         .filter(|(_, _, career, _)| {
             let career = &content.0.careers[career.0 as usize];
             clock.tick % day_ticks == career.shift_start as u64
+                && works_today(career, &clock, &content.0.tuning)
         })
         .map(|(entity, _, _, _)| entity)
         .collect();
@@ -168,6 +173,26 @@ pub fn start_shift(
             None => continue,
         }
     }
+}
+
+/// Whether `career` works on the day `clock` is in ([CAL-careers] in
+/// `docs/specs/2026-10-06-calendar.md`).
+///
+/// `start_shift` asks this only on a shift-start tick, so it decides
+/// whether a shift STARTS and nothing else: a shift already running when
+/// a rest day begins finishes and pays as normal. The day is the one the
+/// current tick falls in, which `start_shift` reads after `advance_clock`,
+/// so a shift starting at day-tick 0 follows the day that tick begins.
+pub(crate) fn works_today(
+    career: &terri_data::CompiledCareer,
+    clock: &SimClock,
+    tuning: &terri_data::Tuning,
+) -> bool {
+    career.works_on(terri_core::clock::weekday(
+        clock.tick,
+        tuning.day_ticks,
+        tuning.first_weekday,
+    ))
 }
 
 /// Clocks departures in, counts shifts down, pays returns, and finishes arrivals.
@@ -325,22 +350,45 @@ mod tests {
         }
     }
 
+    /// [CAL-careers]: `a_career` on Monday to Friday only. Day 0 of a
+    /// `thirty_tick_day` fixture is a Monday, so days 5 and 6 (ticks 150
+    /// to 209) are its weekend.
+    fn weekday_career() -> CompiledCareer {
+        CompiledCareer {
+            working_days: 0b0011111,
+            ..a_career()
+        }
+    }
+
+    /// The 30-tick day every career fixture runs on. Zero variance so
+    /// nothing here depends on a draw, and day 0 named a Monday here
+    /// rather than inherited from the shipped tuning, so a retuned
+    /// `first_weekday` cannot quietly move every weekend below.
+    fn thirty_tick_day() -> terri_data::Tuning {
+        terri_data::Tuning {
+            day_ticks: 30,
+            duration_variance: 0.0,
+            first_weekday: 0,
+            ..test_content::tuning()
+        }
+    }
+
     /// A pack whose lot carries the SHIPPED front door at (15, 2) -
     /// `pack_tuned` copies the shipped lot - plus one career and the
     /// given objects. Tests pair it with a 16x12 empty grid so the
     /// door tile exists and every walk is unobstructed.
     fn career_pack(objects: Vec<terri_data::CompiledObject>) -> &'static ContentPack {
-        let base = test_content::pack_tuned(
-            objects,
-            terri_data::Tuning {
-                day_ticks: 30,
-                // Zero variance so nothing here depends on a draw.
-                duration_variance: 0.0,
-                ..test_content::tuning()
-            },
-        );
+        pack_with_career(a_career(), objects, thirty_tick_day())
+    }
+
+    fn pack_with_career(
+        career: CompiledCareer,
+        objects: Vec<terri_data::CompiledObject>,
+        tuning: terri_data::Tuning,
+    ) -> &'static ContentPack {
+        let base = test_content::pack_tuned(objects, tuning);
         Box::leak(Box::new(ContentPack {
-            careers: vec![a_career()],
+            careers: vec![career],
             ..base.clone()
         }))
     }
@@ -353,7 +401,16 @@ mod tests {
         position: (u32, u32),
         inward: (u32, u32),
     ) -> &'static ContentPack {
-        let base = career_pack(vec![]);
+        with_front_portal(career_pack(vec![]), position, inward)
+    }
+
+    /// `base` with its front door moved to `position` and given an
+    /// authored portal whose landing is `inward`, so a return walks home.
+    fn with_front_portal(
+        base: &'static ContentPack,
+        position: (u32, u32),
+        inward: (u32, u32),
+    ) -> &'static ContentPack {
         let mut lot = base.lot.clone();
         lot.front_door = Some(position);
         Box::leak(Box::new(ContentPack {
@@ -370,6 +427,44 @@ mod tests {
             }],
             ..base.clone()
         }))
+    }
+
+    fn clock(sim: &Sim) -> u64 {
+        sim.world().resource::<SimClock>().tick
+    }
+
+    /// The weekday of the tick the sim last ran, 0 (Monday) to 6.
+    fn today(sim: &Sim) -> u8 {
+        let tuning = &sim.world().resource::<Content>().0.tuning;
+        terri_core::clock::weekday(clock(sim), tuning.day_ticks, tuning.first_weekday)
+    }
+
+    /// Off the lot or on the way: the two states only a shift creates.
+    fn away(sim: &Sim, worker: Entity) -> bool {
+        sim.world().get::<Commuting>(worker).is_some()
+            || sim.world().get::<AtWork>(worker).is_some()
+    }
+
+    /// Runs `sim` from its current tick to `last` inclusive, one tick at a
+    /// time, and returns every tick on which `worker` went from home to
+    /// away. That transition is a shift start and nothing else, because a
+    /// return either ends away-ness or (through a portal) continues it, so
+    /// the result is the departure schedule. Bounded by the tick count,
+    /// never by simulation state ([L-a-test-that-waits-must-be-bounded]).
+    fn departures(sim: &mut Sim, worker: Entity, last: u64) -> Vec<u64> {
+        let first = clock(sim) + 1;
+        let mut was_away = away(sim, worker);
+        let mut ticks = Vec::new();
+        for tick in first..=last {
+            sim.tick();
+            let is_away = away(sim, worker);
+            if is_away && !was_away {
+                ticks.push(tick);
+            }
+            was_away = is_away;
+        }
+        assert_eq!(clock(sim), last, "one tick per Sim::tick");
+        ticks
     }
 
     fn a_worker(sim: &mut Sim, x: f32, y: f32) -> Entity {
@@ -1154,10 +1249,11 @@ mod tests {
     /// The day wraps: `tick % day_ticks` fires the shift again on day
     /// two, so two days pay twice. This is the modulo's whole job -
     /// an absolute-tick comparison passes day one and never fires
-    /// again.
+    /// again. The career works Monday to Friday, and days 1 and 2 are
+    /// Monday and Tuesday ([CAL-careers]).
     #[test]
     fn the_shift_fires_again_on_the_second_day() {
-        let pack = career_pack(vec![]);
+        let pack = pack_with_career(weekday_career(), vec![], thirty_tick_day());
         let mut sim = test_content::sim_with(16, 12, pack);
         a_worker(&mut sim, 15.0, 2.0);
 
@@ -1169,6 +1265,259 @@ mod tests {
             sim.tick();
         }
         assert_eq!(sim.funds(), 260, "day two pays again");
+    }
+
+    /// [CAL-careers], [CAL-evidence] 3: over one 30-tick week a Monday to
+    /// Friday career leaves on days 0 to 4 at day-tick 3, the tick the
+    /// schedule owns, pays five times, and on days 5 and 6 the worker is
+    /// never commuting or at work on any tick. Without the gate it leaves
+    /// seven times and is away on tick 153.
+    #[test]
+    fn a_weekday_career_pays_five_times_in_seven_days_and_rests_on_the_weekend() {
+        let pack = pack_with_career(weekday_career(), vec![], thirty_tick_day());
+        let mut sim = test_content::sim_with(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+
+        assert_eq!(
+            departures(&mut sim, worker, 149),
+            vec![3, 33, 63, 93, 123],
+            "Monday to Friday each start one shift"
+        );
+        for tick in 150..=7 * 30u64 - 1 {
+            sim.tick();
+            assert_eq!(clock(&sim), tick, "one tick per Sim::tick");
+            assert!(today(&sim) >= 5, "tick {tick} is on the weekend");
+            assert!(
+                !away(&sim, worker),
+                "weekday {} is a rest day, but the worker was away on tick {tick}",
+                today(&sim)
+            );
+        }
+        assert_eq!(clock(&sim), 209);
+        assert_eq!(
+            sim.funds(),
+            5 * weekday_career().pay as i64,
+            "five working days, five pay packets"
+        );
+    }
+
+    /// [CAL-evidence] 3: a career working only `sun` leaves on day 6 and
+    /// day 13 of two weeks, and on no other day.
+    #[test]
+    fn a_sunday_only_career_pays_once_a_week() {
+        let sunday = CompiledCareer {
+            working_days: 0b1000000,
+            ..a_career()
+        };
+        let pay = sunday.pay as i64;
+        let pack = pack_with_career(sunday, vec![], thirty_tick_day());
+        let mut sim = test_content::sim_with(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+
+        assert_eq!(
+            departures(&mut sim, worker, 14 * 30),
+            vec![6 * 30 + 3, 13 * 30 + 3],
+            "one shift on each Sunday and none on any other day"
+        );
+        assert_eq!(sim.funds(), 2 * pay, "two weeks, two pay packets");
+    }
+
+    /// Review focus 1: a shift starting at day-tick 0 reads the weekday of
+    /// the day that tick BEGINS, because `start_shift` runs after
+    /// `advance_clock`. Tick 150 is Saturday's first tick and Friday's
+    /// successor; tick 210 is Monday's first and Sunday's successor. A gate
+    /// that read the previous tick's weekday leaves on 150 and not on 210.
+    #[test]
+    fn a_shift_at_midnight_respects_the_weekday_of_the_new_day() {
+        let midnight = CompiledCareer {
+            shift_start: 0,
+            ..weekday_career()
+        };
+        let pack = pack_with_career(midnight, vec![], thirty_tick_day());
+        let mut sim = test_content::sim_with(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+
+        // Tick 0 never runs a schedule, so Monday of the first week has
+        // no midnight shift.
+        assert_eq!(departures(&mut sim, worker, 149), vec![30, 60, 90, 120]);
+        sim.tick();
+        assert_eq!((clock(&sim), today(&sim)), (150, 5));
+        assert!(!away(&sim, worker), "no departure on Saturday's first tick");
+        assert_eq!(departures(&mut sim, worker, 209), Vec::<u64>::new());
+        sim.tick();
+        assert_eq!((clock(&sim), today(&sim)), (210, 0));
+        assert!(away(&sim, worker), "the departure on Monday's first tick");
+    }
+
+    /// Review focus 2, [CAL-careers]: the gate decides only whether a shift
+    /// STARTS. A Friday shift starting at day-tick 28 runs six ticks into
+    /// Saturday, comes home and pays there, and no weekend shift follows.
+    /// The pay tick is observed, not computed from the shift length
+    /// ([L-career-tests-follow-events-not-guessed-ticks]).
+    #[test]
+    fn a_shift_running_into_the_weekend_still_pays() {
+        let late = CompiledCareer {
+            shift_start: 28,
+            ..weekday_career()
+        };
+        let pay = late.pay as i64;
+        let pack = pack_with_career(late, vec![], thirty_tick_day());
+        let mut sim = test_content::sim_with(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+
+        assert_eq!(
+            departures(&mut sim, worker, 149),
+            vec![28, 58, 88, 118, 148]
+        );
+        assert!(
+            away(&sim, worker),
+            "Friday's shift is still running at Friday's last tick"
+        );
+        assert_eq!(sim.funds(), 4 * pay, "Friday's pay has not landed yet");
+
+        let mut paid_on = None;
+        for tick in 150..=209u64 {
+            sim.tick();
+            assert!(
+                !(away(&sim, worker) && paid_on.is_some()),
+                "no weekend shift after the return, tick {tick}"
+            );
+            if paid_on.is_none() && sim.funds() == 5 * pay {
+                paid_on = Some((tick, today(&sim)));
+            }
+        }
+        assert_eq!(clock(&sim), 209, "one tick per Sim::tick");
+        let (tick, weekday) = paid_on.expect("Friday's shift must pay");
+        assert_eq!(weekday, 5, "the pay on tick {tick} lands on Saturday");
+        assert_eq!(sim.funds(), 5 * pay, "and nothing pays after it");
+    }
+
+    /// Review focus 3: a save written on Saturday with the worker walking
+    /// home through the front door loads into a fresh world, both worlds
+    /// agree tick for tick (for longer than the 70 ticks the plan names),
+    /// and the next shift waits for Monday's start at tick 238.
+    #[test]
+    fn a_weekend_commute_loads_and_the_next_shift_waits_for_monday() {
+        let late = CompiledCareer {
+            shift_start: 28,
+            ..weekday_career()
+        };
+        let pay = late.pay as i64;
+        let pack = with_front_portal(
+            pack_with_career(late, vec![], thirty_tick_day()),
+            (15, 2),
+            (15, 3),
+        );
+        // Loading draws a self-preservation instinct for every person
+        // without one, and a hand-spawned worker has none, so the source
+        // starts as a loaded world too. Otherwise the comparison below
+        // would measure that one-time draw, not the weekend.
+        let mut blank = test_content::sim_with_portals(16, 12, pack);
+        let worker = a_worker(&mut blank, 15.0, 2.0);
+        let mut source = test_content::sim_with_portals(16, 12, pack);
+        assert_eq!(source.load_snapshot_v5(blank.save_snapshot_v5()), Ok(()));
+        let worker = source.world().entities().resolve_from_index(worker.index());
+
+        // The save point is the return itself: at work on one tick,
+        // walking home the next. `Commuting` alone cannot mark it, because
+        // Friday's OUTBOUND commute can still be walking on Saturday, and a
+        // pay count cannot either, because it depends on where wandering
+        // left the worker at each shift start. With the gate no Saturday
+        // shift starts, so the first return on Saturday is Friday's.
+        let mut saved_at = None;
+        let mut was_at_work = false;
+        for tick in 1..=179u64 {
+            let funds_before = source.funds();
+            source.tick();
+            let at_work = source.world().get::<AtWork>(worker).is_some();
+            if tick >= 150 && was_at_work && !at_work {
+                assert!(
+                    source.world().get::<Commuting>(worker).is_some(),
+                    "the return walks home through the portal"
+                );
+                assert_eq!(source.funds(), funds_before + pay, "the return pays");
+                saved_at = Some(tick);
+                break;
+            }
+            was_at_work = at_work;
+        }
+        let saved_at = saved_at.expect("Friday's shift must return within Saturday");
+        assert_eq!(clock(&source), saved_at, "one tick per Sim::tick");
+        assert_eq!(today(&source), 5, "the walk home is on Saturday");
+        let funds_at_save = source.funds();
+
+        let mut restored = test_content::sim_with_portals(16, 12, pack);
+        assert_eq!(restored.load_snapshot_v5(source.save_snapshot_v5()), Ok(()));
+        assert!(restored.world().get::<Commuting>(worker).is_some());
+        assert_eq!(clock(&restored), saved_at);
+
+        // Monday's shift starts two ticks before Monday ends, so the walk to
+        // the door finishes on Tuesday; one whole day after the start is
+        // the outer bound for clocking in on this open 16x12 lot.
+        let monday_shift = 7 * 30 + 28;
+        let last = monday_shift + 30;
+        assert!(saved_at + 70 < monday_shift);
+        let mut clocked_in = None;
+        for tick in saved_at + 1..=last {
+            source.tick();
+            restored.tick();
+            assert_eq!(
+                restored.world_hash(),
+                source.world_hash(),
+                "the loaded world diverged on tick {tick}"
+            );
+            assert_eq!(
+                restored.save_snapshot_v5(),
+                source.save_snapshot_v5(),
+                "the loaded world's saved state diverged on tick {tick}"
+            );
+            let at_work = restored.world().get::<AtWork>(worker).is_some();
+            if tick < monday_shift {
+                assert!(!at_work, "no shift before Monday's start, tick {tick}");
+                assert_eq!(
+                    restored.funds(),
+                    funds_at_save,
+                    "loading the walk home cannot pay again, and no weekend \
+                     shift pays, tick {tick}"
+                );
+            }
+            if tick == monday_shift - 1 {
+                assert!(
+                    !away(&restored, worker),
+                    "the walk home finished over the weekend"
+                );
+            }
+            if tick == monday_shift {
+                assert!(away(&restored, worker), "Monday's shift starts on time");
+            }
+            if at_work && clocked_in.is_none() {
+                clocked_in = Some(tick);
+            }
+        }
+        assert_eq!(clock(&restored), last, "one tick per Sim::tick");
+        assert!(
+            clocked_in.is_some_and(|tick| tick >= monday_shift),
+            "the worker clocks in only once Monday's shift has started: {clocked_in:?}"
+        );
+    }
+
+    /// Review focus 4: with `first_weekday` 6, day 0 is a Sunday, so a
+    /// Monday to Friday career first leaves on day 1 at tick 33.
+    #[test]
+    fn first_weekday_six_moves_the_first_shift_to_day_two() {
+        let pack = pack_with_career(
+            weekday_career(),
+            vec![],
+            terri_data::Tuning {
+                first_weekday: 6,
+                ..thirty_tick_day()
+            },
+        );
+        let mut sim = test_content::sim_with(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+
+        assert_eq!(departures(&mut sim, worker, 59), vec![33]);
+        assert_eq!(sim.funds(), weekday_career().pay as i64);
     }
 
     /// Both new hash inputs, each from both sides: two worlds equal in
