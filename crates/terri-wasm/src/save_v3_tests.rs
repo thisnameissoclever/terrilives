@@ -1607,3 +1607,56 @@ fn every_historical_fixture_loads_and_seeds_practice_once() {
     }
     assert!(seeded_people > 0, "some fixture person wears a capability");
 }
+
+/// [OD-model]: an overdone habituation value, above 1 and up to
+/// `habituation_max`, loads through the public boundary and round-trips
+/// exactly; a value above the maximum, whether just above or well above,
+/// is refused and changes nothing.
+#[test]
+fn overdone_habituation_loads_through_the_public_boundary() {
+    let mut handle = SimHandle::from_lot();
+    let pack = handle.sim.world().resource::<Content>().0;
+    let max = pack.tuning.habituation_max;
+    let row = pack
+        .object(pack.find("fridge").expect("the shipped fridge"))
+        .interactions
+        .iter()
+        .position(|action| action.id == "grab_snack")
+        .expect("the fridge offers a snack") as u32;
+    let good = handle.sim.save_snapshot_v5();
+    let person = good
+        .world
+        .entities
+        .iter()
+        .position(|entity| entity.sim_id.is_some())
+        .expect("the shipped household");
+    let with_value = |value: f32| {
+        let mut snapshot = good.clone();
+        snapshot.world.entities[person].habituation = Some(vec![terri_core::SavedHabituation {
+            object: "fridge".into(),
+            interaction: row,
+            value,
+        }]);
+        snapshot
+    };
+
+    let bytes = handle.save_bytes();
+    let hash = handle.world_hash();
+    for refused in [max + 0.001, 3.5] {
+        assert!(
+            !handle.load_bytes(&v5_bytes(&with_value(refused))),
+            "{refused} is above the maximum {max}"
+        );
+        assert_eq!(handle.save_bytes(), bytes, "a refused load changes nothing");
+        assert_eq!(handle.world_hash(), hash, "a refused load changes nothing");
+    }
+
+    let overdone = with_value(2.0);
+    assert!(handle.load_bytes(&v5_bytes(&overdone)));
+    assert_eq!(handle.sim.save_snapshot_v5(), overdone);
+    assert_eq!(
+        handle.save_bytes(),
+        v5_bytes(&overdone),
+        "2.0 round-trips exactly"
+    );
+}

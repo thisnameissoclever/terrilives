@@ -734,6 +734,18 @@ mod tests {
         assert_eq!(pack.tuning.skill_level_growth, 1.0);
     }
 
+    /// [OD-content]: the shipped overdoing knobs, exactly as the spec names
+    /// them.
+    #[test]
+    fn the_shipped_overdoing_tuning_matches_the_spec() {
+        let tuning = pack().tuning;
+        assert_eq!(tuning.habituation_max, 3.0);
+        assert_eq!(tuning.overdoing_threshold, 1.0);
+        assert_eq!(tuning.overdoing_penalty, 20.0);
+        assert_eq!(tuning.sick_threshold, 2.5);
+        assert_eq!(tuning.sick_penalty, 25.0);
+    }
+
     /// [SK-learning]: learning left the capability trait for the skill.
     #[test]
     fn capabilities_no_longer_carry_a_learning_rate() {

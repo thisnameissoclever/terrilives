@@ -2425,6 +2425,43 @@ fn compile_household(
     Ok(compiled)
 }
 
+/// Checks the overdoing knobs for `compile_tuning`.
+///
+/// [OD-content] in `docs/specs/2026-10-06-overdoing-it.md`: the five
+/// overdoing knobs, each written as its accepted range so NaN fails it too.
+/// The refusal names the knob whose rule broke; for a relation between two
+/// knobs that is the one the rule constrains, so a threshold at the maximum
+/// names `overdoing_threshold`.
+fn check_overdoing_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
+    let max = tuning.habituation_max;
+    let threshold = tuning.overdoing_threshold;
+    let rules = [
+        ("habituation_max", max.is_finite() && max > 1.0),
+        (
+            "overdoing_threshold",
+            threshold.is_finite() && threshold >= 1.0 && threshold < max,
+        ),
+        (
+            "overdoing_penalty",
+            tuning.overdoing_penalty.is_finite() && tuning.overdoing_penalty >= 0.0,
+        ),
+        (
+            "sick_threshold",
+            tuning.sick_threshold.is_finite()
+                && tuning.sick_threshold > threshold
+                && tuning.sick_threshold <= max,
+        ),
+        (
+            "sick_penalty",
+            tuning.sick_penalty.is_finite() && tuning.sick_penalty >= 0.0,
+        ),
+    ];
+    match rules.into_iter().find(|(_, holds)| !holds) {
+        Some((key, _)) => Err(ContentError::InvalidOverdoingTuning { key }),
+        None => Ok(()),
+    }
+}
+
 /// Validates the system knobs from `content/tuning.toml`.
 ///
 /// Presence is serde's job - `TuningFile` defaults nothing, so a missing
@@ -2692,6 +2729,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             value: tuning.habituation_floor,
         });
     }
+    check_overdoing_tuning(&tuning)?;
     if !(0.0..1.0).contains(&tuning.duration_variance) {
         return Err(ContentError::DurationVarianceOutOfRange {
             value: tuning.duration_variance,
@@ -3010,6 +3048,11 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             relationships: tuning.relationships,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
+            habituation_max: tuning.habituation_max,
+            overdoing_threshold: tuning.overdoing_threshold,
+            overdoing_penalty: tuning.overdoing_penalty,
+            sick_threshold: tuning.sick_threshold,
+            sick_penalty: tuning.sick_penalty,
         },
         circadian,
         tuning.sleep_tag,
@@ -3991,6 +4034,12 @@ mod tests {
     /// sit between the `domestic` byte and the nine empty fields before the
     /// sleep tag; and `ContentPack` gained `skills`, the final empty byte.
     /// Every byte before the ladder kept its offset. 480 bytes to 489.
+    ///
+    /// **Overdoing moved it by twenty bytes, all appended to `Tuning`
+    /// ([OD-content] in `docs/specs/2026-10-06-overdoing-it.md`).** The five
+    /// floats 3.25, 1.125, 17.5, 2.75 and 22.5 follow the ladder, on their
+    /// own row, in declaration order. Every byte up to and including the
+    /// ladder kept its offset. 489 bytes to 509.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
     // Completion presentation appends None after activity in the sole interaction.
@@ -4019,7 +4068,9 @@ mod tests {
         62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0, 128, 62, 205, 204, 204,
         61, 154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0, 0, 0, 205, 204, 76,
         190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10, 0, 0, 160, 64, 0,
-        0, 0, 176, 61, 0, 0, 172, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0,
+        0, 0, 176, 61, 0, 0, 172, 63,
+        0, 0, 80, 64, 0, 0, 144, 63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -4195,6 +4246,13 @@ mod tests {
             habituation_per_use: 0.3125,
             habituation_decay_per_tick: 0.0025,
             habituation_floor: 0.625,
+            // [OD-content]'s five, distinct from every knob here and exact in
+            // binary32; the golden vector reads these bytes.
+            habituation_max: 3.25,
+            overdoing_threshold: 1.125,
+            overdoing_penalty: 17.5,
+            sick_threshold: 2.75,
+            sick_penalty: 22.5,
             min_interaction_ticks: 3,
             contested_score_multiplier: 0.375,
             rng_seed: 300,
@@ -5392,10 +5450,11 @@ mod tests {
         // From the end: the empty skills vector ([SK-content]); the voice
         // clip, portal, colourway and floor covering vectors before it; the
         // sleep tag, its length 5 and five letters; nine empty fields from
-        // personalities through circadian; and then the two ladder knobs, the
-        // last eight bytes of `Tuning`. Everything before the ladder is the
-        // established pack.
-        let ladder_end = GOLDEN_PACK_BYTES.len() - 1 - 4 - 6 - 9;
+        // personalities through circadian; the five overdoing knobs
+        // ([OD-content]), the last twenty bytes of `Tuning`; and then the two
+        // ladder knobs. Everything before the ladder is the established pack.
+        let overdoing_end = GOLDEN_PACK_BYTES.len() - 1 - 4 - 6 - 9;
+        let ladder_end = overdoing_end - 20;
         let ladder_start = ladder_end - 8;
         assert_eq!(
             &bytes[..ladder_start],
@@ -5409,7 +5468,16 @@ mod tests {
         assert_eq!(
             &bytes[ladder_start..ladder_end],
             ladder,
-            "the skill ladder is the tail of Tuning"
+            "the skill ladder precedes the overdoing knobs"
+        );
+        let overdoing: Vec<u8> = [3.25f32, 1.125, 17.5, 2.75, 22.5]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            &bytes[ladder_end..overdoing_end],
+            overdoing,
+            "the overdoing knobs are the tail of Tuning"
         );
         assert_eq!(
             &bytes[bytes.len() - 5..],
@@ -5462,6 +5530,11 @@ mod tests {
         assert_eq!(tuning.resale_fraction, 0.40625);
         assert_eq!(tuning.skill_level_cost, 0.0859375);
         assert_eq!(tuning.skill_level_growth, 1.34375);
+        assert_eq!(tuning.habituation_max, 3.25);
+        assert_eq!(tuning.overdoing_threshold, 1.125);
+        assert_eq!(tuning.overdoing_penalty, 17.5);
+        assert_eq!(tuning.sick_threshold, 2.75);
+        assert_eq!(tuning.sick_penalty, 22.5);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -5830,6 +5903,112 @@ mod tests {
             let mut expected = baseline;
             set_pack(&mut expected);
             assert_eq!(actual, expected);
+        }
+    }
+
+    /// [OD-content]: every overdoing knob reaches its own compiled field.
+    /// The fixture's five values are pairwise distinct, so a knob copied
+    /// from a neighbour moves exactly one assertion.
+    #[test]
+    fn every_overdoing_knob_is_copied_to_its_own_compiled_field() {
+        type SetFile = fn(&mut TuningFile);
+        type SetPack = fn(&mut Tuning);
+        let setters: &[(SetFile, SetPack)] = &[
+            (
+                |t| t.habituation_max *= 0.875,
+                |t| t.habituation_max *= 0.875,
+            ),
+            (
+                |t| t.overdoing_threshold *= 0.9375,
+                |t| t.overdoing_threshold *= 0.9375,
+            ),
+            (
+                |t| t.overdoing_penalty *= 0.875,
+                |t| t.overdoing_penalty *= 0.875,
+            ),
+            (|t| t.sick_threshold *= 0.875, |t| t.sick_threshold *= 0.875),
+            (|t| t.sick_penalty *= 0.875, |t| t.sick_penalty *= 0.875),
+        ];
+        let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
+        for (set_file, set_pack) in setters {
+            let actual = compile_tuned(tuning_where(set_file)).unwrap().tuning;
+            let mut expected = baseline;
+            set_pack(&mut expected);
+            assert_eq!(actual, expected);
+        }
+    }
+
+    /// [OD-content]: each knob's accepted range, with the value on each
+    /// side of every boundary. A refusal names the knob whose rule broke.
+    #[test]
+    fn overdoing_tuning_rejects_each_knob_outside_its_range() {
+        let refused = |tuning: TuningFile, key: &'static str| {
+            assert_eq!(
+                compile_tuned(tuning).unwrap_err(),
+                ContentError::InvalidOverdoingTuning { key },
+                "{key}"
+            );
+        };
+        type Set = fn(&mut TuningFile, f32);
+        let setters: [(&'static str, Set); 5] = [
+            ("habituation_max", |t, v| t.habituation_max = v),
+            ("overdoing_threshold", |t, v| t.overdoing_threshold = v),
+            ("overdoing_penalty", |t, v| t.overdoing_penalty = v),
+            ("sick_threshold", |t, v| t.sick_threshold = v),
+            ("sick_penalty", |t, v| t.sick_penalty = v),
+        ];
+        for (key, set) in setters {
+            for value in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+                refused(tuning_where(|t| set(t, value)), key);
+            }
+        }
+
+        // The maximum must leave room above saturation.
+        refused(tuning_where(|t| t.habituation_max = 1.0), "habituation_max");
+        // The threshold is at least 1 and below the maximum.
+        refused(
+            tuning_where(|t| t.overdoing_threshold = 0.5),
+            "overdoing_threshold",
+        );
+        refused(
+            tuning_where(|t| t.overdoing_threshold = t.habituation_max),
+            "overdoing_threshold",
+        );
+        // Sickness starts above the threshold and at most at the maximum.
+        refused(
+            tuning_where(|t| t.sick_threshold = t.overdoing_threshold),
+            "sick_threshold",
+        );
+        refused(
+            tuning_where(|t| t.sick_threshold = t.overdoing_threshold - 0.0625),
+            "sick_threshold",
+        );
+        refused(
+            tuning_where(|t| t.sick_threshold = t.habituation_max + 0.0625),
+            "sick_threshold",
+        );
+        // Penalties cost mood, never pay it.
+        refused(
+            tuning_where(|t| t.overdoing_penalty = -0.0625),
+            "overdoing_penalty",
+        );
+        refused(tuning_where(|t| t.sick_penalty = -0.0625), "sick_penalty");
+
+        // The other side of every boundary is accepted.
+        for accepted in [
+            tuning_where(|t| t.overdoing_threshold = 1.0),
+            tuning_where(|t| t.sick_threshold = t.habituation_max),
+            tuning_where(|t| {
+                t.overdoing_penalty = 0.0;
+                t.sick_penalty = 0.0;
+            }),
+            tuning_where(|t| {
+                t.habituation_max = 1.0625;
+                t.overdoing_threshold = 1.0;
+                t.sick_threshold = 1.0625;
+            }),
+        ] {
+            compile_tuned(accepted).expect("inside every overdoing range");
         }
     }
 

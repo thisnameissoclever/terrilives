@@ -395,6 +395,33 @@ habituation_decay_per_tick = 0.0011
 # refuse to eat.
 habituation_floor = 0.45
 
+# [OD-content] in docs/specs/2026-10-06-overdoing-it.md: repetition above
+# saturation is overdoing. Habituation keeps rising past 1 up to
+# `habituation_max`. Appeal and the Sim details repetition meter still read at
+# most 1 and need delivery ignores habituation, so the range above 1 only costs
+# mood. Decay brings an entry back below 1 on its own, which is what makes
+# overdoing temporary.
+#
+# The highest habituation repeated use can reach. Must be finite and above 1.
+habituation_max = 3.0
+
+# The habituation above which an activity shows an "Overdoing" moodlet. Must be
+# finite, at least 1 and below `habituation_max`.
+overdoing_threshold = 1.0
+
+# The mood an activity at `habituation_max` costs; the cost grows in a straight
+# line from nothing at `overdoing_threshold`. At 20 it cancels "Needs met" at the
+# top. Must be finite and not negative.
+overdoing_penalty = 20.0
+
+# The habituation on a food activity at which a person feels sick. Must be
+# finite, above `overdoing_threshold` and at most `habituation_max`.
+sick_threshold = 2.5
+
+# The mood "Feeling sick" costs, once per person. Must be finite and not
+# negative.
+sick_penalty = 25.0
+
 # Seed for fixed-seed constructors and tests. Browser new games supply fresh
 # cryptographic entropy. Saves persist the complete live generator state.
 rng_seed = 20260728

@@ -17,7 +17,7 @@ their original save versions, sprite counts and measurements describe those rele
 | Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
 | Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
-| Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
+| Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration, overdoing an activity and feeling sick from overeating, and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
 | Grief duration | 10 game days for neutral acquaintances to 60 for closest affinity, with a linear fade; PR #141 | Longer-term play balance remains subject to feedback |
 | Careers and money | One scheduled office job, wages, purchase costs and sale proceeds | Player-directed career paths, skills, bills, recurring costs and a ledger |
 | Art and audio | Shared rigged Sim with shirt variants, reviewed furniture replacements, action-specific animation and the audio foundation | Appearance variety, remaining action poses, sound content and recorded owner/device acceptance checks |
@@ -433,6 +433,8 @@ an unchanged design target is not an unchanged measurement.
 Edit Sims [B-edit-sims] shipped on 2026-10-05; see `specs/2026-09-30-edit-sims.md`.
 
 The first skills slice [S-skills] shipped on 2026-10-05: Cooking, Fitness and Reading grow with every completed attempt, set the fumble chance of the matching capability trait, and are listed in Sim details; see `specs/2026-10-05-skills.md`. Better outcomes, unlocks, career performance and any fuller skills panel remain open.
+
+Part one of acclimation [S-acclimation] shipped on 2026-10-06: repeating an activity past saturation adds an `Overdoing {activity}` moodlet that grows with each further use, and too much food adds a temporary `Feeling sick` moodlet; need delivery is unchanged, appeal never falls below its floor but stays there until decay brings the value back below saturation, and decay clears both. Novelty from purchases, part two, remains open; see `specs/2026-10-06-overdoing-it.md`.
 
 Remaining acceptance work runs separately from this build priority: owner art and
 sound review where still recorded as open, physical-phone touch/safe-area/daylight

@@ -675,10 +675,13 @@ fn restore_entity(
     if let Some(entries) = &saved.habituation {
         let mut habituation = Habituation::default();
         for entry in entries {
+            // The validator has already held the value to
+            // `0.0..=habituation_max`, so the cap here never changes it.
             habituation.bump(
                 resolve_object(pack, &entry.object)?,
                 entry.interaction,
                 entry.value,
+                pack.tuning.habituation_max,
             );
         }
         target.insert(habituation);
@@ -1423,7 +1426,15 @@ fn validate_entity(
         validate_object_interaction(pack, &eating.object, eating.interaction, pre_aquarium_bike)?;
     }
     if let Some(entries) = &entity.habituation {
-        validate_habituation(entries, pack, 0.0, 1.0, pre_aquarium_bike)?;
+        // [OD-model]: habituation rises past 1 up to the tuned maximum, and
+        // the part above 1 is overdoing, a valid saved state.
+        validate_habituation(
+            entries,
+            pack,
+            0.0,
+            pack.tuning.habituation_max,
+            pre_aquarium_bike,
+        )?;
     }
     if let Some(personality) = &entity.personality {
         for value in personality
@@ -3794,6 +3805,78 @@ mod tests {
         }
     }
 
+    /// [OD-model]: a saved habituation value may be anything up to
+    /// `habituation_max`. Exactly the maximum loads, a value just above it
+    /// refuses the load without touching the live world, and an overdone
+    /// value of 2.0 round-trips exactly.
+    #[test]
+    fn habituation_above_the_tuned_maximum_refuses_the_load() {
+        let pack = terri_data::pack();
+        let max = pack.tuning.habituation_max;
+        let good = Sim::new_from_shipped_lot().save_snapshot_v5();
+        let person = good
+            .world
+            .entities
+            .iter()
+            .position(|entity| entity.sim_id.is_some())
+            .expect("the shipped household");
+        let row = pack
+            .object(pack.find("fridge").expect("the shipped fridge"))
+            .interactions
+            .iter()
+            .position(|action| action.id == "grab_snack")
+            .expect("the fridge offers a snack") as u32;
+        let with_value = |value: f32| {
+            let mut snapshot = good.clone();
+            snapshot.world.entities[person].habituation = Some(vec![SavedHabituation {
+                object: "fridge".into(),
+                interaction: row,
+                value,
+            }]);
+            snapshot
+        };
+
+        let mut live = Sim::new_from_shipped_lot();
+        let hash = live.world_hash();
+        let saved = live.save_snapshot_v5();
+        assert_eq!(
+            live.load_snapshot_v5(with_value(max + 0.001)),
+            Err(SaveError::InvalidValue)
+        );
+        assert_eq!(live.world_hash(), hash, "a refused load changes nothing");
+        assert_eq!(
+            live.save_snapshot_v5(),
+            saved,
+            "a refused load changes nothing"
+        );
+
+        let at_max = with_value(max);
+        live.load_snapshot_v5(at_max.clone())
+            .expect("exactly the maximum loads");
+        assert_eq!(live.save_snapshot_v5(), at_max);
+
+        let overdone = with_value(2.0);
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded
+            .load_snapshot_v5(overdone.clone())
+            .expect("an overdone value loads");
+        assert_eq!(
+            loaded.save_snapshot_v5(),
+            overdone,
+            "2.0 round-trips exactly"
+        );
+        // The same row at 1.0, so the only difference is the value.
+        let mut saturated = Sim::new_from_shipped_lot();
+        saturated
+            .load_snapshot_v5(with_value(1.0))
+            .expect("a saturated value loads");
+        assert_ne!(
+            loaded.world_hash(),
+            saturated.world_hash(),
+            "the hash follows the value above 1"
+        );
+    }
+
     #[test]
     fn habituation_and_disposition_entries_require_valid_unique_content_rows() {
         let pack = terri_data::pack();
@@ -3832,9 +3915,21 @@ mod tests {
         rich_agent_mut(&mut descending).habituation = Some(vec![rows[1].clone(), rows[0].clone()]);
         assert_validation(&descending, Ok(()), "save order is not content order");
 
+        // [OD-model]: overdoing is a valid saved state up to the tuned
+        // maximum, and only above it is the save refused.
+        let mut overdoing = rich_snapshot();
+        rich_agent_mut(&mut overdoing)
+            .habituation
+            .as_mut()
+            .expect("habituation")[0]
+            .value = 1.0 + f32::EPSILON;
+        assert_validation(&overdoing, Ok(()), "habituation above one");
         for (label, value) in [
             ("negative habituation", -f32::EPSILON),
-            ("habituation above one", 1.0 + f32::EPSILON),
+            (
+                "habituation above the tuned maximum",
+                pack.tuning.habituation_max + 0.001,
+            ),
             ("non-finite habituation", f32::NAN),
         ] {
             assert_invalid_entity(

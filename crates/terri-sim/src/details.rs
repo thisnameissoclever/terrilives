@@ -1,7 +1,8 @@
 //! Read-only personal factors and recent activity repetition for the Sim sheet.
 
 use bevy_ecs::prelude::*;
-use terri_core::{Agent, Habituation, Personality, NEED_COUNT};
+use terri_core::{Agent, Habituation, ObjectDefId, Personality, NEED_COUNT};
+use terri_data::{CompiledChain, CompiledInteraction, ContentPack};
 
 use crate::{Content, Sim};
 
@@ -12,6 +13,8 @@ pub struct RepeatedActivity {
     pub object_label: &'static str,
     pub activity_label: &'static str,
     /// Recent repetition in 0..=1, shared by objects of the same definition.
+    /// Habituation above 1 is overdoing ([OD-model]), which this meter does
+    /// not show, so it reads 1.
     pub repetition: f32,
 }
 
@@ -38,26 +41,13 @@ impl Sim {
             .flat_map(Habituation::entries)
             .filter(|(_, _, value)| *value > 0.0)
             .filter_map(|&(object, interaction, repetition)| {
-                let definition = pack.objects.get(object.0 as usize)?;
-                let activity_label =
-                    if let Some(activity) = definition.interactions.get(interaction as usize) {
-                        activity.label.as_str()
-                    } else {
-                        let chain_slot =
-                            (interaction as usize).checked_sub(definition.interactions.len())?;
-                        pack.chains
-                            .iter()
-                            .filter(|chain| chain.advertised_by == object)
-                            .nth(chain_slot)?
-                            .label
-                            .as_str()
-                    };
+                let (object_label, activity_label) = activity_labels(pack, object, interaction)?;
                 Some(RepeatedActivity {
                     object: object.0,
                     interaction,
-                    object_label: definition.display_name(),
+                    object_label,
                     activity_label,
-                    repetition,
+                    repetition: repetition.min(1.0),
                 })
             })
             .collect();
@@ -68,6 +58,69 @@ impl Sim {
             repeated,
         })
     }
+}
+
+/// What one flyout row of an object definition names: one of the object's
+/// own interactions, or, for a row past them, one of the chains the object
+/// advertises, counted in pack order. Habituation keys address activities
+/// by flyout row, a fourth index space ([L65] in `docs/lessons-learned.md`),
+/// so the Sim details rows and the overdoing moodlets resolve a row here and
+/// cannot disagree about what it is called or what it is good for.
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum FlyoutRow<'a> {
+    Interaction(&'a CompiledInteraction),
+    Chain(&'a CompiledChain),
+}
+
+impl<'a> FlyoutRow<'a> {
+    /// The row's label, as the flyout and the Sim details show it.
+    pub(crate) fn label(self) -> &'a str {
+        match self {
+            FlyoutRow::Interaction(interaction) => interaction.label.as_str(),
+            FlyoutRow::Chain(chain) => chain.label.as_str(),
+        }
+    }
+
+    /// The (need index, delta) pairs the row advertises.
+    pub(crate) fn advertises(self) -> &'a [(u8, f32)] {
+        match self {
+            FlyoutRow::Interaction(interaction) => &interaction.advertises,
+            FlyoutRow::Chain(chain) => &chain.advertises,
+        }
+    }
+}
+
+/// Resolves `row` of `object`, or `None` when the definition or the row
+/// does not exist in `pack`.
+pub(crate) fn flyout_row(
+    pack: &ContentPack,
+    object: ObjectDefId,
+    row: u32,
+) -> Option<FlyoutRow<'_>> {
+    let definition = pack.objects.get(object.0 as usize)?;
+    if let Some(interaction) = definition.interactions.get(row as usize) {
+        return Some(FlyoutRow::Interaction(interaction));
+    }
+    let chain_slot = (row as usize).checked_sub(definition.interactions.len())?;
+    pack.chains
+        .iter()
+        .filter(|chain| chain.advertised_by == object)
+        .nth(chain_slot)
+        .map(FlyoutRow::Chain)
+}
+
+/// The (object label, activity label) the Sim details show for one
+/// habituation row, or `None` when the row does not resolve.
+pub(crate) fn activity_labels(
+    pack: &ContentPack,
+    object: ObjectDefId,
+    row: u32,
+) -> Option<(&str, &str)> {
+    let definition = pack.objects.get(object.0 as usize)?;
+    Some((
+        definition.display_name(),
+        flyout_row(pack, object, row)?.label(),
+    ))
 }
 
 #[cfg(test)]
@@ -141,8 +194,9 @@ mod tests {
         let definition = &pack.objects[object];
         let chain_row = definition.interactions.len() as u32;
         let mut habits = Habituation::default();
-        habits.bump(ObjectDefId(object as u32), chain_row, 0.62);
-        habits.bump(ObjectDefId(object as u32), 0, 0.34);
+        let cap = pack.tuning.habituation_max;
+        habits.bump(ObjectDefId(object as u32), chain_row, 0.62, cap);
+        habits.bump(ObjectDefId(object as u32), 0, 0.34, cap);
         sim.world_mut().entity_mut(entity).insert(habits);
         // Reading history needs a definition, not a surviving placed instance.
         let placed = sim
@@ -190,11 +244,12 @@ mod tests {
     #[test]
     fn zero_repetition_and_missing_content_rows_are_omitted_without_hiding_valid_history() {
         let mut sim = Sim::new_from_shipped_lot();
+        let cap = sim.world().resource::<Content>().0.tuning.habituation_max;
         let mut habits = Habituation::default();
-        habits.bump(ObjectDefId(2), 0, 0.0);
-        habits.bump(ObjectDefId(3), 0, 0.25);
-        habits.bump(ObjectDefId(3), u32::MAX, 0.5);
-        habits.bump(ObjectDefId(u32::MAX), 0, 0.5);
+        habits.bump(ObjectDefId(2), 0, 0.0, cap);
+        habits.bump(ObjectDefId(3), 0, 0.25, cap);
+        habits.bump(ObjectDefId(3), u32::MAX, 0.5, cap);
+        habits.bump(ObjectDefId(u32::MAX), 0, 0.5, cap);
         let person = sim
             .world_mut()
             .spawn((Agent, Personality::neutral(), habits))
@@ -205,5 +260,24 @@ mod tests {
             (rows[0].object, rows[0].interaction, rows[0].repetition),
             (3, 0, 0.25)
         );
+    }
+
+    /// [OD-model]: the repetition meter reads at most 100%. Habituation
+    /// above 1 is overdoing, which the meter does not show.
+    #[test]
+    fn repetition_above_one_reports_a_full_meter() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let cap = sim.world().resource::<Content>().0.tuning.habituation_max;
+        assert!(cap >= 2.0, "the fixture needs room for 2.0");
+        let mut habits = Habituation::default();
+        habits.bump(ObjectDefId(3), 0, 2.0, cap);
+        assert_eq!(habits.get(ObjectDefId(3), 0), 2.0);
+        let person = sim
+            .world_mut()
+            .spawn((Agent, Personality::neutral(), habits))
+            .id();
+        let rows = sim.details_of(person.index_u32()).unwrap().repeated;
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].repetition, 1.0);
     }
 }

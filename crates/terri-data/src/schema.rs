@@ -134,6 +134,22 @@ pub struct TuningFile {
     /// to. In `(0, 1]`; 1 disables the effect, and 0 is rejected because
     /// it would make an interaction permanently worthless.
     pub habituation_floor: f32,
+    /// The highest habituation one use can reach - [OD-model] in
+    /// `docs/specs/2026-10-06-overdoing-it.md`. Finite and above 1; the part
+    /// above 1 is overdoing.
+    pub habituation_max: f32,
+    /// The habituation above which a repeated activity costs mood. Finite,
+    /// at least 1 and below `habituation_max` - [OD-content].
+    pub overdoing_threshold: f32,
+    /// The mood an activity at `habituation_max` costs. Finite and not
+    /// negative - [OD-content].
+    pub overdoing_penalty: f32,
+    /// The habituation on a food activity at which a person feels sick.
+    /// Finite, above `overdoing_threshold` and at most `habituation_max` -
+    /// [OD-content].
+    pub sick_threshold: f32,
+    /// The mood feeling sick costs. Finite and not negative - [OD-content].
+    pub sick_penalty: f32,
     /// Seed for the simulation PRNG.
     pub rng_seed: u64,
     /// Maximum waiting player orders per sim; zero means unlimited.
@@ -1113,7 +1129,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 72] = [
+    const TUNING_LINES: [(&str, &str); 77] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1134,6 +1150,11 @@ mod tests {
         ("habituation_per_use", "0.3125"),
         ("habituation_decay_per_tick", "0.0625"),
         ("habituation_floor", "0.625"),
+        ("habituation_max", "3.25"),
+        ("overdoing_threshold", "1.125"),
+        ("overdoing_penalty", "17.5"),
+        ("sick_threshold", "2.75"),
+        ("sick_penalty", "22.5"),
         ("min_interaction_ticks", "3"),
         ("rng_seed", "300"),
         ("max_queued_intents", "7"),
@@ -1244,6 +1265,11 @@ mod tests {
         assert_eq!(parsed.habituation_per_use, 0.3125);
         assert_eq!(parsed.habituation_decay_per_tick, 0.0625);
         assert_eq!(parsed.habituation_floor, 0.625);
+        assert_eq!(parsed.habituation_max, 3.25);
+        assert_eq!(parsed.overdoing_threshold, 1.125);
+        assert_eq!(parsed.overdoing_penalty, 17.5);
+        assert_eq!(parsed.sick_threshold, 2.75);
+        assert_eq!(parsed.sick_penalty, 22.5);
         assert_eq!(parsed.min_interaction_ticks, 3);
         assert_eq!(parsed.rng_seed, 300);
         assert_eq!(parsed.max_queued_intents, 7);

@@ -786,6 +786,20 @@ pub struct Tuning {
     /// What each later skill level costs, as a multiple of the one before,
     /// at least 1 - [SK-model].
     pub skill_level_growth: f32,
+    /// The highest habituation repeated use reaches, above 1 - [OD-model]
+    /// in `docs/specs/2026-10-06-overdoing-it.md`. Appended, per the rule
+    /// above, with the four knobs after it.
+    pub habituation_max: f32,
+    /// The habituation above which an activity costs mood, at least 1 and
+    /// below `habituation_max` - [OD-content].
+    pub overdoing_threshold: f32,
+    /// The mood an activity at `habituation_max` costs, not negative.
+    pub overdoing_penalty: f32,
+    /// The habituation on a food activity at which a person feels sick,
+    /// above `overdoing_threshold` and at most `habituation_max`.
+    pub sick_threshold: f32,
+    /// The mood feeling sick costs, not negative.
+    pub sick_penalty: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1458,6 +1472,11 @@ mod tests {
             relationships: crate::RelationshipTuning::default(),
             skill_level_cost: 0.0859375,
             skill_level_growth: 1.34375,
+            habituation_max: 3.25,
+            overdoing_threshold: 1.125,
+            overdoing_penalty: 17.5,
+            sick_threshold: 2.75,
+            sick_penalty: 22.5,
         }
     }
 
@@ -2081,8 +2100,9 @@ mod tests {
     /// beginning. The two housemate limits ([CS-command]) are one-byte
     /// varints; `resale_fraction` ([SL-pay]) is the four bytes before them,
     /// and `wander_radius_tiles` the byte before that; the skill ladder
-    /// ([SK-model]) is the final eight bytes; every established field stays
-    /// put.
+    /// ([SK-model]) is the eight bytes before the five overdoing knobs
+    /// ([OD-content]), which are the final twenty; every established field
+    /// stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2096,11 +2116,46 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // The overdoing knobs, in declaration order. Each changed value
+        // differs from the fixture's only in its third byte.
+        let overdoing = before.len() - 20;
+        let expected: Vec<u8> = [3.25f32, 1.125, 17.5, 2.75, 22.5]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(before[overdoing..], expected);
+        for (slot, after) in [
+            Tuning {
+                habituation_max: 3.75,
+                ..a_tuning()
+            },
+            Tuning {
+                overdoing_threshold: 1.25,
+                ..a_tuning()
+            },
+            Tuning {
+                overdoing_penalty: 18.5,
+                ..a_tuning()
+            },
+            Tuning {
+                sick_threshold: 2.25,
+                ..a_tuning()
+            },
+            Tuning {
+                sick_penalty: 23.5,
+                ..a_tuning()
+            },
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            assert_eq!(changed(after), vec![overdoing + 4 * slot + 2], "{slot}");
+        }
         // 0.0859375 and 0.09375 differ only in their third byte, as do
         // 1.34375 and 1.40625.
-        let ladder = before.len() - 8;
+        let ladder = overdoing - 8;
         assert_eq!(before[ladder..ladder + 4], 0.0859375f32.to_le_bytes());
-        assert_eq!(before[ladder + 4..], 1.34375f32.to_le_bytes());
+        assert_eq!(before[ladder + 4..overdoing], 1.34375f32.to_le_bytes());
         assert_eq!(
             changed(Tuning {
                 skill_level_cost: 0.09375,
