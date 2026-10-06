@@ -10409,3 +10409,12 @@ Repetition decay precedes the mood projection that drives life satisfaction.
 behavior. Match events to actual completion counters, retain save/load
 equality, and keep foreign-pile and quantity assertions. Verify the
 fixture's bystander constraint each tick.
+## [L-organic-sounds-need-recordings] Body sounds need a recording, not a tone
+
+**What happened.** The owner asked for the sleeping sound to become a quieter, lower snore. A lower, softer triangle sweep was rejected as not snore-like. Three synthesized two-part snores, built from tones, flutter and filtered noise, were rejected too; one of them sounded like a cat purring and was kept for pets. A CC0 recording, measured and filtered to keep its energy low, was accepted.
+
+**Root cause.** A snore is a noisy, irregular sound from soft tissue. Envelope and pitch changes to one oscillator could make the cue quieter and lower, but not make it read as a snore. Frequency assertions and a design argument could not decide that; only listening could.
+
+**Prevention.** For a body or animal sound, search CC0 sources for recordings first and audition them with the owner before synthesizing. Measure each candidate's energy above 1 kHz and 2 kHz before offering it, because the owner wants very few high-pitched sounds in a game left playing in the background. Send rendered audio files for listening rather than describing a waveform.
+
+**Verify.** Each offered candidate has a recorded licence and a band-energy measurement, and the owner chose the shipped sound by ear. For the snore, ASSETS.md, "Sleeping snore recordings", records both.

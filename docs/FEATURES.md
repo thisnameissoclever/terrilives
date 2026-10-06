@@ -950,8 +950,8 @@ bass-thud range and adds sparse sleep cues from authored fixed-tick activity
 state. Conversations now play pairs from twelve first-party recordings, with
 their lengths compiled into the simulation. Each conversation sounds once rather
 than once per participant, with independent start/stop ownership and a playback
-cap of three pairs. Sleep breathing is capped at one household cue every
-three seconds. Eating, seated or standing reading, and exercise now emit
+cap of three pairs. Sleep plays a recorded household snore at most once
+every six seconds. Eating, seated or standing reading, and exercise now emit
 low-gain candidate cues on independent per-Sim cadences. These cues use the
 existing authored visual-action contract; they do not guess which appliance or
 object is involved. Master mute and Effects level are visible, touch-sized,

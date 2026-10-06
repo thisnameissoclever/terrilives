@@ -67,3 +67,14 @@ Rust builds used one worker. The 28 original causal deletions remain
 pre-integration evidence; the full hosted mutation sweep is separate and is
 not claimed passed. No additional behavior was introduced during conflict
 resolution. No task-owned preview server or game page was left running.
+
+
+## Final main refresh
+
+Main advanced to `0a1e36e8` with published sleeping-audio work before
+delivery. A second pull preserved it and reconciled the shared changelog
+header. No Rust source changed in that incoming range, so passing Rust
+checks were not repeated. The affected audio, cue and snore tests passed:
+18 files, 442 tests. Type checking, production build, changelog validation
+and document IDs also passed with exit zero after this pull. Both
+contributors' notes and the published filename remain intact.
