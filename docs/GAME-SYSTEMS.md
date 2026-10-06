@@ -4,7 +4,7 @@ Originally written 2026-09-21. Status reconciled on 2026-09-30 against main at `
 
 [FEATURES.md](FEATURES.md) still owns milestone scope and shipped evidence. This document owns the system-by-system view: what each system is, how complete it is, and what it needs before work can start.
 
-**Next build: Edit Sims [B-edit-sims], selected by the owner on 2026-09-30.** Communal activities and activity-specific seating, including missing sitting poses, follow soon by owner request on 2026-10-01. The remaining order is a recommendation.
+**Next build: communal activities and activity-specific seating [S-communal-activities], [S-activity-seating].** The owner requested them on 2026-10-01, including missing sitting poses. Edit Sims [B-edit-sims] shipped on 2026-10-05. The remaining order is a recommendation.
 
 ## How to read the status
 
@@ -74,9 +74,9 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 
 | Feature | Status | Boundary |
 |---|---|---|
-| [B-edit-sims] | Not started; next build | Existing names, personalities, traits and family ties |
-| [S-communal-activities] | Planned; soon after Edit Sims | Liked Sims prefer compatible shared activities; existing shared meals and relationship rewards are foundations |
-| [S-activity-seating] | Partial; early follow-up | Armchair sitting and seated reading exist; seat preferences and remaining sitting poses are planned |
+| [B-edit-sims] | Shipped 2026-10-05 | Existing names, personalities, traits and family ties |
+| [S-communal-activities] | Planned; next build | Liked Sims prefer compatible shared activities; existing shared meals and relationship rewards are foundations |
+| [S-activity-seating] | Partial; next build, with [S-communal-activities] | Armchair sitting and seated reading exist; seat preferences and remaining sitting poses are planned |
 | [B-gender] | Not started | Gender and saved appearance choices; new bodies and clothing need art |
 | [B-object-affinities] | Not started | Individual reactions to kinds of objects and others' use |
 | [B-colour-preferences] | Not started | Colour-family preferences, distinct from shipped recolour controls |
@@ -442,7 +442,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-create-a-sim] Create-a-sim and appearance
 
-**Status: Partial.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, choose a family tie, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). Editing existing people is the next slice, [B-edit-sims]. Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
+**Status: Partial.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, choose a family tie, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). The Edit button opens the same form for a living person's name, personality, traits and family ties ([B-edit-sims], shipped 2026-10-05). Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
 
 ### [S-life-stages] Life stages and aging
 
@@ -478,7 +478,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-communal-activities] Prefer activities with liked housemates
 
-**Status: Planned; requested 2026-10-01 for early delivery after Edit Sims.**
+**Status: Planned; next build, requested 2026-10-01.**
 Shared meals and relationship rewards for some simultaneous activities provide
 foundations. Choosing compatible activities in order to spend time with liked
 Sims remains planned work.
@@ -602,57 +602,52 @@ A bed, a chair, or a room can belong to one person. The armchair has no owner to
 
 ## A suggested build order
 
-**Edit Sims is next, by owner direction on 2026-09-30.** Communal activities,
-activity-specific seating and missing sitting poses follow soon, by owner
-request on 2026-10-01. The remaining order is a recommendation, subject to
+**Communal activities, activity-specific seating and missing sitting poses are
+next**, by owner request on 2026-10-01. Edit Sims [B-edit-sims] shipped on
+2026-10-05. The remaining order is a recommendation, subject to
 design and owner choice. Each step must deliver playable behaviour, not isolated
 infrastructure. FEATURES.md owns the same current priority.
 
-1. **Edit Sims [B-edit-sims].** Reuse New housemate for existing names,
-   personalities, traits and family ties. Settle progressed-trait removal and
-   re-addition before implementation. No new art is required.
-   The draft contract is `docs/specs/2026-09-30-edit-sims.md`; its proposed
-   removed-trait history policy awaits the owner's answer.
-2. **Communal activities and seating [S-communal-activities], [S-activity-seating].**
+1. **Communal activities and seating [S-communal-activities], [S-activity-seating].**
    Prefer compatible activities with liked Sims and suitable seats for eating,
    reading, TV and listening. Keep location-bound activities at their objects,
    including watching fish near the tank. Deliver missing sitting poses and
    animations in this slice rather than leaving them in the later art backlog.
-3. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
+2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
    Recommended follow-up: connect different people's preferences to the shared
    room and the shipped mood-to-satisfaction mechanism. Reconcile novelty and
    nuisance rules before choosing the first playable slice.
-4. **[S-skills] and [S-sim-details].** Extend capability progress into a general
+3. **[S-skills] and [S-sim-details].** Extend capability progress into a general
    skills system and show existing and newly added values in the details panel.
-5. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
+4. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
    channels and mutes. Buying, selling and their Funds changes are already done.
-6. **[S-acclimation].** Negative mood from overdoing activities and a fading
+5. **[S-acclimation].** Negative mood from overdoing activities and a fading
    novelty boost. Purchase and sale mechanisms no longer block this work.
-7. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
+6. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
    Mood already affects satisfaction. Behaviour, performance and despondency
    remain, with empathy and recovery rules designed before implementation.
-8. **[S-careers] and remaining [S-money].** Design career paths, job search,
+7. **[S-careers] and remaining [S-money].** Design career paths, job search,
    performance, bills and a ledger together. A phone or other job-search surface
    needs its own agreed slice; [P-services] remains an undecided broader proposal.
-9. **[S-household-events].** Deliver object state, event scheduling and willingness
+8. **[S-household-events].** Deliver object state, event scheduling and willingness
    through a playable mess-and-clean loop.
-10. **[S-sensitivities] and [P-nuisance].** A loud television near a sleeper can
-    prove the first slice; affinities should share its model where appropriate.
-11. **Further character lifecycle and [F-creature].** Creation and death are
+9. **[S-sensitivities] and [P-nuisance].** A loud television near a sleeper can
+   prove the first slice; affinities should share its model where appropriate.
+10. **Further character lifecycle and [F-creature].** Creation and death are
     complete. Visitors are a proposed human test case, pending acceptance;
     nonhuman needs and behaviour remain separate work required by pets.
-12. **[S-pets], one species first.** Build on the care, nuisance and lifecycle
+11. **[S-pets], one species first.** Build on the care, nuisance and lifecycle
     mechanisms above, with the species art and animation they need.
-13. **Remaining creation, household, building and outside slices.** Gender and
+12. **Remaining creation, household, building and outside slices.** Gender and
     appearance, moving out, larger households, bed assignment, roofs, further
     exterior work and other lot sizes. The wall/room tools, yard, street, floors,
-    windows and New housemate are already shipped. Bed assignment can move earlier.
-14. **[P-health].** The full health and medical system, including recovery options.
-15. **[P-upkeep]**, last, as the owner directed. Event and pet messes precede wear,
+    windows, New housemate and Edit are already shipped. Bed assignment can move earlier.
+13. **[P-health].** The full health and medical system, including recovery options.
+14. **[P-upkeep]**, last, as the owner directed. Event and pet messes precede wear,
     breakage and repair.
 
 Aging [DE-slice-age] is the next death slice, but its ages, lifespans and migration
-rules are not designed. It is not ahead of Edit Sims. Birth/genetics, town, ghosts,
+rules are not designed. It is not ahead of communal activities. Birth/genetics, town, ghosts,
 memorials and inheritance remain later scope with their documented dependencies.
 Deprivation death and its grief follow-ups are complete, not future build steps.
 

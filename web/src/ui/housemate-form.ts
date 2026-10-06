@@ -5,28 +5,48 @@
  * Move in stages one command the simulation checks whole. The form only
  * mirrors the simulation's rules so a button can be off before a refusal,
  * never instead of one: the drain's own check decides.
+ *
+ * The same two pages edit a living person ([ES-form] in
+ * `docs/specs/2026-09-30-edit-sims.md`): filled with who they are now, with
+ * a relation to each other household member on page 2, and Confirm changes
+ * staging one edit ([ES-atomic]).
  */
 import type { SimBridge } from '../bridge.js';
 
 /** What the form reads from the simulation. */
 import { NO_RELATION, RELATION_WORDS, relationWord } from '../bridge.js';
+import type { EditTarget } from './edit-target.js';
+import type { HouseholdMember } from './household-roster.js';
+import { setTextIfChanged } from './set-text-if-changed.js';
 
 export type HousemateSource = Pick<SimBridge, 'personalityLabels' | 'personalityDescriptions' |
   'traitLabels' | 'traitDescriptions' | 'householdSize' | 'housemateLimits' | 'addHousemate' |
-  'lastHousemateResult' | 'select' | 'setFamilyTie'>;
+  'lastHousemateResult' | 'select' | 'setFamilyTie' | 'editHousemate' | 'lastEditResult'>;
 
 export const CHOOSE_NAME = 'Give them a name.';
 export const HOUSEHOLD_FULL = 'The household is full.';
 export const MOVING_IN = 'Moving in…';
+export const NEW_TITLE = 'New housemate';
+export const MOVE_IN = 'Move in';
+export const EDIT_TITLE = 'Edit housemate';
+export const CONFIRM_CHANGES = 'Confirm changes';
+export const SAVING_CHANGES = 'Making the changes…';
+export const KEEP_PERSONALITY = 'Keep current personality';
+export const REMOVAL_NOTE = 'Removing a trait forgets its progress.';
 
 /** The form's two pages: who they are, then their traits. */
 export type HousematePage = 'personality' | 'traits';
+
+/** Whether the form brings a newcomer in or changes somebody already here. */
+export type HousemateMode = 'create' | 'edit';
 
 export interface HousemateFormHooks {
   /** The form's state changed; redraw. */
   changed(): void;
   /** The newcomer moved in and was selected; close the form. */
   movedIn(): void;
+  /** The edit was applied to this entity; close the form and refresh. */
+  edited(entity: number): void;
 }
 
 export class HousemateForm {
@@ -41,11 +61,20 @@ export class HousemateForm {
   personality = 0;
   chosenTraits: number[] = [];
   instinct: number | null = null;
-  /** Whether a move-in is on its way to the drain. */
+  /** Whether a move-in or an edit is on its way to the drain. */
   pending = false;
-  /** The drain's move-in count when this one was staged; its answer has a larger one. */
+  /** The drain's move-in or edit count when this one was staged; its answer has a larger one. */
   private stagedAfter = 0;
   status = CHOOSE_NAME;
+  mode: HousemateMode = 'create';
+  /** The person being edited, as they were when the form opened; null in create mode. */
+  target: EditTarget | null = null;
+  /** Edit mode: send no personality, so the person keeps the effects they have. */
+  keepPersonality = false;
+  /** Relation code from the edited person's side, by relative SimId. */
+  ties: Map<number, number> = new Map();
+  /** The other living household members the edited person has a tie row for. */
+  others: readonly HouseholdMember[] = [];
 
   constructor(private readonly source: HousemateSource, private readonly hooks: HousemateFormHooks) {
     this.personalities = source.personalityLabels();
@@ -69,15 +98,20 @@ export class HousemateForm {
   }
 
   /**
-   * Clears the form for a fresh newcomer, on its first page. A move-in
-   * still on its way is kept, so reopening the form cannot stage a second
-   * one before the first is answered.
+   * Clears the form for a fresh newcomer, on its first page. A move-in or
+   * an edit still on its way is kept, so reopening the form cannot stage a
+   * second one before the first is answered.
    */
   reset(): void {
     if (this.pending) {
       this.hooks.changed();
       return;
     }
+    this.mode = 'create';
+    this.target = null;
+    this.keepPersonality = false;
+    this.ties = new Map();
+    this.others = [];
     this.page = 'personality';
     this.name = '';
     this.personality = 0;
@@ -87,6 +121,52 @@ export class HousemateForm {
     this.relative = null;
     this.pending = false;
     this.status = this.nameStatus();
+    this.hooks.changed();
+  }
+
+  /**
+   * Opens the form on a living person, filled with who they are now
+   * ([ES-form]). The personality is kept unless the player picks an
+   * archetype: the editor never preselects one by default
+   * ([ES-personality]).
+   */
+  beginEdit(target: EditTarget, others: readonly HouseholdMember[]): void {
+    if (this.pending) {
+      this.hooks.changed();
+      return;
+    }
+    this.mode = 'edit';
+    this.target = target;
+    this.others = others.filter((member) => member.simId !== target.simId);
+    this.page = 'personality';
+    this.name = target.name;
+    this.keepPersonality = true;
+    this.personality = target.personality ?? 0;
+    this.chosenTraits = [...target.traits];
+    this.instinct = null;
+    this.relation = NO_RELATION;
+    this.relative = null;
+    this.ties = new Map(target.ties);
+    this.status = this.nameStatus();
+    this.hooks.changed();
+  }
+
+  /** Edit mode: keep the personality the person has instead of an archetype. */
+  chooseKeepPersonality(): void {
+    if (this.pending || this.mode !== 'edit') return;
+    this.keepPersonality = true;
+    this.hooks.changed();
+  }
+
+  /**
+   * Edit mode: the relation the edited person is to one shown relative,
+   * `NO_RELATION` for none. A relative without a row or a code the game
+   * does not know is refused rather than trusted.
+   */
+  chooseTie(relativeSimId: number, code: number): void {
+    if (this.pending || this.mode !== 'edit' || !this.ties.has(relativeSimId)) return;
+    if (!Number.isInteger(code) || code < 0 || code > NO_RELATION) return;
+    this.ties.set(relativeSimId, code);
     this.hooks.changed();
   }
 
@@ -101,6 +181,8 @@ export class HousemateForm {
     if (this.pending) return;
     if (!Number.isInteger(personality) || personality < 0 || personality >= this.personalities.length) return;
     this.personality = personality;
+    // Choosing an archetype replaces the personality ([ES-personality]).
+    this.keepPersonality = false;
     this.hooks.changed();
   }
 
@@ -125,10 +207,15 @@ export class HousemateForm {
     return this.name.trim();
   }
 
-  /** Whether the first page is complete: a name that fits, room for one, nothing on its way. */
+  /**
+   * Whether the first page is complete: a name that fits, nothing on its
+   * way, and room for one when somebody is moving in. An edit adds nobody,
+   * so it works in a full household ([ES-form]).
+   */
   canGoNext(): boolean {
     const name = this.trimmedName();
-    return !this.pending && this.roomForOne() && name !== '' && [...name].length <= this.nameMaxChars;
+    return !this.pending && (this.mode === 'edit' || this.roomForOne())
+      && name !== '' && [...name].length <= this.nameMaxChars;
   }
 
   /** Moves on to the traits once the first page is complete. */
@@ -180,9 +267,38 @@ export class HousemateForm {
     this.hooks.changed();
   }
 
+  /** Whether the confirming button may be pressed: Move in, or Confirm changes in edit mode. */
+  canConfirm(): boolean {
+    return this.mode === 'edit' ? this.page === 'traits' && this.canGoNext() : this.canMoveIn();
+  }
+
+  /** Moves in, or sends the edit, according to the mode. */
+  confirm(): void {
+    if (this.mode === 'create') {
+      this.moveIn();
+      return;
+    }
+    if (!this.canConfirm() || this.target === null) return;
+    this.stagedAfter = this.source.lastEditResult()?.handled ?? 0;
+    const accepted = this.source.editHousemate(
+      this.target.simId,
+      this.trimmedName(),
+      this.keepPersonality ? null : this.personality,
+      this.chosenTraits,
+      [...this.ties.entries()],
+    );
+    if (accepted) {
+      this.pending = true;
+      this.status = SAVING_CHANGES;
+    } else {
+      this.status = 'That could not be sent.';
+    }
+    this.hooks.changed();
+  }
+
   /** Stages the move-in; the drain's answer arrives through `afterCommands`. */
   moveIn(): void {
-    if (!this.canMoveIn()) return;
+    if (this.mode !== 'create' || !this.canMoveIn()) return;
     this.stagedAfter = this.source.lastHousemateResult()?.handled ?? 0;
     const accepted = this.instinct === null
       ? this.source.addHousemate(this.trimmedName(), this.personality, this.chosenTraits)
@@ -196,9 +312,22 @@ export class HousemateForm {
     this.hooks.changed();
   }
 
-  /** Reads the drain's answer to a move-in on its way, and only that answer. */
+  /** Reads the drain's answer to a move-in or an edit on its way, and only that answer. */
   afterCommands(): void {
     if (!this.pending) return;
+    if (this.mode === 'edit') {
+      const result = this.source.lastEditResult();
+      if (result === null || result.handled <= this.stagedAfter) return;
+      this.pending = false;
+      if (result.reason !== null) {
+        this.status = result.reason;
+        this.hooks.changed();
+        return;
+      }
+      if (result.sim !== null) this.hooks.edited(result.sim);
+      else this.hooks.changed();
+      return;
+    }
     const result = this.source.lastHousemateResult();
     if (result === null || result.handled <= this.stagedAfter) return;
     this.pending = false;
@@ -224,8 +353,10 @@ export class HousemateForm {
   }
 
   /**
-   * A Load replaces the world, the queued move-in and the drain's count with
-   * the saved ones, so nothing is on its way any more.
+   * A Load replaces the world, the queued move-in or edit and the drain's
+   * counts with the saved ones, so nothing is on its way any more, and the
+   * form returns to create mode so an old world's answer cannot complete an
+   * edit draft.
    */
   resetAfterLoad(): void {
     this.pending = false;
@@ -233,28 +364,39 @@ export class HousemateForm {
   }
 
   private nameStatus(): string {
-    if (!this.roomForOne()) return HOUSEHOLD_FULL;
+    if (this.mode === 'create' && !this.roomForOne()) return HOUSEHOLD_FULL;
     return this.trimmedName() === '' ? CHOOSE_NAME : '';
   }
 }
 
-/** One choice row: a control, then the name and its sentence on their own lines. */
-function optionRow(document: Document, input: HTMLInputElement, name: string, sentence: string): HTMLLabelElement {
+/**
+ * One choice row: a control, then the name and its sentence on their own
+ * lines; no sentence line when there is none. Returns the row and its name,
+ * which edit mode marks as current.
+ */
+function optionRow(
+  document: Document,
+  input: HTMLInputElement,
+  name: string,
+  sentence: string,
+): { row: HTMLLabelElement; title: HTMLElement } {
   const row = document.createElement('label');
   row.className = 'housemate-option';
   const text = document.createElement('span');
   const title = document.createElement('span');
   title.className = 'housemate-option-name';
   title.textContent = name;
-  const detail = document.createElement('span');
-  detail.className = 'housemate-option-text';
-  detail.textContent = sentence;
-  text.append(title, detail);
+  text.append(title);
+  if (sentence !== '') {
+    const detail = document.createElement('span');
+    detail.className = 'housemate-option-text';
+    detail.textContent = sentence;
+    text.append(detail);
+  }
   row.append(input, text);
-  return row;
+  return { row, title };
 }
 
-/** Wires the form to its dialog. */
 /** One option of a select, as plain as the rest of this surface. */
 function option(document: Document, value: string, label: string): HTMLOptionElement {
   const element = document.createElement('option');
@@ -263,6 +405,7 @@ function option(document: Document, value: string, label: string): HTMLOptionEle
   return element;
 }
 
+/** Wires the form to its dialog. */
 export class HousemateFormView {
   private readonly dialog: HTMLDialogElement;
   private readonly personalityPage: HTMLElement;
@@ -276,10 +419,24 @@ export class HousemateFormView {
   private readonly backButton: HTMLButtonElement;
   private readonly confirm: HTMLButtonElement;
   private readonly personalityRadios: HTMLInputElement[] = [];
+  /** Each archetype's name, which edit mode suffixes with ", current". */
+  private readonly personalityNames: HTMLElement[] = [];
   private readonly traitBoxes: HTMLInputElement[] = [];
+  private readonly instinctGroup: HTMLFieldSetElement;
   private readonly instinctRandom: HTMLInputElement;
   private readonly instinctSlider: HTMLInputElement;
   private readonly instinctValue: HTMLOutputElement;
+  private readonly title: HTMLElement;
+  private readonly family: HTMLElement;
+  /** Edit mode: "Keep current personality", above the archetypes. */
+  private readonly keepList: HTMLElement;
+  private readonly keepRadio: HTMLInputElement;
+  /** Edit mode: one relation row per other household member ([ES-form]). */
+  private readonly tieList: HTMLElement;
+  private readonly tieSelects = new Map<number, HTMLSelectElement>();
+  /** The members the tie rows were built for; a new list rebuilds them. */
+  private shownOthers: readonly HouseholdMember[] | null = null;
+  private readonly removalNote: HTMLElement;
   private shownPage: HousematePage | null = null;
   private wasPending = false;
 
@@ -300,7 +457,7 @@ export class HousemateFormView {
   private readonly relationSelect: HTMLSelectElement;
   private readonly relativeSelect: HTMLSelectElement;
 
-  constructor(document: Document, private readonly form: HousemateForm) {
+  constructor(private readonly document: Document, private readonly form: HousemateForm) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
       if (!element) throw new Error(`Missing housemate form: ${id}`);
@@ -316,6 +473,7 @@ export class HousemateFormView {
     this.traitsPage = required('housemate-page-traits');
     this.nameInput = required('housemate-name');
     const instinctGroup = document.createElement('fieldset');
+    this.instinctGroup = instinctGroup;
     instinctGroup.className = 'instinct-controls';
     const legend = document.createElement('legend');
     legend.textContent = 'Self-preservation instinct';
@@ -356,17 +514,34 @@ export class HousemateFormView {
     this.nextButton = required('housemate-next');
     this.backButton = required('housemate-back');
     this.confirm = required('housemate-confirm');
+    this.title = required('housemate-title');
+    this.family = required('housemate-family');
+    this.tieList = required('housemate-ties');
+    this.removalNote = required('housemate-removal-note');
+    this.removalNote.textContent = REMOVAL_NOTE;
     const cancelButtons = [required<HTMLButtonElement>('housemate-cancel')];
     this.nameInput.maxLength = form.nameMaxChars;
     required('housemate-traits-legend').textContent = `Traits, up to ${form.maxTraits}`;
+    // [ES-personality]: in edit mode the person keeps their personality
+    // unless the player picks an archetype, so Keep comes first and is the
+    // starting choice. It shares the archetypes' radio group.
+    this.keepList = required('housemate-keep-personality');
+    this.keepRadio = document.createElement('input');
+    this.keepRadio.type = 'radio';
+    this.keepRadio.name = 'housemate-personality';
+    this.keepRadio.value = 'keep';
+    this.keepRadio.addEventListener('change', () => form.chooseKeepPersonality());
+    this.keepList.append(optionRow(document, this.keepRadio, KEEP_PERSONALITY, '').row);
     for (const [index, label] of form.personalities.entries()) {
       const radio = document.createElement('input');
       radio.type = 'radio';
       radio.name = 'housemate-personality';
       radio.value = String(index);
       radio.addEventListener('change', () => form.setPersonality(index));
-      this.personalityList.append(optionRow(document, radio, label, form.personalityDescriptions[index] ?? ''));
+      const { row, title } = optionRow(document, radio, label, form.personalityDescriptions[index] ?? '');
+      this.personalityList.append(row);
       this.personalityRadios.push(radio);
+      this.personalityNames.push(title);
     }
     for (const [index, label] of form.traits.entries()) {
       const box = document.createElement('input');
@@ -376,7 +551,7 @@ export class HousemateFormView {
         form.toggleTrait(index);
         this.render();
       });
-      this.traitsList.append(optionRow(document, box, label, form.traitDescriptions[index] ?? ''));
+      this.traitsList.append(optionRow(document, box, label, form.traitDescriptions[index] ?? '').row);
       this.traitBoxes.push(box);
     }
     this.nameInput.addEventListener('input', () => form.setName(this.nameInput.value));
@@ -390,7 +565,7 @@ export class HousemateFormView {
     this.nextButton.addEventListener('click', () => form.next());
     this.backButton.addEventListener('click', () => form.back());
     for (const cancel of cancelButtons) cancel.addEventListener('click', () => this.dialog.close('cancel'));
-    this.confirm.addEventListener('click', () => form.moveIn());
+    this.confirm.addEventListener('click', () => form.confirm());
     // [FM-choose]: the relation list is the game's, in its own order, with
     // "Nobody" first because that is the default and the common answer.
     this.relationSelect.append(option(document, String(NO_RELATION), 'Nobody'));
@@ -407,8 +582,59 @@ export class HousemateFormView {
     this.render();
   }
 
+  /**
+   * Edit mode's relation rows: built when the form opens on a person, then
+   * only kept in step, so a select the player is using is never replaced
+   * under them.
+   */
+  private renderTies(): void {
+    const form = this.form;
+    if (this.shownOthers !== form.others) {
+      this.shownOthers = form.others;
+      this.tieSelects.clear();
+      const rows = form.others.map((member) => {
+        const select = this.document.createElement('select');
+        select.id = `housemate-tie-${member.simId}`;
+        select.append(option(this.document, String(NO_RELATION), 'Nobody'));
+        for (const [code, word] of RELATION_WORDS.entries()) {
+          select.append(option(this.document, String(code), word));
+        }
+        select.addEventListener('change', () => form.chooseTie(member.simId, Number(select.value)));
+        this.tieSelects.set(member.simId, select);
+        const row = this.document.createElement('label');
+        row.append('They are the ', select, ` of ${member.name}`);
+        return row;
+      });
+      this.tieList.replaceChildren(...rows);
+    }
+    for (const [simId, select] of this.tieSelects) {
+      const value = String(form.ties.get(simId) ?? NO_RELATION);
+      if (select.value !== value) select.value = value;
+      select.disabled = form.pending;
+    }
+  }
+
   render(): void {
     const form = this.form;
+    // [ES-form]: one dialog, titled and confirmed for what it is doing.
+    const editing = form.mode === 'edit';
+    setTextIfChanged(this.title, editing ? EDIT_TITLE : NEW_TITLE);
+    setTextIfChanged(this.confirm, editing ? CONFIRM_CHANGES : MOVE_IN);
+    this.keepList.hidden = !editing;
+    this.keepRadio.checked = form.keepPersonality;
+    this.keepRadio.disabled = form.pending;
+    const current = editing ? form.target?.personality ?? null : null;
+    for (const [index, title] of this.personalityNames.entries()) {
+      const label = form.personalities[index] ?? '';
+      setTextIfChanged(title, index === current ? `${label}, current` : label);
+    }
+    // Instinct and the newcomer's one family row are creation's; an edit
+    // has a row per relative instead, and the removal warning.
+    this.instinctGroup.hidden = editing;
+    this.family.hidden = editing;
+    this.tieList.hidden = !editing;
+    this.removalNote.hidden = !editing;
+    if (editing) this.renderTies();
     // [FM-choose]: the relation and who it is to, kept in step with the form.
     if (this.relationSelect.value !== String(form.relation)) {
       this.relationSelect.value = String(form.relation);
@@ -426,7 +652,7 @@ export class HousemateFormView {
     this.traitsPage.hidden = !onTraits;
     if (this.nameInput.value !== form.name) this.nameInput.value = form.name;
     for (const [index, radio] of this.personalityRadios.entries()) {
-      radio.checked = index === form.personality;
+      radio.checked = !form.keepPersonality && index === form.personality;
       radio.disabled = form.pending;
     }
     const full = form.chosenTraits.length >= form.maxTraits;
@@ -441,7 +667,7 @@ export class HousemateFormView {
     this.nameInput.disabled = form.pending;
     this.nextButton.disabled = !form.canGoNext();
     this.backButton.disabled = form.pending;
-    this.confirm.disabled = !form.canMoveIn();
+    this.confirm.disabled = !form.canConfirm();
     // A page change moves focus onto the new page, so a keyboard player is
     // never left on a control that has just been hidden.
     if (this.shownPage !== null && this.shownPage !== form.page) {

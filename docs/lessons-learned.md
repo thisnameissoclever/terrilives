@@ -10276,3 +10276,23 @@ only the helper under test.
 **Verify.** The corrected fixture restores both travel and active use. Deleting
 the standing-contact consumer calls rejects its travel save. Restoring the
 calls returns the test to green without modifying runtime behavior.
+
+## [L-pinned-hash-search-includes-strings] Search for a moved hash in every written form
+
+**What happened.** Hashing personality effects moved the world hash of a released-main save that a web test loads. A search for pinned hash values matched only numeric and bigint literals, so it missed that test, which compares the hash as a decimal string, and the implementer reported that no web test pinned a moved value. The web suite failed on that test until the pin was updated.
+
+**Root cause.** The search assumed every pinned hash is written as a number literal. A test can also pin a hash as a quoted decimal string.
+
+**Prevention.** When a change can move a hash, record the old value from a run before the change and search the repository for its exact text in decimal and hexadecimal, inside or outside quotes. Run every suite that loads a pinned save against a rebuilt package before claiming no pin moved.
+
+**Verify.** The search for the old value returns each pin, and each suite that loads a saved fixture passes against the rebuilt package.
+
+## [L-one-mutation-writer-per-worktree] Run one source-mutating agent per worktree at a time
+
+**What happened.** Two implementers worked in one worktree at once, and each ran guard-deletion checks that rewrote `crates/terri-sim/src/lib.rs` and restored its saved bytes afterwards. One agent's backups in the shared scratchpad replaced the other agent's mutation script, and the second agent had to wait until the source files matched HEAD before it could compile or mutate anything.
+
+**Root cause.** A save-and-restore mutation harness assumes it is the only writer of the file and of its scratch directory. A second agent in the same worktree breaks both assumptions: a restore can write back bytes that hold the other agent's mutation, and one crate build compiles both agents' changes into each other's test runs.
+
+**Prevention.** Allow one agent at a time to write source files in a worktree, including mutation harnesses. Give parallel implementers separate worktrees, and give each harness its own scratch directory.
+
+**Verify.** Before a mutation run, confirm that `git status` shows only your own changes and record `git hash-object` for each target file. After restoring, confirm the hash matches the recorded value and that no other process changed the file during the run.

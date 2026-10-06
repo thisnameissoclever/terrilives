@@ -844,8 +844,8 @@ impl Personality {
     /// A personality with the given dispositions, sorted here so no caller
     /// can construct an unsorted one: `disposition` binary-searches, and
     /// the list's iteration order must be deterministic for anything that
-    /// ever walks it. The world hash currently includes only the separate
-    /// chronotype field, not these static multipliers or dispositions.
+    /// ever walks it, including the world hash, which includes the
+    /// multipliers, the dispositions and the chronotype field.
     pub fn with_dispositions(
         drain: [f32; NEED_COUNT],
         satisfaction: [f32; NEED_COUNT],
@@ -872,9 +872,8 @@ impl Personality {
         }
     }
 
-    /// Every disposition, in key order. For tests today, and for
-    /// `world_hash` the day personality becomes mutable and has to enter
-    /// it - see the exclusion note on `Sim::world_hash`.
+    /// Every disposition, in key order. `Sim::world_hash` walks this list
+    /// in its `personality-effects-v1` block.
     pub fn dispositions(&self) -> &[(ObjectDefId, u32, f32)] {
         &self.dispositions
     }

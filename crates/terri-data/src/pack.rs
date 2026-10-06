@@ -841,9 +841,8 @@ pub struct CompiledPersonality {
     /// (object, interaction index, weight), sorted by key because it is
     /// copied verbatim into a component whose iteration order must be
     /// deterministic - `Personality::disposition` binary-searches it, and
-    /// it is what `world_hash` would iterate if personality ever enters
-    /// the digest (it does not today; `Sim::world_hash` carries the
-    /// exclusion note). The names are resolved: a disposition toward an
+    /// `Sim::world_hash` iterates it in its `personality-effects-v1`
+    /// block. The names are resolved: a disposition toward an
     /// interaction that does not exist has no representation once a pack
     /// exists.
     pub dispositions: Vec<(ObjectDefId, u32, f32)>,
@@ -852,8 +851,10 @@ pub struct CompiledPersonality {
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,
     /// What this personality is like, for the New housemate form -
-    /// [CS-personality]. Last, because it was appended; personalities are
-    /// in no save and not in the save digest.
+    /// [CS-personality]. Last, because it was appended. This text is
+    /// presentation: no save stores it and the world hash does not read
+    /// it, unlike the effects above, which saves store per person and the
+    /// world hash covers.
     pub description: String,
 }
 

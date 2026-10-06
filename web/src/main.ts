@@ -46,6 +46,7 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { householdMembers } from './ui/household-roster.js';
+import { editTargetOf } from './ui/edit-target.js';
 import { WallFade } from './render/wall-fade.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
@@ -885,6 +886,13 @@ async function main(): Promise<void> {
     syncPersistenceButtons();
     void saving.then(() => syncPersistenceButtons());
   });
+  // The housemate dialog and its two openers, found before Load so the load
+  // path can close an open edit draft ([ES-form]); the form is set up below.
+  const newHousemateButton = document.querySelector<HTMLButtonElement>('#new-housemate');
+  const housemateDialog = document.querySelector<HTMLDialogElement>('#housemate-dialog');
+  if (!newHousemateButton || !housemateDialog) throw new Error('missing the New housemate form');
+  const editHousemateButton = document.querySelector<HTMLButtonElement>('#edit-housemate');
+  if (!editHousemateButton) throw new Error('missing the Edit housemate button');
   let loadingGame = false;
   loadButton.addEventListener('click', () => {
     optionsMenu.close();
@@ -936,9 +944,13 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           builder.resetAfterLoad();
+          // [ES-form]: a draft names a person of the replaced world, so
+          // close it before the form returns to create mode.
+          if (housemateDialog.open) housemateDialog.close('cancel');
           housemateForm.resetAfterLoad();
           bedAssignmentPanel.resetAfterLoad();
           syncNewHousemateButton();
+          syncEditHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           windowTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
@@ -968,10 +980,11 @@ async function main(): Promise<void> {
   });
   // [CS-command]: the New housemate form. The dialog pauses the game as
   // Load does; Move in stages one command, and the form closes once the
-  // drain has moved the newcomer in and selected them.
-  const newHousemateButton = document.querySelector<HTMLButtonElement>('#new-housemate');
-  const housemateDialog = document.querySelector<HTMLDialogElement>('#housemate-dialog');
-  if (!newHousemateButton || !housemateDialog) throw new Error('missing the New housemate form');
+  // drain has moved the newcomer in and selected them. [ES-form]: the Edit
+  // button opens the same dialog on the selected person, and Confirm
+  // changes closes it once the drain has applied the edit.
+  /** Where focus returns when the dialog closes: the button that opened it. */
+  let housemateOpener: HTMLButtonElement = optionsToggle;
   let housemateView: HousemateFormView | undefined;
   const housemateForm = new HousemateForm(sim, {
     changed: () => housemateView?.render(),
@@ -979,15 +992,43 @@ async function main(): Promise<void> {
       housemateDialog.close('confirm');
       householdRoster.update(performance.now(), true);
     },
+    edited: () => {
+      housemateDialog.close('confirm');
+      // A new name shows in the roster, the dock and the panels at once.
+      const nowMs = performance.now();
+      householdRoster.update(nowMs, true);
+      if (needsPanel.update(nowMs, sim)) syncDockSummary();
+      peoplePanel.update(nowMs, true);
+      traitsPanel.update(nowMs, true);
+      personalDetailsPanel.update(nowMs, true);
+    },
   });
   housemateView = new HousemateFormView(document, housemateForm);
   const syncNewHousemateButton = (): void => {
     newHousemateButton.disabled = !housemateForm.roomForOne();
   };
+  // Off while a move-in or edit is on its way, and with nobody selected.
+  const syncEditHousemateButton = (): void => {
+    editHousemateButton.disabled = housemateForm.pending || sim.selectedIndex() === null;
+  };
   syncNewHousemateButton();
+  syncEditHousemateButton();
+  editHousemateButton.addEventListener('click', () => {
+    const selected = sim.selectedIndex();
+    if (selected === null) return;
+    const members = householdMembers(sim);
+    const target = editTargetOf(sim, selected, members);
+    if (target === null) return;
+    housemateForm.beginEdit(target, members);
+    housemateView?.setHousehold(members);
+    housemateOpener = editHousemateButton;
+    overlayPause.suspend('housemate');
+    housemateDialog.showModal();
+  });
   newHousemateButton.addEventListener('click', () => {
     optionsMenu.close();
     housemateForm.reset();
+    housemateOpener = optionsToggle;
     // [FM-choose]: the household as it stands right now, since it changes
     // between one opening of this dialog and the next.
     housemateView?.setHousehold(householdMembers(sim));
@@ -997,7 +1038,8 @@ async function main(): Promise<void> {
   housemateDialog.addEventListener('close', () => {
     overlayPause.resume('housemate');
     syncNewHousemateButton();
-    restorePersistenceFocus(document, housemateDialog, optionsToggle, persistenceFocusFallbacks);
+    syncEditHousemateButton();
+    restorePersistenceFocus(document, housemateDialog, housemateOpener, persistenceFocusFallbacks);
   });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
@@ -1787,6 +1829,7 @@ async function main(): Promise<void> {
     householdRoster.update(nowMs);
     deathControls.update();
     syncNewHousemateButton();
+    syncEditHousemateButton();
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);

@@ -119,6 +119,16 @@ fn placement_u32(value: f64) -> Option<u32> {
         .then_some(value as u32)
 }
 
+/// One tie's relation from its JavaScript code [ES-atomic]: 0 through 3 are
+/// `Relation` codes, 4 clears the pair, and anything else (including a
+/// non-integer) is `None`, which refuses the whole edit.
+fn edit_tie_relation(code: f64) -> Option<Option<terri_core::layout::Relation>> {
+    match placement_u32(code)? {
+        4 => Some(None),
+        code => terri_core::layout::Relation::from_code(u8::try_from(code).ok()?).map(Some),
+    }
+}
+
 fn placement_arguments(
     object: f64,
     x: f64,
@@ -1128,10 +1138,8 @@ impl SimHandle {
         else {
             return false;
         };
-        let tuning = self.sim.world().resource::<Content>().0.tuning;
-        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
-            || traits.len() > tuning.housemate_max_traits as usize
-        {
+        let name = name.trim();
+        if !self.housemate_fields_within_bounds(name, traits.len(), 0) {
             return false;
         }
         let bytes = postcard::to_allocvec(&SimCommand::AddHousemate {
@@ -1164,10 +1172,8 @@ impl SimHandle {
         else {
             return false;
         };
-        let tuning = self.sim.world().resource::<Content>().0.tuning;
-        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
-            || traits.len() > tuning.housemate_max_traits as usize
-        {
+        let name = name.trim();
+        if !self.housemate_fields_within_bounds(name, traits.len(), 0) {
             return false;
         }
         let bytes = postcard::to_allocvec(&SimCommand::AddHousemateWithInstinct {
@@ -1178,6 +1184,92 @@ impl SimHandle {
         })
         .expect("a move-in serializes");
         self.enqueue_command(&bytes)
+    }
+
+    /// [ES-atomic]: stages one edit of a living person by SimId. `ties` is a
+    /// flat list of relative SimId and relation code pairs; code 4 clears
+    /// the pair and codes 0 through 3 are `Relation` codes. With
+    /// `keep_personality` set, `personality` is ignored whatever it holds,
+    /// NaN included, and never reaches the command; otherwise it must pass
+    /// `placement_u32`. Every other number passes `placement_u32`, and the
+    /// trimmed name, which is what gets serialized, must fit the name,
+    /// trait and tie bounds; `enqueue_command` checks the bounds again for
+    /// raw bytes. Queue acceptance only: read the outcome from
+    /// `last_edit_result`.
+    pub fn edit_housemate(
+        &mut self,
+        sim: f64,
+        name: &str,
+        keep_personality: bool,
+        personality: f64,
+        traits: &[f64],
+        ties: &[f64],
+    ) -> bool {
+        let Some(sim) = placement_u32(sim) else {
+            return false;
+        };
+        let personality = if keep_personality {
+            None
+        } else {
+            match placement_u32(personality) {
+                Some(index) => Some(index),
+                None => return false,
+            }
+        };
+        let Some(traits) = traits
+            .iter()
+            .map(|&index| placement_u32(index))
+            .collect::<Option<Vec<u32>>>()
+        else {
+            return false;
+        };
+        if !ties.len().is_multiple_of(2) {
+            return false;
+        }
+        let Some(ties) = ties
+            .chunks_exact(2)
+            .map(|pair| Some((placement_u32(pair[0])?, edit_tie_relation(pair[1])?)))
+            .collect::<Option<Vec<_>>>()
+        else {
+            return false;
+        };
+        let name = name.trim();
+        if !self.housemate_fields_within_bounds(name, traits.len(), ties.len()) {
+            return false;
+        }
+        let bytes = postcard::to_allocvec(&SimCommand::EditHousemate {
+            sim,
+            name: name.to_string(),
+            personality,
+            traits,
+            ties,
+        })
+        .expect("an edit serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[]` before any edit; otherwise the refusal code or 0, the edited
+    /// person's entity index or `u32::MAX`, and the answer number
+    /// [ES-atomic].
+    pub fn last_edit_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_edit_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.reason.map_or(0, |reason| reason as u32),
+                    result.sim.unwrap_or(u32::MAX),
+                    result.handled,
+                ]
+            })
+    }
+
+    /// The archetype the editor may preselect for this entity index, or
+    /// `u32::MAX` when the person's effects match no single archetype or
+    /// nobody lives at the index ("Keep current personality").
+    pub fn personality_index_of(&self, index: u32) -> u32 {
+        self.sim.personality_archetype_of(index).unwrap_or(u32::MAX)
     }
 
     /// `[refusal, sim, handled]` of the last move-in a drain handled -
@@ -1924,9 +2016,9 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the fifteen `SimCommand`
-    ///   declares, which is also what an OLDER shell sending a NEWER
-    ///   format looks like;
+    /// - **an unknown variant index** - a byte past the last variant
+    ///   `SimCommand` declares, which is also what an OLDER shell
+    ///   sending a NEWER format looks like;
     /// - **a truncated payload** - a variant index with its fields
     ///   missing, which is what a partial write or a sliced buffer looks
     ///   like;
@@ -1968,20 +2060,21 @@ impl SimHandle {
             return false;
         }
 
-        if let SimCommand::AddHousemateWithInstinct {
-            name,
-            traits,
-            instinct,
-            ..
-        } = &command
-        {
-            let tuning = self.sim.world().resource::<Content>().0.tuning;
-            if *instinct > 100
-                || name.trim().chars().count() > tuning.housemate_name_max_chars as usize
-                || traits.len() > tuning.housemate_max_traits as usize
-            {
-                return false;
+        // Raw bytes cannot be trimmed after the fact, so the untrimmed name
+        // is held to the byte limit here; see `housemate_fields_within_bounds`.
+        let within_bounds = match &command {
+            SimCommand::AddHousemateWithInstinct { instinct, .. } if *instinct > 100 => false,
+            SimCommand::AddHousemate { name, traits, .. }
+            | SimCommand::AddHousemateWithInstinct { name, traits, .. } => {
+                self.housemate_fields_within_bounds(name, traits.len(), 0)
             }
+            SimCommand::EditHousemate {
+                name, traits, ties, ..
+            } => self.housemate_fields_within_bounds(name, traits.len(), ties.len()),
+            _ => true,
+        };
+        if !within_bounds {
+            return false;
         }
 
         if let SimCommand::FitWindow { axis, x, y, model } = &command {
@@ -2552,6 +2645,27 @@ impl SimHandle {
 
     pub fn world_hash(&self) -> u64 {
         self.sim.world_hash()
+    }
+}
+
+impl SimHandle {
+    /// Whether a move-in's or an edit's name, trait list and tie list fit
+    /// [CS-command] and [ES-atomic]; a move-in passes 0 ties. The name's
+    /// byte length, untrimmed, must fit `terri_sim::MAX_TEXT_BYTES`, the
+    /// limit the loader holds every saved name to, so a save taken before
+    /// the drain always loads. The trimmed character count, the trait
+    /// count and the tie count must fit the creation bounds and the
+    /// household size. The exports trim before they ask and serialize the
+    /// trimmed name; `enqueue_command` asks again for raw bytes, whose
+    /// name it cannot trim. The drain checks the name and trait bounds once
+    /// more before mutation; it caps ties only through its unique living
+    /// relative rule, so this is the explicit tie bound.
+    fn housemate_fields_within_bounds(&self, name: &str, traits: usize, ties: usize) -> bool {
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        name.len() <= terri_sim::MAX_TEXT_BYTES
+            && name.trim().chars().count() <= tuning.housemate_name_max_chars as usize
+            && traits <= tuning.housemate_max_traits as usize
+            && ties <= terri_sim::household::MAX_HOUSEHOLD_SIZE
     }
 }
 
@@ -7354,11 +7468,13 @@ mod boundary_tests {
             // `SellObject` with no object, `[0x0C, 0x00]` a `SetColourway`
             // with no colourway, `[0x0D, 0x00]` a truncated
             // `BuyObjectInColourway`, and `[0x0E, 0x00]` an `AddHousemate`
-            // with an empty name and nothing after it.
+            // with an empty name and nothing after it. `[0x0F, 0x00]` then
+            // became a truncated `SetFloor`, as each later append moved the
+            // edge on to 23.
             (
-                "variant index 15, one past the fifteen SimCommand declares; \
+                "variant index 23, one past the twenty-three SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x0F, 0x00],
+                vec![23, 0x00],
             ),
             (
                 "AddHousemate missing its traits",
@@ -8510,6 +8626,304 @@ mod instinct_boundary_tests {
         }
     }
 
+    /// Tim's entity index: the household spawns after the placed objects,
+    /// so the first member's index is the placement count. His SimId is 0.
+    fn tim_index(handle: &SimHandle) -> u32 {
+        let tim = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .lot
+            .placements
+            .len() as u32;
+        assert_eq!(handle.sim_name(tim), "Tim");
+        assert_eq!(handle.sim_id_of(tim), 0);
+        tim
+    }
+
+    #[test]
+    fn edit_boundary_rejects_hostile_numbers_in_release() {
+        let mut handle = SimHandle::from_lot();
+        let hash = handle.world_hash();
+        let bytes = handle.save_bytes();
+        let hostile = [
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            -1.0,
+            0.5,
+            4_294_967_296.0,
+        ];
+        for value in hostile {
+            assert!(
+                !handle.edit_housemate(value, "Tim", true, 0.0, &[], &[]),
+                "sim {value}"
+            );
+            assert!(
+                !handle.edit_housemate(0.0, "Tim", false, value, &[], &[]),
+                "personality {value}"
+            );
+            assert!(
+                !handle.edit_housemate(0.0, "Tim", true, 0.0, &[value], &[]),
+                "trait {value}"
+            );
+            assert!(
+                !handle.edit_housemate(0.0, "Tim", true, 0.0, &[], &[value, 0.0]),
+                "relative {value}"
+            );
+            assert!(
+                !handle.edit_housemate(0.0, "Tim", true, 0.0, &[], &[1.0, value]),
+                "relation {value}"
+            );
+        }
+        assert!(
+            !handle.edit_housemate(0.0, "Tim", true, 0.0, &[], &[1.0]),
+            "odd tie list"
+        );
+        assert!(
+            !handle.edit_housemate(0.0, "Tim", true, 0.0, &[], &[1.0, 5.0]),
+            "relation code 5"
+        );
+        assert!(
+            !handle.edit_housemate(0.0, "Tim", true, 0.0, &[], &[1.0, 259.0]),
+            "relation code 259 must not wrap to Sibling"
+        );
+        assert!(
+            !handle.edit_housemate(0.0, "Tim", true, 0.0, &[0.0, 1.0, 2.0, 3.0, 4.0], &[]),
+            "five traits"
+        );
+        assert!(
+            !handle.edit_housemate(0.0, &"x".repeat(25), true, 0.0, &[], &[]),
+            "25 characters"
+        );
+        assert!(
+            !handle.edit_housemate(
+                0.0,
+                "Tim",
+                true,
+                0.0,
+                &[],
+                &[1.0, 0.0, 2.0, 0.0, 3.0, 0.0, 4.0, 0.0, 5.0, 0.0, 6.0, 0.0, 7.0, 0.0]
+            ),
+            "seven ties"
+        );
+        assert_eq!(handle.last_edit_result(), Vec::<u32>::new());
+        assert_eq!(handle.world_hash(), hash);
+        assert_eq!(handle.save_bytes(), bytes);
+    }
+
+    #[test]
+    fn edit_boundary_stages_an_edit_and_reports_its_numbered_answer() {
+        let mut handle = SimHandle::from_lot();
+        let tim = tim_index(&handle);
+        assert_eq!(
+            handle.personality_index_of(tim),
+            0,
+            "Tim is the_correspondent at pack index 0"
+        );
+        assert_eq!(
+            handle.personality_index_of(0),
+            u32::MAX,
+            "index 0 is a placed object, which has no personality"
+        );
+        assert!(handle.edit_housemate(0.0, " Timothy ", false, 1.0, &[1.0], &[1.0, 3.0]));
+        assert_eq!(
+            handle.last_edit_result(),
+            Vec::<u32>::new(),
+            "nothing is answered before the drain"
+        );
+        handle.flush_commands();
+        assert_eq!(handle.last_edit_result(), vec![0, tim, 1]);
+        assert_eq!(handle.sim_name(tim), "Timothy");
+        assert_eq!(handle.personality_index_of(tim), 1);
+        assert_eq!(handle.family_ties(), vec![0, 1, 3]);
+        assert!(
+            handle.edit_housemate(0.0, "Timothy", true, f64::NAN, &[1.0], &[1.0, 4.0]),
+            "keep ignores the personality number, NaN included"
+        );
+        assert!(
+            matches!(
+                handle.sim.world().resource::<CommandQueue>().as_slice(),
+                [SimCommand::EditHousemate {
+                    personality: None,
+                    ..
+                }]
+            ),
+            "the NaN never reaches the command, which keeps the personality"
+        );
+        handle.flush_commands();
+        assert_eq!(handle.last_edit_result(), vec![0, tim, 2]);
+        assert_eq!(
+            handle.family_ties(),
+            Vec::<u32>::new(),
+            "code 4 clears the pair"
+        );
+        assert_eq!(handle.personality_index_of(tim), 1, "keep leaves it alone");
+        assert!(handle.edit_housemate(0.0, " ", true, 0.0, &[], &[]));
+        handle.flush_commands();
+        assert_eq!(handle.last_edit_result(), vec![2, u32::MAX, 3]);
+        assert_eq!(handle.sim_name(tim), "Timothy");
+        assert_eq!(handle.personality_index_of(u32::MAX - 1), u32::MAX);
+    }
+
+    #[test]
+    fn a_queued_edit_round_trips_through_save_bytes_and_applies_after_load() {
+        let mut handle = SimHandle::from_lot();
+        let tim = tim_index(&handle);
+        assert!(handle.edit_housemate(0.0, "Timothy", false, 2.0, &[0.0], &[2.0, 0.0]));
+        let bytes = handle.save_bytes();
+        let mut loaded = SimHandle::from_lot();
+        assert!(loaded.load_bytes(&bytes));
+        assert_eq!(loaded.world_hash(), handle.world_hash());
+        assert_eq!(loaded.sim_name(tim), "Tim", "loading applies nothing");
+        loaded.flush_commands();
+        handle.flush_commands();
+        assert_eq!(loaded.last_edit_result(), vec![0, tim, 1]);
+        assert_eq!(handle.last_edit_result(), vec![0, tim, 1]);
+        assert_eq!(loaded.sim_name(tim), "Timothy");
+        assert_eq!(loaded.personality_index_of(tim), 2);
+        assert_eq!(loaded.family_ties(), vec![0, 2, 0]);
+        assert_eq!(loaded.world_hash(), handle.world_hash());
+    }
+
+    #[test]
+    fn a_whitespace_padded_edit_is_queued_trimmed_so_a_save_before_the_drain_loads() {
+        let mut handle = SimHandle::from_lot();
+        let tim = tim_index(&handle);
+        let padded = format!("{}Timothy{}", " ".repeat(1_100), " ".repeat(40));
+        assert!(padded.len() > terri_sim::MAX_TEXT_BYTES);
+        assert!(handle.edit_housemate(0.0, &padded, true, 0.0, &[], &[]));
+        let bytes = handle.save_bytes();
+        let mut loaded = SimHandle::from_lot();
+        assert!(
+            loaded.load_bytes(&bytes),
+            "a save taken before the drain loads"
+        );
+        assert!(matches!(
+            handle.sim.world().resource::<CommandQueue>().as_slice(),
+            [SimCommand::EditHousemate { name, .. }] if name == "Timothy"
+        ));
+        loaded.flush_commands();
+        assert_eq!(loaded.last_edit_result(), vec![0, tim, 1]);
+        assert_eq!(loaded.sim_name(tim), "Timothy");
+    }
+
+    #[test]
+    fn a_whitespace_padded_move_in_is_queued_trimmed_so_a_save_before_the_drain_loads() {
+        let mut handle = SimHandle::from_lot();
+        let padded = format!("{}Ann{}", " ".repeat(1_100), " ".repeat(40));
+        assert!(padded.len() > terri_sim::MAX_TEXT_BYTES);
+        assert!(handle.add_housemate(&padded, 0.0, &[]));
+        assert!(handle.add_housemate_with_instinct(&padded, 0.0, &[], 50.0));
+        assert!(matches!(
+            handle.sim.world().resource::<CommandQueue>().as_slice(),
+            [
+                SimCommand::AddHousemate { name: first, .. },
+                SimCommand::AddHousemateWithInstinct { name: second, .. },
+            ] if first == "Ann" && second == "Ann"
+        ));
+        let bytes = handle.save_bytes();
+        let mut loaded = SimHandle::from_lot();
+        assert!(
+            loaded.load_bytes(&bytes),
+            "a save taken before the drain loads"
+        );
+        loaded.flush_commands();
+        let result = loaded.last_housemate_result();
+        assert_eq!(
+            (result[0], result[2]),
+            (0, 2),
+            "both move-ins were accepted"
+        );
+        assert_eq!(loaded.sim_name(result[1]), "Ann");
+    }
+
+    #[test]
+    fn raw_housemate_names_are_held_to_the_saved_text_byte_limit() {
+        let commands = |name: String| {
+            [
+                SimCommand::AddHousemate {
+                    name: name.clone(),
+                    personality: 0,
+                    traits: Vec::new(),
+                },
+                SimCommand::AddHousemateWithInstinct {
+                    name: name.clone(),
+                    personality: 0,
+                    traits: Vec::new(),
+                    instinct: 50,
+                },
+                SimCommand::EditHousemate {
+                    sim: 0,
+                    name,
+                    personality: None,
+                    traits: Vec::new(),
+                    ties: Vec::new(),
+                },
+            ]
+        };
+        let padded = |bytes: usize| format!("{}Tim", " ".repeat(bytes - 3));
+        let mut handle = SimHandle::from_lot();
+        for command in commands(padded(terri_sim::MAX_TEXT_BYTES + 1)) {
+            let bytes = postcard::to_allocvec(&command).unwrap();
+            assert!(
+                !handle.enqueue_command(&bytes),
+                "over the limit: {command:?}"
+            );
+        }
+        assert_eq!(handle.sim.world().resource::<CommandQueue>().len(), 0);
+        for command in commands(padded(terri_sim::MAX_TEXT_BYTES)) {
+            let bytes = postcard::to_allocvec(&command).unwrap();
+            assert!(handle.enqueue_command(&bytes), "at the limit: {command:?}");
+        }
+        let saved = handle.save_bytes();
+        assert!(
+            SimHandle::from_lot().load_bytes(&saved),
+            "names at the limit still load"
+        );
+    }
+
+    #[test]
+    fn raw_edit_bytes_are_bounds_checked_at_enqueue() {
+        let mut handle = SimHandle::from_lot();
+        let too_many_ties = postcard::to_allocvec(&SimCommand::EditHousemate {
+            sim: 0,
+            name: "Tim".to_string(),
+            personality: None,
+            traits: Vec::new(),
+            ties: (1..=7).map(|id| (id, None)).collect(),
+        })
+        .unwrap();
+        assert!(!handle.enqueue_command(&too_many_ties));
+        let long_name = postcard::to_allocvec(&SimCommand::EditHousemate {
+            sim: 0,
+            name: "x".repeat(25),
+            personality: None,
+            traits: Vec::new(),
+            ties: Vec::new(),
+        })
+        .unwrap();
+        assert!(!handle.enqueue_command(&long_name));
+        let five_traits = postcard::to_allocvec(&SimCommand::EditHousemate {
+            sim: 0,
+            name: "Tim".to_string(),
+            personality: None,
+            traits: vec![0, 1, 2, 3, 4],
+            ties: Vec::new(),
+        })
+        .unwrap();
+        assert!(!handle.enqueue_command(&five_traits));
+        assert_eq!(
+            handle
+                .sim
+                .world()
+                .resource::<terri_core::CommandQueue>()
+                .len(),
+            0
+        );
+    }
+
     #[test]
     fn self_preservation_debug_spawn_uses_rng_and_refused_spawn_draws_nothing() {
         let mut handle = SimHandle::new(4, 4);
@@ -8846,6 +9260,13 @@ mod window_boundary_tests {
                 axis: EdgeAxis::Vertical,
                 x: 130,
                 y: 260,
+            },
+            SavedCommand::EditHousemate {
+                sim: 0,
+                name: "Timothy".into(),
+                personality: Some(Some("the_settled".into())),
+                traits: vec![Some("bookworm".into())],
+                ties: vec![(1, Some(terri_core::layout::Relation::Sibling)), (2, None)],
             },
         ] {
             let mut snapshot = live.sim.save_snapshot_v5();

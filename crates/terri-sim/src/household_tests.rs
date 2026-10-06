@@ -407,6 +407,109 @@ fn the_world_hash_sees_a_staged_move_in_by_its_ids() {
     );
 }
 
+/// [ES-atomic]: the digest sees a staged edit's person, personality, traits
+/// and ties, and not the name.
+#[test]
+fn the_world_hash_sees_a_staged_edit_by_its_ids_and_ignores_its_name() {
+    use terri_core::layout::Relation;
+    let command =
+        |sim: u32,
+         name: &str,
+         personality: Option<u32>,
+         traits: Vec<u32>,
+         ties: Vec<(u32, Option<Relation>)>| SimCommand::EditHousemate {
+            sim,
+            name: name.to_string(),
+            personality,
+            traits,
+            ties,
+        };
+    let queued = |commands: Vec<SimCommand>| {
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut queue = sim.world_mut().resource_mut::<CommandQueue>();
+        for command in commands {
+            queue.push(command);
+        }
+        sim.world_hash()
+    };
+    let edit = |name: &str,
+                personality: Option<u32>,
+                traits: Vec<u32>,
+                ties: Vec<(u32, Option<Relation>)>| {
+        queued(vec![command(0, name, personality, traits, ties)])
+    };
+    let base = edit("Ann", Some(1), vec![0], vec![(1, Some(Relation::Parent))]);
+    assert_eq!(
+        base,
+        edit("Bob", Some(1), vec![0], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", None, vec![0], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", Some(2), vec![0], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", Some(1), vec![1], vec![(1, Some(Relation::Parent))])
+    );
+    assert_ne!(
+        base,
+        edit("Ann", Some(1), vec![0], vec![(1, Some(Relation::Child))])
+    );
+    assert_ne!(base, edit("Ann", Some(1), vec![0], vec![(1, None)]));
+    assert_ne!(
+        base,
+        edit("Ann", Some(1), vec![0], vec![(2, Some(Relation::Parent))])
+    );
+    assert_ne!(base, edit("Ann", Some(1), vec![0], vec![]));
+    assert_ne!(
+        edit("Ann", None, vec![], vec![]),
+        edit("Ann", Some(900), vec![], vec![]),
+        "a kept personality and an unknown one differ by the marker"
+    );
+    assert_eq!(
+        edit("Ann", Some(900), vec![900], vec![]),
+        edit("Ann", Some(u32::MAX), vec![u32::MAX], vec![]),
+        "indices naming nothing hash alike on both sides of a Load"
+    );
+    assert_ne!(
+        base,
+        queued(vec![command(
+            1,
+            "Ann",
+            Some(1),
+            vec![0],
+            vec![(1, Some(Relation::Parent))]
+        )]),
+        "the edited person"
+    );
+    // Rows carry no length, so the tie count is what keeps a tie from
+    // reading as the next row: `(3, Parent)` writes 3 then 1, as
+    // `SetSpeed(1)` does. These two queues write the same values in the
+    // same order once the tie counts are taken out.
+    let parent = Some(Relation::Parent);
+    assert_ne!(
+        queued(vec![
+            command(0, "Ann", Some(1), vec![0], vec![]),
+            SimCommand::SetSpeed(1),
+            command(0, "Ann", Some(1), vec![0], vec![(3, parent)]),
+        ]),
+        queued(vec![
+            command(0, "Ann", Some(1), vec![0], vec![(3, parent)]),
+            command(0, "Ann", Some(1), vec![0], vec![]),
+            SimCommand::SetSpeed(1),
+        ]),
+        "the tie count"
+    );
+    // The trait count cannot be isolated this way. Every trait writes a
+    // 64-bit ID digest or u64::MAX, which a count, a 32-bit relative or a
+    // row code matches only by a digest collision, so no two queues differ
+    // only by it. It stays as framing.
+}
+
 #[test]
 fn a_personality_is_labelled_by_its_id_in_words() {
     assert_eq!(personality_label("the_correspondent"), "The correspondent");

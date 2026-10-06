@@ -6,7 +6,7 @@ async (page, outputDir) => {
   };
   const layout = async () => page.evaluate(() => {
     const dock = document.querySelector('#sim-dock');
-    const ids = ['sim-identity', 'mood-block', 'dock-satisfaction', 'sim-details', 'dock-queue', 'sim-dock-collapse'];
+    const ids = ['sim-identity', 'edit-housemate', 'mood-block', 'dock-satisfaction', 'sim-details', 'dock-queue', 'sim-dock-collapse'];
     const bounds = ids.map(id => {
       const node = document.getElementById(id);
       const rect = node.getBoundingClientRect();
