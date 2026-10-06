@@ -1,7 +1,8 @@
 //! Read-only personal factors and recent activity repetition for the Sim sheet.
 
 use bevy_ecs::prelude::*;
-use terri_core::{Agent, Habituation, Personality, NEED_COUNT};
+use terri_core::{Agent, Habituation, ObjectDefId, Personality, NEED_COUNT};
+use terri_data::{CompiledChain, CompiledInteraction, ContentPack};
 
 use crate::{Content, Sim};
 
@@ -40,24 +41,11 @@ impl Sim {
             .flat_map(Habituation::entries)
             .filter(|(_, _, value)| *value > 0.0)
             .filter_map(|&(object, interaction, repetition)| {
-                let definition = pack.objects.get(object.0 as usize)?;
-                let activity_label =
-                    if let Some(activity) = definition.interactions.get(interaction as usize) {
-                        activity.label.as_str()
-                    } else {
-                        let chain_slot =
-                            (interaction as usize).checked_sub(definition.interactions.len())?;
-                        pack.chains
-                            .iter()
-                            .filter(|chain| chain.advertised_by == object)
-                            .nth(chain_slot)?
-                            .label
-                            .as_str()
-                    };
+                let (object_label, activity_label) = activity_labels(pack, object, interaction)?;
                 Some(RepeatedActivity {
                     object: object.0,
                     interaction,
-                    object_label: definition.display_name(),
+                    object_label,
                     activity_label,
                     repetition: repetition.min(1.0),
                 })
@@ -70,6 +58,69 @@ impl Sim {
             repeated,
         })
     }
+}
+
+/// What one flyout row of an object definition names: one of the object's
+/// own interactions, or, for a row past them, one of the chains the object
+/// advertises, counted in pack order. Habituation keys address activities
+/// by flyout row, a fourth index space ([L65] in `docs/lessons-learned.md`),
+/// so the Sim details rows and the overdoing moodlets resolve a row here and
+/// cannot disagree about what it is called or what it is good for.
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum FlyoutRow<'a> {
+    Interaction(&'a CompiledInteraction),
+    Chain(&'a CompiledChain),
+}
+
+impl<'a> FlyoutRow<'a> {
+    /// The row's label, as the flyout and the Sim details show it.
+    pub(crate) fn label(self) -> &'a str {
+        match self {
+            FlyoutRow::Interaction(interaction) => interaction.label.as_str(),
+            FlyoutRow::Chain(chain) => chain.label.as_str(),
+        }
+    }
+
+    /// The (need index, delta) pairs the row advertises.
+    pub(crate) fn advertises(self) -> &'a [(u8, f32)] {
+        match self {
+            FlyoutRow::Interaction(interaction) => &interaction.advertises,
+            FlyoutRow::Chain(chain) => &chain.advertises,
+        }
+    }
+}
+
+/// Resolves `row` of `object`, or `None` when the definition or the row
+/// does not exist in `pack`.
+pub(crate) fn flyout_row(
+    pack: &ContentPack,
+    object: ObjectDefId,
+    row: u32,
+) -> Option<FlyoutRow<'_>> {
+    let definition = pack.objects.get(object.0 as usize)?;
+    if let Some(interaction) = definition.interactions.get(row as usize) {
+        return Some(FlyoutRow::Interaction(interaction));
+    }
+    let chain_slot = (row as usize).checked_sub(definition.interactions.len())?;
+    pack.chains
+        .iter()
+        .filter(|chain| chain.advertised_by == object)
+        .nth(chain_slot)
+        .map(FlyoutRow::Chain)
+}
+
+/// The (object label, activity label) the Sim details show for one
+/// habituation row, or `None` when the row does not resolve.
+pub(crate) fn activity_labels(
+    pack: &ContentPack,
+    object: ObjectDefId,
+    row: u32,
+) -> Option<(&str, &str)> {
+    let definition = pack.objects.get(object.0 as usize)?;
+    Some((
+        definition.display_name(),
+        flyout_row(pack, object, row)?.label(),
+    ))
 }
 
 #[cfg(test)]
