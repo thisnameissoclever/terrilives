@@ -16,7 +16,7 @@ Status: implementation evidence for `2026-10-05-skills.md`. Each table row names
 | The same call | `a_fumbled_meal_starves_the_soul_but_teaches_the_hands` | `the attempt never ran its course (fumble seen: true)`: the completed meal left no practice |
 | The `practise` call in `tick_chain_steps` in `crates/terri-sim/src/systems/chain.rs` | `a_tagged_chain_step_teaches_each_participant_once` | `assertion left == right failed: the tagged step taught once and managed the condition once`, left `Some((0.0, 0.75))`, right `Some((0.015, 0.75))` |
 | The same call | `a_fumbled_step_ruins_the_terminal_delivery` | `assertion left == right failed: and yet the tagged step taught at its own completion`, left `0.0`, right `0.015` |
-| The `practise` call in `tick_social` in `crates/terri-sim/src/systems/social.rs` | `a_social_completion_teaches_both_participants` | `assertion left == right failed: both sides learned one attempt's practice on the same tick`, left `None`, right `Some((0.02, 0.02))` |
+| The `practise` call in `tick_social` in `crates/terri-sim/src/systems/social.rs` | `a_social_completion_teaches_both_participants` | `assertion left == right failed: each side learned exactly one attempt's practice`, left `(0.0, 0.0)`, right `(0.02, 0.02)` |
 | The one-time seed for a save without a skills field in `restore` in `crates/terri-sim/src/save/skills.rs`, `seed_everyone(world, pack)` | `a_legacy_save_seeds_practice_from_capability_states_once` | `assertion failed: (cooking_mastery(&loaded, casey) - 0.7).abs() < 1e-5` |
 | The same seed | `a_load_seeds_practice_from_saved_capability_states` | `assertion failed: (mastery(&loaded, casey, "cooking") - 0.7).abs() < 1e-5` |
 | The same seed | `every_older_envelope_seeds_practice_from_capability_states` | the cooking mastery assertion, with message `V1` |
@@ -42,8 +42,31 @@ A script read each file's bytes, wrote the mutated text, ran `cargo test -p terr
 
 For the three rows that move a `practise` call, the same script method applied each move, ran `cargo test -p terri-sim --lib -- --exact <test>` with its output saved to a log, and restored the original bytes in a `finally` block. `git hash-object` before and after matched: `crates/terri-sim/src/systems/social.rs` was `56f06f9c8a5958387a942f906e58644046e237ed` and `crates/terri-sim/src/systems/chain.rs` was `a638b032cd2ec1ab26a8a5e09decf3c01d651bab`.
 
+The `tick_social` deletion row was measured again on 2026-10-05 against the rewritten test, with the same script method: the call was replaced by a statement that only borrows `skills`, and `cargo test -p terri-sim --lib -- --exact skills::tests::a_social_completion_teaches_both_participants` ran with its output saved to a log. `git hash-object crates/terri-sim/src/systems/social.rs` was `56f06f9c8a5958387a942f906e58644046e237ed` before the mutation and after the restoration.
+
 The save rows used the same script method, with `cargo test -p terri-sim --lib -- <filter>` or, for the decoder row, `cargo test -p terri-wasm --lib -- <filter>`. `git hash-object` before and after matched for every row: `crates/terri-sim/src/save/skills.rs` was `925c6b4547c06fb4e21a0edc931ae97d48c14c9c`, `crates/terri-sim/src/lib.rs` was `9746ad6667b7fe5b56df1ac9a63f300d423961fd` and `crates/terri-wasm/src/lib.rs` was `409634c376aa0854f9e189c06d9e092a29be4674`.
+
+## Displayed browser
+
+On 2026-10-05 the site built by `npm run build` at commit `3c5ddbb0` was served from `web/` with `npx vite preview --port 4173 --strictPort`, which serves HTTPS with a local certificate. The page loaded bundle `assets/index-dlApCgxu.js`, the bundle that build wrote. The in-app browser pane opened the page with a zero-sized, hidden viewport and the game clock stayed at Day 1, 00:00, so the pass used the Playwright Chromium instead, in a new browser context with no saved game. The sound preference `terrilives.audio-preferences.v1` was set to muted, with effects and voices at zero, before any page script ran.
+
+1. The first-run Help guide was dismissed with Got it, Casey was selected in the household roster, and Sim details opened on Overview. The game ran from Day 1, 00:14 to 13:29 before the speed was set to Pause, and the clock then stayed at 13:29 for 2.5 seconds. Casey was in the Cook step of Cook lunch, which had not yet completed.
+2. At 1440 by 900 the Skills disclosure opened and listed Cooking `Level 2 of 10, 50% to the next level`, Fitness `Level 0 of 10, 0% to the next level` and Reading `Level 5 of 10, 79% to the next level`, each with its description (image 1). Cooking matches the 0.25 start level of Can't cook. Reading matches the 0.58 start level of Slow reader, which Casey also wears; the progress is floored to 79%.
+3. The Traits tab showed `Skill 25%` on Can't cook and `Skill 58%` on Slow reader (image 2). The Traits panel rounds mastery and the Skills line floors progress, so the same Reading mastery reads 58% in one place and level 5, 79% in the other.
+4. At 375 by 812 the open Skills disclosure showed all three skills inside the Overview sheet (image 3). At both sizes the document's scroll width equalled the viewport width, and at 375 no visible element extended past either edge.
+
+Console: listeners attached before a reload of the new context recorded 69 messages, all the game's periodic frame-timing lines (`entities 37 frames ...`). There were no errors, warnings, page errors, failed requests or HTTP error responses. An earlier load in the Playwright default context, which held a saved game from an earlier session and was closed without interaction, logged one error: a 404 for `/favicon.ico`.
+
+Images:
+
+1. [Desktop Overview with the Skills disclosure open](../assets/review-evidence/skills/desktop-overview.png)
+2. [Desktop Traits tab with Skill 25% on Can't cook](../assets/review-evidence/skills/desktop-traits.png)
+3. [Phone-width Overview with the Skills disclosure open](../assets/review-evidence/skills/phone-overview.png)
+
+Cleanup: the Playwright context was closed in a `finally` block, followed by the Playwright page and the browser pane tab. The preview server was stopped, and `Get-NetTCPConnection -LocalPort 4173 -State Listen` then returned nothing.
+
+Not checked in the browser: the phone width was a 375 by 812 viewport without touch input or a mobile user agent, and no physical phone was used. A skill rising during play, a skill at the top of its ladder (`Level 10 of 10`), the debug overlay, the Edit housemate removal note, keyboard and screen-reader use, and the [SK-evidence] item 6 claim that reading the panels leaves save bytes unchanged were not exercised in this pass.
 
 ## Delivery
 
-The implementation, its tests and this record are on branch `twcl/skills`. Pushing, merging and deployment are recorded separately, in the pull request and the delivery report; this record does not establish any of them.
+The implementation, its tests, the displayed pass and this record are on branch `twcl/skills`. Pushing, merging and deployment are recorded separately, in the pull request and the delivery report; this record does not establish any of them.

@@ -77,7 +77,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | --- | --- |
 | **HUD** | The always-visible controls and status panels over the game: household time and funds, household roster, the selected person's needs and activity, speed, save controls, and Help. |
 | **housemate, new** | A person the player adds to the household during play from the New housemate form: named, given a personality and up to four traits, arriving from the street ([CS-slice-housemate]). Made by the same spawn as the shipped household, so they save and behave like anyone else. |
-| **housemate, edit** | Changing a living person's name, personality, traits and family ties from the Edit button beside their name. The same two pages as New housemate; one command applies it, and the person keeps their SimId, needs, job, hobbies, satisfaction and feelings. A removed trait forgets its progress; "Keep current personality" leaves their effects exactly as they are ([ES-form] in `docs/specs/2026-09-30-edit-sims.md`). |
+| **housemate, edit** | Changing a living person's name, personality, traits and family ties from the Edit button beside their name. The same two pages as New housemate; one command applies it, and the person keeps their SimId, needs, job, hobbies, satisfaction and feelings. A removed condition forgets its severity, while a removed capability leaves its skill as it was; "Keep current personality" leaves their effects exactly as they are ([ES-form] in `docs/specs/2026-09-30-edit-sims.md`). |
 | **household roster** | The Household row of named buttons used to select a person. Its order follows stable household identity, and it reconciles those identities after Load rather than trusting replaceable entity indices. |
 | **Save** | Writes the complete resumable household to the browser's one local save slot. The saved tick, random state, selection, active work, queued orders, and all entity state resume together. |
 | **Load** | Replaces progress since the last save only after confirmation. Invalid or incompatible bytes are rejected without changing the running household. |
@@ -154,17 +154,26 @@ kinds, each doing exactly one thing:
 | Kind | Does | Shipped example |
 | --- | --- | --- |
 | **disposition** | Weighs the CHOICE. Multiplies the score of anything carrying its tag. Never changes what the thing delivers - fearing the couch makes a sim avoid it, not fail to be comforted by it. | **Television devotee** (Bill): television-tagged activities score 1.5x. |
-| **capability** | May attempt, may FAIL. Has a **level** 0-1; a roll at the start of an attempt decides. A failed attempt delivers `fail_delta_scale` of the benefits (usually nothing), pays no life satisfaction, and still **teaches** - every attempt raises the level. | **Can't cook** (Casey): starts at level 0.25, learns 0.015 per attempt. |
+| **capability** | May attempt, may FAIL. A roll at the start of an attempt reads the **mastery** of the skill with the same tag. A failed attempt delivers `fail_delta_scale` of the benefits (usually nothing), pays no life satisfaction, and still **teaches**: every completed attempt adds practice to that skill. | **Can't cook** (Casey): her Cooking skill starts at mastery 0.25 and gains 0.015 practice per completed attempt. |
 | **condition** | Scales life satisfaction ACCRUAL, and has a **severity** 0-1 that falls whenever the sim completes an activity carrying the condition's tag. A managed condition fades; a neglected one binds. | **Low spirits** (Tim): at full severity she earns 40% of normal; eases 0.005 per treating activity (her desk). |
 
 | Term | Means |
 | --- | --- |
 | **fumble** | A failed capability roll, live on the current attempt. The meal happens; it just does not feed anybody. |
-| **level** / **severity** | The mutable number the overlay prints beside a capability / condition. |
+| **level** / **severity** | The number the overlay prints beside a capability / condition. For a capability it is the matching skill's mastery; the trait's own saved number no longer changes in play. |
 | **trait library** | All fifteen traits in `content/traits.toml`. It is append-only: a sim's traits are stored as positions in this list, so a new trait goes at the end. Four of the fifteen are worn by nobody yet and wait for Create-a-sim. |
 | **affinity verb** | The word a disposition trait's sentence opens with: Loves, Likes, Dislikes or Hates, chosen by its score multiplier against the two lines in `tuning.toml` ([TL-affinity]). The compiler refuses a sentence with the wrong one. |
-| **Traits panel** | The list under the need bars for the selected person. Each row is the trait's label, one sentence saying what it does, and for a capability **Skill** or for a condition **Severity** as a whole percentage. A disposition has no number. Hidden while nobody is selected. |
-| **Skill** / **Severity** | What the Traits panel calls a capability's level and a condition's severity, as 0 to 100%. Skill rises each time the person finishes an attempt, pass or fail; an attempt that is interrupted teaches nothing. Severity falls each time the person finishes the activity that manages the condition. |
+| **Traits panel** | The Traits tab of Sim details for the selected person. Each row is the trait's label, one sentence saying what it does, and for a capability **Skill** or for a condition **Severity** as a whole percentage. A disposition has no number. Hidden while nobody is selected. |
+| **Skill** / **Severity** | What the Traits panel calls the mastery of a capability's matching skill and a condition's severity, as a rounded 0 to 100%. Skill rises each time the person finishes an attempt, pass or fail; an attempt that is interrupted teaches nothing. Severity falls each time the person finishes the activity that manages the condition. |
+
+## Skills - learned by doing
+
+| Term | Means |
+| --- | --- |
+| **skill** | One craft a person gets better at by doing it, such as Cooking. Each skill is defined in `content/skills.toml` with a label, a one-sentence description, the activity tag it learns from and its number of levels. Sim details lists every skill in a collapsed Skills section in Overview. The rules are [SK-model] in `docs/specs/2026-10-05-skills.md`. |
+| **practice** | The one number a person holds for each skill. Every completed interaction, chain step or conversation carrying the skill's tag adds that skill's `practice_per_attempt` to each participant, pass or fail; an interrupted attempt adds nothing. Practice is saved with the household ([SK-learning]). |
+| **ladder** | How practice becomes a level. Level 1 costs `skill_level_cost` practice and each later level costs `skill_level_growth` times the one before; both live in `content/tuning.toml`. Progress is the share of the current level's cost already paid, and practice stops rising at the top level. |
+| **mastery** | How far up the ladder a person is, from 0 to 1: the level plus progress, divided by the number of levels. The capability fumble roll and the Traits panel's Skill percentage read it ([SK-capability]). |
 
 ## Career
 

@@ -4,7 +4,7 @@ Originally written 2026-09-21. Status reconciled on 2026-09-30 against main at `
 
 [FEATURES.md](FEATURES.md) still owns milestone scope and shipped evidence. This document owns the system-by-system view: what each system is, how complete it is, and what it needs before work can start.
 
-**Next build: communal activities and activity-specific seating [S-communal-activities], [S-activity-seating].** The owner requested them on 2026-10-01, including missing sitting poses. Edit Sims [B-edit-sims] shipped on 2026-10-05. The remaining order is a recommendation.
+**Next build: communal activities and activity-specific seating [S-communal-activities], [S-activity-seating].** The owner requested them on 2026-10-01, including missing sitting poses. Edit Sims [B-edit-sims] and the first skills slice [S-skills] shipped on 2026-10-05. The remaining order is a recommendation.
 
 ## How to read the status
 
@@ -26,7 +26,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 
 | ID | System | Status | Shipped scope |
 |---|---|---|---|
-| [S-skills] | Skills | Foundation only | Three capability traits; no general skills system |
+| [S-skills] | Skills | Partial | Cooking, Fitness and Reading, learned by doing, read by the fumble roll and listed in Sim details; shipped 2026-10-05 |
 | [S-pets] | Pets as full characters | Not started | None |
 | [S-household-events] | Random household events and messes | Partial | Meals, attributed dishes and cleanup |
 | [S-money] | Money: deep earning and spending | Partial | Wages, purchases and sale proceeds |
@@ -153,17 +153,15 @@ The feed keeps a history the player can scroll back through. A muted notificatio
 
 ### [S-skills] Skills
 
-**Status: Foundation only.**
+**Status: Partial. The first slice shipped on 2026-10-05.**
 
-**What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. Three of them exist as of PR 87: cooking, exercise and reading. The selected person's Traits panel shows each one's number as "Skill" and a percentage.
+**What exists.** `content/skills.toml` defines three skills, Cooking, Fitness and Reading, with ten levels each. Every person holds one practice number per skill. Each completed interaction, chain step or conversation that carries a skill's activity tag adds that skill's practice to every participant, whether the attempt passed or failed; an interrupted attempt adds nothing. A ladder in `content/tuning.toml` turns practice into a level and progress: level 1 costs `skill_level_cost` (0.1) practice, and each later level costs `skill_level_growth` (1.25) times the one before. Mastery, the share of the ladder climbed, sets the fumble chance of a person who wears the matching capability trait ("Can't cook", "Out of shape" or "Slow reader"). Removing that trait keeps the skill, and the person stops fumbling. Practice is saved with the household, and a save written before skills existed seeds it once from the capability traits it holds. Sim details lists each skill's level and progress in a collapsed Skills section in Overview, and the Traits panel's "Skill" percentage shows the matching skill's mastery. The contract is [the skills spec](specs/2026-10-05-skills.md).
 
-**What is missing.** A list of skills defined in content. A level and progress value per person per skill. Skill gain from doing tagged actions, with a tunable curve. A skills panel in the HUD.
+**What is missing.** Consequences. Higher skill should give better outcomes, such as tastier meals that fill more hunger and faster repairs. Some actions and chains should unlock at a level. Careers should read skills for performance and promotion, and the ghost design already assumes that ghosts teach skills. More skills, and a fuller skills panel beyond the Overview list if the owner wants one, are also open.
 
-Skills then need consequences. Higher skill should give better outcomes: tastier meals that fill more hunger, faster repairs, fewer fumbles. Some actions and chains should unlock at a level. Careers should read skills for performance and promotion, and the ghost design already assumes that ghosts teach skills.
+**Design note.** The capability trait's competence number became the skill instead of remaining a second, parallel mechanism. The trait now decides who can fumble; the skill decides how often.
 
-**Design note.** The existing competence number should become the first skill, not remain a second, parallel mechanism. The fumble roll already works and already saves.
-
-**Depends on.** Nothing. This system can start now.
+**Depends on.** Nothing. Outcomes and unlocks can build on the shipped slice now.
 
 ### [S-pets] Pets as full characters
 
@@ -340,7 +338,7 @@ Traits named so far by the owner's direction: novelty-seeking, which a poor mood
 
 ### [S-sim-details] An expandable details panel for each Sim
 
-**Status: Partial.** Overview contains a collapsed Personality, habits and bed section. It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing and a covered double-bed display. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
+**Status: Partial.** Overview contains a collapsed Personality, habits and bed section, and a collapsed Skills section that lists each skill's level and progress to the next level ([S-skills]). It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing and a covered double-bed display. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
 
 **Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
 
@@ -603,8 +601,9 @@ A bed, a chair, or a room can belong to one person. The armchair has no owner to
 ## A suggested build order
 
 **Communal activities, activity-specific seating and missing sitting poses are
-next**, by owner request on 2026-10-01. Edit Sims [B-edit-sims] shipped on
-2026-10-05. The remaining order is a recommendation, subject to
+next**, by owner request on 2026-10-01. Edit Sims [B-edit-sims] and the first
+skills slice [S-skills] shipped on 2026-10-05. The remaining order is a
+recommendation, subject to
 design and owner choice. Each step must deliver playable behaviour, not isolated
 infrastructure. FEATURES.md owns the same current priority.
 
@@ -617,8 +616,9 @@ infrastructure. FEATURES.md owns the same current priority.
    Recommended follow-up: connect different people's preferences to the shared
    room and the shipped mood-to-satisfaction mechanism. Reconcile novelty and
    nuisance rules before choosing the first playable slice.
-3. **[S-skills] and [S-sim-details].** Extend capability progress into a general
-   skills system and show existing and newly added values in the details panel.
+3. **[S-skills] consequences and [S-sim-details].** The first skills slice
+   shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
+   existing and newly added values in the details panel.
 4. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
    channels and mutes. Buying, selling and their Funds changes are already done.
 5. **[S-acclimation].** Negative mood from overdoing activities and a fading

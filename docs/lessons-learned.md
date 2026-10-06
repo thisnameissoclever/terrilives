@@ -10296,3 +10296,13 @@ calls returns the test to green without modifying runtime behavior.
 **Prevention.** Allow one agent at a time to write source files in a worktree, including mutation harnesses. Give parallel implementers separate worktrees, and give each harness its own scratch directory.
 
 **Verify.** Before a mutation run, confirm that `git status` shows only your own changes and record `git hash-object` for each target file. After restoring, confirm the hash matches the recorded value and that no other process changed the file during the run.
+
+## [L-per-completion-effect-needs-mid-activity-read] Read a per-completion effect while the activity runs
+
+**What happened.** The first test of learning from a conversation recorded the first tick on which either participant's practice rose and asserted that it equalled one attempt. Review showed that a `practise` call moved into the per-tick delivery would also raise practice by exactly one attempt on that first tick, so the test passed for the wrong code. The rewritten test reads practice while the chat runs and again after it ends.
+
+**Root cause.** A site that runs every tick and a site that runs once at completion produce the same value on the first tick that changes anything. A first-change read cannot tell them apart.
+
+**Prevention.** For an effect that must happen once per completed activity, assert the value mid-activity, while the activity is still under way, and again at a fixed tick after it ends, against an exact count of completions. Prove the test by moving the call into the per-tick path and to the activity's first tick, and confirm that each move fails it.
+
+**Verify.** `a_social_completion_teaches_both_participants` in `crates/terri-sim/src/skills_tests.rs` reads practice at tick 28 during the chat and at tick 60 after it. Moving the call into the per-tick delivery fails it with `nothing learned while the chat runs`, as recorded in `docs/specs/2026-10-05-skills-verification.md`.

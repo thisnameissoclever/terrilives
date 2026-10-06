@@ -13,6 +13,7 @@ their original save versions, sprite counts and measurements describe those rele
 |---|---|---|
 | Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
 | Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie, and editing a living person's name, personality, traits and family ties | Appearance and gender choices, random generation and deeper traits |
+| Skills | Cooking, Fitness and Reading, learned by every completed attempt, read by the matching capability trait's fumble roll, saved with the household and listed in Sim details; shipped 2026-10-05 | Better outcomes and unlocks at higher levels, more skills, career performance, and a fuller skills panel if the owner wants one |
 | Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
 | Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
@@ -430,6 +431,8 @@ an unchanged design target is not an unchanged measurement.
    an age and lifespan design. Neither is selected ahead of communal activities.
 
 Edit Sims [B-edit-sims] shipped on 2026-10-05; see `specs/2026-09-30-edit-sims.md`.
+
+The first skills slice [S-skills] shipped on 2026-10-05: Cooking, Fitness and Reading grow with every completed attempt, set the fumble chance of the matching capability trait, and are listed in Sim details; see `specs/2026-10-05-skills.md`. Better outcomes, unlocks, career performance and any fuller skills panel remain open.
 
 Remaining acceptance work runs separately from this build priority: owner art and
 sound review where still recorded as open, physical-phone touch/safe-area/daylight
@@ -1041,7 +1044,7 @@ The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies
 
 **Status: Shipped 2026-10-05.**
 
-The Edit button beside the selected person opens the same two pages the New housemate form uses ([CS-pages] in `docs/specs/2026-09-22-create-a-sim.md`), filled with their name, personality, traits and family ties to the rest of the household; it works for the starting household too. Confirming sends one validated command, so the person keeps their SimId, needs, job, hobbies and the progress of every trait they keep, while a trait removed in a confirmed edit forgets its progress and starts from its authored state if added back. The form marks an archetype as current only when the person's complete effects equal that one archetype's and no other, and preselects Keep current personality in every case; the contract is `docs/specs/2026-09-30-edit-sims.md` and the evidence is `docs/specs/2026-10-05-edit-sims-verification.md`.
+The Edit button beside the selected person opens the same two pages the New housemate form uses ([CS-pages] in `docs/specs/2026-09-22-create-a-sim.md`), filled with their name, personality, traits and family ties to the rest of the household; it works for the starting household too. Confirming sends one validated command, so the person keeps their SimId, needs, job, hobbies and the progress of every trait they keep, while a condition removed in a confirmed edit forgets its severity and starts from its authored state if added back. Since the skills slice ([SK-capability] in `docs/specs/2026-10-05-skills.md`), a capability's progress lives in its matching skill, so removing a capability trait keeps that progress. The form marks an archetype as current only when the person's complete effects equal that one archetype's and no other, and preselects Keep current personality in every case; the contract is `docs/specs/2026-09-30-edit-sims.md` and the evidence is `docs/specs/2026-10-05-edit-sims-verification.md`.
 
 Looks join the editor once people have looks to choose ([CS-slice-looks]), and gender once [B-gender] exists.
 
