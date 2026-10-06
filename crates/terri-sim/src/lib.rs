@@ -2826,6 +2826,15 @@ impl Sim {
     /// Hashes all simulation-visible state. Entities are sorted by index
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
+    /// The archetype the editor may preselect for the person at this entity
+    /// index, or `None` for "Keep current personality".
+    pub fn personality_archetype_of(&self, index: u32) -> Option<u32> {
+        let entity = bevy_ecs::entity::EntityIndex::from_raw_u32(index)
+            .map(|index| self.world().entities().resolve_from_index(index))?;
+        self.world().get_entity(entity).ok()?;
+        edit::archetype_of(self.world(), entity)
+    }
+
     pub fn world_hash(&self) -> u64 {
         use terri_core::{Habituation, Needs, Position, Relationships, SimId, NEED_COUNT};
 
@@ -2859,11 +2868,11 @@ impl Sim {
         // worlds hash identically.
         //
         // `SimName` is presentation: a rename must not diverge a replay.
-        // Personality multipliers and dispositions retain their historical
-        // exclusion while they are immutable during play. Runtime editing
-        // must add them to the digest. Chronotype is hashed in a sparse
-        // suffix below: historical people can have zero while new people
-        // receive authored offsets, even when both came from the same pack.
+        // Personality multipliers and dispositions are hashed in the sparse
+        // `personality-effects-v1` suffix below, because [ES-personality]
+        // edits them during play. Chronotype is hashed in its own sparse
+        // suffix: historical people can have zero while new people receive
+        // authored offsets, even when both came from the same pack.
         //
         // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
         // wraps a u32 allocated monotonically from 0, so u64::MAX is
@@ -3520,6 +3529,30 @@ impl Sim {
             for (index, offset) in offsets {
                 hasher.write_u64(u64::from(index));
                 hasher.write_u64(offset as i64 as u64);
+            }
+        }
+        // [ES-personality]: effects are runtime-editable now, so every
+        // behavior-bearing field is in the digest. Sparse, like the
+        // chronotype block, so worlds without personalities hash as before.
+        let effects = edit::personality_rows(&self.world);
+        if !effects.is_empty() {
+            hasher.write_bytes(b"personality-effects-v1");
+            hasher.write_u64(effects.len() as u64);
+            for (index, personality) in effects {
+                hasher.write_u64(u64::from(index));
+                for value in personality.drain {
+                    hasher.write_f32(value);
+                }
+                for value in personality.satisfaction {
+                    hasher.write_f32(value);
+                }
+                let dispositions = personality.dispositions();
+                hasher.write_u64(dispositions.len() as u64);
+                for &(object, interaction, weight) in dispositions {
+                    hasher.write_u64(u64::from(object.0));
+                    hasher.write_u64(u64::from(interaction));
+                    hasher.write_f32(weight);
+                }
             }
         }
         privacy::hash(&self.world, &mut hasher);

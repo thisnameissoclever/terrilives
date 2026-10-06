@@ -6,7 +6,7 @@
 use bevy_ecs::prelude::*;
 use terri_core::layout::{FamilyTies, Relation};
 use terri_core::save::SavedDomestic;
-use terri_core::{Agent, SimId, SimName, Traits};
+use terri_core::{Agent, Personality, SimId, SimName, Traits};
 
 use crate::household::{
     authored_trait_state, personality_from, validate_name, validate_traits, HousemateRefusal,
@@ -182,6 +182,38 @@ pub(crate) fn commit(world: &mut World, edit: &Edit) {
         state.revision = state.revision.saturating_add(1);
     }
     state.last_edit_result = Some(EditResult { handled, ..result });
+}
+
+/// Every person's personality effects, ascending by entity index. Shared by
+/// the world hash and nothing else; names are deliberately absent.
+pub(crate) fn personality_rows(world: &World) -> Vec<(u32, Personality)> {
+    let mut rows = world
+        .try_query::<(Entity, &Agent, &Personality)>()
+        .map_or_else(Vec::new, |mut query| {
+            query
+                .iter(world)
+                .map(|(entity, _, personality)| (entity.index_u32(), personality.clone()))
+                .collect()
+        });
+    rows.sort_unstable_by_key(|row| row.0);
+    rows
+}
+
+/// [ES-personality]: the one archetype whose complete current effects equal
+/// this person's. `None` when the person is custom, legacy (historical zero
+/// chronotype), rebalanced away from content, ambiguous, or not a person.
+pub fn archetype_of(world: &World, entity: Entity) -> Option<u32> {
+    let personality = world.get::<Personality>(entity)?;
+    world.get::<Agent>(entity)?;
+    let content = world.resource::<Content>().0;
+    let mut matches = content
+        .personalities
+        .iter()
+        .enumerate()
+        .filter(|(_, compiled)| &personality_from(compiled) == personality)
+        .map(|(index, _)| index as u32);
+    let first = matches.next()?;
+    matches.next().is_none().then_some(first)
 }
 
 #[cfg(test)]

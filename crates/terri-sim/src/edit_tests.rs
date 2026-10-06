@@ -820,3 +820,213 @@ fn content_index_of_kind(sim: &Sim, id: &str) -> u32 {
         .position(|worn| worn.id == id)
         .unwrap_or_else(|| panic!("content has no trait {id}")) as u32
 }
+
+fn replace_personality(
+    sim: &mut Sim,
+    entity: Entity,
+    change: impl FnOnce(&mut Personality) -> Personality,
+) {
+    let current = sim.world().get::<Personality>(entity).unwrap().clone();
+    let mut current = current;
+    let next = change(&mut current);
+    sim.world_mut().entity_mut(entity).insert(next);
+}
+
+#[test]
+fn the_world_hash_observes_each_personality_effect_and_not_the_name() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let entity = person(&sim, 0);
+    let base = sim.world_hash();
+
+    replace_personality(&mut sim, entity, |p| {
+        p.drain[2] += 0.25;
+        p.clone()
+    });
+    let drain = sim.world_hash();
+    assert_ne!(base, drain, "drain is hashed");
+
+    replace_personality(&mut sim, entity, |p| {
+        p.drain[2] -= 0.25;
+        p.satisfaction[4] += 0.25;
+        p.clone()
+    });
+    let satisfaction = sim.world_hash();
+    assert_ne!(base, satisfaction, "satisfaction is hashed");
+    assert_ne!(drain, satisfaction);
+
+    replace_personality(&mut sim, entity, |p| {
+        p.satisfaction[4] -= 0.25;
+        let mut dispositions = p.dispositions().to_vec();
+        dispositions.push((terri_core::ObjectDefId(0), 0, 2.0));
+        let mut next = Personality::with_dispositions(p.drain, p.satisfaction, dispositions);
+        next.chronotype_offset_ticks = p.chronotype_offset_ticks;
+        next
+    });
+    let dispositions = sim.world_hash();
+    assert_ne!(base, dispositions, "dispositions are hashed");
+
+    replace_personality(&mut sim, entity, |p| {
+        // `with_dispositions` sorts by key, so the added row sits wherever
+        // its key falls; remove that row, not the last one.
+        let mut dispositions = p.dispositions().to_vec();
+        let added = dispositions
+            .iter()
+            .position(|row| *row == (terri_core::ObjectDefId(0), 0, 2.0))
+            .expect("the added disposition is present");
+        dispositions.remove(added);
+        let mut next = Personality::with_dispositions(p.drain, p.satisfaction, dispositions);
+        next.chronotype_offset_ticks = p.chronotype_offset_ticks;
+        next
+    });
+    assert_eq!(
+        sim.world_hash(),
+        base,
+        "restoring the effects restores the hash"
+    );
+
+    // Same number of rows, one weight changed: the rows themselves are
+    // hashed, not only their count.
+    let reweigh = |delta: f32| {
+        move |p: &mut Personality| {
+            let mut dispositions = p.dispositions().to_vec();
+            dispositions[0].2 += delta;
+            let mut next = Personality::with_dispositions(p.drain, p.satisfaction, dispositions);
+            next.chronotype_offset_ticks = p.chronotype_offset_ticks;
+            next
+        }
+    };
+    replace_personality(&mut sim, entity, reweigh(0.25));
+    assert_ne!(sim.world_hash(), base, "disposition weights are hashed");
+    replace_personality(&mut sim, entity, reweigh(-0.25));
+    assert_eq!(
+        sim.world_hash(),
+        base,
+        "restoring the weight restores the hash"
+    );
+
+    sim.world_mut().get_mut::<SimName>(entity).unwrap().0 = "Somebody Else".to_string();
+    assert_eq!(sim.world_hash(), base, "names stay out of the hash");
+}
+
+#[test]
+fn the_archetype_is_derived_only_from_a_complete_exact_match() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<crate::Content>().0;
+    let correspondent = content
+        .personalities
+        .iter()
+        .position(|p| p.id == "the_correspondent")
+        .unwrap() as u32;
+    let entity = person(&sim, 0);
+    assert_eq!(
+        sim.personality_archetype_of(entity.index_u32()),
+        Some(correspondent)
+    );
+    assert_eq!(archetype_of(sim.world(), entity), Some(correspondent));
+
+    // A legacy person whose chronotype stayed at the historical zero is not
+    // the archetype, even though every multiplier matches.
+    replace_personality(&mut sim, entity, |p| {
+        p.chronotype_offset_ticks = 0;
+        p.clone()
+    });
+    assert_eq!(sim.personality_archetype_of(entity.index_u32()), None);
+
+    replace_personality(&mut sim, entity, |p| {
+        p.chronotype_offset_ticks =
+            content.personalities[correspondent as usize].chronotype_offset_ticks;
+        p.drain[0] += 0.5;
+        p.clone()
+    });
+    assert_eq!(
+        sim.personality_archetype_of(entity.index_u32()),
+        None,
+        "a rebalanced multiplier breaks the match"
+    );
+
+    // Adopting an archetype through an edit makes the match exact again.
+    let settled = content
+        .personalities
+        .iter()
+        .position(|p| p.id == "the_settled")
+        .unwrap() as u32;
+    assert_eq!(
+        edit(&mut sim, 0, "Tim", Some(settled), &[], &[]).reason,
+        None
+    );
+    assert_eq!(
+        sim.personality_archetype_of(entity.index_u32()),
+        Some(settled)
+    );
+
+    // Not a person: an object entity index, and an index past the world.
+    let object = sim
+        .world_mut()
+        .query_filtered::<Entity, With<terri_core::SmartObject>>()
+        .iter(sim.world())
+        .next()
+        .expect("the shipped lot has furniture");
+    assert_eq!(sim.personality_archetype_of(object.index_u32()), None);
+    assert_eq!(sim.personality_archetype_of(u32::MAX - 1), None);
+}
+
+/// A personality for the ambiguity fixture: every drain multiplier at
+/// `drain`, every refill multiplier at 0.75, and a 60-tick late chronotype.
+fn fixture_personality(id: &str, drain: f32) -> terri_data::CompiledPersonality {
+    terri_data::CompiledPersonality {
+        cleanliness: 0.5,
+        id: id.to_string(),
+        drain: [drain; terri_core::NEED_COUNT],
+        satisfaction: [0.75; terri_core::NEED_COUNT],
+        dispositions: vec![(terri_core::ObjectDefId(0), 0, 1.5)],
+        chronotype_offset_ticks: 60,
+        description: String::new(),
+    }
+}
+
+#[test]
+fn two_archetypes_with_identical_effects_match_neither() {
+    let base = crate::test_content::pack_tuned(Vec::new(), crate::test_content::tuning());
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(terri_data::ContentPack {
+        personalities: vec![
+            fixture_personality("first_twin", 1.25),
+            fixture_personality("second_twin", 1.25),
+            fixture_personality("loner", 1.5),
+        ],
+        ..base.clone()
+    }));
+    let mut sim = crate::test_content::sim_with(8, 8, pack);
+    let twin = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            crate::household::personality_from(&pack.personalities[0]),
+        ))
+        .id();
+    let loner = sim
+        .world_mut()
+        .spawn((
+            terri_core::Agent,
+            crate::household::personality_from(&pack.personalities[2]),
+        ))
+        .id();
+    assert_eq!(
+        archetype_of(sim.world(), loner),
+        Some(2),
+        "a unique match in the same pack is found"
+    );
+    assert_eq!(
+        archetype_of(sim.world(), twin),
+        None,
+        "two equal archetypes are ambiguous"
+    );
+    let not_a_person = sim
+        .world_mut()
+        .spawn(crate::household::personality_from(&pack.personalities[2]))
+        .id();
+    assert_eq!(
+        archetype_of(sim.world(), not_a_person),
+        None,
+        "a personality without a person matches nothing"
+    );
+}
