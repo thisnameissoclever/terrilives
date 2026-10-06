@@ -10510,6 +10510,7 @@ that the original time or state was restored.
 **Prevention.** When two walks share a marker and a mover, write the direction into the marker when the walk starts (`Commuting::Outbound`, `Commuting::Inbound`) and read only that at the end. Keep a tolerance check for what it measures, a position, and never use it to decide which lifecycle an event belongs to. On load, where a save carries one bit, derive the direction from the saved walk's destination, which is authored, not from the position, which is wherever movement left it.
 
 **Verify.** `a_worker_a_fraction_off_the_door_at_shift_start_still_clocks_in_and_is_paid_once` and `an_outbound_commute_that_has_ended_clocks_in_wherever_the_worker_stands` in `crates/terri-sim/src/systems/career.rs` fail with `left: None` when the positional check is put back into the outbound arm; `a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street` in `crates/terri-sim/src/systems/street_tests.rs` pins the shipped lot.
+
 ## Keep chore state available during mood-based decisions
 
 **What happened.** Daily cleaning decisions omitted grime and chore feelings,
