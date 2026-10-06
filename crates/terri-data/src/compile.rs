@@ -9011,13 +9011,15 @@ mod tests {
     }
 
     /// A sofa, a potted plant with no interaction, a television whose one
-    /// interaction carries the `television` tag, and a radio, at indices 0
-    /// to 3. No kind below lists the sofa, so no kind's first object sits at
+    /// interaction carries the `broadcast` tag, and a radio, at indices 0 to
+    /// 3. The tag is not an object id, so a trait tag that compiles was
+    /// checked against activity tags, not object ids. Only the `noise` kind
+    /// below lists the sofa; in every other kind no first object sits at
     /// index 0 and none sits at the kind's own index.
     fn affinity_objects(kinds: Vec<AffinityKindDef>) -> ObjectsFile {
         let mut watch = snack();
         watch.id = "watch".into();
-        watch.tags = vec!["television".into()];
+        watch.tags = vec!["broadcast".into()];
         ObjectsFile {
             colourway: Vec::new(),
             affinity: kinds,
@@ -9050,7 +9052,7 @@ mod tests {
     #[test]
     fn compiles_affinity_kinds_in_file_order_with_object_indices() {
         let television = AffinityKindDef {
-            trait_tag: Some("television".into()),
+            trait_tag: Some("broadcast".into()),
             ..affinity_kind("television", "use", &["television"])
         };
         let pack = compile_affinity_kinds(vec![
@@ -9073,7 +9075,7 @@ mod tests {
                     label: "television".into(),
                     reach: AffinityReach::Use,
                     objects: vec![2],
-                    trait_tag: Some("television".into()),
+                    trait_tag: Some("broadcast".into()),
                 },
             ]
         );
@@ -9214,6 +9216,25 @@ mod tests {
             }
         );
         assert!(flying.to_string().contains("'flying'"), "{flying}");
+
+        // The shipped kind's tag, `television`, is here an object id and no
+        // activity's tag, so it is refused; the activity tag compiles.
+        let with_tag = |tag: &str| {
+            compile_affinity_kinds(vec![AffinityKindDef {
+                trait_tag: Some(tag.into()),
+                ..affinity_kind("television", "use", &["television"])
+            }])
+        };
+        assert_eq!(
+            with_tag("television").unwrap_err(),
+            ContentError::AffinityTraitTagAboutNothing {
+                id: "television".into(),
+                tag: "television".into(),
+            },
+            "an object id is not an activity tag"
+        );
+        let pack = with_tag("broadcast").expect("the television's activity tag");
+        assert_eq!(pack.affinities[0].trait_tag.as_deref(), Some("broadcast"));
     }
 
     /// [OA-values], [OA-presence], [OA-use]: every affinity knob reaches its
