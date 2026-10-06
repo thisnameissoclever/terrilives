@@ -3,6 +3,7 @@
 mod action_queue;
 #[cfg(test)]
 mod activity_tests;
+pub mod affinity;
 pub mod beds;
 mod compatibility;
 #[cfg(test)]
@@ -892,6 +893,8 @@ impl Sim {
         // [SK-save]: no envelope before V5 carries practice, so every
         // person is seeded once from their worn capabilities' saved states.
         save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -993,6 +996,7 @@ impl Sim {
             domestic: domestic::snapshot(&self.world),
             dining: dining::snapshot(&self.world),
             skills: save::skills::capture(&self.world, content),
+            affinities: save::affinities::capture(&self.world, content),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -1026,6 +1030,8 @@ impl Sim {
         // [SK-save]: no envelope before V5 carries practice, so every
         // person is seeded once from their worn capabilities' saved states.
         save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1043,6 +1049,8 @@ impl Sim {
         // [SK-save]: no envelope before V5 carries practice, so every
         // person is seeded once from their worn capabilities' saved states.
         save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1086,6 +1094,8 @@ impl Sim {
         // [SK-save]: no envelope before V5 carries practice, so every
         // person is seeded once from their worn capabilities' saved states.
         save::skills::restore(&mut restored.world, content, None)?;
+        // [OA-values]: nor values, so every person draws them once.
+        save::affinities::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -3687,6 +3697,21 @@ impl Sim {
                 hasher.write_u64(u64::from(practice.to_bits()));
             }
         }
+        // [OA-values]: every person's affinity values, keyed on entity
+        // index and kind index. Sparse, like the blocks above, so a world
+        // where nobody holds a value other than 0.0 hashes as it did before
+        // affinities. Exact bits, as for practice: the values are stored,
+        // not accumulated, so a one-step change is a real difference.
+        let rows = affinity::hash_rows(&self.world);
+        if !rows.is_empty() {
+            hasher.write_bytes(b"affinities-v1");
+            hasher.write_u64(rows.len() as u64);
+            for (entity, kind, value) in rows {
+                hasher.write_u64(u64::from(entity));
+                hasher.write_u64(u64::from(kind));
+                hasher.write_u64(u64::from(value.to_bits()));
+            }
+        }
         privacy::hash(&self.world, &mut hasher);
         let shyness = shyness::deviations(&self.world);
         if !shyness.is_empty() {
@@ -5210,6 +5235,78 @@ mod determinism_tests {
             .unwrap()
             .set(NeedId::Hunger, hunger + 1.0);
         assert_ne!(baseline, sim.world_hash(), "world_hash ignores Needs");
+    }
+
+    /// [OA-values], Review focus 4: a person holding 0.0 for every kind
+    /// hashes as one with no `Affinities` component, so a world where
+    /// nobody holds a value hashes as it did before affinities. The guard:
+    /// the same component with one value moves the digest, so the equality
+    /// is not a hash that never reads the component.
+    #[test]
+    fn a_world_with_no_affinity_values_hashes_as_before() {
+        let mut sim = build_scenario();
+        let agent = lowest_indexed_agent(&sim);
+        assert!(sim.world().get::<terri_core::Affinities>(agent).is_none());
+        let without = sim.world_hash();
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::Affinities::from_values(vec![0.0; 4]));
+        assert_eq!(sim.world_hash(), without, "all zeros hashes as none");
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::Affinities::from_values(vec![
+                0.0, 0.0, 0.5, 0.0,
+            ]));
+        assert_ne!(sim.world_hash(), without, "one value is seen");
+    }
+
+    /// [OA-values]: the digest sees a value to the last bit, which kind it
+    /// is for, and whose it is.
+    #[test]
+    fn the_hash_sees_an_affinity_value_and_its_owner() {
+        let mut sim = build_scenario();
+        let first = lowest_indexed_agent(&sim);
+        let second = {
+            let mut state = sim
+                .world()
+                .try_query_filtered::<Entity, With<Agent>>()
+                .unwrap();
+            state
+                .iter(sim.world())
+                .filter(|entity| *entity != first)
+                .min_by_key(|entity| entity.index_u32())
+                .unwrap()
+        };
+        let set = |sim: &mut Sim, who: Entity, values: Vec<f32>| {
+            sim.world_mut()
+                .entity_mut(who)
+                .insert(terri_core::Affinities::from_values(values));
+        };
+        let base = sim.world_hash();
+        let value = 0.625f32;
+        set(&mut sim, first, vec![0.0, value, 0.0, 0.0]);
+        let held = sim.world_hash();
+        assert_ne!(held, base, "a value");
+        set(
+            &mut sim,
+            first,
+            vec![0.0, f32::from_bits(value.to_bits() + 1), 0.0, 0.0],
+        );
+        assert_ne!(sim.world_hash(), held, "one f32 step of a value");
+        set(&mut sim, first, vec![0.0, -value, 0.0, 0.0]);
+        assert_ne!(sim.world_hash(), held, "the sign of a value");
+        set(&mut sim, first, vec![0.0, 0.0, value, 0.0]);
+        let other_kind = sim.world_hash();
+        assert_ne!(other_kind, held, "the same value for another kind");
+        set(&mut sim, first, vec![0.0, value, 0.0, 0.0]);
+        assert_eq!(sim.world_hash(), held, "restored");
+
+        set(&mut sim, first, vec![0.0; 4]);
+        assert_eq!(sim.world_hash(), base);
+        set(&mut sim, second, vec![0.0, value, 0.0, 0.0]);
+        let moved = sim.world_hash();
+        assert_ne!(moved, base);
+        assert_ne!(moved, held, "the same value held by someone else");
     }
 
     #[test]

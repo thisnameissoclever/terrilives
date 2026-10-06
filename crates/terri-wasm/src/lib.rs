@@ -332,20 +332,23 @@ fn decode_local_bed_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
 fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 14;
+    const APPENDED_LISTS: usize = 15;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                if snapshot.sleeping_places.is_some() != (pad <= 4) {
+                // Sleeping places are the sixth appended field from the
+                // tail: present unless the padding reached them.
+                if snapshot.sleeping_places.is_some() != (pad <= 5) {
                     return None;
                 }
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: skills, dining, boundaries, shyness, sleeping
-                // places, domestic, chronotypes, instincts, waiting, migration
-                // flag, mortality, SimId ties, legacy ties, floors. Asking every
-                // appended field to be empty at every pad level is how review
-                // finding [F1] on PR 131 refused those saves.
+                // From the tail: affinities, skills, dining, boundaries,
+                // shyness, sleeping places, domestic, chronotypes, instincts,
+                // waiting, migration flag, mortality, SimId ties, legacy
+                // ties, floors. Asking every appended field to be empty at
+                // every pad level is how review finding [F1] on PR 131
+                // refused those saves.
                 //
                 // And a padded payload must be exactly what this snapshot
                 // encodes to. Postcard writes every length in its shortest
@@ -363,6 +366,7 @@ fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
                 let invented: usize = [
+                    usize::from(snapshot.affinities.is_some()),
                     usize::from(snapshot.skills.is_some()),
                     usize::from(snapshot.dining.is_some()),
                     snapshot.boundaries.len(),
@@ -2771,20 +2775,29 @@ mod boundary_tests {
 
     use super::*;
 
-    // Historical schemas omit instincts. Their other world fields stay exact;
-    // migration consumes one restored-RNG draw per living Sim in index order.
-    fn after_legacy_instinct_migration(
+    // Historical schemas omit instincts and affinity values. Their other
+    // world fields stay exact; migration consumes one restored-RNG draw per
+    // living Sim in index order for the instinct, then one per affinity kind
+    // per living Sim ([OA-values]).
+    fn after_legacy_load_draws(
         mut snapshot: terri_core::SaveSnapshotV1,
     ) -> terri_core::SaveSnapshotV1 {
-        let mut agents: Vec<_> = snapshot
+        let agents = snapshot
             .entities
             .iter()
             .filter(|entity| entity.agent)
-            .map(|entity| entity.index)
-            .collect();
-        agents.sort_unstable();
-        for _ in agents {
+            .count();
+        for _ in 0..agents {
             snapshot.rng.range(41);
+        }
+        let kinds = Sim::new_from_shipped_lot()
+            .world()
+            .resource::<Content>()
+            .0
+            .affinities
+            .len();
+        for _ in 0..agents * kinds {
+            snapshot.rng.next_f32();
         }
         snapshot
     }
@@ -3010,7 +3023,7 @@ mod boundary_tests {
         set_legacy_walls(&mut expected, false);
         assert_eq!(
             house_part(resumed.sim.save_snapshot()),
-            after_legacy_instinct_migration(expected)
+            after_legacy_load_draws(expected)
         );
         assert_eq!(resumed.wall_layout_kind(), 1);
         assert_eq!(resumed.wall_edges().len(), (34 + 28) * 4);
@@ -3128,7 +3141,7 @@ mod boundary_tests {
         set_legacy_walls(&mut expected, false);
         assert_eq!(
             snapshot,
-            after_legacy_instinct_migration(expected),
+            after_legacy_load_draws(expected),
             "migration preserves unrelated fields and advances RNG for missing instincts"
         );
         assert!(!snapshot.blocked_tiles[9 * 16 + 15]);
@@ -3136,10 +3149,7 @@ mod boundary_tests {
         assert_eq!(snapshot.entities, old.entities);
         assert_eq!(snapshot.funds, old.funds);
         assert_eq!(snapshot.tick, old.tick);
-        assert_eq!(
-            snapshot.rng,
-            after_legacy_instinct_migration(old.clone()).rng
-        );
+        assert_eq!(snapshot.rng, after_legacy_load_draws(old.clone()).rng);
         let tub = snapshot
             .entities
             .iter()
@@ -3200,7 +3210,7 @@ mod boundary_tests {
         );
         assert_eq!(
             house_part(migrated.sim.save_snapshot()),
-            after_legacy_instinct_migration(expected)
+            after_legacy_load_draws(expected)
         );
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&migrated.save_bytes()));
@@ -3456,7 +3466,7 @@ mod boundary_tests {
             "a save from before the yard must load"
         );
         let current = loaded.sim.save_snapshot_v5();
-        let mut expected = after_legacy_instinct_migration(old.world.clone());
+        let mut expected = after_legacy_load_draws(old.world.clone());
         expected.content_fingerprint = Sim::new_from_shipped_lot()
             .save_snapshot()
             .content_fingerprint;
@@ -3542,7 +3552,7 @@ mod boundary_tests {
             expected.content_fingerprint = current.world.content_fingerprint;
             assert_eq!(
                 current.world,
-                after_legacy_instinct_migration(expected),
+                after_legacy_load_draws(expected),
                 "only the digest may differ after a load"
             );
             assert_ne!(
@@ -3639,7 +3649,7 @@ mod boundary_tests {
             .content_fingerprint;
         assert_eq!(
             house_part(current.world.clone()),
-            after_legacy_instinct_migration(expected_world)
+            after_legacy_load_draws(expected_world)
         );
         assert_eq!(current.layout, grown_layout(&prior.layout));
         assert_eq!(migrated.wall_layout_kind(), 1);
@@ -3730,7 +3740,7 @@ mod boundary_tests {
             };
             assert_eq!(restored.wall_edges(), expected);
             let mut expected = snapshot;
-            expected.world = after_legacy_instinct_migration(expected.world);
+            expected.world = after_legacy_load_draws(expected.world);
             assert_eq!(restored.sim.save_snapshot_v2(), expected);
             assert_eq!(restored.save_bytes(), source.save_bytes());
             let grid = restored.sim.world().resource::<TileGrid>();
@@ -3783,10 +3793,7 @@ mod boundary_tests {
         old.blocked_tiles[16] = true;
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&encode_save(&old)));
-        assert_eq!(
-            loaded.sim.save_snapshot(),
-            after_legacy_instinct_migration(old)
-        );
+        assert_eq!(loaded.sim.save_snapshot(), after_legacy_load_draws(old));
         assert_eq!(loaded.wall_layout_kind(), 0);
         assert!(loaded.wall_edges().is_empty());
         let expected: Vec<_> = LEGACY_WALLS.iter().flat_map(|&(x, y)| [x, y]).collect();
@@ -3888,7 +3895,7 @@ mod boundary_tests {
         set_legacy_walls(&mut expected, false);
         assert_eq!(
             house_part(resumed.sim.save_snapshot()),
-            after_legacy_instinct_migration(expected),
+            after_legacy_load_draws(expected),
             "the bridge must preserve household state and queues while rotating the bathtub, opening old wall cells and updating the digest"
         );
     }
@@ -9086,8 +9093,11 @@ mod instinct_boundary_tests {
         });
         saved.dining = None;
         saved.skills = None;
+        saved.affinities = None;
         let mut old = postcard::to_allocvec(&saved).unwrap();
-        // Written before dining and skills existed: neither `None` marker.
+        // Written before dining, skills and affinities existed: none of the
+        // three `None` markers.
+        assert_eq!(old.pop(), Some(0));
         assert_eq!(old.pop(), Some(0));
         assert_eq!(old.pop(), Some(0));
         let decoded = decode_v5(&old).unwrap();
@@ -9108,7 +9118,8 @@ mod instinct_boundary_tests {
             ..SavedDining::default()
         });
         let mut full = postcard::to_allocvec(&saved).unwrap();
-        // A dining-era save, written before skills existed.
+        // A dining-era save, written before skills and affinities existed.
+        assert_eq!(full.pop(), Some(0));
         assert_eq!(full.pop(), Some(0));
         for removed in 1..=8 {
             let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();

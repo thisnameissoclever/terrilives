@@ -1506,11 +1506,15 @@ mod tests {
         assert!(capped, "snacking reaches the cap within the bound");
         // The sim is deterministic, so the counts are exact: back-to-back
         // snacks net about 0.25 each because decay runs during each chain.
+        // The chains' lengths come from the world generator, so the exact
+        // snack that crosses the sick line moves with the draws taken
+        // before it: the four affinity draws each person takes at spawn
+        // ([OA-values]) moved it from the tenth to the eleventh.
         assert_eq!(
             first_overdoing, 4,
             "three snacks in a row are not overdoing; the fourth is"
         );
-        assert_eq!(first_sick, 10, "the tenth snack in a row makes Tim sick");
+        assert_eq!(first_sick, 11, "the eleventh snack in a row makes Tim sick");
         assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
         assert!(
             refills.iter().all(|refill| *refill == refills[0]),

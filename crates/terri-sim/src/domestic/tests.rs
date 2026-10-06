@@ -81,7 +81,20 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
         let mut completions = 0;
         let mut resumed = false;
         let mut toilet_finished = false;
+        let toilet_def = terri_data::pack().find("toilet").unwrap();
+        let at_toilet = |sim: &Sim, who: Entity| {
+            sim.world()
+                .get::<Eating>(who)
+                .is_some_and(|e| e.object == toilet_def)
+        };
         for _ in 0..1800 {
+            // A housemate's own later visit is a real completion too, but
+            // not the actor's: it is the one the housemate stood at the
+            // toilet for on the tick before, while the actor did not.
+            let housemate_visit = !at_toilet(&sim, actor)
+                && people
+                    .iter()
+                    .any(|&person| person != actor && at_toilet(&sim, person));
             sim.tick();
             if let Some(loaded) = restored.as_mut() {
                 let loaded: &mut Sim = loaded;
@@ -102,11 +115,13 @@ fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
                 assert_eq!(loaded.world_hash(), sim.world_hash());
                 restored = Some(loaded);
             }
-            completions += sim
-                .completion_sounds()
-                .chunks_exact(2)
-                .filter(|pair| pair[1] == toilet.index_u32())
-                .count();
+            if !housemate_visit {
+                completions += sim
+                    .completion_sounds()
+                    .chunks_exact(2)
+                    .filter(|pair| pair[1] == toilet.index_u32())
+                    .count();
+            }
             if restored.is_some()
                 && !toilet_finished
                 && sim

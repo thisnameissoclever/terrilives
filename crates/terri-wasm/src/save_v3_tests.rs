@@ -34,7 +34,7 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
 
 // Serialize each appended field independently so historical-prefix fixtures
 // cannot accidentally cut a newer field that follows the intended boundary.
-pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 14] {
+pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 15] {
     [
         postcard::to_allocvec(&snapshot.floors).unwrap().len(),
         postcard::to_allocvec(&snapshot.family_by_index)
@@ -62,6 +62,7 @@ pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 14] {
         postcard::to_allocvec(&snapshot.boundaries).unwrap().len(),
         postcard::to_allocvec(&snapshot.dining).unwrap().len(),
         postcard::to_allocvec(&snapshot.skills).unwrap().len(),
+        postcard::to_allocvec(&snapshot.affinities).unwrap().len(),
     ]
 }
 
@@ -89,6 +90,43 @@ fn assert_seeded_from_states(handle: &SimHandle) -> Option<terri_core::save::Sav
     let saved = handle.sim.save_snapshot_v5().skills;
     assert!(saved.is_some(), "the next save carries the field");
     saved
+}
+
+/// [OA-values]: a save written before affinities existed loads with every
+/// living person's values drawn once from its saved generator, in
+/// entity-index order, with their worn traits. Checks that the loaded world
+/// holds exactly those draws, then gives `expected` the generator state and
+/// the affinities field that the loaded world's next save carries. Call it
+/// with `expected` holding the generator the save was written with.
+pub(super) fn expect_affinity_seed(handle: &SimHandle, expected: &mut SaveSnapshotV5) {
+    let world = handle.sim.world();
+    let pack = world.resource::<Content>().0;
+    let mut people: Vec<_> = world
+        .try_query::<(
+            terri_core::Entity,
+            &terri_core::Agent,
+            Option<&terri_core::Traits>,
+            Option<&terri_core::Affinities>,
+        )>()
+        .unwrap()
+        .iter(world)
+        .map(|(person, _, worn, held)| (person.index_u32(), worn.cloned(), held.cloned()))
+        .collect();
+    people.sort_by_key(|row| row.0);
+    let mut rng = expected.world.rng.clone();
+    let mut rows = Vec::new();
+    for (index, worn, held) in people {
+        let drawn = terri_sim::affinity::draw(&mut rng, pack, worn.as_ref());
+        assert_eq!(held.as_ref(), Some(&drawn), "person {index}");
+        for (kind, &value) in pack.affinities.iter().zip(drawn.values()) {
+            if value != 0.0 {
+                rows.push((index, kind.id.clone(), value));
+            }
+        }
+    }
+    rows.sort_by(|a, b| (a.0, &a.1).cmp(&(b.0, &b.1)));
+    expected.world.rng = rng;
+    expected.affinities = Some(terri_core::save::SavedAffinities { rows });
 }
 
 fn assert_current_resave_is_stable(handle: &SimHandle) {
@@ -234,6 +272,7 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         bytes.extend(prefix);
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&bytes));
+        expect_affinity_seed(&loaded, &mut snapshot);
         assert_eq!(loaded.sim.save_snapshot_v5(), snapshot);
         let mut control = SimHandle::from_lot();
         assert!(control.load_bytes(&v5_bytes(&snapshot)));
@@ -285,6 +324,8 @@ fn independent_bed_release_wasm_saves_preserve_claims_and_pending_command_19() {
         normalized.world.content_fingerprint = actual.world.content_fingerprint;
         assert!(normalized.skills.is_none());
         normalized.skills = assert_seeded_from_states(&loaded);
+        assert!(normalized.affinities.is_none());
+        expect_affinity_seed(&loaded, &mut normalized);
         assert_eq!(actual, normalized);
         let current = loaded.save_bytes();
         assert_current_resave_is_stable(&loaded);
@@ -371,10 +412,17 @@ fn public_main_meal_preserves_personality_tail_and_migrates_recipe_counter() {
         .unwrap();
     assert_eq!(cook.chain.as_ref().unwrap().step, 5);
     assert_eq!(cook.step_work_ticks, Some(31));
-    assert_eq!(
-        postcard::to_allocvec(&state.world.rng).unwrap(),
-        postcard::to_allocvec(&(12019770418448921669u64, 40521457u64)).unwrap()
-    );
+    // The generator the fixture was written with, advanced by the one-time
+    // affinity draws ([OA-values]) the load takes for a save older than
+    // them.
+    let mut seeded = state.clone();
+    seeded.world.rng = postcard::from_bytes(
+        &postcard::to_allocvec(&(12019770418448921669u64, 40521457u64)).unwrap(),
+    )
+    .unwrap();
+    expect_affinity_seed(&loaded, &mut seeded);
+    assert_eq!(state.world.rng, seeded.world.rng);
+    assert_eq!(state.affinities, seeded.affinities);
     assert!(state
         .domestic
         .as_ref()
@@ -466,7 +514,10 @@ fn chronotype_v5_roundtrips_exact_signed_offsets_and_legacy_defaults() {
     let prefix = &bytes[..bytes.len() - removed];
     assert!(loaded.load_bytes(prefix));
     assert!(loaded.sim.save_snapshot_v5().chronotype_offsets.is_empty());
-    assert_eq!(loaded.sim.save_snapshot_v5().world, snapshot.world);
+    // The prefix predates affinities too, so the load draws them.
+    let mut seeded = snapshot.clone();
+    expect_affinity_seed(&loaded, &mut seeded);
+    assert_eq!(loaded.sim.save_snapshot_v5().world, seeded.world);
     assert_current_resave_is_stable(&loaded);
 }
 
@@ -721,8 +772,9 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert_eq!(&plain[8..10], &[5, 0]);
     assert_eq!(plain, v5_bytes(&source.sim.save_snapshot_v5()));
     // Sleeping places are `Some` of two empty lists (1, 0, 0), then empty
-    // shyness and boundary lists (0, 0), no dining (0), and skills as
-    // `Some` of an empty row list (1, 0): the encoding of each field below.
+    // shyness and boundary lists (0, 0), no dining (0), and skills and
+    // affinities each as `Some` of an empty row list (1, 0): the encoding
+    // of each field below.
     let mut tail = Vec::new();
     for field in [
         postcard::to_allocvec(&Some(terri_core::save::SavedSleepingPlaces::default())),
@@ -730,14 +782,15 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
         postcard::to_allocvec(&Vec::<terri_core::save::SavedBoundaryDecision>::new()),
         postcard::to_allocvec(&None::<terri_core::save::SavedDining>),
         postcard::to_allocvec(&Some(terri_core::save::SavedSkills::default())),
+        postcard::to_allocvec(&Some(terri_core::save::SavedAffinities::default())),
     ] {
         tail.extend(field.unwrap());
     }
-    assert_eq!(tail, [1, 0, 0, 0, 0, 0, 1, 0]);
+    assert_eq!(tail, [1, 0, 0, 0, 0, 0, 1, 0, 1, 0]);
     assert_eq!(
-        &plain[plain.len() - 8..],
+        &plain[plain.len() - 10..],
         &tail[..],
-        "current saves carry sleeping places, shyness, boundary decisions, dining and skills explicitly"
+        "current saves carry sleeping places, shyness, boundary decisions, dining, skills and affinities explicitly"
     );
     let chair = (0..16u32)
         .find(|&index| source.object_colourway(f64::from(index)) == 0)
@@ -791,6 +844,7 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(live.family_ties().is_empty());
 
     for (first, what) in [
+        (14, "affinities"),
         (13, "skills"),
         (12, "dining"),
         (11, "boundary decisions"),
@@ -1431,6 +1485,8 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
     expected.sleeping_places = Some(terri_core::save::SavedSleepingPlaces::default());
     assert!(expected.skills.is_none());
     expected.skills = assert_seeded_from_states(&loaded);
+    assert!(expected.affinities.is_none());
+    expect_affinity_seed(&loaded, &mut expected);
     assert_eq!(loaded.sim.save_snapshot_v5(), expected);
     assert_current_resave_is_stable(&loaded);
     let mut resumed = SimHandle::from_lot();
@@ -1442,11 +1498,12 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
     }
 }
 
-/// [SK-save]: the skills field is the newest appended field. A save cut
-/// before it is a save written before skills existed: it loads and seeds
-/// practice from the worn capability states. Every cut inside it, from the
-/// `Some` marker to the last byte of the last row, and a zero row count cut
-/// inside postcard's two-byte long form, is refused with the live world untouched.
+/// [SK-save]: only the affinities field follows the skills field. A save
+/// cut before skills is a save written before skills existed: it loads and
+/// seeds practice from the worn capability states. Every cut inside it,
+/// from the `Some` marker to the last byte of the last row, and a zero row
+/// count cut inside postcard's two-byte long form, is refused with the live
+/// world untouched.
 #[test]
 fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
     let mut source = SimHandle::from_lot();
@@ -1472,7 +1529,8 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
     let bytes = source.save_bytes();
     let tail = postcard::to_allocvec(&snapshot.skills).unwrap();
     assert_eq!(v5_appended_lengths(&snapshot)[13], tail.len());
-    let start = bytes.len() - tail.len();
+    let end = bytes.len() - v5_appended_lengths(&snapshot)[14];
+    let start = end - tail.len();
 
     let mut full = SimHandle::from_lot();
     assert!(full.load_bytes(&bytes));
@@ -1499,9 +1557,9 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
 
     let before = legacy.save_bytes();
     let hash = legacy.world_hash();
-    let mut cases: Vec<Vec<u8>> = (start + 1..bytes.len())
-        .map(|cut| bytes[..cut].to_vec())
-        .collect();
+    // A cut at `end` is a whole save written before affinities existed;
+    // `decode_pads_the_affinities_list` covers the cuts after it.
+    let mut cases: Vec<Vec<u8>> = (start + 1..end).map(|cut| bytes[..cut].to_vec()).collect();
     let mut long_empty = bytes[..start].to_vec();
     long_empty.extend([1, 0x80]);
     cases.push(long_empty);
@@ -1515,6 +1573,80 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
         assert_eq!(legacy.save_bytes(), before);
         assert_eq!(legacy.world_hash(), hash);
     }
+}
+
+/// [OA-values], Review focus 4: the affinities field is the newest appended
+/// field. A current payload with it stripped is a save written before
+/// affinities existed: it decodes with the field `None`, every other field
+/// intact, and loads with the values drawn once. Every cut inside the
+/// field, from the `Some` marker to the last byte of the last row, and a
+/// zero row count cut inside postcard's two-byte long form, is refused with
+/// the live world untouched. A payload stripped of all fifteen appended
+/// fields still decodes, so the padding reaches the oldest V5 shape.
+#[test]
+fn decode_pads_the_affinities_list() {
+    let source = SimHandle::from_lot();
+    let snapshot = source.sim.save_snapshot_v5();
+    let saved = snapshot
+        .affinities
+        .clone()
+        .expect("a current save writes the field");
+    assert!(
+        saved.rows.len() >= 2,
+        "the shipped household draws values, so the field has rows to cut"
+    );
+    let bytes = source.save_bytes();
+    let lengths = v5_appended_lengths(&snapshot);
+    assert_eq!(lengths.len(), 15);
+    let tail = postcard::to_allocvec(&snapshot.affinities).unwrap();
+    assert_eq!(lengths[14], tail.len());
+    assert!(bytes.ends_with(&tail));
+    let start = bytes.len() - tail.len();
+
+    let mut full = SimHandle::from_lot();
+    assert!(full.load_bytes(&bytes));
+    assert_eq!(full.sim.save_snapshot_v5().affinities, Some(saved));
+    assert_eq!(full.save_bytes(), bytes);
+
+    let stripped = decode_v5(&bytes[SAVE_HEADER_BYTES..start]).expect("a pre-affinity save");
+    assert_eq!(stripped.affinities, None);
+    let mut without = snapshot.clone();
+    without.affinities = None;
+    assert_eq!(stripped, without, "every other field intact");
+    let mut legacy = SimHandle::from_lot();
+    assert!(
+        legacy.load_bytes(&bytes[..start]),
+        "a save written before affinities existed must still load"
+    );
+    let mut expected = snapshot.clone();
+    expect_affinity_seed(&legacy, &mut expected);
+    assert_eq!(legacy.sim.save_snapshot_v5(), expected);
+    assert_current_resave_is_stable(&legacy);
+
+    let before = legacy.save_bytes();
+    let hash = legacy.world_hash();
+    let mut cases: Vec<Vec<u8>> = (start + 1..bytes.len())
+        .map(|cut| bytes[..cut].to_vec())
+        .collect();
+    let mut long_empty = bytes[..start].to_vec();
+    long_empty.extend([1, 0x80]);
+    cases.push(long_empty);
+    for case in cases {
+        assert!(
+            decode_v5(&case[SAVE_HEADER_BYTES..]).is_none(),
+            "decoder accepted a cut affinities field at {}",
+            case.len() - start
+        );
+        assert!(!legacy.load_bytes(&case));
+        assert_eq!(legacy.save_bytes(), before);
+        assert_eq!(legacy.world_hash(), hash);
+    }
+
+    let oldest = bytes.len() - lengths.iter().sum::<usize>();
+    let decoded = decode_v5(&bytes[SAVE_HEADER_BYTES..oldest])
+        .expect("a payload without any appended field decodes");
+    assert_eq!(decoded.affinities, None);
+    assert_eq!(decoded.sleeping_places, None);
 }
 
 /// [SK-save] and lesson [L-save-tail-offset-fixtures]: every historical

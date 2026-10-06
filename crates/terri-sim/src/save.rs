@@ -32,6 +32,7 @@ pub const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
+pub(super) mod affinities;
 pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
@@ -1962,11 +1963,20 @@ mod tests {
         assert_validation(&snapshot, Err(expected), label);
     }
 
-    pub(super) fn after_legacy_instinct_migration(mut snapshot: SaveSnapshotV1) -> SaveSnapshotV1 {
-        for entity in &snapshot.entities {
-            if entity.agent {
-                snapshot.rng.range(41);
-            }
+    /// What a legacy load draws from the restored generator: one instinct
+    /// per living person, then one value per affinity kind per living
+    /// person ([OA-values]). Only the generator's state is in a V1 record.
+    pub(super) fn after_legacy_load_draws(mut snapshot: SaveSnapshotV1) -> SaveSnapshotV1 {
+        let agents = snapshot
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .count();
+        for _ in 0..agents {
+            snapshot.rng.range(41);
+        }
+        for _ in 0..agents * terri_data::pack().affinities.len() {
+            snapshot.rng.next_f32();
         }
         snapshot
     }
@@ -1978,10 +1988,7 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("valid rich snapshot restores");
-        assert_eq!(
-            restored.save_snapshot(),
-            after_legacy_instinct_migration(snapshot)
-        );
+        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
     }
 
     /// **Sparse means sparse**, and the capture side had no test at all.
@@ -2130,7 +2137,14 @@ mod tests {
     #[test]
     fn every_tick_of_a_played_stretch_produces_a_loadable_save() {
         const TICKS: u64 = 2_000;
-        let mut sim = Sim::new_from_shipped_lot();
+        // **A fixed seed, not the shipped one.** Whether a walk over to
+        // talk falls inside 2 000 ticks depends on the generator: the four
+        // affinity draws each person takes at spawn ([OA-values]) moved the
+        // shipped seed's run to one without a walk to talk. Seeds 2 to 6
+        // all reach both arms below, measured when the draws were added;
+        // the coverage assertions at the end still decide whether this one
+        // does.
+        let mut sim = Sim::new_from_shipped_lot_with_seed(2);
         // **Start the household hungry rather than waiting for it to get
         // there.** The two arms below need a sim to use a chain station
         // enough times to habituate to one of its flyout rows, and a
@@ -2630,10 +2644,7 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("a sparse live-entity index space restores");
-        assert_eq!(
-            restored.save_snapshot(),
-            after_legacy_instinct_migration(snapshot)
-        );
+        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
     }
 
     #[test]
@@ -2860,7 +2871,7 @@ mod tests {
             .expect("old fridge art saves load");
         assert_eq!(
             historical.save_snapshot(),
-            after_legacy_instinct_migration(before.clone())
+            after_legacy_load_draws(before.clone())
         );
         let mut restored = Sim::new_from_shipped_lot();
         restored
@@ -3119,20 +3130,32 @@ mod tests {
         // the V1 loader accepts that. A V1 record carries no wall edges, so
         // the restored house has none and the world hash, which sees walls
         // since [WT-hash], differs by that layout. Legacy instinct migration
-        // also advances RNG, so the reference explicitly adopts those draws
-        // before comparing continuation. Everything V1 carries is compared.
+        // and the affinity seed ([OA-values]) also advance RNG, so the
+        // reference explicitly adopts those draws before comparing
+        // continuation. Everything V1 carries is compared.
         let snapshot = source.save_snapshot();
         let mut migrated_rng = snapshot.rng.clone();
-        for person in snapshot.entities.iter().filter(|entity| entity.agent) {
+        let people: Vec<Entity> = snapshot
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .map(|person| {
+                source
+                    .world()
+                    .entities()
+                    .resolve_from_index(EntityIndex::from_raw_u32(person.index).unwrap())
+            })
+            .collect();
+        for &entity in &people {
             let instinct = 30 + migrated_rng.range(41) as u8;
-            let entity = source
-                .world()
-                .entities()
-                .resolve_from_index(EntityIndex::from_raw_u32(person.index).unwrap());
             source
                 .world_mut()
                 .entity_mut(entity)
                 .insert(terri_core::SelfPreservation(instinct));
+        }
+        for &entity in &people {
+            let values = crate::affinity::draw(&mut migrated_rng, pack, None);
+            source.world_mut().entity_mut(entity).insert(values);
         }
         source.world_mut().insert_resource(migrated_rng);
 
@@ -3140,10 +3163,7 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("active reading save restores");
-        assert_eq!(
-            restored.save_snapshot(),
-            after_legacy_instinct_migration(snapshot)
-        );
+        assert_eq!(restored.save_snapshot(), after_legacy_load_draws(snapshot));
         let restored_agent = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
         );
@@ -4396,7 +4416,7 @@ mod tests {
             );
             assert_eq!(
                 restored.save_snapshot(),
-                after_legacy_instinct_migration(snapshot),
+                after_legacy_load_draws(snapshot),
                 "current {object} action must retain its row and remaining duration"
             );
         }
