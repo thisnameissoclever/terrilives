@@ -2056,6 +2056,7 @@ fn compile_visual(
         "wash" => CompiledVisualAction::Wash,
         "cook" => CompiledVisualAction::Cook,
         "prepare" => CompiledVisualAction::Prepare,
+        "use_toilet" => CompiledVisualAction::UseToilet,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
@@ -2077,6 +2078,7 @@ fn compile_visual(
             | CompiledVisualAction::Exercise
             | CompiledVisualAction::Sit
             | CompiledVisualAction::Sleep
+            | CompiledVisualAction::UseToilet
     ) && anchor == CompiledVisualAnchor::ObjectSocket
         && visual.socket.is_none()
     {
@@ -2142,6 +2144,12 @@ fn compile_visual(
             CompiledVisualAnchor::ObjectSocket,
             CompiledVisualFacing::Socket,
             Some(_)
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::UseToilet,
+            CompiledVisualAnchor::ObjectSocket,
+            CompiledVisualFacing::Socket,
+            Some(_)
         )
     );
     if !legal {
@@ -2156,6 +2164,7 @@ fn compile_visual(
             CompiledVisualAction::Wash => "wash",
             CompiledVisualAction::Cook => "cook",
             CompiledVisualAction::Prepare => "prepare",
+            CompiledVisualAction::UseToilet => "use_toilet",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -2192,6 +2201,7 @@ fn compile_visual(
                             CompiledVisualAction::Wash => "wash",
                             CompiledVisualAction::Cook => "cook",
                             CompiledVisualAction::Prepare => "prepare",
+                            CompiledVisualAction::UseToilet => "use_toilet",
                         },
                         "object_socket",
                     ),
@@ -11241,7 +11251,16 @@ mod tests {
                 "step 3",
             ),
         ] {
-            for action in ["talk", "eat", "read", "exercise", "watch", "sit", "sleep"] {
+            for action in [
+                "talk",
+                "eat",
+                "read",
+                "exercise",
+                "watch",
+                "sit",
+                "sleep",
+                "use_toilet",
+            ] {
                 for anchor in ["partner", "object", "station"] {
                     let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
                         .expect("the test authors a visual");
@@ -11390,7 +11409,16 @@ mod tests {
                 "chain step",
             ),
         ] {
-            for action in ["talk", "eat", "read", "exercise", "watch", "sit", "sleep"] {
+            for action in [
+                "talk",
+                "eat",
+                "read",
+                "exercise",
+                "watch",
+                "sit",
+                "sleep",
+                "use_toilet",
+            ] {
                 for anchor in ["partner", "object", "station", "object_socket"] {
                     for facing in ["toward_anchor", "socket"] {
                         for socket in [None, Some("saddle")] {
@@ -11422,7 +11450,7 @@ mod tests {
                                     None
                                 ) | (
                                     VisualOwner::Object { .. },
-                                    "read" | "exercise" | "sit" | "sleep",
+                                    "read" | "exercise" | "sit" | "sleep" | "use_toilet",
                                     "object_socket",
                                     "socket",
                                     Some("saddle")
@@ -11506,6 +11534,43 @@ mod tests {
                 expected
             );
         }
+    }
+
+    #[test]
+    fn toilet_visual_requires_a_declared_object_socket() {
+        let toilet = || {
+            let mut object = reading_object();
+            object.interaction[0].visual.as_mut().unwrap().action = Some("use_toilet".to_string());
+            object
+        };
+        let file = |object| ObjectsFile {
+            object: vec![object],
+            colourway: Vec::new(),
+            affinity: Vec::new(),
+        };
+        let pack = compile_objects(full_needs(), file(toilet())).unwrap();
+        assert_eq!(
+            pack.objects[0].interactions[0].visual.unwrap().action,
+            CompiledVisualAction::UseToilet
+        );
+        let mut missing = toilet();
+        missing.interaction[0].visual.as_mut().unwrap().socket = None;
+        assert!(matches!(
+            compile_objects(full_needs(), file(missing)),
+            Err(ContentError::IncompleteVisual {
+                field: "socket",
+                ..
+            })
+        ));
+        let mut wrong = toilet();
+        let visual = wrong.interaction[0].visual.as_mut().unwrap();
+        visual.anchor = Some("object".to_string());
+        visual.facing = Some("toward_anchor".to_string());
+        visual.socket = None;
+        assert!(matches!(
+            compile_objects(full_needs(), file(wrong)),
+            Err(ContentError::InvalidVisualContract { .. })
+        ));
     }
 
     fn reading_object() -> ObjectDef {

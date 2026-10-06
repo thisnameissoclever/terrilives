@@ -436,6 +436,11 @@ fn authored_socket_action_visual(
             terri_data::CompiledVisualAnchor::ObjectSocket,
             terri_data::CompiledVisualFacing::Socket,
         ) => (visual_action::SLEEP, activity::SLEEPING),
+        (
+            terri_data::CompiledVisualAction::UseToilet,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        ) => (visual_action::USE_TOILET, activity::USING_TOILET),
         _ => return None,
     };
     let socket = sockets.0.get(visual.socket? as usize)?;

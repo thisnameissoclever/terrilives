@@ -216,6 +216,10 @@ def load_historical_extensions(config, existing_names=frozenset()):
             from offline_seating import load_neutral_seats, records
             sprites = records(load_neutral_seats(path))
             assert not names.intersection(row[0] for row in sprites), 'duplicate neutral seating records'
+        elif extension['kind'] == 'bathroom-actions':
+            from offline_bathroom import load_bathroom, records
+            sprites = records(load_bathroom(path))
+            assert not names.intersection(row[0] for row in sprites), 'duplicate bathroom action records'
         else:
             raise ValueError('Unknown reviewed atlas extension kind')
         result.extend(sprites)

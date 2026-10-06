@@ -15,6 +15,7 @@ import {
   SPRITE_ANCHORS,
   BED_LAYERS,
   SEATING_LAYERS,
+  BATHROOM_LAYERS,
   BED_LAYER_TRIMS,
   ATLAS_PAGE_FILES,
   SPRITE_DINING_SUPPORT,
@@ -516,7 +517,7 @@ export class SpriteRenderer {
       return texture;
     });
     const bedTable = packVisibleSceneLayers(this.grimeSpriteBase+GRIME_SPRITE_COUNT,
-      { ...BED_LAYERS, ...SEATING_LAYERS });
+      { ...BED_LAYERS, ...SEATING_LAYERS, ...BATHROOM_LAYERS });
     this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.bedBuffer);
