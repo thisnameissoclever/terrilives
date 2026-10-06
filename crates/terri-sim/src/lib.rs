@@ -889,6 +889,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -989,6 +992,7 @@ impl Sim {
                 .collect(),
             domestic: domestic::snapshot(&self.world),
             dining: dining::snapshot(&self.world),
+            skills: save::skills::capture(&self.world, content),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -1019,6 +1023,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1033,6 +1040,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1046,14 +1056,11 @@ impl Sim {
     /// doorless until the next tick.
     ///
     /// A house saved before the yard grows into it first ([OS-migrate]), so
-    /// every loader passes through the same growth. Likewise every person
-    /// the save gave no practice is seeded from their worn capabilities'
-    /// saved states ([SK-save]).
+    /// every loader passes through the same growth.
     fn adopt(&mut self, mut restored: Sim) {
         let content = restored.world.resource::<Content>().0;
         save::yard::grow(&mut restored, content);
         save::self_preservation::migrate(&mut restored.world);
-        skills::seed_people_without_skills(&mut restored.world);
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -1076,6 +1083,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -3609,6 +3619,21 @@ impl Sim {
                     hasher.write_u64(u64::from(interaction));
                     hasher.write_u64(u64::from(weight.to_bits()));
                 }
+            }
+        }
+        // [SK-save]: every person's practice, keyed on entity index and the
+        // skill's id. Sparse, like the blocks above, so a world where nobody
+        // holds any practice hashes as it did before skills. Exact bits:
+        // practice is stored, and one f32 step can cross a level boundary.
+        let rows = skills::hash_rows(&self.world);
+        if !rows.is_empty() {
+            let content = self.world.resource::<Content>().0;
+            hasher.write_bytes(b"skills-v1");
+            hasher.write_u64(rows.len() as u64);
+            for (entity, skill, practice) in rows {
+                hasher.write_u64(u64::from(entity));
+                hasher.write_u64(id_digest(&content.skills[skill as usize].id));
+                hasher.write_u64(u64::from(practice.to_bits()));
             }
         }
         privacy::hash(&self.world, &mut hasher);

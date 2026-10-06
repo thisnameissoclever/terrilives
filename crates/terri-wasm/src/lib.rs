@@ -328,20 +328,20 @@ fn decode_local_bed_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
 fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 13;
+    const APPENDED_LISTS: usize = 14;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                if snapshot.sleeping_places.is_some() != (pad <= 3) {
+                if snapshot.sleeping_places.is_some() != (pad <= 4) {
                     return None;
                 }
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: dining, boundaries, shyness, sleeping places, domestic,
-                // chronotypes, instincts, waiting, migration flag, mortality, SimId
-                // ties, legacy ties, floors. Asking every appended field
-                // to be empty at every pad level is how
-                // review finding [F1] on PR 131 refused those saves.
+                // From the tail: skills, dining, boundaries, shyness, sleeping
+                // places, domestic, chronotypes, instincts, waiting, migration
+                // flag, mortality, SimId ties, legacy ties, floors. Asking every
+                // appended field to be empty at every pad level is how review
+                // finding [F1] on PR 131 refused those saves.
                 //
                 // And a padded payload must be exactly what this snapshot
                 // encodes to. Postcard writes every length in its shortest
@@ -359,6 +359,7 @@ fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
                 let invented: usize = [
+                    usize::from(snapshot.skills.is_some()),
                     usize::from(snapshot.dining.is_some()),
                     snapshot.boundaries.len(),
                     snapshot.shyness.len(),
@@ -8996,7 +8997,10 @@ mod instinct_boundary_tests {
             ..SavedDomestic::default()
         });
         saved.dining = None;
+        saved.skills = None;
         let mut old = postcard::to_allocvec(&saved).unwrap();
+        // Written before dining and skills existed: neither `None` marker.
+        assert_eq!(old.pop(), Some(0));
         assert_eq!(old.pop(), Some(0));
         let decoded = decode_v5(&old).unwrap();
         assert_eq!(decoded.domestic, saved.domestic);
@@ -9015,7 +9019,9 @@ mod instinct_boundary_tests {
             }],
             ..SavedDining::default()
         });
-        let full = postcard::to_allocvec(&saved).unwrap();
+        let mut full = postcard::to_allocvec(&saved).unwrap();
+        // A dining-era save, written before skills existed.
+        assert_eq!(full.pop(), Some(0));
         for removed in 1..=8 {
             let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
             truncated.extend(&full[..full.len() - removed]);

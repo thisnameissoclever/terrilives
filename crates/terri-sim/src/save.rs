@@ -39,6 +39,7 @@ mod bathtub_tests;
 pub(super) mod chronotype;
 mod meal_migration;
 pub(super) mod self_preservation;
+pub(super) mod skills;
 pub(super) mod sleeping_places;
 #[cfg(test)]
 mod v3_tests;

@@ -73,6 +73,21 @@ pub struct SaveSnapshotV5 {
     /// Exact dining claims and deferred room cleanup opportunities. Optional tail
     /// preserves the published domestic record's positional wire layout.
     pub dining: Option<SavedDining>,
+    /// Each person's skill practice - [SK-save] in
+    /// `docs/specs/2026-10-05-skills.md`. Current writers emit Some, even
+    /// empty, and a present field is authoritative. None appears only in a
+    /// payload written before skills existed, and the loader then seeds
+    /// practice once from each worn capability trait's saved state.
+    pub skills: Option<SavedSkills>,
+}
+
+/// Saved skill practice: `(entity index, skill id, practice)` rows,
+/// strictly ascending by entity index and then id, one per non-zero
+/// practice a living person holds. The id is the content's authored skill
+/// id, so adding or reordering skills never reinterprets a save.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct SavedSkills {
+    pub rows: Vec<(u32, String, f32)>,
 }
 
 #[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
@@ -191,6 +206,7 @@ impl LocalBedSnapshotV5 {
             boundaries: self.boundaries,
             domestic: None,
             dining: None,
+            skills: None,
         }
     }
 }

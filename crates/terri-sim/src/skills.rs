@@ -11,7 +11,6 @@
 use bevy_ecs::prelude::*;
 use terri_core::{Agent, Skills, Traits};
 
-use crate::Content;
 use terri_data::{CompiledSkill, CompiledTrait, CompiledTraitKind, ContentPack, Tuning};
 
 /// The practice each level costs: level 1 costs `cost`, and each level
@@ -230,28 +229,27 @@ fn seed(
     }
 }
 
-/// Gives every person without a [`Skills`] component one seeded by
-/// [`seed_from_states`] - [SK-save]'s one-time seed for a save that holds
-/// no practice. Every loader passes through it after restoring. A person
-/// who already carries the component keeps it untouched, so practice a
-/// load did restore is never reseeded.
-pub(crate) fn seed_people_without_skills(world: &mut World) {
-    let pack = world.resource::<Content>().0;
-    let mut people =
-        world.query_filtered::<(Entity, Option<&Traits>), (With<Agent>, Without<Skills>)>();
-    let seeded: Vec<(Entity, Skills)> = people
-        .iter(world)
-        .map(|(person, worn)| {
-            let mut skills = Skills::default();
-            if let Some(worn) = worn {
-                seed_from_states(&mut skills, worn, pack);
-            }
-            (person, skills)
-        })
-        .collect();
-    for (person, skills) in seeded {
-        world.entity_mut(person).insert(skills);
-    }
+/// Every person's non-zero practice as `(entity index, skill index,
+/// practice)`, ascending by entity index then skill index - what
+/// `Sim::world_hash` digests ([SK-save]). Skill indices are only stable
+/// within one pack, so the hash writes each skill's id instead.
+pub(crate) fn hash_rows(world: &World) -> Vec<(u32, u32, f32)> {
+    let mut rows: Vec<(u32, u32, f32)> = world
+        .try_query::<(Entity, &Agent, &Skills)>()
+        .map_or_else(Vec::new, |mut query| {
+            query
+                .iter(world)
+                .flat_map(|(entity, _, skills)| {
+                    skills
+                        .entries()
+                        .iter()
+                        .filter(|(_, practice)| *practice != 0.0)
+                        .map(move |&(skill, practice)| (entity.index_u32(), skill, practice))
+                })
+                .collect()
+        });
+    rows.sort_unstable_by_key(|&(entity, skill, _)| (entity, skill));
+    rows
 }
 
 /// The largest f32 below `value`, for a positive finite `value`.

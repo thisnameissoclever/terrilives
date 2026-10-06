@@ -929,9 +929,10 @@ fn traits_of_reports_mastery_for_capabilities_and_state_for_the_rest() {
     );
 }
 
-/// [SK-save]: a save that holds no practice seeds it once, on load, from
-/// each worn capability's saved state; a person without a capability loads
-/// with no practice.
+/// [SK-save]: a save written before skills existed, which has no skills
+/// field, seeds practice once, on load, from each worn capability's saved
+/// state; a person without a capability loads with no practice. The
+/// field's own round trip is in `save::skills`'s tests.
 #[test]
 fn a_load_seeds_practice_from_saved_capability_states() {
     let mut live = Sim::new_from_shipped_lot();
@@ -942,8 +943,10 @@ fn a_load_seeds_practice_from_saved_capability_states() {
         .get_mut::<Traits>(casey)
         .unwrap()
         .set_state(cannot_cook, 0.7);
+    let mut legacy = live.save_snapshot_v5();
+    legacy.skills = None;
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(live.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v5(legacy).unwrap();
     assert!((mastery(&loaded, casey, "cooking") - 0.7).abs() < 1e-5);
     assert!((mastery(&loaded, casey, "reading") - 0.58).abs() < 1e-5);
     let bill = entity_named(&loaded, "Bill");
