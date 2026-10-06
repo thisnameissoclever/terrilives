@@ -1,0 +1,35 @@
+{
+  "state": "prepared",
+  "step": -0.049227323055267336,
+  "rows": [
+    {
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001"
+      ],
+      "reader_x_shift": -0.041877384901046755
+    },
+    {
+      "parts": [
+        "Turned sleeve cuff",
+        "Relaxed shirt sleeve.001"
+      ],
+      "reader_x_shift": -0.03956201267242432
+    },
+    {
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001"
+      ],
+      "reader_x_shift": -0.049227323055267336
+    },
+    {
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Turned sleeve cuff.001"
+      ],
+      "reader_x_shift": -0.04069336843490601
+    }
+  ],
+  "scope": "One forward reader translation from actual neighbor triangle witnesses; all bone frames, outer bodies and original sources preserved"
+}
