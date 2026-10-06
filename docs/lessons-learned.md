@@ -10375,3 +10375,22 @@ with decoded layers rather than trusting their filenames or recorded hashes.
 missing records, overlapping half-cell copies, negative distances, changed
 closure coordinates and uniformly darkened palette changes. Authentic source
 evidence must still pass without relaxing acceptance limits.
+
+## [L-handoff-raw-inputs] Verify raw fixture receipts in a clean export
+
+**What happened.** A transfer inventory passed in the working folder but failed
+after a clean Git export. A bathtub fixture receipt had different newline
+bytes in the working folder and the committed version.
+
+**Root cause.** Git text normalization hid the byte difference from ordinary
+status checks. The diagnostic producer hashed the working file, but its
+snapshot preserved Python dependencies without that JSON input.
+
+**Prevention.** Retain exact bytes for every hash-bound input, including fixture
+receipts. Preserve historical inputs in versioned source snapshots rather than
+rewriting published fixtures. Verify a staged-only export without access to
+ignored working files before calling a handoff portable.
+
+**Verify.** Resolve every declared active input hash from the clean export or
+its retained snapshot. Report unavailable rejected-history inputs explicitly;
+never excuse an undeclared missing active dependency.

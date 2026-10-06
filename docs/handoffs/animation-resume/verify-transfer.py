@@ -52,7 +52,9 @@ def verify():
 
 
 def capture():
-    paths = subprocess.check_output(['git', 'diff', '--cached', '--name-only', '-z'], cwd=ROOT).decode().split('\0')
+    paths = set(subprocess.check_output(['git', 'diff', '--cached', '--name-only', '-z'], cwd=ROOT).decode().split('\0'))
+    if INVENTORY.is_file():
+        paths.update(row['path'] for row in json.loads(INVENTORY.read_text())['files'])
     rows = []
     with subprocess.Popen(['git', 'cat-file', '--batch'], cwd=ROOT,
                           stdin=subprocess.PIPE, stdout=subprocess.PIPE) as reader:

@@ -2299,6 +2299,11 @@
       "sha256": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4"
     },
     {
+      "path": "assets/models/bathroom/actions/review/bath/prototype-01-support-diagnostic/source/bathroom/owner-review-pending/bathtub/candidate-02/proof.json",
+      "bytes": 3395,
+      "sha256": "16d50af1cb069c69b23a91cd381d774339a82120b25a97bc902ab2b931dac851"
+    },
+    {
       "path": "assets/models/bathroom/actions/review/bath/prototype-01-support-diagnostic/source/bedroom/bunk_contact.py",
       "bytes": 4754,
       "sha256": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a"
@@ -2397,6 +2402,11 @@
       "path": "assets/models/bathroom/actions/review/bath/prototype-02-same-pose-torso-diagnostic/source/bathroom/check_toilet_scene.py",
       "bytes": 6589,
       "sha256": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4"
+    },
+    {
+      "path": "assets/models/bathroom/actions/review/bath/prototype-02-same-pose-torso-diagnostic/source/bathroom/owner-review-pending/bathtub/candidate-02/proof.json",
+      "bytes": 3395,
+      "sha256": "16d50af1cb069c69b23a91cd381d774339a82120b25a97bc902ab2b931dac851"
     },
     {
       "path": "assets/models/bathroom/actions/review/bath/prototype-02-same-pose-torso-diagnostic/source/bedroom/bunk_contact.py",
@@ -2507,6 +2517,11 @@
       "path": "assets/models/bathroom/actions/review/bath/prototype-03-articulation-v1-diagnostic/source/bathroom/check_toilet_scene.py",
       "bytes": 6589,
       "sha256": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4"
+    },
+    {
+      "path": "assets/models/bathroom/actions/review/bath/prototype-03-articulation-v1-diagnostic/source/bathroom/owner-review-pending/bathtub/candidate-02/proof.json",
+      "bytes": 3395,
+      "sha256": "16d50af1cb069c69b23a91cd381d774339a82120b25a97bc902ab2b931dac851"
     },
     {
       "path": "assets/models/bathroom/actions/review/bath/prototype-03-articulation-v1-diagnostic/source/bedroom/bunk_contact.py",
@@ -10700,8 +10715,8 @@
     },
     {
       "path": "docs/handoffs/2026-10-06-animation-resume.md",
-      "bytes": 29507,
-      "sha256": "c3b47a4898f47be5d3ddcfaf21a3c68ff7bf42ae1312ab7204f51c78168093e0"
+      "bytes": 29899,
+      "sha256": "f24c7bb14a015537dd7c79aca9aa1b6e7a9fb5f44a884075d2d60ca10f102dbd"
     },
     {
       "path": "docs/handoffs/animation-resume/deferred-shower/tracked.patch",
@@ -11265,13 +11280,13 @@
     },
     {
       "path": "docs/handoffs/animation-resume/verify-transfer.py",
-      "bytes": 4012,
-      "sha256": "e61dd92fc213fd0f46d2fe1b3ee9f147c1ea89d1c9e8ea0e2ae67f26200e2220"
+      "bytes": 4133,
+      "sha256": "091b4c65e3a0a1fe09f3aab2083e2bd545be69b465baab02db1ba8935a78c37b"
     },
     {
       "path": "docs/lessons-learned.md",
-      "bytes": 628184,
-      "sha256": "04bbd9cfe4e26d577a7b32f253c30647145e2ffe90c1966afdacc1f0467c4c94"
+      "bytes": 629186,
+      "sha256": "99bd83879666e7b2481fd405dab8aa21029118ab4aa209674cfb48b2208c0e10"
     },
     {
       "path": "docs/superpowers/plans/2026-10-05-bathroom-action-poses.md",

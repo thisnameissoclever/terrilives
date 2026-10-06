@@ -23,6 +23,8 @@ The transfer verifier checks the checkpoint file inventory and available origina
 
 The earliest rejected toilet prototypes 01 and 02 lack five producer-to-receipt bindings, representing four unique old producer versions. Those bytes were already absent on the former machine; they were overwritten before complete source snapshots existed. Their rejected journals are preserved, but exact regeneration is not claimed. `animation-resume/historical-gaps.json` names each exact missing binding. The transfer verifier reports only those documented historical gaps and rejects every undeclared missing dependency. Accepted prototype 08, the active loop/ink sources, deferred code and current task modules are fully retained; no active dependency is excused by that historical list.
 
+Clean-export verification exposed newline conversion in the original bathtub fixture receipt. Exact original receipt bytes are now retained in each bath diagnostic's source snapshot, while the published fixture file is unchanged. The verifier can therefore resolve the historical bath inputs without changing approved fixture metadata or relying on the former working folder's line endings.
+
 ## Requested scope and ownership
 
 The owner requested more aquarium fish idle motion and missing animations for taking a bath, showering, using the toilet, sitting, watching television and listening to the radio, plus an audit for other missing interaction animations. Television and radio should use seating rather than standing whenever an eligible seat exists. The agreed rule is a seven-tile Euclidean radius within a 90-degree cone in the device's physical front.
