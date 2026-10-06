@@ -61,6 +61,10 @@ For the cleanliness, exact-bits, disposition-key, row-index and row-sort rows, t
 
 For the saved-name byte-limit and trim rows, the same script method mutated `crates/terri-wasm/src/lib.rs`, and `git hash-object` before and after matched: `1feead79d4fd2a150de03e1958426a250ba0a25f`. `housemate_fields_within_bounds` is the helper that the earlier wasm boundary rows call `edit_within_bounds`; it now also serves move-ins and holds the untrimmed name to `terri_sim::MAX_TEXT_BYTES`.
 
+## Delivery
+
+The implementation, its tests, this record and the player notes are on branch `twcl/edit-sims`, branched from main `1a138df6`. Pushing, merging and deployment are recorded separately, in the pull request and the delivery report; this record does not establish any of them.
+
 ## Displayed browser
 
 Checked on 2026-10-05 against the built site of commit `dc1341eb` (bundle `index-C8SJJe0a.js`) served by `vite preview` on port 4173. The Claude desktop app's browser pane was not on screen, and while it was hidden it fired no animation frames, so the game clock never advanced and no queued edit could apply. Both passes therefore ran in the Playwright MCP's Chromium, where WebGPU drew the lot and the clock ran. The game was muted through `terrilives.audio-preferences.v1` before it loaded.
