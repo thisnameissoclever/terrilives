@@ -60,3 +60,26 @@ For the wasm boundary rows, a script mutated one exact span, ran `cargo test -p 
 For the cleanliness, exact-bits, disposition-key, row-index and row-sort rows, the same script method ran each mutation, and `git hash-object` before and after matched: `crates/terri-sim/src/edit.rs` was `a57d036b40db5d2f5300e4482c32e13cf4a93ba2` and `crates/terri-sim/src/lib.rs` was `93eb76e95ad28181d5a1bfeca8577956febf0990`.
 
 For the saved-name byte-limit and trim rows, the same script method mutated `crates/terri-wasm/src/lib.rs`, and `git hash-object` before and after matched: `1feead79d4fd2a150de03e1958426a250ba0a25f`. `housemate_fields_within_bounds` is the helper that the earlier wasm boundary rows call `edit_within_bounds`; it now also serves move-ins and holds the untrimmed name to `terri_sim::MAX_TEXT_BYTES`.
+
+## Displayed browser
+
+Checked on 2026-10-05 against the built site of commit `dc1341eb` (bundle `index-C8SJJe0a.js`) served by `vite preview` on port 4173. The Claude desktop app's browser pane was not on screen, and while it was hidden it fired no animation frames, so the game clock never advanced and no queued edit could apply. Both passes therefore ran in the Playwright MCP's Chromium, where WebGPU drew the lot and the clock ran. The game was muted through `terrilives.audio-preferences.v1` before it loaded.
+
+Desktop (1280 by 800, fresh game, Bill selected from the household roster): the Edit button was enabled, and the dialog opened as Edit housemate with Bill prefilled, Keep current personality checked and the row named The settled, current. Page two showed Bill's four traits checked with the other boxes disabled at the limit, no instinct controls, one They are the ... of row each for Tim and Casey set to Nobody, Removing a trait forgets its progress., and Confirm changes. Renaming Bill to Billy and making him Tim's partner closed the dialog once the edit applied; the dock caption, the roster button, the keyboard target line, Tim's People row and the heading of the menu opened on him by keyboard all read Billy, and Billy's People panel showed Tim, their partner. The clock held at Day 1, 03:31 from opening until the dialog closed, then ran again. Reopening showed Billy and partner prefilled; Escape and Cancel each closed it with nothing changed.
+
+Load while the dialog is open: a player cannot reach Load then, because the modal dialog makes the Options panel unreachable and a real click on Load timed out. Clicking Load from script opened the load dialog on top, and confirming the load closed the Edit dialog and returned focus to the Edit button. A load started before opening Edit finished within 38 milliseconds, before the dialog opened, so the race a player could hit was not reproduced.
+
+Phone (375 by 812, a separate context with touch input, a mobile user agent and device pixel ratio 2): page one matched the desktop with Tim prefilled and The correspondent, current. Clearing the name to three spaces disabled Next, showed Give them a name., and a forced tap left the dialog on page one. Restoring the name as Timmy reached page two with his three traits checked and rows for Bill and Casey. Making him Casey's sibling and confirming closed the dialog, and the caption, roster and People panel showed Timmy and Casey, their sibling. Measured heights were 44 px for `#edit-housemate`, both tie selects, `#housemate-confirm`, Back, Next and Cancel; `#edit-housemate` was 37.8 px wide and the name field 36.2 px tall. `document.documentElement.scrollWidth` stayed 375 at the window's 375 on both pages and after confirming, and the dialog's own scroll and client widths were both 341.
+
+Console errors: none from the page. The only error entry was the server's 404 for `/favicon.ico` on the first desktop load. On the phone, the error listeners were attached after the first load, so a page error raised during that startup would not have been recorded.
+
+Keyboard: opening the dialog focused the name field, Next moved focus to the first enabled trait box, and Escape, Cancel, Confirm changes and the load closure each returned focus to the Edit button.
+
+Not checked: the in-app pane's own mobile preset, a person whose ties came from a saved game rather than from this session's edit, a personality or trait change through the displayed form, landscape phone sizes, and screen reader output.
+
+1. [Desktop page one](../assets/review-evidence/edit-sims/desktop-page-one.png)
+2. [Desktop page two](../assets/review-evidence/edit-sims/desktop-page-two.png)
+3. [Desktop after confirming](../assets/review-evidence/edit-sims/desktop-after.png)
+4. [Phone page one](../assets/review-evidence/edit-sims/phone-page-one.png)
+5. [Phone page two](../assets/review-evidence/edit-sims/phone-page-two.png)
+6. [Phone refusal](../assets/review-evidence/edit-sims/phone-refusal.png)
