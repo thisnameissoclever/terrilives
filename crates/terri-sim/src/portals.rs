@@ -256,20 +256,22 @@ pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
         .collect()
 }
 
+/// The content's front door matched to its authored portal ([OS-door]), or
+/// `None` on a legacy lot whose door has no portal.
+pub fn front_portal(content: &terri_data::ContentPack) -> Option<&terri_data::CompiledPortal> {
+    content.lot.front_door.and_then(|door| {
+        content
+            .portals
+            .iter()
+            .find(|portal| portal.position == door)
+    })
+}
+
 /// The front door's line on a lot `width` tiles wide, from the content's
 /// front door matched to its portal ([OS-door]), or `None` when the door has
 /// no yard beyond it.
 pub fn front_door_line(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
-    content
-        .lot
-        .front_door
-        .and_then(|door| {
-            content
-                .portals
-                .iter()
-                .find(|portal| portal.position == door)
-        })
-        .and_then(|portal| door_line(portal, width))
+    front_portal(content).and_then(|portal| door_line(portal, width))
 }
 
 /// Whether `position` stands on `tile`, within the tolerance a walk's end is
@@ -880,7 +882,7 @@ mod tests {
             world.spawn((
                 Agent,
                 Position { x, y },
-                Commuting,
+                Commuting::Inbound,
                 Path { steps, cursor: 0 },
             ));
             let mut buffer = PortalBuffer::default();
@@ -908,7 +910,7 @@ mod tests {
                 .spawn((
                     Agent,
                     Position { x: 15.0, y: 2.5 },
-                    Commuting,
+                    Commuting::Inbound,
                     Path {
                         steps: vec![(15, 3)],
                         cursor: 0,
@@ -944,7 +946,7 @@ mod tests {
         world.spawn((
             Agent,
             Position { x, y },
-            Commuting,
+            Commuting::Outbound,
             Path {
                 steps: vec![(5, 2)],
                 cursor: 0,
@@ -984,7 +986,7 @@ mod tests {
 
         let outbound = world
             .spawn((
-                Commuting,
+                Commuting::Outbound,
                 Path {
                     steps: vec![(5, 2)],
                     cursor: 1,
@@ -999,7 +1001,7 @@ mod tests {
 
         let inbound = world
             .spawn((
-                Commuting,
+                Commuting::Inbound,
                 Path {
                     steps: vec![(5, 3)],
                     cursor: 0,
@@ -1024,7 +1026,7 @@ mod tests {
         let mut world = world_with_active_portals(portal_pack());
         let outbound = world
             .spawn((
-                Commuting,
+                Commuting::Outbound,
                 Path {
                     steps: vec![(5, 2)],
                     cursor: 0,
@@ -1107,7 +1109,7 @@ mod tests {
             let mut world = world_with_active_portals(content);
             let commuter = world
                 .spawn((
-                    Commuting,
+                    Commuting::Outbound,
                     Path {
                         steps: vec![(5, 2)],
                         cursor: 0,
@@ -1167,7 +1169,7 @@ mod tests {
             world.spawn((
                 Agent,
                 Position { x: 5.0, y },
-                Commuting,
+                Commuting::Inbound,
                 Path {
                     steps: vec![(5, 3)],
                     cursor: 0,
@@ -1191,7 +1193,7 @@ mod tests {
         world.spawn((
             Agent,
             Position { x: 5.0, y: 2.25 },
-            Commuting,
+            Commuting::Inbound,
             Path {
                 steps: vec![(5, 3)],
                 cursor: 0,

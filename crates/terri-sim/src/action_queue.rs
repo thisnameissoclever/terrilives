@@ -311,7 +311,7 @@ mod tests {
         sim.world_mut()
             .entity_mut(person)
             .remove::<Target>()
-            .insert(Commuting);
+            .insert(Commuting::Outbound);
         assert_eq!(sim.action_queue_of(person.index_u32())[0], "Going to work");
         sim.world_mut()
             .entity_mut(person)

@@ -683,11 +683,24 @@ pub struct Fumbled {
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Career(pub u32);
 
-/// This sim is walking to the front door to start a shift - [E4].
+/// This sim is walking a commute - [E4]: `Outbound` to the street's exit
+/// or the front door to start a shift, `Inbound` from where it reappeared
+/// to the door's landing after one. The direction is state, written by
+/// whoever starts the walk, because the walk's end cannot tell them apart:
+/// a worker standing on the commute's end when the shift starts arrives
+/// on the shift tick without moving, and a position read as "not on the
+/// door" would send it home from a shift it never clocked in to.
 /// Transient action state of the same class as `Eating` and `Fumbled`,
 /// deliberately NOT hashed: reproduced by the day clock on any replay.
+/// A save carries only the marker, so a load reads the direction back off
+/// the saved walk's destination.
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Commuting;
+pub enum Commuting {
+    /// Walking out to start a shift.
+    Outbound,
+    /// Walking home to the door's landing after a shift.
+    Inbound,
+}
 
 /// This sim is off the lot, working - the rabbit hole ([E4]). Counts
 /// down to the return. IN the world hash: it ticks, so two replays

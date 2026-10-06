@@ -64,6 +64,56 @@ fn a_commute_walks_out_to_the_street_and_home_through_the_door() {
     assert_eq!(sim.world().resource::<terri_core::Funds>().0, funds + pay);
 }
 
+/// A worker caught mid-step on the door tile when the shift starts still
+/// goes out to the street, clocks in there and is paid once. The shipped
+/// walls make the commute step onto the tile's centre first, so this lot
+/// never read the start as an arrival; the test pins that it stays so
+/// whichever way the commute is routed. The position is set on the tick
+/// before the shift, as an interrupted wander would leave it, and the
+/// clock-in is observed rather than predicted
+/// ([L-career-tests-follow-events-not-guessed-ticks]).
+#[test]
+fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let tim = worker(&mut sim);
+    let content = sim.world().resource::<crate::Content>().0;
+    let shift_start = u64::from(content.careers[0].shift_start);
+    let pay = i64::from(content.careers[0].pay);
+    for _ in 1..shift_start {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.world().resource::<terri_core::SimClock>().tick,
+        shift_start - 1,
+        "one tick per Sim::tick"
+    );
+    sim.world_mut()
+        .entity_mut(tim)
+        .remove::<terri_core::Path>()
+        .insert(Position { x: 15.3, y: 2.0 });
+    let funds = sim.world().resource::<terri_core::Funds>().0;
+
+    walk(&mut sim, tim, |sim| {
+        sim.world().get::<AtWork>(tim).is_some()
+    });
+
+    assert_eq!(at(&sim, tim), (19.0, 2.0), "at work on the street's exit");
+    assert_eq!(
+        sim.world().resource::<terri_core::Funds>().0,
+        funds,
+        "clocking in pays nothing"
+    );
+    walk(&mut sim, tim, |sim| {
+        sim.world().get::<AtWork>(tim).is_none() && sim.world().get::<Commuting>(tim).is_none()
+    });
+    assert_eq!(at(&sim, tim), (15.0, 3.0), "home on the landing");
+    assert_eq!(
+        sim.world().resource::<terri_core::Funds>().0,
+        funds + pay,
+        "the one shift pays once"
+    );
+}
+
 /// A worker saved at work on the street's exit loads, since it has a path
 /// home, and plays on as the unsaved game does.
 #[test]
