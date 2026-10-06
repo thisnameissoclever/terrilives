@@ -86,6 +86,36 @@ impl Sim {
                 })
                 .or(target)
         };
+        // A running chain's own order stays queued until the chain ends,
+        // and the current row already describes that chain, so the order
+        // is the served one unless an ordinary action has interrupted the
+        // chain - then the chain is waiting and its order is listed.
+        let served = match served {
+            Some(intent) if intent.interaction != crate::systems::chain::CHAIN_STEP => Some(intent),
+            _ => self
+                .world
+                .get::<terri_core::ChainState>(person)
+                .and_then(|state| {
+                    self.world
+                        .get::<IntentQueue>(person)?
+                        .as_slice()
+                        .iter()
+                        .copied()
+                        .find(|order| {
+                            self.world
+                                .get::<SmartObject>(order.object)
+                                .and_then(|placed| {
+                                    crate::systems::chain::ordered_chain(
+                                        pack,
+                                        placed.0,
+                                        order.interaction,
+                                    )
+                                })
+                                == Some(state.chain)
+                        })
+                })
+                .or(served),
+        };
         let current = if self.world.get::<AtWork>(person).is_some() {
             Some("At work".to_string())
         } else if let Some(intent) = social
@@ -321,5 +351,71 @@ mod tests {
                 interaction: crate::systems::chain::CHAIN_STEP,
             });
         assert!(sim.action_queue_of(person.index_u32())[0].starts_with("Cook breakfast - step: "));
+    }
+
+    /// A running recipe's own order stays queued until the recipe ends,
+    /// and the current row already describes the recipe, so that order
+    /// is not listed again - while an ordinary action interrupting the
+    /// recipe puts the whole waiting recipe back in the list.
+    #[test]
+    fn a_running_recipes_own_order_is_listed_once() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let pack = terri_data::pack();
+        let snack = pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == crate::domestic::SNACK)
+            .unwrap() as u32;
+        let find = |sim: &mut Sim, id: &str| {
+            sim.world_mut()
+                .query::<(Entity, &SmartObject)>()
+                .iter(sim.world())
+                .find(|(_, object)| pack.objects[object.0 .0 as usize].id == id)
+                .unwrap()
+                .0
+        };
+        let fridge = find(&mut sim, "fridge");
+        let bookcase = find(&mut sim, "bookshelf");
+        let person = sim
+            .world_mut()
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(sim.world())
+            .next()
+            .unwrap();
+        let row = sim
+            .interaction_labels(fridge.index_u32())
+            .unwrap()
+            .iter()
+            .position(|label| *label == "Grab a snack")
+            .unwrap() as u32;
+        let order = Intent {
+            object: fridge,
+            interaction: row,
+        };
+        sim.world_mut().entity_mut(person).insert((
+            terri_core::ChainState::begin(snack),
+            IntentQueue::from_intents(vec![order, order]),
+        ));
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(
+            labels.len(),
+            2,
+            "the running snack once, the waiting snack once"
+        );
+        assert!(labels[1].starts_with("Grab a snack: "));
+
+        sim.world_mut().entity_mut(person).insert(Target {
+            object: bookcase,
+            interaction: 0,
+        });
+        let labels = sim.action_queue_of(person.index_u32());
+        assert_eq!(
+            labels.len(),
+            3,
+            "the interrupted snack waits with its order"
+        );
+        assert!(labels[0].starts_with("Read a book: "));
+        assert!(labels[1].starts_with("Grab a snack: "));
+        assert!(labels[2].starts_with("Grab a snack: "));
     }
 }

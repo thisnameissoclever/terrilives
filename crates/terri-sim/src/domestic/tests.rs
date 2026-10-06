@@ -1668,3 +1668,82 @@ fn own_old_dishes_lower_mood_without_self_resentment() {
         0.0
     );
 }
+
+/// Queue mode appends every order ([I-plain-order-goes-first]), so three
+/// `Grab a snack` orders placed in one paused moment are three snacks,
+/// one after another. A chain order lives in the queue until the chain
+/// it started finishes, exactly as an ordinary order lives until its
+/// interaction completes: the waiting snacks stay behind the running
+/// one instead of replacing it, and the order count falls by one per
+/// finished snack.
+#[test]
+fn queued_snack_orders_run_one_after_another() {
+    let (mut sim, people, fridge, _, _) = household();
+    let person = people[0];
+    for other in &people[1..] {
+        *sim.world_mut().get_mut::<Needs>(*other).unwrap() = Needs::all_at(100.0);
+    }
+    let pack = sim.world().resource::<Content>().0;
+    let fridge_def = sim.world().get::<SmartObject>(fridge).unwrap().0;
+    let row = pack
+        .object(fridge_def)
+        .interactions
+        .iter()
+        .position(|action| action.id == "grab_snack")
+        .expect("the shipped fridge offers a snack") as u32;
+    let snack_chain = pack
+        .chains
+        .iter()
+        .position(|chain| chain.id == SNACK)
+        .expect("the snack chain") as u32;
+    const ORDERS: usize = 3;
+    for _ in 0..ORDERS {
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObject {
+                agent: person.index_u32(),
+                object: fridge.index_u32(),
+                interaction: row,
+            });
+    }
+
+    let start = sim.world().resource::<terri_core::SimClock>().tick;
+    let mut ticks = 0_u64;
+    let mut running = false;
+    let mut finished = 0_usize;
+    for _ in 0..6000 {
+        sim.tick();
+        ticks += 1;
+        // Hunger is topped up so the person keeps obeying rather than
+        // cooking a meal on their own account.
+        sim.world_mut()
+            .get_mut::<Needs>(person)
+            .unwrap()
+            .set(NeedId::Hunger, 60.0);
+        let now = sim
+            .world()
+            .get::<ChainState>(person)
+            .is_some_and(|state| state.chain == snack_chain);
+        if running && !now {
+            finished += 1;
+            assert_eq!(
+                sim.queued_orders_of(person.index_u32()),
+                ORDERS - finished,
+                "snack {finished} finished: the orders still waiting"
+            );
+        }
+        running = now;
+        if finished == ORDERS {
+            break;
+        }
+    }
+    assert_eq!(
+        sim.world().resource::<terri_core::SimClock>().tick,
+        start + ticks,
+        "one clock tick per loop tick"
+    );
+    assert_eq!(
+        finished, ORDERS,
+        "every queued snack order must run as its own snack within {ticks} ticks"
+    );
+}

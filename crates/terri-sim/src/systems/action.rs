@@ -485,6 +485,32 @@ mod sampler_tests {
 /// [`select_action`]: the query tuple is what pushes past clippy's
 /// threshold, and a type alias would only move it somewhere less
 /// readable.
+/// Records `chain` as the one the player ordered `agent` to run. The
+/// privacy rules read the record to tell a directed errand from one the
+/// sim chose for itself; `privacy::maintain` clears it once the sim no
+/// longer carries that chain.
+fn record_directed_chain(
+    boundaries: &mut crate::privacy::BoundaryDecisions,
+    identities: &Query<&SimId>,
+    agent: Entity,
+    chain: u32,
+) {
+    if let Ok(id) = identities.get(agent) {
+        boundaries
+            .0
+            .entry(id.0)
+            .or_insert(terri_core::save::SavedBoundaryDecision {
+                actor: id.0,
+                expires: 0,
+                lapse: false,
+                waiting_since: None,
+                goal: None,
+                directed_chain: None,
+            })
+            .directed_chain = Some(chain);
+    }
+}
+
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn serve_intents(
     mut commands: Commands,
@@ -498,7 +524,13 @@ pub fn serve_intents(
     // the clock's preemption is not preemptable back: a commuting or
     // working sim's queued intents wait and are served on the return.
     mut agents: Query<
-        (Entity, &Position, &mut IntentQueue, Option<&Target>),
+        (
+            Entity,
+            &Position,
+            &mut IntentQueue,
+            Option<&Target>,
+            Option<&terri_core::ChainState>,
+        ),
         (
             With<Agent>,
             Without<terri_core::AtWork>,
@@ -536,8 +568,8 @@ pub fn serve_intents(
 ) {
     let mut directed: Vec<Entity> = agents
         .iter()
-        .filter(|(_, _, queue, _)| !queue.is_empty())
-        .map(|(entity, _, _, _)| entity)
+        .filter(|(_, _, queue, ..)| !queue.is_empty())
+        .map(|(entity, ..)| entity)
         .collect();
     directed.sort_by_key(|entity| entity.index());
 
@@ -559,7 +591,7 @@ pub fn serve_intents(
     for agent in directed {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, agent_pos, mut queue, target)) = agents.get_mut(agent) else {
+        let Ok((_, agent_pos, mut queue, target, chain_state)) = agents.get_mut(agent) else {
             continue;
         };
         let Some(intent) = queue.front() else {
@@ -701,54 +733,30 @@ pub fn serve_intents(
         // **The rows past the interactions are the object's CHAINS** -
         // [K5]'s flyout mapping, which is what keeps the command wire
         // untouched: `UseObject`'s existing index addresses a chain by
-        // position. Starting one preempts exactly as any command does,
-        // spends the intent (the chain carries itself from here -
-        // advance_chains targets the first station this same tick),
+        // position. Starting one preempts exactly as any command does
         // and replaces whatever chain was already running, hands
         // emptied: two dinners at once is not a state.
-        {
-            let interactions = content.0.object(placed.0).interactions.len();
-            let snack = content
-                .0
-                .object(placed.0)
-                .interactions
-                .get(intent.interaction as usize)
-                .is_some_and(|act| act.id == "grab_snack")
-                && content
-                    .0
-                    .chains
-                    .iter()
-                    .any(|chain| chain.id == crate::domestic::SNACK);
-            if intent.interaction as usize >= interactions || snack {
-                let local = (intent.interaction as usize).saturating_sub(interactions);
-                let requested = if snack {
-                    content
-                        .0
-                        .chains
-                        .iter()
-                        .enumerate()
-                        .find(|(_, chain)| chain.id == crate::domestic::SNACK)
-                } else {
-                    content
-                        .0
-                        .chains
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, chain)| chain.advertised_by == placed.0)
-                        .nth(local)
-                };
-                let Some((global, chain)) = requested else {
-                    // Past the chains too: the pack changed under a
-                    // saved command log, since a live click cannot name
-                    // a row that is not there. Dropping it is what
-                    // keeps the indexing in `follow_path` and
-                    // `tick_interactions` safe by construction rather
-                    // than by hope.
-                    queue.pop();
-                    continue;
-                };
-                if crate::domestic::hidden_chain(&chain.id) && !snack {
-                    queue.pop();
+        //
+        // **The order is NOT spent at the start.** It stays at the front
+        // for as long as its chain runs, the [D-3] rule every ordinary
+        // order already follows, so an order queued behind it waits its
+        // turn instead of becoming the front on the next tick and
+        // replacing the chain - the failure that let eleven queued
+        // snacks produce one snack. `advance_chains` and the dining
+        // systems recognise the front order as the running chain's own
+        // through `outranked`, and `settle_order` removes it when the
+        // chain finishes or is abandoned.
+        let interactions = content.0.object(placed.0).interactions.len();
+        match super::chain::ordered_chain(content.0, placed.0, intent.interaction) {
+            Some(global) => {
+                if chain_state.is_some_and(|state| state.chain == global) {
+                    // Already carrying out this very chain - the
+                    // `Target` check above, for a chain. A chain the sim
+                    // chose for itself that the order happens to name is
+                    // adopted rather than restarted, and recorded as
+                    // directed so the privacy rules read it as the
+                    // player's errand from here on.
+                    record_directed_chain(&mut boundaries, &identities, agent, global);
                     continue;
                 }
                 if let Some(target) = target {
@@ -765,31 +773,28 @@ pub fn serve_intents(
                     .remove::<terri_core::StepWork>()
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
-                    .insert(terri_core::ChainState::begin(global as u32));
-                if let Ok(id) = identities.get(agent) {
-                    boundaries
-                        .0
-                        .entry(id.0)
-                        .or_insert(terri_core::save::SavedBoundaryDecision {
-                            actor: id.0,
-                            expires: 0,
-                            lapse: false,
-                            waiting_since: None,
-                            goal: None,
-                            directed_chain: None,
-                        })
-                        .directed_chain = Some(global as u32);
-                }
+                    .insert(terri_core::ChainState::begin(global));
+                record_directed_chain(&mut boundaries, &identities, agent, global);
                 commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
-                if chain.id == crate::domestic::CLEANUP {
+                if content.0.chains[global as usize].id == crate::domestic::CLEANUP {
                     commands.queue(move |world: &mut World| {
                         crate::domestic::directed_cleanup(world, agent)
                     });
                 }
                 claimed.push(agent);
+                continue;
+            }
+            None if intent.interaction as usize >= interactions => {
+                // Past the chains, or a chain the pack keeps to itself:
+                // the pack changed under a saved command log, since a
+                // live click cannot name a row that is not there.
+                // Dropping it is what keeps the indexing in
+                // `follow_path` and `tick_interactions` safe by
+                // construction rather than by hope.
                 queue.pop();
                 continue;
             }
+            None => {}
         }
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
         let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);

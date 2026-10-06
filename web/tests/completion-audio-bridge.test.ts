@@ -70,7 +70,9 @@ test('a toilet interruption emits once after loading and lets cooking resume', (
     for (let tick = 0; tick < 10; tick++) sim.tick();
     const recipe = sim.chainStatusOf(actor);
     expect(recipe).toMatch(/^Cook /);
-    expect(sim.useObject(actor, toilet, 0)).toBe(true);
+    // A plain order goes first and interrupts the recipe; an appended one
+    // would wait behind it until the cooking is done.
+    expect(sim.useObjectFirst(actor, toilet, 0)).toBe(true);
     let loaded = false, resumed = false;
     for (let tick = 0; tick < 1200; tick++) {
       sim.tick();

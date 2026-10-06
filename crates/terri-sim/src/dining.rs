@@ -269,9 +269,16 @@ pub(crate) fn advance(world: &mut World) {
             || world.get::<Socialising>(person).is_some()
             || world.get::<AtWork>(person).is_some()
             || world.get::<Commuting>(person).is_some()
-            || world
-                .get::<IntentQueue>(person)
-                .is_some_and(|q| !q.is_empty())
+            // A waiting order outranks the meal; the running chain's own
+            // order, queued until the chain ends, does not.
+            || world.get::<ChainState>(person).is_none_or(|progress| {
+                crate::systems::chain::outranked(
+                    world.resource::<Content>().0,
+                    world.get::<IntentQueue>(person),
+                    progress.chain,
+                    |object| world.get::<SmartObject>(object).map(|placed| placed.0),
+                )
+            })
         {
             continue;
         }
