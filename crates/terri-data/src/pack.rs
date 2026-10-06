@@ -103,6 +103,7 @@ pub enum CompiledVisualAction {
     Cook,
     Wash,
     UseToilet,
+    Bathe,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -2782,6 +2783,17 @@ mod tests {
         assert_eq!(
             postcard::to_allocvec(&toilet).unwrap(),
             vec![10, 3, 1, 1, 0]
+        );
+        let bath = CompiledVisual {
+            action: CompiledVisualAction::Bathe,
+            anchor: CompiledVisualAnchor::ObjectSocket,
+            facing: CompiledVisualFacing::Socket,
+            socket: Some(0),
+        };
+        assert_eq!(
+            postcard::to_allocvec(&bath).unwrap(),
+            vec![11, 3, 1, 1, 0],
+            "Bathe must append after UseToilet without moving the socket contract"
         );
     }
 }

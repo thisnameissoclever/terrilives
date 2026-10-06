@@ -171,8 +171,11 @@ the exact use target, flush sound, privacy, duration, path position and
 save fingerprint. Keep the ordinary activity code distinct from the body
 animation code.
 
-Shower presentation appends `CompiledVisualAction::Shower` after the existing
-compiled actions and uses render action 19, the next code after the toilet. Its only legal authored contract
+Bath presentation appends `CompiledVisualAction::Bathe` after `UseToilet` and
+uses render action 19; its authored contract is `bathe`, `object_socket`,
+`socket`, with the tub's declared `basin` socket at the fixture origin. Shower
+presentation appends `CompiledVisualAction::Shower` after that and uses render
+action 20, the next code after the bath. Its only legal authored contract
 is `shower`, `object_socket`, `socket`, with an existing declared socket.
 The shipped shower's `tray` socket stays at the fixture origin and rotates
 with its facing. The live target and active interaction must agree before

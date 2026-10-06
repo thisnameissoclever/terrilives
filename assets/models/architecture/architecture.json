@@ -36,6 +36,11 @@
       "kind": "bathroom-actions",
       "catalog": "assets/models/bathroom/actions/export/toilet-05/manifest.json",
       "canonicalSha256": "361fd4f1d05fa357502f290548efbb5a1552e85cebcb51df72fb03da6cbddd97"
+    },
+    {
+      "kind": "bathroom-actions",
+      "catalog": "assets/models/bathroom/actions/export/bath-01/manifest.json",
+      "canonicalSha256": "d9c1f96f7d393ccbe4f33dbf27d7175d02d99680e94ff2c3204f566ed2c5de29"
     }
   ],
   "historicalFiles": {

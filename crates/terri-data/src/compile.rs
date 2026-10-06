@@ -2057,6 +2057,7 @@ fn compile_visual(
         "cook" => CompiledVisualAction::Cook,
         "prepare" => CompiledVisualAction::Prepare,
         "use_toilet" => CompiledVisualAction::UseToilet,
+        "bathe" => CompiledVisualAction::Bathe,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
@@ -2079,6 +2080,7 @@ fn compile_visual(
             | CompiledVisualAction::Sit
             | CompiledVisualAction::Sleep
             | CompiledVisualAction::UseToilet
+            | CompiledVisualAction::Bathe
     ) && anchor == CompiledVisualAnchor::ObjectSocket
         && visual.socket.is_none()
     {
@@ -2150,6 +2152,12 @@ fn compile_visual(
             CompiledVisualAnchor::ObjectSocket,
             CompiledVisualFacing::Socket,
             Some(_)
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Bathe,
+            CompiledVisualAnchor::ObjectSocket,
+            CompiledVisualFacing::Socket,
+            Some(_)
         )
     );
     if !legal {
@@ -2165,6 +2173,7 @@ fn compile_visual(
             CompiledVisualAction::Cook => "cook",
             CompiledVisualAction::Prepare => "prepare",
             CompiledVisualAction::UseToilet => "use_toilet",
+            CompiledVisualAction::Bathe => "bathe",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -2202,6 +2211,7 @@ fn compile_visual(
                             CompiledVisualAction::Cook => "cook",
                             CompiledVisualAction::Prepare => "prepare",
                             CompiledVisualAction::UseToilet => "use_toilet",
+                            CompiledVisualAction::Bathe => "bathe",
                         },
                         "object_socket",
                     ),
@@ -11260,6 +11270,7 @@ mod tests {
                 "sit",
                 "sleep",
                 "use_toilet",
+                "bathe",
             ] {
                 for anchor in ["partner", "object", "station"] {
                     let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
@@ -11418,6 +11429,7 @@ mod tests {
                 "sit",
                 "sleep",
                 "use_toilet",
+                "bathe",
             ] {
                 for anchor in ["partner", "object", "station", "object_socket"] {
                     for facing in ["toward_anchor", "socket"] {
@@ -11450,7 +11462,7 @@ mod tests {
                                     None
                                 ) | (
                                     VisualOwner::Object { .. },
-                                    "read" | "exercise" | "sit" | "sleep" | "use_toilet",
+                                    "read" | "exercise" | "sit" | "sleep" | "use_toilet" | "bathe",
                                     "object_socket",
                                     "socket",
                                     Some("saddle")
@@ -11563,6 +11575,43 @@ mod tests {
             })
         ));
         let mut wrong = toilet();
+        let visual = wrong.interaction[0].visual.as_mut().unwrap();
+        visual.anchor = Some("object".to_string());
+        visual.facing = Some("toward_anchor".to_string());
+        visual.socket = None;
+        assert!(matches!(
+            compile_objects(full_needs(), file(wrong)),
+            Err(ContentError::InvalidVisualContract { .. })
+        ));
+    }
+
+    #[test]
+    fn bath_visual_requires_a_declared_object_socket() {
+        let bath = || {
+            let mut object = reading_object();
+            object.interaction[0].visual.as_mut().unwrap().action = Some("bathe".to_string());
+            object
+        };
+        let file = |object| ObjectsFile {
+            object: vec![object],
+            colourway: Vec::new(),
+            affinity: Vec::new(),
+        };
+        let pack = compile_objects(full_needs(), file(bath())).unwrap();
+        assert_eq!(
+            pack.objects[0].interactions[0].visual.unwrap().action,
+            CompiledVisualAction::Bathe
+        );
+        let mut missing = bath();
+        missing.interaction[0].visual.as_mut().unwrap().socket = None;
+        assert!(matches!(
+            compile_objects(full_needs(), file(missing)),
+            Err(ContentError::IncompleteVisual {
+                field: "socket",
+                ..
+            })
+        ));
+        let mut wrong = bath();
         let visual = wrong.interaction[0].visual.as_mut().unwrap();
         visual.anchor = Some("object".to_string());
         visual.facing = Some("toward_anchor".to_string());

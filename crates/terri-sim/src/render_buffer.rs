@@ -279,6 +279,8 @@ pub mod visual_action {
     pub const EMPTY_BIN: u32 = 17;
     /// Sitting on the exact target toilet's authored seat socket.
     pub const USE_TOILET: u32 = 18;
+    /// Sitting in the exact target bathtub's authored basin socket.
+    pub const BATHE: u32 = 19;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -297,6 +299,10 @@ pub mod facing {
 mod tests {
     mod toilet_projection_tests {
         include!("render_buffer/toilet_projection_tests.rs");
+    }
+
+    mod bath_projection_tests {
+        include!("render_buffer/bath_projection_tests.rs");
     }
 
     fn neutral_instincts(sim: &mut Sim) {
@@ -3881,7 +3887,7 @@ mod tests {
                 activity::WATCHING_FISH,
                 visual_action::WATCH,
             ),
-            ("bathtub", "soak", activity::BATHING, visual_action::NONE),
+            ("bathtub", "soak", activity::BATHING, visual_action::BATHE),
         ];
         assert_eq!(
             pack.objects

@@ -1436,6 +1436,20 @@ def main():
     tops.update(bathroom_data['tops'])
     bounds.update(bathroom_data['bounds'])
     densities.update(bathroom_data['density'])
+    bath = load_bathroom(Path(ROOT) / 'assets/models/bathroom/actions/export/bath-01/manifest.json')
+    bath_rows = bathroom_records(bath)
+    assert not {row[0] for row in sprites}.intersection(row[0] for row in bath_rows), 'duplicate bath records'
+    sprites.extend(bath_rows)
+    bath_data = bathroom_tables(bath, sprites, anchors)
+    anchors.update(bath_data['anchors'])
+    tops.update(bath_data['tops'])
+    bounds.update(bath_data['bounds'])
+    densities.update(bath_data['density'])
+    bathroom_data = dict(bathroom_data, profiles={**bathroom_data['profiles'], **bath_data['profiles']},
+                         layers={**bathroom_data['layers'], **bath_data['layers']},
+                         coverage={**bathroom_data['coverage'], **{index:[m+len(bathroom_data['masks']) for m in masks]
+                                                                  for index, masks in bath_data['coverage'].items()}},
+                         masks=bathroom_data['masks']+bath_data['masks'])
     visible_layers = {**bed_layers, **seating_data['layers'], **bathroom_data['layers']}
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
