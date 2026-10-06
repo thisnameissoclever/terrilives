@@ -1,0 +1,23 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 17 tests
+test beds::tests::lifecycle::a_worker_leaving_a_shared_bed_preserves_the_other_sleep_and_both_assignments ... ok
+test placement::tests::placement_keeps_returning_worker_on_door_landing_without_second_pay ... ok
+test portals::tests::a_worker_at_another_position_does_not_animate_this_portal ... ok
+test portals::tests::an_inbound_crossing_closes_after_the_worker_clears_the_leaf ... ok
+test portals::tests::an_open_crossing_outranks_another_workers_closing_request ... ok
+test save::architecture::tests::v2_rejects_a_solid_future_portal_route_while_the_worker_is_home ... ok
+test systems::career::street_tests::a_saved_worker_is_judged_on_the_exit_within_a_hundredth_on_each_axis ... ok
+test systems::career::street_tests::a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street ... ok
+test systems::career::street_tests::a_worker_saved_at_work_on_a_shut_in_exit_is_refused ... ok
+test systems::career::street_tests::a_worker_saved_at_work_on_the_street_loads_and_plays_on ... ok
+test systems::career::street_tests::a_worker_saved_just_short_of_the_exit_is_judged_from_the_exit ... ok
+test systems::career::street_tests::furniture_saved_on_the_exit_sends_the_worker_by_the_door ... ok
+test systems::career::tests::a_directed_talk_at_a_worker_waits_by_the_door ... ok
+test systems::career::tests::a_worker_a_fraction_off_the_door_at_shift_start_still_clocks_in_and_is_paid_once ... ok
+test systems::career::tests::an_outbound_commute_that_has_ended_clocks_in_wherever_the_worker_stands ... ok
+test systems::career::tests::the_shipped_worker_leaves_on_day_one_and_stays_home_on_day_six ... ok
+test systems::interpersonal::integration_tests::interpersonal_failed_approaches_and_absent_workers_receive_no_penalty ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 1116 filtered out; finished in 76.57s

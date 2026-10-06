@@ -106,3 +106,15 @@ Changelog generation and all 12 changelog tests passed. Document IDs and
 whitespace checks excluding raw evidence logs passed. Incoming raw logs retain
 their original whitespace. Results are in the adjacent `chores-*.txt` files;
 all final passing commands returned zero.
+
+## Commute direction integration
+
+A final fetch and pull preserved main at `89040f82`, which records outbound
+and inbound commutes explicitly. This update merged without conflicts.
+The final snapshot passed all-target clippy, 17 focused native worker,
+portal, save and interpersonal tests, an optimized browser module rebuild,
+124 browser tests in five files, production build, formatting, documentation
+IDs and the 12 changelog tests. All final commands returned zero. Logs are
+in the adjacent `commute-*.txt` files. The complete native and web suites
+above apply to the preceding chores integration; they were not repeated for
+this focused update. Hosted checks and automatic publication remain separate.
