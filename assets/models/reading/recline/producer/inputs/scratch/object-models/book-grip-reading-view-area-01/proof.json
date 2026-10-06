@@ -1,0 +1,165 @@
+{
+  "state": "complete",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_view_area.py": "015e893c5353ea551445002f1e6c3cca2eabf57339c1e20c7842e952aabda4af",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-compare-01\\proof.json": "0fc58e118071feaca67a7c3616b5c8b9f365d801e7f48dcbec13a34b893d7775",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-compare-01\\proposal.npz": "89718c49e4dc26256f1a1b875f652b51d7c28a1f4764252f447a070f629c6f47",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966"
+  },
+  "controls": {
+    "half_cover_remaining": 0.5,
+    "complete_cover_remaining": 0.0,
+    "disjoint_remaining": 1.0
+  },
+  "eyes": [
+    {
+      "side": "L",
+      "projection_depth": 0.19523103062407723,
+      "physical_top_page_area": 0.06623996151573741,
+      "orthographic_gaze_projected_area": 0.00717368787216937,
+      "incidence_degrees": 83.73754640752942,
+      "unoccluded_perspective_area": 0.016295524578863834,
+      "occluder_projected_triangles": 454,
+      "readable_panel": {
+        "visible_area": 0.01629552457886383,
+        "fraction_of_projected_page": 0.9999999999999998,
+        "fragments": 26,
+        "effective_blockers": []
+      },
+      "exposed_paper": {
+        "visible_area": 0.01615383633456837,
+        "fraction_of_projected_page": 0.991305082348853,
+        "fragments": 43,
+        "effective_blockers": [
+          {
+            "target": 0,
+            "part": "Printed book line.004",
+            "triangle": 0,
+            "removed_area": 9.051919197663669e-08
+          },
+          {
+            "target": 0,
+            "part": "Printed book line.004",
+            "triangle": 1,
+            "removed_area": 8.222054922184426e-07
+          },
+          {
+            "target": 0,
+            "part": "Printed book line.004",
+            "triangle": 2,
+            "removed_area": 2.5847722716241302e-05
+          },
+          {
+            "target": 0,
+            "part": "Printed book line.004",
+            "triangle": 3,
+            "removed_area": 5.238534168721699e-06
+          },
+          {
+            "target": 1,
+            "part": "Printed book line.004",
+            "triangle": 2,
+            "removed_area": 3.900684837999935e-06
+          },
+          {
+            "target": 1,
+            "part": "Printed book line.004",
+            "triangle": 3,
+            "removed_area": 2.2725104550644967e-06
+          },
+          {
+            "target": 3,
+            "part": "Printed book line.009",
+            "triangle": 0,
+            "removed_area": 2.7053701100263755e-07
+          },
+          {
+            "target": 3,
+            "part": "Printed book line.009",
+            "triangle": 1,
+            "removed_area": 3.88258777426001e-06
+          },
+          {
+            "target": 3,
+            "part": "Printed book line.009",
+            "triangle": 2,
+            "removed_area": 5.919324577254286e-05
+          },
+          {
+            "target": 3,
+            "part": "Printed book line.009",
+            "triangle": 3,
+            "removed_area": 4.016969687543025e-05
+          }
+        ]
+      }
+    },
+    {
+      "side": "R",
+      "projection_depth": 0.19523103062407723,
+      "physical_top_page_area": 0.06623996151573741,
+      "orthographic_gaze_projected_area": 0.00717368787216937,
+      "incidence_degrees": 83.73754640752942,
+      "unoccluded_perspective_area": 0.016295524578863834,
+      "occluder_projected_triangles": 454,
+      "readable_panel": {
+        "visible_area": 0.01629552457886383,
+        "fraction_of_projected_page": 0.9999999999999998,
+        "fragments": 13,
+        "effective_blockers": []
+      },
+      "exposed_paper": {
+        "visible_area": 0.016153836332142544,
+        "fraction_of_projected_page": 0.9913050821999884,
+        "fragments": 27,
+        "effective_blockers": [
+          {
+            "target": 0,
+            "part": "Printed book line.004",
+            "triangle": 3,
+            "removed_area": 8.86482948684042e-05
+          },
+          {
+            "target": 1,
+            "part": "Printed book line.004",
+            "triangle": 3,
+            "removed_area": 1.071465379529372e-05
+          },
+          {
+            "target": 1,
+            "part": "Printed book line.004",
+            "triangle": 4,
+            "removed_area": 1.3510946314681561e-06
+          },
+          {
+            "target": 1,
+            "part": "Printed book line.004",
+            "triangle": 5,
+            "removed_area": 2.80202687097603e-06
+          },
+          {
+            "target": 3,
+            "part": "Printed book line.009",
+            "triangle": 2,
+            "removed_area": 1.5418851612896203e-07
+          },
+          {
+            "target": 3,
+            "part": "Printed book line.009",
+            "triangle": 3,
+            "removed_area": 3.8017988039015186e-05
+          }
+        ]
+      }
+    }
+  ],
+  "convention": "Perspective projection from each unchanged pupil front-envelope proxy along the measured gaze. Areas are square metres on a plane at that eye-to-book-center gaze depth. Incidence is degrees from the mean printed-page normal; 90 degrees is edge-on.",
+  "semantics": "Panel-visible area includes printed ink as part of the reading panel; exposed-paper area additionally subtracts the ten ink cubes. All body and other book surfaces participate. This is geometric visibility, not perceived legibility or a render.",
+  "limits": {
+    "seconds": 45,
+    "fragments": 10000
+  },
+  "cache_sha256": "74bc00bef02d308e079594b814787ffd557578c2305848db7a03551c82828fc4",
+  "elapsed_seconds": 1.4141461999388412,
+  "inputs_unchanged": true
+}

@@ -1,0 +1,1596 @@
+{
+  "state": "complete",
+  "pid": 48832,
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_pitched_edge.py": "b8ffe25d60561c55eae975df9b6598ff86d766868040de428acfcac4f3c36d29",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_book_only.py": "551031f34b8657517c6a2e1ba1cfceda8628a7a6080b024d8728f29f954bec74",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-verify-01\\proof.json": "b16044b8ed5bcb0e824cec36c4bf7469dbe3299247513e6a699469804d1f87e7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-verify-01\\case-06.npz": "6fb4c7cdcaee98bf614276af55442fa24cdd1ebbafc7d1572314f81d70e3e805",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_construct_v2.py": "1e4f31c4b14682c1712d23c0351044c0100b6eb273dfce3e2977ba71072a5372",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-original-grip-01\\proof.json": "3207d3a3acdb2d58070c32517f24fa2083040add6f4b841db290e5ba14e5120d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-original-grip-01\\case-00.npz": "0e70a5c92070fad15056c67272e87ee0c6bc5e300baf19a306eaf8581f06b56a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\owner-review-pending\\long-sofa\\candidate-01\\long-sofa-authoring.blend": "075abd2472f09d3933e541a7024f2bf9fb3b2dd67cc5b79d8c4a976f83041b76",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_shared_sofa_tucked.py": "0d2eb7c5d6ab28e2ca85733e11be6a4deb9cdcb88089b239c6a1ffcd6c67b8fd",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bathroom\\check_toilet_scene.py": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\double_bed_sleep.py": "719d9d69dbdace0b3772dfd2f46f3c3ce5f2f701d62ebd1b7b94ef36ee759138",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_shared_sofa_coupled.py": "5c57df560d0c7f9a882ccd71665c470e511b651ae10c92799892d892b5d39651",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\measure_sofa_depth.py": "2dab649dd0b62227bc9bb5830117c8fc725f8a8f7504daf1bafc46cc318fcb96",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_witnesses.py": "5fbd021945ab84516721cbdbc60c8e15e1d43632840ce54b2459df41ef39c67a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\audit_sofa_binding.py": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\seating\\pose_profiles.py": "b26797c83012cf5f6e83f63fd1ffb579500f5be0de65a6c952b9ab337af1ce6a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_contact.py": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\kitchen\\check_stove_scene.py": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_support.py": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_outward_torso.py": "58d113d25b8bea5486280ca37aa4bb9c613ec92a8e6866b3f339384ef159ab94",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\measure_sofa_regions.py": "2fbdc9b4fdd4321da78e69f61358a24381fe1d6e256a637c738e3d6d48409c0c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_layout.py": "c5cd8cc02aba1779a1e8676cb1a6a5b808005a455b6b58cb96bd113acb1fb8c8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\seating\\neutral_pose.py": "d58755138d35d1305356aee6ad73fd982705c65a738ad7987ad6b812a2f400e7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_derived_binding_v3.py": "51fc4777f13b39f9a9763c0a1f519bf0ac4139f71f2b9781980b5db6c3a99bfa",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_derived_binding.py": "03b0d0bb3cceff9637e989c641ece4d78a5294ce863f6a9e7590c7d1f4dd0e11",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_rest_initialization.py": "4aca5e5163942e09cc9c848c8014a875d3271e45f2a02c8a3138b0384f80ccdc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\proof.json": "050aef2b31431a15c23c0acb9060b4c9cd65a7e584e2899dfd16c46e910ea9ff",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\source-binding.npz": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\compare_original_read_grip.py": "5859e929d973bc1c13aa13a6950197f107e445361f8179ea1c0c348bd7be2f3e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\proof.json": "433ad3c33cb1eb9d5ebb1abc4dd6fb9dc8b651bae65c9e667919edac6b964823",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\derived-waist-binding.blend": "79ffb20dbeafd59278b83446d961d7384288ebca842b80a90e1110c5afe3ef9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_book_support.py": "dd54c8851972bea14b935a23a7016863ad4a99f713ccad7e2fb92b9be9cb8189",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_resting_hand_solver.py": "a4939ab506df9fab6b1cc5c0c813843dae2fcd0d8d543e683aaf287937c796a1",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-construction-02\\contract.json": "64262e7e8e06c8f34a1ed820e86b00c876c7d56334622fa7c8ad7a1c2cfe9c1a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-construction-02\\geometry.npz": "650acad9081d6472fd53cb9b868a8dd09b9f3ee3e70c918ecc4c5637609a9ef7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_verify.py": "35297efef0c1387d93f0f46dc685759e6f2fa24ef7847fee7a6fa23f96906a9f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\coherent_sofa_arm_frames_v2.py": "2ab4313400198139d78b745ac429555442a767be697de8eb5292c7f4fb246900",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_arm_frame_math.py": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_original_replay.py": "81427aa8c9c9d3b0eaa4c63dd94b1c8fed51d51c1f20da6bcdce0e16faa75239",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-pitched-edge-01\\proof.json": "dd5961a612905eb298bb36fdc69cc5d8b252d5786e804557e43d564acc899d7d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-pitched-edge-01\\geometry.npz": "e41c9a28e902a4c8035510c08d18aaa7b3eb83b7cfed9a054ae282cf9eacadf0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-better-way-review.md": "ee4f2dfd0bd931212f92d7039e8e876e1fe2270e59cbb94e033085942c55e71c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_replay_math.py": "f42a32cd7b8100c474f1a3c53892301f31e346b588e8dd4ed08956524c327f8f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_frames.py": "1841b79f265ff0b422ca150ffa5bdbd150bcdef9bced2186aace0e5003e4b4cb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_wrists.py": "160581d91cae76afe367109cb182eb61f73968aa0e7da267cc5141d1dfa50175",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_evaluator.py": "29ff6322d252189167c4b22b9ef2e14d2069fb2dab468fe6f0e78b8477a44452",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_scene_v2.py": "050fb4d57e6889e3eb846afffc614f255e554f2a23a6458089f0dc774a8e126a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_memo.py": "3d38f080899ba8a362ec59de0c7d9f7a0f2d4512ce00f8542569dd062061c81c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coherent-arms-02\\proof.json": "9950b21e8f9dc9c1423702780a8598bc7b90355bdbc7bfe9da49dbd7d97aa4c9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-frame-controls-01\\proof.json": "10d500df7c55287ab67f48398846c71104b05d3c4b8f5fbf1785dfc24ad955a2",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_wrist_controls.py": "4201151701aff14232439fbccbb965d971d29d3d6fae232a1065592e54ad9b32",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-01\\proof.json": "a0b059a8d4032e53d23df70f78b9d659d9038f7d4f22ed889a34fa5177a7524a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-01\\retained-scene.npz": "b894cfd9803a5ac4036005dcb3f5737fcc9a8e1f58f2c065a55f537cd68e32ff",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-hand-support-01\\proof.json": "8bd428b2bd047b9e6e7bc1895b14ca9611b4e28a6ca83af94592513430c47d9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-hand-support-01\\resting-geometry.npz": "660de1f0b3b83b98a5d42106b8ad51913b40d3909515c21d41a78675245f779f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-hand-frame-diagnosis-01\\proof.json": "980e0f8cdcbec2d71f3061281380db8380672b9ad0f55fb38c0f1b5104529500",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-wrist-controls-01\\proof.json": "c41dfb491ee21f05c4946c1b0112275512e0797fb28a38a7d2f6c2a54268661a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_hand_support.py": "9fe21e797c8e76cb5ea857aedbac7d5a3df1036f838b056a6210c03cbdc912d7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_coherent_arms_v2.py": "237f8c0b6e70109cd9e93fcab28ee532ea827f317751d4fce01593dc12b55e31",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_resting_clearance.py": "5ccba5c28925d72d6fc5f0433722c99612b7f3fd749b780fa09f5358c30bee51",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_resting_clearance_frames.py": "94eacda7911e82d95a994341043b56120988222563ca5efbcd08d5e8d126d2f5",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\derive_lap_support_adjustment.py": "865ca0732f008c27c01d2de8758725b3098190e9d6f03334597eb18f5ccb170c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coherent-arms-02\\geometry.npz": "bd016716cb5b8c4ece687d89eedd4e60797de1d1f6ced64e0893b343bbdb37db",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-lap-support-adjustment-01\\proof.json": "52066b18d4915003fdf2e573b1a5fd5c778818eace16c47fb92b3d4d12c81220",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-lap-support-adjustment-01\\witnesses.npz": "34bf0f44d8fa96f9cc829bc0411744e18e83fe9835ec9be328d21b1e5a66195e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_controls.py": "1cbb69ed086cd87a7726b798280956ff66cc38f4f3f342b6ed56c4b90aecf494",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coupled-contact-controls-01\\proof.json": "0915d4e0cc7aa2d6fa76b5003d89a6d65e5cb7a5c6126429541762b680a55db9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coupled-contact-segments-01\\segments.npz": "76abefc8e14403ba48dfe736b4e1860afc3ec3587728f36279d9b22386d30fc8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coupled-contact-neutral-shoulders-01\\proof.json": "5cc9f05c0a3ca89066f283cc19613061104a481037eee6b7e1f555b719217873",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_coupled_contact_evaluator_v2.py": "f85da3c51d5a82ff8c3161190b205ffffac6fedd842c955572c8032b689d4bcf",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_coupled_contact_evaluator.py": "964fefc3e5d8032db6b6369e7a1ce0a8a2c23a0dd02fe9822397197889e85507",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver.py": "7b83f3fcf7f55885b056a9db4f034c179c3bce0f5775b7b7b50a0762e30181a3",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_controls_v2.py": "94330b872c102be9dd47da476eb0d9c090cdebcb4c1fdf31827bf2ef9d7713c9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_memo_controls.py": "bb74558e3c749cb2e7a7b7ace433586761db597060a01b060ba0d7dee3a35767",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_memo_controls_v2.py": "4cd0ba53307b694b341976adaa1eb0eb7f525728f14640299db748ae918d6238",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_scene.py": "1a8a3b2d8fd5ae348501ecb0e083b6e8524e846ad53a69facafbdab57f197ed7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-resting-clearance-01\\proof.json": "f3bc4798b9d84219c2fe068b919fb6c453784a85c18e7f8a7acb29b30a16c27b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-resting-clearance-01\\phase-00.npz": "8aef97c664cf93416f9cd2ffbbc3d4052a4cdbeb3e8f060f9cf267746deb8f50",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-02\\proof.json": "6d04ddeff3519779a38a2bae97926bc0d274ea5b0d8eb054bcad451e58021b0c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_alt2_domain_design.py": "4e843a1eacc3c99621898d5e6c76fc0fd2716c599322baaabc0b80acefad1eb9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-original-replay-01\\proof.json": "19937ce57f68e8aaceee0f504b7505bf6f8f7dce5e7784be7010d4ca0aec7c20",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-original-replay-01\\reopened.npz": "03b218f75845b56a3ae6c0ae7666ee0ee6ccfe5387e16cefc8c42d45897f1bb8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-original-replay-01\\witnesses.npz": "2bd94ed514c7755a2d9e38592e261371cd286fdb9755b1683fac0039939b9a5b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_alt2_prepare.py": "da8359c5c94fdbc2b899be4d112398c9e75b673bddd32c367f91d58516a29d9e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_alt2_replay_v2.py": "3fd90adc0ef18b97f961bfdf6c0f9be600869337f7dbee434922774ade994170",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-alt2-preparation-01\\proof.json": "218fba12ab03c2618e4310a522487e3c4a3d926bfbf96a8041171acd0f881326",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\diagnose_sofa_hand_frames.py": "b1622c28a7a43510215e82820ced9f84d858a3b915c742a1e0b854bc30d13f41",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\classify_sofa_lap_contacts.py": "98c4603d4e62f3fe6e66364ea99e0afb503499cba835b2e9e4405f27957d063e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_coupled_contact_segments.py": "0295a78a3291bc2268173a34826d2d67f53a2586fa03b783caed5e4c409d1b4b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_controls_v2.py": "a9b39acdecfb8ffad9b56e9d7dfd5d214ebf265bf105aafb0c3c1a6abe18cfb5",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_evaluator_v2.py": "704c674f2c05cfeeb5317f745b5ef1c6c6a7c8d3ce15d297addd1e4551c5f1bc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_geometry.py": "7b4f19ddda10e115d3ca22c009d0f7c110270de8b1254ef9c98942f76a2f3b92",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_attachments.py": "7933b4e928073d84b42db40b53d5a97d46d79df73258d5a6628d3da3fead634c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-region-controls-01\\proof.json": "97a44458a9146a52e13450c9368e1b9b7c6049435f5249a2784971156be8215f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-alt2-replay-01\\proof.json": "016c0a9cb848b17e873d76680d8090bf023c441b2f2e917bd0a3aea0062d2afc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-alt2-replay-01\\source-control.npz": "359eb54df070d93682e31ca3429ae6e8e2041b34750c4be7895e6329ee1af66c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-alt2-replay-01\\candidate.npz": "6ae9e459ef748434f26a675d9b7282032a9a433fc9e2afaa41374f39335ad9d6",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-alt2-replay-01\\rest.npz": "525d6ab9cac487b7866457705da03764c99aebf678218cce306905ee95197332",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-controls-02\\proof.json": "de315ad97b3aa8ed9465e0a43bfae342909d8cf7e956a0f741e94de70ec0f9c1",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_control_summary.py": "bf73c48753ac96dcb8d489133cff10c522f5008b4ffa526250dbe755642b2489",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-controls-02\\source.npz": "e67e6fd8da88bafa0ac78baccf64086fb4aaccba4c5abb30a2cc71b572a10323",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-controls-02\\rejected_ALT2.npz": "ff4ddf88fcea5865c12cd3421b3646d73702f601e84cd79c8455c8f43f27d91c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_service.py": "7f2febe9a7a23e185883b9ddb01494f9fb4132ac7d419e2169f8f1021be087db",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_backend.py": "8ed7088893f003f09322001cf5b5029a746a1b059193931fdd5d28450d8c895f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_causal.py": "fd42bc8439e1dffbf71585a9950c95be0186c4cb19f1a2d5d2e6da179197cc4e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_compare.py": "32398b3e0b3a07168fc99b6d132faae941efd8b2ff0557a76a1433fb45ef888f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_interface.py": "54e2d4012ee62a6991678a78bead53dbc1280221370d2c40263fbab7d705f2ae",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-controls-summary-01\\proof.json": "9fe8f5d16810f5e463c63e25f3810f4c8b0f2e6e9d502ff9ded0de9a964ae9cc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-interface-01\\reference-parameters.json": "9ebf061c2d6330235576f8adf7713d2756efc89e7217253049cef4c6259096ea",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_composed_proposal.py": "794d09aa60a5950893a1ef40f710b0347e7e131bb582478578c413f91bea5fea",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_compare_v4.py": "ece191709269844cbb5c488925d1a42170ffd7c799afb3cf5351eca876c7c2eb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-proposal-01\\proposal-parameters.json": "72a780dd1be94b161b7e168c2a402e07184cac0c5e150609673659afe03d47ab",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_preferences.py": "9bbb097f4ee7baab0c571974746f409ec61cd8b1302b5290646aaecfaf018dfa",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_sleeve_fold_regions.py": "3ecce23ec485c54bca71bad4bc6e877b3805c8008266d5a89407ae83afae3757",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-compare-01\\proof.json": "0fc58e118071feaca67a7c3616b5c8b9f365d801e7f48dcbec13a34b893d7775",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-compare-01\\proposal.npz": "89718c49e4dc26256f1a1b875f652b51d7c28a1f4764252f447a070f629c6f47",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-static-views-01\\proof.json": "6a09349cf0d362a0d6551519f63e74f45b33d6910e21b78d992b0a3e9177ac24",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_sleeve_fold_controls.py": "95f285d7e911328c1314fc3b6b0a8b59f16a28558b3dfcbee688c20eb1b2f934",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_attachment_fold_contract.py": "51ad6e0046384e8c352220283555b6688ff04174acfc800271f36a1e91e18e34",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_view_area.py": "015e893c5353ea551445002f1e6c3cca2eabf57339c1e20c7842e952aabda4af",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-sleeve-fold-regions-01\\proof.json": "cfb829b5eaa85753bf0dd0faaf0286a6c91389b2f39f8361ed1c166c07e833ac",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-wrist-controls-01\\witnesses.npz": "858ba21b5847340a2eb2e11e36654456f500db595ae5b00c204eb195baf8f717",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_post_comparison_summary.py": "921607efbd378493b8f54d9434f1de6d770d65f5aeea5d45c223a26279b39897",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-compare-01\\writer-monitor.json": "879979483e4f12e0679a602d2fe3b0e6b09d9339816195820d8bf74b31d178e6",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-view-area-01\\proof.json": "c7b2ea79de0278cc32aca24a93ec6c657ab8cbc30c87b1af2917e1b6d06575a5",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-view-area-01\\visibility.npz": "74bc00bef02d308e079594b814787ffd557578c2305848db7a03551c82828fc4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-sleeve-fold-regions-01\\witnesses.npz": "c9d1bdb5d3ed27dbce9fdf867aa4fd2b0a4001b8cce7523c72d8246ca57d4c10",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-sleeve-fold-controls-01\\proof.json": "d0e7053728cc2ef9aca026a423577dcbf716a231b23d20743bb9a8ac4a97627e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-sleeve-fold-controls-01\\visibility.npz": "86961191cab0c09363d7b006e9471cc27bb966520fc625aa8a796590b42ffdeb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-post-comparison-summary-01\\proof.json": "5bba483db95e763fd1d466ab0d3e88cc15a2cafddafa147ab7cb82df3d18915b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_fit.py": "5bb069d4bc5dbd505cf89c7e22d1e993b0b991340dde2edb13a6a45f5592570c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-02\\retained-scene.npz": "6ea27e96db1e5d63bbea3b74f0e5740c7386ac699f7782aef4a7ee81efb032c4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_adaptive_controls.py": "831b1afeaa1332e01de3431b1ffceb2392ac5c723a6a91790ca06218f65444cb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_adaptive.py": "699a5495512037d6197b6553a7285b583d6b47a3d08e328ada07f6b02f99791c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-01\\proof.json": "626535f24e7550837531198f121c6743d0703749339fcfee27fd1a126383fa81",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-01\\candidate-001.npz": "19eb8d2bd38d340e13e4fe2df01934c1711f6783ba4783c76aa3855b393edc95",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_placement_controls.py": "743ba8140aa52305d81de22734b935ab4b9e3fabc830bf49dde95fa54b51a371",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_placement.py": "d473bf33fe38d49b911c3ced8e162ad35a871b00a8d2b4766c854b5b0a2af007",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_fit_v2.py": "d606c90afa5dfea8c67dcf84f8516103c15baf954ee55afecff28ab89340fb73",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_domain_v2.py": "07d7467f3e1d76b95cf8a9ad133935505c9b7891cfc1791f290a2111ea19943c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-adaptive-controls-01\\proof.json": "001cb13166a516a3570d7a95c1a8a92bac955659836a7bae0a7d298a4c8dc3a8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-placement-controls-01\\proof.json": "19080a49e81d0a176373b6e2dacec031178187bcedfa73350fed115f97fe2ce2",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_block_controls.py": "d556293f0ff51ea1c620f9a060d1286a4a4f7b943d9d8e6714ca025f6314ea94",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_block.py": "c72f887f271f034e179ded0276bd43542297bbc97bde02717eaad37c668cb58c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-02\\proof.json": "da704d0ac97f83560bf765e79c210686f4f03815dc19148eb17c16440fef690b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-02\\selected-geometry.npz": "aaf6274cdd4b962165ed64a1baf41fca58a4dd7519d1493a8c7b121a7937c539",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-02\\candidate-003.npz": "53d895297b768a86b6f6a6efbbfb5872a11d6ba4823e65163ba43a3dd836ad85",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-02\\candidate-004.npz": "56a03ad6fac037b71a2bd72b3f4e2fea292f0148f388ef7f466f32db3c23a7fc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-02\\candidate-005.npz": "1a0d5f95bfe35be90fc3ab77f647af7cd9d7312bef7a02a73f61fa7c5d3b0f67",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_block_diagnostic.py": "ffb75975874adfc9fcbb45a55dc29c7e3c38fa9328cb03f8f726f0e8c28eadd5",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_block_guards.py": "45839bf2acf2f63e17459f22e4fe539c995e1637612bd91f473719bb5206fdad",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-controls-01\\proof.json": "5acb043a0fd296346b9f7998a918313a5ca62519c274203e38370f4ff40539d4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coupling-better-way-review.md": "906846572872b3bc3ce77a758786132a1b7f5021c2842841a4eaf631ca326460",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_guard_controls_v2.py": "6ac52655e84118727db0eb2ae8e864ce5e486ce071151648fd6ccd5be4a8bc55",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_guard_v2.py": "bb76b32c1f6b589a7ea91ae374dbb0245597ca4e8dd9b1df2ca33774cb70a1b7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-00.npz": "b620df6dc2a4745e38e2f1db0ef5a19841eb8c7edf7dfa444ccc1e03b5dd0ae4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-01.npz": "07de91bbb615a92ececb15cfbde7dc2c33e2df990d5a74c85b8a98583d048fc3",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-02.npz": "d58043d685a05a5f1658f81ba1d0d0f0efbc25e00fe708e3fed59227d5a1e8bc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-03.npz": "490ada2cf76e28605ea4ce2ae1808fdeea7efd45533cb149064d0fa15d53298a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-04.npz": "ee01cb97fff68d67712dfcdcaa927deb2c16b96f728ef371c86eba38f5cc522b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-05.npz": "2a61f168f2d06a0c4fc3b05abd275080544efd089a5589a3018488f8e7d78787",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-06.npz": "ae229c7a9ef1e1f9c6bf98c8598b50a461fa0eb741943f273ed83a902ddd2313",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-07.npz": "55461d262e29e5a1f4cbf2d5d14bfbdd960402a0b61a36f788ebc84705c62746",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-08.npz": "60eee0c075f16a175f38421cbc733cb8ad4bb296bdc630a65fc82bb7a48e0c5a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-09.npz": "0efeb54eb7c06b0bb68b4c59c4e37498485f296824fb4e67636032559407c37a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-10.npz": "b47e0a34ef6b8b4066b2a391937050794a7e72c37b82fa6249ec6358a7f09968",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-11.npz": "56b4e28fa005db0bca9cde69ccbd212ac2fde3a1304196a57e3fafdbff808740",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-12.npz": "2ce83831c6c8a9f738724e5e325ff1174a1005376d5b3ff60ee9b8dc6af7e29b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-13.npz": "89676685cbb45269c6f0de1aaa9f7639ce520c3a03c85c3a6af9b9195830bf54",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-14.npz": "deb470f0aaf505fd22c2a14b3071a76cce6a8ee715fbd48d8f75d9eabcce66bb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-15.npz": "a1d813b9103ddb199cae234e2ee68b0d71acb74f1d3f08cbeeedbc6691a14b70",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-16.npz": "61403d94cffd0c4ea8c813daf82800f26e5c30edb4bfe3da75efbef93013d67d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-17.npz": "6406402feba5b9c0d93d3d244ae3018d60870e492b33da3f1117b34a8f0f53c2",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\comparison-17.npz": "a492f75f9e54cdd3e29bcb661ff9a4fa528c655df37671bcb07479f1b65f814c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\proof.json": "250e9c47c274183e03fba32cc4911377a3d4355f254dc42ce500e6a805ec3c9e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_proposal_constructed.py": "56175b251f2ccd85af75ad0be9a92abc2fd8ac1d76e754b3f6040329fc59dae8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_saved_chart.py": "5fe43e57a3567a9a1214e1417902bca8c10a27fca9ec9858f580553c9de0c195",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-proposal-gain-01\\proof.json": "4ef1c224df3c3836ceb47f3edaee35e8181ca40e078d962947c457d0bbfe0507",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-proposal-01\\proposal-system.npz": "d339aba16e4787a29f75a96cbe0700d2987ca50c77d9f8b015f810bc32c3407b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-guard-controls-02\\proof.json": "ef2cd686bfee328506e0eeb757a82177552045e6964a4c255cc53ad5a36695cf",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-guard-controls-02\\whole-polygon-guards.npz": "d6de536a6683ada24d715d7ac8cbf680d380e9f3e2587ed715aa7b8693244bb0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_replay.py": "f28289029bbf2c2c7c6bd3366dc9e8a5200d28248382a3f062dca5bf2f0a7747",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-proposal-constructed-01\\proof.json": "219df0dce11484b06cc67bcfcc654c87756f03f41d67e9fd2bfa45ebbd5d69de",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-replay-01\\proof.json": "9636761657d8d701ee8f4225617fccfe62e517d2ae72824a0f3648adc3fd4fd1",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-replay-01\\scene-00.npz": "edc6396d3e22b6f0e0548e64533bd273a457826be28fe54b5abd0adf538abf53",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_diagnostic_v1.py": "76c2cf689df57dbd788fa8664e531b3aac7458e541420e4eb874e5f72d8eee7f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_native_v1.py": "524473a98f4d787a01c4dd7c5ec40f2527a429917830abf5594c6375cb709938",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_prepare_v1.py": "d59771877b15c927495e028a7f068e7055d3ab12ee692b9ee89481d766110441",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\seating\\seat_export_contract.py": "6729596fd19c724615a8b7a2c567b909e6bdbe4eb6468a734f427e08f8602e73",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\double_bed_linear.py": "4bf119ab8bbe1aaacbd29ea3ec444d4125e373cdfa9d1d2efa23fd90a04e1e1b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-diagnostic-01\\input-manifest.json": "19388c28f9b006617cc9f224fa7cc0269dcf361ef72bc9947abb36ef80aa9293",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-01\\raw\\proof.json": "66cc1f20e4e3737d1f6c716245f3303b49459cd45ca3197eb64abf5f8c9dbf5f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-01\\raw\\raw-crossings.npz": "9193e63827880cf9736940d91227ff73780cc2f3201c99a91abb788e206ab4aa",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_mixed_native_v1.py": "e03beddc35864a7824aebd79e9666215c7582da38a141bbea9759969e46061ff",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_mixed_v2.py": "f006f09eef4754814c8c733c556a70979eee046166e4571416d60a2ac7f0d911",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_mixed_prepare_v2.py": "d00515d204b3c7ba00026a7bfe646911ed0cf4b2ed626bd94b36819f30d1171d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-02\\input-manifest.json": "916c000b5a1bb53465014879a8ba526b101201fcc8b7e291e411e7e4fa7e8d6a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-02\\raw\\proof.json": "0c39d8cf7ab4d257656e0f0c6ac4bcb62bdfbd5b771616f1708a119f8a51faae",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-02\\raw\\authored-geometry.npz": "eeb79ccf48cd891aa284daf58a5857cd79efa01ebefd7ef15210a6e234db292d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-02\\raw\\authored-pose.json": "d005d40ce4f6ea0493ed17b7f6213df85472781ccbfad08b3ac9c06eb6c92d03",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-contact-01\\proof.json": "1157dd6eb14edceb2414963750fb04bad8a07feaa9ebe116247c712f0ccd2b34",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-contact-01\\contact-patches.npz": "2571ae7afea9fb3aac0a6bb5d0ed3af0163eca2b933ef7268e3112b1b98b06aa",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\arm-chain-better-way-review.md": "7182b2a64846bbbea2cec5f0cb4095a24bbcf698bb78f033cb535b7f272402a1",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_v1.py": "e0909cbdfff755f83341b2bca35ddd7498e2f1939b4ea4f5ca4f6127fbc45cb1",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_geometry_v1.py": "ccea01c6f4d6b571ca30153646ce96a5330a8b4aaea783795a514dc394017d5c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_math_v1.py": "c4f653825e2d992b49c74ba814774465277d351908a298e2ba5681165b875bf5",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_prepare_v1.py": "6b7f5709cc5bf9b89283071bc144c01e6774035803953e59e5466b4ac54837c7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\input-manifest.json": "3e746da6769b35e5737478c2b1d571231e67c43954ea92e83913c57ceaac98e3",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\interruption.json": "25062c29c3a87e0cb8a639dc2fabd7d26abb4843c0cdb02a7f2568c92d524481",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\process-exit.json": "328fb64b70a91309c2a9bdc18c58381fa9e7e5cadca1ca906b565a048a8d8a0a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\raw\\authored-geometry.npz": "1617aa7d5bf2e54cf3d98c5d8e1da9f1b772cb8f223ebd9004bbcbbd20f096ce",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\raw\\authored-mixed-sofa.blend": "36d0bc72af3629913d14076bad8362fb28c8322d47ae9bb14ef4a3e13da586d0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\raw\\authored-pose.json": "956c34668286923d45f73544d4c5147b8973fa3d1b1fbd72eb9271d7955a4a37",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\raw\\proof.json": "5b14da2019772963bfd6525f6a3809e3fa919450c26f47411c5b17863acd542f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-01\\input-manifest.json": "283f799fb62e560a5c60724b84160e3c3702726c6d2fc0f53e9b00f1ec34f71b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-01\\cached\\proof.json": "2b141e0d4e8d56731424af36dcc82f6a719ed9ed6d3e3278590899a703fbed9f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-01\\cached\\witnesses.npz": "b4aba5563cd7953392e81709680b790e1e39ee3f74029525d015e0cc08974687",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\partial-output-hashes.json": "65331ac3752875b02159fb4d055605f15e8fc30eb7118afd41a18502054d220f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_render_v1.py": "e789ba5660ffca1af676133fe2e204253104d2c0df29caff35459695360ff80e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_prepare_v2.py": "e5fd820edba581214d0e83241c04d4c0bd5563f9a6c01f87a4ba0b060cbf9e2f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_prepare_v1.py": "c13698e32946c56f1c2a3a5eaf182eba2cab671e9dba53668f053c78f43595c9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_native_v1.py": "e95b07e1bef301e87c0ec3990ab2b05abbbf782509a5304b5f60142495f1fb22",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\double_bed_layers.py": "b0e9ccd4aa28c97a84980cad0b5603b4b2e25cb99344702747719adc9cccc470",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_cached_scene_v1.py": "4eb8b8049caec5eab349eb79090bc6cc0c0680597530b73e4d6a490c476dbbd8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_cached_native_v2.py": "426250bb555b8017ab51e9fe50838a5a8e8cb1b02ffbbf91f7f633cf13758241",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_launch_v2.ps1": "170399cd6fc6b32da0f6aca429d15fb3a799ef391aaeca8f46ca74a844b90b8a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-02\\input-manifest.json": "4a0f61ca0053e1e24e1acb16248dd0f3d9ea7eef6009f4c6a1a186cca76d2b3f"
+  },
+  "renders": [
+    {
+      "name": "SE",
+      "native_size": [
+        108,
+        117
+      ],
+      "source_density": 8,
+      "camera_matrix": [
+        [
+          -0.7071065902709961,
+          0.4640389084815979,
+          -0.5335429906845093,
+          -5.568981170654297
+        ],
+        [
+          -0.7071069478988647,
+          -0.46403858065605164,
+          0.533542811870575,
+          5.416982173919678
+        ],
+        [
+          9.078879514845539e-08,
+          0.7545436024665833,
+          0.6562498807907104,
+          7.364473342895508
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "camera_scale": 2.5853590965270996,
+      "image": {
+        "path": "SE.png",
+        "sha256": "b51d6117c55d4c15d06e5f03b5bf6c75aebe66d34d8e6367da386289579898a8"
+      },
+      "seconds": 6.25,
+      "labels": [
+        "UNACCEPTED analytic chain comparison; known grip gap and outer sitting gestures unchanged",
+        "Source/frame evidence inherited and saved scene verified; complete geometry diagnostics are separate"
+      ]
+    },
+    {
+      "name": "SW",
+      "native_size": [
+        107,
+        117
+      ],
+      "source_density": 8,
+      "camera_matrix": [
+        [
+          0.7071070075035095,
+          0.46403858065605164,
+          -0.5335427522659302,
+          -5.543869972229004
+        ],
+        [
+          -0.7071065306663513,
+          0.4640389680862427,
+          -0.533543050289154,
+          -5.393826961517334
+        ],
+        [
+          5.005421144232969e-08,
+          0.7545436024665833,
+          0.6562499403953552,
+          7.332913398742676
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "camera_scale": 2.5853590965270996,
+      "image": {
+        "path": "SW.png",
+        "sha256": "ef5230b93409608c38f5dec8decb42f3c0fb02b305e59bcbfe1c1dbb55ac2cff"
+      },
+      "seconds": 5.75,
+      "labels": [
+        "UNACCEPTED analytic chain comparison; known grip gap and outer sitting gestures unchanged",
+        "Source/frame evidence inherited and saved scene verified; complete geometry diagnostics are separate"
+      ]
+    },
+    {
+      "name": "reader-front",
+      "native_size": [
+        44,
+        55
+      ],
+      "source_density": 8,
+      "camera_matrix": [
+        [
+          7.549790126404332e-08,
+          0.11588045954704285,
+          -0.9932631254196167,
+          -10.5300874710083
+        ],
+        [
+          -1.0,
+          -2.939300891569019e-08,
+          -7.943913971075744e-08,
+          -2.044961775027332e-06
+        ],
+        [
+          -3.840044016101274e-08,
+          0.9932631254196167,
+          0.11588045954704285,
+          2.571809768676758
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "camera_scale": 1.2153397798538208,
+      "image": {
+        "path": "reader-front.png",
+        "sha256": "4fbb469738ec89e1ac86d85c5070ff942ae35efe373afd0b14a9bda46fd278e0"
+      },
+      "seconds": 5.515999999945052,
+      "labels": [
+        "UNACCEPTED analytic chain comparison; known grip gap and outer sitting gestures unchanged",
+        "Source/frame evidence inherited and saved scene verified; complete geometry diagnostics are separate"
+      ]
+    },
+    {
+      "name": "reader-side",
+      "native_size": [
+        39,
+        56
+      ],
+      "source_density": 8,
+      "camera_matrix": [
+        [
+          1.0,
+          4.352128968321267e-08,
+          1.7030806986895186e-07,
+          -0.604682207107544
+        ],
+        [
+          1.6411743786193256e-07,
+          0.1158808246254921,
+          -0.9932631254196167,
+          -9.896759033203125
+        ],
+        [
+          -6.296352950130313e-08,
+          0.9932631254196167,
+          0.1158808246254921,
+          2.550243854522705
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "camera_scale": 1.2374368906021118,
+      "image": {
+        "path": "reader-side.png",
+        "sha256": "1f42690f509775ae8d2520735b1e3c7f544ae4463d3f4ed6771143c1c17f2a49"
+      },
+      "seconds": 5.562000000034459,
+      "labels": [
+        "UNACCEPTED analytic chain comparison; known grip gap and outer sitting gestures unchanged",
+        "Source/frame evidence inherited and saved scene verified; complete geometry diagnostics are separate"
+      ]
+    }
+  ],
+  "acceptance": false,
+  "scope": "Four exact-camera beauty views of the unchanged saved chain scene; geometry diagnostics run separately",
+  "blender_version": "4.5.14 LTS",
+  "elapsed_seconds": 31.655999999959022,
+  "full_frame_reload_errors": [
+    {
+      "bones": 0.0,
+      "world": 0.0
+    },
+    {
+      "bones": 0.0,
+      "world": 0.0
+    },
+    {
+      "bones": 0.0,
+      "world": 0.0
+    }
+  ],
+  "geometry_reload": [
+    {
+      "owner": "0",
+      "part": "Collar stand",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Dark pupil",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Dark pupil.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Ear",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Ear.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Eye white",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Eye white.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Fitted rounded shoe sole",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Fitted rounded shoe sole.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Folded fabric collar leaf",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Folded fabric collar leaf.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Forearm with elbow and wrist sections",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Forearm with elbow and wrist sections.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "HAIR_01_TRIPO_CURL",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Hazel iris",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Hazel iris.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Inner ear",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Inner ear.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Natural neck",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "One sewn breast pocket",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Overshirt body",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Pocket top seam",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Quiet closed smile",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Relaxed palm",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Relaxed palm.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Relaxed shirt sleeve",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Relaxed shirt sleeve.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Resting thumb",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Resting thumb.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Sculpted head",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Shaped shoe",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Shaped shoe.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Shirt lower hem",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Shirt placket",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Shoe apron stitch",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Shoe apron stitch.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Small eye catchlight",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Small eye catchlight.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Small horn button",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Small horn button.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Small horn button.002",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Small horn button.003",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Small rounded nose",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Soft eyebrow",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Soft eyebrow.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Tailored trouser leg",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Tailored trouser leg.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Trouser hem",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Trouser hem.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Trouser hip bridge",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Turned sleeve cuff",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Turned sleeve cuff.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Upper lid outline",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "0",
+      "part": "Upper lid outline.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Collar stand",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Dark pupil",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Dark pupil.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Ear",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Ear.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Eye white",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Eye white.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Fitted rounded shoe sole",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Fitted rounded shoe sole.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Folded fabric collar leaf",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Folded fabric collar leaf.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Forearm with elbow and wrist sections",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Forearm with elbow and wrist sections.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "HAIR_01_TRIPO_CURL",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Hazel iris",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Hazel iris.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Inner ear",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Inner ear.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Natural neck",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "One sewn breast pocket",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Overshirt body",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Pocket top seam",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.002",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.003",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.004",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.005",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.006",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.007",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.008",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Printed book line.009",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Quiet closed smile",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Reading book cover",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Reading book cover.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Reading book pages",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Reading book pages.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Relaxed palm",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Relaxed palm.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Relaxed shirt sleeve",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Relaxed shirt sleeve.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Resting thumb",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Resting thumb.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Sculpted head",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Shaped shoe",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Shaped shoe.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Shirt lower hem",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Shirt placket",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Shoe apron stitch",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Shoe apron stitch.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Small eye catchlight",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Small eye catchlight.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Small horn button",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Small horn button.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Small horn button.002",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Small horn button.003",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Small rounded nose",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Soft eyebrow",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Soft eyebrow.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Tailored trouser leg",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Tailored trouser leg.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Trouser hem",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Trouser hem.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Trouser hip bridge",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Turned sleeve cuff",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Turned sleeve cuff.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Upper lid outline",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "1",
+      "part": "Upper lid outline.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Collar stand",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Dark pupil",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Dark pupil.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Ear",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Ear.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Eye white",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Eye white.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Fitted rounded shoe sole",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Fitted rounded shoe sole.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Folded fabric collar leaf",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Folded fabric collar leaf.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Forearm with elbow and wrist sections",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Forearm with elbow and wrist sections.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "HAIR_01_TRIPO_CURL",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Hazel iris",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Hazel iris.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Inner ear",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Inner ear.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Natural neck",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "One sewn breast pocket",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Overshirt body",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Pocket top seam",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Quiet closed smile",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Relaxed palm",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Relaxed palm.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Relaxed shirt sleeve",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Relaxed shirt sleeve.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Resting thumb",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Resting thumb.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Sculpted head",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Shaped shoe",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Shaped shoe.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Shirt lower hem",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Shirt placket",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Shoe apron stitch",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Shoe apron stitch.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Small eye catchlight",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Small eye catchlight.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Small horn button",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Small horn button.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Small horn button.002",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Small horn button.003",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Small rounded nose",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Soft eyebrow",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Soft eyebrow.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Tailored trouser leg",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Tailored trouser leg.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Trouser hem",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Trouser hem.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Trouser hip bridge",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Turned sleeve cuff",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Turned sleeve cuff.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Upper lid outline",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "2",
+      "part": "Upper lid outline.001",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Arm left",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Arm right",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Back cushion 0",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Back cushion 1",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Back cushion 2",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Foot front left",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Foot front right",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Foot rear left",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Foot rear right",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Seat cushion 0",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Seat cushion 1",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Seat cushion 2",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Upholstered back",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    },
+    {
+      "owner": "furniture",
+      "part": "Upholstered base",
+      "maximum_error": 0.0,
+      "ordered_triangles_equal": true
+    }
+  ],
+  "inherited_source_proof": {
+    "path": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-chain-01\\raw\\proof.json",
+    "sha256": "5b14da2019772963bfd6525f6a3809e3fa919450c26f47411c5b17863acd542f",
+    "source_identity_equal": true,
+    "scope": "Completed source/frame subset of interrupted writer, not a completed whole-scene receipt"
+  },
+  "released_before_render": [
+    "Closed geometry archive",
+    "Per-mesh point and triangle arrays",
+    "Temporary evaluated meshes"
+  ],
+  "retained_geometry_checks": "Full mesh inventory, all evaluated vertices and ordered triangles checked without retaining a second scene copy",
+  "diagnostic_render_count": 4,
+  "inputs_unchanged": true
+}

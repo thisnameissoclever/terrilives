@@ -59,15 +59,25 @@ production build passed. Type checking also passed. The final WebAssembly hash i
 See [the renderer receipt](renderer-receipt.json). These checks do not replace
 the missing gameplay visual acceptance.
 
-The dropped-book gesture can open Build and Books, but its recovery-button
-focus check has not passed. Keep that interface proof gap open. Native copy
-recovery has passing bridge coverage; it does not prove the visible gesture.
+The resumed recovery work passes desktop click and keyboard recovery, and
+390px touch pan, tap and recovery. Both preserve the exact copy, title, home
+and Funds. Disclosure-opening and gesture-suppression mutations fail the same
+causal unit and browser checks; source restoration is byte-identical. See
+[the recovery evidence](resume-browser/README.md). Earlier failures remain
+preserved and qualified separately.
+
+Reclining passes actual native ownership, save/load and cancellation checks in
+four directions, plus 144 graphics comparisons with correct picking. The
+native contract is activity 15, visual action 0 and a whole-sofa claim; the
+earlier visual-action-9 assumption was corrected. See
+[the runtime receipt](recline-runtime/receipt.json). The four source phase
+records are static aliases, not a newly animated sequence.
 
 ## Release blockers
 
 The complete shared-sofa action combinations and lower-shelf reaching poses
 are not accepted assets. The current shared-sofa catalogue is incomplete and
-can reach its missing-scene guard during gameplay. Passing simulation tests,
+falls back to generic poses during gameplay. Passing simulation tests,
 single-seat graphics checks and the center-seat preview do not resolve that
 runtime gap. The branch must not merge or deploy with that gap.
 

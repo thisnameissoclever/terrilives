@@ -8,6 +8,7 @@
     "assets/models/reading/office/export/manifest.json": "a08d79cbf0905dc5d51b9686d78f64f63280c2d7b98aa06cddcfe35fcaabe3ed",
     "assets/models/reading/ottoman/export/manifest.json": "254828d649bea0d579f262716b0b16a21c633db85b447ae41523e36e410f7443",
     "assets/models/reading/reading/export/manifest.json": "f19a2c40cb5d4967770dad41d9c98b4b53165feff510509e9ca0a4528904b60d",
-    "assets/models/reading/standingRead/export/manifest.json": "b269efe750a5605eafe1c7abb4cb68425bd6398f06a335997c80279f4d2126f4"
+    "assets/models/reading/standingRead/export/manifest.json": "b269efe750a5605eafe1c7abb4cb68425bd6398f06a335997c80279f4d2126f4",
+    "assets/models/reading/recline/export/manifest.json": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a"
   }
 }

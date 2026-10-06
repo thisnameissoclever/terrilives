@@ -1,7 +1,7 @@
 import {cleaningFrame} from './render/cleaning-animation.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 import { shelfPresence } from './render/shelf-sprites.js';
-import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES } from './render/atlas.js';
+import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
 /**
  * The frame loop's two halves: pacing the simulation, and turning the two
  * most recent simulation ticks into one frame's worth of GPU instances.
@@ -586,8 +586,8 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
   return 'green';
 }
 
-const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG);
-const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG);
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
 
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {

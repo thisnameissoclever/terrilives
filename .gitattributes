@@ -2,6 +2,10 @@
 crates/terri-data/tests/fixtures/pre-books*/** -text
 crates/terri-data/tests/fixtures/source-admissibility/** -text
 
+# Reading exports and dated source evidence bind exact bytes in their receipts.
+assets/models/reading/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/assets/review-evidence/object-models/2026-10-06/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
 # Cleaning receipts bind exact producer and variant-manifest bytes.
 assets/models/cleaning/render.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/cleaning/poses.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

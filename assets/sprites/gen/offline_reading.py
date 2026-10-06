@@ -20,7 +20,7 @@ def append_actions(root, sprites, anchors, densities, trims, bounds, tops, cover
               for path in (root / 'assets/models/reading').glob('*/export/manifest.json')}
     if actual != catalog['manifests']:
         raise ValueError('Reading source manifest inventory differs from its bound catalogue')
-    result = dict(catalog={}, bodies={}, layers={}, aliases=set(), joint_ids={}, dropped=[])
+    result = dict(catalog={}, bodies={}, recline={}, layers={}, aliases=set(), joint_ids={}, dropped=[])
     for path in sorted((root / 'assets/models/reading').glob('*/export/manifest.json')):
         manifest = json.loads(path.read_text())
         if manifest.get('spriteMode') == 'normalSprite':
@@ -90,6 +90,12 @@ def append_actions(root, sprites, anchors, densities, trims, bounds, tops, cover
             tops[index] = bounds[index][1]
             if manifest['content'] != 'sim':
                 original = indices[content[manifest['content']] + ('' if row['facing'] == 'SE' else row['facing'])]
+                if manifest['stage'] == 'recline':
+                    if manifest.get('exclusive') is not True or manifest['stableSeatIds'] != ['whole_sofa'] or owner['stableSeatId'] != 'whole_sofa':
+                        raise ValueError('Recline must have exactly one exclusive whole-sofa owner')
+                    profile = result['recline'].setdefault(original, dict(model=manifest['content'], wholeSeatId='whole_sofa', cycleTicks=16, scenes={}))
+                    profile['scenes'][row['frame'] * 3 + key[2]] = scene
+                    continue
                 # These five one-seat rig exports call the bone seat_1; authored physical claims use seat.
                 if manifest['stableSeatIds'] != ['seat_1'] or owner['stableSeatId'] != 'seat_1':
                     raise ValueError('Single-seat art identity differs from its explicit physical-seat adapter')

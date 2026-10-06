@@ -1,0 +1,65 @@
+{
+  "state": "complete",
+  "passed": true,
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_adaptive_controls.py": "831b1afeaa1332e01de3431b1ffceb2392ac5c723a6a91790ca06218f65444cb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_adaptive.py": "699a5495512037d6197b6553a7285b583d6b47a3d08e328ada07f6b02f99791c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_frames.py": "1841b79f265ff0b422ca150ffa5bdbd150bcdef9bced2186aace0e5003e4b4cb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-01\\proof.json": "626535f24e7550837531198f121c6743d0703749339fcfee27fd1a126383fa81",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-fit-01\\candidate-001.npz": "19eb8d2bd38d340e13e4fe2df01934c1711f6783ba4783c76aa3855b393edc95",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coherent-arms-02\\proof.json": "9950b21e8f9dc9c1423702780a8598bc7b90355bdbc7bfe9da49dbd7d97aa4c9"
+  },
+  "discarded_reference": [
+    2.0,
+    2.0
+  ],
+  "discarded_projection": [
+    0.5,
+    0.5
+  ],
+  "naive_false_derivative": -750.5,
+  "constrained_gradient": [
+    -0.49999999999998873,
+    0.4999999999999887
+  ],
+  "corrected_envelope_reference": [
+    2.0,
+    2.0
+  ],
+  "corrected_envelope_gradient": [
+    2.0,
+    3.0
+  ],
+  "checkpoint": 1,
+  "checkpoint_frame_errors": {
+    "upper_arm": 1.1102230246251565e-16,
+    "forearm": 3.0531133177191805e-16,
+    "hand": 0.0
+  },
+  "recovered_swivel": -2.3106296550619994,
+  "recovered_roll": -0.07910573571817661,
+  "continuity": [
+    {
+      "epsilon": 0.0001,
+      "maximum_frame_change": 0.0003317781507010901
+    },
+    {
+      "epsilon": 1e-05,
+      "maximum_frame_change": 3.3180438816331204e-05
+    },
+    {
+      "epsilon": 1e-06,
+      "maximum_frame_change": 3.3180701227760595e-06
+    },
+    {
+      "epsilon": 1e-07,
+      "maximum_frame_change": 3.3180727425884127e-07
+    }
+  ],
+  "successive_change_ratios": [
+    0.10000790813444663,
+    0.10000079086184135,
+    0.10000007895590679
+  ],
+  "scope": "Pure parameterization and full-frame algebra; not new pose geometry acceptance"
+}

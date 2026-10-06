@@ -32,10 +32,12 @@ export class BookToolControls {
   focusCopy(copyId: number): boolean {
     this.render();
     const button = this.doc.getElementById(`book-copy-transfer-${copyId}`) as HTMLButtonElement | null;
-    if (!button) return false;
+    if (!button || button.disabled) return false;
+    const disclosure = button.closest('details') as HTMLDetailsElement | null;
+    if (disclosure) disclosure.open = true;
     button.scrollIntoView?.({ block: 'nearest' });
     button.focus();
-    return true;
+    return this.doc.activeElement === button;
   }
   private destinations(): HTMLOptionElement[] {
     return [this.option('', 'Household inventory'), ...this.tool.state.shelves.map(shelf => {

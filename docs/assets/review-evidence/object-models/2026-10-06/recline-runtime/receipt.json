@@ -1,0 +1,28 @@
+{
+  "sourceManifestSHA256": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a",
+  "wasmSHA256": "62be0469ec5e25a29e13446ebb976645a03f9963b6c7f349de1ea5b02de4ecb8",
+  "nativeWire": {
+    "activity": 15,
+    "visualAction": 0,
+    "seatedWhole": 1,
+    "owner": "whole_sofa"
+  },
+  "nativeProof": {
+    "objectFacings": 4,
+    "saveLoad": true,
+    "cancelRestoresEmpty": true,
+    "fractionalPicking": true
+  },
+  "gpu": {
+    "cases": 144,
+    "max": 4,
+    "p95": 1,
+    "picking": true,
+    "validationError": null
+  },
+  "artScope": "Four facings and three palettes; four exact static aliases, not newly authored animation",
+  "fullSharedSofa": "UNVERIFIED: ordinary seated states fall through to generic bodies while the complete shared catalogue is absent; those bodies do not prove fitted poses",
+  "pickupShelve": "UNVERIFIED: complete 24-slot source exports and visual integration outstanding",
+  "partialWasmRebuild": false,
+  "cleanup": "All own browser contexts closed; UI-owned port5198 server preserved"
+}

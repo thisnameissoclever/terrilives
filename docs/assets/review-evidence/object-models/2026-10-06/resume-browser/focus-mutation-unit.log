@@ -1,0 +1,37 @@
+
+> test
+> vitest run --maxWorkers=1 tests/book-controls.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+ ❯ tests/book-controls.test.ts (2 tests | 1 failed) 16ms
+   × reveals the household disclosure before focusing the exact dropped copy 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/book-controls.test.ts > reveals the household disclosure before focusing the exact dropped copy
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/book-controls.test.ts:66:29
+     64|   const button = doc.getElementById('book-copy-transfer-7') as unknown…
+     65|   button.focus(); expect(doc.activeElement).toBeNull();
+     66|   expect(view.focusCopy(7)).toBe(true);
+       |                             ^
+     67|   expect(disclosure.open).toBe(true); expect(doc.activeElement).toBe(b…
+     68|   disclosure.open = false; (doc as any).activeElement = null; button.d…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  14:37:12
+   Duration  177ms (transform 46ms, setup 0ms, import 58ms, tests 16ms, environment 0ms)
+

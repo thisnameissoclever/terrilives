@@ -45,7 +45,7 @@
     {
       "kind": "reading-actions",
       "catalog": "assets/models/reading/catalog.json",
-      "canonicalSha256": "86b2937b5335c5784a2a25b6126fb3f66c5badbcb3dde1f445329e1278199945"
+      "canonicalSha256": "42142f5dee33f8212d8e63b474c330b29fd524fffde304147392c9c56508b49e"
     }
   ],
   "historicalFiles": {

@@ -11070,3 +11070,33 @@ discard, blending and picking; retain contribution weights for color
 normalization. Verify actual graphics samples at fractional edges, complete
 frames and a negative control using the incorrect summed coverage. Keep the
 original reference representation fixed during the comparison.
+
+## [L-reveal-focus-target-before-focusing] Reveal a control before moving focus to it
+
+A book recovery control existed and was enabled, but its native details
+disclosure was closed. The browser correctly refused focus. Reveal the owning
+disclosure before scrolling and focusing the control, then check the actual
+active element instead of returning success because the node exists. Verify
+the real gesture and keyboard continuation; removing disclosure opening must
+make the focus assertion fail.
+
+## [L-bind-click-suppression-to-gesture] Keep click suppression within its gesture
+
+A touch pan armed suppression for a compatibility click that the browser did
+not emit. The next deliberate tap was then consumed. Clear obsolete suppression
+when a new accepted pointer gesture begins, while retaining suppression for
+the pan, pinch or long press that created it. Verify both a drag with its own
+click and a drag without one, followed by a fresh tap. Removing the reset must
+fail the same real touch sequence. Use an interior visible hit point so an
+unrelated silhouette-edge miss cannot masquerade as proof of suppression.
+
+## [L-stage-raw-art-evidence-without-normalization] Preserve hashed art bytes in Git
+
+Art import passed locally because working manifests retained their original
+CRLF bytes. Git stored normalized LF bytes, so a fresh checkout could not match
+the recorded hashes. Protect byte-bound exports and source evidence with
+`-text` attributes. When adding those attributes to already tracked files,
+renormalize the index explicitly; an ordinary add can retain cached normalized
+blobs. Compare each staged blob with its original bytes before committing.
+Never change receipt hashes to conceal a conversion. Verify the importer
+against reconstructed index or commit files as well as the working tree.

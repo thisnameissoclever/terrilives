@@ -1,0 +1,167 @@
+{
+  "state": "complete",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_contact_v1.py": "c727ab7318c11c9a6c5d78efcbe86101a4739c39f13d5e24b094055d34b25028",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_geometry_v1.py": "ccea01c6f4d6b571ca30153646ce96a5330a8b4aaea783795a514dc394017d5c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_block.py": "c72f887f271f034e179ded0276bd43542297bbc97bde02717eaad37c668cb58c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-02\\raw\\proof.json": "0c39d8cf7ab4d257656e0f0c6ac4bcb62bdfbd5b771616f1708a119f8a51faae",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated-pose-mixed-02\\raw\\authored-geometry.npz": "eeb79ccf48cd891aa284daf58a5857cd79efa01ebefd7ef15210a6e234db292d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-alt2-replay-01\\proof.json": "016c0a9cb848b17e873d76680d8090bf023c441b2f2e917bd0a3aea0062d2afc"
+  },
+  "contacts": [
+    {
+      "side": "L",
+      "skin_parts": [
+        "Relaxed palm",
+        "Resting thumb",
+        "Forearm with elbow and wrist sections"
+      ],
+      "book_parts": [
+        "Printed book line",
+        "Printed book line.001",
+        "Printed book line.002",
+        "Printed book line.003",
+        "Printed book line.004",
+        "Printed book line.005",
+        "Printed book line.006",
+        "Printed book line.007",
+        "Printed book line.008",
+        "Printed book line.009",
+        "Reading book cover",
+        "Reading book cover.001",
+        "Reading book pages",
+        "Reading book pages.001"
+      ],
+      "normal": [
+        -1.9470718370939353e-07,
+        0.9999999999999811,
+        0.0
+      ],
+      "maximum_gap": 0.0015,
+      "nearest_actual_surfaces": {
+        "distance": 0.002885175913506075,
+        "skin_part": "Resting thumb",
+        "book_part": "Reading book cover",
+        "skin_triangle": 506,
+        "book_triangle": 9,
+        "skin_point": [
+          -0.8061201955191921,
+          0.17886837268476916,
+          1.1709776137955357
+        ],
+        "book_point": [
+          -0.8051669590420603,
+          0.17631750553469558,
+          1.1719308488416897
+        ],
+        "skin_barycentric": [
+          0.0,
+          0.6920901300704547,
+          0.30790986992954533
+        ],
+        "book_barycentric": [
+          0.4999157108089281,
+          0.0,
+          0.500084289191072
+        ],
+        "book_triangle_normal": [
+          -0.7020220383548637,
+          0.11971174167414879,
+          -0.7020214787094653
+        ],
+        "candidate_triangle_pairs": 4434,
+        "evaluated_triangle_pairs": 172,
+        "method": "Global AABB lower-bound pruning; complete vertex-face and edge-edge minima for side-plane-separated surfaces"
+      },
+      "projected_area": 0,
+      "spans": [
+        0.0,
+        0.0
+      ],
+      "certified_cells": 0,
+      "occluded_or_ambiguous_cells": 0,
+      "witness": "finite-grasp/L",
+      "valid": false,
+      "interpretation": "Finite opposing side-contact area only; not a force, friction or visual-grip acceptance proof"
+    },
+    {
+      "side": "R",
+      "skin_parts": [
+        "Relaxed palm.001",
+        "Resting thumb.001",
+        "Forearm with elbow and wrist sections.001"
+      ],
+      "book_parts": [
+        "Printed book line",
+        "Printed book line.001",
+        "Printed book line.002",
+        "Printed book line.003",
+        "Printed book line.004",
+        "Printed book line.005",
+        "Printed book line.006",
+        "Printed book line.007",
+        "Printed book line.008",
+        "Printed book line.009",
+        "Reading book cover",
+        "Reading book cover.001",
+        "Reading book pages",
+        "Reading book pages.001"
+      ],
+      "normal": [
+        1.9470718370939353e-07,
+        -0.9999999999999811,
+        0.0
+      ],
+      "maximum_gap": 0.0015,
+      "nearest_actual_surfaces": {
+        "distance": 0.002885081773499245,
+        "skin_part": "Resting thumb.001",
+        "book_part": "Reading book cover.001",
+        "skin_triangle": 410,
+        "book_triangle": 8,
+        "skin_point": [
+          -0.8061202314220782,
+          -0.17886860371144883,
+          1.1709778346638398
+        ],
+        "book_point": [
+          -0.8051670285396807,
+          -0.17631781846666972,
+          1.1719310375487408
+        ],
+        "skin_barycentric": [
+          0.0,
+          0.3079057195467657,
+          0.6920942804532343
+        ],
+        "book_barycentric": [
+          0.0,
+          0.49991452471140163,
+          0.5000854752885984
+        ],
+        "book_triangle_normal": [
+          -0.702022044146988,
+          -0.11971127923449644,
+          -0.7020215517743917
+        ],
+        "candidate_triangle_pairs": 4406,
+        "evaluated_triangle_pairs": 172,
+        "method": "Global AABB lower-bound pruning; complete vertex-face and edge-edge minima for side-plane-separated surfaces"
+      },
+      "projected_area": 0,
+      "spans": [
+        0.0,
+        0.0
+      ],
+      "certified_cells": 0,
+      "occluded_or_ambiguous_cells": 0,
+      "witness": "finite-grasp/R",
+      "valid": false,
+      "interpretation": "Finite opposing side-contact area only; not a force, friction or visual-grip acceptance proof"
+    }
+  ],
+  "acceptance": false,
+  "interpretation": "Full actual side-grip surfaces, not underside palm support; unchanged mixed02 geometry",
+  "inputs_unchanged": true
+}

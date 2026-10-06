@@ -1,0 +1,7 @@
+{"touch":false,"point":{"x":1027,"y":504.00000000000006,"copy":0},"state":{"copy":0,"title":"the_locked_laundry","home":10,"funds":994},"hit":"stage"}
+{"focus":"stage","panelHidden":false,"owned":"","build":"<button id=\"build-toggle\" class=\"hud-button\" type=\"button\" aria-pressed=\"true\" aria-controls=\"builder-controls\">Exit build</button>","status":"Choose a title to buy."}
+page.waitForFunction: Timeout 12000ms exceeded.
+    at D:\VIBES\.worktrees\f24d\terrilives\.tmp\object-models\drop-recovery-mutation.cjs:13:448 {
+  log: [],
+  name: 'TimeoutError'
+}

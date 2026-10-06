@@ -1,0 +1,304 @@
+{
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_pitched_edge.py": "b8ffe25d60561c55eae975df9b6598ff86d766868040de428acfcac4f3c36d29",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_book_only.py": "551031f34b8657517c6a2e1ba1cfceda8628a7a6080b024d8728f29f954bec74",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-verify-01\\proof.json": "b16044b8ed5bcb0e824cec36c4bf7469dbe3299247513e6a699469804d1f87e7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-verify-01\\case-06.npz": "6fb4c7cdcaee98bf614276af55442fa24cdd1ebbafc7d1572314f81d70e3e805"
+  },
+  "scope": "Exact cached support-envelope boundary with fixed source phase-.75 body; original files and actions unchanged",
+  "pitch_degrees": 45.28114766585202,
+  "roll_degrees": 3.7930129179792105,
+  "rotation": [
+    [
+      0.9978095428149636,
+      -0.06615222042678072,
+      0.0
+    ],
+    [
+      0.04654659046518722,
+      0.7020872746527099,
+      -0.7105679937112257
+    ],
+    [
+      0.047005650548200335,
+      0.709011524943944,
+      0.7036285428499924
+    ]
+  ],
+  "translation": [
+    -0.000687787332423478,
+    -0.001478834832106141,
+    0.016687632149622343
+  ],
+  "thumb_support_excess": [
+    -0.0230925641510549,
+    -0.0005000000000000091
+  ],
+  "contacts": {
+    "L": {
+      "projected_area": 0.00028660344766142775,
+      "spans": [
+        0.020078297114070234,
+        0.01918619492174344
+      ],
+      "certified_cells": 25,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    },
+    "R": {
+      "projected_area": 0.0003560020676901299,
+      "spans": [
+        0.01989682603730386,
+        0.02364776359315022
+      ],
+      "certified_cells": 20,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    }
+  },
+  "collisions": [],
+  "source_internal": [
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "pairs": 0
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "pairs": 0
+    },
+    {
+      "part": "Relaxed palm",
+      "pairs": 0
+    },
+    {
+      "part": "Relaxed palm.001",
+      "pairs": 0
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "pairs": 0
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "pairs": 0
+    },
+    {
+      "part": "Resting thumb",
+      "pairs": 0
+    },
+    {
+      "part": "Resting thumb.001",
+      "pairs": 0
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "pairs": 0
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "pairs": 0
+    }
+  ],
+  "source_body_contacts": [
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections",
+        "Relaxed palm"
+      ],
+      "pairs": 276,
+      "witness_array": "self/Forearm with elbow and wrist sections/Relaxed palm"
+    },
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections",
+        "Relaxed shirt sleeve"
+      ],
+      "pairs": 260,
+      "witness_array": "self/Forearm with elbow and wrist sections/Relaxed shirt sleeve"
+    },
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections",
+        "Turned sleeve cuff"
+      ],
+      "pairs": 288,
+      "witness_array": "self/Forearm with elbow and wrist sections/Turned sleeve cuff"
+    },
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Reading book cover.001"
+      ],
+      "pairs": 94,
+      "witness_array": "self/Forearm with elbow and wrist sections.001/Reading book cover.001"
+    },
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Reading book pages.001"
+      ],
+      "pairs": 86,
+      "witness_array": "self/Forearm with elbow and wrist sections.001/Reading book pages.001"
+    },
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Relaxed palm.001"
+      ],
+      "pairs": 271,
+      "witness_array": "self/Forearm with elbow and wrist sections.001/Relaxed palm.001"
+    },
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Relaxed shirt sleeve.001"
+      ],
+      "pairs": 292,
+      "witness_array": "self/Forearm with elbow and wrist sections.001/Relaxed shirt sleeve.001"
+    },
+    {
+      "parts": [
+        "Forearm with elbow and wrist sections.001",
+        "Turned sleeve cuff.001"
+      ],
+      "pairs": 287,
+      "witness_array": "self/Forearm with elbow and wrist sections.001/Turned sleeve cuff.001"
+    },
+    {
+      "parts": [
+        "Relaxed palm",
+        "Reading book cover"
+      ],
+      "pairs": 22,
+      "witness_array": "self/Relaxed palm/Reading book cover"
+    },
+    {
+      "parts": [
+        "Relaxed palm",
+        "Resting thumb"
+      ],
+      "pairs": 138,
+      "witness_array": "self/Relaxed palm/Resting thumb"
+    },
+    {
+      "parts": [
+        "Relaxed palm.001",
+        "Printed book line.009"
+      ],
+      "pairs": 8,
+      "witness_array": "self/Relaxed palm.001/Printed book line.009"
+    },
+    {
+      "parts": [
+        "Relaxed palm.001",
+        "Reading book cover.001"
+      ],
+      "pairs": 113,
+      "witness_array": "self/Relaxed palm.001/Reading book cover.001"
+    },
+    {
+      "parts": [
+        "Relaxed palm.001",
+        "Reading book pages.001"
+      ],
+      "pairs": 83,
+      "witness_array": "self/Relaxed palm.001/Reading book pages.001"
+    },
+    {
+      "parts": [
+        "Relaxed palm.001",
+        "Resting thumb.001"
+      ],
+      "pairs": 134,
+      "witness_array": "self/Relaxed palm.001/Resting thumb.001"
+    },
+    {
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Overshirt body"
+      ],
+      "pairs": 235,
+      "witness_array": "self/Relaxed shirt sleeve/Overshirt body"
+    },
+    {
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Turned sleeve cuff"
+      ],
+      "pairs": 288,
+      "witness_array": "self/Relaxed shirt sleeve/Turned sleeve cuff"
+    },
+    {
+      "parts": [
+        "Relaxed shirt sleeve.001",
+        "Overshirt body"
+      ],
+      "pairs": 235,
+      "witness_array": "self/Relaxed shirt sleeve.001/Overshirt body"
+    },
+    {
+      "parts": [
+        "Relaxed shirt sleeve.001",
+        "Turned sleeve cuff.001"
+      ],
+      "pairs": 288,
+      "witness_array": "self/Relaxed shirt sleeve.001/Turned sleeve cuff.001"
+    },
+    {
+      "parts": [
+        "Resting thumb",
+        "Reading book cover"
+      ],
+      "pairs": 148,
+      "witness_array": "self/Resting thumb/Reading book cover"
+    },
+    {
+      "parts": [
+        "Resting thumb",
+        "Reading book pages"
+      ],
+      "pairs": 60,
+      "witness_array": "self/Resting thumb/Reading book pages"
+    },
+    {
+      "parts": [
+        "Resting thumb.001",
+        "Printed book line.009"
+      ],
+      "pairs": 36,
+      "witness_array": "self/Resting thumb.001/Printed book line.009"
+    },
+    {
+      "parts": [
+        "Resting thumb.001",
+        "Reading book pages.001"
+      ],
+      "pairs": 79,
+      "witness_array": "self/Resting thumb.001/Reading book pages.001"
+    }
+  ],
+  "reading_side_test": {
+    "eye_point": [
+      -0.09063000159292686,
+      0.44519691641737774,
+      -0.12944882163187352
+    ],
+    "book_center": [
+      -0.00035702654572794236,
+      -0.008542104437860583,
+      0.016660717264820643
+    ],
+    "page_normal": [
+      -0.06615222042678072,
+      0.7020872746527099,
+      0.709011524943944
+    ],
+    "signed_eye_distance": 0.22094280331774535,
+    "semantics": "Negative means eyes lie behind the mean printed-page plane; not a visibility render"
+  },
+  "state": "complete",
+  "elapsed_seconds": 0.45825767517089844,
+  "cache_sha256": "e41c9a28e902a4c8035510c08d18aaa7b3eb83b7cfed9a054ae282cf9eacadf0",
+  "acceptance": "Unaccepted cached geometry only; no Blender replay or render"
+}

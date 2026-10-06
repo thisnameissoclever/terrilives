@@ -938,7 +938,7 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              seating_profiles=None, seating_layers=None, seating_coverage=None, seating_masks=None,
              shelf_profiles=None, shelf_slots=None, shelf_coverage=None,
              shared_seat_catalog=None, shared_seat_layers=None, shared_seat_preview=None,
-             joint_scene_alpha_ids=None, reading_body_catalog=None, dropped_book_sprites=None):
+             joint_scene_alpha_ids=None, reading_body_catalog=None, dropped_book_sprites=None, sofa_recline_catalog=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -1051,6 +1051,7 @@ export const SHARED_SEAT_PREVIEW_CATALOG: import('./shared-seat-sprites.js').Sha
 export const JOINT_SCENE_ALPHA_IDS: Readonly<Record<number, number>> = {json.dumps(joint_scene_alpha_ids or {})};
 export const READING_BODY_CATALOG: import('./reading-sprites.js').ReadingBodyCatalog = {json.dumps(reading_body_catalog or {}, separators=(',', ':'))};
 export const DROPPED_BOOK_SPRITES: readonly {{ readonly sprite: number; readonly alpha: number }}[] = {json.dumps(dropped_book_sprites or [])};
+export const SOFA_RECLINE_CATALOG: import('./shared-seat-sprites.js').ReclineCatalog = {json.dumps(sofa_recline_catalog or {}, separators=(',', ':'))};
 export const SURFACE_LAYOUTS: Readonly<Record<number, import('./surface-items.js').SurfaceLayout>> = {surfaces_json};
 export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
 /** Whether a held meal is nearer the camera than the body at its grip. */
@@ -1513,7 +1514,8 @@ def main():
                   shelf_profiles=shelf_data['profiles'], shelf_slots=shelf_data['slot_transforms'],
                   shelf_coverage=shelf_data['coverage'], shared_seat_layers={**reader_subset['layers'], **reading_actions['layers']},
                   shared_seat_preview=reader_subset['catalog'], shared_seat_catalog=reading_actions['catalog'],
-                  joint_scene_alpha_ids={**reader_subset['joint_ids'], **reading_actions['joint_ids']}, reading_body_catalog=reading_actions['bodies'], dropped_book_sprites=dropped_books)
+                  joint_scene_alpha_ids={**reader_subset['joint_ids'], **reading_actions['joint_ids']}, reading_body_catalog=reading_actions['bodies'], dropped_book_sprites=dropped_books,
+                  sofa_recline_catalog=reading_actions['recline'])
 
     if args.check:
         bad = []

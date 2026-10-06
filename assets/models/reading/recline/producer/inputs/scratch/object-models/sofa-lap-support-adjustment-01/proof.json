@@ -1,0 +1,952 @@
+{
+  "state": "complete",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\derive_lap_support_adjustment.py": "865ca0732f008c27c01d2de8758725b3098190e9d6f03334597eb18f5ccb170c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\measure_sofa_depth.py": "2dab649dd0b62227bc9bb5830117c8fc725f8a8f7504daf1bafc46cc318fcb96",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_arm_frame_math.py": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+    ".tmp\\object-models\\sofa-coherent-arms-02\\proof.json": "9950b21e8f9dc9c1423702780a8598bc7b90355bdbc7bfe9da49dbd7d97aa4c9",
+    ".tmp\\object-models\\sofa-coherent-arms-02\\geometry.npz": "bd016716cb5b8c4ece687d89eedd4e60797de1d1f6ced64e0893b343bbdb37db"
+  },
+  "scope": "Minimum rigid tangent separation for palm/thumb versus torso, followed by exact continuous support refit; whole-arm clearance is not yet certified",
+  "positive_path_clearance": 0.001,
+  "cases": [
+    {
+      "seat": 0,
+      "side": "L",
+      "rigid_tangent_separation_bound": 0.009250993842197831,
+      "tangent_distance": 0.010250993842197832,
+      "normal_distance": -7.14090630017164e-05,
+      "world_shift": [
+        -0.009245792790899822,
+        -0.0004568826160055443,
+        -0.004403924153524157
+      ],
+      "shift_length": 0.010251242559175774,
+      "source_gap": {
+        "minimum": 0.0004999721783894573,
+        "witness": {
+          "triangles": [
+            1201,
+            3622
+          ],
+          "projected_point": [
+            0.19768187316222804,
+            0.5254905020354221
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "translated_gap": {
+        "minimum": 0.0005713812413911737,
+        "witness": {
+          "triangles": [
+            1201,
+            3619
+          ],
+          "projected_point": [
+            0.20613363416303837,
+            0.525477978137522
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "continuous_patch": {
+        "projected_area": 0.0003289362529172793,
+        "spans": [
+          0.029858296028608983,
+          0.01694841964121485
+        ],
+        "certified_cells": 34,
+        "occluded_or_ambiguous_cells": 0,
+        "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+      },
+      "hand_torso_surface_failures_after_refit": [],
+      "boundaries": [
+        {
+          "parts": [
+            "Overshirt body",
+            "Relaxed palm"
+          ],
+          "intervals": [
+            {
+              "low": -0.3894667558916031,
+              "high": -0.1974903573938862,
+              "low_witness": [
+                1809,
+                395
+              ],
+              "high_witness": [
+                1886,
+                896
+              ],
+              "triangle_intervals": 3481
+            },
+            {
+              "low": -0.18652091474577587,
+              "high": 0.009250993742197832,
+              "low_witness": [
+                1239,
+                799
+              ],
+              "high_witness": [
+                1266,
+                162
+              ],
+              "triangle_intervals": 3823
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Relaxed palm"
+          ],
+          "intervals": [
+            {
+              "low": -0.15749856078483698,
+              "high": 0.0006935237556286869,
+              "low_witness": [
+                501,
+                1188
+              ],
+              "high_witness": [
+                317,
+                68
+              ],
+              "triangle_intervals": 1225
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Relaxed palm"
+          ],
+          "intervals": [
+            {
+              "low": -0.21418899774237993,
+              "high": -0.042660512155982586,
+              "low_witness": [
+                2633,
+                1188
+              ],
+              "high_witness": [
+                2022,
+                88
+              ],
+              "triangle_intervals": 2165
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Relaxed palm"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Relaxed palm"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Relaxed palm"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Overshirt body",
+            "Resting thumb"
+          ],
+          "intervals": [
+            {
+              "low": -0.35855467470680374,
+              "high": -0.26575050028165637,
+              "low_witness": [
+                1796,
+                325
+              ],
+              "high_witness": [
+                1796,
+                792
+              ],
+              "triangle_intervals": 1745
+            },
+            {
+              "low": -0.1141669635429259,
+              "high": -0.012010596533733167,
+              "low_witness": [
+                2030,
+                504
+              ],
+              "high_witness": [
+                1304,
+                59
+              ],
+              "triangle_intervals": 1847
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Resting thumb"
+          ],
+          "intervals": []
+        }
+      ],
+      "reach": {
+        "reachable": true,
+        "circle_radius": 0.09257116274696262,
+        "endpoint_lengths": [
+          0.28448712977566726,
+          0.21450636360365494
+        ],
+        "unconstrained_elbow": [
+          -0.10374449751601214,
+          -0.3525727460279384,
+          0.9002334674031043
+        ],
+        "classification": "Kinematic reach only; body-clear elbow branch still required"
+      }
+    },
+    {
+      "seat": 1,
+      "side": "L",
+      "rigid_tangent_separation_bound": 0.009620911681092607,
+      "tangent_distance": 0.010620911681092606,
+      "normal_distance": -8.609492201384602e-05,
+      "world_shift": [
+        -0.009574282901779444,
+        -0.0004744999101251769,
+        -0.004573743983341322
+      ],
+      "shift_length": 0.010621260625423234,
+      "source_gap": {
+        "minimum": 0.0005001525493634087,
+        "witness": {
+          "triangles": [
+            32,
+            3622
+          ],
+          "projected_point": [
+            0.17220871930018836,
+            -0.05141263443071785
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "translated_gap": {
+        "minimum": 0.0005862474713772547,
+        "witness": {
+          "triangles": [
+            1201,
+            3619
+          ],
+          "projected_point": [
+            0.18066038457766942,
+            -0.05142774944652724
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "continuous_patch": {
+        "projected_area": 0.0003321115878327707,
+        "spans": [
+          0.02995467379732064,
+          0.016948758918094706
+        ],
+        "certified_cells": 35,
+        "occluded_or_ambiguous_cells": 0,
+        "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+      },
+      "hand_torso_surface_failures_after_refit": [],
+      "boundaries": [
+        {
+          "parts": [
+            "Overshirt body",
+            "Relaxed palm"
+          ],
+          "intervals": [
+            {
+              "low": -0.3982463518252573,
+              "high": -0.20757647966766904,
+              "low_witness": [
+                1799,
+                420
+              ],
+              "high_witness": [
+                1827,
+                947
+              ],
+              "triangle_intervals": 3469
+            },
+            {
+              "low": -0.18302512594053383,
+              "high": 0.009620911581092607,
+              "low_witness": [
+                1996,
+                805
+              ],
+              "high_witness": [
+                1267,
+                134
+              ],
+              "triangle_intervals": 3775
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Relaxed palm"
+          ],
+          "intervals": [
+            {
+              "low": -0.15749801761749863,
+              "high": 0.0006933711103559722,
+              "low_witness": [
+                501,
+                1188
+              ],
+              "high_witness": [
+                317,
+                68
+              ],
+              "triangle_intervals": 1225
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Relaxed palm"
+          ],
+          "intervals": [
+            {
+              "low": -0.21418828045775534,
+              "high": -0.042660629860821794,
+              "low_witness": [
+                2633,
+                1188
+              ],
+              "high_witness": [
+                2022,
+                88
+              ],
+              "triangle_intervals": 2165
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Relaxed palm"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Relaxed palm"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Relaxed palm"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Overshirt body",
+            "Resting thumb"
+          ],
+          "intervals": [
+            {
+              "low": -0.36876946335700705,
+              "high": -0.27408615831559413,
+              "low_witness": [
+                1780,
+                346
+              ],
+              "high_witness": [
+                1821,
+                766
+              ],
+              "triangle_intervals": 1731
+            },
+            {
+              "low": -0.11196692777727124,
+              "high": -0.01112517533610053,
+              "low_witness": [
+                2056,
+                505
+              ],
+              "high_witness": [
+                1304,
+                59
+              ],
+              "triangle_intervals": 1846
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Resting thumb"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Resting thumb"
+          ],
+          "intervals": []
+        }
+      ],
+      "reach": {
+        "reachable": true,
+        "circle_radius": 0.13071477252331293,
+        "endpoint_lengths": [
+          0.28448712977566726,
+          0.21450636360365494
+        ],
+        "unconstrained_elbow": [
+          -0.1101138414763756,
+          -0.324665051518959,
+          0.8706384106424043
+        ],
+        "classification": "Kinematic reach only; body-clear elbow branch still required"
+      }
+    },
+    {
+      "seat": 1,
+      "side": "R",
+      "rigid_tangent_separation_bound": 0.009584104759523572,
+      "tangent_distance": 0.010584104759523573,
+      "normal_distance": -8.454996353600462e-05,
+      "world_shift": [
+        -0.009539361990575928,
+        0.0004733534319121068,
+        -0.004561461563814365
+      ],
+      "shift_length": 0.010584442463205302,
+      "source_gap": {
+        "minimum": 0.000500352522538211,
+        "witness": {
+          "triangles": [
+            32,
+            3652
+          ],
+          "projected_point": [
+            0.1717793790792898,
+            0.05139290338763302
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "translated_gap": {
+        "minimum": 0.0005849024860742156,
+        "witness": {
+          "triangles": [
+            1209,
+            3652
+          ],
+          "projected_point": [
+            0.18023290979207798,
+            0.05140774588182096
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "continuous_patch": {
+        "projected_area": 0.00033254164228334326,
+        "spans": [
+          0.03000422033798214,
+          0.016961092164994467
+        ],
+        "certified_cells": 36,
+        "occluded_or_ambiguous_cells": 0,
+        "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+      },
+      "hand_torso_surface_failures_after_refit": [],
+      "boundaries": [
+        {
+          "parts": [
+            "Overshirt body",
+            "Relaxed palm.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.3983454196862701,
+              "high": -0.2076426827954824,
+              "low_witness": [
+                1637,
+                818
+              ],
+              "high_witness": [
+                1601,
+                299
+              ],
+              "triangle_intervals": 3332
+            },
+            {
+              "low": -0.18309684727662445,
+              "high": 0.009584104659523572,
+              "low_witness": [
+                2218,
+                395
+              ],
+              "high_witness": [
+                1413,
+                1074
+              ],
+              "triangle_intervals": 3531
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Relaxed palm.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.15692752654458964,
+              "high": 0.000630489464607521,
+              "low_witness": [
+                548,
+                19
+              ],
+              "high_witness": [
+                544,
+                1165
+              ],
+              "triangle_intervals": 1057
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Relaxed palm.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.21396593662132155,
+              "high": -0.04275346858611419,
+              "low_witness": [
+                2678,
+                15
+              ],
+              "high_witness": [
+                2180,
+                1105
+              ],
+              "triangle_intervals": 1873
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Relaxed palm.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Relaxed palm.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Relaxed palm.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Overshirt body",
+            "Resting thumb.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.3688808598451172,
+              "high": -0.27417866975848115,
+              "low_witness": [
+                1691,
+                569
+              ],
+              "high_witness": [
+                1651,
+                97
+              ],
+              "triangle_intervals": 1692
+            },
+            {
+              "low": -0.11204844749979417,
+              "high": -0.011179847536276875,
+              "low_witness": [
+                2158,
+                409
+              ],
+              "high_witness": [
+                1399,
+                896
+              ],
+              "triangle_intervals": 1789
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        }
+      ],
+      "reach": {
+        "reachable": true,
+        "circle_radius": 0.1307438592134954,
+        "endpoint_lengths": [
+          0.28448712977566726,
+          0.21450636360365494
+        ],
+        "unconstrained_elbow": [
+          0.11007712489584157,
+          -0.3246446377544931,
+          0.8706584614449642
+        ],
+        "classification": "Kinematic reach only; body-clear elbow branch still required"
+      }
+    },
+    {
+      "seat": 2,
+      "side": "R",
+      "rigid_tangent_separation_bound": 0.009213689351400201,
+      "tangent_distance": 0.010213689351400202,
+      "normal_distance": -6.984001890306124e-05,
+      "world_shift": [
+        -0.009210516402641923,
+        0.00045569052137639716,
+        -0.004391248289557086
+      ],
+      "shift_length": 0.010213928127569053,
+      "source_gap": {
+        "minimum": 0.0004999113828897811,
+        "witness": {
+          "triangles": [
+            0,
+            3652
+          ],
+          "projected_point": [
+            0.1972858640581195,
+            -0.5255085874309281
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "translated_gap": {
+        "minimum": 0.0005697514017928423,
+        "witness": {
+          "triangles": [
+            1209,
+            3652
+          ],
+          "projected_point": [
+            0.2057397635825558,
+            -0.5254963481314557
+          ]
+        },
+        "ambiguous_cells": 0
+      },
+      "continuous_patch": {
+        "projected_area": 0.0003293974490360743,
+        "spans": [
+          0.02990732083129599,
+          0.01696175993039495
+        ],
+        "certified_cells": 36,
+        "occluded_or_ambiguous_cells": 0,
+        "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+      },
+      "hand_torso_surface_failures_after_refit": [],
+      "boundaries": [
+        {
+          "parts": [
+            "Overshirt body",
+            "Relaxed palm.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.38952637031412873,
+              "high": -0.1975201617000562,
+              "low_witness": [
+                1663,
+                818
+              ],
+              "high_witness": [
+                1585,
+                272
+              ],
+              "triangle_intervals": 3362
+            },
+            {
+              "low": -0.18660368557979942,
+              "high": 0.009213689251400202,
+              "low_witness": [
+                1464,
+                454
+              ],
+              "high_witness": [
+                1436,
+                1057
+              ],
+              "triangle_intervals": 3580
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Relaxed palm.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.15692812549457927,
+              "high": 0.0006313649349575093,
+              "low_witness": [
+                548,
+                19
+              ],
+              "high_witness": [
+                544,
+                1165
+              ],
+              "triangle_intervals": 1057
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Relaxed palm.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.21396687758550437,
+              "high": -0.04275260314272793,
+              "low_witness": [
+                2678,
+                15
+              ],
+              "high_witness": [
+                2180,
+                1105
+              ],
+              "triangle_intervals": 1873
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Relaxed palm.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Relaxed palm.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Relaxed palm.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Overshirt body",
+            "Resting thumb.001"
+          ],
+          "intervals": [
+            {
+              "low": -0.3586394339271522,
+              "high": -0.2658278490381451,
+              "low_witness": [
+                1639,
+                590
+              ],
+              "high_witness": [
+                1639,
+                165
+              ],
+              "triangle_intervals": 1740
+            },
+            {
+              "low": -0.11424964857308129,
+              "high": -0.012072834656868762,
+              "low_witness": [
+                2185,
+                347
+              ],
+              "high_witness": [
+                1399,
+                896
+              ],
+              "triangle_intervals": 1743
+            }
+          ]
+        },
+        {
+          "parts": [
+            "Shirt lower hem",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Trouser hip bridge",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Shirt placket",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        },
+        {
+          "parts": [
+            "Small horn button.001",
+            "Resting thumb.001"
+          ],
+          "intervals": []
+        }
+      ],
+      "reach": {
+        "reachable": true,
+        "circle_radius": 0.09261748144631232,
+        "endpoint_lengths": [
+          0.28448712977566726,
+          0.21450636360365494
+        ],
+        "unconstrained_elbow": [
+          0.10372943778239259,
+          -0.3525260629713266,
+          0.9002365959124765
+        ],
+        "classification": "Kinematic reach only; body-clear elbow branch still required"
+      }
+    }
+  ],
+  "cache_sha256": "34bf0f44d8fa96f9cc829bc0411744e18e83fe9835ec9be328d21b1e5a66195e"
+}

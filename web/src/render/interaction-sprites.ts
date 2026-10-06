@@ -1,7 +1,7 @@
 import { bedSceneKey, SLEEP_VISUAL_ACTION, type BedCatalog, type BedScene } from './bed-sprites.js';
 import { ACTIVITY_AT_WORK, KIND_AGENT } from './instances.js';
 import { tickAnimationFrame } from './sim-animation.js';
-import { sharedSeatKey, sharedSeatPhase, type SharedSeatCatalog } from './shared-seat-sprites.js';
+import { sharedSeatKey, sharedSeatPhase, reclineKey, RECLINE_ACTIVITY, RECLINE_VISUAL_ACTION, type SharedSeatCatalog, type ReclineCatalog } from './shared-seat-sprites.js';
 import { readingBodyScene, type ReadingBodyCatalog } from './reading-sprites.js';
 
 function paletteIndex(variant: ShirtVariant): number {
@@ -93,6 +93,7 @@ export class InteractionSelection {
     private readonly actionCatalog: ActionInteractionCatalog = {},
     private readonly sharedSeats: SharedSeatCatalog = {},
     private readonly readingBodies: ReadingBodyCatalog = {},
+    private readonly reclines: ReclineCatalog = {},
   ) {}
 
   ownerForTarget(row: number): number {
@@ -235,6 +236,29 @@ export class InteractionSelection {
     }
     this.place0.fill(-1, 0, count);
     this.place1.fill(-1, 0, count);
+    if (actions && columns.seatedFurniture && columns.seatedWhole) {
+      for (let row = 0; row < count; row++) {
+        if (kinds[row] !== KIND_AGENT || activities[row] === ACTIVITY_AT_WORK
+            || columns.seatedWhole[row] !== 1 || columns.seatedFurniture[row] === 0xffffffff) continue;
+        const target = this.findRow(columns.seatedFurniture[row]);
+        const profile = target === undefined ? undefined : this.reclines[sprites[target]];
+        if (target === undefined || !profile) continue;
+        if (actions[row] !== RECLINE_VISUAL_ACTION || activities[row] !== RECLINE_ACTIVITY) {
+          throw new Error('Whole-sofa owner has no active lounging presentation');
+        }
+        for (let other = 0; other < count; other++) {
+          if (other !== row && kinds[other] === KIND_AGENT && columns.seatedFurniture[other] === columns.seatedFurniture[row]) {
+            throw new Error('Exclusive whole-sofa recline overlaps another active physical seat');
+          }
+        }
+        const scene = profile.scenes[reclineKey(sharedSeatPhase(tick, reducedMotion), paletteIndex(this.shirtVariant(simIds?.[row])))];
+        if (!scene || scene.owners.length !== 1 || !scene.owners[0]) throw new Error('Whole-sofa recline scene or owner is missing');
+        this.bodies[row] = scene.sprite; this.targetRows[row] = target;
+        this.bedScenes[row] = scene; this.bedPlaces[row] = 0; this.bedDrawRows[row] = row;
+        this.bodies[target] = scene.sprite; this.targetRows[target] = target;
+        this.bedScenes[target] = scene; this.bedDrawRows[target] = row; this.suppressed[target] = 1;
+      }
+    }
     if (actions && columns.seatedFurniture && columns.seatedPlaces) {
       for (let row = 0; row < count; row++) {
         if (kinds[row] !== KIND_AGENT || columns.seatedFurniture[row] === 0xffffffff

@@ -1,6 +1,6 @@
 import {cleaningBinSprite} from './frame.js';
 import { sampleBedCoverage } from './render/bed-sprites.js';
-import { SHELF_COVERAGE, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES } from './render/atlas.js';
+import { SHELF_COVERAGE, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
 /**
  * Pointer input: a click on the canvas becomes a serialised player command.
  *
@@ -378,7 +378,7 @@ export function clientToWorld(
  * loop's timing; the miss is small and only at the boundary, so it has not been
  * done.
  */
-const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG);
+const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, SEATING_SPRITES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
 
 export function pickSprite(
   source: PickSource,
@@ -1408,6 +1408,9 @@ export function attachPointerInput(
     // owner asked for both, and middle-drag is the desktop-native pan
     // gesture anyway. A right-button drag still belongs to the flyout.
     if (!isTouch && event.button !== 0 && event.button !== 1) return;
+    // A completed touch drag need not emit a compatibility click. Its
+    // suppression belongs to that gesture, not the next deliberate tap.
+    if (pointers.size === 0) suppressNextClick = false;
     if (event.button === 1) {
       // Otherwise the browser starts autoscroll and the two gestures
       // fight over the same motion.

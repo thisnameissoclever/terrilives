@@ -1,0 +1,9 @@
+{
+  "pass": true,
+  "manifests": 10,
+  "imported_sprite_records": 773,
+  "source": "Git index tree archive, not working files",
+  "index_tree": "1f1eaf744ae12aca6b32c203a67564a4d3ed6105",
+  "archive_sha256": "1c36efe2a5910f4fb64e9a28be735b7ca579cc3493b247fd3024ce672ed9cf32",
+  "importer_sha256": "17d2c4a153de886ed6bad3a8831130fa67ee32a9b52fabe826e0403c3fc4b9e1"
+}

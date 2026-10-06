@@ -1,0 +1,798 @@
+{
+  "state": "complete",
+  "passed": true,
+  "discovery_inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_guard_controls_v2.py": "6ac52655e84118727db0eb2ae8e864ce5e486ce071151648fd6ccd5be4a8bc55",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_guard_v2.py": "bb76b32c1f6b589a7ea91ae374dbb0245597ca4e8dd9b1df2ca33774cb70a1b7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\diagnose_sofa_hand_frames.py": "b1622c28a7a43510215e82820ced9f84d858a3b915c742a1e0b854bc30d13f41",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\proof.json": "050aef2b31431a15c23c0acb9060b4c9cd65a7e584e2899dfd16c46e910ea9ff",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\source-binding.npz": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-hand-support-01\\proof.json": "8bd428b2bd047b9e6e7bc1895b14ca9611b4e28a6ca83af94592513430c47d9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-00.npz": "b620df6dc2a4745e38e2f1db0ef5a19841eb8c7edf7dfa444ccc1e03b5dd0ae4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-01.npz": "07de91bbb615a92ececb15cfbde7dc2c33e2df990d5a74c85b8a98583d048fc3",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-02.npz": "d58043d685a05a5f1658f81ba1d0d0f0efbc25e00fe708e3fed59227d5a1e8bc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-03.npz": "490ada2cf76e28605ea4ce2ae1808fdeea7efd45533cb149064d0fa15d53298a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-04.npz": "ee01cb97fff68d67712dfcdcaa927deb2c16b96f728ef371c86eba38f5cc522b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-05.npz": "2a61f168f2d06a0c4fc3b05abd275080544efd089a5589a3018488f8e7d78787",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-06.npz": "ae229c7a9ef1e1f9c6bf98c8598b50a461fa0eb741943f273ed83a902ddd2313",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-07.npz": "55461d262e29e5a1f4cbf2d5d14bfbdd960402a0b61a36f788ebc84705c62746",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-08.npz": "60eee0c075f16a175f38421cbc733cb8ad4bb296bdc630a65fc82bb7a48e0c5a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-09.npz": "0efeb54eb7c06b0bb68b4c59c4e37498485f296824fb4e67636032559407c37a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-10.npz": "b47e0a34ef6b8b4066b2a391937050794a7e72c37b82fa6249ec6358a7f09968",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-11.npz": "56b4e28fa005db0bca9cde69ccbd212ac2fde3a1304196a57e3fafdbff808740",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-12.npz": "2ce83831c6c8a9f738724e5e325ff1174a1005376d5b3ff60ee9b8dc6af7e29b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-13.npz": "89676685cbb45269c6f0de1aaa9f7639ce520c3a03c85c3a6af9b9195830bf54",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-14.npz": "deb470f0aaf505fd22c2a14b3071a76cce6a8ee715fbd48d8f75d9eabcce66bb"
+  },
+  "validation_inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-15.npz": "a1d813b9103ddb199cae234e2ee68b0d71acb74f1d3f08cbeeedbc6691a14b70",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-16.npz": "61403d94cffd0c4ea8c813daf82800f26e5c30edb4bfe3da75efbef93013d67d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-17.npz": "6406402feba5b9c0d93d3d244ae3018d60870e492b33da3f1117b34a8f0f53c2",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\comparison-17.npz": "a492f75f9e54cdd3e29bcb661ff9a4fa528c655df37671bcb07479f1b65f814c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\proof.json": "250e9c47c274183e03fba32cc4911377a3d4355f254dc42ce500e6a805ec3c9e"
+  },
+  "elapsed_seconds": 1.5943715000757948,
+  "source_settings": [
+    {
+      "seat": 0,
+      "name": "Relaxed shirt sleeve",
+      "groups": [
+        "upper_arm.L",
+        "spine"
+      ],
+      "modifier_order": [
+        "ARMATURE",
+        "SUBSURF"
+      ],
+      "preserve_volume": false,
+      "subdivision": "CATMULL_CLARK",
+      "levels": 2,
+      "limit_surface": true,
+      "note": "Fixed topology and crease data; relative affine motion only, no independent homogeneous weights recovered"
+    },
+    {
+      "seat": 1,
+      "name": "Relaxed shirt sleeve.001",
+      "groups": [
+        "upper_arm.R",
+        "spine"
+      ],
+      "modifier_order": [
+        "ARMATURE",
+        "SUBSURF"
+      ],
+      "preserve_volume": false,
+      "subdivision": "CATMULL_CLARK",
+      "levels": 2,
+      "limit_surface": true,
+      "note": "Fixed topology and crease data; relative affine motion only, no independent homogeneous weights recovered"
+    }
+  ],
+  "motion_models": [
+    {
+      "seat": 0,
+      "side": "L",
+      "name": "Relaxed shirt sleeve",
+      "vertices": 1730,
+      "polygons": 1728,
+      "rank": 3,
+      "singular_values": [
+        0.033058458940264275,
+        0.03256437027861447,
+        0.012697122758949443
+      ],
+      "training_max_error": 6.445314572069462e-07,
+      "leave_one_out_max_error": 3.825271046640932e-06,
+      "leave_one_out_ranks": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "leave_one_out_controls": [
+        {
+          "excluded_probe": 0,
+          "rank": 3,
+          "minimum_singular_value": 0.010048564563987285,
+          "calibration_max_error": 6.339742899615289e-07,
+          "prediction_max_error": 7.315097568978135e-07,
+          "prediction_error_bound": 7.850257936728225e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 1,
+          "rank": 3,
+          "minimum_singular_value": 0.011935253426650203,
+          "calibration_max_error": 6.599243111805088e-07,
+          "prediction_max_error": 6.061766954065592e-07,
+          "prediction_error_bound": 4.643668913976109e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 2,
+          "rank": 3,
+          "minimum_singular_value": 0.012096152743562757,
+          "calibration_max_error": 6.594015789119268e-07,
+          "prediction_max_error": 5.991746034929367e-07,
+          "prediction_error_bound": 4.3294124275573924e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 3,
+          "rank": 3,
+          "minimum_singular_value": 0.012693403917622153,
+          "calibration_max_error": 6.440093248566949e-07,
+          "prediction_max_error": 4.7554553352157143e-07,
+          "prediction_error_bound": 2.1746660449205124e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 4,
+          "rank": 3,
+          "minimum_singular_value": 0.012528653164627914,
+          "calibration_max_error": 6.399235651496732e-07,
+          "prediction_max_error": 5.908296439813405e-07,
+          "prediction_error_bound": 3.252433205162551e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 5,
+          "rank": 3,
+          "minimum_singular_value": 0.009919911230326452,
+          "calibration_max_error": 6.073406832296575e-07,
+          "prediction_max_error": 7.043229332657332e-07,
+          "prediction_error_bound": 7.843832550756159e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 6,
+          "rank": 3,
+          "minimum_singular_value": 0.008445476911937954,
+          "calibration_max_error": 4.839092072253571e-07,
+          "prediction_max_error": 3.825271046640932e-06,
+          "prediction_error_bound": 2.8824087074800204e-05,
+          "passed": true
+        },
+        {
+          "excluded_probe": 7,
+          "rank": 3,
+          "minimum_singular_value": 0.012697122755371472,
+          "calibration_max_error": 6.445314211471328e-07,
+          "prediction_max_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.0005883988377e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 8,
+          "rank": 3,
+          "minimum_singular_value": 0.012697122755371472,
+          "calibration_max_error": 6.445314211471328e-07,
+          "prediction_max_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.0005883988377e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 9,
+          "rank": 3,
+          "minimum_singular_value": 0.012697122755371472,
+          "calibration_max_error": 6.445314211471328e-07,
+          "prediction_max_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.0005883988377e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 10,
+          "rank": 3,
+          "minimum_singular_value": 0.012697122755371472,
+          "calibration_max_error": 6.445314211471328e-07,
+          "prediction_max_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.0005883988377e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 11,
+          "rank": 3,
+          "minimum_singular_value": 0.012697122755371472,
+          "calibration_max_error": 6.445314211471328e-07,
+          "prediction_max_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.0005883988377e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 12,
+          "rank": 3,
+          "minimum_singular_value": 0.012697122755371472,
+          "calibration_max_error": 6.445314211471328e-07,
+          "prediction_max_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.0005883988377e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 13,
+          "rank": 3,
+          "minimum_singular_value": 0.012697122755371472,
+          "calibration_max_error": 6.445314211471328e-07,
+          "prediction_max_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.0005883988377e-06,
+          "passed": true
+        }
+      ],
+      "spine_error": 0.0,
+      "upper_origin_error": 0.0,
+      "operator_norm_cap": 0.03141575181799145,
+      "coefficient_uncertainty_bound": 0.0005893709083243557,
+      "displacement_radius_range": [
+        0.0003306962023366978,
+        0.008359452025013401
+      ],
+      "error_reserve_range": [
+        5.541967137496575e-05,
+        6.308668642112129e-05
+      ]
+    },
+    {
+      "seat": 1,
+      "side": "R",
+      "name": "Relaxed shirt sleeve.001",
+      "vertices": 1730,
+      "polygons": 1728,
+      "rank": 3,
+      "singular_values": [
+        0.03638978317758997,
+        0.03265405774338426,
+        0.01636428407198358
+      ],
+      "training_max_error": 4.46460315026519e-07,
+      "leave_one_out_max_error": 5.177967884801076e-06,
+      "leave_one_out_ranks": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "leave_one_out_controls": [
+        {
+          "excluded_probe": 0,
+          "rank": 3,
+          "minimum_singular_value": 0.016364284069936317,
+          "calibration_max_error": 4.4646021440463047e-07,
+          "prediction_max_error": 2.3693795598333148e-07,
+          "prediction_error_bound": 2.0005712712202896e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 1,
+          "rank": 3,
+          "minimum_singular_value": 0.016364284069936317,
+          "calibration_max_error": 4.4646021440463047e-07,
+          "prediction_max_error": 2.3693795598333148e-07,
+          "prediction_error_bound": 2.0005712712202896e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 2,
+          "rank": 3,
+          "minimum_singular_value": 0.016364284069936317,
+          "calibration_max_error": 4.4646021440463047e-07,
+          "prediction_max_error": 2.3693795598333148e-07,
+          "prediction_error_bound": 2.0005712712202896e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 3,
+          "rank": 3,
+          "minimum_singular_value": 0.016364284069936317,
+          "calibration_max_error": 4.4646021440463047e-07,
+          "prediction_max_error": 2.3693795598333148e-07,
+          "prediction_error_bound": 2.0005712712202896e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 4,
+          "rank": 3,
+          "minimum_singular_value": 0.016364284069936317,
+          "calibration_max_error": 4.4646021440463047e-07,
+          "prediction_max_error": 2.3693795598333148e-07,
+          "prediction_error_bound": 2.0005712712202896e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 5,
+          "rank": 3,
+          "minimum_singular_value": 0.016364284069936317,
+          "calibration_max_error": 4.4646021440463047e-07,
+          "prediction_max_error": 2.3693795598333148e-07,
+          "prediction_error_bound": 2.0005712712202896e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 6,
+          "rank": 3,
+          "minimum_singular_value": 0.016364284069936317,
+          "calibration_max_error": 4.4646021440463047e-07,
+          "prediction_max_error": 2.3693795598333148e-07,
+          "prediction_error_bound": 2.0005712712202896e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 7,
+          "rank": 3,
+          "minimum_singular_value": 0.015698016752343568,
+          "calibration_max_error": 4.467503893889553e-07,
+          "prediction_max_error": 3.8023129578521e-07,
+          "prediction_error_bound": 4.377125669819983e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 8,
+          "rank": 3,
+          "minimum_singular_value": 0.01555310763716464,
+          "calibration_max_error": 4.4713575071102683e-07,
+          "prediction_max_error": 4.596113913859101e-07,
+          "prediction_error_bound": 4.805138687027331e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 9,
+          "rank": 3,
+          "minimum_singular_value": 0.01577630378121132,
+          "calibration_max_error": 4.5272589679625183e-07,
+          "prediction_max_error": 4.0859926299634507e-07,
+          "prediction_error_bound": 4.370698309395303e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 10,
+          "rank": 3,
+          "minimum_singular_value": 0.016361011403110515,
+          "calibration_max_error": 4.462481726949087e-07,
+          "prediction_max_error": 3.779377025410675e-07,
+          "prediction_error_bound": 2.159895443743725e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 11,
+          "rank": 3,
+          "minimum_singular_value": 0.016295868703654584,
+          "calibration_max_error": 4.4618997481457175e-07,
+          "prediction_max_error": 4.382715765831061e-07,
+          "prediction_error_bound": 2.691769087454395e-06,
+          "passed": true
+        },
+        {
+          "excluded_probe": 12,
+          "rank": 3,
+          "minimum_singular_value": 0.008834599202393666,
+          "calibration_max_error": 4.574344337194417e-07,
+          "prediction_max_error": 5.562564134970792e-07,
+          "prediction_error_bound": 1.4892682634100548e-05,
+          "passed": true
+        },
+        {
+          "excluded_probe": 13,
+          "rank": 3,
+          "minimum_singular_value": 0.0022826433709927816,
+          "calibration_max_error": 3.91286568459589e-07,
+          "prediction_max_error": 5.177967884801076e-06,
+          "prediction_error_bound": 0.00010123878507123035,
+          "passed": true
+        }
+      ],
+      "spine_error": 0.0,
+      "upper_origin_error": 0.0,
+      "operator_norm_cap": 0.0314136088466902,
+      "coefficient_uncertainty_bound": 0.00045729557985122414,
+      "displacement_radius_range": [
+        0.0003264805197933604,
+        0.008354924508667321
+      ],
+      "error_reserve_range": [
+        5.126940112947145e-05,
+        5.8936642228469474e-05
+      ]
+    }
+  ],
+  "discovery": {
+    "whole_sleeve_polygon_counts": [
+      1728,
+      1728
+    ],
+    "potential_pairs": 685,
+    "maximum_pairs": 50000,
+    "heldout_crossings_used_for_selection": false,
+    "nonseparable_reference_polygons": []
+  },
+  "heldout": [
+    {
+      "evaluation": 15,
+      "rows": [
+        {
+          "seat": 0,
+          "side": "L",
+          "in_frame_domain": true,
+          "in_swept_enclosure": true,
+          "maximum_prediction_error": 1.107137434600216e-06,
+          "prediction_error_bound": 7.701386295784646e-06
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "in_frame_domain": true,
+          "in_swept_enclosure": true,
+          "maximum_prediction_error": 2.3693795598762043e-07,
+          "prediction_error_bound": 2.000592836162261e-06
+        }
+      ],
+      "uncertified_polygon_pairs": 20,
+      "maximum_gap_prediction_error": 3.4787444247452726e-07
+    },
+    {
+      "evaluation": 16,
+      "rows": [
+        {
+          "seat": 0,
+          "side": "L",
+          "in_frame_domain": true,
+          "in_swept_enclosure": true,
+          "maximum_prediction_error": 2.4469885951408923e-07,
+          "prediction_error_bound": 2.000610610330745e-06
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "in_frame_domain": true,
+          "in_swept_enclosure": true,
+          "maximum_prediction_error": 3.390738928083125e-07,
+          "prediction_error_bound": 2.0132642604949703e-06
+        }
+      ],
+      "uncertified_polygon_pairs": 0,
+      "maximum_gap_prediction_error": 2.212327923079016e-07
+    },
+    {
+      "evaluation": 17,
+      "rows": [
+        {
+          "seat": 0,
+          "side": "L",
+          "in_frame_domain": true,
+          "in_swept_enclosure": true,
+          "maximum_prediction_error": 1.107137434600216e-06,
+          "prediction_error_bound": 7.701386295784646e-06
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "in_frame_domain": true,
+          "in_swept_enclosure": true,
+          "maximum_prediction_error": 3.390738928083125e-07,
+          "prediction_error_bound": 2.0132642604949703e-06
+        }
+      ],
+      "uncertified_polygon_pairs": 20,
+      "maximum_gap_prediction_error": 3.1525083321604086e-07
+    }
+  ],
+  "caught_joint_crossings": [
+    {
+      "triangles": [
+        1147,
+        2279
+      ],
+      "evaluated_polygons": [
+        573,
+        1139
+      ],
+      "predicted_gap": -0.0006095596198897879,
+      "actual_gap": -0.0006095485304991044,
+      "error_reserve": 0.00011419853850458213,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1147,
+        2278
+      ],
+      "evaluated_polygons": [
+        573,
+        1139
+      ],
+      "predicted_gap": -0.0006095596198897879,
+      "actual_gap": -0.0006095485304991044,
+      "error_reserve": 0.00011419853850458213,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1147,
+        2289
+      ],
+      "evaluated_polygons": [
+        573,
+        1144
+      ],
+      "predicted_gap": -0.0004565259794254706,
+      "actual_gap": -0.0004565204723472327,
+      "error_reserve": 0.00011491662029989852,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1147,
+        2274
+      ],
+      "evaluated_polygons": [
+        573,
+        1137
+      ],
+      "predicted_gap": -0.0006095596198897879,
+      "actual_gap": -0.0006095485304991044,
+      "error_reserve": 0.00011491570535982501,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1109,
+        2290
+      ],
+      "evaluated_polygons": [
+        554,
+        1145
+      ],
+      "predicted_gap": -0.000605933616277865,
+      "actual_gap": -0.0006058601899555094,
+      "error_reserve": 0.00011418853814178534,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1109,
+        2289
+      ],
+      "evaluated_polygons": [
+        554,
+        1144
+      ],
+      "predicted_gap": -0.000605933616277865,
+      "actual_gap": -0.0006058601899555094,
+      "error_reserve": 0.00011490603874937596,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1108,
+        2291
+      ],
+      "evaluated_polygons": [
+        554,
+        1145
+      ],
+      "predicted_gap": -0.000605933616277865,
+      "actual_gap": -0.0006058601899555094,
+      "error_reserve": 0.00011418853814178534,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1108,
+        2278
+      ],
+      "evaluated_polygons": [
+        554,
+        1139
+      ],
+      "predicted_gap": -0.0006095596198897879,
+      "actual_gap": -0.0006095485304991044,
+      "error_reserve": 0.00011418795695405956,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1108,
+        2290
+      ],
+      "evaluated_polygons": [
+        554,
+        1145
+      ],
+      "predicted_gap": -0.000605933616277865,
+      "actual_gap": -0.0006058601899555094,
+      "error_reserve": 0.00011418853814178534,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1108,
+        2289
+      ],
+      "evaluated_polygons": [
+        554,
+        1144
+      ],
+      "predicted_gap": -0.000605933616277865,
+      "actual_gap": -0.0006058601899555094,
+      "error_reserve": 0.00011490603874937596,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1144,
+        2276
+      ],
+      "evaluated_polygons": [
+        572,
+        1138
+      ],
+      "predicted_gap": -0.0004543217169363789,
+      "actual_gap": -0.00045436356195804883,
+      "error_reserve": 0.00011420361192271064,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1144,
+        2273
+      ],
+      "evaluated_polygons": [
+        572,
+        1136
+      ],
+      "predicted_gap": -0.0004543217169363789,
+      "actual_gap": -0.00045436356195804883,
+      "error_reserve": 0.00011492031552266967,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1145,
+        2276
+      ],
+      "evaluated_polygons": [
+        572,
+        1138
+      ],
+      "predicted_gap": -0.0004543217169363789,
+      "actual_gap": -0.00045436356195804883,
+      "error_reserve": 0.00011420361192271064,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1145,
+        2275
+      ],
+      "evaluated_polygons": [
+        572,
+        1137
+      ],
+      "predicted_gap": -0.00023853716909583156,
+      "actual_gap": -0.00023862095309401532,
+      "error_reserve": 0.00011492365160209838,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1145,
+        2272
+      ],
+      "evaluated_polygons": [
+        572,
+        1136
+      ],
+      "predicted_gap": -0.0004543217169363789,
+      "actual_gap": -0.00045436356195804883,
+      "error_reserve": 0.00011492031552266967,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1145,
+        2273
+      ],
+      "evaluated_polygons": [
+        572,
+        1136
+      ],
+      "predicted_gap": -0.0004543217169363789,
+      "actual_gap": -0.00045436356195804883,
+      "error_reserve": 0.00011492031552266967,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1146,
+        2276
+      ],
+      "evaluated_polygons": [
+        573,
+        1138
+      ],
+      "predicted_gap": -0.0004843478475648477,
+      "actual_gap": -0.00048436805405221994,
+      "error_reserve": 0.0001141956656804373,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1146,
+        2279
+      ],
+      "evaluated_polygons": [
+        573,
+        1139
+      ],
+      "predicted_gap": -0.0006095596198897879,
+      "actual_gap": -0.0006095485304991044,
+      "error_reserve": 0.00011419853850458213,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1146,
+        2275
+      ],
+      "evaluated_polygons": [
+        573,
+        1137
+      ],
+      "predicted_gap": -0.0006095596198897879,
+      "actual_gap": -0.0006095485304991044,
+      "error_reserve": 0.00011491570535982501,
+      "rejected_by_whole_polygon_guard": true
+    },
+    {
+      "triangles": [
+        1146,
+        2274
+      ],
+      "evaluated_polygons": [
+        573,
+        1137
+      ],
+      "predicted_gap": -0.0006095596198897879,
+      "actual_gap": -0.0006095485304991044,
+      "error_reserve": 0.00011491570535982501,
+      "rejected_by_whole_polygon_guard": true
+    }
+  ],
+  "missed_joint_crossings": [],
+  "error_control": {
+    "old_positive_point_clearance": 4.200574794700749e-06,
+    "minimum_whole_polygon_error_reserve": 0.00011226501399044214,
+    "below_error_reserve_rejected": true,
+    "calibration_displacement_residual_limit": 1e-06,
+    "frame_replay_contract": 1e-05
+  },
+  "guards_ready": true,
+  "initial_failed_gate_preserved": "sofa-contact-solver-patch-guard-controls-01/affine-validation-failure.json",
+  "scope": "Cached coverage and model-contract proof only; no new pose or geometry job",
+  "remaining_assumptions": [
+    "Future candidate must keep source topology, weights, modifier stack, spine and upper-arm origins fixed",
+    "Constructed and actual upper-frame changes must stay inside the recorded operator-norm caps",
+    "Calibration residual remains within one micrometre; every future actual mesh must satisfy the propagated prediction interval and swept enclosure",
+    "Frame replay retains its existing 1e-5 gate; clearance must exceed the sum of both model/frame uncertainty reserves",
+    "No independent homogeneous weights were identified; only relative moving components have rank-three identification",
+    "Every proposed result still requires the unmodified complete scene gate; no cached control accepts a new pose"
+  ],
+  "cache_sha256": "d6de536a6683ada24d715d7ac8cbf680d380e9f3e2587ed715aa7b8693244bb0"
+}

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { InteractionSelection, type InteractionColumns } from '../src/render/interaction-sprites.js';
-import { sharedSeatKey, sharedSeatPhase, type SharedSeatCatalog } from '../src/render/shared-seat-sprites.js';
+import { sharedSeatKey, sharedSeatPhase, reclineKey, type SharedSeatCatalog } from '../src/render/shared-seat-sprites.js';
 
 const ABSENT = 0xffffffff;
 it('keeps independent actions and palettes, stable seat IDs, one draw and three owner markers', () => {
@@ -64,4 +64,28 @@ it('selects a completed single-seat reading export while preserving neutral sitt
   selected.update(columns, 0, false);
   expect(selected.bedScenes[1]).toBeUndefined();
   expect(selected.suppressed[0]).toBe(0);
+});
+
+it('uses only the active exclusive whole-sofa owner, with one body and its own marker', () => {
+  const scene = { sprite: 100, alpha: 0, owners: [{ coverage: 1, marker: [12, -3] as const }] };
+  const columns: InteractionColumns = { count: 3, ids: new Uint32Array([11, 22, 33]), kinds: new Uint32Array([1, 0, 0]),
+    sprites: new Uint32Array([10, 1, 1]), actions: new Uint32Array([0, 0, 8]), activities: new Uint32Array([0, 15, 11]),
+    seatedFurniture: new Uint32Array([ABSENT, 11, ABSENT]), seatedPlaces: new Uint32Array([ABSENT, ABSENT, ABSENT]),
+    seatedWhole: new Uint32Array([0, 1, 0]), simIds: new Uint32Array([ABSENT, 2, 0]) };
+  const selection = new InteractionSelection({}, id => id === 2 ? 'red' : 'green', {}, {}, {}, {}, {
+    10: { model: 'long_sofa', wholeSeatId: 'whole_sofa', cycleTicks: 16, scenes: { [reclineKey(2, 2)]: scene } },
+  });
+  selection.update(columns, 8, false);
+  expect(selection.bodies[1]).toBe(100);
+  expect(selection.targetRows[1]).toBe(0);
+  expect(selection.bedPlaces[1]).toBe(0);
+  expect(selection.bedScenes[1]?.owners[0]?.marker).toEqual([12, -3]);
+  expect(Array.from(selection.suppressed)).toEqual([1, 0, 0]);
+  columns.seatedFurniture![2] = 11;
+  expect(() => selection.update(columns, 8, false)).toThrow(/exclusive/i);
+  columns.seatedFurniture![2] = ABSENT;
+  columns.seatedWhole![1] = 0;
+  selection.update(columns, 8, false);
+  expect(selection.bedScenes[1]).toBeUndefined();
+  expect(selection.suppressed[0]).toBe(0);
 });
