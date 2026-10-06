@@ -579,11 +579,14 @@ async function runOwnerHiddenTabCheck(browserSession, page, monitor, input) {
     semanticEventsAttempted: 20,
     oscillatorNodesCreatedWhileHidden:
       after.createdOscillators - before.createdOscillators,
+    bufferSourceNodesCreatedWhileHidden:
+      after.createdBufferSources - before.createdBufferSources,
     foregroundRecoveryOscillators:
       afterRecovery.createdOscillators - beforeRecovery.createdOscillators,
     pass:
       hiddenState === 'hidden' &&
       after.createdOscillators === before.createdOscillators &&
+      after.createdBufferSources === before.createdBufferSources &&
       afterRecovery.createdOscillators > beforeRecovery.createdOscillators,
   };
 }

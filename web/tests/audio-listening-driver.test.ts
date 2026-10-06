@@ -91,6 +91,15 @@ describe('audio listening driver activity fixtures', () => {
     expect(DRIVER).not.toMatch(/parkUnrelatedSims|prepareQuietActivity|parking/);
   });
 
+  it('fails the hidden tab on any new recording as well as any new oscillator', () => {
+    expect(DRIVER).toContain(
+      'after.createdBufferSources === before.createdBufferSources',
+    );
+    expect(DRIVER).toContain(
+      'after.createdOscillators === before.createdOscillators',
+    );
+  });
+
   it('waits for foreground audio hardware before testing recovery', () => {
     expect(DRIVER).toMatch(
       /foregroundContextStates[\s\S]*?everyContextIs\(states, 'running'\)[\s\S]*?beforeRecovery/,
