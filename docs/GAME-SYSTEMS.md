@@ -4,7 +4,7 @@ Originally written 2026-09-21. Status reconciled on 2026-09-30 against main at `
 
 [FEATURES.md](FEATURES.md) still owns milestone scope and shipped evidence. This document owns the system-by-system view: what each system is, how complete it is, and what it needs before work can start.
 
-**Next build: Edit Sims [B-edit-sims], selected by the owner on 2026-09-30.** Communal activities and activity-specific seating, including missing sitting poses, follow soon by owner request on 2026-10-01. The remaining order is a recommendation.
+**Next build: communal activities and activity-specific seating [S-communal-activities], [S-activity-seating].** The owner requested them on 2026-10-01, including missing sitting poses. Edit Sims [B-edit-sims] and the first skills slice [S-skills] shipped on 2026-10-05. The remaining order is a recommendation.
 
 ## How to read the status
 
@@ -26,7 +26,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 
 | ID | System | Status | Shipped scope |
 |---|---|---|---|
-| [S-skills] | Skills | Foundation only | Three capability traits; no general skills system |
+| [S-skills] | Skills | Partial | Cooking, Fitness and Reading, learned by doing, read by the fumble roll and listed in Sim details; shipped 2026-10-05 |
 | [S-pets] | Pets as full characters | Not started | None |
 | [S-household-events] | Random household events and messes | Partial | Meals, attributed dishes and cleanup |
 | [S-money] | Money: deep earning and spending | Partial | Wages, purchases and sale proceeds |
@@ -39,7 +39,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | ID | System | Status | Shipped scope |
 |---|---|---|---|
 | [S-sensitivities] | Sensory and social sensitivities | Not started | None |
-| [S-acclimation] | Overdoing it, novelty, and acclimation | Partial | Action habituation only |
+| [S-acclimation] | Overdoing it, novelty, and acclimation | Partial | Action habituation; part one, overdoing and feeling sick, shipped on 2026-10-06 |
 | [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
 | [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
 | [S-advanced-controls] | An advanced controls toggle | Not started | None |
@@ -65,7 +65,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-emergencies] | Fires, emergencies, and disasters | Not started | None |
 | [S-town] | Town, neighbours, and other households | Not started | None |
 | [S-ghosts] | Ghosts shared between players | Not started | None |
-| [S-calendar] | Calendar and weekly schedules | Not started | Daily clock only; no weekly calendar |
+| [S-calendar] | Calendar and weekly schedules | Partial | Weekdays, weekends and working days |
 | [S-action-animation] | Action animation coverage | Partial | Walking, conversation, eating, sitting, reading, fish, cycling and bunk sleep |
 | [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
 | [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
@@ -74,9 +74,9 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 
 | Feature | Status | Boundary |
 |---|---|---|
-| [B-edit-sims] | Not started; next build | Existing names, personalities, traits and family ties |
-| [S-communal-activities] | Planned; soon after Edit Sims | Liked Sims prefer compatible shared activities; existing shared meals and relationship rewards are foundations |
-| [S-activity-seating] | Partial; early follow-up | Armchair sitting and seated reading exist; seat preferences and remaining sitting poses are planned |
+| [B-edit-sims] | Shipped 2026-10-05 | Existing names, personalities, traits and family ties |
+| [S-communal-activities] | Planned; next build | Liked Sims prefer compatible shared activities; existing shared meals and relationship rewards are foundations |
+| [S-activity-seating] | Partial; next build, with [S-communal-activities] | Armchair sitting and seated reading exist; seat preferences and remaining sitting poses are planned |
 | [B-gender] | Not started | Gender and saved appearance choices; new bodies and clothing need art |
 | [B-object-affinities] | Not started | Individual reactions to kinds of objects and others' use |
 | [B-colour-preferences] | Not started | Colour-family preferences, distinct from shipped recolour controls |
@@ -153,17 +153,15 @@ The feed keeps a history the player can scroll back through. A muted notificatio
 
 ### [S-skills] Skills
 
-**Status: Foundation only.**
+**Status: Partial. The first slice shipped on 2026-10-05.**
 
-**What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. Three of them exist as of PR 87: cooking, exercise and reading. The selected person's Traits panel shows each one's number as "Skill" and a percentage.
+**What exists.** `content/skills.toml` defines three skills, Cooking, Fitness and Reading, with ten levels each. Every person holds one practice number per skill. Each completed interaction, chain step or conversation that carries a skill's activity tag adds that skill's practice to every participant, whether the attempt passed or failed; an interrupted attempt adds nothing. A ladder in `content/tuning.toml` turns practice into a level and progress: level 1 costs `skill_level_cost` (0.1) practice, and each later level costs `skill_level_growth` (1.0, a flat ladder until the owner tunes it) times the one before. Mastery, the share of the ladder climbed, sets the fumble chance of a person who wears the matching capability trait ("Can't cook", "Out of shape" or "Slow reader"). Removing that trait keeps the skill, and the person stops fumbling. Practice is saved with the household, and a save written before skills existed seeds it once from the capability traits it holds. Sim details lists each skill's level and progress in a collapsed Skills section in Overview, and the Traits panel's "Skill" percentage shows the matching skill's mastery. The contract is [the skills spec](specs/2026-10-05-skills.md).
 
-**What is missing.** A list of skills defined in content. A level and progress value per person per skill. Skill gain from doing tagged actions, with a tunable curve. A skills panel in the HUD.
+**What is missing.** Consequences. Higher skill should give better outcomes, such as tastier meals that fill more hunger and faster repairs. Some actions and chains should unlock at a level. Careers should read skills for performance and promotion, and the ghost design already assumes that ghosts teach skills. More skills, and a fuller skills panel beyond the Overview list if the owner wants one, are also open.
 
-Skills then need consequences. Higher skill should give better outcomes: tastier meals that fill more hunger, faster repairs, fewer fumbles. Some actions and chains should unlock at a level. Careers should read skills for performance and promotion, and the ghost design already assumes that ghosts teach skills.
+**Design note.** The capability trait's competence number became the skill instead of remaining a second, parallel mechanism. The trait now decides who can fumble; the skill decides how often.
 
-**Design note.** The existing competence number should become the first skill, not remain a second, parallel mechanism. The fumble roll already works and already saves.
-
-**Depends on.** Nothing. This system can start now.
+**Depends on.** Nothing. Outcomes and unlocks can build on the shipped slice now.
 
 ### [S-pets] Pets as full characters
 
@@ -300,9 +298,11 @@ A more sensitive Sim is annoyed more, keeps a greater distance from the source, 
 
 ### [S-acclimation] Overdoing it, novelty, and acclimation
 
-**Status: Partial.**
+**Status: Partial: part one shipped on 2026-10-06; part two (novelty from purchases) open.**
 
-**What exists.** Repeating the same action on the same object pays less each time. Each completed use lowers the benefit, the benefit recovers with time away, and it never falls below 45% of its full value. This is tracked separately for each Sim and each action on each kind of object, so two identical chairs count as one. It never turns negative, it covers actions only, and nothing in the game is new or old.
+**What exists.** Repeating the same action on the same object makes it less appealing each time autonomy chooses. Each completed use lowers the appeal, the appeal recovers with time away, and it never falls below 45% of its full value. This is tracked separately for each Sim and each action on each kind of object, so two identical chairs count as one.
+
+Part one, specified in [OD-model] and [OD-moodlets] of `docs/specs/2026-10-06-overdoing-it.md`, lets repetition keep building past that saturation point. Each action above it shows an `Overdoing {activity}` moodlet that costs more mood with each further use, and a Sim who keeps eating shows `Feeling sick` for a few hours; the effect on the need is unchanged, and time away clears both moodlets. Autonomy does not yet read mood, so a Sim can still choose an action it is overdoing; that feedback is [P-mood-feedback] work. Nothing in the game is new or old yet.
 
 **Owner direction, part one: overdoing it.** The 45% floor goes away for mood. A Sim who keeps repeating an action, even one they once liked, eventually loses happiness from it, and loses more the longer they keep going.
 
@@ -340,7 +340,7 @@ Traits named so far by the owner's direction: novelty-seeking, which a poor mood
 
 ### [S-sim-details] An expandable details panel for each Sim
 
-**Status: Partial.** Overview contains a collapsed Personality, habits and bed section. It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing and a covered double-bed display. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
+**Status: Partial.** Overview contains a collapsed Personality, habits and bed section, and a collapsed Skills section that lists each skill's level and progress to the next level ([S-skills]). It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing and a covered double-bed display. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
 
 **Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
 
@@ -386,7 +386,7 @@ assigning ownership or adding a separate drain.
 
 ### [S-traits] Traits
 
-**Status: Substantial.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail and improves with practice, and a condition with a severity that the person manages over time. Fifteen traits exist as of PR 87: nine preferences, three competences and three conditions. Each household member has three or four, and the selected person's panel lists them with one sentence each and a percentage for a competence or a severity. Four of the fifteen belong to nobody yet. Plain affinity wording shipped in PR 109, and New housemate already lets the player choose up to four traits (PR 110). Editing existing Sims is next. The owner voice pass and random assignment for autonomously generated people remain open.
+**Status: Substantial.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail, read from the matching skill, and a condition with a severity that the person manages over time. Fifteen traits exist as of PR 87: nine preferences, three competences and three conditions. Each household member has three or four, and the selected person's panel lists them with one sentence each and a percentage for a competence or a severity. Four of the fifteen belong to nobody yet. Plain affinity wording shipped in PR 109, and New housemate already lets the player choose up to four traits (PR 110). Editing existing Sims is next. The owner voice pass and random assignment for autonomously generated people remain open.
 
 ### [S-moods] Moods and moodlets
 
@@ -418,7 +418,7 @@ Also missing: more social actions than chat, group conversations (the content al
 
 **Status: Partial.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
 
-**What exists.** Tim holds the one office job, leaves through the front door and across the yard to the street, returns after the shift and receives 120 Funds. The job runs daily with fixed hours, need costs and a satisfaction reward. The HUD names it; there is no career-management panel or player-directed job choice yet.
+**What exists.** Tim holds the one office job, leaves through the front door and across the yard to the street, returns after the shift and receives 120 Funds. Each career names its working days; the office job runs Monday to Friday with fixed hours, need costs and a satisfaction reward, and Tim stays home on weekends. The Career row in Sim details shows the job with its working days and hours; there is no career-management panel or player-directed job choice yet.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 
@@ -438,11 +438,11 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 **Already written down elsewhere.** `[B-jobs-careers]` in [FEATURES.md](FEATURES.md) lists the same scope in one paragraph, and `[D15]` plans workplaces the player can watch, with colleagues who are stable characters.
 
-**Depends on.** [S-skills] first, because applications, performance, and promotion all read skills. [S-calendar] for working days and pay days. [F-notifications] for job offers, promotions, and warnings. [P-services] or an equivalent object for the job search. [S-money] is the other half of this system and the two should be designed together.
+**Depends on.** [S-skills] first, because applications, performance, and promotion all read skills. [S-calendar] for pay days and days off; working days already come from its weekdays. [F-notifications] for job offers, promotions, and warnings. [P-services] or an equivalent object for the job search. [S-money] is the other half of this system and the two should be designed together.
 
 ### [S-create-a-sim] Create-a-sim and appearance
 
-**Status: Partial.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, choose a family tie, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). Editing existing people is the next slice, [B-edit-sims]. Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
+**Status: Partial.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, choose a family tie, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). The Edit button opens the same form for a living person's name, personality, traits and family ties ([B-edit-sims], shipped 2026-10-05). Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
 
 ### [S-life-stages] Life stages and aging
 
@@ -474,11 +474,11 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Not started.** The HUD shows "Day N" and a time. There are no weekdays, weekends, dates, or seasons. A job runs every single day. Weekends, bill due dates, birthdays, bin day, and scheduled visits all need a calendar. It is cheap to build and many other systems need it.
+**Status: Partial: weekdays, weekends and working days shipped on 2026-10-06; dates, seasons and scheduled events open.** The clock shows the day number, the weekday and the time, and a new game starts on a Monday. Each career lists its working days, so the office job rests on weekends; see `docs/specs/2026-10-06-calendar.md`. There are no dates, months or seasons. Bill due dates, pay days, birthdays, bin day and scheduled visits still need them.
 
 ### [S-communal-activities] Prefer activities with liked housemates
 
-**Status: Planned; requested 2026-10-01 for early delivery after Edit Sims.**
+**Status: Planned; next build, requested 2026-10-01.**
 Shared meals and relationship rewards for some simultaneous activities provide
 foundations. Choosing compatible activities in order to spend time with liked
 Sims remains planned work.
@@ -606,7 +606,7 @@ A phone or computer through which the household orders food, hires a cleaner, a 
 
 People and pets can get sick or hurt, from neglect, from events, or by chance. Illness lowers needs faster, blocks some actions, and needs rest, medicine, or a paid visit. It is the step between "needs are low" and [S-death], and gives death a visible warning period.
 
-**Owner direction, 2026-09-21.** The game needs a health and medical system. Feeling sick from overeating, described in [S-acclimation], is the first cause. The medical half covers medicine, rest, a doctor or vet visit that costs money, and help for a despondent Sim in a household where nobody has the empathy to give it.
+**Owner direction, 2026-09-21.** The game needs a health and medical system. Feeling sick from overeating, described in [S-acclimation], is the first cause. The medical half covers medicine, rest, a doctor or vet visit that costs money, and help for a despondent Sim in a household where nobody has the empathy to give it. The first cause now exists as the temporary `Feeling sick` moodlet from [S-acclimation], shipped on 2026-10-06; it has no illness state, symptoms or treatment, and decay alone ends it.
 
 ### [P-room-quality] Room quality
 
@@ -618,57 +618,57 @@ A bed, a chair, or a room can belong to one person. The armchair has no owner to
 
 ## A suggested build order
 
-**Edit Sims is next, by owner direction on 2026-09-30.** Communal activities,
-activity-specific seating and missing sitting poses follow soon, by owner
-request on 2026-10-01. The remaining order is a recommendation, subject to
+**Communal activities, activity-specific seating and missing sitting poses are
+next**, by owner request on 2026-10-01. Edit Sims [B-edit-sims] and the first
+skills slice [S-skills] shipped on 2026-10-05. The remaining order is a
+recommendation, subject to
 design and owner choice. Each step must deliver playable behaviour, not isolated
 infrastructure. FEATURES.md owns the same current priority.
 
-1. **Edit Sims [B-edit-sims].** Reuse New housemate for existing names,
-   personalities, traits and family ties. Settle progressed-trait removal and
-   re-addition before implementation. No new art is required.
-   The draft contract is `docs/specs/2026-09-30-edit-sims.md`; its proposed
-   removed-trait history policy awaits the owner's answer.
-2. **Communal activities and seating [S-communal-activities], [S-activity-seating].**
+1. **Communal activities and seating [S-communal-activities], [S-activity-seating].**
    Prefer compatible activities with liked Sims and suitable seats for eating,
    reading, TV and listening. Keep location-bound activities at their objects,
    including watching fish near the tank. Deliver missing sitting poses and
    animations in this slice rather than leaving them in the later art backlog.
-3. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
+2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
    Recommended follow-up: connect different people's preferences to the shared
    room and the shipped mood-to-satisfaction mechanism. Reconcile novelty and
    nuisance rules before choosing the first playable slice.
-4. **[S-skills] and [S-sim-details].** Extend capability progress into a general
-   skills system and show existing and newly added values in the details panel.
-5. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
-   channels and mutes. Buying, selling and their Funds changes are already done.
-6. **[S-acclimation].** Negative mood from overdoing activities and a fading
-   novelty boost. Purchase and sale mechanisms no longer block this work.
-7. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
+3. **[S-skills] consequences and [S-sim-details].** The first skills slice
+   shipped on 2026-10-05. Give skills better outcomes and unlocks, and show
+   existing and newly added values in the details panel.
+4. **[S-calendar] and [F-notifications].** Weekdays and working days shipped on
+   2026-10-06. Dates, pay days and a history with channels and mutes remain.
+   Buying, selling and their Funds changes are already done.
+5. **[S-acclimation] part two.** Part one, negative mood from overdoing
+   activities and feeling sick from overeating, shipped on 2026-10-06. A fading
+   novelty boost from purchases remains; purchase and sale mechanisms no longer
+   block it.
+6. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
    Mood already affects satisfaction. Behaviour, performance and despondency
    remain, with empathy and recovery rules designed before implementation.
-8. **[S-careers] and remaining [S-money].** Design career paths, job search,
+7. **[S-careers] and remaining [S-money].** Design career paths, job search,
    performance, bills and a ledger together. A phone or other job-search surface
    needs its own agreed slice; [P-services] remains an undecided broader proposal.
-9. **[S-household-events].** Deliver object state, event scheduling and willingness
+8. **[S-household-events].** Deliver object state, event scheduling and willingness
    through a playable mess-and-clean loop.
-10. **[S-sensitivities] and [P-nuisance].** A loud television near a sleeper can
-    prove the first slice; affinities should share its model where appropriate.
-11. **Further character lifecycle and [F-creature].** Creation and death are
+9. **[S-sensitivities] and [P-nuisance].** A loud television near a sleeper can
+   prove the first slice; affinities should share its model where appropriate.
+10. **Further character lifecycle and [F-creature].** Creation and death are
     complete. Visitors are a proposed human test case, pending acceptance;
     nonhuman needs and behaviour remain separate work required by pets.
-12. **[S-pets], one species first.** Build on the care, nuisance and lifecycle
+11. **[S-pets], one species first.** Build on the care, nuisance and lifecycle
     mechanisms above, with the species art and animation they need.
-13. **Remaining creation, household, building and outside slices.** Gender and
+12. **Remaining creation, household, building and outside slices.** Gender and
     appearance, moving out, larger households, bed assignment, roofs, further
     exterior work and other lot sizes. The wall/room tools, yard, street, floors,
-    windows and New housemate are already shipped. Bed assignment can move earlier.
-14. **[P-health].** The full health and medical system, including recovery options.
-15. **[P-upkeep]**, last, as the owner directed. Event and pet messes precede wear,
+    windows, New housemate and Edit are already shipped. Bed assignment can move earlier.
+13. **[P-health].** The full health and medical system, including recovery options.
+14. **[P-upkeep]**, last, as the owner directed. Event and pet messes precede wear,
     breakage and repair.
 
 Aging [DE-slice-age] is the next death slice, but its ages, lifespans and migration
-rules are not designed. It is not ahead of Edit Sims. Birth/genetics, town, ghosts,
+rules are not designed. It is not ahead of communal activities. Birth/genetics, town, ghosts,
 memorials and inheritance remain later scope with their documented dependencies.
 Deprivation death and its grief follow-ups are complete, not future build steps.
 

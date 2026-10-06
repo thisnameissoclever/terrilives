@@ -71,8 +71,9 @@ Claims and completion credit refer to real work. Build edits revalidate the patc
 Grime mood effects use floor and surface averages separately within the current
 room. Each effect is -(0.3 + cleanliness) times average intensity in 0..1, capped
 at its fully dirty value. There is no minimum visible-grime threshold for mood;
-clean floors do not suppress the surface effect. These chores currently use the
-standing pose during timed work; cleaning-tool poses remain future presentation work.
+clean floors do not suppress the surface effect. Daily chore decisions use
+these same mood effects. Active work shows the fitted cleaning poses described
+below.
 
 ## Weekly board
 
@@ -117,7 +118,8 @@ The panel retains eight days of episodes and identifies actual performers.
 
 ## Persistence and boundaries
 
-Append an optional chores field after the existing targeted-cleanup V5 field.
+Append targeted cleanup after the published V5 skill field, then append chores
+after targeted cleanup. Keep every published command tag, including EditHousemate.
 An additional optional grime field stores its random stream, active patch members
 and legacy floor-task markers. Historical active floor tasks finish their saved
 single tile before adopting patches. Existing grime amounts are preserved.

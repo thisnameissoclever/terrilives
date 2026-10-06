@@ -70,6 +70,9 @@ pub struct LotEditState {
     pub last_floor_result: Option<floors::FloorEditResult>,
     /// What the drain did with the most recent family tie - [FM-tie].
     pub last_family_result: Option<crate::family::FamilyTieResult>,
+    /// What the drain did with the most recent edit of a living person -
+    /// [ES-atomic].
+    pub last_edit_result: Option<crate::edit::EditResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 

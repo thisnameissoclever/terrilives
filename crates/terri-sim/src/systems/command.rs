@@ -136,7 +136,8 @@ impl Placement {
             | SimCommand::SetFloor { .. }
             | SimCommand::SetFamilyTie { .. }
             | SimCommand::SetDeathEnabled(_)
-            | SimCommand::SetBedAssignment { .. } => Self::Back,
+            | SimCommand::SetBedAssignment { .. }
+            | SimCommand::EditHousemate { .. } => Self::Back,
         }
     }
 }
@@ -458,7 +459,8 @@ pub(crate) fn drain_ordinary_commands(
             | SimCommand::SetFloor { .. }
             | SimCommand::SetFamilyTie { .. }
             | SimCommand::SetDeathEnabled(_)
-            | SimCommand::SetBedAssignment { .. } => {
+            | SimCommand::SetBedAssignment { .. }
+            | SimCommand::EditHousemate { .. } => {
                 unreachable!("lot edit splits ordinary stretches")
             }
             // A stale index leaves the selection ALONE rather than

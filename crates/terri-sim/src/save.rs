@@ -25,7 +25,10 @@ use terri_data::{ContentPack, ObjectDefId};
 const MAX_TILES: usize = 1_048_576;
 pub(super) const MAX_ENTITIES: usize = 100_000;
 const MAX_LIST_ENTRIES: usize = 100_000;
-const MAX_TEXT_BYTES: usize = 1_024;
+/// The most bytes any saved name may hold; the loader refuses a save with
+/// a longer one. Public so the wasm boundary can refuse a queued command
+/// whose name would make the next save unloadable ([CS-command]).
+pub const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
@@ -36,6 +39,7 @@ mod bathtub_tests;
 pub(super) mod chronotype;
 mod meal_migration;
 pub(super) mod self_preservation;
+pub(super) mod skills;
 pub(super) mod sleeping_places;
 #[cfg(test)]
 mod v3_tests;
@@ -314,6 +318,26 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
                 .iter()
                 .map(|&index| pack.traits.get(index as usize).map(|worn| worn.id.clone()))
                 .collect(),
+        },
+        SimCommand::EditHousemate {
+            sim,
+            name,
+            personality,
+            traits,
+            ties,
+        } => SavedCommand::EditHousemate {
+            sim: *sim,
+            name: name.clone(),
+            personality: personality.map(|index| {
+                pack.personalities
+                    .get(index as usize)
+                    .map(|personality| personality.id.clone())
+            }),
+            traits: traits
+                .iter()
+                .map(|&index| pack.traits.get(index as usize).map(|worn| worn.id.clone()))
+                .collect(),
+            ties: ties.clone(),
         },
         SimCommand::SetColourway { object, colourway } => SavedCommand::SetColourway {
             object: *object,
@@ -690,10 +714,13 @@ fn restore_entity(
     if let Some(entries) = &saved.habituation {
         let mut habituation = Habituation::default();
         for entry in entries {
+            // The validator has already held the value to
+            // `0.0..=habituation_max`, so the cap here never changes it.
             habituation.bump(
                 resolve_object(pack, &entry.object)?,
                 entry.interaction,
                 entry.value,
+                pack.tuning.habituation_max,
             );
         }
         target.insert(habituation);
@@ -1015,6 +1042,28 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
                 })
                 .collect(),
         },
+        SavedCommand::EditHousemate {
+            sim,
+            name,
+            personality,
+            traits,
+            ties,
+        } => SimCommand::EditHousemate {
+            sim,
+            name,
+            personality: personality.map(|id| {
+                id.and_then(|id| pack.personalities.iter().position(|known| known.id == id))
+                    .map_or(u32::MAX, |index| index as u32)
+            }),
+            traits: traits
+                .into_iter()
+                .map(|id| {
+                    id.and_then(|id| pack.traits.iter().position(|known| known.id == id))
+                        .map_or(u32::MAX, |index| index as u32)
+                })
+                .collect(),
+            ties,
+        },
         // An id this pack lacks restores as an index past every colourway,
         // which the drain refuses, as a staged purchase of an unknown object.
         SavedCommand::SetColourway { object, colourway } => SimCommand::SetColourway {
@@ -1316,6 +1365,20 @@ fn validate_command(
                 Ok(())
             }
         }
+        // [ES-atomic]: an edit is held to the same name and list limits;
+        // the drain checks the person, the content and the ties.
+        SavedCommand::EditHousemate {
+            name, traits, ties, ..
+        } => {
+            if exceeds_limit(name.len(), MAX_TEXT_BYTES)
+                || exceeds_limit(traits.len(), MAX_LIST_ENTRIES)
+                || exceeds_limit(ties.len(), MAX_LIST_ENTRIES)
+            {
+                Err(SaveError::InvalidValue)
+            } else {
+                Ok(())
+            }
+        }
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }
@@ -1454,7 +1517,15 @@ fn validate_entity(
         validate_object_interaction(pack, &eating.object, eating.interaction, pre_aquarium_bike)?;
     }
     if let Some(entries) = &entity.habituation {
-        validate_habituation(entries, pack, 0.0, 1.0, pre_aquarium_bike)?;
+        // [OD-model]: habituation rises past 1 up to the tuned maximum, and
+        // the part above 1 is overdoing, a valid saved state.
+        validate_habituation(
+            entries,
+            pack,
+            0.0,
+            pack.tuning.habituation_max,
+            pre_aquarium_bike,
+        )?;
     }
     if let Some(personality) = &entity.personality {
         for value in personality
@@ -3828,6 +3899,78 @@ mod tests {
         }
     }
 
+    /// [OD-model]: a saved habituation value may be anything up to
+    /// `habituation_max`. Exactly the maximum loads, a value just above it
+    /// refuses the load without touching the live world, and an overdone
+    /// value of 2.0 round-trips exactly.
+    #[test]
+    fn habituation_above_the_tuned_maximum_refuses_the_load() {
+        let pack = terri_data::pack();
+        let max = pack.tuning.habituation_max;
+        let good = Sim::new_from_shipped_lot().save_snapshot_v5();
+        let person = good
+            .world
+            .entities
+            .iter()
+            .position(|entity| entity.sim_id.is_some())
+            .expect("the shipped household");
+        let row = pack
+            .object(pack.find("fridge").expect("the shipped fridge"))
+            .interactions
+            .iter()
+            .position(|action| action.id == "grab_snack")
+            .expect("the fridge offers a snack") as u32;
+        let with_value = |value: f32| {
+            let mut snapshot = good.clone();
+            snapshot.world.entities[person].habituation = Some(vec![SavedHabituation {
+                object: "fridge".into(),
+                interaction: row,
+                value,
+            }]);
+            snapshot
+        };
+
+        let mut live = Sim::new_from_shipped_lot();
+        let hash = live.world_hash();
+        let saved = live.save_snapshot_v5();
+        assert_eq!(
+            live.load_snapshot_v5(with_value(max + 0.001)),
+            Err(SaveError::InvalidValue)
+        );
+        assert_eq!(live.world_hash(), hash, "a refused load changes nothing");
+        assert_eq!(
+            live.save_snapshot_v5(),
+            saved,
+            "a refused load changes nothing"
+        );
+
+        let at_max = with_value(max);
+        live.load_snapshot_v5(at_max.clone())
+            .expect("exactly the maximum loads");
+        assert_eq!(live.save_snapshot_v5(), at_max);
+
+        let overdone = with_value(2.0);
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded
+            .load_snapshot_v5(overdone.clone())
+            .expect("an overdone value loads");
+        assert_eq!(
+            loaded.save_snapshot_v5(),
+            overdone,
+            "2.0 round-trips exactly"
+        );
+        // The same row at 1.0, so the only difference is the value.
+        let mut saturated = Sim::new_from_shipped_lot();
+        saturated
+            .load_snapshot_v5(with_value(1.0))
+            .expect("a saturated value loads");
+        assert_ne!(
+            loaded.world_hash(),
+            saturated.world_hash(),
+            "the hash follows the value above 1"
+        );
+    }
+
     #[test]
     fn habituation_and_disposition_entries_require_valid_unique_content_rows() {
         let pack = terri_data::pack();
@@ -3866,9 +4009,21 @@ mod tests {
         rich_agent_mut(&mut descending).habituation = Some(vec![rows[1].clone(), rows[0].clone()]);
         assert_validation(&descending, Ok(()), "save order is not content order");
 
+        // [OD-model]: overdoing is a valid saved state up to the tuned
+        // maximum, and only above it is the save refused.
+        let mut overdoing = rich_snapshot();
+        rich_agent_mut(&mut overdoing)
+            .habituation
+            .as_mut()
+            .expect("habituation")[0]
+            .value = 1.0 + f32::EPSILON;
+        assert_validation(&overdoing, Ok(()), "habituation above one");
         for (label, value) in [
             ("negative habituation", -f32::EPSILON),
-            ("habituation above one", 1.0 + f32::EPSILON),
+            (
+                "habituation above the tuned maximum",
+                pack.tuning.habituation_max + 0.001,
+            ),
             ("non-finite habituation", f32::NAN),
         ] {
             assert_invalid_entity(
@@ -4596,6 +4751,136 @@ mod tests {
                 before,
                 "failed load mutated the running simulation"
             );
+        }
+    }
+
+    /// [ES-atomic]: a staged edit saves its personality and traits by
+    /// authored ID and restores to the same queued command. Pack trait
+    /// index 3 is "bookworm" and personality index 1 is "the_settled".
+    #[test]
+    fn a_queued_edit_survives_save_and_load_by_authored_ids() {
+        use terri_core::layout::Relation;
+        let mut sim = Sim::new_from_shipped_lot();
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::EditHousemate {
+                sim: 0,
+                name: " Timothy ".to_string(),
+                personality: Some(1),
+                traits: vec![3],
+                ties: vec![(1, Some(Relation::Sibling))],
+            });
+        let snapshot = sim.save_snapshot_v5();
+        let saved = snapshot.world.queued_commands.last().unwrap().clone();
+        assert_eq!(
+            saved,
+            SavedCommand::EditHousemate {
+                sim: 0,
+                name: " Timothy ".to_string(),
+                personality: Some(Some("the_settled".to_string())),
+                traits: vec![Some("bookworm".to_string())],
+                ties: vec![(1, Some(Relation::Sibling))],
+            }
+        );
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded.load_snapshot_v5(snapshot).unwrap();
+        assert_eq!(loaded.world().resource::<CommandQueue>().len(), 1);
+        assert_eq!(loaded.world_hash(), sim.world_hash());
+    }
+
+    /// [ES-atomic]: an ID this pack lacks, or a personality unknown at
+    /// capture, restores as `u32::MAX`, past every table, so the drain
+    /// refuses the edit rather than adopting some other row.
+    #[test]
+    fn an_edit_naming_unknown_content_restores_past_every_table() {
+        use terri_core::layout::Relation;
+        let restored = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: "Ann".to_string(),
+                personality: Some(None),
+                traits: vec![
+                    Some("bookworm".to_string()),
+                    Some("not_a_trait".to_string()),
+                ],
+                ties: vec![(2, Some(Relation::Child)), (5, None)],
+            },
+            terri_data::pack(),
+        );
+        assert_eq!(
+            restored,
+            SimCommand::EditHousemate {
+                sim: 4,
+                name: "Ann".to_string(),
+                personality: Some(u32::MAX),
+                traits: vec![3, u32::MAX],
+                ties: vec![(2, Some(Relation::Child)), (5, None)],
+            }
+        );
+        let unknown_id = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: String::new(),
+                personality: Some(Some("not_a_personality".to_string())),
+                traits: Vec::new(),
+                ties: Vec::new(),
+            },
+            terri_data::pack(),
+        );
+        assert!(matches!(
+            unknown_id,
+            SimCommand::EditHousemate {
+                personality: Some(u32::MAX),
+                ..
+            }
+        ));
+        let kept = restore_command(
+            SavedCommand::EditHousemate {
+                sim: 4,
+                name: String::new(),
+                personality: None,
+                traits: Vec::new(),
+                ties: Vec::new(),
+            },
+            terri_data::pack(),
+        );
+        assert!(matches!(
+            kept,
+            SimCommand::EditHousemate {
+                personality: None,
+                ..
+            }
+        ));
+    }
+
+    /// [ES-atomic]: a saved edit is held to the name and list limits every
+    /// saved name and list is held to, each limit inclusive.
+    #[test]
+    fn a_saved_edit_is_held_to_the_name_and_list_limits() {
+        let edit = |name: String, traits: usize, ties: usize| SavedCommand::EditHousemate {
+            sim: 0,
+            name,
+            personality: None,
+            traits: vec![None; traits],
+            ties: vec![(0, None); ties],
+        };
+        let validate =
+            |command: SavedCommand| validate_command(&command, &[], terri_data::pack(), false);
+        assert_eq!(
+            validate(edit(
+                "n".repeat(MAX_TEXT_BYTES),
+                MAX_LIST_ENTRIES,
+                MAX_LIST_ENTRIES
+            )),
+            Ok(()),
+            "every limit is inclusive"
+        );
+        for (label, command) in [
+            ("name", edit("n".repeat(MAX_TEXT_BYTES + 1), 0, 0)),
+            ("traits", edit(String::new(), MAX_LIST_ENTRIES + 1, 0)),
+            ("ties", edit(String::new(), 0, MAX_LIST_ENTRIES + 1)),
+        ] {
+            assert_eq!(validate(command), Err(SaveError::InvalidValue), "{label}");
         }
     }
 }

@@ -115,7 +115,7 @@ fn clear_action(world: &mut World, entity: Entity) {
     )>();
 }
 
-fn remove_person(world: &mut World, dead: Entity) {
+pub(crate) fn remove_person(world: &mut World, dead: Entity) {
     if let Some(person) = world.get::<SimId>(dead).copied() {
         world
             .resource_mut::<crate::beds::BedAssignments>()

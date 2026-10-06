@@ -281,6 +281,15 @@ pub enum ContentError {
     HabituationFloorOutOfRange {
         value: f32,
     },
+    /// [OD-content]: an overdoing knob outside its range, named by `key`.
+    /// Each rule guards a value that would fail quietly: a maximum of 1
+    /// leaves no room to overdo anything, a threshold below 1 charges mood
+    /// for ordinary appeal-level repetition, a sickness threshold outside
+    /// the overdoing range is never reached or reached before overdoing, and
+    /// a negative penalty pays mood for repetition.
+    InvalidOverdoingTuning {
+        key: &'static str,
+    },
     /// Zero attempts is not "wander less"; it is a sim that can never
     /// roll a destination and therefore never wanders at all, which is
     /// exactly the standing-still behaviour [D-5] exists to remove -
@@ -847,6 +856,50 @@ pub enum ContentError {
         id: String,
         kind: String,
     },
+    /// `skills.toml` declares the same skill id twice. Saves name a skill
+    /// by id, so two would be one row with two meanings - [SK-model].
+    DuplicateSkill(String),
+    /// A skill keyed on a tag no activity carries: practice nobody could
+    /// ever gain - [D9]'s dangling reference.
+    SkillAboutNothing {
+        id: String,
+        tag: String,
+    },
+    /// A skill with no levels or more than 100, or a practice step that is
+    /// not finite or outside `(0, 1]`.
+    SkillFieldOutOfRange {
+        id: String,
+        field: &'static str,
+    },
+    /// A skill with a blank label or description. The Overview sheet
+    /// prints both.
+    EmptySkillText {
+        id: String,
+        field: &'static str,
+    },
+    /// Two skills keyed on one tag. A capability's fumble roll reads the
+    /// one skill with its tag, so the second would be practised and never
+    /// read - [SK-capability].
+    SkillTagShared {
+        first: String,
+        second: String,
+        tag: String,
+    },
+    /// A skill whose whole ladder, under the tuning's cost and growth,
+    /// costs more practice than an f32 can hold - [SK-model].
+    SkillLadderOverflows {
+        id: String,
+    },
+    /// `skill_level_cost` not finite or not above 0. A free first level
+    /// would put a person past it before any practice.
+    SkillLevelCostOutOfRange {
+        value: f32,
+    },
+    /// `skill_level_growth` not finite or below 1. A later level would
+    /// cost less than the one before it.
+    SkillLevelGrowthBelowOne {
+        value: f32,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -893,6 +946,20 @@ pub enum ContentError {
         id: String,
         value: f32,
     },
+    /// A career that works no day of the week - [CAL-careers].
+    EmptyWorkingDays {
+        id: String,
+    },
+    /// A career that lists the same working day twice.
+    RepeatedWorkingDay {
+        id: String,
+        day: String,
+    },
+    /// A working day that is not one of `mon` to `sun`.
+    UnknownWorkingDay {
+        id: String,
+        day: String,
+    },
     /// A household sim holding a career `careers.toml` does not declare.
     UnknownSimCareer {
         sim: String,
@@ -900,6 +967,10 @@ pub enum ContentError {
     },
     /// A zero-tick day - `tick % day_ticks` would divide by zero.
     ZeroDayTicks,
+    /// A `first_weekday` past 6 (Sunday) - [CAL-week].
+    FirstWeekdayOutOfRange {
+        value: u8,
+    },
     /// A circadian curve with nothing to interpolate between.
     CircadianTooFewPoints {
         points: usize,
@@ -1382,6 +1453,10 @@ impl fmt::Display for ContentError {
             ContentError::HabituationFloorOutOfRange { value } => write!(
                 f,
                 "habituation_floor is {value}; must be in (0, 1]. It is a                  MULTIPLIER, so 1 disables the effect and 0 would make a fully                  habituated interaction permanently worthless"
+            ),
+            ContentError::InvalidOverdoingTuning { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: habituation_max must be finite and above 1; overdoing_threshold finite, at least 1 and below habituation_max; sick_threshold finite, above overdoing_threshold and at most habituation_max; overdoing_penalty and sick_penalty finite and not negative"
             ),
             ContentError::ZeroInteractionFloor => write!(
                 f,
@@ -1931,6 +2006,47 @@ impl fmt::Display for ContentError {
                 "trait '{id}' declares kind '{kind}'; the kinds are {}",
                 crate::schema::TRAIT_KINDS.join(", ")
             ),
+            ContentError::DuplicateSkill(id) => write!(
+                f,
+                "skill '{id}' is declared twice in skills.toml; saves name a \
+                 skill by its id"
+            ),
+            ContentError::SkillAboutNothing { id, tag } => write!(
+                f,
+                "skill '{id}' keys on tag '{tag}', which no interaction or \
+                 chain step in the pack carries, so nobody could practise it"
+            ),
+            ContentError::SkillFieldOutOfRange { id, field } => write!(
+                f,
+                "skill '{id}' has a {field} outside its range: levels 1 to \
+                 100, practice_per_attempt above 0 and at most 1"
+            ),
+            ContentError::EmptySkillText { id, field } => write!(
+                f,
+                "skill '{id}' needs a {field} in skills.toml"
+            ),
+            ContentError::SkillTagShared { first, second, tag } => write!(
+                f,
+                "skills '{first}' and '{second}' both key on tag '{tag}'; \
+                 one skill per tag, because a capability's fumble reads the \
+                 skill with its tag"
+            ),
+            ContentError::SkillLadderOverflows { id } => write!(
+                f,
+                "skill '{id}' has a ladder whose total cost is not a finite \
+                 number under skill_level_cost and skill_level_growth; use \
+                 fewer levels or a smaller growth"
+            ),
+            ContentError::SkillLevelCostOutOfRange { value } => write!(
+                f,
+                "skill_level_cost is {value}; must be finite and above 0, so \
+                 level 1 takes practice to reach"
+            ),
+            ContentError::SkillLevelGrowthBelowOne { value } => write!(
+                f,
+                "skill_level_growth is {value}; must be finite and at least 1, \
+                 so a later level never costs less than the one before"
+            ),
             ContentError::UnknownSimTrait { sim, trait_id } => write!(
                 f,
                 "household sim '{sim}' wears '{trait_id}', which \
@@ -1982,6 +2098,20 @@ impl fmt::Display for ContentError {
                  satisfaction is non-negative - a job that drains a life \
                  is authored as a condition"
             ),
+            ContentError::EmptyWorkingDays { id } => write!(
+                f,
+                "career '{id}' has no working_days; list at least one of \
+                 mon, tue, wed, thu, fri, sat and sun"
+            ),
+            ContentError::RepeatedWorkingDay { id, day } => write!(
+                f,
+                "career '{id}' lists working day '{day}' more than once"
+            ),
+            ContentError::UnknownWorkingDay { id, day } => write!(
+                f,
+                "career '{id}' lists working day '{day}', which is not one \
+                 of mon, tue, wed, thu, fri, sat and sun"
+            ),
             ContentError::UnknownSimCareer { sim, career } => write!(
                 f,
                 "household sim '{sim}' holds career '{career}', which \
@@ -1991,6 +2121,10 @@ impl fmt::Display for ContentError {
                 f,
                 "day_ticks must be at least 1 - a zero-tick day divides \
                  by zero the first time a career asks the hour"
+            ),
+            ContentError::FirstWeekdayOutOfRange { value } => write!(
+                f,
+                "first_weekday is {value}; it must be 0 (Monday) to 6 (Sunday)"
             ),
             ContentError::CircadianTooFewPoints { points } => write!(
                 f,

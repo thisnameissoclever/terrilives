@@ -250,6 +250,19 @@ pub enum SimCommand {
         x: u32,
         y: u32,
     },
+    /// [ES-atomic]: one edit of a living person, found by permanent SimId
+    /// at the exclusive drain. `personality` of `None` keeps the current
+    /// effects exactly; `Some(index)` adopts that archetype's current
+    /// values. `traits` is the complete new set. Each tie names a living
+    /// relative by SimId and the relation from the edited person's side;
+    /// `None` clears that pair. Wire code 22, append-only.
+    EditHousemate {
+        sim: u32,
+        name: String,
+        personality: Option<u32>,
+        traits: Vec<u32>,
+        ties: Vec<(u32, Option<crate::layout::Relation>)>,
+    },
     /// Collect the named dish identities, or keep clearing one surface.
     CleanDishes {
         agent: u32,
@@ -289,7 +302,7 @@ pub struct CommandQueue(Vec<SimCommand>);
 mod targeted_cleanup_wire_tests {
     use super::*;
     #[test]
-    fn cleanup_commands_append_codes_twenty_two_and_twenty_three() {
+    fn cleanup_commands_append_codes_twenty_three_and_twenty_four() {
         for (command, saved, bytes) in [
             (
                 SimCommand::CleanDishes {
@@ -302,7 +315,7 @@ mod targeted_cleanup_wire_tests {
                     surface: 129,
                     dishes: None,
                 },
-                vec![22, 172, 2, 129, 1, 0],
+                vec![23, 172, 2, 129, 1, 0],
             ),
             (
                 SimCommand::CleanDishesFirst {
@@ -315,7 +328,7 @@ mod targeted_cleanup_wire_tests {
                     surface: 129,
                     dishes: Some(vec![0, 128]),
                 },
-                vec![23, 172, 2, 129, 1, 1, 2, 0, 128, 1],
+                vec![24, 172, 2, 129, 1, 1, 2, 0, 128, 1],
             ),
         ] {
             assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
@@ -876,7 +889,7 @@ mod window_wire_tests {
                         target: 6,
                     },
                 },
-                vec![24, 34, 3, 6],
+                vec![25, 34, 3, 6],
             ),
             (
                 SimCommand::CleanChoreFirst {
@@ -886,7 +899,7 @@ mod window_wire_tests {
                         target: 120,
                     },
                 },
-                vec![25, 34, 1, 120],
+                vec![26, 34, 1, 120],
             ),
             (
                 SimCommand::SetChoreProfile {
@@ -894,9 +907,9 @@ mod window_wire_tests {
                     responsibility: 90,
                     preferences: [0, 0, 0, 0],
                 },
-                vec![26, 34, 90, 0, 0, 0, 0],
+                vec![27, 34, 90, 0, 0, 0, 0],
             ),
-            (SimCommand::SetChoreBoard { enabled: true }, vec![27, 1]),
+            (SimCommand::SetChoreBoard { enabled: true }, vec![28, 1]),
         ];
         for (command, bytes) in cases {
             assert_eq!(postcard::to_allocvec(&command).unwrap(), bytes);
@@ -904,5 +917,52 @@ mod window_wire_tests {
             let saved: SavedCommand = postcard::from_bytes(&bytes).unwrap();
             assert_eq!(postcard::to_allocvec(&saved).unwrap(), bytes);
         }
+    }
+}
+
+#[cfg(test)]
+mod edit_wire_tests {
+    use super::*;
+    use crate::layout::Relation;
+
+    fn sample() -> SimCommand {
+        SimCommand::EditHousemate {
+            sim: 3,
+            name: "Ann".to_string(),
+            personality: Some(1),
+            traits: vec![0, 300],
+            ties: vec![(5, Some(Relation::Parent)), (7, None)],
+        }
+    }
+
+    #[test]
+    fn edit_housemate_appends_wire_code_22_with_every_field() {
+        let bytes = postcard::to_allocvec(&sample()).unwrap();
+        assert_eq!(
+            bytes,
+            [22, 3, 3, b'A', b'n', b'n', 1, 1, 2, 0, 172, 2, 2, 5, 1, 1, 7, 0]
+        );
+        let (decoded, rest) = postcard::take_from_bytes::<SimCommand>(&bytes).unwrap();
+        assert_eq!(decoded, sample());
+        assert!(rest.is_empty());
+        for cut in 1..bytes.len() {
+            assert!(
+                postcard::take_from_bytes::<SimCommand>(&bytes[..cut]).is_err(),
+                "a prefix of {cut} bytes must not decode"
+            );
+        }
+    }
+
+    #[test]
+    fn keep_personality_and_no_ties_encode_as_zero_markers() {
+        let bytes = postcard::to_allocvec(&SimCommand::EditHousemate {
+            sim: 0,
+            name: String::new(),
+            personality: None,
+            traits: Vec::new(),
+            ties: Vec::new(),
+        })
+        .unwrap();
+        assert_eq!(bytes, [22, 0, 0, 0, 0, 0]);
     }
 }

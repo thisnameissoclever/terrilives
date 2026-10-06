@@ -1419,7 +1419,9 @@ entity order; zero-only historical worlds retain their previous hash layout.
 See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
 ## Domestic state and presentation
 
-`SavedChores` appends an optional V5 envelope field after targeted cleanup.
+The published V5 skill field follows dining. Targeted cleanup, `SavedChores`
+and `SavedGrime` append after that published tail in this order.
+`SavedChores` follows targeted cleanup.
 It owns indoor grime, surface grime, bin contents and pending unbinned waste,
 permanent-SimId profiles, scoped order records, timed work, weekly assignments,
 daily decisions and settled outcomes. Its separate seeded random stream,

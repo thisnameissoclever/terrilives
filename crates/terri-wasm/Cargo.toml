@@ -6,6 +6,10 @@ version.workspace = true
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[[example]]
+name = "migrate_chores_preview"
+test = true
+
 [dependencies]
 terri-core = { path = "../terri-core" }
 terri-sim = { path = "../terri-sim" }

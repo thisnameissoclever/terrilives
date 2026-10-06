@@ -10470,3 +10470,83 @@ Use isolated browser contexts for fixtures and automation.
 **Verify.** Compare the retained save's world hash after restoration and check
 the visible Pause control. A Saved game loaded message alone does not prove
 that the original time or state was restored.
+
+## [L-pinned-hash-search-includes-strings] Search for a moved hash in every written form
+
+**What happened.** Hashing personality effects moved the world hash of a released-main save that a web test loads. A search for pinned hash values matched only numeric and bigint literals, so it missed that test, which compares the hash as a decimal string, and the implementer reported that no web test pinned a moved value. The web suite failed on that test until the pin was updated.
+
+**Root cause.** The search assumed every pinned hash is written as a number literal. A test can also pin a hash as a quoted decimal string.
+
+**Prevention.** When a change can move a hash, record the old value from a run before the change and search the repository for its exact text in decimal and hexadecimal, inside or outside quotes. Run every suite that loads a pinned save against a rebuilt package before claiming no pin moved.
+
+**Verify.** The search for the old value returns each pin, and each suite that loads a saved fixture passes against the rebuilt package.
+
+## [L-one-mutation-writer-per-worktree] Run one source-mutating agent per worktree at a time
+
+**What happened.** Two implementers worked in one worktree at once, and each ran guard-deletion checks that rewrote `crates/terri-sim/src/lib.rs` and restored its saved bytes afterwards. One agent's backups in the shared scratchpad replaced the other agent's mutation script, and the second agent had to wait until the source files matched HEAD before it could compile or mutate anything.
+
+**Root cause.** A save-and-restore mutation harness assumes it is the only writer of the file and of its scratch directory. A second agent in the same worktree breaks both assumptions: a restore can write back bytes that hold the other agent's mutation, and one crate build compiles both agents' changes into each other's test runs.
+
+**Prevention.** Allow one agent at a time to write source files in a worktree, including mutation harnesses. Give parallel implementers separate worktrees, and give each harness its own scratch directory.
+
+**Verify.** Before a mutation run, confirm that `git status` shows only your own changes and record `git hash-object` for each target file. After restoring, confirm the hash matches the recorded value and that no other process changed the file during the run.
+
+## [L-per-completion-effect-needs-mid-activity-read] Read a per-completion effect while the activity runs
+
+**What happened.** The first test of learning from a conversation recorded the first tick on which either participant's practice rose and asserted that it equalled one attempt. Review showed that a `practise` call moved into the per-tick delivery would also raise practice by exactly one attempt on that first tick, so the test passed for the wrong code. The rewritten test reads practice while the chat runs and again after it ends.
+
+**Root cause.** A site that runs every tick and a site that runs once at completion produce the same value on the first tick that changes anything. A first-change read cannot tell them apart.
+
+**Prevention.** For an effect that must happen once per completed activity, assert the value mid-activity, while the activity is still under way, and again at a fixed tick after it ends, against an exact count of completions. Prove the test by moving the call into the per-tick path and to the activity's first tick, and confirm that each move fails it.
+
+**Verify.** `a_social_completion_teaches_both_participants` in `crates/terri-sim/src/skills_tests.rs` reads practice at tick 28 during the chat and at tick 60 after it. Moving the call into the per-tick delivery fails it with `nothing learned while the chat runs`, as recorded in `docs/specs/2026-10-05-skills-verification.md`.
+
+## Keep chore state available during mood-based decisions
+
+**What happened.** Daily cleaning decisions omitted grime and chore feelings,
+while the public mood display included them.
+
+**Root cause.** The chore scheduler temporarily removed its state resource.
+Mood derivation looked up that missing resource rather than receiving the
+scheduler's current state.
+
+**Prevention.** Pass the owned state explicitly to mood derivation while a
+resource is outside the world. Keep public and scheduler mood inputs identical.
+
+**Verify.** Run the normal daily-decision path with the same person, needs,
+profile and random draw, between the clean and grimy probabilities. Dirt and
+recent chore feelings must change the decision without adding random draws.
+
+## Verify asset receipts against staged Git bytes
+
+**What happened.** Asset checks passed against working files, but Git's newline
+conversion changed newly staged producers and manifests bound by raw SHA-256.
+
+**Root cause.** The accepted files lacked the exact-byte attributes already
+used for older model receipts. Git's cached index also needed renormalization
+after the attributes changed.
+
+**Prevention.** Protect every byte-hashed producer and receipt from newline
+conversion. Compare its staged blob with the receipt before delivery, and
+renormalize only the newly protected files when the index already holds them.
+
+**Verify.** Read each approved input from Git's index and require its hash to
+match the same receipt as the working file. A local-only asset check is
+insufficient evidence for a clean checkout.
+
+## Give recovery tests a real activity owner
+
+**What happened.** A repetition-recovery test expected a snack score to decay
+while an empty order queue allowed autonomy to complete another snack.
+
+**Root cause.** An empty player queue and full Hunger do not prohibit food;
+exploration can still choose it. The observed increase was another completed
+use rather than a failure of decay.
+
+**Prevention.** Give the person a valid directed activity during a recovery
+interval when the test requires no new use of the measured activity. Keep the
+normal simulation running and retain a per-tick monotonicity assertion.
+
+**Verify.** Record the first upward score transition and the active chain.
+Require the recovery scenario to avoid renewed use, then verify its score and
+mood heal without disabling production systems.

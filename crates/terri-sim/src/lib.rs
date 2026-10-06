@@ -14,6 +14,7 @@ mod dining;
 pub mod domestic;
 #[cfg(test)]
 mod ecs_lifecycle_tests;
+pub mod edit;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
@@ -34,6 +35,7 @@ mod room_regions;
 mod save;
 mod seating;
 mod shyness;
+pub mod skills;
 pub mod systems;
 mod targeted_cleanup;
 #[cfg(test)]
@@ -45,7 +47,7 @@ use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
 
 pub use mood::{MoodSnapshot, Moodlet};
-pub use save::SaveError;
+pub use save::{SaveError, MAX_TEXT_BYTES};
 
 /// The content pack, as a resource so systems can resolve object ids and
 /// decay rates. Holds a `&'static` because the pack is embedded at build
@@ -890,6 +892,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -990,6 +995,7 @@ impl Sim {
                 .collect(),
             domestic: domestic::snapshot(&self.world),
             dining: dining::snapshot(&self.world),
+            skills: save::skills::capture(&self.world, content),
             targeted_cleanup: targeted_cleanup::snapshot(&self.world),
             chores: chores::snapshot(&self.world),
             grime: self
@@ -1026,6 +1032,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1040,6 +1049,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1080,6 +1092,9 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        // [SK-save]: no envelope before V5 carries practice, so every
+        // person is seeded once from their worn capabilities' saved states.
+        save::skills::restore(&mut restored.world, content, None)?;
         restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
@@ -1209,6 +1224,10 @@ impl Sim {
         // through `try_query`.
         world.register_component::<terri_core::Traits>();
         world.register_component::<terri_core::Fumbled>();
+        // [SK-model]: `traits_of` and `skills_of` read practice through
+        // `try_query`, which needs the component registered to report
+        // absence rather than no query at all.
+        world.register_component::<terri_core::Skills>();
         // A-11's facing carrier. In `sync_render_buffer`'s query (a
         // plain `World::query`, which self-registers) rather than the
         // digest's `try_query`, so this line is for the determinism
@@ -2437,16 +2456,60 @@ impl Sim {
     }
 
     /// The worn traits of the sim carrying `index`, as (pack trait
-    /// index, live state) pairs in key order - the [E3] overlay read.
+    /// index, value) pairs in key order - the [E3] overlay read. The value
+    /// is a condition's live severity, a disposition's 0, and for a
+    /// capability the mastery of the skill with its tag ([SK-hud]); a
+    /// capability whose tag no skill carries reports its own state.
     /// `None` for objects, stale indices, and bare agents, the same
     /// contract as every scan here; the shell resolves the indices
     /// against the pack's labels, which it reads once.
     pub fn traits_of(&self, index: u32) -> Option<Vec<(u32, f32)>> {
-        let mut state = self.world.try_query::<(Entity, &terri_core::Traits)>()?;
+        let pack = self.world.resource::<Content>().0;
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Traits, Option<&terri_core::Skills>)>()?;
         state
             .iter(&self.world)
-            .find(|(entity, _)| entity.index_u32() == index)
-            .map(|(_, worn)| worn.entries().to_vec())
+            .find(|(entity, ..)| entity.index_u32() == index)
+            .map(|(_, worn, skills)| {
+                worn.entries()
+                    .iter()
+                    .map(|&(trait_index, value)| {
+                        let def = &pack.traits[trait_index as usize];
+                        let value = match def.kind {
+                            terri_data::CompiledTraitKind::Capability { .. } => {
+                                skills::mastery_for_tag(skills, pack, &def.tag).unwrap_or(value)
+                            }
+                            _ => value,
+                        };
+                        (trait_index, value)
+                    })
+                    .collect()
+            })
+    }
+
+    /// Where the person carrying `index` stands in every content skill, in
+    /// pack order - [SK-hud]. `None` for anything that is not a living
+    /// person. A person with no practice in a skill stands at level 0.
+    pub fn skills_of(&self, index: u32) -> Option<Vec<skills::Standing>> {
+        let pack = self.world.resource::<Content>().0;
+        let mut people = self
+            .world
+            .try_query::<(Entity, &terri_core::Agent, Option<&terri_core::Skills>)>()?;
+        let (_, _, held) = people
+            .iter(&self.world)
+            .find(|(entity, ..)| entity.index_u32() == index)?;
+        let ladder = skills::Ladder::from_tuning(&pack.tuning);
+        Some(
+            pack.skills
+                .iter()
+                .enumerate()
+                .map(|(skill_index, skill)| {
+                    let practice = held.map_or(0.0, |held| held.practice(skill_index as u32));
+                    skills::standing(&ladder, skill.levels, practice)
+                })
+                .collect(),
+        )
     }
 
     /// One label per entry in the pack's trait list, in pack order -
@@ -2502,6 +2565,48 @@ impl Sim {
                     })
                     .collect()
             })
+            .unwrap_or_default()
+    }
+
+    /// One label per content skill, in pack order - what
+    /// [`Sim::skills_of`]'s rows resolve against ([SK-hud]). Borrowed from
+    /// the `&'static` pack like [`Sim::trait_labels`].
+    pub fn skill_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .skills
+                    .iter()
+                    .map(|skill| skill.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// One plain sentence per content skill, aligned with
+    /// [`Sim::skill_labels`].
+    pub fn skill_descriptions(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .skills
+                    .iter()
+                    .map(|skill| skill.description.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The number of rungs on each content skill's ladder, aligned with
+    /// [`Sim::skill_labels`]: the top level a person can reach.
+    pub fn skill_levels(&self) -> Vec<u8> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| content.0.skills.iter().map(|skill| skill.levels).collect())
             .unwrap_or_default()
     }
 
@@ -2657,12 +2762,21 @@ impl Sim {
     /// read. The label rather than the index, because the pack lookup
     /// is a query over content this crate owns.
     pub fn career_of(&self, index: u32) -> Option<&'static str> {
+        self.career_definition_of(index)
+            .map(|career| career.label.as_str())
+    }
+
+    /// The compiled career held by the sim carrying `index`, or `None`
+    /// for the unemployed and everything else. The Career row reads its
+    /// working days and shift hours from it ([CAL-hud] in
+    /// `docs/specs/2026-10-06-calendar.md`).
+    pub fn career_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledCareer> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;
         state
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)
-            .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
+            .map(|(_, career)| &pack.careers[career.0 as usize])
     }
 
     /// The primary type, or legacy name, of a smart object. Includes decorative
@@ -2899,6 +3013,15 @@ impl Sim {
         Some(shyness::of(&self.world, entity).value())
     }
 
+    /// The archetype the editor may preselect for the person at this entity
+    /// index, or `None` for "Keep current personality".
+    pub fn personality_archetype_of(&self, index: u32) -> Option<u32> {
+        let entity = bevy_ecs::entity::EntityIndex::from_raw_u32(index)
+            .map(|index| self.world().entities().resolve_from_index(index))?;
+        self.world().get_entity(entity).ok()?;
+        edit::archetype_of(self.world(), entity)
+    }
+
     /// Hashes all simulation-visible state. Entities are sorted by index
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
@@ -2935,11 +3058,11 @@ impl Sim {
         // worlds hash identically.
         //
         // `SimName` is presentation: a rename must not diverge a replay.
-        // Personality multipliers and dispositions retain their historical
-        // exclusion while they are immutable during play. Runtime editing
-        // must add them to the digest. Chronotype is hashed in a sparse
-        // suffix below: historical people can have zero while new people
-        // receive authored offsets, even when both came from the same pack.
+        // Personality multipliers and dispositions are hashed in the sparse
+        // `personality-effects-v1` suffix below, because [ES-personality]
+        // edits them during play. Chronotype is hashed in its own sparse
+        // suffix: historical people can have zero while new people receive
+        // authored offsets, even when both came from the same pack.
         //
         // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
         // wraps a u32 allocated monotonically from 0, so u64::MAX is
@@ -3308,9 +3431,9 @@ impl Sim {
                 let fields: Vec<u64> = match command {
                     CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
                         if matches!(command, CleanChoreFirst { .. }) {
-                            25
+                            26
                         } else {
-                            24
+                            25
                         },
                         *agent as u64,
                         key.kind as u64,
@@ -3321,11 +3444,11 @@ impl Sim {
                         responsibility,
                         preferences,
                     } => {
-                        let mut v = vec![26, *agent as u64, *responsibility as u64];
+                        let mut v = vec![27, *agent as u64, *responsibility as u64];
                         v.extend(preferences.iter().map(|x| *x as i64 as u64));
                         v
                     }
-                    SetChoreBoard { enabled } => vec![27, u64::from(*enabled)],
+                    SetChoreBoard { enabled } => vec![28, u64::from(*enabled)],
                     CleanDishes {
                         agent,
                         surface,
@@ -3338,9 +3461,9 @@ impl Sim {
                     } => {
                         let mut fields = vec![
                             if matches!(command, CleanDishesFirst { .. }) {
-                                23
+                                24
                             } else {
-                                22
+                                23
                             },
                             *agent as u64,
                             *surface as u64,
@@ -3514,6 +3637,42 @@ impl Sim {
                         }));
                         row
                     }
+                    // [ES-atomic]: as a move-in, by the personality's and
+                    // the traits' ids with the name in no row. A kept
+                    // personality and an unknown one differ by the marker.
+                    EditHousemate {
+                        sim,
+                        personality,
+                        traits,
+                        ties,
+                        ..
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        let mut row = vec![
+                            22,
+                            u64::from(*sim),
+                            u64::from(personality.is_some()),
+                            personality.map_or(u64::MAX, |index| {
+                                content
+                                    .and_then(|content| content.0.personalities.get(index as usize))
+                                    .map_or(u64::MAX, |personality| id_digest(&personality.id))
+                            }),
+                            traits.len() as u64,
+                        ];
+                        row.extend(traits.iter().map(|&index| {
+                            content
+                                .and_then(|content| content.0.traits.get(index as usize))
+                                .map_or(u64::MAX, |worn| id_digest(&worn.id))
+                        }));
+                        row.push(ties.len() as u64);
+                        for (relative, relation) in ties {
+                            row.push(u64::from(*relative));
+                            row.push(
+                                relation.map_or(u64::MAX, |relation| u64::from(relation.code())),
+                            );
+                        }
+                        row
+                    }
                     // A purchase as `BuyObject` hashes it, then its
                     // colourway as `SetColourway` hashes one.
                     BuyObjectInColourway {
@@ -3606,6 +3765,49 @@ impl Sim {
             for (index, offset) in offsets {
                 hasher.write_u64(u64::from(index));
                 hasher.write_u64(offset as i64 as u64);
+            }
+        }
+        // [ES-personality]: effects are runtime-editable now, so every
+        // behavior-bearing field is in the digest. Sparse, like the
+        // chronotype block, so worlds without personalities hash as before.
+        // Exact bits, as `domestic::hash` writes cleanliness: these are
+        // stored multipliers, not accumulated positions, so a one-step
+        // change is a real difference and must not fall inside a 1e-4
+        // `write_f32` bucket.
+        let effects = edit::personality_rows(&self.world);
+        if !effects.is_empty() {
+            hasher.write_bytes(b"personality-effects-v1");
+            hasher.write_u64(effects.len() as u64);
+            for (index, personality) in effects {
+                hasher.write_u64(u64::from(index));
+                for value in personality.drain {
+                    hasher.write_u64(u64::from(value.to_bits()));
+                }
+                for value in personality.satisfaction {
+                    hasher.write_u64(u64::from(value.to_bits()));
+                }
+                let dispositions = personality.dispositions();
+                hasher.write_u64(dispositions.len() as u64);
+                for &(object, interaction, weight) in dispositions {
+                    hasher.write_u64(u64::from(object.0));
+                    hasher.write_u64(u64::from(interaction));
+                    hasher.write_u64(u64::from(weight.to_bits()));
+                }
+            }
+        }
+        // [SK-save]: every person's practice, keyed on entity index and the
+        // skill's id. Sparse, like the blocks above, so a world where nobody
+        // holds any practice hashes as it did before skills. Exact bits:
+        // practice is stored, and one f32 step can cross a level boundary.
+        let rows = skills::hash_rows(&self.world);
+        if !rows.is_empty() {
+            let content = self.world.resource::<Content>().0;
+            hasher.write_bytes(b"skills-v1");
+            hasher.write_u64(rows.len() as u64);
+            for (entity, skill, practice) in rows {
+                hasher.write_u64(u64::from(entity));
+                hasher.write_u64(id_digest(&content.skills[skill as usize].id));
+                hasher.write_u64(u64::from(practice.to_bits()));
             }
         }
         privacy::hash(&self.world, &mut hasher);

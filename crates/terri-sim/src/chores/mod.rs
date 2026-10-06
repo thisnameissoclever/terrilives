@@ -7,8 +7,8 @@ pub(crate) mod presentation;
 mod save;
 pub(crate) use save::restore;
 mod consequences;
-pub(crate) use consequences::dish_washed;
 pub use consequences::moodlets;
+pub(crate) use consequences::{dish_washed, moodlets_in};
 mod policy;
 mod work;
 use bevy_ecs::prelude::*;
@@ -19,6 +19,8 @@ pub(crate) use work::{activate, cancel, issue, key_valid, soil};
 mod board_tests;
 #[cfg(test)]
 mod grime_tests;
+#[cfg(test)]
+mod integration_tests;
 #[cfg(test)]
 mod lifecycle_tests;
 #[cfg(test)]

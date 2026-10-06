@@ -389,7 +389,7 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
                 .find(|p| p.sim_id == owner)
                 .cloned()
                 .unwrap_or_else(|| ChoreProfile::neutral(owner));
-            let mood = crate::mood::score(world, person.index_u32()).unwrap_or(0.0) / 8.0;
+            let mood = crate::mood::score(world, person.index_u32(), state).unwrap_or(0.0) / 8.0;
             let chance = policy::willingness(
                 &profile,
                 key.kind,

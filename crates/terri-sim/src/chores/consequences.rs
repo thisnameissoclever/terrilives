@@ -77,6 +77,14 @@ pub fn moodlets(world: &World, person: Entity) -> Vec<crate::mood::Moodlet> {
     let Some(state) = world.get_resource::<SavedChores>() else {
         return vec![];
     };
+    moodlets_in(world, person, state)
+}
+
+pub(crate) fn moodlets_in(
+    world: &World,
+    person: Entity,
+    state: &SavedChores,
+) -> Vec<crate::mood::Moodlet> {
     let Some(id) = world.get::<terri_core::SimId>(person) else {
         return vec![];
     };

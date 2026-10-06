@@ -34,7 +34,7 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
 
 // Serialize each appended field independently so historical-prefix fixtures
 // cannot accidentally cut a newer field that follows the intended boundary.
-pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 16] {
+pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 17] {
     [
         postcard::to_allocvec(&snapshot.floors).unwrap().len(),
         postcard::to_allocvec(&snapshot.family_by_index)
@@ -61,12 +61,39 @@ pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 16] {
         postcard::to_allocvec(&snapshot.shyness).unwrap().len(),
         postcard::to_allocvec(&snapshot.boundaries).unwrap().len(),
         postcard::to_allocvec(&snapshot.dining).unwrap().len(),
+        postcard::to_allocvec(&snapshot.skills).unwrap().len(),
         postcard::to_allocvec(&snapshot.targeted_cleanup)
             .unwrap()
             .len(),
         postcard::to_allocvec(&snapshot.chores).unwrap().len(),
         postcard::to_allocvec(&snapshot.grime).unwrap().len(),
     ]
+}
+
+/// [SK-save]: a save written before skills existed loads with every
+/// person's practice seeded from their worn capability states. Returns the
+/// skills field the loaded world's next save carries.
+fn assert_seeded_from_states(handle: &SimHandle) -> Option<terri_core::save::SavedSkills> {
+    let world = handle.sim.world();
+    let pack = world.resource::<Content>().0;
+    let mut people = world
+        .try_query::<(
+            terri_core::Entity,
+            &terri_core::Agent,
+            Option<&terri_core::Traits>,
+            Option<&terri_core::Skills>,
+        )>()
+        .unwrap();
+    for (person, _, worn, held) in people.iter(world) {
+        let mut expected = terri_core::Skills::default();
+        if let Some(worn) = worn {
+            terri_sim::skills::seed_from_states(&mut expected, worn, pack);
+        }
+        assert_eq!(held, Some(&expected), "person {}", person.index_u32());
+    }
+    let saved = handle.sim.save_snapshot_v5().skills;
+    assert!(saved.is_some(), "the next save carries the field");
+    saved
 }
 
 fn assert_current_resave_is_stable(handle: &SimHandle) {
@@ -274,6 +301,8 @@ fn independent_bed_release_wasm_saves_preserve_claims_and_pending_command_19() {
         let actual = loaded.sim.save_snapshot_v5();
         let mut normalized = expected.clone();
         normalized.world.content_fingerprint = actual.world.content_fingerprint;
+        assert!(normalized.skills.is_none());
+        normalized.skills = assert_seeded_from_states(&loaded);
         assert_eq!(actual, normalized);
         let current = loaded.save_bytes();
         assert_current_resave_is_stable(&loaded);
@@ -376,6 +405,67 @@ fn public_main_meal_preserves_personality_tail_and_migrates_recipe_counter() {
         resumed.tick();
         assert_eq!(loaded.world_hash(), resumed.world_hash());
     }
+}
+
+/// [ES-save]: an edit applied to a world loaded from a historical save,
+/// here the cook mid-recipe in `public-main-meal.hex`, saves and loads with
+/// the edit intact and replays identically afterwards.
+#[test]
+fn an_edit_of_a_loaded_historical_save_survives_save_load_and_replays() {
+    let hex = include_str!("../tests/fixtures/public-main-meal.hex").trim();
+    let bytes: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+        .collect();
+    let mut edited = SimHandle::from_lot();
+    assert!(edited.load_bytes(&bytes));
+    let pack = edited.sim.world().resource::<Content>().0;
+    let flitting = pack
+        .personalities
+        .iter()
+        .position(|p| p.id == "the_flitting")
+        .unwrap();
+    let cannot_cook = pack
+        .traits
+        .iter()
+        .position(|worn| worn.id == "cannot_cook")
+        .unwrap();
+    let (cook, other) = (34, 35);
+    let relative = edited.sim_id_of(other);
+    assert!(edited.edit_housemate(
+        f64::from(edited.sim_id_of(cook)),
+        "  Edited Cook  ",
+        false,
+        flitting as f64,
+        &[cannot_cook as f64],
+        &[
+            f64::from(relative),
+            f64::from(terri_core::layout::Relation::Sibling.code())
+        ],
+    ));
+    edited.flush_commands();
+    assert_eq!(edited.last_edit_result(), vec![0, cook, 1], "accepted");
+    assert_eq!(edited.sim_name(cook), "Edited Cook");
+    assert_eq!(
+        edited.sim.personality_archetype_of(cook),
+        Some(flitting as u32)
+    );
+
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&edited.save_bytes()));
+    assert_eq!(resumed.sim_name(cook), "Edited Cook");
+    assert_eq!(
+        resumed.sim.personality_archetype_of(cook),
+        Some(flitting as u32)
+    );
+    assert_eq!(resumed.world_hash(), edited.world_hash());
+    for _ in 0..160 {
+        edited.tick();
+        resumed.tick();
+    }
+    assert_eq!(resumed.world_hash(), edited.world_hash());
+    assert_eq!(resumed.sim_name(cook), "Edited Cook");
+    assert_eq!(edited.sim_name(cook), "Edited Cook");
 }
 
 #[test]
@@ -648,10 +738,24 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     let plain = source.save_bytes();
     assert_eq!(&plain[8..10], &[5, 0]);
     assert_eq!(plain, v5_bytes(&source.sim.save_snapshot_v5()));
+    // Sleeping places are `Some` of two empty lists (1, 0, 0), then empty
+    // shyness and boundary lists (0, 0), no dining (0), and skills as
+    // `Some` of an empty row list (1, 0): the encoding of each field below.
+    let mut tail = Vec::new();
+    for field in [
+        postcard::to_allocvec(&Some(terri_core::save::SavedSleepingPlaces::default())),
+        postcard::to_allocvec(&Vec::<(u32, u8)>::new()),
+        postcard::to_allocvec(&Vec::<terri_core::save::SavedBoundaryDecision>::new()),
+        postcard::to_allocvec(&None::<terri_core::save::SavedDining>),
+        postcard::to_allocvec(&Some(terri_core::save::SavedSkills::default())),
+    ] {
+        tail.extend(field.unwrap());
+    }
+    assert_eq!(tail, [1, 0, 0, 0, 0, 0, 1, 0]);
     assert_eq!(
-        &plain[plain.len() - 9..],
-        &[1, 0, 0, 0, 0, 0, 0, 0, 0],
-        "current saves carry sleeping places, shyness, boundary decisions, dining and scoped cleanup explicitly"
+        &plain[plain.len() - 11..],
+        &[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+        "current saves carry sleeping places, shyness, boundary decisions, dining, skills and cleanup explicitly"
     );
     let chair = (0..16u32)
         .find(|&index| source.object_colourway(f64::from(index)) == 0)
@@ -705,9 +809,12 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(live.family_ties().is_empty());
 
     for (first, what) in [
-        (10, "boundary decisions"),
-        (9, "shyness"),
-        (8, "sleeping places"),
+        (13, "skills"),
+        (12, "dining"),
+        (11, "boundary decisions"),
+        (10, "shyness"),
+        (9, "sleeping places"),
+        (8, "domestic"),
         (7, "chronotypes"),
         (6, "instincts"),
         (5, "waiting"),
@@ -1279,7 +1386,8 @@ fn optional_group_multibyte_cuts_and_frozen_bed_none_fail_closed() {
         snapshot.sleeping_places = places;
         let mut bytes = postcard::to_allocvec(&snapshot).unwrap();
         let lengths = v5_appended_lengths(&snapshot);
-        bytes.truncate(bytes.len() - lengths[12..].iter().sum::<usize>()); // Frozen local layout has no dining or targeted cleanup fields.
+        // The frozen local layout predates dining and all following fields.
+        bytes.truncate(bytes.len() - lengths[12..].iter().sum::<usize>());
         let domestic = bytes.len() - lengths[8..12].iter().sum::<usize>();
         assert_eq!(bytes.remove(domestic), 0); // Frozen local layout lacks this public field.
         if snapshot.sleeping_places.is_none() {
@@ -1339,6 +1447,8 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
     assert!(loaded.load_bytes(bytes));
     expected.world.content_fingerprint = loaded.sim.save_snapshot_v5().world.content_fingerprint;
     expected.sleeping_places = Some(terri_core::save::SavedSleepingPlaces::default());
+    assert!(expected.skills.is_none());
+    expected.skills = assert_seeded_from_states(&loaded);
     assert_eq!(loaded.sim.save_snapshot_v5(), expected);
     assert_current_resave_is_stable(&loaded);
     let mut resumed = SimHandle::from_lot();
@@ -1348,4 +1458,223 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
         resumed.tick();
         assert_eq!(loaded.world_hash(), resumed.world_hash());
     }
+}
+
+/// [SK-save]: skills precedes the later chore fields. A save cut
+/// before it is a save written before skills existed: it loads and seeds
+/// practice from the worn capability states. Every cut inside it, from the
+/// `Some` marker to the last byte of the last row, and a zero row count cut
+/// inside postcard's two-byte long form, is refused with the live world untouched.
+#[test]
+fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
+    let mut source = SimHandle::from_lot();
+    let pack = source.sim.world().resource::<Content>().0;
+    let people: Vec<_> = source
+        .sim
+        .world_mut()
+        .query::<(terri_core::Entity, &terri_core::Agent, &terri_core::Traits)>()
+        .iter(source.sim.world())
+        .map(|(entity, _, worn)| (entity, worn.clone()))
+        .collect();
+    // Practice no worn state would seed, so the prefix load must not keep it.
+    for (person, _) in &people {
+        let mut skills = terri_core::Skills::default();
+        for skill in 0..pack.skills.len() as u32 {
+            skills.set_practice(skill, 0.031_25 * (skill + 1) as f32);
+        }
+        source.sim.world_mut().entity_mut(*person).insert(skills);
+    }
+    let snapshot = source.sim.save_snapshot_v5();
+    let saved = snapshot.skills.clone().unwrap();
+    assert_eq!(saved.rows.len(), people.len() * pack.skills.len());
+    let bytes = source.save_bytes();
+    let tail = postcard::to_allocvec(&snapshot.skills).unwrap();
+    assert_eq!(v5_appended_lengths(&snapshot)[13], tail.len());
+    let lengths = v5_appended_lengths(&snapshot);
+    let end = bytes.len() - lengths[14..].iter().sum::<usize>();
+    let start = end - tail.len();
+
+    let mut full = SimHandle::from_lot();
+    assert!(full.load_bytes(&bytes));
+    assert_eq!(full.sim.save_snapshot_v5().skills, Some(saved));
+    assert_eq!(full.save_bytes(), bytes);
+
+    let mut legacy = SimHandle::from_lot();
+    assert!(
+        legacy.load_bytes(&bytes[..start]),
+        "a save written before skills existed must still load"
+    );
+    for (person, worn) in &people {
+        let mut expected = terri_core::Skills::default();
+        terri_sim::skills::seed_from_states(&mut expected, worn, pack);
+        assert_eq!(
+            legacy.sim.world().get::<terri_core::Skills>(*person),
+            Some(&expected),
+            "person {}",
+            person.index_u32()
+        );
+    }
+    assert!(legacy.sim.save_snapshot_v5().skills.is_some());
+    assert_current_resave_is_stable(&legacy);
+
+    let before = legacy.save_bytes();
+    let hash = legacy.world_hash();
+    let mut cases: Vec<Vec<u8>> = (start + 1..end).map(|cut| bytes[..cut].to_vec()).collect();
+    let mut long_empty = bytes[..start].to_vec();
+    long_empty.extend([1, 0x80]);
+    cases.push(long_empty);
+    for case in cases {
+        assert!(
+            decode_v5(&case[SAVE_HEADER_BYTES..]).is_none(),
+            "decoder accepted a cut skills field at {}",
+            case.len() - start
+        );
+        assert!(!legacy.load_bytes(&case));
+        assert_eq!(legacy.save_bytes(), before);
+        assert_eq!(legacy.world_hash(), hash);
+    }
+}
+
+/// [SK-save] and lesson [L-save-tail-offset-fixtures]: every historical
+/// fixture predates skills, so each still loads, seeds every person from
+/// their worn capability states, and saves the field on its next save.
+#[test]
+fn every_historical_fixture_loads_and_seeds_practice_once() {
+    fn hex(text: &str) -> Vec<u8> {
+        let text: String = text.split_whitespace().collect();
+        text.as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect()
+    }
+    let fixtures: Vec<(&str, Vec<u8>)> = vec![
+        (
+            "main-commuting-366",
+            hex(include_str!("../tests/fixtures/main-commuting-366.hex")),
+        ),
+        (
+            "pre-bathtub-rotation",
+            hex(include_str!("../tests/fixtures/pre-bathtub-rotation.hex")),
+        ),
+        (
+            "pre-builder-600",
+            hex(include_str!("../tests/fixtures/pre-builder-600.hex")),
+        ),
+        (
+            "pre-builder-908",
+            hex(include_str!("../tests/fixtures/pre-builder-908.hex")),
+        ),
+        (
+            "pre-front-door-schema2",
+            hex(include_str!("../tests/fixtures/pre-front-door-schema2.hex")),
+        ),
+        (
+            "pre-meals-dinner",
+            hex(include_str!("../tests/fixtures/pre-meals-dinner.hex")),
+        ),
+        (
+            "pre-meals-snack",
+            hex(include_str!("../tests/fixtures/pre-meals-snack.hex")),
+        ),
+        (
+            "pre-trait-library-2400",
+            hex(include_str!("../tests/fixtures/pre-trait-library-2400.hex")),
+        ),
+        (
+            "pre-trait-library-600",
+            hex(include_str!("../tests/fixtures/pre-trait-library-600.hex")),
+        ),
+        (
+            "pre-voice-157",
+            hex(include_str!("../tests/fixtures/pre-voice-157.hex")),
+        ),
+        (
+            "pre-yard-600",
+            hex(include_str!("../tests/fixtures/pre-yard-600.hex")),
+        ),
+        (
+            "public-main-meal",
+            hex(include_str!("../tests/fixtures/public-main-meal.hex")),
+        ),
+        (
+            "bed-era-two-walking-assigned",
+            include_bytes!("../tests/fixtures/bed-era-two-walking-assigned.bin").to_vec(),
+        ),
+        (
+            "bed-era-two-sleeping-assigned",
+            include_bytes!("../tests/fixtures/bed-era-two-sleeping-assigned.bin").to_vec(),
+        ),
+        (
+            "bed-era-two-sleeping-pending-clear",
+            include_bytes!("../tests/fixtures/bed-era-two-sleeping-pending-clear.bin").to_vec(),
+        ),
+        (
+            "released-domestic",
+            include_bytes!("../../../web/review/domestic.save").to_vec(),
+        ),
+    ];
+    let mut seeded_people = 0;
+    for (name, bytes) in fixtures {
+        let mut loaded = SimHandle::from_lot();
+        assert!(loaded.load_bytes(&bytes), "{name} must still load");
+        let saved = assert_seeded_from_states(&loaded).unwrap();
+        let mut owners: Vec<u32> = saved.rows.iter().map(|row| row.0).collect();
+        owners.dedup();
+        seeded_people += owners.len();
+        assert_current_resave_is_stable(&loaded);
+    }
+    assert!(seeded_people > 0, "some fixture person wears a capability");
+}
+
+/// [OD-model]: an overdone habituation value, above 1 and up to
+/// `habituation_max`, loads through the public boundary and round-trips
+/// exactly; a value above the maximum, whether just above or well above,
+/// is refused and changes nothing.
+#[test]
+fn overdone_habituation_loads_through_the_public_boundary() {
+    let mut handle = SimHandle::from_lot();
+    let pack = handle.sim.world().resource::<Content>().0;
+    let max = pack.tuning.habituation_max;
+    let row = pack
+        .object(pack.find("fridge").expect("the shipped fridge"))
+        .interactions
+        .iter()
+        .position(|action| action.id == "grab_snack")
+        .expect("the fridge offers a snack") as u32;
+    let good = handle.sim.save_snapshot_v5();
+    let person = good
+        .world
+        .entities
+        .iter()
+        .position(|entity| entity.sim_id.is_some())
+        .expect("the shipped household");
+    let with_value = |value: f32| {
+        let mut snapshot = good.clone();
+        snapshot.world.entities[person].habituation = Some(vec![terri_core::SavedHabituation {
+            object: "fridge".into(),
+            interaction: row,
+            value,
+        }]);
+        snapshot
+    };
+
+    let bytes = handle.save_bytes();
+    let hash = handle.world_hash();
+    for refused in [max + 0.001, 3.5] {
+        assert!(
+            !handle.load_bytes(&v5_bytes(&with_value(refused))),
+            "{refused} is above the maximum {max}"
+        );
+        assert_eq!(handle.save_bytes(), bytes, "a refused load changes nothing");
+        assert_eq!(handle.world_hash(), hash, "a refused load changes nothing");
+    }
+
+    let overdone = with_value(2.0);
+    assert!(handle.load_bytes(&v5_bytes(&overdone)));
+    assert_eq!(handle.sim.save_snapshot_v5(), overdone);
+    assert_eq!(
+        handle.save_bytes(),
+        v5_bytes(&overdone),
+        "2.0 round-trips exactly"
+    );
 }

@@ -73,10 +73,25 @@ pub struct SaveSnapshotV5 {
     /// Exact dining claims and deferred room cleanup opportunities. Optional tail
     /// preserves the published domestic record's positional wire layout.
     pub dining: Option<SavedDining>,
+    /// Each person's skill practice - [SK-save] in
+    /// `docs/specs/2026-10-05-skills.md`. Current writers emit Some, even
+    /// empty, and a present field is authoritative. None appears only in a
+    /// payload written before skills existed, and the loader then seeds
+    /// practice once from each worn capability trait's saved state.
+    pub skills: Option<SavedSkills>,
     /// Scoped orders and active surface cleanup, appended after published records.
     pub targeted_cleanup: Option<SavedTargetedCleanup>,
     pub chores: Option<crate::chores::SavedChores>,
     pub grime: Option<crate::grime::SavedGrime>,
+}
+
+/// Saved skill practice: `(entity index, skill id, practice)` rows,
+/// strictly ascending by entity index and then id, one per non-zero
+/// practice a living person holds. The id is the content's authored skill
+/// id, so adding or reordering skills never reinterprets a save.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct SavedSkills {
+    pub rows: Vec<(u32, String, f32)>,
 }
 
 #[derive(
@@ -214,6 +229,7 @@ impl LocalBedSnapshotV5 {
             boundaries: self.boundaries,
             domestic: None,
             dining: None,
+            skills: None,
             targeted_cleanup: None,
             chores: None,
             grime: None,
@@ -435,8 +451,22 @@ mod wire_tests {
                 },
                 vec![18, 1, b'a', 1, 1, b'b', 1, 1, 1, b'c', 100],
             ),
+            (
+                SavedCommand::EditHousemate {
+                    sim: 3,
+                    name: "Ann".to_string(),
+                    personality: Some(Some("the_settled".to_string())),
+                    traits: vec![Some("bookworm".to_string()), None],
+                    ties: vec![(5, Some(Relation::Parent)), (7, None)],
+                },
+                vec![
+                    22, 3, 3, b'A', b'n', b'n', 1, 1, 11, b't', b'h', b'e', b'_', b's', b'e', b't',
+                    b't', b'l', b'e', b'd', 2, 1, 8, b'b', b'o', b'o', b'k', b'w', b'o', b'r',
+                    b'm', 0, 2, 5, 1, 1, 7, 0,
+                ],
+            ),
         ];
-        assert_eq!(cases.len(), 19);
+        assert_eq!(cases.len(), 20);
         for (command, bytes) in cases {
             assert_eq!(
                 postcard::to_allocvec(&command).unwrap(),
@@ -773,6 +803,17 @@ pub enum SavedCommand {
         axis: crate::layout::EdgeAxis,
         x: u32,
         y: u32,
+    },
+    /// Saved form of `SimCommand::EditHousemate`: authored IDs instead of
+    /// pack indices. `personality` is `None` to keep, `Some(Some(id))` to
+    /// adopt an archetype, and `Some(None)` when the index was unknown at
+    /// capture, which the drain then refuses. Wire code 22, append-only.
+    EditHousemate {
+        sim: u32,
+        name: String,
+        personality: Option<Option<String>>,
+        traits: Vec<Option<String>>,
+        ties: Vec<(u32, Option<crate::layout::Relation>)>,
     },
     CleanDishes {
         agent: u32,

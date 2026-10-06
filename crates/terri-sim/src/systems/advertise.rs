@@ -11,9 +11,9 @@ pub const TILES_PER_TICK: f32 = 0.25;
 /// habituated it is to that interaction - [S2].
 ///
 /// Runs from 1.0 for something never done to `floor` for something done to
-/// death, linearly in between. `habituation` is in `0.0..=1.0` because
-/// `Habituation::bump` caps it there, and `floor` is in `(0.0, 1.0]`
-/// because `compile_tuning` rejects anything else.
+/// death, linearly in between. `habituation` may run up to the tuned
+/// `habituation_max`, above 1, and is clamped to `0.0..=1.0` below; `floor`
+/// is in `(0.0, 1.0]` because `compile_tuning` rejects anything else.
 ///
 /// # Why this is a function rather than one line inside `select_action`
 ///
@@ -40,8 +40,13 @@ pub const TILES_PER_TICK: f32 = 0.25;
 /// and a golden value is what pins a multiplier: "the habituated one
 /// loses" is satisfied by any scale below 1, including three of the four
 /// mutants.
+///
+/// **Habituation above 1 reads as 1 here** ([OD-model] in
+/// `docs/specs/2026-10-06-overdoing-it.md`). The part above 1 is overdoing,
+/// which costs mood instead; without the clamp a habituation of 3 would scale
+/// a benefit to -0.65 and turn it into a cost.
 pub fn benefit_scale(habituation: f32, floor: f32) -> f32 {
-    1.0 - habituation * (1.0 - floor)
+    1.0 - habituation.clamp(0.0, 1.0) * (1.0 - floor)
 }
 
 /// One advertised delta, with habituation applied - benefit only.

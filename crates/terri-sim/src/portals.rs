@@ -617,6 +617,7 @@ mod tests {
                 pay: 1,
                 energy_cost: 1.0,
                 satisfaction: 0.0,
+                working_days: 0b1111111,
             }],
             ..base.clone()
         }))

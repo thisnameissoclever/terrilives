@@ -16,6 +16,11 @@
 #
 # Times are in ticks of the 1440-tick day (one tick is one sim-minute,
 # so read them as minutes past midnight).
+#
+# working_days lists the weekdays the shift runs, by name from mon to
+# sun: at least one, none twice - [CAL-careers] in
+# docs/specs/2026-10-06-calendar.md. On any other day the worker stays
+# home.
 
 [[career]]
 id = "office_job"
@@ -40,3 +45,5 @@ energy_cost = 15.0
 # One completed shift is worth a third of one un-loved read (base 3).
 # Deliberately nearly nothing - see the header.
 satisfaction = 1.0
+# Monday to Friday, so the household gets a weekend together.
+working_days = ["mon", "tue", "wed", "thu", "fri"]

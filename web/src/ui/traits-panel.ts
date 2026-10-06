@@ -49,6 +49,17 @@ function percent(state: number): number {
 }
 
 /**
+ * A capability's skill is rounded down, and reads 100% only at mastery 1,
+ * so it never shows 100% while the person can still fumble. Mastery
+ * arrives as an f32, which can sit a step below the value it names (0.58
+ * is 0.57999998); the 1e-4 allowance on the percentage absorbs that.
+ */
+function skillPercent(state: number): number {
+  if (state >= 1) return 100;
+  return Math.min(99, Math.floor(Math.max(0, state) * 100 + 1e-4));
+}
+
+/**
  * How a trait's state is worded. The empty string is a real answer: a
  * disposition has no state, and the surface hides the slot when it is empty.
  * `null` means the row cannot be worded at all, and makes the whole panel
@@ -63,7 +74,7 @@ function stateText(kind: string | undefined, state: number): string | null {
     case 'disposition':
       return '';
     case 'capability':
-      return `Skill ${percent(state)}%`;
+      return `Skill ${skillPercent(state)}%`;
     case 'condition':
       return `Severity ${percent(state)}%`;
     default:

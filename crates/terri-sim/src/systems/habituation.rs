@@ -126,6 +126,83 @@ mod tests {
         );
     }
 
+    /// [OD-model] on the single-interaction path: `tick_interactions`, which
+    /// television, showers and every other non-chain activity complete
+    /// through, passes the tuned cap rather than 1. The agent is ordered to
+    /// watch the `telly` again after every completion; its habituation
+    /// passes 1, reaches the cap, and is never above it at any tick.
+    ///
+    /// A completion bumps before that tick's decay, so a capped completion
+    /// reads one tick's decay below the cap.
+    #[test]
+    fn repeated_single_interactions_pass_one_and_stop_at_the_tuned_cap() {
+        use terri_core::{CommandQueue, SimClock, SimCommand};
+
+        let (mut sim, object, agent) = scenario();
+        let tuning = test_content::tuning();
+        let max = tuning.habituation_max;
+        let decay = tuning.habituation_decay_per_tick;
+        assert_eq!(content().tuning.habituation_max, max);
+        let mut highest = 0.0_f32;
+        let mut capped = 0;
+        for watch in 1..=20 {
+            sim.world_mut()
+                .get_mut::<Needs>(agent)
+                .unwrap()
+                .set(NeedId::Fun, 5.0);
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObjectFirst {
+                    agent: agent.index_u32(),
+                    object: object.index_u32(),
+                    interaction: 0,
+                });
+            let start = sim.world().resource::<SimClock>().tick;
+            let before = habituation_of(&sim, agent);
+            let mut ticks = 0_u64;
+            let mut began = false;
+            let mut finished = false;
+            for _ in 0..DURATION * 4 {
+                sim.tick();
+                ticks += 1;
+                let now = habituation_of(&sim, agent);
+                assert!(now <= max, "watch {watch}: {now} is above the cap {max}");
+                let eating = sim.world().get::<Eating>(agent).is_some();
+                began |= eating;
+                if began && !eating {
+                    finished = true;
+                    break;
+                }
+            }
+            assert!(finished, "watch {watch} must finish within the bound");
+            assert_eq!(
+                sim.world().resource::<SimClock>().tick,
+                start + ticks,
+                "watch {watch}: one clock tick per loop tick"
+            );
+            let after = habituation_of(&sim, agent);
+            let at_cap = (after - (max - decay)).abs() < 1e-4;
+            // Below the cap every completion charges; at the cap a
+            // completion lands exactly where the last one did.
+            assert!(
+                after > before || at_cap,
+                "watch {watch} must charge habituation: {before} then {after}"
+            );
+            highest = highest.max(after);
+            if at_cap {
+                capped += 1;
+            }
+            if capped >= 2 {
+                break;
+            }
+        }
+        assert!(highest > 1.0, "repetition must pass 1; got {highest}");
+        assert_eq!(
+            capped, 2,
+            "two completions reach the cap; highest {highest}"
+        );
+    }
+
     /// **An interrupted interaction charges nothing.**
     ///
     /// Same rule the intent queue uses: only what completed counts. Without it,
@@ -171,7 +248,7 @@ mod tests {
         let agent = sim.world_mut().spawn((Agent, Needs::all_at(NEED_MAX))).id();
 
         let mut fresh = Habituation::default();
-        fresh.bump(def(pack), 0, 0.05);
+        fresh.bump(def(pack), 0, 0.05, pack.tuning.habituation_max);
         sim.world_mut().entity_mut(agent).insert(fresh);
         assert_eq!(
             sim.world()
@@ -234,7 +311,7 @@ mod tests {
         assert!(rate > 0.0, "a zero rate could not decay anything");
 
         let mut fresh = Habituation::default();
-        fresh.bump(def(pack), 0, rate);
+        fresh.bump(def(pack), 0, rate, pack.tuning.habituation_max);
         sim.world_mut().entity_mut(agent).insert(fresh);
         assert_eq!(
             habituation_of(&sim, agent),
@@ -310,18 +387,24 @@ mod tests {
         );
     }
 
-    /// The component's own arithmetic: capped at 1, keyed per interaction, and
+    /// The component's own arithmetic: capped at the tuned maximum ([OD-model]
+    /// in `docs/specs/2026-10-06-overdoing-it.md`), keyed per interaction, and
     /// kept in sorted order because `world_hash` iterates it.
     #[test]
-    fn habituation_caps_at_one_and_keeps_its_keys_sorted() {
+    fn habituation_caps_at_the_tuned_maximum_and_keeps_its_keys_sorted() {
+        let cap = test_content::tuning().habituation_max;
+        assert!(
+            cap > 1.0,
+            "a cap of 1 leaves nothing above saturation to test"
+        );
         let mut h = Habituation::default();
         let a = terri_core::ObjectDefId(7);
         let b = terri_core::ObjectDefId(2);
 
         // Inserted out of order on purpose - the sort is the invariant.
-        h.bump(a, 1, 0.4);
-        h.bump(b, 0, 0.4);
-        h.bump(a, 0, 0.4);
+        h.bump(a, 1, 0.4, cap);
+        h.bump(b, 0, 0.4, cap);
+        h.bump(a, 0, 0.4, cap);
         let keys: Vec<(u32, u32)> = h.entries().iter().map(|(o, i, _)| (o.0, *i)).collect();
         assert_eq!(
             keys,
@@ -335,16 +418,201 @@ mod tests {
         assert_eq!(h.get(a, 0), 0.4);
         assert_eq!(h.get(a, 1), 0.4);
 
-        for _ in 0..5 {
-            h.bump(a, 0, 0.4);
+        // Past 1, which is overdoing rather than an error, and up to the cap
+        // but never beyond it.
+        h.bump(a, 0, 0.8, cap);
+        assert!(
+            (h.get(a, 0) - 1.2).abs() < 1e-6,
+            "the cap is no longer 1; got {}",
+            h.get(a, 0)
+        );
+        for _ in 0..(cap / 0.4).ceil() as u32 {
+            h.bump(a, 0, 0.4, cap);
         }
-        assert_eq!(h.get(a, 0), 1.0, "must cap at 1");
+        assert_eq!(h.get(a, 0), cap, "must cap at the tuned maximum");
         assert_eq!(
             h.get(a, 1),
             0.4,
             "and capping one key must not touch another"
         );
 
+        // The insert path clamps too: a first use larger than the cap.
+        let c = terri_core::ObjectDefId(5);
+        h.bump(c, 0, cap + 1.0, cap);
+        assert_eq!(h.get(c, 0), cap, "a fresh entry is clamped to the cap");
+
         assert_eq!(h.get(terri_core::ObjectDefId(99), 0), 0.0, "absent reads 0");
+    }
+
+    /// [OD-model]: appeal reads at most 1. The part of habituation above 1
+    /// is overdoing, which costs mood and never pushes appeal below the
+    /// floor. Golden values per [L55].
+    #[test]
+    fn benefit_scale_clamps_repetition_above_one() {
+        assert_eq!(
+            advertise::benefit_scale(1.5, 0.45),
+            advertise::benefit_scale(1.0, 0.45)
+        );
+        assert_eq!(advertise::benefit_scale(3.0, 0.45), 0.45);
+        assert_eq!(advertise::benefit_scale(-1.0, 0.45), 1.0);
+    }
+
+    /// [OD-evidence] item 1, played on the shipped lot: Tim is ordered to
+    /// grab a snack at least nine times in a row. After each completion his
+    /// snack row's habituation is the previous completion's value plus one
+    /// use, less the decay of every tick since, capped at `habituation_max`;
+    /// it is never above the cap at any tick; and the ninth snack fills
+    /// hunger by exactly as much as the first, because need delivery never
+    /// reads repetition.
+    ///
+    /// Back to back, a snack takes 70 to 106 ticks, so one completion nets
+    /// about a quarter: nine reach about 2.3, not the cap. The orders go on
+    /// past nine until two completions land on the cap, so the cap
+    /// is exercised in play rather than only in the component test.
+    ///
+    /// The completing tick bumps before it decays: the snack chain's bump is
+    /// a queued command that the chained schedule applies before
+    /// `decay_habituation` runs. So the cap applies to the value that tick
+    /// began with plus one use, and the completing tick's own decay comes
+    /// after the cap.
+    #[test]
+    fn the_cap_holds_and_delivery_ignores_repetition() {
+        use terri_core::{Career, ChainState, CommandQueue, SimClock, SimCommand, SimName};
+
+        let mut sim = Sim::new_from_shipped_lot();
+        let pack = sim.world().resource::<Content>().0;
+        let tuning = pack.tuning;
+        let decay = tuning.habituation_decay_per_tick;
+        let tim = sim
+            .world_mut()
+            .query::<(Entity, &SimName)>()
+            .iter(sim.world())
+            .find(|(_, name)| name.0 == "Tim")
+            .expect("Tim is in the shipped household")
+            .0;
+        // No shift to leave for, and no drain, so hunger moves only when a
+        // snack delivers. Tim can cook, so no snack is fumbled.
+        sim.world_mut().entity_mut(tim).remove::<Career>();
+        sim.world_mut()
+            .get_mut::<terri_core::Personality>(tim)
+            .expect("Tim has a personality")
+            .drain = [0.0; terri_core::NEED_COUNT];
+        let fridge = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| pack.object(object.0).id == "fridge")
+            .expect("the shipped lot has a fridge")
+            .0;
+        let fridge_def = sim.world().get::<SmartObject>(fridge).unwrap().0;
+        let row = pack
+            .object(fridge_def)
+            .interactions
+            .iter()
+            .position(|action| action.id == "grab_snack")
+            .expect("the fridge offers a snack") as u32;
+        let snack_chain = pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == crate::domestic::SNACK)
+            .expect("the snack chain") as u32;
+        let value = |sim: &Sim| {
+            sim.world()
+                .get::<Habituation>(tim)
+                .map_or(0.0, |h| h.get(fridge_def, row))
+        };
+
+        const HUNGER: f32 = 30.0;
+        let mut previous = 0.0_f32;
+        let mut ticks_since_previous = 0_u32;
+        let mut last = 0.0_f32;
+        let mut refills = Vec::new();
+        let mut capped = 0;
+        for snack in 1..=16 {
+            sim.world_mut()
+                .get_mut::<Needs>(tim)
+                .unwrap()
+                .set(NeedId::Hunger, HUNGER);
+            let before = sim.world().get::<Needs>(tim).unwrap().get(NeedId::Hunger);
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObjectFirst {
+                    agent: tim.index_u32(),
+                    object: fridge.index_u32(),
+                    interaction: row,
+                });
+            let start = sim.world().resource::<SimClock>().tick;
+            let mut ticks = 0_u64;
+            let mut began = false;
+            let mut completed = false;
+            let mut finished = false;
+            for _ in 0..2000 {
+                sim.tick();
+                ticks += 1;
+                ticks_since_previous += 1;
+                let now = value(&sim);
+                assert!(
+                    now <= tuning.habituation_max,
+                    "snack {snack}: {now} is above the cap"
+                );
+                if now > last {
+                    // An entry decayed to zero is dropped, so the previous
+                    // value never decays below nothing.
+                    let decay_during_wait = decay * (ticks_since_previous - 1) as f32;
+                    let waited = (previous - decay_during_wait).max(0.0);
+                    let expected =
+                        (waited + tuning.habituation_per_use).min(tuning.habituation_max) - decay;
+                    assert!(
+                        (now - expected).abs() < 1e-4,
+                        "snack {snack}: {now}, expected {expected}"
+                    );
+                    assert!(!completed, "snack {snack} completed once");
+                    completed = true;
+                    previous = now;
+                    ticks_since_previous = 0;
+                }
+                last = now;
+                let running = sim
+                    .world()
+                    .get::<ChainState>(tim)
+                    .is_some_and(|state| state.chain == snack_chain);
+                began |= running;
+                if began && !running && completed {
+                    finished = true;
+                    break;
+                }
+            }
+            assert!(finished, "snack {snack} must finish within the bound");
+            assert_eq!(
+                sim.world().resource::<SimClock>().tick,
+                start + ticks,
+                "snack {snack}: one clock tick per loop tick"
+            );
+            let after = sim.world().get::<Needs>(tim).unwrap().get(NeedId::Hunger);
+            refills.push(after - before);
+            if snack == 9 {
+                assert!(
+                    previous > 1.0,
+                    "nine snacks in a row must reach overdoing; got {previous}"
+                );
+            }
+            // A capped completion lands one tick's decay below the cap.
+            if (previous - (tuning.habituation_max - decay)).abs() < 1e-4 {
+                capped += 1;
+            }
+            if snack >= 9 && capped >= 2 {
+                break;
+            }
+        }
+        assert_eq!(capped, 2, "two completions reach the cap");
+        assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
+        assert_eq!(
+            refills[8], refills[0],
+            "the ninth snack must fill hunger exactly as the first did: {refills:?}"
+        );
+        assert!(
+            refills.iter().all(|refill| *refill == refills[0]),
+            "every snack, at the cap too, fills hunger the same: {refills:?}"
+        );
     }
 }

@@ -910,9 +910,10 @@ describe('SimBridge', () => {
     // an empty list.
     // The tail includes floors, both family lists, enabled mortality,
     // the applied migration flag, waiting, instincts and chronotype offsets.
-    // Some(SavedSleepingPlaces) adds its tag and two empty vector lengths.
+    // Some(SavedSleepingPlaces) adds its tag and two empty vector lengths;
+    // Some(SavedSkills) adds its tag and an empty row count.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 0, 0, 0];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 1, 0, 0, 0, 0];
     expect(Array.from(legacyCells.slice(-tail.length))).toEqual(tail);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
@@ -934,13 +935,15 @@ describe('SimBridge', () => {
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // Current tail: layout and appended lists, mortality, migration,
-    // waiting, instincts and chronotypes, then sleeping places and the privacy fields.
+    // waiting, instincts and chronotypes, then sleeping places, the privacy
+    // fields, dining (none), skills (Some of no rows), then the three
+    // absent cleanup, chores and grime extensions.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 0, 0, 0];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 1, 0, 0, 0, 0];
     expect(Array.from(valid.slice(-tail.length))).toEqual(tail);
     // A complete bed-era save lacks both privacy fields. Earlier V5 saves
     // also lack the whole grouped bed record; both remain loadable.
-    for (const absent of [1, 2, 3, 4, 5, 6, 6 + sleepingPlacesTail.length, 7 + sleepingPlacesTail.length]) {
+    for (const absent of [1, 2, 3, 5, 6, 7, 8, 8 + sleepingPlacesTail.length, 9 + sleepingPlacesTail.length]) {
       const historical = new SimBridge(new SimHandle(4, 4), wasmMemory);
       expect(historical.loadBytes(valid.slice(0, -absent))).toBe(true);
       expect(historical.saveBytes()).toEqual(valid);
@@ -951,8 +954,8 @@ describe('SimBridge', () => {
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -7), valid.slice(0, -8),
-      valid.slice(0, -12 - sleepingPlacesTail.length), valid.slice(0, -19 - sleepingPlacesTail.length),
+    const invalid = [valid.slice(0, -4), valid.slice(0, -9), valid.slice(0, -10),
+      valid.slice(0, -14 - sleepingPlacesTail.length), valid.slice(0, -21 - sleepingPlacesTail.length),
       valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
@@ -1066,6 +1069,13 @@ describe('SimBridge', () => {
 
     expect(bridge.funds()).toBe(0);
     expect(bridge.careerOf(tim)).toBe('Office clerk');
+    // [CAL-hud]: day 1 is a Monday, and the office job runs Monday to
+    // Friday (mask 31) from 06:00 for eight hours.
+    expect(bridge.weekdayIndex()).toBe(0);
+    expect(bridge.careerScheduleOf(tim)).toEqual({ workingDays: 31, shiftStart: 360, shiftTicks: 480 });
+    for (const hostile of [0, -1, 1.5, Number.NaN, 2 ** 32, 0xffffffff]) {
+      expect(bridge.careerScheduleOf(hostile)).toBeNull();
+    }
     const rowOf = (entity: number) => {
       const ids = bridge.ids();
       for (let row = 0; row < bridge.count; row++) {
@@ -1362,8 +1372,9 @@ describe('SimBridge', () => {
       // truncated SetWallEdge, `[0x09, 0x00]` a truncated BuyObject and
       // `[0x0a, 0x00]` a truncated BuildRoom, `[0x0c, 0x00]` a
       // SetColourway with no colourway, and `[0x0d, 0x00]` a truncated
-      // BuyObjectInColourway.
-      ['variant index 14, one past the fourteen that exist', [0x0e, 0x00]],
+      // BuyObjectInColourway. `[0x0e, 0x00]` then became a truncated
+      // AddHousemate, and each later append moved the edge on to 23.
+      ['variant index 23, one past the twenty-three that exist', [0x17, 0x00]],
       ['BuyObjectInColourway missing its colourway', [0x0d, 0x01, 0x02, 0x03, 0x00]],
       ['SellObject missing its object', [0x0b]],
       ['SetColourway missing its colourway', [0x0c, 0x01]],

@@ -31,7 +31,9 @@ Names in `code font` are what you will see in the debug overlay
 | --- | --- |
 | **tick** | The simulation's heartbeat. Everything happens on ticks; nothing happens between them. One tick is one **sim-minute**. |
 | **1x speed** | 10 ticks per second of real time. So one real second is ten sim-minutes, and one real minute is about ten sim-hours. `2x` and `3x` run 20 and 30 ticks a second - they change how many ticks run per frame, never how long a tick means. |
-| **day** | 1440 ticks (`day_ticks` in tuning), because 1440 minutes is a day. `tick % 1440` is the clock: 360 is 06:00. About 2.4 real minutes at 1x. |
+| **day** | 1440 ticks (`day_ticks` in tuning), because 1440 minutes is a day. `tick % 1440` is the clock: 360 is 06:00. About 2.4 real minutes at 1x. The HUD numbers days from 1 and names each one's weekday, with the time on a second line: `Day 1, Monday` above `06:00`. |
+| **weekday** | Which of the seven days of the week a day is, Monday to Sunday, numbered 0 to 6. It is worked out from the tick: day index `tick / day_ticks`, plus `first_weekday` from tuning (0, so day 1 is a Monday), modulo 7. Nothing about it is saved ([CAL-week] in `docs/specs/2026-10-06-calendar.md`). |
+| **weekend** | Saturday and Sunday. Nothing in the simulation reads the word; a job rests on a weekend only because its **working days** leave those days out. With the shipped tuning, days 6 and 7 are the first weekend. |
 
 ## Needs - the first axis
 
@@ -77,6 +79,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | --- | --- |
 | **HUD** | The always-visible controls and status panels over the game: household time and funds, household roster, the selected person's needs and activity, speed, save controls, and Help. |
 | **housemate, new** | A person the player adds to the household during play from the New housemate form: named, given a personality and up to four traits, arriving from the street ([CS-slice-housemate]). Made by the same spawn as the shipped household, so they save and behave like anyone else. |
+| **housemate, edit** | Changing a living person's name, personality, traits and family ties from the Edit button beside their name. The same two pages as New housemate; one command applies it, and the person keeps their SimId, needs, job, hobbies, satisfaction and feelings. A removed condition forgets its severity, while a removed capability leaves its skill as it was; "Keep current personality" leaves their effects exactly as they are ([ES-form] in `docs/specs/2026-09-30-edit-sims.md`). |
 | **household roster** | The Household row of named buttons used to select a person. Its order follows stable household identity, and it reconciles those identities after Load rather than trusting replaceable entity indices. |
 | **Save** | Writes the complete resumable household to the browser's one local save slot. The saved tick, random state, selection, active work, queued orders, and all entity state resume together. |
 | **Load** | Replaces progress since the last save only after confirmation. Invalid or incompatible bytes are rejected without changing the running household. |
@@ -97,8 +100,10 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 
 | Term | Means |
 | --- | --- |
-| **habituation** | Doing the same thing makes it worth less. Each completion adds 0.34 (to a max of 1.0) against that exact (object, interaction) pair, and every entry decays 0.0011 per tick. |
-| **habituation floor** | The worst it can get: a fully habituated interaction is still worth 45% of its advertised benefit. It never becomes worthless - a sim sick of eating still eats. |
+| **habituation** | Doing the same thing makes it worth less. Each completion adds 0.34 (to a max of 3.0) against that exact (object, interaction) pair, and every entry decays 0.0011 per tick. Appeal and the repetition meter read at most 1.0 and need delivery ignores it; the part above 1.0 is overdoing. |
+| **habituation floor** | The lowest appeal can fall: a fully habituated interaction is still worth 45% of its advertised benefit when autonomy chooses, and need delivery is unchanged. Mood has no such floor: above saturation each further use costs mood as overdoing, and too much food makes a Sim feel sick for a while. |
+| **overdoing** | A habituation entry above 1.0. Each such entry adds an `Overdoing {activity}` moodlet whose penalty grows from 0 just above 1.0 to 20 at the 3.0 maximum. Decay is the timer: with no further use it clears in about 30 game hours from the maximum. The rule lives in [OD-moodlets] of `docs/specs/2026-10-06-overdoing-it.md`. |
+| **feeling sick** | The `Feeling sick` moodlet (-25), shown once per Sim while any food entry (an action that raises Hunger) is at or above 2.5. With no further eating it clears in about seven and a half game hours from the maximum. The rule lives in [OD-moodlets]. |
 
 It scales **benefits only, never costs**: a fourth shower is less refreshing but not less tiring.
 
@@ -153,24 +158,34 @@ kinds, each doing exactly one thing:
 | Kind | Does | Shipped example |
 | --- | --- | --- |
 | **disposition** | Weighs the CHOICE. Multiplies the score of anything carrying its tag. Never changes what the thing delivers - fearing the couch makes a sim avoid it, not fail to be comforted by it. | **Television devotee** (Bill): television-tagged activities score 1.5x. |
-| **capability** | May attempt, may FAIL. Has a **level** 0-1; a roll at the start of an attempt decides. A failed attempt delivers `fail_delta_scale` of the benefits (usually nothing), pays no life satisfaction, and still **teaches** - every attempt raises the level. | **Can't cook** (Casey): starts at level 0.25, learns 0.015 per attempt. |
+| **capability** | May attempt, may FAIL. A roll at the start of an attempt reads the **mastery** of the skill with the same tag. A failed attempt delivers `fail_delta_scale` of the benefits (usually nothing), pays no life satisfaction, and still **teaches**: every completed attempt adds practice to that skill. | **Can't cook** (Casey): her Cooking skill starts at mastery 0.25 and gains 0.015 practice per completed attempt. |
 | **condition** | Scales life satisfaction ACCRUAL, and has a **severity** 0-1 that falls whenever the sim completes an activity carrying the condition's tag. A managed condition fades; a neglected one binds. | **Low spirits** (Tim): at full severity she earns 40% of normal; eases 0.005 per treating activity (her desk). |
 
 | Term | Means |
 | --- | --- |
 | **fumble** | A failed capability roll, live on the current attempt. The meal happens; it just does not feed anybody. |
-| **level** / **severity** | The mutable number the overlay prints beside a capability / condition. |
+| **mastery** / **severity** (overlay) | The number the overlay prints beside a capability / condition. For a capability it is the matching skill's mastery from 0 to 1, not the skill's ladder level; the trait's own saved number no longer changes in play. |
 | **trait library** | All fifteen traits in `content/traits.toml`. It is append-only: a sim's traits are stored as positions in this list, so a new trait goes at the end. Four of the fifteen are worn by nobody yet and wait for Create-a-sim. |
 | **affinity verb** | The word a disposition trait's sentence opens with: Loves, Likes, Dislikes or Hates, chosen by its score multiplier against the two lines in `tuning.toml` ([TL-affinity]). The compiler refuses a sentence with the wrong one. |
-| **Traits panel** | The list under the need bars for the selected person. Each row is the trait's label, one sentence saying what it does, and for a capability **Skill** or for a condition **Severity** as a whole percentage. A disposition has no number. Hidden while nobody is selected. |
-| **Skill** / **Severity** | What the Traits panel calls a capability's level and a condition's severity, as 0 to 100%. Skill rises each time the person finishes an attempt, pass or fail; an attempt that is interrupted teaches nothing. Severity falls each time the person finishes the activity that manages the condition. |
+| **Traits panel** | The Traits tab of Sim details for the selected person. Each row is the trait's label, one sentence saying what it does, and for a capability **Skill** or for a condition **Severity** as a whole percentage. A disposition has no number. Hidden while nobody is selected. |
+| **Skill** / **Severity** | What the Traits panel calls the mastery of a capability's matching skill and a condition's severity, as a whole 0 to 100%. Skill is rounded down, so it never reads 100% while the person can still fumble; Severity is rounded to the nearest percent. Skill rises each time the person finishes an attempt, pass or fail; an attempt that is interrupted teaches nothing. Severity falls each time the person finishes the activity that manages the condition. |
+
+## Skills - learned by doing
+
+| Term | Means |
+| --- | --- |
+| **skill** | One craft a person gets better at by doing it, such as Cooking. Each skill is defined in `content/skills.toml` with a label, a one-sentence description, the activity tag it learns from and its number of levels. Sim details lists every skill in a collapsed Skills section in Overview. The rules are [SK-model] in `docs/specs/2026-10-05-skills.md`. |
+| **practice** | The one number a person holds for each skill. Every completed interaction, chain step or conversation carrying the skill's tag adds that skill's `practice_per_attempt` to each participant, pass or fail; an interrupted attempt adds nothing. Practice is saved with the household ([SK-learning]). |
+| **ladder** | How practice becomes a level. Level 1 costs `skill_level_cost` practice and each later level costs `skill_level_growth` times the one before; both live in `content/tuning.toml`. Progress is the share of the current level's cost already paid, and practice stops rising at the top level. |
+| **mastery** | How far up the ladder a person is, from 0 to 1: the level plus progress, divided by the number of levels. The capability fumble roll and the Traits panel's Skill percentage read it ([SK-capability]). |
 
 ## Career
 
 | Term | Means |
 | --- | --- |
 | `career:` | The sim's job, from `content/careers.toml`. |
-| **shift** | Starts at a tick of the day (`shift_start` 360 = 06:00) and lasts `shift_ticks` (480 = eight hours). |
+| **shift** | Starts at a tick of the day (`shift_start` 360 = 06:00) on each of the career's **working days**, and lasts `shift_ticks` (480 = eight hours). |
+| **working days** | The weekdays a career's shift runs, listed as `working_days` in `content/careers.toml` and compiled to a seven-bit mask with bit 0 for Monday. The office job works Monday to Friday. On any other day the worker stays home, and a shift already running when a rest day begins finishes as normal. The Career row in Sim details shows them with the shift hours ([CAL-careers]). |
 | **rabbit hole** | The industry term this design borrows: the sim walks off the lot and is simply GONE for the shift - no workplace is simulated. |
 | **needs at work** | They still decay, at `at_work_decay_scale` of the usual rate - an office has a toilet and a kettle in it. At the full rate the worker starved: measured at zero on six of seven needs every day of 25 ([A-19]). The job's price is the TIME, not hunger. |
 | **front door** | The lot tile a worker leaves from and returns to (`front_door` in `content/lot.toml`). |

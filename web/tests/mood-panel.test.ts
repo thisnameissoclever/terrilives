@@ -429,6 +429,32 @@ describe('createMoodPanelSurface', () => {
     ]);
   });
 
+  it('renders the overdoing and feeling-sick moodlets with their signed scores', () => {
+    // [OD-moodlets]: the tenth snack in a row leaves the snack row at about
+    // 2.546, so Overdoing scores -20 * 1.546 / 2 and Feeling sick adds -25.
+    const source = new MutableMoodSource();
+    source.snapshot = new Float32Array([-40.46, -15.46, -25]);
+    source.summary = ['Low', 'Overdoing Grab a snack', 'Feeling sick'];
+    const fixture = createFixture();
+
+    fixture.surface.render(moodPanelState(source));
+
+    expect(fixture.overallLabel.textContent).toBe('Low');
+    expect(fixture.list.nodes.map((row) => row.find('moodlet-label')?.textContent)).toEqual([
+      'Overdoing Grab a snack',
+      'Feeling sick',
+    ]);
+    expect(fixture.list.nodes.map((row) => row.find('moodlet-score')?.textContent)).toEqual([
+      '-15.5',
+      '-25',
+    ]);
+    expect(fixture.list.nodes.map((row) => row.dataset.tone)).toEqual(['negative', 'negative']);
+    expect(fixture.list.nodes.map((row) => row.getAttribute('aria-label'))).toEqual([
+      'Overdoing Grab a snack: -15.5',
+      'Feeling sick: -25',
+    ]);
+  });
+
   it('reuses keyed rows while reordering and removes stale rows', () => {
     const fixture = createFixture();
     fixture.surface.render(

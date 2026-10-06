@@ -1,6 +1,53 @@
 use super::*;
 
 #[test]
+fn raw_chore_profiles_preserve_loadable_paused_saves_at_the_numeric_boundary() {
+    let mut handle = SimHandle::from_lot();
+    let agent = handle
+        .sim
+        .save_snapshot_v5()
+        .world
+        .entities
+        .iter()
+        .find(|e| e.agent)
+        .unwrap()
+        .index;
+    let before = handle.save_bytes();
+    let hash = handle.world_hash();
+    for (responsibility, preferences) in [
+        (101, [0; 4]),
+        (255, [0; 4]),
+        (50, [-101, 0, 0, 0]),
+        (50, [0, 101, 0, 0]),
+    ] {
+        let bytes = postcard::to_allocvec(&SimCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences,
+        })
+        .unwrap();
+        assert!(!handle.enqueue_command(&bytes));
+        assert_eq!(handle.save_bytes(), before);
+        assert_eq!(handle.world_hash(), hash);
+    }
+    for responsibility in [0, 100] {
+        let mut accepted = SimHandle::from_lot();
+        let bytes = postcard::to_allocvec(&SimCommand::SetChoreProfile {
+            agent,
+            responsibility,
+            preferences: [-100, 100, 0, 0],
+        })
+        .unwrap();
+        assert!(accepted.enqueue_command(&bytes));
+        let saved = accepted.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&saved));
+        assert_eq!(restored.save_bytes(), saved);
+        assert_eq!(restored.world_hash(), accepted.world_hash());
+    }
+}
+
+#[test]
 fn chore_boundary_rejects_invalid_numbers_without_mutating_saved_state() {
     let mut handle = SimHandle::from_lot();
     let before = handle.save_bytes();

@@ -780,6 +780,30 @@ pub struct Tuning {
     pub relationships: crate::RelationshipTuning,
     /// Domestic systems are disabled in custom packs without this table.
     pub domestic: Option<DomesticTuning>,
+    /// The practice level 1 of every skill costs, above 0 - [SK-model] in
+    /// `docs/specs/2026-10-05-skills.md`. Appended, per the rule above.
+    pub skill_level_cost: f32,
+    /// What each later skill level costs, as a multiple of the one before,
+    /// at least 1 - [SK-model].
+    pub skill_level_growth: f32,
+    /// The highest habituation repeated use reaches, above 1 - [OD-model]
+    /// in `docs/specs/2026-10-06-overdoing-it.md`. Appended, per the rule
+    /// above, with the four knobs after it.
+    pub habituation_max: f32,
+    /// The habituation above which an activity costs mood, at least 1 and
+    /// below `habituation_max` - [OD-content].
+    pub overdoing_threshold: f32,
+    /// The mood an activity at `habituation_max` costs, not negative.
+    pub overdoing_penalty: f32,
+    /// The habituation on a food activity at which a person feels sick,
+    /// above `overdoing_threshold` and at most `habituation_max`.
+    pub sick_threshold: f32,
+    /// The mood feeling sick costs, not negative.
+    pub sick_penalty: f32,
+    /// The weekday of day 0, 0 (Monday) to 6 (Sunday) - [CAL-week] in
+    /// `docs/specs/2026-10-06-calendar.md`. Read through
+    /// `terri_core::clock::weekday`. Appended, per the rule above.
+    pub first_weekday: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -841,9 +865,8 @@ pub struct CompiledPersonality {
     /// (object, interaction index, weight), sorted by key because it is
     /// copied verbatim into a component whose iteration order must be
     /// deterministic - `Personality::disposition` binary-searches it, and
-    /// it is what `world_hash` would iterate if personality ever enters
-    /// the digest (it does not today; `Sim::world_hash` carries the
-    /// exclusion note). The names are resolved: a disposition toward an
+    /// `Sim::world_hash` iterates it in its `personality-effects-v1`
+    /// block. The names are resolved: a disposition toward an
     /// interaction that does not exist has no representation once a pack
     /// exists.
     pub dispositions: Vec<(ObjectDefId, u32, f32)>,
@@ -852,8 +875,10 @@ pub struct CompiledPersonality {
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,
     /// What this personality is like, for the New housemate form -
-    /// [CS-personality]. Last, because it was appended; personalities are
-    /// in no save and not in the save digest.
+    /// [CS-personality]. Last, because it was appended. This text is
+    /// presentation: no save stores it and the world hash does not read
+    /// it, unlike the effects above, which saves store per person and the
+    /// world hash covers.
     pub description: String,
 }
 
@@ -864,12 +889,12 @@ pub struct CompiledPersonality {
 pub enum CompiledTraitKind {
     /// Weighs tagged candidates in scoring. Stateless.
     Disposition { score_multiplier: f32 },
-    /// Gates tagged completions as may-attempt-may-fail, with a level
-    /// that learning raises toward 1.
+    /// Gates tagged completions as may-attempt-may-fail. Practice from an
+    /// attempt goes to the skill with the same tag, not to the trait -
+    /// [SK-learning] in `docs/specs/2026-10-05-skills.md`.
     Capability {
         start_level: f32,
         fail_delta_scale: f32,
-        learn_per_attempt: f32,
     },
     /// Scales satisfaction accrual, with a severity that management
     /// lowers toward 0.
@@ -896,6 +921,22 @@ pub struct CompiledTrait {
     /// Initial satisfaction bias, applied only when a Sim is created.
     /// Appended for the compiled pack's field order; absent TOML values are zero.
     pub starting_satisfaction_offset: f32,
+}
+
+/// One skill, compiled - [SK-model] in `docs/specs/2026-10-05-skills.md`.
+/// `tag` stays a string for the reason [`CompiledTrait::tag`] does.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledSkill {
+    pub id: String,
+    pub label: String,
+    /// One plain sentence for the UI. In no save and not in the content
+    /// fingerprint.
+    pub description: String,
+    pub tag: String,
+    /// Rungs on the ladder, from 1 to 100.
+    pub levels: u8,
+    /// Practice one completed tagged attempt adds, in `(0, 1]`.
+    pub practice_per_attempt: f32,
 }
 
 /// One member of the authored household - [H2].
@@ -1036,6 +1077,11 @@ pub struct ContentPack {
     /// by where it is ([OS-yard]). Appended at the pack tail, so every
     /// established block keeps its byte offset.
     pub coverings: Vec<CompiledCovering>,
+    /// The skills a person practises, in content order - [SK-content] in
+    /// `docs/specs/2026-10-05-skills.md`. Empty in most test packs. Saves
+    /// name a skill by id, and the content fingerprint does not read this.
+    /// Appended at the pack tail.
+    pub skills: Vec<CompiledSkill>,
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -1128,6 +1174,19 @@ pub struct CompiledCareer {
     pub pay: u32,
     pub energy_cost: f32,
     pub satisfaction: f32,
+    /// The weekdays the shift runs, as a mask: bit 0 is Monday and bit 6
+    /// is Sunday - [CAL-careers]. Never 0, and no bit above 6 is set.
+    pub working_days: u8,
+}
+
+impl CompiledCareer {
+    /// Whether the shift runs on `weekday`, 0 (Monday) to 6 (Sunday), as
+    /// `terri_core::clock::weekday` returns it. Any larger weekday is no
+    /// working day, whatever the mask's spare bit holds; the clock never
+    /// returns one.
+    pub fn works_on(&self, weekday: u8) -> bool {
+        weekday < terri_core::clock::WEEKDAY_COUNT && self.working_days & (1 << weekday) != 0
+    }
 }
 
 impl ContentPack {
@@ -1428,6 +1487,14 @@ mod tests {
             boundary_wander_reconsider_chance: 0.10,
             shyness_wander_reconsider_strength: 0.15,
             relationships: crate::RelationshipTuning::default(),
+            skill_level_cost: 0.0859375,
+            skill_level_growth: 1.34375,
+            habituation_max: 3.25,
+            overdoing_threshold: 1.125,
+            overdoing_penalty: 17.5,
+            sick_threshold: 2.75,
+            sick_penalty: 22.5,
+            first_weekday: 4,
         }
     }
 
@@ -1601,7 +1668,6 @@ mod tests {
                     kind: CompiledTraitKind::Capability {
                         start_level: 0.1875,
                         fail_delta_scale: 0.0625,
-                        learn_per_attempt: 0.03125,
                     },
                     description: String::new(),
                 },
@@ -1631,6 +1697,7 @@ mod tests {
                     pay: 85,
                     energy_cost: 21.5,
                     satisfaction: 1.125,
+                    working_days: 0b1100000,
                 },
                 CompiledCareer {
                     id: "clerk".to_string(),
@@ -1640,6 +1707,7 @@ mod tests {
                     pay: 140,
                     energy_cost: 17.25,
                     satisfaction: 0.375,
+                    working_days: 0b0011111,
                 },
             ],
             // Two vocabulary entries each, out of alphabetical order,
@@ -1719,6 +1787,14 @@ mod tests {
             portals: vec![],
             colourways: vec![],
             coverings: Vec::new(),
+            skills: vec![CompiledSkill {
+                id: "tinkering".to_string(),
+                label: "Tinkering".to_string(),
+                description: "Making a broken thing go again.".to_string(),
+                tag: "tinkering".to_string(),
+                levels: 7,
+                practice_per_attempt: 0.046875,
+            }],
         }
     }
 
@@ -2039,16 +2115,55 @@ mod tests {
         );
     }
 
+    /// [CAL-careers]: `works_on` reads bit `weekday` of the mask, Monday
+    /// first. Monday, Wednesday and Sunday are asymmetric under reversal, so
+    /// a mask read from the wrong end fails here.
+    #[test]
+    fn works_on_reads_the_monday_first_mask() {
+        let career = CompiledCareer {
+            id: "odd_days".to_string(),
+            label: "Odd days".to_string(),
+            shift_start: 1,
+            shift_ticks: 2,
+            pay: 3,
+            energy_cost: 4.0,
+            satisfaction: 5.0,
+            working_days: 0b1000101,
+        };
+        let worked: Vec<u8> = (0..7).filter(|day| career.works_on(*day)).collect();
+        assert_eq!(worked, vec![0, 2, 6]);
+    }
+
+    /// A weekday past Sunday is no working day, even for a mask whose
+    /// eighth bit is set: weekday 7 would read that bit, and weekday 200
+    /// would overflow the shift and panic in a debug build.
+    #[test]
+    fn works_on_refuses_a_weekday_past_sunday() {
+        let career = CompiledCareer {
+            id: "every_bit".to_string(),
+            label: "Every bit".to_string(),
+            shift_start: 1,
+            shift_ticks: 2,
+            pay: 3,
+            energy_cost: 4.0,
+            satisfaction: 5.0,
+            working_days: 0xFF,
+        };
+        assert!(!career.works_on(7));
+        assert!(!career.works_on(200));
+    }
+
     /// A new tuning knob belongs at the end of the serialized `Tuning`
     /// record, even when it is conceptually related to fields near the
-    /// beginning. The two housemate limits ([CS-command]) are the final two
-    /// one-byte varints; `resale_fraction` ([SL-pay]) is the four bytes
-    /// before them, and `wander_radius_tiles` the byte before that; every
-    /// established field stays put.
+    /// beginning. The two housemate limits ([CS-command]) are one-byte
+    /// varints; `resale_fraction` ([SL-pay]) is the four bytes before them,
+    /// and `wander_radius_tiles` the byte before that; the skill ladder
+    /// ([SK-model]) is the eight bytes before the five overdoing knobs
+    /// ([OD-content]), which are the twenty before `first_weekday`
+    /// ([CAL-week]), the final byte; every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
-        let old_end = before.len() - 35;
         let changed = |after: Tuning| -> Vec<usize> {
             let after = postcard::to_allocvec(&after).expect("tuning must serialise");
             assert_eq!(before.len(), after.len());
@@ -2059,6 +2174,72 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // [CAL-week]: `first_weekday` is a u8, so it is one raw byte and
+        // the last one.
+        let weekday = before.len() - 1;
+        assert_eq!(before[weekday], 4);
+        assert_eq!(
+            changed(Tuning {
+                first_weekday: 6,
+                ..a_tuning()
+            }),
+            vec![weekday]
+        );
+        // The overdoing knobs, in declaration order. Each changed value
+        // differs from the fixture's only in its third byte.
+        let overdoing = weekday - 20;
+        let expected: Vec<u8> = [3.25f32, 1.125, 17.5, 2.75, 22.5]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(before[overdoing..weekday], expected);
+        for (slot, after) in [
+            Tuning {
+                habituation_max: 3.75,
+                ..a_tuning()
+            },
+            Tuning {
+                overdoing_threshold: 1.25,
+                ..a_tuning()
+            },
+            Tuning {
+                overdoing_penalty: 18.5,
+                ..a_tuning()
+            },
+            Tuning {
+                sick_threshold: 2.25,
+                ..a_tuning()
+            },
+            Tuning {
+                sick_penalty: 23.5,
+                ..a_tuning()
+            },
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            assert_eq!(changed(after), vec![overdoing + 4 * slot + 2], "{slot}");
+        }
+        // 0.0859375 and 0.09375 differ only in their third byte, as do
+        // 1.34375 and 1.40625.
+        let ladder = overdoing - 8;
+        assert_eq!(before[ladder..ladder + 4], 0.0859375f32.to_le_bytes());
+        assert_eq!(before[ladder + 4..overdoing], 1.34375f32.to_le_bytes());
+        assert_eq!(
+            changed(Tuning {
+                skill_level_cost: 0.09375,
+                ..a_tuning()
+            }),
+            vec![ladder + 2]
+        );
+        assert_eq!(
+            changed(Tuning {
+                skill_level_growth: 1.40625,
+                ..a_tuning()
+            }),
+            vec![ladder + 6]
+        );
+        let old_end = ladder - 35;
         // [OS-daylight]: the two daylight floats precede mortality; 0.21875
         // and 0.15625 are 0, 0, 96, 62 and 0, 0, 32, 62, and a change of
         // either to 0.28125 or 0.34375 moves only its third byte.

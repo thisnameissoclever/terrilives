@@ -24,8 +24,14 @@ it('loads a released-main save with its published state intact and empty chore e
     expect(sim.loadBytes(bytes)).toBe(true);
     const migrated=sim.saveBytes();
     expect(migrated.slice(0,bytes.length)).toEqual(bytes);
-    expect([...migrated.slice(bytes.length)]).toEqual([0,0,0]);
-    expect(sim.worldHash().toString()).toBe('16205700675540473065');
+    // Published skill migration seeds the three living Sims. The later chore
+    // extensions remain absent; the released prefix stays byte-identical.
+    expect([...migrated.slice(bytes.length)]).toEqual([
+      1, 3, 34, 8, 101, 120, 101, 114, 99, 105, 115, 101, 61, 10, 215, 62,
+      36, 7, 99, 111, 111, 107, 105, 110, 103, 0, 0, 128, 62,
+      36, 7, 114, 101, 97, 100, 105, 110, 103, 225, 122, 20, 63, 0, 0, 0,
+    ]);
+    expect(sim.worldHash().toString()).toBe('13907076554945442085');
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));

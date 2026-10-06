@@ -15,6 +15,17 @@ export interface SimDetails {
   }[];
 }
 
+/**
+ * Where a person stands in one content skill ([SK-hud]): whole levels
+ * completed, the fraction of the next level already practised, and the
+ * fraction of the whole ladder climbed.
+ */
+export interface SkillStanding {
+  readonly level: number;
+  readonly progress: number;
+  readonly mastery: number;
+}
+
 export interface BedPlace { readonly bed: number; readonly ordinal: number; }
 export interface BedPlaceStatus extends BedPlace {
   readonly label: string;
@@ -88,6 +99,34 @@ const HOUSEMATE_REASONS: Readonly<Record<number, string>> = {
 
 export function housemateReason(code: number): string | null {
   return code === 0 ? null : HOUSEMATE_REASONS[code] ?? 'They could not move in.';
+}
+
+/** The drain's answer to an edit of a living person ([ES-atomic]). */
+export interface EditResult {
+  /** Why the edit was refused, or null when it was applied. */
+  readonly reason: string | null;
+  /** The edited person's entity index, or null when nothing changed. */
+  readonly sim: number | null;
+  /** How many edits this world has handled, this one included. */
+  readonly handled: number;
+}
+
+/** Refusal lines for an edit, by the simulation's code ([ES-atomic]). Functional text: plain. */
+const EDIT_REASONS: Readonly<Record<number, string>> = {
+  1: 'That person is no longer here.',
+  2: 'Give them a name that fits.',
+  3: 'That personality is not available.',
+  4: 'Choose fewer traits.',
+  5: 'That trait is not available.',
+  6: 'Each trait once.',
+  7: 'That relative is no longer here.',
+  8: 'Each relative once.',
+  9: 'They cannot be their own relative.',
+};
+
+export function editReason(code: number): string | null {
+  if (code === 0) return null;
+  return EDIT_REASONS[code] ?? 'The changes could not be made.';
 }
 
 const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
@@ -567,6 +606,15 @@ export class SimBridge {
   /** Authored ticks per day, so the shell never hardcodes the calendar. */
   dayTicks(): number {
     return this.handle.day_ticks();
+  }
+
+  /**
+   * The weekday of the current tick, 0 (Monday) to 6 (Sunday), as the
+   * simulation works it out. The shell never derives one from the day
+   * number, because only the simulation knows which weekday day 1 is.
+   */
+  weekdayIndex(): number {
+    return this.handle.weekday_index();
   }
 
   /** Versioned simulation bytes for browser-owned storage. */
@@ -1589,6 +1637,42 @@ export class SimBridge {
     return this.handle.trait_descriptions();
   }
 
+  /**
+   * Every content skill for the person at `entityIndex`, in pack order, or
+   * null for anything that is not a living person and for a reading that
+   * does not line up with `skillLevels` one triple per skill. A copy across
+   * the boundary; the Skills view reads it only while it is open.
+   */
+  skillsOf(entityIndex: number): SkillStanding[] | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.skills_of(entityIndex);
+    const levels = this.handle.skill_levels();
+    if (values.length === 0 || values.length !== levels.length * 3) return null;
+    const skills: SkillStanding[] = [];
+    for (let skill = 0; skill < levels.length; skill += 1) {
+      const [level, progress, mastery] = values.slice(skill * 3, skill * 3 + 3);
+      if (!Number.isInteger(level) || level < 0 || level > levels[skill]
+        || !(progress >= 0 && progress < 1) || !(mastery >= 0 && mastery <= 1)) return null;
+      skills.push({ level, progress, mastery });
+    }
+    return skills;
+  }
+
+  /** One label per content skill, in pack order. Read once, like traitLabels. */
+  skillLabels(): string[] {
+    return this.handle.skill_labels();
+  }
+
+  /** One plain sentence per content skill, aligned with skillLabels. */
+  skillDescriptions(): string[] {
+    return this.handle.skill_descriptions();
+  }
+
+  /** The top level of each content skill, aligned with skillLabels. */
+  skillLevels(): number[] {
+    return Array.from(this.handle.skill_levels());
+  }
+
   /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */
   frontDoorLines(): Uint32Array {
     return Uint32Array.from(this.handle.front_door_lines());
@@ -1644,6 +1728,44 @@ export class SimBridge {
   }
 
   /**
+   * Stages an edit of the living person with this SimId ([ES-atomic]): the
+   * name, the personality (null keeps the current one), the whole trait
+   * list and a relation code to each relative by SimId, `NO_RELATION`
+   * clearing one. Queue acceptance only; read the outcome from
+   * `lastEditResult`.
+   */
+  editHousemate(
+    sim: number,
+    name: string,
+    personality: number | null,
+    traits: readonly number[],
+    ties: readonly (readonly [number, number])[],
+  ): boolean {
+    const flat = new Float64Array(ties.length * 2);
+    ties.forEach(([relative, code], at) => {
+      flat[at * 2] = relative;
+      flat[at * 2 + 1] = code;
+    });
+    return this.handle.edit_housemate(
+      sim, name, personality === null, personality ?? 0, Float64Array.from(traits), flat,
+    );
+  }
+
+  /** The drain's answer to the last edit, or null before the first. */
+  lastEditResult(): EditResult | null {
+    const values = this.handle.last_edit_result();
+    return values.length === 0 ? null
+      : { reason: editReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1], handled: values[2] };
+  }
+
+  /** The archetype an editor may mark as current for this entity, or null for "Keep current personality". */
+  personalityIndexOf(entity: number): number | null {
+    if (!isU32(entity)) return null;
+    const index = this.handle.personality_index_of(entity);
+    return index === 0xffffffff ? null : index;
+  }
+
+  /**
    * The label of the sim's career, or null for the unemployed and for
    * everything that is not a sim - the boundary's empty string is
    * in-band the way simName's is.
@@ -1652,6 +1774,21 @@ export class SimBridge {
     if (!isU32(entityIndex)) return null;
     const label = this.handle.career_of(entityIndex);
     return label === '' ? null : label;
+  }
+
+  /**
+   * The working days and shift hours of the sim's career, or null for the
+   * unemployed and for everything that is not a sim. `workingDays` is a
+   * mask with bit 0 for Monday through bit 6 for Sunday; the two times are
+   * ticks of the day clock.
+   */
+  careerScheduleOf(
+    entityIndex: number,
+  ): { workingDays: number; shiftStart: number; shiftTicks: number } | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.career_schedule_of(entityIndex);
+    if (values.length !== 3) return null;
+    return { workingDays: values[0], shiftStart: values[1], shiftTicks: values[2] };
   }
 
   /**
