@@ -892,3 +892,45 @@ fn seat_actions_take_capacity_from_seats_and_refuse_an_authored_count() {
         );
     }
 }
+
+#[test]
+fn a_seat_action_may_remove_a_count_inherited_from_its_template() {
+    let source = r#"
+[[action_template]]
+id = "perch"
+[action_template.properties]
+duration_ticks = { set = 40.0 }
+slots = { set = 1.0 }
+advertises = { set = { comfort = 20.0 } }
+[[category]]
+id = "other"
+label = "Other"
+[[object_type]]
+id = "bench"
+label = "Bench"
+category = "other"
+[object_type.properties]
+seat = { set = [{ id = "left", x = 0.0, y = 0.0, facing = "SE", approaches = [[0, 1]] }, { id = "right", x = 1.0, y = 0.0, facing = "SE", approaches = [[1, 1]] }] }
+[[object_type.action]]
+id = "sit"
+template = "perch"
+[object_type.action.properties]
+seat_use = { set = "one" }
+SLOTS
+[[model]]
+id = "bench"
+object_type = "bench"
+[model.properties]
+name = { set = "Bench" }
+sprite = { set = "bench" }
+"#;
+    let resolve = |slots: &str| {
+        terri_data::hierarchy::resolve(toml::from_str(&source.replace("SLOTS", slots)).unwrap())
+    };
+    assert!(
+        resolve("").is_err(),
+        "an inherited count on a seat action is refused"
+    );
+    let resolved = resolve("slots = { remove = true }").unwrap();
+    assert_eq!(resolved.object[0].interaction[0].slots, 2);
+}

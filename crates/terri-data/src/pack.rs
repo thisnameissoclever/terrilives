@@ -24,7 +24,7 @@ impl SeatUse {
     /// People a seat action admits, derived from the furniture's physical
     /// seats; `None` for an exclusive action, whose authored `slots` stands.
     /// Seat actions take no authored count, so content cannot disagree with
-    /// the furniture.
+    /// the furniture. The compiler refuses seat counts beyond `u8::MAX`.
     pub fn capacity(self, seats: usize) -> Option<u8> {
         match self {
             Self::Exclusive => None,

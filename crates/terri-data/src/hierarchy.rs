@@ -468,7 +468,11 @@ impl ActionState {
         scalar!(book_reading);
         scalar!(seat_use);
         number!(duration_ticks);
-        number!(slots);
+        // Removable so a seat action can drop a count inherited from a shared
+        // template; `finish` still requires one on every other action.
+        properties
+            .slots
+            .number(&mut self.slots, true, &format!("{context}.slots"))?;
         properties.satisfaction.number(
             &mut self.satisfaction,
             true,
@@ -499,7 +503,7 @@ impl ActionState {
             (Some(_), Some(_)) => {
                 return Err(invalid(
                     &context,
-                    "seat actions take capacity from the furniture's seats; remove 'slots'",
+                    "seat actions take capacity from the furniture's seats;                      remove 'slots' here or in the template it inherits",
                 ))
             }
             (Some(capacity), None) => capacity,
