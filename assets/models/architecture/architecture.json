@@ -38,9 +38,14 @@
       "canonicalSha256": "361fd4f1d05fa357502f290548efbb5a1552e85cebcb51df72fb03da6cbddd97"
     },
     {
+      "kind": "bathroom-actions",
+      "catalog": "assets/models/bathroom/actions/export/bath-05/manifest.json",
+      "canonicalSha256": "6e38f03df4fa183a98e62d072e7a52466076a460231811652f4de5b7c349c496"
+    },
+    {
       "kind": "shelf-mask",
-      "catalog": "assets/models/bookcase/export/mask-01/manifest.json",
-      "canonicalSha256": "ca751a5cb860d9a6b8f84a6b208351c2e081388e6282a74ac540bc473465d112"
+      "catalog": "assets/models/bookcase/export/mask-09/manifest.json",
+      "canonicalSha256": "33f125c9a236c89db58911506b74b08ab757513f47258eb0ba66a2d636bb053b"
     },
     {
       "kind": "reader-subset",
@@ -50,7 +55,7 @@
     {
       "kind": "reading-actions",
       "catalog": "assets/models/reading/catalog.json",
-      "canonicalSha256": "42142f5dee33f8212d8e63b474c330b29fd524fffde304147392c9c56508b49e"
+      "canonicalSha256": "577637edd3e3b06e8240af077ef3d4221bec27634c03aa746543a061ee92732b"
     }
   ],
   "historicalFiles": {

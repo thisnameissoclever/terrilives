@@ -11145,6 +11145,14 @@ precision for the complete reconstruction. Prove neutral values, channel range,
 bilinear decoding and the final error budget; do not increase the budget after a
 full-scene check exposes accumulated quantization error.
 
+For an additive shelf-row representation, author independent lighting domains:
+cabinet lights use cabinet blockers, each row uses cabinet and same-row blockers,
+and actor lighting remains separate. This changes the artwork by removing book
+shadows on the cabinet and other rows; document and review that change. Preserve
+geometry and material identities. Check independently rendered mixed inventories
+against the sum of actual row sources before generating all actor poses. A direct
+full-minus-empty comparison cannot establish that the row representation works.
+
 **Verify.** Compare empty, occupied and removed-neighbour controls. Keep raw
 and reduced-image errors separate, including the affected-region percentile and
 visible ownership changes. Preserve failed representations. A close row-pair
@@ -11372,3 +11380,89 @@ actually changes the result and fails the test.
 **Prevention.** A furniture object never changes position, size or orientation because a body starts or stops an interaction. The only motion allowed inside an animation is motion the design calls for explicitly, such as a bin lid opening or a bike's pedals turning, and that motion is authored and reviewed as part of the loop. For every occupied scene, the importer must refuse a scene whose anchor differs from its empty fixture (`offline_bathroom.tables` does so when given the atlas anchors), and the reviewer compares the furniture alpha bounds of the empty sprite and the occupied furniture layer by hand before any browser proof; for the toilet the measured centres agree within half an export pixel in all four facings and the occupied layer is inset by three to four export pixels, the rim the separate ink layer covers; the dated evidence record holds the figures. Then watch the transition in the played game at the moment of sitting down and standing up, not only the seated frame.
 
 **Verify.** `test_export_toilet_loop.py` pins the anchor rule, `test_offline_bathroom.py` proves the importer rejects a mismatched anchor, and the dated evidence record for the delivery shows the empty and occupied toilet in the same place before, during and after use.
+
+
+## [L-reading-return-proof-stage-boundary] Measure return rewards inside the return stage
+
+**What happened.** Three book-return probes compared title memory before cancellation with memory after the copy reached its shelf. An autonomous reading journey continued reading before Return began, so legitimate reading progress was misreported as progress earned during return. A later durable receipt still described the proof as unverified after the corrected check passed.
+
+**Root cause.** CancelIntents does not stop an autonomous reading journey. The proof used a requested command as its boundary instead of observing the actual journey stage, and the summary was not reconciled with its replacement evidence.
+
+**Prevention.** Capture memory when Return actually begins, assert it throughout Return and Shelve, then verify one copy reaches its original home. Keep earlier failed receipts but update the current summary to identify the corrected oracle and its limits.
+
+**Verify.** `docs/assets/review-evidence/object-models/2026-10-06/merged-main-2f319/book-return-boundary-proof.json` records 61 Return ticks and four Shelve ticks, unchanged title memory, and exactly one restored shelf copy. Artwork contact is checked separately.
+
+## [L-artwork-delivery-scope] Verify the production path before calling an artwork defect the last blocker
+
+**What happened.** Work on a rejected garment fit was reported as the remaining obstacle to delivery even though complete pose coverage, asset export and runtime integration were also missing. Repeated numerical fitting attempts preceded inspection of the actual rendered poses.
+
+**Root cause.** A representative diagnostic scene was mistaken for a nearly complete asset pipeline. Internal mesh diagnostics became the focus without a current comparison against the approved visual requirements.
+
+**Prevention.** Trace an asset from authored variants through export, import, runtime selection and visible output before estimating remaining work. Render diagnostic failures early. Distinguish a visible defect from an occluded source overlap, preserve both findings, and derive acceptance checks from the requested behavior. Review actual coordinates and bone weights before inferring anatomy from a mesh name.
+
+**Verify.** The release audit identifies missing production stages, the importer rejects missing required variants, and running-build checks cover transitions as well as completed poses. A passing representative scene cannot stand in for the complete catalogue.
+
+
+## [L-driven-visibility-controls] Hide the complete owner in background captures
+
+**What happened.** A background-only capture retained a character's eyes and carried book after the export script hid the character's individual objects. Inventory comparisons then reported changing shelf transparency.
+
+**Root cause.** Rig drivers reapplied object visibility when the scene updated. The supposedly empty reference still contained parts belonging to the character.
+
+**Prevention.** Hide the complete owner's render collection when capturing a background reference. Include generated outline geometry in that collection. Keep temporary pass visibility separate from the rig's authored visibility controls.
+
+**Verify.** Inspect the empty reference and read back collection visibility before rendering. Compare background transparency across inventory states only after proving that no character, eye, prop or owned outline remains in the capture.
+
+
+## [L-hash-the-declared-representation] Preserve the manifest hash contract
+
+**What happened.** A new art importer rejected an unchanged, reviewed static furniture proof because it compared the file's byte hash with a manifest field containing a canonical JSON hash.
+
+**Root cause.** The caller assumed that every SHA-256 field describes raw file bytes. This field instead describes parsed JSON serialized with sorted keys and fixed separators, so whitespace in the source file is irrelevant.
+
+**Prevention.** Read the existing producer and consumer before adding a hash check. Use the exact representation each field declares; preserve raw-byte checks for fields that bind actual files. Keep the source's review and completion checks alongside its digest check.
+
+**Verify.** Exercise the caller with the real reviewed proof. Confirm that equivalent JSON formatting preserves its canonical digest and that changing a source value fails validation.
+
+
+## [L-compare-the-same-render-surface] Validate the graphics observer before its full matrix
+
+**What happened.** A graphics comparison included activity icons over the rendered characters, while its source reference contained only artwork. It also compared ordinary furniture's straight-sRGB Lanczos filtering against the linear-light BOX filtering used for occupied scenes. Both mismatches were reported as rendering failures.
+
+**Root cause.** The test compared different visible surfaces and filtering contracts. Running the full matrix first repeated the observer's mistake across every case.
+
+**Prevention.** Match the reference to the production path's colour representation, filter and blending. For artwork-only comparisons, omit unrelated interface overlays from fixture inputs while retaining the actual action and seat selection. Prove an ordinary empty object and an occupied scene before expanding the matrix.
+
+**Verify.** Keep the incorrect observer's output. Demonstrate the overlay separately, then compare the corrected fixture with the independent source using unchanged limits. Confirm that owner picking and production action selection still pass.
+
+
+## [L-source-sampling-and-depth] Compose ownership before filtering and preserve visible depth clearance
+
+**What happened.** Shelf inventory composition still differed from complete source renders after replacing Freestyle outlines with ordinary geometry. Separately averaged coverage lost the relationship between a book and the actor covering it. Some outline faces also competed with the character surface because their visible depth separation was smaller than the source camera could resolve reliably.
+
+**Root cause.** Multiplying filtered coverage by a filtered colour difference does not reproduce filtering their sample-by-sample product. Independently projecting a ribbon's corners onto curved geometry also does not guarantee clearance through the flat ribbon's interior. An unnecessarily distant camera far plane further reduced depth precision.
+
+**Prevention.** Use the same registered point samples for every contributing capture. Compose visibility before the final reduction. Fit one common camera depth range around all supported poses and inventory configurations, with a margin. Give visible painted geometry sufficient surface clearance without changing its screen-space registration; inspect interior clearance where a ribbon crosses curved facets.
+
+**Verify.** Confirm binary coverage for opaque source samples and unchanged world-to-pixel registration. Compare complete scenes, ownership passes and repeated captures under the same settings. Check both encoded reconstruction and final-size appearance against the earlier artwork. Keep the existing comparison limits and preserve rejected captures.
+
+
+### Static pose exports must not depend on capture order
+
+A shelf-occupancy comparison initially blamed stock geometry for a changing sleeve outline. A consecutive empty/full/empty/full control showed that the two empty captures already differed. Matching viewport geometry before and after a render did not prove that the render dependency graph evaluated the same pose.
+
+For a static authored pose, freeze evaluated meshes in the isolated export scene before constructing dependent outline geometry. Preserve world vertices, topology, material assignments and their content fingerprints; retain the original rig and source files. Compare repeated identical captures without discarding a first render. Investigate any difference before generating a catalogue or adjusting visual tolerances. Owner-mask and inventory comparisons must then pass through the complete exporter and production renderer.
+
+
+### Inventory-independent lighting needs fixed shadow resolution
+
+Separately linked lights and shadow blockers do not guarantee stable actor shading when EEVEE adapts shadow resolution to visible inventory. A reader's skin changed between empty and full shelves even though the books were excluded from that light's blocker group. Repeated captures were stable, and owner masks proved that the same skin surface remained visible. Disabling actor shadows isolated the cause; removing unrelated lights and disabling Fast GI did not fix it.
+
+Use a fixed world-space resolution for actor shadows when the export contract requires inventory-independent actor lighting. Keep authored lights, blockers and shadows enabled. Record the effective shadow resolution, sampling and linking settings, and verify the complete pose catalogue against independent inventory captures. Keep diagnostic renders with disabled shadows separate from production source art.
+
+
+### Test simulation saves through the browser storage boundary
+
+A simulation save-version update reached the native save tests while the browser worker still accepted the preceding version. Filesystem tests used fabricated old headers, so they passed while the running game's Save command failed closed.
+
+Share the current version between browser write guards and load diagnostics. Preserve a recovery file for every supported older version, including the immediately preceding one. Add an integration test that sends bytes produced by the current simulation through the production storage worker. Verify an actual browser Save/Load journey and retain a previous worker fixture that refuses the newer header.

@@ -419,7 +419,7 @@ fn fs(in: VertexOut) -> FragmentOut {
       colour.a = 1.0;
     }
   }
-  if (in.sceneExtra.y > 0u) {
+  if (in.sceneExtra.y > 0u && in.bed.x == 0u) {
     let base = atlas.sprites[in.sceneExtra.z - 1u];
     colour = bedLayer(in.sceneExtra.z, in.corner, base.size.xy);
     var rgb = colour.rgb;
@@ -433,6 +433,25 @@ fn fs(in: VertexOut) -> FragmentOut {
     var sceneSize = atlas.sprites[in.bed.x - 1u].size.xy;
     if (in.sceneExtra.z > 0u) { sceneSize = atlas.sprites[in.sceneExtra.z - 1u].size.xy; }
     var furniture = bedLayer(in.bed.x, in.corner, sceneSize);
+    if (in.sceneExtra.y > 0u) {
+      let reach = beds.records[in.sceneExtra.y - 1u];
+      let stockSize = bitcast<vec2f>(reach.layers.zw);
+      let offset = bitcast<vec2f>(reach.extra.xy);
+      let shelfCorner = (in.corner * sceneSize - offset) / stockSize;
+      if (all(shelfCorner >= vec2f(0.0)) && all(shelfCorner <= vec2f(1.0))) {
+        var difference = vec3f(0.0);
+        for (var row = 0u; row < 4u; row++) {
+          let state = (in.sceneExtra.w >> (row * 6u)) & 63u;
+          let pair = beds.records[reach.layers.x - 1u + row * 64u + state].layers.xy;
+          difference += shelfDifference(pair, shelfCorner, stockSize);
+          if (reach.layers.y > 0u) {
+            let correction = beds.records[reach.layers.y - 1u + row * 64u + state].layers.xy;
+            difference += shelfDifference(correction, shelfCorner, stockSize);
+          }
+        }
+        furniture = vec4f(max(vec3f(0.0), furniture.rgb + difference), furniture.a);
+      }
+    }
     if (furniture.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
       let rgb = recolour(linearToSrgb(furniture.rgb / furniture.a), in.colourway);
       furniture = vec4f(srgbToLinear(rgb) * furniture.a, furniture.a);
@@ -473,12 +492,17 @@ fn fs(in: VertexOut) -> FragmentOut {
   // they blend against whatever is behind, which is what the alpha blend
   // configured in sprites.ts is for.
   var visibleAlpha = colour.a;
-  if (in.sceneExtra.y == 0u && in.sceneExtra.w > 0u) {
+  var jointLayer = in.sceneExtra.w;
+  if (in.bed.x > 0u && in.sceneExtra.y > 0u) {
+    jointLayer = beds.records[in.sceneExtra.y - 1u].extra.z;
+  }
+  if (in.bed.x > 0u && jointLayer > 0u) {
     let sceneSize = atlas.sprites[in.sceneExtra.z - 1u].size.xy * 2.0;
     let halfTexel = vec2f(0.5) / sceneSize;
     let sampleCorner = clamp(in.corner, halfTexel, vec2f(1.0) - halfTexel);
+    let registration = jointRegistration.records[jointLayer - 1u];
     visibleAlpha = textureSampleLevel(jointAlpha, atlasSampler,
-      sampleCorner * sceneSize / vec2f(textureDimensions(jointAlpha)), i32(in.sceneExtra.w - 1u), 0.0).r;
+      (registration.xy + sampleCorner * sceneSize) / vec2f(textureDimensions(jointAlpha)), i32(registration.z), 0.0).r;
   }
   if ((!grimePass && visibleAlpha < 0.5) || (grimePass && visibleAlpha <= 0.0)) {
     discard;

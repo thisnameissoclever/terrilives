@@ -9,6 +9,9 @@
     "assets/models/reading/ottoman/export/manifest.json": "254828d649bea0d579f262716b0b16a21c633db85b447ae41523e36e410f7443",
     "assets/models/reading/reading/export/manifest.json": "f19a2c40cb5d4967770dad41d9c98b4b53165feff510509e9ca0a4528904b60d",
     "assets/models/reading/standingRead/export/manifest.json": "b269efe750a5605eafe1c7abb4cb68425bd6398f06a335997c80279f4d2126f4",
-    "assets/models/reading/recline/export/manifest.json": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a"
+    "assets/models/reading/recline/export/manifest.json": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a",
+    "assets/models/reading/sofa/export/manifest.json": "9e5c115063be22d46b8ccccd8104c548bd17a4fc508a9775d8d1697fe9c6d338",
+    "assets/models/reading/fetch/export/manifest.json": "6e57b5dc04c46fbfda50785c6abb39840246f8cd633b948a25ec570331312a45",
+    "assets/models/reading/shelve/export/manifest.json": "ef3be2ab0e0f7aae5b91a24d802465e37edfc8bdb2d8c96df37618b909539315"
   }
 }

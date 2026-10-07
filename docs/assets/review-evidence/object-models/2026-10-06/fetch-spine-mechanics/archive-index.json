@@ -1,0 +1,312 @@
+{
+  "acceptance": false,
+  "scope": "Independent Book0 0 mechanics only; stock garment self-folds remain rejected",
+  "files": [
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\raw\\proof.json",
+      "archive": "capture/proof.json",
+      "sourceSHA256": "860817ff7b7c30344393496451d4c81efd3eaee28eda86333db36a07e1214b9b",
+      "archiveSHA256": "860817ff7b7c30344393496451d4c81efd3eaee28eda86333db36a07e1214b9b",
+      "bytes": 46096,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\render-process-exit.json",
+      "archive": "capture/render-process-exit.json",
+      "sourceSHA256": "a2c6de41cce701e42b3f69282d19287c94d00d73bcbd9705ac99521290307c51",
+      "archiveSHA256": "a2c6de41cce701e42b3f69282d19287c94d00d73bcbd9705ac99521290307c51",
+      "bytes": 355,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\input-manifest.json",
+      "archive": "capture/input-manifest.json",
+      "sourceSHA256": "72ef68fca2c0d6a03b85dc29b6c904bb4ef38b967494e57b9cfa6263445e7954",
+      "archiveSHA256": "72ef68fca2c0d6a03b85dc29b6c904bb4ef38b967494e57b9cfa6263445e7954",
+      "bytes": 1579,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\launcher.log",
+      "archive": "capture/launcher.log",
+      "sourceSHA256": "a2c6de41cce701e42b3f69282d19287c94d00d73bcbd9705ac99521290307c51",
+      "archiveSHA256": "a2c6de41cce701e42b3f69282d19287c94d00d73bcbd9705ac99521290307c51",
+      "bytes": 355,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\raw\\geometry.npz",
+      "archive": "capture/geometry.npz",
+      "sourceSHA256": "f18d5fec35ed68d6b38a92b4c04553309197afa645e21493f8943c065153eee5",
+      "archiveSHA256": "f18d5fec35ed68d6b38a92b4c04553309197afa645e21493f8943c065153eee5",
+      "bytes": 3045886,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-plan-01\\proof.json",
+      "archive": "plan-01-rejected/proof.json",
+      "sourceSHA256": "5860af9946ee15a3ecfa2e3f15c3c898ed34d767625a0f053cb858f1d32d7a49",
+      "archiveSHA256": "5860af9946ee15a3ecfa2e3f15c3c898ed34d767625a0f053cb858f1d32d7a49",
+      "bytes": 11839,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-plan-01\\witnesses.npz",
+      "archive": "plan-01-rejected/witnesses.npz",
+      "sourceSHA256": "7e3c794d0b22452a30bbab2a5f0bd437856396447ddd726e7cb6ceb3f2399962",
+      "archiveSHA256": "7e3c794d0b22452a30bbab2a5f0bd437856396447ddd726e7cb6ceb3f2399962",
+      "bytes": 6697,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-plan-02\\proof.json",
+      "archive": "plan-02/proof.json",
+      "sourceSHA256": "125dc39d0c9b92e39d53639aa4828017e72960af8055cd1a75ae49f9ce0b8a93",
+      "archiveSHA256": "125dc39d0c9b92e39d53639aa4828017e72960af8055cd1a75ae49f9ce0b8a93",
+      "bytes": 12242,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-plan-02\\witnesses.npz",
+      "archive": "plan-02/witnesses.npz",
+      "sourceSHA256": "efb69d79f1169883c01a0d5f4bc6ad8d7ec77f2716ecc87488736c05e43ae348",
+      "archiveSHA256": "efb69d79f1169883c01a0d5f4bc6ad8d7ec77f2716ecc87488736c05e43ae348",
+      "bytes": 6993,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\raw\\proof.json",
+      "archive": "author-01/proof.json",
+      "sourceSHA256": "4dc41794519c50cc1728bba42ee62fa8db0173740251df490525f5f811f45bc3",
+      "archiveSHA256": "4dc41794519c50cc1728bba42ee62fa8db0173740251df490525f5f811f45bc3",
+      "bytes": 32248,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\render-process-exit.json",
+      "archive": "author-01/render-process-exit.json",
+      "sourceSHA256": "4696ef63406e787d13c292a359a79503f5a9b6af8279cedd817caaf0c5d2a0ba",
+      "archiveSHA256": "4696ef63406e787d13c292a359a79503f5a9b6af8279cedd817caaf0c5d2a0ba",
+      "bytes": 624,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\input-manifest.json",
+      "archive": "author-01/input-manifest.json",
+      "sourceSHA256": "84b380eb7dd45b06cce563b880e2c6fca7bd9db5bba48224b2e6c36e6a1025ce",
+      "archiveSHA256": "84b380eb7dd45b06cce563b880e2c6fca7bd9db5bba48224b2e6c36e6a1025ce",
+      "bytes": 3588,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\launcher.log",
+      "archive": "author-01/launcher.log",
+      "sourceSHA256": "4696ef63406e787d13c292a359a79503f5a9b6af8279cedd817caaf0c5d2a0ba",
+      "archiveSHA256": "4696ef63406e787d13c292a359a79503f5a9b6af8279cedd817caaf0c5d2a0ba",
+      "bytes": 624,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\raw\\geometry-witnesses.npz",
+      "archive": "author-01/geometry-witnesses.npz",
+      "sourceSHA256": "e3e567a501e8c0f5af559e9207feb5ad1795ccc90f2532b9ba688558efabb8ed",
+      "archiveSHA256": "e3e567a501e8c0f5af559e9207feb5ad1795ccc90f2532b9ba688558efabb8ed",
+      "bytes": 6151263,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\raw\\lift_clear\\source.blend",
+      "archive": "author-01/lift_clear/source.blend.gz",
+      "sourceSHA256": "97e047bac131918342a8dc0c5d8a9cc718c1e0f643371193c2683f2f02090e36",
+      "archiveSHA256": "57341649fe3762fcb1672ce5b948af59733aec2d547ac90f0d40718373471c19",
+      "bytes": 27445352,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\raw\\outside_spine\\source.blend",
+      "archive": "author-01/outside_spine/source.blend.gz",
+      "sourceSHA256": "b60d453d57c10a43dc2f8d2cfc1d29ce2bca0a9c92c31e76d26a359981d721db",
+      "archiveSHA256": "c81d52a55d2d0ab8051d37639011b34ba8616b56a504b7387a7b85ee04ef5e05",
+      "bytes": 27445352,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\audit_sofa_binding.py",
+      "archive": "inputs/000-audit_sofa_binding.py",
+      "sourceSHA256": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+      "archiveSHA256": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+      "bytes": 17152,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_geometry.py",
+      "archive": "inputs/001-book_grip_reading_geometry.py",
+      "sourceSHA256": "7b4f19ddda10e115d3ca22c009d0f7c110270de8b1254ef9c98942f76a2f3b92",
+      "archiveSHA256": "7b4f19ddda10e115d3ca22c009d0f7c110270de8b1254ef9c98942f76a2f3b92",
+      "bytes": 5597,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py",
+      "archive": "inputs/002-continuous_support_patch.py",
+      "sourceSHA256": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+      "archiveSHA256": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+      "bytes": 4740,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\input-manifest.json",
+      "archive": "inputs/003-input-manifest.json",
+      "sourceSHA256": "84b380eb7dd45b06cce563b880e2c6fca7bd9db5bba48224b2e6c36e6a1025ce",
+      "archiveSHA256": "84b380eb7dd45b06cce563b880e2c6fca7bd9db5bba48224b2e6c36e6a1025ce",
+      "bytes": 3588,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\input-manifest.json",
+      "archive": "inputs/004-input-manifest.json",
+      "sourceSHA256": "72ef68fca2c0d6a03b85dc29b6c904bb4ef38b967494e57b9cfa6263445e7954",
+      "archiveSHA256": "72ef68fca2c0d6a03b85dc29b6c904bb4ef38b967494e57b9cfa6263445e7954",
+      "bytes": 1579,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\raw\\geometry.npz",
+      "archive": "inputs/005-geometry.npz",
+      "sourceSHA256": "f18d5fec35ed68d6b38a92b4c04553309197afa645e21493f8943c065153eee5",
+      "archiveSHA256": "f18d5fec35ed68d6b38a92b4c04553309197afa645e21493f8943c065153eee5",
+      "bytes": 3045886,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\raw\\proof.json",
+      "archive": "inputs/006-proof.json",
+      "sourceSHA256": "860817ff7b7c30344393496451d4c81efd3eaee28eda86333db36a07e1214b9b",
+      "archiveSHA256": "860817ff7b7c30344393496451d4c81efd3eaee28eda86333db36a07e1214b9b",
+      "bytes": 46096,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\seed.blend",
+      "archive": "inputs/007-seed.blend.gz",
+      "sourceSHA256": "9f2327cf7971658121faa049ac7c74977caecb2f3f1b2fc70df7294e87113a74",
+      "archiveSHA256": "72796387ee8f0bea87f51a70c46fd9bd6afbaf1fc0f9625975972324b1ba1e69",
+      "bytes": 27490976,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-plan-02\\proof.json",
+      "archive": "inputs/008-proof.json",
+      "sourceSHA256": "125dc39d0c9b92e39d53639aa4828017e72960af8055cd1a75ae49f9ce0b8a93",
+      "archiveSHA256": "125dc39d0c9b92e39d53639aa4828017e72960af8055cd1a75ae49f9ce0b8a93",
+      "bytes": 12242,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-shelf-hinge-03\\raw\\proof.json",
+      "archive": "inputs/009-proof.json",
+      "sourceSHA256": "f40f2fe42cac4991331ca1cd2150daeb03df9ea6279192316dc4adc4ba4e4a5d",
+      "archiveSHA256": "f40f2fe42cac4991331ca1cd2150daeb03df9ea6279192316dc4adc4ba4e4a5d",
+      "bytes": 93547,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-supported-author-01\\prepared-frames.json",
+      "archive": "inputs/010-prepared-frames.json",
+      "sourceSHA256": "24ecbcc9b44d7eb45c69e59e5c659981a275034db3351212c2a9077d971e8771",
+      "archiveSHA256": "24ecbcc9b44d7eb45c69e59e5c659981a275034db3351212c2a9077d971e8771",
+      "bytes": 161982,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_art_launch_v1.ps1",
+      "archive": "inputs/011-pose_complete_art_launch_v1.ps1",
+      "sourceSHA256": "265f9f1d2549a7b605c12725a2fdcb1aec0330ba74cab42e9cae55376b666180",
+      "archiveSHA256": "265f9f1d2549a7b605c12725a2fdcb1aec0330ba74cab42e9cae55376b666180",
+      "bytes": 4013,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_author_v1.py",
+      "archive": "inputs/012-pose_complete_fetch_spine_author_v1.py",
+      "sourceSHA256": "5e5072ea772e134a709c52612ee74bc65c803dc3a2392574ba439a57cab15997",
+      "archiveSHA256": "5e5072ea772e134a709c52612ee74bc65c803dc3a2392574ba439a57cab15997",
+      "bytes": 14280,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_capture_v1.py",
+      "archive": "inputs/013-pose_complete_fetch_spine_capture_v1.py",
+      "sourceSHA256": "44d7324288e64833c6785d487d7be09eeff1096aac5494f2f284e071abfa163c",
+      "archiveSHA256": "44d7324288e64833c6785d487d7be09eeff1096aac5494f2f284e071abfa163c",
+      "bytes": 3576,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_plan_v1.py",
+      "archive": "inputs/014-pose_complete_fetch_spine_plan_v1.py",
+      "sourceSHA256": "a413ec75a721c9d69b83274c304ac1a9cd3a9d89076ae562a2e8743901d27e3a",
+      "archiveSHA256": "a413ec75a721c9d69b83274c304ac1a9cd3a9d89076ae562a2e8743901d27e3a",
+      "bytes": 9884,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_plan_v2.py",
+      "archive": "inputs/015-pose_complete_fetch_spine_plan_v2.py",
+      "sourceSHA256": "645609ee2f8a1d60294ec3dcd494ade16aaaeb77f76142761c3911eda009f144",
+      "archiveSHA256": "645609ee2f8a1d60294ec3dcd494ade16aaaeb77f76142761c3911eda009f144",
+      "bytes": 12140,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_math_v1.py",
+      "archive": "inputs/016-seated_pose_chain_math_v1.py",
+      "sourceSHA256": "c4f653825e2d992b49c74ba814774465277d351908a298e2ba5681165b875bf5",
+      "archiveSHA256": "c4f653825e2d992b49c74ba814774465277d351908a298e2ba5681165b875bf5",
+      "bytes": 3492,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz",
+      "archive": "inputs/017-normalized-rest.npz",
+      "sourceSHA256": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+      "archiveSHA256": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+      "bytes": 11295958,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_arm_frame_math.py",
+      "archive": "inputs/018-sofa_arm_frame_math.py",
+      "sourceSHA256": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+      "archiveSHA256": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+      "bytes": 4886,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_coupled_contact_evaluator.py",
+      "archive": "inputs/019-sofa_coupled_contact_evaluator.py",
+      "sourceSHA256": "964fefc3e5d8032db6b6369e7a1ce0a8a2c23a0dd02fe9822397197889e85507",
+      "archiveSHA256": "964fefc3e5d8032db6b6369e7a1ce0a8a2c23a0dd02fe9822397197889e85507",
+      "bytes": 6480,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\bookcase_layout.py",
+      "archive": "inputs/020-bookcase_layout.py",
+      "sourceSHA256": "b0b54e75b246c778ab61db43baf88573fded03b5e0224e6dc31b477fc88df9bb",
+      "archiveSHA256": "b0b54e75b246c778ab61db43baf88573fded03b5e0224e6dc31b477fc88df9bb",
+      "bytes": 1604,
+      "roundtrip": true
+    },
+    {
+      "source": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\check_bookcase_scene.py",
+      "archive": "inputs/021-check_bookcase_scene.py",
+      "sourceSHA256": "43a836f6a1875eb20296d12783795b1b222c260019c70953ef80f2ee6b94fc5f",
+      "archiveSHA256": "43a836f6a1875eb20296d12783795b1b222c260019c70953ef80f2ee6b94fc5f",
+      "bytes": 7958,
+      "roundtrip": true
+    }
+  ],
+  "sourceFiles": 38,
+  "exactRoundtrip": true
+}

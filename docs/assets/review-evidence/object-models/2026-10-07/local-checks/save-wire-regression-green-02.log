@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/save-worker.test.ts tests/persistence-controller.test.ts tests/save-store.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+
+ Test Files  3 passed (3)
+      Tests  79 passed (79)
+   Start at  02:46:20
+   Duration  459ms (transform 81ms, setup 0ms, import 58ms, tests 140ms, environment 0ms)
+

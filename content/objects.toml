@@ -141,6 +141,7 @@ slots = { set = 2 }
 [[action_template]]
 id = "wash_hands"
 [action_template.properties]
+visual = { set = { action = "wash", anchor = "object", facing = "toward_anchor" } }
 activity = { set = "washing_hands" }
 label = { set = "Wash hands" }
 sound_action = { set = "sink_water" }
@@ -165,6 +166,7 @@ satisfaction = { set = 3.0 }
 [[action_template]]
 id = "wash_up"
 [action_template.properties]
+visual = { set = { action = "wash", anchor = "object", facing = "toward_anchor" } }
 activity = { set = "washing_hands" }
 label = { set = "Wash hands" }
 sound_action = { set = "sink_water" }
@@ -245,6 +247,7 @@ visual = { set = { action = "watch", anchor = "object", facing = "toward_anchor"
 [[action_template]]
 id = "soak"
 [action_template.properties]
+visual = { set = { action = "bathe", anchor = "object_socket", facing = "socket", socket = "basin" } }
 tags = { set = ["bathroom_privacy"] }
 activity = { set = "bathing" }
 label = { set = "Take a bath" }
@@ -606,6 +609,7 @@ id = "bathtub"
 label = "Bathtub"
 category = "hygiene"
 [object_type.properties]
+action_socket = { set = [{ id = "basin", x = 0.0, y = 0.0, facing = "SW" }] }
 rooms = { set = ["bathroom"] }
 
 [[object_type.action]]

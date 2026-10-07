@@ -484,6 +484,19 @@ does not produce a seated body. Reading home shelf, slot and reach timing come
 directly from the canonical journey and library. These are derived columns,
 not additional saved ownership or browser timers.
 
+The bookcase artwork stores each shelf row independently. Cabinet lighting uses
+cabinet shadow blockers; each book row uses cabinet and same-row blockers. Books
+do not cast shadows onto the cabinet or other rows. Actor lighting stays separate,
+with fixed world-space shadow resolution. Exporters freeze evaluated pose meshes
+before capture, compose stock and actor coverage before filtering, and verify
+mixed inventories against independent complete renders. Pickup and shelving use
+the same authored geometry with opposite phase order.
+
+Generated coverage records retain their original numeric indices while identical
+immutable payloads share one value. Identity includes dimensions, crop, encoding
+and pixel bytes. This reduces generated-source size without changing picking or
+alpha samples; consumers must not mutate shared coverage records.
+
 Reading progress and familiarity belong to the Sim and title, independently
 of the physical copy. Fractional work survives interruption. A reading pass
 captures its novelty factor once and retains it across sessions. Entertainment
@@ -601,8 +614,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
-`terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin` or
-`terri-save-1.v5-backup.bin`, according to its
+`terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin`,
+`terri-save-1.v5-backup.bin` or `terri-save-1.v6-backup.bin`, according to its
 source version. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
@@ -614,7 +627,10 @@ tabs still use last-writer-wins storage; play a household in one tab. A cached
 V2 writer rejects a primary V3 header instead of overwriting its directions,
 a cached V3 writer rejects a primary V4 header instead of overwriting its
 retired indices, and a cached V4 writer rejects a primary V5 header instead of
-overwriting its colourways. A cached V5 writer rejects a primary V6 header.
+overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
+primary V7 header. The storage writer and load-status controller share the current
+wire version; a regression test sends actual simulation saves through the storage
+worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
 close stale game tabs before continuing. The worker checks file
 headers, not full payload validity; recoverability is established by loading

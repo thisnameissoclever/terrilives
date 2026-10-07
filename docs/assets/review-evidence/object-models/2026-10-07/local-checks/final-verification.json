@@ -1,0 +1,74 @@
+{
+  "createdUtc": "2026-10-07T09:57:41.564608+00:00",
+  "testedMain": "196f30d8",
+  "checks": {
+    "final-rust-tests.log": {
+      "command": "cargo test --workspace -j 2 -- --test-threads=2",
+      "exit": 0,
+      "sha256": "ca23bab6139dadca964fbddd7468f23e3bd2ed2d05c24a2aa10978c986edd58b"
+    },
+    "final-clippy.log": {
+      "command": "cargo clippy --workspace --all-targets -j 2 -- -D warnings",
+      "exit": 0,
+      "sha256": "ae630c5d211207e55524f17a20a5e92dbc7ec6a714a2a4fab6b82af4b3058976"
+    },
+    "final-format.log": {
+      "command": "cargo fmt --all -- --check",
+      "exit": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-web-tests.log": {
+      "command": "npm test -- --maxWorkers=1",
+      "exit": 0,
+      "sha256": "7c561ec90fa8b5e2b957e8b614dbf6abc88b62009668a00ecb3a43f728740ce5"
+    },
+    "save-wire-regression-green-02.log": {
+      "command": "npm --prefix web test -- --maxWorkers=1 tests/save-worker.test.ts tests/persistence-controller.test.ts tests/save-store.test.ts",
+      "exit": 0,
+      "sha256": "bf670f9396beb1545fc8f0b9edc5176765efc6a27398a591c4feb2af41ef17cd"
+    },
+    "save-wire-typecheck-final.log": {
+      "command": "npm --prefix web run typecheck",
+      "exit": 0,
+      "sha256": "e5046545a3a9fcc0cf6950c9402c78a2b227f07a6a658d2a0c1fbc5f4a194da0"
+    },
+    "save-wire-build-final.log": {
+      "command": "npm --prefix web run build",
+      "exit": 0,
+      "sha256": "669897a3df31404703cb84ee7da2872aa0fa80455782b5ff00eff7cda47e4322"
+    },
+    "final-atlas-reproducibility.log": {
+      "command": "python assets/sprites/gen/build.py --check",
+      "exit": 0,
+      "sha256": "0c77a168c88a4e61e77d2288c0312dbde8922a31c99a203c3d18f9299b0c73b7"
+    },
+    "final-changelog-tests.log": {
+      "command": "node --test scripts/build-changelog.test.mjs",
+      "exit": 0,
+      "sha256": "ec4187b9ee267aac0d247bb302599726f99522707920f9266556212c1fd7a466"
+    },
+    "final-reading-import-tests.log": {
+      "command": "python -m unittest discover -s assets/sprites/gen -p test_offline_reading.py",
+      "exit": 0,
+      "sha256": "db5ebd010e2d716b36e9eb5f728845f7bc0c45184eca4a9f37bfb4048187adae"
+    },
+    "final-stock-tests.log": {
+      "command": "python -m unittest discover -s assets/sprites/gen -p test_reading_stock*.py",
+      "exit": 0,
+      "sha256": "6cc7835a6c53162ebb974796810351cd2a335b7538c95c2a1aa015204cb1b722"
+    }
+  },
+  "sourceHashes": {
+    "web/src/render/atlas.ts": "d2dd8eff6a58c3014d3db198daad6dfd573649ffd1585471fde6a3c4f1b03415",
+    "assets/sprites/atlas.toml": "eb54ddaa8e793617f07badc5f141028d2048468bd5afe5e4d6f81ba7c10201a2",
+    "assets/sprites/gen/build.py": "a159ce4066362e729d686658be05cb51b72c999899c13a887911862a3ae196a1",
+    "assets/sprites/gen/coverage_table.py": "2cf91ca4d3c2853792be000eefb3a2d06897268cc263e2ce7f54be2125e1b873",
+    "web/src/storage/save-header.ts": "42559417d0216ae15c0af7785351daa3df936dffdeda026a71926b1b8a4da6e2",
+    "web/src/storage/save-worker.ts": "ef84289d96d66647193b7fc52abcbb16f80a01d1b32788614377e50a0c8ba673",
+    "web/src/ui/persistence-controller.ts": "df43902de949282aee9cbfead5effe0649c92b946a7f9145afb5ab356b966833",
+    "web/src/wasm/terri_wasm_bg.wasm": "0335852d48c6261921488357b8107c2742465d95629562d4d0951da5f2a04648",
+    "content/objects.toml": "c25734b2cb39babe38d340a129bea8b16756dac28e8d7779abd93eb04c3b7b40",
+    "content/books.toml": "37b977de5c22399feb4f2f2ddc3e2f739549de4ec0d1cc1933da417c1f27a926"
+  },
+  "limits": "Full web suite passed before the final storage-version repair; targeted storage suites, typecheck, production build and actual browser journey passed after it. Native gameplay and artwork were unchanged by that repair."
+}

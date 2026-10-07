@@ -2,6 +2,7 @@
 import { packPresentationLayers } from './visible-scene-layers.js';
 import { uploadJointAlpha } from './joint-alpha.js';
 import { packShelfLayers } from './shelf-sprites.js';
+import { packBookReachShelves } from './book-reach-sprites.js';
 import { packDiningSupport } from './dining-support.js';
 import { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 export { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
@@ -20,6 +21,7 @@ import {
   JOINT_SCENE_ALPHA_IDS,
   SEATING_LAYERS,
   SHELF_PROFILES,
+  BOOK_REACH_SHELVES,
   SHARED_SEAT_LAYERS,
   BATHROOM_LAYERS,
   BED_LAYER_TRIMS,
@@ -362,7 +364,9 @@ export class SpriteRenderer {
     const jointBinding = 11 + patternCount;
     const module = gpu.device.createShaderModule({ code: shaderSource.replace(
       '// ARCHITECTURE_PATTERN_BINDINGS', architecturePatternShader(patternCount)).replace(
-      '// JOINT_ALPHA_BINDING', `@group(0) @binding(${jointBinding}) var jointAlpha: texture_2d_array<f32>;`) });
+      '// JOINT_ALPHA_BINDING', `@group(0) @binding(${jointBinding}) var jointAlpha: texture_2d_array<f32>;
+struct JointRegistration { records: array<vec4f> };
+@group(0) @binding(${jointBinding + 1}) var<storage, read> jointRegistration: JointRegistration;`) });
     const bindGroupLayout = gpu.device.createBindGroupLayout({ entries: [
       { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
       { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
@@ -379,6 +383,7 @@ export class SpriteRenderer {
       { binding: 9, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
       { binding: 10, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
       { binding: jointBinding, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
+      { binding: jointBinding + 1, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
     ] });
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
@@ -518,6 +523,7 @@ export class SpriteRenderer {
     const registration = storage(architecture?.registration
       ?? new Float32Array(Math.max(1, architecture?.sprites.length ?? 0) * 4));
     const finishes = storage(architecture?.finishes?.table ?? new Float32Array(8));
+    const jointRegistration = storage(joint.registration);
     const patternTextures = (architecture?.patterns ?? []).map(bitmap => {
       const texture = gpu.device.createTexture({ size: { width: bitmap.width, height: bitmap.height },
         format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
@@ -528,8 +534,9 @@ export class SpriteRenderer {
       return texture;
     });
     const sceneCount = this.grimeSpriteBase + GRIME_SPRITE_COUNT;
-    const bedTable = packShelfLayers(packPresentationLayers(sceneCount,
-      { ...BED_LAYERS, ...SEATING_LAYERS, ...BATHROOM_LAYERS }, SHARED_SEAT_LAYERS, joint.layers), sceneCount, SHELF_PROFILES);
+    const bedTable = packBookReachShelves(packShelfLayers(packPresentationLayers(sceneCount,
+      { ...BED_LAYERS, ...SEATING_LAYERS, ...BATHROOM_LAYERS }, SHARED_SEAT_LAYERS, joint.layers), sceneCount, SHELF_PROFILES),
+      sceneCount, BOOK_REACH_SHELVES);
     this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.bedBuffer);
@@ -568,6 +575,7 @@ export class SpriteRenderer {
         { binding: 9, resource: { buffer: this.bedBuffer } },
         { binding: 10, resource: { buffer: this.diningBuffer } },
         { binding: jointBinding, resource: joint.texture.createView({ dimension: '2d-array' }) },
+        { binding: jointBinding + 1, resource: { buffer: jointRegistration } },
       ],
     });
   }

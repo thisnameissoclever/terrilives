@@ -1,0 +1,86 @@
+{
+  "method": "Explicit channel comparison using NumPy; no alpha-only bounding-box predicate",
+  "results": [
+    {
+      "stage": "lift",
+      "facing": "SE",
+      "alpha_max": 0,
+      "visible_rgb_max": 2,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-SE-emptyOwner.png": "6f1f038f00b5e90d2cefc7b988ddfa3537d16fcc590b558a903523dc56a5e9dc",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-SE-fullOwner.png": "e23f244daa09f068534fcc2a7144202410d0a9f4c406be80bbfba0f2942912d3"
+      }
+    },
+    {
+      "stage": "lift",
+      "facing": "NW",
+      "alpha_max": 0,
+      "visible_rgb_max": 1,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-NW-emptyOwner.png": "7c6c239cc9e0547a03e49708cdd03dcddf52f09d1581e1767f7acb0ccb3a09eb",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-NW-fullOwner.png": "0df8eb0101274885ef93a7ebc959aed92cf62c5b7658ea348a22981af0b4ddea"
+      }
+    },
+    {
+      "stage": "lift",
+      "facing": "SW",
+      "alpha_max": 0,
+      "visible_rgb_max": 1,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-SW-emptyOwner.png": "b05d380f9af0a6ccd5018ce6ddf8bc267e8bf13ba634ad9e0841f05c2c2f815f",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-SW-fullOwner.png": "5665527f76d2a85096baa31b251b9d449c4bcb01ac4f8601a4e40498f1a47280"
+      }
+    },
+    {
+      "stage": "lift",
+      "facing": "NE",
+      "alpha_max": 0,
+      "visible_rgb_max": 0,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-NE-emptyOwner.png": "8fb9293ff6a3e2ce2a616f7eda108bb6617290bbefba16689129481416398237",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\lift-NE-fullOwner.png": "672a09e4e63eaf1022281b065b01a8a02da34b03de4ed4b28deabddaa32e4249"
+      }
+    },
+    {
+      "stage": "outside",
+      "facing": "SE",
+      "alpha_max": 0,
+      "visible_rgb_max": 2,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-SE-emptyOwner.png": "fa90de55ad3c0582ffeced812aef172cb17a2f9083ccb5b15f2cec7996c2cbd5",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-SE-fullOwner.png": "dcbd4462387ec3f6a3e3d2eca5919824b039a151d1ce97d5142ab002d86a0d7c"
+      }
+    },
+    {
+      "stage": "outside",
+      "facing": "NW",
+      "alpha_max": 0,
+      "visible_rgb_max": 1,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-NW-emptyOwner.png": "169832f050aede62ab8c16a5e8e979938c67c6a66bd11faa12eba4428ac05fae",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-NW-fullOwner.png": "674f8f99cf89e2a12c437e4f051f2e5a3cb8489ab6eeae359fdd227da264e6ce"
+      }
+    },
+    {
+      "stage": "outside",
+      "facing": "SW",
+      "alpha_max": 0,
+      "visible_rgb_max": 1,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-SW-emptyOwner.png": "a4d1dcd7d09cffa4c460a7785853449a83e2a6fc6e42fe2cd4b0218869c00cbf",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-SW-fullOwner.png": "5eaba4254cc277aecd78a9bdeff50e0595f6701053ad19c3e9c3d722eae5cdca"
+      }
+    },
+    {
+      "stage": "outside",
+      "facing": "NE",
+      "alpha_max": 0,
+      "visible_rgb_max": 0,
+      "inputs": {
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-NE-emptyOwner.png": "4551ceda6e109bb00955f1c4c6ae3365a11ae70b0a46e32b0a6b19485ad4a50c",
+        ".tmp\\object-models\\pose-complete-fetch-spine-visibility-01\\raw\\outside-NE-fullOwner.png": "6bc0bab693ebaf80bbaed0968fe0eb9156d3a1a6a1fe7a66857b4d2e763b4477"
+      }
+    }
+  ],
+  "limit": "Coverage equivalence and visible owner color only; full scene composition still requires a reference comparison."
+}

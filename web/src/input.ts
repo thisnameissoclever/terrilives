@@ -1,6 +1,7 @@
 import {cleaningBinSprite} from './frame.js';
 import { sampleBedCoverage } from './render/bed-sprites.js';
 import { SHELF_COVERAGE, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
+import { BOOK_REACH_CATALOG } from './render/atlas.js';
 /**
  * Pointer input: a click on the canvas becomes a serialised player command.
  *
@@ -380,7 +381,7 @@ export function clientToWorld(
  * done.
  */
 const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG,
-  { ...SEATING_SPRITES, ...BATHROOM_SPRITES }, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
+  { ...SEATING_SPRITES, ...BATHROOM_SPRITES }, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG, BOOK_REACH_CATALOG);
 
 export function pickSprite(
   source: PickSource,

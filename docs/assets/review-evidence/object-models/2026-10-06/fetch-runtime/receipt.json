@@ -1,0 +1,56 @@
+{
+  "recorded_utc": "2026-10-07T01:05:35.284880+00:00",
+  "state": "runtime_verified_assets_pending",
+  "source_sha256": {
+    "web/src/render/book-reach-sprites.ts": "2296c7bcd38e4a01293c66450e14e935a4cc21fdf764209af5d9151cd986cc73",
+    "web/src/render/interaction-sprites.ts": "7d467db8f97cdd696456b1a2af2f9298d428a4f0f0d6296aa8f08ddf3802fd4c",
+    "web/src/render/joint-alpha.ts": "d7d4b3077b5a36f17cd5d749c0f8e9498beb191591f68d3a0fc16f10d3e84e63",
+    "web/src/render/sprites.ts": "82648e3f0ff90829598fd6aa84a97c761bf982daf78e5ba10315a16125c57974",
+    "web/src/render/sprites.wgsl": "bea63839407063fb63b19287493ea2b4a837fd7c2888c3891bb5260b6982ff67",
+    "web/src/render/atlas.ts": "c4ba84a688ce0677727919d43c988ea352ecb8423e8c0e97ffb0f5604014dabc",
+    "web/src/frame.ts": "258203d3aa1c374bb082b61d9926d866bbece2fdde3c1d0b7b4ff16b3d16db5d",
+    "web/src/input.ts": "9d7e26d7c04ccad8dd307cfa27e443d1ae64c0acafec6f7a065fc8d2ed5a1f7c",
+    "assets/sprites/gen/offline_reading.py": "213134d501c744b8691aec0bb1319c4e2206510bb8bc8b309075b02a5e120fbe",
+    "assets/sprites/gen/build.py": "400ee49c80e23623be465752c64ed2dcdcdf346a1b6d548559d0d6dd543af8e1",
+    "assets/sprites/gen/test_offline_reading.py": "420754148eaad2e0d92d16fcb622f36484eae50fc2db93a7f49b2a6ae37efee6",
+    "web/tests/book-reach-sprites.test.ts": "1cfdde2ee5afc47cae5f028dce156f526c0ce87fd19e020e0be74d0e79d02d5c",
+    "web/tests/joint-alpha.test.ts": "be755e97ed631b4672c9709746468a8ae25c1c8378373568cc66315165f2cbf5"
+  },
+  "checks": {
+    "web_tests": {
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "exit_code": 0,
+      "files": 174,
+      "tests": 2189
+    },
+    "typecheck": {
+      "command": "npm --prefix web run typecheck",
+      "exit_code": 0
+    },
+    "build": {
+      "command": "npm --prefix web run build",
+      "exit_code": 0
+    },
+    "importer_validation": {
+      "command": "python -m unittest discover -s assets/sprites/gen -p test_offline_reading.py",
+      "exit_code": 0,
+      "tests": 4
+    },
+    "atlas_generation": {
+      "command": "python assets/sprites/gen/build.py",
+      "exit_code": 0,
+      "note": "Existing artwork is unchanged; two empty reach metadata exports were generated. Full fetch assets are not included yet."
+    }
+  },
+  "review": {
+    "scope": "New fetch selector, stock composition, half-float coverage packing, importer and runtime wiring",
+    "finding": "Reject cross-slot sourceFrame aliasing before joint-alpha lookup",
+    "resolution": "Strict slot*4+phase identity for fetch and slot*4+3-phase for return; four public-validator tests pass; independent reviewer confirmed resolution",
+    "remaining_findings": []
+  },
+  "limits": [
+    "Actual fetch/return production assets are not integrated yet.",
+    "Sofa full-state production remains pending.",
+    "Final owner content and visual review, merge and deployment remain pending."
+  ]
+}

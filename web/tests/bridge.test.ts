@@ -1601,7 +1601,8 @@ describe('SimBridge', () => {
     bridge.tick();
 
     expect(Array.from(bridge.activities())).toEqual([0, 16]);
-    expect(Array.from(bridge.visualActions())).toEqual([0, 0]);
+    // Hand washing stands toward the basin with body-action 21 on the wire.
+    expect(Array.from(bridge.visualActions())).toEqual([0, 21]);
   });
 
   it('sends the interaction index through to the simulation unclamped', () => {

@@ -514,6 +514,29 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
                 comparable.recipe = None;
                 comparable.media = None;
                 let mut intended = prior.clone();
+                use terri_data::{
+                    CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
+                    CompiledVisualFacing,
+                };
+                match (actual.id.as_str(), prior.id.as_str()) {
+                    ("sink", "wash_hands") | ("kitchen_sink", "wash_up") => {
+                        intended.visual = Some(CompiledVisual {
+                            action: CompiledVisualAction::Wash,
+                            anchor: CompiledVisualAnchor::Object,
+                            facing: CompiledVisualFacing::TowardAnchor,
+                            socket: None,
+                        });
+                    }
+                    ("bathtub", "soak") => {
+                        intended.visual = Some(CompiledVisual {
+                            action: CompiledVisualAction::Bathe,
+                            anchor: CompiledVisualAnchor::ObjectSocket,
+                            facing: CompiledVisualFacing::Socket,
+                            socket: Some(0),
+                        });
+                    }
+                    _ => (),
+                }
                 match actual.id.as_str() {
                     "sink" => intended.advertises = vec![(2, 22.0)],
                     "moving_box" => {
@@ -550,6 +573,14 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
                         | ("dining_table", "take_prepared_food")
                 )));
             actual.interactions = expected.interactions.clone();
+        }
+        if actual.id == "bathtub" {
+            assert_eq!(actual.action_sockets.len(), 1);
+            let basin = &actual.action_sockets[0];
+            assert_eq!(basin.id, "basin");
+            assert_eq!((basin.x, basin.y), (0.0, 0.0));
+            assert_eq!(basin.facing, terri_data::CompiledSocketFacing::PositiveY);
+            actual.action_sockets = expected.action_sockets.clone();
         }
         assert_eq!(
             &actual, expected,

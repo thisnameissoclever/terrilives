@@ -364,6 +364,12 @@ fn authored_object_facing_codes(
             terri_data::CompiledVisualFacing::TowardAnchor,
             None,
         ) => Some((visual_action::SLEEP, activity::SLEEPING)),
+        (
+            terri_data::CompiledVisualAction::Wash,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+            None,
+        ) => Some((visual_action::WASH_HANDS, activity::WASHING_HANDS)),
         _ => None,
     }
 }
@@ -464,6 +470,11 @@ fn authored_socket_action_visual(
             terri_data::CompiledVisualAnchor::ObjectSocket,
             terri_data::CompiledVisualFacing::Socket,
         ) => (visual_action::USE_TOILET, activity::USING_TOILET),
+        (
+            terri_data::CompiledVisualAction::Bathe,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        ) => (visual_action::BATHE, activity::BATHING),
         _ => return None,
     };
     let socket = sockets.0.get(visual.socket? as usize)?;

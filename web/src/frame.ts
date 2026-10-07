@@ -2,6 +2,7 @@ import {cleaningFrame} from './render/cleaning-animation.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 import { shelfPresence } from './render/shelf-sprites.js';
 import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
+import { BOOK_REACH_CATALOG } from './render/atlas.js';
 /**
  * The frame loop's two halves: pacing the simulation, and turning the two
  * most recent simulation ticks into one frame's worth of GPU instances.
@@ -344,6 +345,14 @@ export const VISUAL_ACTION_SIT = 8;
 /** The append-only visual-action code for sleeping in the lower bunk. */
 export const VISUAL_ACTION_SLEEP = SLEEP_VISUAL_ACTION;
 
+/**
+ * The append-only visual-action code for standing hand washing at a sink.
+ * Codes 18 and 19 are the fixture-composited toilet and bath scenes and 20 is
+ * reserved for the shower. Hand washing is drawn with the prop-free prepare
+ * clip until a dedicated hand-washing clip ships.
+ */
+export const VISUAL_ACTION_WASH_HANDS = 21;
+
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
 export const FACING_NEGATIVE_X = 2;
@@ -587,23 +596,26 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
 }
 
 const actionSprites = { ...SEATING_SPRITES, ...BATHROOM_SPRITES };
-const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, actionSprites, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
-const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, actionSprites, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG);
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, actionSprites, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG, BOOK_REACH_CATALOG);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG, actionSprites, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, SOFA_RECLINE_CATALOG, BOOK_REACH_CATALOG);
 
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {
   return RIGGED_SIM_VARIANTS[simShirtVariant(simId)].idle.frames[0][0];
 }
 
-const RIGGED_ACTIONS: readonly string[] = [
+/** Generic rigged clip per visual-action code; codes 18 to 20 have no generic clip. */
+const RIGGED_ACTIONS: readonly (string | undefined)[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
   'watch_fish', 'sit', 'sleep', 'prepare', 'cook_v2', 'wash', 'seated_eat',
   'mop', 'wipe_counter', 'wipe_table', 'empty_bin',
+  undefined, undefined, undefined, 'prepare',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
   1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
   10, 10, 10, 16,
+  1, 1, 1, 1, 1, 1, 1, 10,
 ];
 
 /** Sample the baked rig from simulation state, without an animation clock. */
@@ -1186,7 +1198,9 @@ export function buildInstanceBatch(
         kinds[i] === KIND_AGENT ? LAYER_SIM : LAYER_PROP,
       ),
       sprite,
-      SHELF_PROFILES[sprite] ? shelfPresence(i, shelfOffsets, shelfCounts, shelfMasks) : TINT_NONE,
+      SHELF_PROFILES[sprite] || interactions.bookReachRows[i]
+        ? interactions.shelfMask(positionRow, shelfPresence(positionRow, shelfOffsets, shelfCounts, shelfMasks))
+        : TINT_NONE,
       TINT_NONE,
       TINT_NONE,
       Math.max(emissiveForSprite(sprite), localLight),

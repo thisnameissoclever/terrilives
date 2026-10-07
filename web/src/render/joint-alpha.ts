@@ -1,29 +1,44 @@
 import type { EncodedCoverage } from './bed-sprites.js';
 
-/** Full registered half-float images preserve joint silhouette coverage. */
+/** Pack original half-float coverage without assigning one texture layer per pose. */
 export function uploadJointAlpha(device: GPUDevice, ids: Readonly<Record<number, number>>,
-  coverage: readonly EncodedCoverage[]): { texture: GPUTexture; layers: Readonly<Record<number, number>> } {
-  const unique = new Map<number, number>(), layers: Record<number, number> = {};
+  coverage: readonly EncodedCoverage[]): { texture: GPUTexture; layers: Readonly<Record<number, number>>;
+    registration: Float32Array<ArrayBuffer> } {
+  const unique = new Map<string, number>(), records: EncodedCoverage[] = [];
+  const layers: Record<number, number> = {};
   for (const [sprite, id] of Object.entries(ids)) {
     if (coverage[id]?.encoding !== 'float16') throw new Error('Joint scene alpha requires half-float coverage');
-    if (!unique.has(id)) unique.set(id, unique.size);
-    layers[Number(sprite)] = unique.get(id)!;
+    const record = coverage[id];
+    const key = `${record.size[0]}:${record.size[1]}:${record.values}`;
+    if (!unique.has(key)) { unique.set(key, records.length); records.push(record); }
+    layers[Number(sprite)] = unique.get(key)!;
   }
-  const width = Math.max(1, ...Array.from(unique.keys(), id => coverage[id].size[0]));
-  const height = Math.max(1, ...Array.from(unique.keys(), id => coverage[id].size[1]));
-  if (unique.size > device.limits.maxTextureArrayLayers || width > device.limits.maxTextureDimension2D
-      || height > device.limits.maxTextureDimension2D) throw new Error('Joint scene alpha exceeds device texture limits');
-  const texture = device.createTexture({ size: [width, height, Math.max(1, unique.size)], format: 'r16float',
+  const extent = Math.max(1, ...records.flatMap(record => record.size));
+  const area = records.reduce((sum, record) => sum + record.size[0] * record.size[1], 0);
+  const side = Math.min(device.limits.maxTextureDimension2D,
+    Math.max(2 ** Math.ceil(Math.log2(extent)), Math.min(2048, 2 ** Math.ceil(Math.log2(Math.max(1, Math.sqrt(area)))))));
+  if (extent > side) throw new Error('Joint scene alpha exceeds device texture dimensions');
+  const registration = new Float32Array(Math.max(1, records.length) * 4);
+  let x = 0, y = 0, rowHeight = 0, page = 0;
+  const order = records.map((record, id) => ({ record, id })).sort((a, b) => b.record.size[1] - a.record.size[1]);
+  for (const { record, id } of order) {
+    if (x + record.size[0] > side) { x = 0; y += rowHeight; rowHeight = 0; }
+    if (y + record.size[1] > side) { x = 0; y = 0; rowHeight = 0; page++; }
+    registration.set([x, y, page, 0], id * 4);
+    x += record.size[0]; rowHeight = Math.max(rowHeight, record.size[1]);
+  }
+  if (page + 1 > device.limits.maxTextureArrayLayers) throw new Error('Joint scene alpha exceeds device texture layers');
+  const texture = device.createTexture({ size: [side, side, page + 1], format: 'r16float',
     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
   try {
-    for (const [id, layer] of unique) {
-      const record = coverage[id], raw = Uint8Array.from(atob(record.values), value => value.charCodeAt(0));
+    for (let id = 0; id < records.length; id++) {
+      const record = records[id], raw = Uint8Array.from(atob(record.values), value => value.charCodeAt(0));
       if (record.box.join(',') !== [0, 0, ...record.size].join(',') || raw.length !== record.size[0] * record.size[1] * 2) {
         throw new Error('Joint scene alpha dimensions differ from its full scene');
       }
-      device.queue.writeTexture({ texture, origin: [0, 0, layer] }, raw,
+      device.queue.writeTexture({ texture, origin: Array.from(registration.subarray(id * 4, id * 4 + 3)) }, raw,
         { bytesPerRow: record.size[0] * 2 }, { width: record.size[0], height: record.size[1] });
     }
-    return { texture, layers };
+    return { texture, layers, registration };
   } catch (error) { texture.destroy(); throw error; }
 }

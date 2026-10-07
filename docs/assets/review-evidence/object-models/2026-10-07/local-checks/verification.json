@@ -1,0 +1,30 @@
+{
+  "createdUtc": "2026-10-07T08:06:59.068868+00:00",
+  "base": "9a3bb24a22fcc197ed24abcb4ab59783d78fe458",
+  "integratedMain": "7fb45a81",
+  "checks": {
+    "web": {
+      "command": "npm test -- --maxWorkers=1",
+      "exit": 0,
+      "log": "web-final-main7fb.log",
+      "sha256": "21aedda5f0a348cf61981c85ec16a12de843d29f6c6e8d74207e95454013b0f7"
+    },
+    "changelog": {
+      "command": "node --test scripts/build-changelog.test.mjs",
+      "exit": 0,
+      "log": "changelog-oct7-tests.log",
+      "sha256": "9ac06803cb59c5bc848cafe2cdcc40e83f7ec59972be471a1fc12cf85fbc67ca"
+    }
+  },
+  "sourceHashes": {
+    "web/src/render/atlas.ts": "276655c3c6cfd20f4152e472391827f3e7a7b7adc209833b2ce4b13390fbd0ba",
+    "web/src/render/sprites.ts": "e94b60a68802a34f84f4845909fa649ac821d64b7269bad2941f978ac61e0e4b",
+    "web/src/render/sprites.wgsl": "eb68987670ab6e85a3240f05c9731ea5ab285ae9ba49cdc379285dd51b388209",
+    "web/src/render/interaction-sprites.ts": "593f605383749bf385503fd87e42f22d2b6cb1830d7822b1799d170e068d917a",
+    "web/src/render/book-reach-sprites.ts": "d27a950789a48bb33b2b7aaf994736ce91726ec8ad227a660155e17a5d8e47c9",
+    "web/src/render/joint-alpha.ts": "d7d4b3077b5a36f17cd5d749c0f8e9498beb191591f68d3a0fc16f10d3e84e63",
+    "web/src/wasm/terri_wasm_bg.wasm": "0335852d48c6261921488357b8107c2742465d95629562d4d0951da5f2a04648",
+    "web/src/wasm/terri_wasm.js": "f251872a14dbac741d9a17fba867b1fa94a75f915d891d0560a9aae9c30f3854"
+  },
+  "limits": "Fetch/shelve exports are not integrated. Later source or generated changes require relevant checks."
+}

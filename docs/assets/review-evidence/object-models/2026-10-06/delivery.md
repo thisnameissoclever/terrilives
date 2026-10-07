@@ -5,6 +5,46 @@ This record covers the object-models implementation based on published commit
 limits separately from the proposed public changelog. The approved scope is in
 [the implementation plan](../../../../superpowers/plans/2026-10-05-object-models-books-seating.md).
 
+## Current integrated checkpoint
+
+The sections below preserve earlier verification epochs. The current checkpoint
+is `9a3bb24a22fcc197ed24abcb4ab59783d78fe458`, which integrates published main
+`2f319c3bb14b4c798505e1b6c75fa3186f6f4822`. Current native evidence is in
+[the upstream integration report](upstream-2f319c3b-native/verification.md).
+Current renderer evidence and the actual resolved catalogue are in
+[the merged-main receipt](merged-main-2f319/receipt.json) and
+[the updated comparison table](merged-main-2f319/catalogue-balance-and-copy-review.md).
+The proposed words still require owner approval.
+
+At this checkpoint, the rebuilt WebAssembly SHA-256 is
+`05a3e87727c70e197d7e033b7b3e5fd422af0a02d84bcac97086348936d946e0`.
+The broad web run passed 2,180 tests and exposed two stale expectations;
+the six affected files subsequently passed all 24 tests. Type checking and
+the production build exited zero. These combined receipts are not a claim
+that the complete broad suite was rerun after the repairs.
+
+The corrected [return-stage proof](merged-main-2f319/book-return-boundary-proof.json)
+observed 61 Return ticks and four Shelve ticks. Title memory stayed unchanged
+through those stages and copy 0 returned to its original shelf slot exactly
+once. Earlier cancellation probes compared an autonomous reading interval
+with a later return interval and therefore could not isolate return behavior.
+Their failure receipts remain preserved; the current receipt records the
+corrected stage-boundary result. Shelf-contact artwork remains a separate
+acceptance gate.
+
+The [fresh final logic review](merged-main-2f319/final-logic-review.md) found
+no concrete release blockers in its native/content/save/web scope. It inspected
+source and existing receipts without rerunning suites or judging pending art.
+Its prompt described the old return-summary wording; that summary was corrected
+during the review, and the review output remains unchanged. The review does not
+establish owner approval or acceptance of the unfinished assets.
+
+The [release audit](release-audit.md) maps approved requirements to the dated
+receipts and open gates. The independent [lowest-left fetch source proof](fetch-spine-mechanics/verification.md)
+now establishes finite spine contact, planted feet and a clear rigid-book
+corridor on the unchanged rig. Its original sleeve still self-intersects, so
+overall source acceptance remains false and no raster is promoted.
+
 ## Native verification
 
 The broad native run passed the core and data suites. Its simulation suite

@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bridge.test.ts tests/bath-production.test.ts tests/wash-hands-production.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+
+ Test Files  3 passed (3)
+      Tests  59 passed (59)
+   Start at  20:59:50
+   Duration  6.83s (transform 1.62s, setup 0ms, import 3.02s, tests 3.51s, environment 0ms)
+

@@ -1,0 +1,18 @@
+{
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_capture_v1.py": "44d7324288e64833c6785d487d7be09eeff1096aac5494f2f284e071abfa163c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_art_launch_v1.ps1": "265f9f1d2549a7b605c12725a2fdcb1aec0330ba74cab42e9cae55376b666180",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-shelf-hinge-03\\raw\\proof.json": "f40f2fe42cac4991331ca1cd2150daeb03df9ea6279192316dc4adc4ba4e4a5d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-supported-author-01\\prepared-frames.json": "24ecbcc9b44d7eb45c69e59e5c659981a275034db3351212c2a9077d971e8771",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\seed.blend": "9f2327cf7971658121faa049ac7c74977caecb2f3f1b2fc70df7294e87113a74"
+  },
+  "seed_scene": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\seed.blend",
+  "rig": "Place 1 SIM_01_SHARED_RIG",
+  "jobs": {
+    "render_script": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_capture_v1.py"
+  },
+  "outputs": {
+    "render": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\raw"
+  }
+}

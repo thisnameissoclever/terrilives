@@ -3,6 +3,7 @@ import { ACTIVITY_AT_WORK, KIND_AGENT } from './instances.js';
 import { tickAnimationFrame } from './sim-animation.js';
 import { sharedSeatKey, sharedSeatPhase, reclineKey, RECLINE_ACTIVITY, RECLINE_VISUAL_ACTION, type SharedSeatCatalog, type ReclineCatalog } from './shared-seat-sprites.js';
 import { readingBodyScene, type ReadingBodyCatalog } from './reading-sprites.js';
+import { bookReachFrame, FETCH_BOOK_STAGE, SHELVE_BOOK_STAGE, type BookReachCatalog } from './book-reach-sprites.js';
 
 function paletteIndex(variant: ShirtVariant): number {
   return variant === 'green' ? 0 : variant === 'blue' ? 1 : 2;
@@ -37,6 +38,11 @@ export interface InteractionColumns {
   readonly seatedWhole?: Uint32Array;
   readonly seatIdsByModel?: Readonly<Record<string, readonly string[]>>;
   readonly readingStages?: Uint32Array;
+  readonly readingCopies?: Uint32Array;
+  readonly readingHomeShelves?: Uint32Array;
+  readonly readingHomeSlots?: Uint32Array;
+  readonly readingReachRemaining?: Uint32Array;
+  readonly readingReachTotals?: Uint32Array;
   readonly carriedBooks?: Uint32Array;
   readonly positions?: Float32Array;
 }
@@ -59,6 +65,11 @@ export interface InteractionSource {
   seatedWhole?(): Uint32Array;
   modelSeatIds?(model: string): readonly string[];
   readingStages?(): Uint32Array;
+  readingCopies?(): Uint32Array;
+  readingHomeShelves?(): Uint32Array;
+  readingHomeSlots?(): Uint32Array;
+  readingReachRemaining?(): Uint32Array;
+  readingReachTotals?(): Uint32Array;
   carriedBooks?(): Uint32Array;
   positions?(): Float32Array;
 }
@@ -73,6 +84,9 @@ export class InteractionSelection {
   bedPlaces = new Int8Array(0);
   drawSuppressed = new Uint8Array(0);
   bedDrawRows = new Int32Array(0);
+  readonly bookReachRows: boolean[] = [];
+  private stockSuppression = new Uint32Array(0);
+  private stockPresence = new Uint32Array(0);
   private place0 = new Int32Array(0);
   private place1 = new Int32Array(0);
   private place2 = new Int32Array(0);
@@ -94,7 +108,12 @@ export class InteractionSelection {
     private readonly sharedSeats: SharedSeatCatalog = {},
     private readonly readingBodies: ReadingBodyCatalog = {},
     private readonly reclines: ReclineCatalog = {},
+    private readonly bookReaches: BookReachCatalog = {},
   ) {}
+
+  shelfMask(row: number, physicalMask: number): number {
+    return ((physicalMask | this.stockPresence[row]) & ~this.stockSuppression[row]) & 0xffffff;
+  }
 
   ownerForTarget(row: number): number {
     return this.owners[row] ?? -1;
@@ -159,6 +178,11 @@ export class InteractionSelection {
     this.columns.seatedPlaces = source.seatedPlaces?.();
     this.columns.seatedWhole = source.seatedWhole?.();
     this.columns.readingStages = source.readingStages?.();
+    this.columns.readingCopies = source.readingCopies?.();
+    this.columns.readingHomeShelves = source.readingHomeShelves?.();
+    this.columns.readingHomeSlots = source.readingHomeSlots?.();
+    this.columns.readingReachRemaining = source.readingReachRemaining?.();
+    this.columns.readingReachTotals = source.readingReachTotals?.();
     this.columns.carriedBooks = source.carriedBooks?.();
     this.columns.positions = source.positions?.();
     this.update(this.columns, tick, reducedMotion);
@@ -178,6 +202,8 @@ export class InteractionSelection {
       this.bedPlaces = new Int8Array(count);
       this.drawSuppressed = new Uint8Array(count);
       this.bedDrawRows = new Int32Array(count);
+      this.stockSuppression = new Uint32Array(count);
+      this.stockPresence = new Uint32Array(count);
     }
     this.bodies.fill(-1, 0, count);
     this.targetRows.fill(-1, 0, count);
@@ -190,6 +216,10 @@ export class InteractionSelection {
     this.bedPlaces.fill(-1, 0, count);
     this.drawSuppressed.fill(0, 0, count);
     this.bedDrawRows.fill(-1, 0, count);
+    this.stockSuppression.fill(0, 0, count);
+    this.stockPresence.fill(0, 0, count);
+    this.bookReachRows.length = count;
+    this.bookReachRows.fill(false);
     this.bedScenes.fill(undefined, 0, this.bedScenes.length);
     this.bedScenes.length = Math.max(this.bedScenes.length, count);
     this.indexRows(ids, count);
@@ -301,6 +331,31 @@ export class InteractionSelection {
           this.bedScenes[row] = scene; this.bedPlaces[row] = place;
           this.bedDrawRows[row] = drawRow; this.drawSuppressed[row] = row === drawRow ? 0 : 1;
         }
+      }
+    }
+    if (columns.readingStages && columns.readingCopies && columns.readingHomeShelves
+        && columns.readingHomeSlots && columns.readingReachRemaining && columns.readingReachTotals) {
+      for (let row = 0; row < count; row++) {
+        const stage = columns.readingStages[row];
+        if (kinds[row] !== KIND_AGENT || activities[row] === ACTIVITY_AT_WORK
+            || (stage !== FETCH_BOOK_STAGE && stage !== SHELVE_BOOK_STAGE)) continue;
+        const target = this.findRow(columns.readingHomeShelves[row]);
+        const profile = target === undefined ? undefined : this.bookReaches[sprites[target]];
+        if (target === undefined || !profile) continue;
+        if (columns.readingCopies[row] === 0xffffffff || kinds[target] === KIND_AGENT) {
+          throw new Error('Book reach has no physical copy or home bookcase');
+        }
+        if (this.suppressed[target]) throw new Error('Bookcase has conflicting visible reach owners');
+        const slot = columns.readingHomeSlots[row];
+        const frame = bookReachFrame(profile, stage, slot, columns.readingReachRemaining[row],
+          columns.readingReachTotals[row], paletteIndex(this.shirtVariant(simIds?.[row])));
+        this.bodies[row] = frame.scene.sprite; this.targetRows[row] = target;
+        this.bedScenes[row] = frame.scene; this.bedPlaces[row] = 0; this.bedDrawRows[row] = row;
+        this.bodies[target] = frame.scene.sprite; this.targetRows[target] = target;
+        this.bedScenes[target] = frame.scene; this.bedDrawRows[target] = row;
+        this.suppressed[target] = 1; this.bookReachRows[row] = true;
+        if (frame.suppressStock) this.stockSuppression[target] |= 1 << slot;
+        else this.stockPresence[target] |= 1 << slot;
       }
     }
     if (actions && columns.readingStages && columns.carriedBooks) {
