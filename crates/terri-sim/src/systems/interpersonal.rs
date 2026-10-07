@@ -331,7 +331,13 @@ impl InterpersonalPhase {
                             let media =
                                 crate::seating::media_activity(pack, item.definition, index as u32)
                                     .is_some();
-                            let plan = media
+                            let seated = crate::seating::seated_activity(
+                                pack,
+                                item.definition,
+                                index as u32,
+                            )
+                            .is_some();
+                            let plan = seated
                                 .then(|| {
                                     crate::media::plan(
                                         crate::media::Planning {
@@ -402,15 +408,16 @@ impl InterpersonalPhase {
                                     )
                                     .into_iter()
                                     .any(|admission| {
-                                        if media {
-                                            plan.as_ref().is_some_and(|plan| {
-                                                plan.access
-                                                    .route
-                                                    .path(&safe, tile(position))
-                                                    .is_some()
-                                            })
-                                        } else {
-                                            reachable(admission)
+                                        // A viewing use needs its planned place; seated
+                                        // work without a chair keeps the standing route.
+                                        match (media, plan.as_ref()) {
+                                            (_, Some(plan)) => plan
+                                                .access
+                                                .route
+                                                .path(&safe, tile(position))
+                                                .is_some(),
+                                            (true, None) => false,
+                                            (false, None) => reachable(admission),
                                         }
                                     })
                         })

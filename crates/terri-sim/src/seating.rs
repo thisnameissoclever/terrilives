@@ -228,6 +228,47 @@ pub(crate) fn media_activity(
     })
 }
 
+/// Seated work at a station whose chair sits against it rather than in front
+/// of free floor: the worker approaches the chair from a free side.
+pub(crate) fn work_kind(
+    definition: &terri_data::CompiledObject,
+    action: &terri_data::CompiledInteraction,
+) -> Option<u32> {
+    (definition.id == "desk" && work_action(action))
+        .then_some(crate::render_buffer::activity::CORRESPONDENCE)
+}
+
+/// Seated work is presentation only: the chair's Comfort is never paid or
+/// advertised for it, unlike seated viewing.
+pub(crate) fn work_action(action: &terri_data::CompiledInteraction) -> bool {
+    action.id == "attend_correspondence"
+}
+
+pub(crate) fn work_station(
+    pack: &terri_data::ContentPack,
+    object: terri_core::ObjectDefId,
+) -> bool {
+    pack.objects
+        .get(object.0 as usize)
+        .is_some_and(|definition| definition.id == "desk")
+}
+
+/// Every interaction that may hold a physical seat lease: media viewing in
+/// front of a device, or seated work at a station.
+pub(crate) fn seated_activity(
+    pack: &terri_data::ContentPack,
+    object: terri_core::ObjectDefId,
+    interaction: u32,
+) -> Option<u32> {
+    media_activity(pack, object, interaction).or_else(|| {
+        let definition = pack.objects.get(object.0 as usize)?;
+        work_kind(
+            definition,
+            definition.interactions.get(interaction as usize)?,
+        )
+    })
+}
+
 pub(crate) fn ordinary_projection(
     world: &World,
     person: Entity,
@@ -286,7 +327,7 @@ pub(crate) fn kind(world: &World, lease: &SavedDiner) -> Option<UseKind> {
         }
         if target.interaction != crate::systems::chain::CHAIN_STEP {
             let object = world.get::<SmartObject>(target.object)?;
-            return media_activity(world.resource::<Content>().0, object.0, target.interaction)
+            return seated_activity(world.resource::<Content>().0, object.0, target.interaction)
                 .map(|_| UseKind::Media);
         }
     }
@@ -413,7 +454,7 @@ pub(crate) fn occupancy(world: &mut World) -> crate::beds::Occupancy {
                 if world
                     .get::<SmartObject>(target.object)
                     .is_some_and(|object| {
-                        media_activity(world.resource::<Content>().0, object.0, target.interaction)
+                        seated_activity(world.resource::<Content>().0, object.0, target.interaction)
                             .is_some()
                     })
                 {

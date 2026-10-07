@@ -142,7 +142,7 @@ impl BedState<'_, '_> {
                         .get(target.object)
                         .ok()
                         .and_then(|object| {
-                            crate::seating::media_activity(
+                            crate::seating::seated_activity(
                                 self.content.0,
                                 object.0,
                                 target.interaction,
@@ -685,7 +685,7 @@ pub fn serve_intents(
                 .get(target.object)
                 .ok()
                 .is_some_and(|object| {
-                    crate::seating::media_activity(content.0, object.0, target.interaction)
+                    crate::seating::seated_activity(content.0, object.0, target.interaction)
                         .is_some()
                 })
             {
@@ -1097,12 +1097,14 @@ pub fn serve_intents(
         );
         let media_requested =
             crate::seating::media_activity(content.0, placed.0, intent.interaction).is_some();
-        let media_plan = if media_requested {
+        let seat_requested =
+            crate::seating::seated_activity(content.0, placed.0, intent.interaction).is_some();
+        let media_plan = if seat_requested {
             let device = furniture
                 .iter()
                 .find(|item| item.entity == intent.object)
-                .expect("known media device");
-            let Some(plan) = crate::media::plan(
+                .expect("known seated device");
+            let plan = crate::media::plan(
                 crate::media::Planning {
                     pack: content.0,
                     grid: &grid,
@@ -1112,15 +1114,16 @@ pub fn serve_intents(
                 },
                 agent,
                 device,
-            ) else {
+            );
+            if plan.is_none() && media_requested {
                 queue.pop();
                 continue;
-            };
-            Some(plan)
+            }
+            plan
         } else {
             None
         };
-        if !media_requested && access.nearest(sleep).is_none() {
+        if media_plan.is_none() && access.nearest(sleep).is_none() {
             queue.pop();
             continue;
         }
@@ -1506,7 +1509,7 @@ pub fn select_action(
                 .get(target.object)
                 .ok()
                 .is_some_and(|object| {
-                    crate::seating::media_activity(content.0, object.0, target.interaction)
+                    crate::seating::seated_activity(content.0, object.0, target.interaction)
                         .is_some()
                 })
             {
@@ -1578,11 +1581,11 @@ pub fn select_action(
             let definition = content.0.object(placed.0);
             let mut viewing = std::collections::HashMap::new();
             for (index, _) in definition.interactions.iter().enumerate() {
-                if crate::seating::media_activity(content.0, placed.0, index as u32).is_some() {
+                if crate::seating::seated_activity(content.0, placed.0, index as u32).is_some() {
                     let device = furniture
                         .iter()
                         .find(|item| item.entity == object)
-                        .expect("known media device");
+                        .expect("known seated device");
                     if let Some(plan) = crate::media::plan(
                         crate::media::Planning {
                             pack: content.0,
@@ -1640,10 +1643,10 @@ pub fn select_action(
                 let reachable: Vec<_> = available
                     .into_iter()
                     .filter_map(|admission| {
-                        (if media_requested {
-                            media_plan.as_ref().map(|plan| plan.access)
-                        } else {
-                            access.for_admission(admission)
+                        (match (media_requested, media_plan.as_ref()) {
+                            (_, Some(plan)) => Some(plan.access),
+                            (true, None) => None,
+                            (false, None) => access.for_admission(admission),
                         })
                         .map(|route| (admission, route))
                     })
