@@ -194,6 +194,12 @@ class BathExportContractTests(unittest.TestCase):
         wrong_gap['complete_actual_grid'][3]['body_point'][2] += .01
         with self.assertRaises(ValueError):
             validate_certificate(wrong_gap, 'back', self.plane)
+        # A body point slid along the wall tangent keeps the gap but is no longer the normal ray pair.
+        slid_body = copy.deepcopy(back)
+        for cell in slid_body['complete_actual_grid']:
+            cell['body_point'][0] += .05
+        with self.assertRaises(ValueError):
+            validate_certificate(slid_body, 'back', self.plane)
         swapped = self.contacts()
         for row in swapped:
             support = row['measurement']['support']

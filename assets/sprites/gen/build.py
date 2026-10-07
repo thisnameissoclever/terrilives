@@ -1436,7 +1436,7 @@ def main():
     tops.update(bathroom_data['tops'])
     bounds.update(bathroom_data['bounds'])
     densities.update(bathroom_data['density'])
-    bath = load_bathroom(Path(ROOT) / 'assets/models/bathroom/actions/export/bath-03/manifest.json')
+    bath = load_bathroom(Path(ROOT) / 'assets/models/bathroom/actions/export/bath-04/manifest.json')
     bath_rows = bathroom_records(bath)
     assert not {row[0] for row in sprites}.intersection(row[0] for row in bath_rows), 'duplicate bath records'
     sprites.extend(bath_rows)

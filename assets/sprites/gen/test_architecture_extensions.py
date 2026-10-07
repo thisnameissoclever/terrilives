@@ -91,7 +91,7 @@ class ArchitectureExtensions(unittest.TestCase):
         self.assertEqual(sum(row[0].startswith('bathroomToilet_') for row in sprites), 48)
 
     def test_loads_the_pinned_bath_extension_without_replacing_history(self):
-        catalog = 'assets/models/bathroom/actions/export/bath-03/manifest.json'
+        catalog = 'assets/models/bathroom/actions/export/bath-04/manifest.json'
         data = json.loads((offline_architecture.ROOT/catalog).read_text())
         canonical = hashlib.sha256(json.dumps(data, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
         config = {'historicalExtensions':[dict(kind='bathroom-actions', catalog=catalog, canonicalSha256=canonical)]}

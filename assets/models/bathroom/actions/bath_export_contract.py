@@ -6,11 +6,14 @@ owners plus sixteen body-ink passes. Support is the measured seat patch on the b
 the back patch against the head-end wall; clearance is every one of the 54 body objects against
 all twelve fixture solids. Matching hashes prove nothing about the evidence inside a receipt, so
 every certificate is re-derived here from its own witnesses and compared with what the receipt
-claims: support patches are recomputed from their witness cells, which must come from the
-complete grid; containment excusals must show even ray parity on all six axes with nothing within
-five millimetres above the hit; every static bone must equal the accepted pose exactly and the
-head may only nod by the loop's declared angle; the appearance must omit exactly the declared
-garment details; and the fixture geometry must be identical on every frame of a facing.
+claims: support patches are recomputed from their witness cells, which must be cells of the
+recorded grid on its lattice and on the basin floor or the accepted wall plane; containment
+excusals must equal the accepted source's reviewed hits with even ray parity on all six axes;
+every static bone must equal the accepted pose exactly and the head may only nod about its side
+axis by the loop's declared angle; the appearance must omit exactly the declared garment details;
+and the fixture geometry must be identical on every frame of a facing. The contract checks the
+recorded measurements for self-consistency and geometric plausibility; it cannot re-measure the
+surfaces, so a fully fabricated but self-consistent grid remains a limit of the receipt chain.
 """
 import itertools
 import json
@@ -190,14 +193,16 @@ def validate_hip_cell(cell, witness):
 
 
 def validate_back_cell(cell, witness, plane):
-    """A wall cell is a normal-directed ray pair in the wall tangent frame; a witness lies on the accepted plane."""
+    """A wall cell is a ray pair along the wall normal in the wall tangent frame; a witness lies on the accepted plane."""
     normal, up, point = wall_frame(plane)
     wall, body = cell.get('wall_point', []), cell.get('body_point', [])
     if len(wall) != 3 or len(body) != 3:
         raise ValueError('Bath wall cell lacks its wall and body points')
     offset = [number(w)-p for w, p in zip(wall, point)]
+    # The body point must sit exactly `gap` along the normal from the wall point, with no tangential drift.
+    residual = [number(b)-number(w)-number(cell['gap'])*n for b, w, n in zip(body, wall, normal)]
     if (abs(number(cell['x'])-number(wall[0])) > FRAME_TOLERANCE or abs(number(cell['y'])-dot(offset, up)) > FRAME_TOLERANCE
-            or abs(number(cell['gap'])-dot([number(b)-number(w) for b, w in zip(body, wall)], normal)) > FRAME_TOLERANCE):
+            or math.sqrt(dot(residual, residual)) > FRAME_TOLERANCE):
         raise ValueError('Bath wall cell is not a normal-directed pair in the wall tangent frame')
     if witness and abs(dot(offset, normal)) > WALL_PLANE_TOLERANCE:
         raise ValueError('Bath wall witness is not on the accepted wall plane')
