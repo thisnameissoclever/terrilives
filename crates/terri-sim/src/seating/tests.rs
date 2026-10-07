@@ -1931,6 +1931,103 @@ fn physical_sofa_admits_three_travelling_sitters_and_refuses_fourth() {
     assert_eq!(sim.save_snapshot_v6(), saved);
 }
 
+/// The autonomy pass must record each seat as it is claimed, so Sims choosing
+/// in one pass take distinct seats and the one left over waits. Only Sit
+/// advertises here and every draw is decisive, so the count measures seat
+/// admission rather than which sofa action scores highest.
+#[test]
+fn autonomous_sitters_take_one_seat_each_and_the_extra_sitter_waits() {
+    let mut sim = Sim::new_with_lot(16, 16);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.choice_temperature = 0.0001;
+    pack.tuning.choice_comfort_temperature = 0.0001;
+    pack.tuning.choice_exploration = 1e-8;
+    pack.tuning.choice_comfort_exploration = 1e-8;
+    let definition = pack.find("long_sofa").unwrap();
+    for action in &mut pack.objects[definition.0 as usize].interactions {
+        if action.id != "sit" {
+            action.advertises.clear();
+        }
+    }
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    let seats = pack.object(definition).seats.len();
+    assert!(seats >= 2, "the long sofa must have several seats to share");
+    let sofa = sim.spawn_object(Position { x: 5., y: 5. }, definition);
+    let people: Vec<_> = (0..=seats)
+        .map(|_| {
+            let person = crate::household::spawn_member(
+                sim.world_mut(),
+                &pack.personalities,
+                &pack.traits,
+                crate::household::Member {
+                    name: "Sitter".into(),
+                    personality: 0,
+                    position: Position { x: 0., y: 0. },
+                    needs: [100.; 7],
+                    hobbies: vec![],
+                    traits: &[],
+                    career: None,
+                    instinct: Some(50),
+                },
+            );
+            sim.world_mut()
+                .get_mut::<terri_core::Needs>(person)
+                .unwrap()
+                .set(terri_core::NeedId::Comfort, 0.);
+            person
+        })
+        .collect();
+    sim.tick();
+    let (seated, refused): (Vec<_>, Vec<_>) = people.into_iter().partition(|person| {
+        sim.world()
+            .get::<Target>(*person)
+            .is_some_and(|target| target.object == sofa)
+    });
+    assert_eq!(
+        seated.len(),
+        seats,
+        "All want the sofa; autonomy must admit one sitter per seat"
+    );
+    let mut claimed: Vec<_> = seated
+        .iter()
+        .map(|person| {
+            let claim = sim
+                .world()
+                .get::<super::PhysicalClaim>(*person)
+                .expect("an admitted sitter holds a physical seat");
+            assert!(!claim.all, "Sit claims one seat, not the whole sofa");
+            claim.seat.clone()
+        })
+        .collect();
+    claimed.sort();
+    claimed.dedup();
+    assert_eq!(
+        claimed.len(),
+        seats,
+        "Each sitter must hold a different seat"
+    );
+    assert_eq!(refused.len(), 1);
+    assert!(
+        sim.world().get::<terri_core::Blocked>(refused[0]).is_some()
+            && sim.world().get::<Target>(refused[0]).is_none(),
+        "The extra sitter must wait rather than act"
+    );
+    let waiting = sim
+        .world()
+        .get::<crate::waiting::WaitingNeeds>(refused[0])
+        .expect("The extra sitter must record what it waits for");
+    assert_eq!(
+        waiting.1, sofa,
+        "The extra sitter must wait for the full sofa"
+    );
+    assert_ne!(
+        waiting.0 & (1 << terri_core::NeedId::Comfort.index()),
+        0,
+        "The extra sitter must wait for the sofa's Comfort, which only Sit offers here"
+    );
+}
+
 #[test]
 fn physical_sit_is_available_on_each_seating_type() {
     let pack = terri_data::pack();
