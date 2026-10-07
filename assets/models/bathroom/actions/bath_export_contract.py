@@ -8,7 +8,8 @@ all twelve fixture solids. Matching hashes prove nothing about the evidence insi
 every certificate is re-derived here from its own witnesses and compared with what the receipt
 claims: support patches are recomputed from their witness cells, which must be cells of the
 recorded grid on its lattice and on the basin floor or the accepted wall plane; containment
-excusals must equal the accepted source's reviewed hits with even ray parity on all six axes;
+excusals must equal the accepted source's reviewed hits with even ray parity on all six axes and,
+when the upward ray meets a surface, more than five millimetres of clear air above the hit;
 every static bone must equal the accepted pose exactly and the head may only nod about its side
 axis by the loop's declared angle; the appearance must omit exactly the declared garment details;
 and the fixture geometry must be identical on every frame of a facing. The contract checks the
