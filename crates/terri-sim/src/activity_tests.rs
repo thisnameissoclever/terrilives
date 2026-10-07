@@ -516,6 +516,8 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
                     visual_action::USE_TOILET
                 } else if object == "bathtub" {
                     visual_action::BATHE
+                } else if matches!(object, "sink" | "kitchen_sink") {
+                    visual_action::WASH_HANDS
                 } else if matches!(object, "television" | "radio") {
                     visual_action::WATCH
                 } else if object == "sofa" {

@@ -341,6 +341,12 @@ fn authored_object_facing_codes(
             terri_data::CompiledVisualFacing::TowardAnchor,
             None,
         ) => Some((visual_action::SLEEP, activity::SLEEPING)),
+        (
+            terri_data::CompiledVisualAction::Wash,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+            None,
+        ) => Some((visual_action::WASH_HANDS, activity::WASHING_HANDS)),
         _ => None,
     }
 }
