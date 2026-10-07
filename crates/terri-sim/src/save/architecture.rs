@@ -466,6 +466,7 @@ pub(super) fn validate_edge_world(
             if !valid_contact(grid, tile, at, footprint)
                 && !dining_contact(world, entity.index, index, tile)
                 && !crate::media::valid_standing_contact(world, entity.index, index, tile)
+                && !crate::media::valid_work_contact(world, entity.index, index, tile)
             {
                 return Err(SaveError::InvalidGrid);
             }

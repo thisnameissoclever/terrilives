@@ -38,6 +38,11 @@ pub(crate) fn benefits(
     seat_rate: f32,
     shared: bool,
 ) -> Vec<(u8, f32)> {
+    let seat_rate = if crate::seating::work_action(act) {
+        0.
+    } else {
+        seat_rate
+    };
     let mut effects: Vec<_> = act
         .advertises
         .iter()
@@ -140,7 +145,10 @@ pub(crate) fn seat_rate(world: &World, person: Entity) -> f32 {
         }
         _ => false,
     };
-    if !valid {
+    let seated_work = crate::dining::entity(world, lease.station)
+        .and_then(|station| world.get::<terri_core::SmartObject>(station))
+        .is_some_and(|o| crate::seating::work_station(world.resource::<Content>().0, o.0));
+    if !valid || seated_work {
         return 0.;
     }
     lease

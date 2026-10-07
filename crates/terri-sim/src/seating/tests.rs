@@ -989,6 +989,193 @@ fn every_fitted_seat_type_can_supply_a_media_place() {
 }
 
 #[test]
+fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
+    // The desk faces +x from (2, 3) and (2, 4); the chair at (3, 3) faces the
+    // desk, so its front tile is the desk itself and the worker must enter
+    // from (4, 3), (3, 2) or (3, 4).
+    let (mut sim, person, device, chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::SouthWest,
+        "desk_chair",
+    );
+    sim.tick();
+    let lease = sim
+        .world()
+        .resource::<terri_core::save::SavedDining>()
+        .diners
+        .iter()
+        .find(|d| d.person == person.index_u32())
+        .cloned()
+        .expect("desk work leases the desk chair");
+    assert_eq!(lease.chair, Some(chair.index_u32()));
+    assert_eq!(lease.station, device.index_u32());
+    assert!(
+        [(4, 3), (3, 2), (3, 4)].contains(&lease.endpoint),
+        "entered from a free side, not through the desk: {:?}",
+        lease.endpoint
+    );
+    for _ in 0..120 {
+        sim.tick();
+        if sim.world().get::<Eating>(person).is_some() {
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.activities[row],
+                crate::render_buffer::activity::CORRESPONDENCE
+            );
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::SIT
+            );
+            assert_eq!(buffer.interaction_targets[row], chair.index_u32());
+            assert_eq!(buffer.facings[row], 2, "seated facing the desk along -x");
+            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+            assert_eq!(
+                crate::need_interactions::seat_rate(sim.world(), person),
+                0.,
+                "seated desk work is presentation only and pays no chair Comfort"
+            );
+            assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
+            return;
+        }
+    }
+    panic!("Worker did not sit within the bounded route");
+}
+
+#[test]
+fn desk_work_scores_no_chair_comfort_when_choosing() {
+    let pack = terri_data::pack();
+    let desk = pack.object(pack.find("desk").unwrap());
+    let work = desk
+        .interactions
+        .iter()
+        .find(|a| a.id == "attend_correspondence")
+        .unwrap();
+    let needs = terri_core::Needs::all_at(0.);
+    let scored = crate::need_interactions::benefits(pack, work, &needs, false, 0.6, false);
+    assert!(
+        !scored.iter().any(
+            |&(need, delta)| need as usize == terri_core::NeedId::Comfort.index() && delta > 0.
+        ),
+        "seated desk work is presentation only: {scored:?}"
+    );
+}
+
+#[test]
+fn desk_work_ignores_a_facing_chair_that_does_not_touch_the_desk() {
+    // A chair three tiles in front of the desk faces it inside the cone but
+    // does not stand against it, so the worker takes the ordinary route.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 6., y: 3. },
+        Facing::SouthEast,
+        Facing::SouthWest,
+        "desk_chair",
+    );
+    for _ in 0..160 {
+        sim.tick();
+        assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
+        if sim.world().get::<Eating>(person).is_some() {
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::NONE
+            );
+            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+            return;
+        }
+    }
+    panic!("Worker did not reach the desk within the bounded route");
+}
+
+#[test]
+fn autonomous_desk_work_without_a_chair_still_stands_at_the_desk() {
+    // The chair faces away, so no seat qualifies; autonomy must still reach
+    // the desk by its ordinary perimeter route rather than skipping it.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::NorthEast,
+        "desk_chair",
+    );
+    sim.world_mut().entity_mut(person).remove::<IntentQueue>();
+    sim.world_mut()
+        .get_mut::<terri_core::Needs>(person)
+        .unwrap()
+        .set(terri_core::NeedId::Fun, 0.);
+    for _ in 0..30 {
+        sim.tick();
+        if sim
+            .world()
+            .get::<Target>(person)
+            .is_some_and(|t| t.object == device)
+        {
+            assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
+            return;
+        }
+    }
+    panic!("Autonomy never chose the chairless desk");
+}
+
+#[test]
+fn desk_work_without_a_facing_chair_stands_at_the_desk_as_before() {
+    // The chair faces away from the desk, so no seat qualifies and the worker
+    // takes the ordinary perimeter route without a lease or a viewing spot.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::NorthEast,
+        "desk_chair",
+    );
+    for _ in 0..120 {
+        sim.tick();
+        assert!(
+            crate::seating::claim(sim.world(), person.index_u32()).is_none(),
+            "standing work holds no seat lease"
+        );
+        if sim.world().get::<Eating>(person).is_some() {
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.activities[row],
+                crate::render_buffer::activity::CORRESPONDENCE
+            );
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::NONE
+            );
+            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+            return;
+        }
+    }
+    panic!("Worker did not reach the desk within the bounded route");
+}
+
+#[test]
 fn autonomous_media_choice_uses_the_same_physical_seat_route() {
     let (mut sim, person, device, _) = fixture();
     sim.world_mut().entity_mut(person).remove::<IntentQueue>();
@@ -1385,6 +1572,35 @@ fn privacy_substitution_routes_directly_to_the_media_seat() {
             .chair,
         Some(chair.index_u32())
     );
+}
+
+#[test]
+fn privacy_substitution_still_offers_a_chairless_desk_standing() {
+    // The chair faces away, so desk work has no seat plan. Substitution must
+    // still route to the desk by its ordinary perimeter, as before seating.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::NorthEast,
+        "desk_chair",
+    );
+    sim.world_mut().entity_mut(person).remove::<IntentQueue>();
+    sim.world_mut()
+        .get_mut::<terri_core::Needs>(person)
+        .unwrap()
+        .set(terri_core::NeedId::Fun, 0.);
+    let safe = sim.world().resource::<terri_core::TileGrid>().clone();
+    assert!(crate::privacy::substitute(
+        sim.world_mut(),
+        person,
+        terri_core::NeedId::Fun.index() as u8,
+        &safe,
+        false
+    ));
+    assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+    assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
 }
 
 #[test]

@@ -201,14 +201,22 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
         let facing = world
             .get::<terri_core::ObjectFacing>(claim.furniture)
             .map_or(definition.base_facing, |f| f.0);
-        if !legal_contact(
-            grid,
-            definition,
-            facing,
-            (at.x.round() as i32, at.y.round() as i32),
-            (!claim.all).then_some(ordinal),
-            endpoint,
-        ) {
+        // A work seat faces its station, so it is entered from a free side
+        // rather than from its declared front approach.
+        let work = !direct && work_station(pack, target_definition);
+        let contact = if work {
+            crate::media::work_contact(world, claim.furniture, claim.target.object, endpoint)
+        } else {
+            legal_contact(
+                grid,
+                definition,
+                facing,
+                (at.x.round() as i32, at.y.round() as i32),
+                (!claim.all).then_some(ordinal),
+                endpoint,
+            )
+        };
+        if !contact {
             return Err(SaveError::InvalidValue);
         }
         if path.is_some() {
@@ -331,6 +339,18 @@ pub(crate) fn migrate(world: &mut World) -> Result<(), SaveError> {
                 legal_contact(grid, definition, facing, origin, Some(i as u16), endpoint)
             })
         };
+        // A desk worker's lease enters its seat from a free side, which is not
+        // a declared approach; recognise it by the work contact instead.
+        if chosen.is_none()
+            && direct.is_none()
+            && world
+                .get::<SmartObject>(target.object)
+                .is_some_and(|o| work_station(pack, o.0))
+            && crate::media::work_contact(world, furniture, target.object, endpoint)
+        {
+            chosen =
+                crate::media::work_seat_ordinal(world, furniture, target.object).map(usize::from);
+        }
         let use_kind = super::claim(world, person.index_u32()).and_then(|lease| kind(world, lease));
         let endpoint_free = |point| {
             use_kind.is_none_or(|kind| {
