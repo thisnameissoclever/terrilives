@@ -20,6 +20,20 @@ pub enum SeatUse {
     All,
 }
 
+impl SeatUse {
+    /// People a seat action admits, derived from the furniture's physical
+    /// seats; `None` for an exclusive action, whose authored `slots` stands.
+    /// Seat actions take no authored count, so content cannot disagree with
+    /// the furniture. The compiler refuses seat counts beyond `u8::MAX`.
+    pub fn capacity(self, seats: usize) -> Option<u8> {
+        match self {
+            Self::Exclusive => None,
+            Self::One => Some(u8::try_from(seats).unwrap_or(u8::MAX)),
+            Self::All => Some(1),
+        }
+    }
+}
+
 /// Defined in `terri-core`, re-exported here so content consumers have
 /// one import path. It lives there because `SmartObject` holds one and
 /// `terri-core` must not depend on the content crate.

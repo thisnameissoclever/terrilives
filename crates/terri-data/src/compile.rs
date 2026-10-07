@@ -356,6 +356,12 @@ pub fn compile(
         let mut seen_interactions = BTreeSet::new();
         let mut interactions = Vec::with_capacity(object.interaction.len());
 
+        if object.seat.len() > usize::from(u8::MAX) {
+            return Err(ContentError::InvalidHierarchy {
+                context: format!("object.{}", object.id),
+                reason: format!("furniture may have at most {} seats", u8::MAX),
+            });
+        }
         for act in &object.interaction {
             if act.media.is_some()
                 && (act.book_reading || act.seat_use != crate::pack::SeatUse::Exclusive)
@@ -369,6 +375,16 @@ pub fn compile(
                 return Err(ContentError::InvalidHierarchy {
                     context: format!("object.{}.action.{}", object.id, act.id),
                     reason: "seat_use one or all requires physical seats".into(),
+                });
+            }
+            if act
+                .seat_use
+                .capacity(object.seat.len())
+                .is_some_and(|capacity| capacity != act.slots)
+            {
+                return Err(ContentError::InvalidHierarchy {
+                    context: format!("object.{}.action.{}", object.id, act.id),
+                    reason: "seat action capacity must match the furniture's seats".into(),
                 });
             }
             if !seen_interactions.insert(act.id.clone()) {
@@ -6283,6 +6299,54 @@ mod tests {
             let pack = compile_objects(full_needs(), objects).unwrap();
             assert!(pack.objects[0].interactions[0].book_reading);
             assert_eq!(pack.objects[0].interactions[0].seat_use, seat_use);
+        }
+    }
+
+    #[test]
+    fn seat_action_capacity_must_match_the_furnitures_seats() {
+        let seat = |id: &str, x: f32| crate::schema::SeatDef {
+            id: id.into(),
+            x,
+            y: 0.0,
+            facing: "SE".into(),
+            approaches: vec![(0, -1)],
+        };
+        for (seat_use, slots, accepted) in [
+            (crate::SeatUse::One, 1, false),
+            (crate::SeatUse::One, 2, true),
+            (crate::SeatUse::One, 3, false),
+            (crate::SeatUse::All, 1, true),
+            (crate::SeatUse::All, 2, false),
+        ] {
+            let mut object = reading_object();
+            object.interaction[0].seat_use = seat_use;
+            object.interaction[0].slots = slots;
+            object.seat = vec![seat("left", -0.25), seat("right", 0.25)];
+            let mut objects = one_object(snack());
+            objects.object = vec![object];
+            assert_eq!(
+                compile_objects(full_needs(), objects).is_ok(),
+                accepted,
+                "{seat_use:?} with {slots} on two seats"
+            );
+        }
+        for (seats, accepted) in [
+            (usize::from(u8::MAX), true),
+            (usize::from(u8::MAX) + 1, false),
+        ] {
+            let mut object = reading_object();
+            object.interaction[0].seat_use = crate::SeatUse::One;
+            object.interaction[0].slots = u8::MAX;
+            object.seat = (0..seats)
+                .map(|n| seat(&format!("s{n}"), n as f32 / 1024.0 - 0.25))
+                .collect();
+            let mut objects = one_object(snack());
+            objects.object = vec![object];
+            assert_eq!(
+                compile_objects(full_needs(), objects).is_ok(),
+                accepted,
+                "{seats} seats"
+            );
         }
     }
 

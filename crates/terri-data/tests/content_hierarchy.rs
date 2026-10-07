@@ -591,7 +591,7 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
 }
 
 #[test]
-fn every_shipped_model_has_classification_and_physical_seats_are_separate_from_action_slots() {
+fn every_shipped_model_has_classification_and_seat_actions_take_capacity_from_seats() {
     let pack = terri_data::pack();
     for object in &pack.objects {
         let metadata = object
@@ -620,10 +620,18 @@ fn every_shipped_model_has_classification_and_physical_seats_are_separate_from_a
         assert_eq!(object.seats.len(), seats, "{id}");
         assert!(object.sleep_places.is_empty());
     }
-    let ottoman = pack.object(pack.find("sofa").unwrap());
-    assert_eq!(
-        ottoman.interactions[0].slots, 2,
-        "physical capacity must not rewrite the published action in this migration"
+    let mut seat_actions = 0;
+    for object in &pack.objects {
+        for action in &object.interactions {
+            if let Some(capacity) = action.seat_use.capacity(object.seats.len()) {
+                assert_eq!(action.slots, capacity, "{}.{}", object.id, action.id);
+                seat_actions += 1;
+            }
+        }
+    }
+    assert!(
+        seat_actions > 0,
+        "the shipped pack has seat actions to check"
     );
 }
 
@@ -836,4 +844,93 @@ fn every_resolved_sitting_or_reclining_action_has_no_passive_fun() {
             }
         }
     }
+}
+
+fn bench(seat_use: &str, slots: &str) -> terri_data::schema::ObjectsFile {
+    toml::from_str(&format!(
+        r#"
+[[category]]
+id = "other"
+label = "Other"
+[[object_type]]
+id = "bench"
+label = "Bench"
+category = "other"
+[object_type.properties]
+seat = {{ set = [{{ id = "left", x = 0.0, y = 0.0, facing = "SE", approaches = [[0, 1]] }}, {{ id = "right", x = 1.0, y = 0.0, facing = "SE", approaches = [[1, 1]] }}] }}
+[[object_type.action]]
+id = "sit"
+[object_type.action.properties]
+seat_use = {{ set = "{seat_use}" }}
+duration_ticks = {{ set = 40.0 }}
+advertises = {{ set = {{ comfort = 20.0 }} }}
+{slots}
+[[model]]
+id = "bench"
+object_type = "bench"
+[model.properties]
+name = {{ set = "Bench" }}
+sprite = {{ set = "bench" }}
+"#
+    ))
+    .expect("bench fixture parses")
+}
+
+#[test]
+fn seat_actions_take_capacity_from_seats_and_refuse_an_authored_count() {
+    for (seat_use, capacity) in [("one", 2), ("all", 1)] {
+        let resolved = terri_data::hierarchy::resolve(bench(seat_use, "")).unwrap();
+        assert_eq!(resolved.object[0].seat.len(), 2);
+        assert_eq!(
+            resolved.object[0].interaction[0].slots, capacity,
+            "{seat_use}"
+        );
+        let refused = terri_data::hierarchy::resolve(bench(seat_use, "slots = { set = 2.0 }"));
+        assert!(
+            matches!(&refused, Err(terri_data::ContentError::InvalidHierarchy { reason, .. }) if reason.contains("seats")),
+            "{seat_use}: {refused:?}"
+        );
+    }
+}
+
+#[test]
+fn a_seat_action_may_remove_a_count_inherited_from_its_template() {
+    let source = r#"
+[[action_template]]
+id = "perch"
+[action_template.properties]
+duration_ticks = { set = 40.0 }
+slots = { set = 1.0 }
+advertises = { set = { comfort = 20.0 } }
+[[category]]
+id = "other"
+label = "Other"
+[[object_type]]
+id = "bench"
+label = "Bench"
+category = "other"
+[object_type.properties]
+seat = { set = [{ id = "left", x = 0.0, y = 0.0, facing = "SE", approaches = [[0, 1]] }, { id = "right", x = 1.0, y = 0.0, facing = "SE", approaches = [[1, 1]] }] }
+[[object_type.action]]
+id = "sit"
+template = "perch"
+[object_type.action.properties]
+seat_use = { set = "one" }
+SLOTS
+[[model]]
+id = "bench"
+object_type = "bench"
+[model.properties]
+name = { set = "Bench" }
+sprite = { set = "bench" }
+"#;
+    let resolve = |slots: &str| {
+        terri_data::hierarchy::resolve(toml::from_str(&source.replace("SLOTS", slots)).unwrap())
+    };
+    assert!(
+        resolve("").is_err(),
+        "an inherited count on a seat action is refused"
+    );
+    let resolved = resolve("slots = { remove = true }").unwrap();
+    assert_eq!(resolved.object[0].interaction[0].slots, 2);
 }
