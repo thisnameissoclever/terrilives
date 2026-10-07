@@ -73,7 +73,7 @@ class ShippedAtlasTests(unittest.TestCase):
         seating_layers = {int(index): layers for index, layers in shipped_table("SEATING_LAYERS").items()}
         self.assertEqual(len(seating_layers), 5 * 4 * 3 * 4)
         bathroom_layers = {int(index): layers for index, layers in shipped_table("BATHROOM_LAYERS").items()}
-        self.assertEqual(len(bathroom_layers), 4 * 3 * 4)
+        self.assertEqual(len(bathroom_layers), 4 * 3 * 4 + 4 * 4)
         visible_layers = {**bed_layers, **seating_layers, **bathroom_layers}
         pair_coverage = {int(index) for index in shipped_table("SPRITE_PAIR_COVERAGE")}
         pairs = {int(index): layers for index, layers in shipped_table("SPRITE_PAIRS").items()}

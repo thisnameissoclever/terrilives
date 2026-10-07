@@ -279,6 +279,12 @@ pub mod visual_action {
     pub const EMPTY_BIN: u32 = 17;
     /// Sitting on the exact target toilet's authored seat socket.
     pub const USE_TOILET: u32 = 18;
+    /// Sitting in the exact target bathtub's authored basin socket.
+    pub const BATHE: u32 = 19;
+    /// Standing hand washing toward the exact target sink's footprint centre.
+    /// Code 20 is reserved for the shower. The web draws this with the
+    /// prop-free prepare clip until a dedicated hand-washing clip ships.
+    pub const WASH_HANDS: u32 = 21;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -297,6 +303,10 @@ pub mod facing {
 mod tests {
     mod toilet_projection_tests {
         include!("render_buffer/toilet_projection_tests.rs");
+    }
+
+    mod bath_projection_tests {
+        include!("render_buffer/bath_projection_tests.rs");
     }
 
     fn neutral_instincts(sim: &mut Sim) {
@@ -2774,7 +2784,7 @@ mod tests {
         let sink = pack.find("sink").expect("shipped sink");
         let wash = shipped_interaction_index(sink, "wash_hands");
         let sink_target = sim.spawn_object(Position { x: 22.0, y: 6.0 }, sink);
-        let generic_user = sim
+        let hand_washer = sim
             .world_mut()
             .spawn((
                 Agent,
@@ -2787,6 +2797,26 @@ mod tests {
                 Target {
                     object: sink_target,
                     interaction: wash,
+                },
+            ))
+            .id();
+
+        let shower = pack.find("shower").expect("shipped shower");
+        let take_shower = shipped_interaction_index(shower, "take_shower");
+        let shower_target = sim.spawn_object(Position { x: 27.0, y: 6.0 }, shower);
+        let generic_user = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 25.0, y: 6.0 },
+                Eating {
+                    object: shower,
+                    interaction: take_shower,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: shower_target,
+                    interaction: take_shower,
                 },
             ))
             .id();
@@ -2817,8 +2847,16 @@ mod tests {
             (visual_action::EAT, facing::POSITIVE_X, activity::EATING)
         );
         assert_eq!(
+            projection_of(sim.render_buffer(), hand_washer),
+            (
+                visual_action::WASH_HANDS,
+                facing::POSITIVE_X,
+                activity::WASHING_HANDS,
+            )
+        );
+        assert_eq!(
             projection_of(sim.render_buffer(), generic_user),
-            (visual_action::NONE, facing::NONE, activity::WASHING_HANDS)
+            (visual_action::NONE, facing::NONE, activity::SHOWERING)
         );
     }
 
@@ -3813,7 +3851,7 @@ mod tests {
                 "sink",
                 "wash_hands",
                 activity::WASHING_HANDS,
-                visual_action::NONE,
+                visual_action::WASH_HANDS,
             ),
             (
                 "bookshelf",
@@ -3825,7 +3863,7 @@ mod tests {
                 "kitchen_sink",
                 "wash_up",
                 activity::WASHING_HANDS,
-                visual_action::NONE,
+                visual_action::WASH_HANDS,
             ),
             (
                 "dining_table",
@@ -3881,7 +3919,7 @@ mod tests {
                 activity::WATCHING_FISH,
                 visual_action::WATCH,
             ),
-            ("bathtub", "soak", activity::BATHING, visual_action::NONE),
+            ("bathtub", "soak", activity::BATHING, visual_action::BATHE),
         ];
         assert_eq!(
             pack.objects

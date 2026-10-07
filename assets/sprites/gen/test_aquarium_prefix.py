@@ -33,8 +33,8 @@ class AquariumPrefixTests(unittest.TestCase):
         base = value.pop('baseSpriteId')
         # Neutral seating appends 300 texture records and 240 scene aliases.
         # Quiet dining adds 36 records; cleaning adds 336 bodies, 32 lids and 80 masks.
-        # The fitted toilet adds 60 texture layers and 48 scene aliases.
-        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32 + 300 + 240 + 36 + 448 + 108)
+        # The fitted toilet adds 60 texture layers and 48 scene aliases; the bath adds 36 layers and 16 aliases.
+        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32 + 300 + 240 + 36 + 448 + 108 + 52)
         for index, row in enumerate(value['sprites']):
             self.assertEqual(row.pop('id'), base + index)
         digest = hashlib.sha256(json.dumps(value, sort_keys=True,

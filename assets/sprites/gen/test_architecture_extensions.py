@@ -90,6 +90,15 @@ class ArchitectureExtensions(unittest.TestCase):
         self.assertEqual(len(sprites), 108)
         self.assertEqual(sum(row[0].startswith('bathroomToilet_') for row in sprites), 48)
 
+    def test_loads_the_pinned_bath_extension_without_replacing_history(self):
+        catalog = 'assets/models/bathroom/actions/export/bath-05/manifest.json'
+        data = json.loads((offline_architecture.ROOT/catalog).read_text())
+        canonical = hashlib.sha256(json.dumps(data, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+        config = {'historicalExtensions':[dict(kind='bathroom-actions', catalog=catalog, canonicalSha256=canonical)]}
+        sprites = offline_architecture.load_historical_extensions(config)
+        self.assertEqual(sum(row[0].startswith('bathroomBath_') for row in sprites), 16)
+        self.assertEqual(len(sprites), 16+36)
+
 
 if __name__ == '__main__':
     unittest.main()
