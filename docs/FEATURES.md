@@ -1348,8 +1348,10 @@ ladder cover the horizontal body correctly. Cooking, dish carrying and washing,
 floor mopping, counter and table wiping, and bin emptying have action clips.
 Cleaning tools follow the hands; the bin lid follows the bag-lifting sequence.
 Using the toilet has a fitted seated loop on the fixture's seat socket in all
-four facings. Double-bed sleeping, showering, bathing and ordinary idling
-remain static poses.
+four facings, and taking a bath has a fitted seated loop in the tub with an
+opaque water surface, registered to the tub's basin socket in all four
+facings. Double-bed sleeping, showering and ordinary idling remain static
+poses.
 Tables use adjacent chairs and fitted sitting poses. Sit needs a matching chair;
 Eat prepared food needs an available prepared portion for the selected Sim.
 Moving a table does not move independently placed chairs. The generic

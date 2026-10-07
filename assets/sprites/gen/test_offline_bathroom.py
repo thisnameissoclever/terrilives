@@ -43,6 +43,37 @@ class BathroomImportTests(unittest.TestCase):
         self.assertEqual(len(tables['layers']), 48)
         self.assertEqual(len(tables['coverage']), 48)
 
+    def bath_fixture(self):
+        api = importlib.import_module('offline_bathroom')
+        layers = {name:Image.new('RGBA', (8, 8)) for name in ('body', 'furniture', 'ink')}
+        layers['body'].putpixel((2, 2), (40, 20, 10, 255))
+        layers['furniture'].putpixel((5, 5), (80, 60, 40, 255))
+        layers['ink'].putpixel((2, 1), (32, 32, 32, 255))
+        masks = {role:image.getchannel('A') for role, image in layers.items()}
+        masks['bodyInk'] = masks['ink'].copy()
+        scenes = [dict(facing=f, variant='green', frame=i, layers={r:r for r in layers}, coverage={r:r for r in masks})
+                  for f, i in itertools.product(('SE', 'NW', 'SW', 'NE'), range(4))]
+        obj = dict(kind='bathtub', content='bathtub', canvas=[4, 4], anchor=[2, 4], scenes=scenes)
+        export = api.BathroomExport(dict(objects=[obj], halfCycleTicks=8, action=19, palette_independent=True), layers, masks, 'bathtub')
+        empties = [('offlineBathtub'+suffix, Image.new('RGBA', (1, 1)), 1, 1) for suffix in ('', 'NW', 'SW', 'NE')]
+        return api, export, empties
+
+    def test_bathing_scenes_serve_every_shirt_variant_from_one_appearance(self):
+        api, export, empties = self.bath_fixture()
+        records = api.records(export)
+        self.assertEqual(len(records), 3+16)
+        self.assertEqual(sum(row[0].startswith('bathroomBath_') for row in records), 16)
+        tables = api.tables(export, empties+records, anchors={index:[2, 4] for index in range(4)})
+        self.assertEqual(set(tables['profiles']), {0, 1, 2, 3})
+        for profile in tables['profiles'].values():
+            self.assertEqual(profile['action'], 19)
+            self.assertEqual(profile['frames']['green'], profile['frames']['blue'])
+            self.assertEqual(profile['frames']['green'], profile['frames']['red'])
+            self.assertEqual(len(profile['frames']['green']), 4)
+        self.assertEqual(len(tables['layers']), 16)
+        with self.assertRaises(ValueError):
+            api.tables(export, empties+records, anchors={0:[2, 4], 1:[2, 4], 2:[2, 4], 3:[2, 25]})
+
     def test_occupied_scene_must_register_on_its_empty_fixture_anchor(self):
         api, export = self.fixture()
         empties = [('offlineToilet'+suffix, Image.new('RGBA', (1, 1)), 1, 1)
