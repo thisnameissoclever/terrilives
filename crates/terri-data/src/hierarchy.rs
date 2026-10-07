@@ -503,7 +503,7 @@ impl ActionState {
             (Some(_), Some(_)) => {
                 return Err(invalid(
                     &context,
-                    "seat actions take capacity from the furniture's seats;                      remove 'slots' here or in the template it inherits",
+                    "seat actions take capacity from the furniture's seats; remove 'slots' here or in its template",
                 ))
             }
             (Some(capacity), None) => capacity,
