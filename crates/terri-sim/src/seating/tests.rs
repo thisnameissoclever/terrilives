@@ -1051,6 +1051,25 @@ fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
 }
 
 #[test]
+fn desk_work_scores_no_chair_comfort_when_choosing() {
+    let pack = terri_data::pack();
+    let desk = pack.object(pack.find("desk").unwrap());
+    let work = desk
+        .interactions
+        .iter()
+        .find(|a| a.id == "attend_correspondence")
+        .unwrap();
+    let needs = terri_core::Needs::all_at(0.);
+    let scored = crate::need_interactions::benefits(pack, work, &needs, false, 0.6, false);
+    assert!(
+        !scored.iter().any(
+            |&(need, delta)| need as usize == terri_core::NeedId::Comfort.index() && delta > 0.
+        ),
+        "seated desk work is presentation only: {scored:?}"
+    );
+}
+
+#[test]
 fn desk_work_ignores_a_facing_chair_that_does_not_touch_the_desk() {
     // A chair three tiles in front of the desk faces it inside the cone but
     // does not stand against it, so the worker takes the ordinary route.
