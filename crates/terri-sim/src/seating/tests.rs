@@ -1038,6 +1038,11 @@ fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
             assert_eq!(buffer.interaction_targets[row], chair.index_u32());
             assert_eq!(buffer.facings[row], 2, "seated facing the desk along -x");
             assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+            assert_eq!(
+                crate::need_interactions::seat_rate(sim.world(), person),
+                0.,
+                "seated desk work is presentation only and pays no chair Comfort"
+            );
             assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
             return;
         }

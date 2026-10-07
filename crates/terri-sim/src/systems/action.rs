@@ -142,7 +142,7 @@ impl BedState<'_, '_> {
                         .get(target.object)
                         .ok()
                         .and_then(|object| {
-                            crate::seating::media_activity(
+                            crate::seating::seated_activity(
                                 self.content.0,
                                 object.0,
                                 target.interaction,
@@ -685,7 +685,7 @@ pub fn serve_intents(
                 .get(target.object)
                 .ok()
                 .is_some_and(|object| {
-                    crate::seating::media_activity(content.0, object.0, target.interaction)
+                    crate::seating::seated_activity(content.0, object.0, target.interaction)
                         .is_some()
                 })
             {
@@ -1509,7 +1509,7 @@ pub fn select_action(
                 .get(target.object)
                 .ok()
                 .is_some_and(|object| {
-                    crate::seating::media_activity(content.0, object.0, target.interaction)
+                    crate::seating::seated_activity(content.0, object.0, target.interaction)
                         .is_some()
                 })
             {

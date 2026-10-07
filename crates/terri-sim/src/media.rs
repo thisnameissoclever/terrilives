@@ -249,6 +249,8 @@ pub(crate) fn valid_work_contact(
     let Some(mut furniture) = world.try_query::<(Entity, &SmartObject)>() else {
         return false;
     };
+    // Leases are not yet restored when older saves reach this check, so a
+    // worker is recognised by the seat geometry and the desk use alone.
     furniture.iter(world).any(|(seat, _)| {
         seat != device
             && work_contact(world, seat, device, endpoint)
@@ -280,7 +282,9 @@ pub(crate) fn work_seat_ordinal(world: &World, chair: Entity, station: Entity) -
                 .seat_at(ordinal, seat.position.x, seat.position.y, seat.facing)
                 .map(|socket| media_socket(pack, seat.definition, socket, origin))
                 .is_some_and(|socket| {
-                    cone((socket.x, socket.y), direction(socket.facing), origin)
+                    let point = (socket.x, socket.y);
+                    cone(origin, device.facing.rotate_axis(1, 0), point)
+                        && cone(point, direction(socket.facing), origin)
                         && work_seat_touches_station(pack, &socket, &device)
                 })
         })

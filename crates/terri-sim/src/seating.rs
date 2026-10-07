@@ -234,10 +234,14 @@ pub(crate) fn work_kind(
     definition: &terri_data::CompiledObject,
     action: &terri_data::CompiledInteraction,
 ) -> Option<u32> {
-    match (definition.id.as_str(), action.id.as_str()) {
-        ("desk", "attend_correspondence") => Some(crate::render_buffer::activity::CORRESPONDENCE),
-        _ => None,
-    }
+    (definition.id == "desk" && work_action(action))
+        .then_some(crate::render_buffer::activity::CORRESPONDENCE)
+}
+
+/// Seated work is presentation only: the chair's Comfort is never paid or
+/// advertised for it, unlike seated viewing.
+pub(crate) fn work_action(action: &terri_data::CompiledInteraction) -> bool {
+    action.id == "attend_correspondence"
 }
 
 pub(crate) fn work_station(
@@ -450,7 +454,7 @@ pub(crate) fn occupancy(world: &mut World) -> crate::beds::Occupancy {
                 if world
                     .get::<SmartObject>(target.object)
                     .is_some_and(|object| {
-                        media_activity(world.resource::<Content>().0, object.0, target.interaction)
+                        seated_activity(world.resource::<Content>().0, object.0, target.interaction)
                             .is_some()
                     })
                 {
