@@ -1,0 +1,24 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.15s
+     Running tests\content_hierarchy.rs (target\debug\deps\content_hierarchy-602ea9a1e3100e4e.exe)
+
+running 1 test
+test shipped_migration_scopes_retirement_balance_and_seating_changes ... FAILED
+
+failures:
+
+---- shipped_migration_scopes_retirement_balance_and_seating_changes stdout ----
+
+thread 'shipped_migration_scopes_retirement_balance_and_seating_changes' (68772) panicked at crates\terri-data\tests\content_hierarchy.rs:554:9:
+assertion `left == right` failed: unreviewed gameplay drift on dining_table
+  left: CompiledObject { id: "dining_table", name: "Visiting Hours", sprite: 1254, interactions: [CompiledInteraction { id: "sit_properly", advertises: [(6, 37.0)], duration_ticks: 62, slots: 2, label: "Sit", tags: [], satisfaction: 0.0, visual: None, sound_action: None, shared_activity: None, activity: Some(Sitting), completion_sound: None, book_reading: false, seat_use: Exclusive, media: None, recipe: None }], footprint: Footprint { width: 2, depth: 1 }, roles: [4, 5], action_sockets: [], foreground_sprite: None, facing_sprites: FacingSprites([Some(1254), Some(1256), Some(1255), Some(1257)]), facing_foreground_sprites: FacingSprites([None, None, None, None]), base_facing: SouthEast, price: Some(120), presentation: None, sleep_places: [], metadata: None, seats: [], shelf_capacity: 0, shelf_access: [], cooking_front: None, seat_comfort_per_tick: 0.0 }
+ right: CompiledObject { id: "dining_table", name: "Visiting Hours", sprite: 1254, interactions: [CompiledInteraction { id: "sit_properly", advertises: [(6, 37.0)], duration_ticks: 62, slots: 2, label: "Sit", tags: [], satisfaction: 0.0, visual: None, sound_action: None, shared_activity: None, activity: Some(Sitting), completion_sound: None, book_reading: false, seat_use: Exclusive, media: None, recipe: None }], footprint: Footprint { width: 2, depth: 1 }, roles: [4, 5], action_sockets: [], foreground_sprite: None, facing_sprites: FacingSprites([Some(1254), Some(1256), Some(1255), Some(1257)]), facing_foreground_sprites: FacingSprites([None, None, None, None]), base_facing: SouthEast, price: Some(120), presentation: Some(ObjectPresentation { object_type: "Dining table", description: "A table for meals and whatever everyone promises to put away." }), sleep_places: [], metadata: None, seats: [], shelf_capacity: 0, shelf_access: [], cooking_front: None, seat_comfort_per_tick: 0.0 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shipped_migration_scopes_retirement_balance_and_seating_changes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.09s
+
+error: test failed, to rerun pass `-p terri-data --test content_hierarchy`

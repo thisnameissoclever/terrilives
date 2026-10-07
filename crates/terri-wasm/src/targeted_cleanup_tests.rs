@@ -66,16 +66,14 @@ fn chore_boundary_rejects_invalid_numbers_without_mutating_saved_state() {
 
 #[test]
 fn chores_optional_tail_rejects_each_interior_cut_transactionally() {
+    let pack = Content::latest_pre_books().0;
+    let mut source = Sim::new_household_with_content(Content(pack), pack.tuning.rng_seed);
+    source.tick();
+    let snapshot = source.save_snapshot_v5();
+    let full = super::save_v3_tests::v5_bytes(&snapshot);
     let mut handle = SimHandle::from_lot();
-    handle.tick();
-    let full = handle.save_bytes();
-    let tail = postcard::to_allocvec(&handle.sim.save_snapshot_v5().chores)
-        .unwrap()
-        .len();
-    let end = full.len()
-        - postcard::to_allocvec(&handle.sim.save_snapshot_v5().grime)
-            .unwrap()
-            .len();
+    let tail = postcard::to_allocvec(&snapshot.chores).unwrap().len();
+    let end = full.len() - postcard::to_allocvec(&snapshot.grime).unwrap().len();
     let prefix = end - tail;
     for end in prefix + 1..end {
         let before = handle.save_bytes();
@@ -178,16 +176,18 @@ fn scoped_cleanup_optional_tail_rejects_every_interior_cut_transactionally() {
 
 #[test]
 fn grime_optional_tail_rejects_every_interior_cut_transactionally() {
+    let pack = Content::latest_pre_books().0;
+    let mut source = Sim::new_household_with_content(Content(pack), pack.tuning.rng_seed);
+    source.tick();
+    let snapshot = source.save_snapshot_v5();
+    let full = super::save_v3_tests::v5_bytes(&snapshot);
     let mut handle = SimHandle::from_lot();
-    handle.tick();
-    let full = handle.save_bytes();
-    let size = postcard::to_allocvec(&handle.sim.save_snapshot_v5().grime)
-        .unwrap()
-        .len();
+    let size = postcard::to_allocvec(&snapshot.grime).unwrap().len();
     let prefix = full.len() - size;
+    let before = handle.save_bytes();
     for cut in prefix + 1..full.len() {
         assert!(!handle.load_bytes(&full[..cut]), "grime cut {cut}");
-        assert_eq!(handle.save_bytes(), full);
+        assert_eq!(handle.save_bytes(), before);
     }
     assert!(handle.load_bytes(&full[..prefix]));
 }

@@ -73,6 +73,40 @@ it('routes actual canvas events to editing while preserving pan and suppressing 
   vi.useRealTimers();
 });
 
+it.each(['drag without click', 'drag with click', 'pinch', 'long press'])('limits click suppression to its gesture: %s', kind => {
+  vi.useFakeTimers();
+  try {
+    const listeners = new Map<string, (event: any) => void>();
+    const canvas = { width: 1280, height: 720, focus: vi.fn(), setPointerCapture() {},
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 1280, height: 720 }),
+      addEventListener: (name: string, listener: (event: any) => void) => listeners.set(name, listener),
+      ownerDocument: { addEventListener: () => {} } };
+    const refuse = vi.fn(() => false);
+    const target = { ...source([]), selectedIndex: () => null, select: refuse, useObject: refuse,
+      useObjectFirst: refuse, cancelIntents: refuse, talkTo: refuse, talkToFirst: refuse,
+      entityName: () => '', interactionLabels: () => [], socialLabels: () => [] };
+    const menu = { close: vi.fn(), open: vi.fn(), handleKey: vi.fn(() => false), pointerDown: vi.fn() };
+    const click = vi.fn(), panBy = vi.fn(), zoomAt = vi.fn();
+    let editing = kind !== 'long press';
+    attachPointerInput(canvas as unknown as HTMLCanvasElement, target, menu,
+      {} as Node, { originX: 100, originY: 100, scale: 1 }, { panBy, zoomAt },
+      undefined, undefined, undefined, undefined, undefined, { active: () => editing, click });
+    const event = { clientX: 196, clientY: 226, ctrlKey: false, metaKey: false, preventDefault: vi.fn(),
+      pointerId: 1, pointerType: 'touch', button: 0 };
+    const emit = (name: string, overrides = {}) => listeners.get(name)!({ ...event, ...overrides });
+    emit('pointerdown');
+    if (kind === 'pinch') { emit('pointerdown', { pointerId: 2, clientX: 260 }); emit('pointermove', { pointerId: 2, clientX: 290 }); expect(zoomAt).toHaveBeenCalled(); emit('pointerup', { pointerId: 2 }); }
+    else if (kind === 'long press') { vi.advanceTimersByTime(1000); expect(canvas.focus).toHaveBeenCalled(); editing = true; }
+    else { emit('pointermove', { clientX: 220 }); expect(panBy).toHaveBeenCalled(); }
+    emit('pointerup');
+    if (kind !== 'drag without click') { emit('click'); expect(click).not.toHaveBeenCalled(); }
+    // A fresh finger-down distinguishes a new tap even when the browser
+    // omitted the previous gesture's compatibility click entirely.
+    emit('pointerdown'); emit('pointerup'); emit('click');
+    expect(click).toHaveBeenCalledTimes(1);
+  } finally { vi.useRealTimers(); }
+});
+
 // Copilot's review of PR 95: the Walls tool picks the nearest line from the
 // unrounded point under the pointer, so a click must hand the build editor that
 // point, not the tile it rounds to. The expected point comes from the forward
@@ -1575,7 +1609,7 @@ describe('resolveRightClick', () => {
   });
 
   it('carries the clicked object description beside its unchanged action rows', () => {
-    const details = { modelName: 'Staying In', description: 'A chair for sitting.' };
+    const details = { modelName: 'Lounge', description: 'A chair for sitting.' };
     const sink = { ...target(6), objectDetails: (entity: number) => entity === 9 ? details : undefined };
     const described = resolveRightClick(sink, bodyOf([7, 3]), 0, 0);
     expect(described?.details).toEqual(details);

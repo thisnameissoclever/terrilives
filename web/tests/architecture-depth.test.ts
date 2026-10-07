@@ -89,8 +89,9 @@ describe('combined shader interstage contract', () => {
   }
   function check(source: string): void {
     const output = fields(source);
-    expect(output).toHaveLength(15);
+    expect(output).toHaveLength(16);
     expect(output.some(field=>field.location===14 && field.name==='grimeOpacity')).toBe(true);
+    expect(output.some(field=>field.location===15 && field.name==='sceneExtra')).toBe(true);
     expect(new Set(output.map(field => field.location)).size).toBe(output.length);
     // The portable pipeline has sixteen interstage locations and sixty scalar components.
     expect(output.every(field => field.location >= 0 && field.location < 16)).toBe(true);

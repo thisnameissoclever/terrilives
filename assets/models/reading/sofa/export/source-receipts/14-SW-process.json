@@ -1,0 +1,36 @@
+{
+  "writer_pid": 68844,
+  "memory_samples": [
+    {
+      "elapsed_seconds": 0.3435053,
+      "free_gib": 19.884197235107422
+    },
+    {
+      "elapsed_seconds": 10.32882,
+      "free_gib": 18.63628387451172
+    },
+    {
+      "elapsed_seconds": 20.7526715,
+      "free_gib": 18.501903533935547
+    },
+    {
+      "elapsed_seconds": 30.4098855,
+      "free_gib": 18.514324188232422
+    },
+    {
+      "elapsed_seconds": 40.6813688,
+      "free_gib": 18.580108642578125
+    },
+    {
+      "elapsed_seconds": 50.6206589,
+      "free_gib": 18.521137237548828
+    }
+  ],
+  "launcher_pid": 45968,
+  "exit_code": 0,
+  "stop_reason": null,
+  "elapsed_seconds": 52.8968274,
+  "inputs_unchanged": true,
+  "actual_handle_retained": true,
+  "launch_free_gib": 20.000965118408203
+}

@@ -317,9 +317,10 @@ fn shared_contact_radius_uses_both_actual_positions() {
 
 #[test]
 fn shared_activity_reload_rebuilds_context_before_first_payment() {
-    let (mut sim, first, _) = shared_fixture("bookshelf", "reading_chair");
+    // Exercise is an ordinary action; reading requires a physical owned copy.
+    let (mut sim, first, _) = shared_fixture("moving_box", "moving_box");
     let mut restored = crate::Sim::new_from_shipped_lot();
-    restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
     let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);
     for _ in 0..4 {
         sim.tick();

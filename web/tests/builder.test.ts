@@ -1,3 +1,4 @@
+import { furnitureLabel } from '../src/ui/furniture-label.js';
 import { beforeAll, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
@@ -134,7 +135,7 @@ it('selects inert scenery by live identity and cancels without writing simulatio
   builder.enter();
   expect(builder.objects.some(object => object.id === 15)).toBe(true);
   builder.select(15);
-  expect(builder.name).toBe(source.objectName(15));
+  expect(builder.name).toBe(furnitureLabel(source, 15));
   builder.moveTo(7, 0);
   expect(builder.preview?.valid).toBe(true);
   expect(source.saveBytes()).toEqual(before);
@@ -442,7 +443,7 @@ it('recolours the chosen object and keeps it chosen', () => {
   expect(builder.recolour(3)).toBe(true);
   source.flushCommands(); builder.afterCommands();
   expect([builder.selected, builder.pending, builder.colourway]).toEqual([15, false, 3]);
-  expect(builder.status).toBe(`${source.objectName(15)} recoloured.`);
+  expect(builder.status).toBe(`${furnitureLabel(source, 15)} recoloured.`);
   builder.setBlocked(true);
   expect(builder.recolour(1)).toBe(false);
   builder.setBlocked(false);

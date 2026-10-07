@@ -30,41 +30,39 @@ Use conversational, observant prose with dry sardonic wit, a little cynicism, an
 
 If a joke makes the reader pause to work out what something is, what happens next, or what a number means, move it into optional flavor text or remove it. A reader should never need the joke explained to operate the game.
 
-## Object identity: type, name, description
+## Product identity and purchase decisions
 
-Author three distinct pieces of text for each object model. This is the required content direction for future copy work, not a claim that the current data format or interface already has these fields.
+Object descriptions are product copy. Tell the player about this particular model's construction, character, relative quality, and useful distinctions. They appear in both the object menu and the store. A name or description that could be pasted onto every competing model is not doing enough work.
 
 | Element | Purpose | Rule |
 | --- | --- | --- |
-| Type | Tell the player what the object is | Use an ordinary, recognizable noun such as **Washing machine**. Make it the primary identification wherever the player selects, buys, or acts on the object. |
-| Name | Identify the particular model | A secondary model or product name may be witty, silly, or cynical. Keep it readable alongside the type. Never make the player decode it to recognize the object. |
-| Description / flavor text | Explain the object and give it personality | Supply useful context where needed, then allow a short joke or observation. Preserve true capabilities and limits. Do not invent mechanics to support the joke. |
+| Category | Broad family and authored defaults | Usually hidden. Seating can contain Armchair, Sofa, Dining chair, Office chair, and Ottoman. Other supplies no accidental actions. |
+| Type | Familiar physical kind | Primary visible identification. Kitchen sink and Bunk bed are types. Reading chair is a specialization of an Armchair model. |
+| Model | Specific purchasable product | Secondary name, with its own appearance, price, actions, benefits, and trade-offs. Basic and Standard can convey quality; an isolated verb such as Soak does not identify a product well. |
+| Description | Product character and reasons to choose it | Give specific, meaningful distinctions. Allow a restrained joke or observation when it belongs to the product. Do not force a punchline or substitute a generic action summary. |
+| Room associations | Store organization | A model can belong to several rooms. Office is a room association. Associations never restrict placement or grant actions. |
 
-**Washing machine** is the type. **Perpetual Cycle** is a possible model name supplied by the owner, not a substitute for the type or final approved copy. Different models can share a type; their model names distinguish them.
+Bunk bed remains a type because stacked sleeping places have distinct physical layout and access. It can have many models and share sleeping behavior with ordinary beds. Type names describe what the object physically is; a model identifies the product; a specialization explains what it does particularly well.
 
-Use ordinary word order. A model name should read like a plausible product name, even an absurd one. Category-first or inverted naming must not force the player to reconstruct a familiar household noun.
+More expensive need not mean better at everything. A higher price needs an advantage, which can involve comfort, capacity, speed, convenience, or a clearly identified cosmetic premium. Preserve real trade-offs. Never infer every statistic from one quality rating.
 
-Keep facts that affect a decision visible where the decision is made. Price, requirements, capacity, effects, and limitations belong in clear text or labeled values when the game actually implements them. Optional flavor text must not be the only place a player can discover a cost or consequence. A joke about lost socks must not imply an implemented sock-loss mechanic.
+Descriptions must not list temporary technical limitations, say that functionality is not implemented yet, or act as a development tracker. A description such as "The upper bunk is not usable yet" belongs in development documentation. Keep actual usable capacity, requirements, costs, and other material buying facts in plain functional details beside the flavor text. Neither prose nor numerical details may promise an unimplemented bonus.
 
-### Presentation direction
+The owner's examples Basic, Standard, Dingy, Soakster 9,001, and Lilu Dallas illustrate readable quality cues and optional silliness. They are not automatic approvals of final copy. The proposed Lilu Dallas shower illustrates a premium model with inherited and unique actions, not an existing product claim.
 
-In an object's right-click menu, make the **type** visually dominant. The smaller, subtler **model name** can sit above it. Subtler means secondary emphasis, not text too faint or small to read. A small arrow or disclosure indicator to the right of the name can reveal the description on hover. These are the owner's proposed presentation details; this skill records them without implementing the interface.
+### Presentation
 
-The description must also be reachable by keyboard focus or activation and by touch. Give the disclosure a clear accessible label; an arrow alone cannot explain its purpose to every player. Keep the type available in accessible identification as well as visually. Use the same distinction in the shop and future inspection surfaces. If space is limited, retain the type before the model name; omit optional flavor before obscuring function.
+Show the type prominently and the model name secondarily. Click or tap the identity control, or activate it with Enter or Space, to reveal the description. Hover and focus alone do not reveal it. Keep keyboard focus visible and the control's accessible label descriptive. Actions below the identity block use literal verbs.
 
-Action rows beneath the identity block use literal verbs. The name of an object and the action performed on it are separate concepts. Neither needs to carry the other's joke.
+Use stable model IDs for program behavior. A shared type label cannot identify a unique model. Category inheritance, store filters, and room associations are different concerns; a change to store organization must not silently change gameplay.
 
-### Draft examples
+### Drafting model copy
 
-These are newly written tone demonstrations, not approved replacements or claims about implemented gameplay. Verify actual capabilities before adapting any example for use.
-
-| Type | Possible model name | Possible description / flavor text |
-| --- | --- | --- |
-| Washing machine | Perpetual Cycle | Washes clothes. The laundry will return; it has very few other plans. |
-| Armchair | Staying In | An armchair for sitting and reading. Your evening plans fit comfortably between the armrests. |
-| Dining table | Visiting Hours | A table for meals and company. Guests may interpret the chairs as encouragement. |
-
-The functional sentence may be omitted when it only repeats an obvious type and adds no useful information. Keep it when a distinction matters. Usually one or two sentences are enough; do not force every description into the same setup-and-punchline pattern.
+1. Inspect the model's art and resolved gameplay values before writing.
+2. State its intended quality, strongest reason to buy it, and meaningful trade-off in the review table.
+3. Draft a model name and a short product description that fit those facts. Avoid a mandatory sentence pattern or joke quota.
+4. Compare the draft with other models of the same type. Remove vague claims that fail to distinguish the product.
+5. Show type, model, description, and functional buying details together for the owner's review before publication.
 
 ## Match the surface
 
@@ -94,7 +92,7 @@ Fictional advertising may contain recognizable bluster when that is the specific
 
 ## Drafting and review
 
-Before writing, identify the surface, the reader's immediate task, and the facts they need. Write that meaning plainly first. Add humor only where it survives the clarity check. For object copy, supply the type, model name, and description together so the hierarchy can be reviewed.
+Before writing, identify the surface and the reader's immediate task. For product copy, review the art, quality, trade-offs, and resolved gameplay values together. Supply type, model name, description, and buying details for review. Humor is optional; product identity is not.
 
 Before delivering:
 
@@ -106,7 +104,7 @@ Before delivering:
 6. Have prohibited dashes, filler, canned phrasing, repeated punchline structures, and unsupported claims been removed?
 7. Is example or proposed copy clearly distinguished from approved copy and shipped behavior?
 
-For rewrites, preserve unaffected facts and constraints. Do not use this skill as permission for unrelated copy changes, schema migrations, interface implementation, or publication. Drafting the skill establishes writing direction; the broader voice pass and individual game replacements still follow the owner's review boundary in [the string inventory](../../../docs/player-visible-strings.md) and lesson L58 in [lessons learned](../../../docs/lessons-learned.md).
+For rewrites, preserve unaffected facts and constraints. Do not use this skill as permission for unrelated copy changes, schema migrations, interface implementation, or publication. The owner reviews proposed model names and descriptions before publication. Approval of this guidance does not approve later replacement copy. See [the string inventory](../../../docs/player-visible-strings.md) and lesson L58 in [lessons learned](../../../docs/lessons-learned.md).
 
 ## Project integration
 

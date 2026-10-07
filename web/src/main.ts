@@ -26,6 +26,10 @@ import { FloorToolControls } from './ui/floor-tool-controls.js';
 import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
+import { BookTool } from './ui/book-tool.js';
+import { BookToolControls } from './ui/book-tool-controls.js';
+import { BookResults, bookRefusal } from './books/results.js';
+import { showLegacyBookNotice } from './ui/book-notice.js';
 import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
 import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
@@ -336,7 +340,9 @@ async function main(): Promise<void> {
     saveStatus,
     (error) => console.error('save storage failed:', error),
   );
-  await persistence.restoreAtStartup();
+  const startupRestore = await persistence.restoreAtStartup();
+  if (startupRestore === 'loaded') showLegacyBookNotice(document, sim);
+  const bookResults = new BookResults(sim);
   let lotWidth = handle.lot_width();
   let lotHeight = handle.lot_height();
   // Checked rather than assumed. An empty lot is not a crash: it renders
@@ -979,6 +985,10 @@ async function main(): Promise<void> {
           cameraDirty = true;
           menu.close();
           keyboardTargets.clear();
+          bookResults.resetAfterLoad();
+          bookControls?.resetAfterLoad();
+          bookTool.resetAfterLoad();
+          showLegacyBookNotice(document, sim);
           builder.resetAfterLoad();
           // [ES-form]: a draft names a person of the replaced world, so
           // close it before the form returns to create mode.
@@ -1349,7 +1359,16 @@ async function main(): Promise<void> {
   // rule the canvas click follows.
   const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action, additive) => {
     if (builder.active) return;
-    const accepted = dispatchMenuAction(
+    const selected = sim.selectedIndex();
+    const accepted = action.kind === 'read'
+      ? selected !== null && bookResults.submit(
+        () => sim.readBook(selected, action.object, action.action, action.title, !(queueMode.isActive() || additive)),
+        result => {
+          commandStatus.textContent = result.refusal ? bookRefusal(result.refusal) : 'Selected title added to the order queue.';
+          commandStatus.setAttribute('data-kind', result.refusal ? 'error' : 'info');
+          actionQueue.invalidate(); bookTool.invalidate();
+        })
+      : dispatchMenuAction(
       sim,
       action,
       queueMode.isActive() || additive ? 'back' : 'front',
@@ -1407,6 +1426,10 @@ async function main(): Promise<void> {
       toolSwitch?.render();
       placementActions?.invalidate();
     },
+  });
+  let bookControls: BookToolControls | undefined;
+  const bookTool = new BookTool(sim, bookResults, () => {
+    bookControls?.render(); toolSwitch?.render(); placementActions?.invalidate();
   });
   // [RT-shell]. A whole room in one edit, beside the one-line Walls tool.
   let roomControls: RoomToolControls | undefined;
@@ -1473,7 +1496,7 @@ async function main(): Promise<void> {
     syncFloorScene();
   };
   syncFloorResources();
-  const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
+  const buildTools = [wallTool, roomTool, buyTool, bookTool, floorTool] as const;
   // [PA-show]: Context actions surround the active selection. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
   // window.
@@ -1521,6 +1544,7 @@ async function main(): Promise<void> {
       wallTool.exit();
       roomTool.exit();
       buyTool.exit();
+      bookTool.exit();
       floorTool.exit();
       compactHud.endEditing();
       syncBuildOptionsHost();
@@ -1538,7 +1562,7 @@ async function main(): Promise<void> {
     focused?.focus();
   }
   const placementButtons = new BuildContextActions(
-    { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
+    { furniture: builder, books: bookTool, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
       suspended: () => optionsMenu.isOpen(),
       focusCatalogue: () => document.querySelector<HTMLSelectElement>('#buy-object')?.focus() },
     createContextSurface(document, placementRoot, stage,
@@ -1572,6 +1596,7 @@ async function main(): Promise<void> {
   windowControls.setCompact(compactBuildQuery.matches);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames());
   buyControls.setCompact(compactBuildQuery.matches);
+  bookControls = new BookToolControls(document, bookTool);
   roomControls = new RoomToolControls(document, roomTool);
   roomControls.setCompact(compactBuildQuery.matches);
   floorControls = new FloorToolControls(document, floorTool, (canvas, covering) =>
@@ -1597,6 +1622,7 @@ async function main(): Promise<void> {
     { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
     { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
     { tool: buyTool, button: 'build-tool-buy', panel: 'buy-tool' },
+    { tool: bookTool, button: 'build-tool-books', panel: 'book-tool' },
     { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
   ], {
     leaveFurniture() {
@@ -1737,6 +1763,8 @@ async function main(): Promise<void> {
     {
       active: () => builder.active,
       click(pick, tile, world) {
+        if (pick?.bookCopy !== undefined) { openBookCopy(pick.bookCopy); return; }
+        if (bookTool.active) return;
         if (wallTool.active) {
           if (world) wallTool.choosePoint(world[0], world[1]);
           return;
@@ -1757,7 +1785,16 @@ async function main(): Promise<void> {
         else if (tile) builder.moveTo(tile[0], tile[1]);
       },
     },
+    openBookCopy,
   );
+  function openBookCopy(copy: number): void {
+    builder.enter();
+    if (!toolSwitch?.select('build-tool-books')) return;
+    builderControls?.render();
+    toolSwitch.render();
+    bookControls?.focusCopy(copy);
+    cameraDirty = true;
+  }
   document.addEventListener('keydown', (event) => {
     if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
     const target = event.target;
@@ -1774,6 +1811,7 @@ async function main(): Promise<void> {
    * covers simulation, bridge reads, instance packing and draw submission -
    * everything inside the 16.6 ms budget and nothing outside it.
    */
+  let lastBookRefreshMs = -Infinity;
   function frame(nowMs: number): void {
     const deltaMs = nowMs - previousFrameMs;
     previousFrameMs = nowMs;
@@ -1799,6 +1837,8 @@ async function main(): Promise<void> {
     builder.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
     buyTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    bookTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    bookResults.drain();
     roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
     floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
@@ -1892,6 +1932,9 @@ async function main(): Promise<void> {
     affinitiesPanel.update(nowMs);
     bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
+    if (nowMs - lastBookRefreshMs >= sim.needBarRefreshMs()) {
+      lastBookRefreshMs = nowMs; bookTool.afterCommands(sim.clockTick());
+    }
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
 

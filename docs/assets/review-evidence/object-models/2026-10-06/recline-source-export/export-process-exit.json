@@ -1,0 +1,24 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_recline_export_v1.py",
+    ".tmp/object-models/pose-complete-recline-renders-01"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk230ca9 returned exit_code0; recorded after completed exporter",
+  "elapsed_seconds": 7.5422666,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a"
+  },
+  "exporter_sha256": "b5455c2b3a8d0e85051e604bae73247ebc4daaccbb69dc494c7cdaa00b70a777",
+  "output": {
+    "records": 48,
+    "uniqueTextures": 29,
+    "maximumError": 4,
+    "p95": 1
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

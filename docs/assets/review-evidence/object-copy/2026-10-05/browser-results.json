@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "viewport": "1440x1000",
+      "activation": "mouse, Enter, Space",
+      "hoverAndFocusClosed": true,
+      "rightClick": true,
+      "catalogueCopiesChecked": 30,
+      "reopenClosed": true,
+      "actionWorks": true,
+      "expandedWithinViewport": true
+    },
+    {
+      "viewport": "390x844",
+      "activation": "touch",
+      "hoverAndFocusClosed": "not tested",
+      "rightClick": "not tested",
+      "catalogueCopiesChecked": 0,
+      "reopenClosed": true,
+      "actionWorks": true,
+      "expandedWithinViewport": true
+    }
+  ],
+  "errors": []
+}

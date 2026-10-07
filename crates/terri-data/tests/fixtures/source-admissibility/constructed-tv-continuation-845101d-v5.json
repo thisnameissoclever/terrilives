@@ -1,0 +1,10 @@
+{
+  "kind": "constructed source-admissibility witness; not a played capture",
+  "source_revision": "845101d8cae04627879a4a1ef70646005c784298",
+  "derived_from": "pre-books-edit-845101d/contended-tv-845101d.sav",
+  "probe_receipt": ".tmp/object-models/upstream-exclusive-probe/receipt.json",
+  "sha256": "02cd26651c7413bc33c3cc0c0572cfdd0039130926fdebf0b7014a96c99d9d3e",
+  "bytes": 3277,
+  "accepted_source_loader": true,
+  "policy": "Preserve this published accepted-save continuation without claiming shared-device admission or general acceptance of fabricated current saves."
+}

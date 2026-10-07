@@ -1,0 +1,942 @@
+{
+  "state": "constructed_proposal_rejected",
+  "acceptance": false,
+  "comparisons": [
+    {
+      "label": "left alone",
+      "frame_domains": [
+        {
+          "seat": 0,
+          "side": "L",
+          "actual_constructed_operator_change": 0.00244011761131385,
+          "operator_cap": 0.03141575181799145,
+          "in_frame_domain": true
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "actual_constructed_operator_change": 3.81039706488805e-06,
+          "operator_cap": 0.0314136088466902,
+          "in_frame_domain": true
+        }
+      ],
+      "parameter_norm": 0.0023332163744727947,
+      "cap_reserve_guard_valid": false,
+      "actual_motion_reserve_guard_valid": false,
+      "minimum_gap_above_cap_reserve": -0.00012573585460879403,
+      "minimum_gap_above_actual_motion_reserve": -9.429489676209869e-05,
+      "failing_cap_guards": [
+        {
+          "pair": 145,
+          "polygons": [
+            554,
+            1137
+          ],
+          "constructed_gap": -1.0820149248969013e-05,
+          "reserve": 0.00011490512380930245
+        },
+        {
+          "pair": 147,
+          "polygons": [
+            554,
+            1139
+          ],
+          "constructed_gap": -1.0820149248969013e-05,
+          "reserve": 0.00011418795695405956
+        },
+        {
+          "pair": 148,
+          "polygons": [
+            554,
+            1144
+          ],
+          "constructed_gap": 1.6047912405448006e-05,
+          "reserve": 0.00011490603874937596
+        },
+        {
+          "pair": 149,
+          "polygons": [
+            554,
+            1145
+          ],
+          "constructed_gap": 1.6047912405448006e-05,
+          "reserve": 0.00011418853814178534
+        },
+        {
+          "pair": 420,
+          "polygons": [
+            573,
+            1136
+          ],
+          "constructed_gap": 0.00011083024782043704,
+          "reserve": 0.0001149123692803963
+        },
+        {
+          "pair": 421,
+          "polygons": [
+            573,
+            1137
+          ],
+          "constructed_gap": -1.0820149248969013e-05,
+          "reserve": 0.00011491570535982501
+        },
+        {
+          "pair": 422,
+          "polygons": [
+            573,
+            1138
+          ],
+          "constructed_gap": 0.00011083024782043704,
+          "reserve": 0.0001141956656804373
+        },
+        {
+          "pair": 423,
+          "polygons": [
+            573,
+            1139
+          ],
+          "constructed_gap": -1.0820149248969013e-05,
+          "reserve": 0.00011419853850458213
+        }
+      ],
+      "own_body_nominal_nonworsening": {
+        "valid": true,
+        "failures": []
+      },
+      "own_before": {
+        "arm_body/0/Relaxed shirt sleeve/One sewn breast pocket": {
+          "features": 58,
+          "minimum_separation": -0.0220575892561616,
+          "maximum_local_violation": 0.0220575892561616,
+          "rms_local_violation": 0.009199455846935474
+        },
+        "arm_body/0/Relaxed shirt sleeve/Overshirt body": {
+          "features": 89,
+          "minimum_separation": -0.013025536598662932,
+          "maximum_local_violation": 0.013025536598662932,
+          "rms_local_violation": 0.005437414357803603
+        },
+        "arm_body/0/Turned sleeve cuff/Overshirt body": {
+          "features": 83,
+          "minimum_separation": -0.016183931216029585,
+          "maximum_local_violation": 0.016183931216029585,
+          "rms_local_violation": 0.007150803682726398
+        },
+        "arm_body/1/Relaxed shirt sleeve.001/Overshirt body": {
+          "features": 69,
+          "minimum_separation": -0.013734311781926415,
+          "maximum_local_violation": 0.013734311781926415,
+          "rms_local_violation": 0.006843572463615637
+        }
+      },
+      "own_after": {
+        "arm_body/0/Relaxed shirt sleeve/One sewn breast pocket": {
+          "features": 58,
+          "minimum_separation": -0.0218045703991204,
+          "maximum_local_violation": 0.0218045703991204,
+          "rms_local_violation": 0.009049560546931746
+        },
+        "arm_body/0/Relaxed shirt sleeve/Overshirt body": {
+          "features": 89,
+          "minimum_separation": -0.012936860425261862,
+          "maximum_local_violation": 0.012936860425261862,
+          "rms_local_violation": 0.005363483737716613
+        },
+        "arm_body/0/Turned sleeve cuff/Overshirt body": {
+          "features": 83,
+          "minimum_separation": -0.01607820095510164,
+          "maximum_local_violation": 0.01607820095510164,
+          "rms_local_violation": 0.007080987552706769
+        },
+        "arm_body/1/Relaxed shirt sleeve.001/Overshirt body": {
+          "features": 69,
+          "minimum_separation": -0.013734628871513882,
+          "maximum_local_violation": 0.013734628871513882,
+          "rms_local_violation": 0.006844017260333855
+        }
+      },
+      "predicted_support": [
+        {
+          "seat": 0,
+          "side": "L",
+          "predicted_projected_area": 0.0005036935674971113,
+          "predicted_cells": 51,
+          "exposure_requires_full_scene": true
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "predicted_projected_area": 0.0003326865614361927,
+          "predicted_cells": 36,
+          "exposure_requires_full_scene": true
+        }
+      ],
+      "maximum_parameter_linearization_error": 2.522036557033036e-06,
+      "planning_parameter_error_max": 1.6707791043998887e-05,
+      "parameter_linearization_exceeded_planning_rows": 174,
+      "frames": [
+        {
+          "seat": 0,
+          "side": "L",
+          "targets": {
+            "upper_arm": [
+              [
+                0.9206851381347977,
+                -0.07229825941051325,
+                -0.38353079265647905,
+                -0.13926984206829518
+              ],
+              [
+                0.2899753102116551,
+                -0.5310088274945816,
+                0.7962055561408973,
+                -0.36000002115505286
+              ],
+              [
+                -0.2612198129211283,
+                -0.8442756704930048,
+                -0.46793221651622613,
+                1.182396031338551
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "forearm": [
+              [
+                0.9318730619076884,
+                0.10969305516478364,
+                -0.345779850505715,
+                -0.15983777310628522
+              ],
+              [
+                0.34725448670698844,
+                0.005952744339272093,
+                0.9377510987799472,
+                -0.5110652861996212
+              ],
+              [
+                0.1049251690745058,
+                -0.9939469701739018,
+                -0.03254450946062368,
+                0.9422103262730162
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "hand": [
+              [
+                0.994194453168042,
+                0.04151273561577652,
+                0.0991789535465328,
+                -0.1363078992383222
+              ],
+              [
+                0.011614544949291105,
+                -0.958531969250816,
+                0.28474380888177003,
+                -0.5097883839599752
+              ],
+              [
+                0.10689525922405187,
+                -0.28194205655671273,
+                -0.9534593591649603,
+                0.7290022246847051
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "targets": {
+            "upper_arm": [
+              [
+                0.9434313260149295,
+                -0.27946637773535193,
+                0.17837771251331547,
+                0.23000000417232513
+              ],
+              [
+                -0.32797043786291186,
+                -0.7079283908546886,
+                0.6255171520356789,
+                -0.36000001430511475
+              ],
+              [
+                -0.048531645754670893,
+                -0.6486407010325143,
+                -0.7595455220250991,
+                1.1261999011039734
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "forearm": [
+              [
+                0.9049301586326822,
+                -0.1274926352843103,
+                0.40599438768869894,
+                0.15049536425138815
+              ],
+              [
+                -0.3515568060399529,
+                0.3135858279746189,
+                0.8820822905694035,
+                -0.561396647407426
+              ],
+              [
+                -0.2397740481795194,
+                -0.9409612842165958,
+                0.23895473049369195,
+                0.9416698617767881
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "hand": [
+              [
+                0.9940174818038939,
+                0.06860047578811647,
+                -0.08488890528678894,
+                0.1231473644630175
+              ],
+              [
+                0.0911918133497238,
+                -0.9493997693061829,
+                0.3005390167236328,
+                -0.494130444303297
+              ],
+              [
+                -0.05998056381940842,
+                -0.3064848184585572,
+                -0.9499847292900085,
+                0.7398275350611243
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        }
+      ],
+      "replay_required_for_each_garment_class_and_full_scene": true
+    },
+    {
+      "label": "center right alone",
+      "frame_domains": [
+        {
+          "seat": 0,
+          "side": "L",
+          "actual_constructed_operator_change": 2.8034604763280145e-06,
+          "operator_cap": 0.03141575181799145,
+          "in_frame_domain": true
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "actual_constructed_operator_change": 0.0055459626003592855,
+          "operator_cap": 0.0314136088466902,
+          "in_frame_domain": true
+        }
+      ],
+      "parameter_norm": 0.024890883901589073,
+      "cap_reserve_guard_valid": true,
+      "actual_motion_reserve_guard_valid": true,
+      "minimum_gap_above_cap_reserve": 0.00021584192569900615,
+      "minimum_gap_above_actual_motion_reserve": 0.0002461849638952232,
+      "failing_cap_guards": [],
+      "own_body_nominal_nonworsening": {
+        "valid": true,
+        "failures": []
+      },
+      "own_before": {
+        "arm_body/0/Relaxed shirt sleeve/One sewn breast pocket": {
+          "features": 58,
+          "minimum_separation": -0.0220575892561616,
+          "maximum_local_violation": 0.0220575892561616,
+          "rms_local_violation": 0.009199455846935474
+        },
+        "arm_body/0/Relaxed shirt sleeve/Overshirt body": {
+          "features": 89,
+          "minimum_separation": -0.013025536598662932,
+          "maximum_local_violation": 0.013025536598662932,
+          "rms_local_violation": 0.005437414357803603
+        },
+        "arm_body/0/Turned sleeve cuff/Overshirt body": {
+          "features": 83,
+          "minimum_separation": -0.016183931216029585,
+          "maximum_local_violation": 0.016183931216029585,
+          "rms_local_violation": 0.007150803682726398
+        },
+        "arm_body/1/Relaxed shirt sleeve.001/Overshirt body": {
+          "features": 69,
+          "minimum_separation": -0.013734311781926415,
+          "maximum_local_violation": 0.013734311781926415,
+          "rms_local_violation": 0.006843572463615637
+        }
+      },
+      "own_after": {
+        "arm_body/0/Relaxed shirt sleeve/One sewn breast pocket": {
+          "features": 58,
+          "minimum_separation": -0.022057675328664504,
+          "maximum_local_violation": 0.022057675328664504,
+          "rms_local_violation": 0.009199482464498133
+        },
+        "arm_body/0/Relaxed shirt sleeve/Overshirt body": {
+          "features": 89,
+          "minimum_separation": -0.01302584421597467,
+          "maximum_local_violation": 0.01302584421597467,
+          "rms_local_violation": 0.0054377408278098996
+        },
+        "arm_body/0/Turned sleeve cuff/Overshirt body": {
+          "features": 83,
+          "minimum_separation": -0.01618440105609672,
+          "maximum_local_violation": 0.01618440105609672,
+          "rms_local_violation": 0.007151211596541092
+        },
+        "arm_body/1/Relaxed shirt sleeve.001/Overshirt body": {
+          "features": 69,
+          "minimum_separation": -0.013719422173183535,
+          "maximum_local_violation": 0.013719422173183535,
+          "rms_local_violation": 0.006712308713508508
+        }
+      },
+      "predicted_support": [
+        {
+          "seat": 0,
+          "side": "L",
+          "predicted_projected_area": 0.0005010697723933505,
+          "predicted_cells": 51,
+          "exposure_requires_full_scene": true
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "predicted_projected_area": 0.0003101462762152077,
+          "predicted_cells": 40,
+          "exposure_requires_full_scene": true
+        }
+      ],
+      "maximum_parameter_linearization_error": 8.964941319574565e-06,
+      "planning_parameter_error_max": 1.6707791043998887e-05,
+      "parameter_linearization_exceeded_planning_rows": 2600,
+      "frames": [
+        {
+          "seat": 0,
+          "side": "L",
+          "targets": {
+            "upper_arm": [
+              [
+                0.9204029826103326,
+                -0.0703869368520467,
+                -0.3845621645567935,
+                -0.13926984206829518
+              ],
+              [
+                0.2914612074691934,
+                -0.5320520974467836,
+                0.7949655745281673,
+                -0.36000002115505286
+              ],
+              [
+                -0.26055960722988153,
+                -0.8437802235774651,
+                -0.4691922769032177,
+                1.182396031338551
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "forearm": [
+              [
+                0.9315050026725459,
+                0.1084705880575872,
+                -0.347154510823271,
+                -0.1592940261180716
+              ],
+              [
+                0.3483865573319636,
+                0.007968262740230178,
+                0.93731613328006,
+                -0.5113620832398456
+              ],
+              [
+                0.10443950315403192,
+                -0.9940670094866723,
+                -0.030367503729449494,
+                0.9423512746314374
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "hand": [
+              [
+                0.9943248629570008,
+                0.0391731858253479,
+                0.09882262349128723,
+                -0.13602637940980933
+              ],
+              [
+                0.009458050131797789,
+                -0.9585486054420471,
+                0.2847676277160645,
+                -0.5096528391719582
+              ],
+              [
+                0.10589011758565901,
+                -0.2822201251983643,
+                -0.9534892439842223,
+                0.7291174238294615
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "targets": {
+            "upper_arm": [
+              [
+                0.9429325238863492,
+                -0.28208771845739783,
+                0.17688278095639512,
+                0.23000000417232513
+              ],
+              [
+                -0.32922647011652867,
+                -0.7106127149369169,
+                0.6218025495266065,
+                -0.36000001430511475
+              ],
+              [
+                -0.049706965607094776,
+                -0.6445579185488785,
+                -0.7629376036374362,
+                1.1261999011039734
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "forearm": [
+              [
+                0.9074531430632645,
+                -0.11321930585287579,
+                0.4045918786330722,
+                0.14974962611751305
+              ],
+              [
+                -0.3503680359245807,
+                0.3274847370045573,
+                0.8774926706929649,
+                -0.5621603035018061
+              ],
+              [
+                -0.2318478091406787,
+                -0.9380478227489574,
+                0.2575111609629558,
+                0.9428313615396108
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "hand": [
+              [
+                0.994930028080395,
+                0.0484771065965531,
+                -0.08801831156315022,
+                0.12546334849555874
+              ],
+              [
+                0.07391793710052297,
+                -0.9464717586046727,
+                0.3142081500807029,
+                -0.49191269384931713
+              ],
+              [
+                -0.06807897464421138,
+                -0.31912391242645605,
+                -0.9452654801433525,
+                0.7416139913057159
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        }
+      ],
+      "replay_required_for_each_garment_class_and_full_scene": true
+    },
+    {
+      "label": "joint",
+      "frame_domains": [
+        {
+          "seat": 0,
+          "side": "L",
+          "actual_constructed_operator_change": 0.00244011761131385,
+          "operator_cap": 0.03141575181799145,
+          "in_frame_domain": true
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "actual_constructed_operator_change": 0.0055459626003592855,
+          "operator_cap": 0.0314136088466902,
+          "in_frame_domain": true
+        }
+      ],
+      "parameter_norm": 0.02500000000104988,
+      "cap_reserve_guard_valid": false,
+      "actual_motion_reserve_guard_valid": true,
+      "minimum_gap_above_cap_reserve": -8.96154174040572e-07,
+      "minimum_gap_above_actual_motion_reserve": 2.8010401967225508e-05,
+      "failing_cap_guards": [
+        {
+          "pair": 145,
+          "polygons": [
+            554,
+            1137
+          ],
+          "constructed_gap": 0.00011401955118578444,
+          "reserve": 0.00011490512380930245
+        },
+        {
+          "pair": 147,
+          "polygons": [
+            554,
+            1139
+          ],
+          "constructed_gap": 0.00011401955118578444,
+          "reserve": 0.00011418795695405956
+        },
+        {
+          "pair": 421,
+          "polygons": [
+            573,
+            1137
+          ],
+          "constructed_gap": 0.00011401955118578444,
+          "reserve": 0.00011491570535982501
+        },
+        {
+          "pair": 423,
+          "polygons": [
+            573,
+            1139
+          ],
+          "constructed_gap": 0.00011401955118578444,
+          "reserve": 0.00011419853850458213
+        }
+      ],
+      "own_body_nominal_nonworsening": {
+        "valid": true,
+        "failures": []
+      },
+      "own_before": {
+        "arm_body/0/Relaxed shirt sleeve/One sewn breast pocket": {
+          "features": 58,
+          "minimum_separation": -0.0220575892561616,
+          "maximum_local_violation": 0.0220575892561616,
+          "rms_local_violation": 0.009199455846935474
+        },
+        "arm_body/0/Relaxed shirt sleeve/Overshirt body": {
+          "features": 89,
+          "minimum_separation": -0.013025536598662932,
+          "maximum_local_violation": 0.013025536598662932,
+          "rms_local_violation": 0.005437414357803603
+        },
+        "arm_body/0/Turned sleeve cuff/Overshirt body": {
+          "features": 83,
+          "minimum_separation": -0.016183931216029585,
+          "maximum_local_violation": 0.016183931216029585,
+          "rms_local_violation": 0.007150803682726398
+        },
+        "arm_body/1/Relaxed shirt sleeve.001/Overshirt body": {
+          "features": 69,
+          "minimum_separation": -0.013734311781926415,
+          "maximum_local_violation": 0.013734311781926415,
+          "rms_local_violation": 0.006843572463615637
+        }
+      },
+      "own_after": {
+        "arm_body/0/Relaxed shirt sleeve/One sewn breast pocket": {
+          "features": 58,
+          "minimum_separation": -0.0218045703991204,
+          "maximum_local_violation": 0.0218045703991204,
+          "rms_local_violation": 0.009049560546931746
+        },
+        "arm_body/0/Relaxed shirt sleeve/Overshirt body": {
+          "features": 89,
+          "minimum_separation": -0.012936860425261862,
+          "maximum_local_violation": 0.012936860425261862,
+          "rms_local_violation": 0.005363483737716613
+        },
+        "arm_body/0/Turned sleeve cuff/Overshirt body": {
+          "features": 83,
+          "minimum_separation": -0.01607820095510164,
+          "maximum_local_violation": 0.01607820095510164,
+          "rms_local_violation": 0.007080987552706769
+        },
+        "arm_body/1/Relaxed shirt sleeve.001/Overshirt body": {
+          "features": 69,
+          "minimum_separation": -0.013719422173183535,
+          "maximum_local_violation": 0.013719422173183535,
+          "rms_local_violation": 0.006712308713508508
+        }
+      },
+      "predicted_support": [
+        {
+          "seat": 0,
+          "side": "L",
+          "predicted_projected_area": 0.0005036935674971113,
+          "predicted_cells": 51,
+          "exposure_requires_full_scene": true
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "predicted_projected_area": 0.0003101462762152077,
+          "predicted_cells": 40,
+          "exposure_requires_full_scene": true
+        }
+      ],
+      "maximum_parameter_linearization_error": 1.0967390187705678e-05,
+      "planning_parameter_error_max": 1.6707791043998887e-05,
+      "parameter_linearization_exceeded_planning_rows": 3051,
+      "frames": [
+        {
+          "seat": 0,
+          "side": "L",
+          "targets": {
+            "upper_arm": [
+              [
+                0.9206851381347977,
+                -0.07229825941051325,
+                -0.38353079265647905,
+                -0.13926984206829518
+              ],
+              [
+                0.2899753102116551,
+                -0.5310088274945816,
+                0.7962055561408973,
+                -0.36000002115505286
+              ],
+              [
+                -0.2612198129211283,
+                -0.8442756704930048,
+                -0.46793221651622613,
+                1.182396031338551
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "forearm": [
+              [
+                0.9318730619076884,
+                0.10969305516478364,
+                -0.345779850505715,
+                -0.15983777310628522
+              ],
+              [
+                0.34725448670698844,
+                0.005952744339272093,
+                0.9377510987799472,
+                -0.5110652861996212
+              ],
+              [
+                0.1049251690745058,
+                -0.9939469701739018,
+                -0.03254450946062368,
+                0.9422103262730162
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "hand": [
+              [
+                0.994194453168042,
+                0.04151273561577652,
+                0.0991789535465328,
+                -0.1363078992383222
+              ],
+              [
+                0.011614544949291105,
+                -0.958531969250816,
+                0.28474380888177003,
+                -0.5097883839599752
+              ],
+              [
+                0.10689525922405187,
+                -0.28194205655671273,
+                -0.9534593591649603,
+                0.7290022246847051
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        },
+        {
+          "seat": 1,
+          "side": "R",
+          "targets": {
+            "upper_arm": [
+              [
+                0.9429325238863492,
+                -0.28208771845739783,
+                0.17688278095639512,
+                0.23000000417232513
+              ],
+              [
+                -0.32922647011652867,
+                -0.7106127149369169,
+                0.6218025495266065,
+                -0.36000001430511475
+              ],
+              [
+                -0.049706965607094776,
+                -0.6445579185488785,
+                -0.7629376036374362,
+                1.1261999011039734
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "forearm": [
+              [
+                0.9074531430632645,
+                -0.11321930585287579,
+                0.4045918786330722,
+                0.14974962611751305
+              ],
+              [
+                -0.3503680359245807,
+                0.3274847370045573,
+                0.8774926706929649,
+                -0.5621603035018061
+              ],
+              [
+                -0.2318478091406787,
+                -0.9380478227489574,
+                0.2575111609629558,
+                0.9428313615396108
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "hand": [
+              [
+                0.994930028080395,
+                0.0484771065965531,
+                -0.08801831156315022,
+                0.12546334849555874
+              ],
+              [
+                0.07391793710052297,
+                -0.9464717586046727,
+                0.3142081500807029,
+                -0.49191269384931713
+              ],
+              [
+                -0.06807897464421138,
+                -0.31912391242645605,
+                -0.9452654801433525,
+                0.7416139913057159
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        }
+      ],
+      "replay_required_for_each_garment_class_and_full_scene": true
+    }
+  ],
+  "gain_fraction": 0.00695179446384441,
+  "elapsed_seconds": 6.503735100035556,
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_proposal_constructed.py": "56175b251f2ccd85af75ad0be9a92abc2fd8ac1d76e754b3f6040329fc59dae8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_saved_chart.py": "5fe43e57a3567a9a1214e1417902bca8c10a27fca9ec9858f580553c9de0c195",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-proposal-gain-01\\proof.json": "4ef1c224df3c3836ceb47f3edaee35e8181ca40e078d962947c457d0bbfe0507",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-proposal-01\\proposal-system.npz": "d339aba16e4787a29f75a96cbe0700d2987ca50c77d9f8b015f810bc32c3407b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\proof.json": "250e9c47c274183e03fba32cc4911377a3d4355f254dc42ce500e6a805ec3c9e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\scene-00.npz": "b620df6dc2a4745e38e2f1db0ef5a19841eb8c7edf7dfa444ccc1e03b5dd0ae4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-guard-controls-02\\proof.json": "ef2cd686bfee328506e0eeb757a82177552045e6964a4c255cc53ad5a36695cf",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-guard-controls-02\\whole-polygon-guards.npz": "d6de536a6683ada24d715d7ac8cbf680d380e9f3e2587ed715aa7b8693244bb0"
+  },
+  "scope": "Cached constructed-frame checks; no Blender, no physical pose acceptance and no domain expansion"
+}

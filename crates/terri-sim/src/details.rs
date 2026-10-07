@@ -97,16 +97,11 @@ pub(crate) fn flyout_row(
     object: ObjectDefId,
     row: u32,
 ) -> Option<FlyoutRow<'_>> {
-    let definition = pack.objects.get(object.0 as usize)?;
-    if let Some(interaction) = definition.interactions.get(row as usize) {
-        return Some(FlyoutRow::Interaction(interaction));
-    }
-    let chain_slot = (row as usize).checked_sub(definition.interactions.len())?;
-    pack.chains
-        .iter()
-        .filter(|chain| chain.advertised_by == object)
-        .nth(chain_slot)
-        .map(FlyoutRow::Chain)
+    let resolved = crate::action_rows::resolve(pack, object, row)?;
+    resolved
+        .action
+        .map(FlyoutRow::Interaction)
+        .or_else(|| resolved.recipe.map(|(_, chain)| FlyoutRow::Chain(chain)))
 }
 
 /// The (object label, activity label) the Sim details show for one
@@ -186,13 +181,18 @@ mod tests {
         let object = pack.chains[0].advertised_by.0 as usize;
         let expected_chain_label = pack.chains[0].label.clone();
         let mut unrelated = pack.chains[0].clone();
+        unrelated.id = "unrelated_recipe".into();
         unrelated.advertised_by = ObjectDefId(((object + 1) % pack.objects.len()) as u32);
         unrelated.label = "Unrelated chain".into();
         pack.chains.insert(0, unrelated);
         let pack = Box::leak(Box::new(pack));
         sim.world_mut().insert_resource(Content(pack));
         let definition = &pack.objects[object];
-        let chain_row = definition.interactions.len() as u32;
+        let chain_row = definition
+            .interactions
+            .iter()
+            .position(|a| a.id == "cook_dinner")
+            .unwrap() as u32;
         let mut habits = Habituation::default();
         let cap = pack.tuning.habituation_max;
         habits.bump(ObjectDefId(object as u32), chain_row, 0.62, cap);

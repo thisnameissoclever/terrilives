@@ -107,6 +107,66 @@ pub fn compile(
     voice_clip_ticks: Vec<u32>,
     skills: SkillsFile,
 ) -> Result<ContentPack, ContentError> {
+    let reading = tuning.reading;
+    if let Some(reading) = &reading {
+        crate::books::validate_reading(reading)?;
+    }
+    for (owner, properties) in objects
+        .action_template
+        .iter()
+        .map(|t| (t.id.as_str(), &t.properties))
+        .chain(
+            objects
+                .category
+                .iter()
+                .flat_map(|c| c.action.iter().map(|a| (a.id.as_str(), &a.properties))),
+        )
+        .chain(
+            objects
+                .object_type
+                .iter()
+                .flat_map(|c| c.action.iter().map(|a| (a.id.as_str(), &a.properties))),
+        )
+        .chain(
+            objects
+                .model
+                .iter()
+                .flat_map(|c| c.action.iter().map(|a| (a.id.as_str(), &a.properties))),
+        )
+    {
+        if let Some(recipe) = &properties.recipe.set {
+            if !chains
+                .chain
+                .iter()
+                .any(|c| c.id == recipe.id && (recipe.selected_step as usize) < c.step.len())
+            {
+                return Err(ContentError::InvalidHierarchy {
+                    context: owner.into(),
+                    reason: format!(
+                        "unknown recipe or selected step '{}'/{}",
+                        recipe.id, recipe.selected_step
+                    ),
+                });
+            }
+            let chain = chains
+                .chain
+                .iter()
+                .find(|c| c.id == recipe.id)
+                .expect("validated recipe");
+            if let Some(reason) = crate::pack::binding_stage_error(
+                &chain.id,
+                recipe.selected_step,
+                chain.step.len(),
+                &chain.step[recipe.selected_step as usize].role,
+            ) {
+                return Err(ContentError::InvalidHierarchy {
+                    context: owner.into(),
+                    reason: reason.into(),
+                });
+            }
+        }
+    }
+    let objects = crate::hierarchy::resolve(objects)?;
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     // Colourways ride in objects.toml but apply to every object; they are
     // validated last, on their own.
@@ -297,6 +357,20 @@ pub fn compile(
         let mut interactions = Vec::with_capacity(object.interaction.len());
 
         for act in &object.interaction {
+            if act.media.is_some()
+                && (act.book_reading || act.seat_use != crate::pack::SeatUse::Exclusive)
+            {
+                return Err(ContentError::InvalidHierarchy {
+                    context: format!("object.{}.action.{}", object.id, act.id),
+                    reason: "media behavior cannot own books or direct physical seats".into(),
+                });
+            }
+            if act.seat_use != crate::pack::SeatUse::Exclusive && object.seat.is_empty() {
+                return Err(ContentError::InvalidHierarchy {
+                    context: format!("object.{}.action.{}", object.id, act.id),
+                    reason: "seat_use one or all requires physical seats".into(),
+                });
+            }
             if !seen_interactions.insert(act.id.clone()) {
                 return Err(ContentError::DuplicateInteractionId {
                     object: object.id.clone(),
@@ -368,18 +442,20 @@ pub fn compile(
                     interaction: &act.id,
                 },
             )?;
-            let completion_sound = match act.completion_sound.as_deref() {
-                None => None,
-                Some("toilet_flush") => Some(crate::pack::CompiledCompletionSound::ToiletFlush),
-                Some(action) => {
-                    return Err(ContentError::UnknownCompletionSound {
-                        object: object.id.clone(),
-                        interaction: act.id.clone(),
-                        action: action.to_string(),
-                    })
-                }
-            };
+            let completion_sound =
+                compile_completion_sound(act.completion_sound.as_deref(), &object.id, &act.id)?;
             interactions.push(CompiledInteraction {
+                media: act.media,
+                recipe: act
+                    .recipe
+                    .as_ref()
+                    .map(|recipe| crate::pack::RecipeBinding {
+                        recipe: recipe.id.clone(),
+                        selected_step: recipe.selected_step,
+                        steps: Vec::new(),
+                    }),
+                book_reading: act.book_reading,
+                seat_use: act.seat_use,
                 completion_sound,
                 id: act.id.clone(),
                 advertises,
@@ -459,6 +535,11 @@ pub fn compile(
             &format!("seat Comfort on {}", object.id),
         )?;
         let definition = CompiledObject {
+            cooking_front: object.cooking_front,
+            shelf_capacity: object.shelf_capacity,
+            shelf_access: compile_shelf_access(object)?,
+            metadata: object.metadata.clone(),
+            seats: compile_seats(object)?,
             sleep_places: object.sleep_place.clone(),
             seat_comfort_per_tick: object.seat_comfort_per_tick,
             id: object.id.clone(),
@@ -574,6 +655,7 @@ pub fn compile(
     // interaction is retired. After the lot (the coverage rule needs
     // the placements) and after tuning (steps obey the clipped rule).
     let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
+    finalize_recipe_bindings(&mut compiled, &chains, &roles, &tuning)?;
     // One tag universe for every definition that keys on an activity, so a
     // trait and a skill cannot disagree about what exists.
     let known_tags = activity_tags(&compiled, &social, &chains);
@@ -607,6 +689,8 @@ pub fn compile(
     let colourways = compile_colourways(&colourway_defs)?;
 
     Ok(ContentPack {
+        books: Vec::new(),
+        reading,
         decay_per_tick: decay,
         objects: compiled,
         sim_sprite,
@@ -1650,6 +1734,16 @@ fn compile_social(
     let mut compiled = Vec::with_capacity(social.interaction.len());
 
     for act in &social.interaction {
+        if act.book_reading
+            || act.seat_use != crate::pack::SeatUse::Exclusive
+            || act.recipe.is_some()
+            || act.media.is_some()
+        {
+            return Err(ContentError::InvalidHierarchy {
+                context: format!("social.{}", act.id),
+                reason: "social actions cannot own books or physical seats".into(),
+            });
+        }
         if !seen.insert(act.id.clone()) {
             return Err(ContentError::DuplicateSocialInteraction { id: act.id.clone() });
         }
@@ -1721,6 +1815,10 @@ fn compile_social(
             format!("social.toml interaction '{}'", act.id),
         )?;
         compiled.push(CompiledInteraction {
+            media: None,
+            recipe: None,
+            book_reading: act.book_reading,
+            seat_use: act.seat_use,
             completion_sound: None,
             id: act.id.clone(),
             advertises,
@@ -1887,6 +1985,176 @@ fn compile_sound_action(
     Ok(Some(compiled))
 }
 
+fn compile_completion_sound(
+    action: Option<&str>,
+    object: &str,
+    interaction: &str,
+) -> Result<Option<crate::pack::CompiledCompletionSound>, ContentError> {
+    match action {
+        None => Ok(None),
+        Some("toilet_flush") => Ok(Some(crate::pack::CompiledCompletionSound::ToiletFlush)),
+        Some(action) => Err(ContentError::UnknownCompletionSound {
+            object: object.to_string(),
+            interaction: interaction.to_string(),
+            action: action.to_string(),
+        }),
+    }
+}
+
+/// Check supplied names without requiring a complete action or a model's sockets.
+/// Unused authored layers use the same vocabulary checks as resolved actions.
+fn finalize_recipe_bindings(
+    objects: &mut [CompiledObject],
+    chains: &[crate::pack::CompiledChain],
+    roles: &[String],
+    tuning: &Tuning,
+) -> Result<(), ContentError> {
+    for object in objects {
+        let invalid = |reason: String| ContentError::InvalidHierarchy {
+            context: object.id.clone(),
+            reason,
+        };
+        if let Some((x, y)) = object.cooking_front {
+            if ![(1, 0), (0, 1), (-1, 0), (0, -1)].contains(&(x, y))
+                || object.footprint.width != 1
+                || object.footprint.depth != 1
+            {
+                return Err(invalid(
+                    "cooking front must name an adjacent contact on a one-tile station".into(),
+                ));
+            }
+        }
+        for action in &mut object.interactions {
+            let Some(binding) = &mut action.recipe else {
+                continue;
+            };
+            if action.book_reading
+                || action.seat_use != crate::pack::SeatUse::Exclusive
+                || action.media.is_some()
+            {
+                return Err(invalid(format!(
+                    "recipe action '{}' has incompatible requirements",
+                    action.id
+                )));
+            }
+            let chain = chains
+                .iter()
+                .find(|c| c.id == binding.recipe)
+                .ok_or_else(|| invalid(format!("unknown recipe '{}'", binding.recipe)))?;
+            if let Some(step) = chain.steps.get(binding.selected_step as usize) {
+                if let Some(reason) = crate::pack::binding_stage_error(
+                    &chain.id,
+                    binding.selected_step,
+                    chain.steps.len(),
+                    &roles[step.role as usize],
+                ) {
+                    return Err(invalid(reason.into()));
+                }
+            }
+            if chain
+                .steps
+                .get(binding.selected_step as usize)
+                .is_none_or(|step| !object.roles.contains(&step.role))
+            {
+                return Err(invalid(format!(
+                    "recipe action '{}' requires its model to provide the selected station role",
+                    action.id
+                )));
+            }
+            let total: u64 = chain
+                .steps
+                .iter()
+                .map(|s| u64::from(s.duration_ticks))
+                .sum();
+            let mut remainders = Vec::new();
+            for (index, step) in chain.steps.iter().enumerate() {
+                let product = u64::from(action.duration_ticks) * u64::from(step.duration_ticks);
+                binding.steps.push((product / total) as u32);
+                remainders.push((index, product % total));
+                for tag in &step.tags {
+                    if !action.tags.contains(tag) {
+                        action.tags.push(tag.clone());
+                    }
+                }
+            }
+            remainders.sort_by_key(|(index, remainder)| (std::cmp::Reverse(*remainder), *index));
+            let allocated: u32 = binding.steps.iter().sum();
+            for &(index, _) in remainders
+                .iter()
+                .take((action.duration_ticks - allocated) as usize)
+            {
+                binding.steps[index] += 1;
+            }
+            for &duration in &binding.steps {
+                if duration == 0
+                    || duration as f32 * (1.0 - tuning.duration_variance)
+                        < tuning.min_interaction_ticks as f32
+                {
+                    return Err(invalid(format!(
+                        "recipe action '{}' has a clipped effective step duration",
+                        action.id
+                    )));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_action_references(
+    properties: &crate::hierarchy::ActionProperties,
+    owner: &str,
+    interaction: &str,
+) -> Result<(), ContentError> {
+    for adverts in [
+        properties.advertises.set.as_ref(),
+        properties.advertises.extend.as_ref(),
+        properties.advertises.replace.as_ref(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        for need in adverts.keys() {
+            if NeedId::from_name(need).is_none() {
+                return Err(ContentError::UnknownNeed {
+                    object: owner.to_string(),
+                    interaction: interaction.to_string(),
+                    need: need.clone(),
+                });
+            }
+        }
+    }
+    compile_sound_action(
+        properties.sound_action.set.as_deref(),
+        SoundOwner::Object {
+            object: owner,
+            interaction,
+        },
+    )?;
+    compile_completion_sound(
+        properties.completion_sound.set.as_deref(),
+        owner,
+        interaction,
+    )?;
+    compile_activity(properties.activity.set.as_deref(), owner.to_string())?;
+    if let Some(visual) = &properties.visual.set {
+        let owner = VisualOwner::Object {
+            object: owner,
+            interaction,
+        };
+        if let Some(action) = &visual.action {
+            compile_visual_action(action, owner)?;
+        }
+        if let Some(anchor) = &visual.anchor {
+            compile_visual_anchor(anchor, owner)?;
+        }
+        if let Some(facing) = &visual.facing {
+            compile_visual_facing(facing, owner)?;
+        }
+    }
+    Ok(())
+}
+
 #[derive(Clone, Copy)]
 enum VisualOwner<'a> {
     Object {
@@ -2019,6 +2287,51 @@ impl VisualOwner<'_> {
     }
 }
 
+fn compile_visual_action(
+    action: &str,
+    owner: VisualOwner<'_>,
+) -> Result<CompiledVisualAction, ContentError> {
+    Ok(match action {
+        "talk" => CompiledVisualAction::Talk,
+        "eat" => CompiledVisualAction::Eat,
+        "read" => CompiledVisualAction::Read,
+        "exercise" => CompiledVisualAction::Exercise,
+        "watch" => CompiledVisualAction::Watch,
+        "sit" => CompiledVisualAction::Sit,
+        "sleep" => CompiledVisualAction::Sleep,
+        "use_toilet" => CompiledVisualAction::UseToilet,
+        "bathe" => CompiledVisualAction::Bathe,
+        "wash" => CompiledVisualAction::Wash,
+        "cook" => CompiledVisualAction::Cook,
+        "prepare" => CompiledVisualAction::Prepare,
+        unknown => return Err(owner.unknown_action(unknown)),
+    })
+}
+
+fn compile_visual_anchor(
+    anchor: &str,
+    owner: VisualOwner<'_>,
+) -> Result<CompiledVisualAnchor, ContentError> {
+    Ok(match anchor {
+        "partner" => CompiledVisualAnchor::Partner,
+        "object" => CompiledVisualAnchor::Object,
+        "station" => CompiledVisualAnchor::Station,
+        "object_socket" => CompiledVisualAnchor::ObjectSocket,
+        unknown => return Err(owner.unknown_anchor(unknown)),
+    })
+}
+
+fn compile_visual_facing(
+    facing: &str,
+    owner: VisualOwner<'_>,
+) -> Result<CompiledVisualFacing, ContentError> {
+    Ok(match facing {
+        "toward_anchor" => CompiledVisualFacing::TowardAnchor,
+        "socket" => CompiledVisualFacing::Socket,
+        unknown => return Err(owner.unknown_facing(unknown)),
+    })
+}
+
 /// Validates the authored presentation vocabulary and exact owner matrix once
 /// for object interactions, social interactions, and chain steps. The schema
 /// keeps strings so errors can name content; the compiled pack carries enums
@@ -2044,34 +2357,9 @@ fn compile_visual(
         .facing
         .as_deref()
         .ok_or_else(|| owner.incomplete("facing"))?;
-
-    let action = match action {
-        "talk" => CompiledVisualAction::Talk,
-        "eat" => CompiledVisualAction::Eat,
-        "read" => CompiledVisualAction::Read,
-        "exercise" => CompiledVisualAction::Exercise,
-        "watch" => CompiledVisualAction::Watch,
-        "sit" => CompiledVisualAction::Sit,
-        "sleep" => CompiledVisualAction::Sleep,
-        "wash" => CompiledVisualAction::Wash,
-        "cook" => CompiledVisualAction::Cook,
-        "prepare" => CompiledVisualAction::Prepare,
-        "use_toilet" => CompiledVisualAction::UseToilet,
-        "bathe" => CompiledVisualAction::Bathe,
-        unknown => return Err(owner.unknown_action(unknown)),
-    };
-    let anchor = match anchor {
-        "partner" => CompiledVisualAnchor::Partner,
-        "object" => CompiledVisualAnchor::Object,
-        "station" => CompiledVisualAnchor::Station,
-        "object_socket" => CompiledVisualAnchor::ObjectSocket,
-        unknown => return Err(owner.unknown_anchor(unknown)),
-    };
-    let facing = match facing {
-        "toward_anchor" => CompiledVisualFacing::TowardAnchor,
-        "socket" => CompiledVisualFacing::Socket,
-        unknown => return Err(owner.unknown_facing(unknown)),
-    };
+    let action = compile_visual_action(action, owner)?;
+    let anchor = compile_visual_anchor(anchor, owner)?;
+    let facing = compile_visual_facing(facing, owner)?;
 
     if matches!(
         action,
@@ -3346,6 +3634,99 @@ fn check_socket_bounds(
     Ok(())
 }
 
+fn compile_shelf_access(
+    object: &crate::schema::ObjectDef,
+) -> Result<Vec<(i32, i32)>, ContentError> {
+    let bad = || ContentError::InvalidHierarchy {
+        context: format!("object.{}.shelf_access", object.id),
+        reason: "shelves need nonempty, unique cardinal perimeter contacts".into(),
+    };
+    if object.shelf_capacity > 0 && object.shelf_access.is_empty() {
+        return Err(bad());
+    }
+    let (width, depth) = (
+        i64::from(object.footprint.width),
+        i64::from(object.footprint.depth),
+    );
+    let mut seen = BTreeSet::new();
+    for &(x, y) in &object.shelf_access {
+        let (x, y) = (i64::from(x), i64::from(y));
+        if !(((0..width).contains(&x) && (y == -1 || y == depth))
+            || ((0..depth).contains(&y) && (x == -1 || x == width)))
+            || !seen.insert((x, y))
+        {
+            return Err(bad());
+        }
+    }
+    Ok(object.shelf_access.clone())
+}
+
+fn compile_seats(
+    object: &crate::schema::ObjectDef,
+) -> Result<Vec<crate::pack::PhysicalSeat>, ContentError> {
+    let mut ids = BTreeSet::new();
+    let mut bodies = BTreeSet::new();
+    let invalid = |reason: &str| ContentError::InvalidHierarchy {
+        context: format!("object.{}.seat", object.id),
+        reason: reason.into(),
+    };
+    let width = i64::from(object.footprint.width);
+    let depth = i64::from(object.footprint.depth);
+    object
+        .seat
+        .iter()
+        .map(|seat| {
+            if seat.id.is_empty()
+                || !seat
+                    .id
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_')
+                || !ids.insert(&seat.id)
+            {
+                return Err(invalid("seat IDs must be unique lowercase identifiers"));
+            }
+            if !seat.x.is_finite() || !seat.y.is_finite() {
+                return Err(invalid("body coordinates must be finite"));
+            }
+            let canonical_bits = |value: f32| if value == 0.0 { 0 } else { value.to_bits() };
+            if !bodies.insert((canonical_bits(seat.x), canonical_bits(seat.y))) {
+                return Err(invalid("physical seats must have distinct body positions"));
+            }
+            let x = (object.footprint.width - 1) as f32 / 2.0 + seat.x;
+            let y = (object.footprint.depth - 1) as f32 / 2.0 + seat.y;
+            check_socket_bounds(&object.id, &seat.id, x, y, object.footprint)?;
+            let facing = match seat.facing.as_str() {
+                "SE" => CompiledSocketFacing::PositiveX,
+                "NW" => CompiledSocketFacing::NegativeX,
+                "SW" => CompiledSocketFacing::PositiveY,
+                "NE" => CompiledSocketFacing::NegativeY,
+                _ => return Err(invalid("seat facing must be NE, NW, SE, or SW")),
+            };
+            if seat.approaches.is_empty() {
+                return Err(invalid("every seat needs an approach tile"));
+            }
+            let mut approaches = BTreeSet::new();
+            for &(x, y) in &seat.approaches {
+                let (x, y) = (i64::from(x), i64::from(y));
+                let on_perimeter = ((0..width).contains(&x) && (y == -1 || y == depth))
+                    || ((0..depth).contains(&y) && (x == -1 || x == width));
+                if !on_perimeter || !approaches.insert((x, y)) {
+                    return Err(invalid(
+                        "approaches must be unique cardinal perimeter tiles within each seat",
+                    ));
+                }
+            }
+            Ok(crate::pack::PhysicalSeat {
+                id: seat.id.clone(),
+                x: seat.x,
+                y: seat.y,
+                facing,
+                approaches: seat.approaches.clone(),
+            })
+        })
+        .collect()
+}
+
 fn check_sleep_places(object: &CompiledObject, sleep_tag: &str) -> Result<(), ContentError> {
     let invalid = |reason: &str| ContentError::InvalidSleepPlaces {
         object: object.id.clone(),
@@ -4305,39 +4686,70 @@ mod tests {
     /// including the trait bands kept its offset. 544 bytes to 556.
     #[rustfmt::skip]
     // Relationship tuning, shared activities and bed-place metadata remain intact.
-    // Completion presentation appends None after activity in the sole interaction.
-    // Seat Comfort appends four bytes to the object; need tuning appends twelve to Tuning.
-    // The build embeds this rebuilt pack. Save V1 bytes and compatibility remain unchanged.
-    const GOLDEN_PACK_BYTES: &[u8] = &[
+    // Classification None and an empty physical-seat vector append two zero bytes
+    // to the sole object, before the following pack fields. Save structure is unchanged.
+    // Owned-book false and Exclusive append two bytes to the interaction;
+    // shelf capacity0 appends one byte to the object. Empty books and absent
+    // reading tuning append two bytes to the pack. Save bytes and the explicit
+    // compatibility fingerprint are unchanged.
+    const PRE_NEEDS_GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
         154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
         100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
         116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64,
-        0, 0, 160, 63, 2, 0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62,
-        0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0,
-        32, 63, 0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62,
-        0, 0, 64, 61, 0, 0, 80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63,
-        0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62,
-        0, 0, 96, 62, 144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4,
-        0, 0, 0, 191, 0, 0, 160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65,
-        0, 0, 64, 65, 0, 0, 160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64,
-        205, 204, 204, 61, 205, 204, 76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65,
-        205, 204, 204, 60, 0, 0, 128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61,
-        0, 0, 160, 64, 95, 112, 137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204,
-        204, 61, 30, 0, 0, 64, 63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0,
-        0, 64, 205, 204, 76, 62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0,
-        128, 62, 205, 204, 204, 61, 154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0,
-        0, 0, 205, 204, 76, 190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10,
-        0, 0, 160, 64, 0, 0, 0, 176, 61, 0, 0, 172, 63, 0, 0, 80, 64, 0, 0, 144,
-        63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65, 4, 0, 0, 48, 63, 0, 0,
-        152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60, 0,
-        0, 188, 63, 0, 0, 144, 62, 0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62, 0,
-        0, 32, 66, 97, 11, 182, 60, 143, 194, 245, 61, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2,
+        0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0,
+        0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64,
+        63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0,
+        0, 80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19,
+        0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144,
+        28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0,
+        0, 160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0,
+        0, 160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205,
+        204, 76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0,
+        0, 128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95,
+        112, 137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0,
+        64, 63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 205, 204, 76,
+        62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0, 128, 62, 205, 204, 204,
+        61, 154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0, 0, 0, 205, 204, 76,
+        190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10, 0, 0, 160, 64, 0,
+        0, 0, 176, 61, 0, 0, 172, 63,
+        0, 0, 80, 64, 0, 0, 144, 63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65,
+        4,
+        0, 0, 48, 63, 0, 0, 152, 62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60,
+        0, 0, 188, 63, 0, 0, 144, 62,
+        0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
+    ];
+
+    const GOLDEN_PACK_BYTES: &[u8] = &[
+        205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
+        154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105, 100,
+        103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0, 12, 66, 1, 0,
+        0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100, 105, 110,
+        103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160,
+        63, 2, 0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128,
+        63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35,
+        59, 0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0,
+        64, 61, 0, 0, 80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0,
+        0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28, 216, 4, 224, 93,
+        0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160, 65, 0, 0, 32, 66, 0, 0, 140,
+        66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128,
+        64, 205, 204, 204, 61, 205, 204, 76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205,
+        204, 204, 60, 0, 0, 128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0,
+        160, 64, 95, 112, 137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61,
+        30, 0, 0, 64, 63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 205, 204, 76,
+        62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0, 128, 62, 205, 204, 204, 61,
+        154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0, 0, 0, 205, 204, 76, 190, 0, 0, 128, 64,
+        0, 0, 0, 0, 0, 0, 0, 0, 30, 10, 0, 0, 160, 64, 0, 0, 0, 176, 61, 0, 0, 172, 63, 0, 0, 80,
+        64, 0, 0, 144, 63, 0, 0, 140, 65, 0, 0, 48, 64, 0, 0, 180, 65, 4, 0, 0, 48, 63, 0, 0, 152,
+        62, 0, 0, 40, 65, 0, 0, 72, 64, 27, 0, 0, 104, 65, 0, 0, 192, 60, 0, 0, 188, 63, 0, 0, 144,
+        62, 0, 0, 16, 63, 0, 0, 64, 62, 0, 0, 176, 62, 0, 0, 32, 66, 97, 11, 182, 60, 143, 194,
+        245, 61, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -4424,11 +4836,20 @@ mod tests {
     /// assume it.
     fn three_objects() -> ObjectsFile {
         ObjectsFile {
+            category: vec![],
+            object_type: vec![],
+            action_template: vec![],
+            model: vec![],
             colourway: Vec::new(),
             affinity: Vec::new(),
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
+                    cooking_front: None,
+                    shelf_capacity: 0,
+                    shelf_access: vec![],
+                    metadata: None,
+                    seat: vec![],
                     sleep_place: Vec::new(),
                     seat_comfort_per_tick: 0.,
                     roles: vec![],
@@ -4470,6 +4891,7 @@ mod tests {
     /// what lets every other test in this module ignore decay entirely.
     fn full_tuning() -> TuningFile {
         TuningFile {
+            reading: None,
             choice_comfort_temperature: 1.0,
             choice_exploration: 0.005,
             choice_comfort_exploration: 0.20,
@@ -4764,9 +5186,18 @@ mod tests {
     /// `one_object` with a footprint, for the rules that need a rectangle.
     fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
+            category: vec![],
+            object_type: vec![],
+            action_template: vec![],
+            model: vec![],
             colourway: Vec::new(),
             affinity: Vec::new(),
             object: vec![ObjectDef {
+                cooking_front: None,
+                shelf_capacity: 0,
+                shelf_access: vec![],
+                metadata: None,
+                seat: vec![],
                 sleep_place: Vec::new(),
                 seat_comfort_per_tick: 0.,
                 roles: vec![],
@@ -4786,6 +5217,10 @@ mod tests {
 
     fn snack() -> InteractionDef {
         InteractionDef {
+            media: None,
+            recipe: None,
+            book_reading: false,
+            seat_use: Default::default(),
             completion_sound: None,
             tags: vec![],
             satisfaction: 0.0,
@@ -5297,6 +5732,11 @@ mod tests {
     fn rejects_duplicate_object_ids() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: vec![],
+            metadata: None,
+            seat: vec![],
             sleep_place: Vec::new(),
             seat_comfort_per_tick: 0.,
             roles: vec![],
@@ -5338,6 +5778,11 @@ mod tests {
     fn allows_the_same_interaction_id_on_different_objects() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: vec![],
+            metadata: None,
+            seat: vec![],
             sleep_place: Vec::new(),
             seat_comfort_per_tick: 0.,
             roles: vec![],
@@ -5786,98 +6231,81 @@ mod tests {
             !GOLDEN_PACK_BYTES.is_empty(),
             "an emptied vector would assert nothing"
         );
-        // From the end: the empty affinity kinds vector ([OA-kinds]) and the
-        // empty skills vector ([SK-content]) before it; the voice clip,
-        // portal, colourway and floor covering vectors before those; the
-        // sleep tag, its length 5 and five letters; nine empty fields from
-        // personalities through circadian; the word bands and the mild trait
-        // value ([OA-hud], [OA-values]), the last twelve bytes of `Tuning`;
-        // the two trait bands ([TL-affinity]), the eight before them; the seven
-        // affinity knobs ([OA-values]), the twenty-five bytes before them;
-        // `first_weekday` ([CAL-week]), the byte before those; the five
-        // overdoing knobs ([OD-content]), the twenty bytes before that; and
-        // then the two ladder knobs. Everything before the ladder is the
-        // established pack.
-        let need_end = GOLDEN_PACK_BYTES.len() - 2 - 4 - 6 - 9;
-        let words_end = need_end - 12;
-        let bands_end = words_end - 12;
-        let affinity_end = bands_end - 8;
-        let affinity_start = affinity_end - 25;
-        let weekday = affinity_start - 1;
-        let overdoing_end = weekday;
-        let ladder_end = overdoing_end - 20;
-        let ladder_start = ladder_end - 8;
+        let (published, rest) = postcard::take_from_bytes::<
+            crate::published_pack_wire::Published2fContentPack,
+        >(GOLDEN_PACK_BYTES)
+        .expect("frozen published witness decodes strictly");
+        assert!(rest.is_empty());
         assert_eq!(
-            &bytes[..ladder_start],
-            &GOLDEN_PACK_BYTES[..ladder_start],
-            "appending to Tuning and to the pack must not move an established byte"
+            postcard::to_allocvec(&published).unwrap(),
+            GOLDEN_PACK_BYTES
         );
-        let ladder: Vec<u8> = [0.0859375f32, 1.34375]
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .collect();
+        let (old, rest) = postcard::take_from_bytes::<
+            crate::published_pack_wire::PublishedContentPack,
+        >(PRE_NEEDS_GOLDEN_PACK_BYTES)
+        .expect("immutable earlier published witness");
+        assert!(rest.is_empty());
         assert_eq!(
-            &bytes[ladder_start..ladder_end],
-            ladder,
-            "the skill ladder precedes the overdoing knobs"
+            postcard::to_allocvec(&old).unwrap(),
+            PRE_NEEDS_GOLDEN_PACK_BYTES
         );
-        let overdoing: Vec<u8> = [3.25f32, 1.125, 17.5, 2.75, 22.5]
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .collect();
-        assert_eq!(
-            &bytes[ladder_end..overdoing_end],
-            overdoing,
-            "the overdoing knobs precede the first weekday"
-        );
-        assert_eq!(
-            bytes[weekday], 4,
-            "first_weekday precedes the affinity knobs"
-        );
-        let affinity: Vec<u8> = [0.6875f32, 0.296875, 10.5, 3.125]
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .chain([27])
-            .chain([14.5f32, 0.0234375].into_iter().flat_map(f32::to_le_bytes))
-            .collect();
-        assert_eq!(
-            &bytes[affinity_start..affinity_end],
-            affinity,
-            "the affinity knobs precede the trait bands"
-        );
-        let bands: Vec<u8> = [1.46875f32, 0.28125]
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .collect();
-        assert_eq!(
-            &bytes[affinity_end..bands_end],
-            bands,
-            "the trait bands precede the word bands"
-        );
-        let words: Vec<u8> = [0.5625f32, 0.1875, 0.34375]
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .collect();
-        assert_eq!(
-            &bytes[bands_end..words_end],
-            words,
-            "the word bands and the mild trait value precede need-interaction tuning"
-        );
-        assert_eq!(
-            &bytes[bytes.len() - 6..],
-            &[0, 0, 0, 0, 0, 0],
-            "each empty vector at the pack tail costs exactly one byte"
-        );
-        let need_tuning: Vec<_> = [40.0f32, 2. / 90., 0.12]
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .collect();
-        assert_eq!(
-            &bytes[words_end..need_end],
-            need_tuning,
-            "need-interaction tuning appends without moving main's established slots"
-        );
-        assert_eq!(bytes, GOLDEN_PACK_BYTES);
+        let old: ContentPack = old.into();
+        assert_eq!(bytes, postcard::to_allocvec(&old).unwrap());
+        let expected: ContentPack = published.into();
+        assert_eq!(bytes, postcard::to_allocvec(&expected).unwrap());
+    }
+
+    #[test]
+    fn book_seat_contracts_compile_and_require_physical_seats() {
+        for seat_use in [crate::SeatUse::One, crate::SeatUse::All] {
+            let mut object = reading_object();
+            object.interaction[0].book_reading = true;
+            object.interaction[0].seat_use = seat_use;
+            let mut objects = one_object(snack());
+            objects.object = vec![object];
+            assert!(
+                compile_objects(full_needs(), objects).is_err(),
+                "seated actions need physical seats"
+            );
+
+            let mut object = reading_object();
+            object.interaction[0].book_reading = true;
+            object.interaction[0].seat_use = seat_use;
+            object.seat = vec![crate::schema::SeatDef {
+                id: "place".into(),
+                x: 0.0,
+                y: 0.0,
+                facing: "SE".into(),
+                approaches: vec![(0, -1)],
+            }];
+            let mut objects = one_object(snack());
+            objects.object = vec![object];
+            let pack = compile_objects(full_needs(), objects).unwrap();
+            assert!(pack.objects[0].interactions[0].book_reading);
+            assert_eq!(pack.objects[0].interactions[0].seat_use, seat_use);
+        }
+    }
+
+    #[test]
+    fn book_seat_contracts_cannot_attach_to_social_only_actions() {
+        let tuning = compile_tuned(full_tuning()).unwrap().tuning;
+        for (reading, seat_use) in [
+            (true, crate::SeatUse::Exclusive),
+            (false, crate::SeatUse::One),
+            (false, crate::SeatUse::All),
+        ] {
+            let mut action = snack();
+            action.visual = None;
+            action.book_reading = reading;
+            action.seat_use = seat_use;
+            assert!(compile_social(
+                SocialFile {
+                    interaction: vec![action]
+                },
+                &tuning
+            )
+            .is_err());
+        }
     }
 
     // ---- Tuning --------------------------------------------------------
@@ -7450,11 +7878,20 @@ mod tests {
     /// holds art for, which is enough: no rule below needs a fourth object.
     fn sized_objects(sized: &[(&str, u32, u32)]) -> ObjectsFile {
         ObjectsFile {
+            category: vec![],
+            object_type: vec![],
+            action_template: vec![],
+            model: vec![],
             colourway: Vec::new(),
             affinity: Vec::new(),
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
+                    cooking_front: None,
+                    shelf_capacity: 0,
+                    shelf_access: vec![],
+                    metadata: None,
+                    seat: vec![],
                     sleep_place: Vec::new(),
                     seat_comfort_per_tick: 0.,
                     roles: vec![],
@@ -9154,6 +9591,11 @@ mod tests {
     fn affinity_object(id: &str, interaction: Vec<InteractionDef>) -> ObjectDef {
         ObjectDef {
             seat_comfort_per_tick: 0.,
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: Vec::new(),
+            metadata: None,
+            seat: Vec::new(),
             sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
@@ -9180,6 +9622,10 @@ mod tests {
         watch.id = "watch".into();
         watch.tags = vec!["broadcast".into()];
         ObjectsFile {
+            category: Vec::new(),
+            object_type: Vec::new(),
+            action_template: Vec::new(),
+            model: Vec::new(),
             colourway: Vec::new(),
             affinity: kinds,
             object: vec![
@@ -9699,6 +10145,11 @@ mod tests {
         // A second object so there are two ObjectDefIds to sort between.
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: vec![],
+            metadata: None,
+            seat: vec![],
             sleep_place: Vec::new(),
             seat_comfort_per_tick: 0.,
             roles: vec![],
@@ -9711,6 +10162,10 @@ mod tests {
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![InteractionDef {
+                media: None,
+                recipe: None,
+                book_reading: false,
+                seat_use: Default::default(),
                 completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
@@ -11139,6 +11594,10 @@ mod tests {
     fn compiles_the_social_vocabulary_into_the_pack() {
         let pack = compile_bare_with_social(vec![
             InteractionDef {
+                media: None,
+                recipe: None,
+                book_reading: false,
+                seat_use: Default::default(),
                 completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
@@ -11160,6 +11619,10 @@ mod tests {
                 slots: 2,
             },
             InteractionDef {
+                media: None,
+                recipe: None,
+                book_reading: false,
+                seat_use: Default::default(),
                 completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
@@ -11222,6 +11685,10 @@ mod tests {
             })
         };
         let chat = |visual| InteractionDef {
+            media: None,
+            recipe: None,
+            book_reading: false,
+            seat_use: Default::default(),
             completion_sound: None,
             tags: vec![],
             satisfaction: 0.0,
@@ -11556,6 +12023,10 @@ mod tests {
             object
         };
         let file = |object| ObjectsFile {
+            category: Vec::new(),
+            object_type: Vec::new(),
+            action_template: Vec::new(),
+            model: Vec::new(),
             object: vec![object],
             colourway: Vec::new(),
             affinity: Vec::new(),
@@ -11600,6 +12071,10 @@ mod tests {
             object: vec![object],
             colourway: Vec::new(),
             affinity: Vec::new(),
+            category: Vec::new(),
+            object_type: Vec::new(),
+            action_template: Vec::new(),
+            model: Vec::new(),
         };
         let pack = compile_objects(full_needs(), file(wash())).unwrap();
         let visual = pack.objects[0].interactions[0].visual.unwrap();
@@ -11626,6 +12101,10 @@ mod tests {
             object: vec![object],
             colourway: Vec::new(),
             affinity: Vec::new(),
+            category: Vec::new(),
+            object_type: Vec::new(),
+            action_template: Vec::new(),
+            model: Vec::new(),
         };
         let pack = compile_objects(full_needs(), file(bath())).unwrap();
         assert_eq!(
@@ -11654,6 +12133,11 @@ mod tests {
 
     fn reading_object() -> ObjectDef {
         ObjectDef {
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: vec![],
+            metadata: None,
+            seat: vec![],
             sleep_place: Vec::new(),
             seat_comfort_per_tick: 0.,
             id: "reading_chair".to_string(),
@@ -11664,6 +12148,10 @@ mod tests {
             base_facing: None,
             footprint: Footprint { width: 3, depth: 3 },
             interaction: vec![InteractionDef {
+                media: None,
+                recipe: None,
+                book_reading: false,
+                seat_use: Default::default(),
                 completion_sound: None,
                 id: "settle_in".to_string(),
                 label: Some("Sit and read".to_string()),
@@ -11718,6 +12206,10 @@ mod tests {
         let pack = compile_objects(
             full_needs(),
             ObjectsFile {
+                category: vec![],
+                object_type: vec![],
+                action_template: vec![],
+                model: vec![],
                 colourway: Vec::new(),
                 affinity: Vec::new(),
                 object: vec![reading_object()],
@@ -11772,6 +12264,10 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    category: vec![],
+                    object_type: vec![],
+                    action_template: vec![],
+                    model: vec![],
                     colourway: Vec::new(),
                     affinity: Vec::new(),
                     object: vec![object],
@@ -11876,6 +12372,10 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    category: vec![],
+                    object_type: vec![],
+                    action_template: vec![],
+                    model: vec![],
                     colourway: Vec::new(),
                     affinity: Vec::new(),
                     object: vec![donor, reader],
@@ -12012,6 +12512,10 @@ mod tests {
             let pack = compile_bare(
                 full_needs(),
                 ObjectsFile {
+                    category: vec![],
+                    object_type: vec![],
+                    action_template: vec![],
+                    model: vec![],
                     colourway: Vec::new(),
                     affinity: Vec::new(),
                     object: vec![reading_object()],
@@ -12074,6 +12578,10 @@ mod tests {
                 compile_bare(
                     full_needs(),
                     ObjectsFile {
+                        category: vec![],
+                        object_type: vec![],
+                        action_template: vec![],
+                        model: vec![],
                         colourway: Vec::new(),
                         affinity: Vec::new(),
                         object: vec![object],
@@ -12127,6 +12635,10 @@ mod tests {
             compile_bare(
                 full_needs(),
                 ObjectsFile {
+                    category: vec![],
+                    object_type: vec![],
+                    action_template: vec![],
+                    model: vec![],
                     colourway: Vec::new(),
                     affinity: Vec::new(),
                     object: vec![object],
@@ -12166,6 +12678,10 @@ mod tests {
         let pack = compile_bare(
             full_needs(),
             ObjectsFile {
+                category: vec![],
+                object_type: vec![],
+                action_template: vec![],
+                model: vec![],
                 colourway: Vec::new(),
                 affinity: Vec::new(),
                 object: vec![object],
@@ -12186,6 +12702,10 @@ mod tests {
     fn rejects_social_content_that_breaks_each_rule() {
         let chat = |mutate: fn(&mut InteractionDef)| {
             let mut act = InteractionDef {
+                media: None,
+                recipe: None,
+                book_reading: false,
+                seat_use: Default::default(),
                 completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
@@ -12275,6 +12795,10 @@ mod tests {
     #[test]
     fn rejects_a_social_interaction_the_duration_floor_would_clip() {
         let talk = |duration_ticks| InteractionDef {
+            media: None,
+            recipe: None,
+            book_reading: false,
+            seat_use: Default::default(),
             completion_sound: None,
             tags: vec![],
             satisfaction: 0.0,
@@ -12522,6 +13046,11 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: vec![],
+            metadata: None,
+            seat: vec![],
             sleep_place: Vec::new(),
             seat_comfort_per_tick: 0.,
             roles: vec!["eating_surface".to_string()],
@@ -12539,6 +13068,10 @@ mod tests {
         compile(
             full_needs(),
             ObjectsFile {
+                category: vec![],
+                object_type: vec![],
+                action_template: vec![],
+                model: vec![],
                 colourway: Vec::new(),
                 affinity: Vec::new(),
                 object: vec![fridge, sink],
@@ -12951,6 +13484,11 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: vec![],
+            metadata: None,
+            seat: vec![],
             sleep_place: Vec::new(),
             seat_comfort_per_tick: 0.,
             roles: vec!["eating_surface".to_string()],
@@ -12968,6 +13506,10 @@ mod tests {
         let err = compile(
             full_needs(),
             ObjectsFile {
+                category: vec![],
+                object_type: vec![],
+                action_template: vec![],
+                model: vec![],
                 colourway: Vec::new(),
                 affinity: Vec::new(),
                 object: vec![fridge, sink],
@@ -13059,6 +13601,10 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    category: vec![],
+                    object_type: vec![],
+                    action_template: vec![],
+                    model: vec![],
                     colourway: Vec::new(),
                     affinity: Vec::new(),
                     object: vec![fridge],

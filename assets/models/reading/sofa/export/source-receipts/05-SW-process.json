@@ -1,0 +1,28 @@
+{
+  "writer_pid": 64800,
+  "memory_samples": [
+    {
+      "elapsed_seconds": 0.3656275,
+      "free_gib": 19.496360778808594
+    },
+    {
+      "elapsed_seconds": 10.7954584,
+      "free_gib": 18.480880737304688
+    },
+    {
+      "elapsed_seconds": 20.4267542,
+      "free_gib": 18.335323333740234
+    },
+    {
+      "elapsed_seconds": 30.820594,
+      "free_gib": 18.60106658935547
+    }
+  ],
+  "launcher_pid": 24532,
+  "exit_code": 0,
+  "stop_reason": null,
+  "elapsed_seconds": 31.3478722,
+  "inputs_unchanged": true,
+  "actual_handle_retained": true,
+  "launch_free_gib": 19.62989044189453
+}

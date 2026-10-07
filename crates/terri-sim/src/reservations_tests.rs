@@ -25,6 +25,8 @@ fn fixture() -> (Sim, Entity, Entity, Entity, Target) {
     pack.careers = terri_data::pack().careers.clone();
     pack.chains = terri_data::pack().chains.clone();
     pack.chains[0].advertised_by = ObjectDefId(0);
+    pack.roles = terri_data::pack().roles.clone();
+    test_content::bind_recipe(&mut pack, 0, 0, 0);
     sim.world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
     let object = sim

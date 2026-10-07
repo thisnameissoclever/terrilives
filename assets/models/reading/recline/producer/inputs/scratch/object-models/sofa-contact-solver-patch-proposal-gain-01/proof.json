@@ -1,0 +1,42 @@
+{
+  "state": "complete",
+  "solver_success": true,
+  "status": 0,
+  "message": "Optimization terminated successfully",
+  "iterations": 14,
+  "maximum_local_gain_fraction": 0.00695179446384441,
+  "parameter_norm": 0.025000000001049898,
+  "minimum_original_margin": -3.618524750670371e-16,
+  "parameters": [
+    -0.000571663423746078,
+    0.0008500682233163761,
+    0.0007584917062446361,
+    -1.0433663840944629e-06,
+    -3.7018876822566895e-05,
+    0.0019177316998308892,
+    0.0003743094561107187,
+    0.008641799687851259,
+    -0.005747924101200805,
+    -0.006076206620826248,
+    -0.0019368587278575382,
+    0.021415948807043277,
+    0.0035386714848733096,
+    -5.194912915828629e-07
+  ],
+  "certificate": {
+    "target_gain_upper_bound": 0.006951794463662976,
+    "feasible_gain": 0.00695179446384441,
+    "gap": -1.8143386099067627e-13,
+    "nonnegative_dual": true,
+    "gain_normalization": 1.0
+  },
+  "elapsed_seconds": 0.30381349998060614,
+  "scope": "Same fixed linear constraints and error reserves; exact constructed-frame/geometry guards remain additional requirements",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_patch_proposal_gain.py": "244ad7ea5c0d23360b95c1186bc17266590b7561866be06d3b38ca670d3e9330",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-proposal-01\\proposal-system.npz": "d339aba16e4787a29f75a96cbe0700d2987ca50c77d9f8b015f810bc32c3407b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-patch-proposal-zero-01\\proof.json": "3d02b74df6a0f64e9ea68ef48580913a0b8a54d67010b030918e1439a4a34a4f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\proof.json": "250e9c47c274183e03fba32cc4911377a3d4355f254dc42ce500e6a805ec3c9e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-block-diagnostic-01\\local-model.npz": "08520ddcb0c5773f3bc64110d4329f94ea350b0c4a9307226cbd37214f0c55b7"
+  }
+}

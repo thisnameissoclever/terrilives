@@ -1,0 +1,23 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_dropped_normal_export_v1.py"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk a6e176 returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 1.3692273,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "222858656ed3096e83f8f8b4bd7aa8ca933d88ab6ca5f7d2425792c9ac7dcc53"
+  },
+  "exporter_sha256": "301b7d272b1b9296f6b337be374be69e78ebd8e0cbcb80146823faf808e09797",
+  "output": {
+    "records": 4,
+    "uniqueTextures": 8,
+    "maximumError": 0,
+    "p95": 0
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

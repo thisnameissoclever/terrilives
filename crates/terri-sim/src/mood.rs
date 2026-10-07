@@ -1034,18 +1034,16 @@ mod tests {
         (id, row as u32)
     }
 
-    /// The flyout row of a chain an object advertises: past the object's
-    /// own interactions, at the chain's position among its chains.
+    /// Current public recipe actions carry their own stable row.
     fn shipped_chain_row(object: &str, chain: &str) -> (ObjectDefId, u32) {
         let pack = terri_data::pack();
         let id = pack.find(object).expect("a shipped object");
-        let slot = pack
-            .chains
-            .iter()
-            .filter(|candidate| candidate.advertised_by == id)
-            .position(|candidate| candidate.id == chain)
-            .expect("the object advertises the chain");
-        (id, (pack.object(id).interactions.len() + slot) as u32)
+        let row = crate::action_rows::rows(pack, id)
+            .into_iter()
+            .find(|row| row.public && row.recipe.is_some_and(|(_, c)| c.id == chain))
+            .expect("the object offers this recipe")
+            .row;
+        (id, row)
     }
 
     /// Replaces a person's habituation with exactly these values.
@@ -1543,16 +1541,14 @@ mod tests {
         // snacks net about 0.25 each because decay runs during each chain.
         // The chains' lengths come from the world generator, so the exact
         // snack that crosses the sick line moves with the draws taken
-        // before it. Conditional need rewards also change the other
-        // housemates' choices and the subsequent duration draws.
+        // before it. Empty bookcases now exclude reading choices, moving the
+        // shared draws and sampled snack lengths; the threshold itself is
+        // checked against actual repetition after every completion above.
         assert_eq!(
             first_overdoing, 4,
             "three snacks in a row are not overdoing; the fourth is"
         );
-        assert_eq!(
-            first_sick, 10,
-            "the tenth snack crosses the measured sickness threshold"
-        );
+        assert_eq!(first_sick, 10, "the tenth snack in a row makes Tim sick");
         assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
         assert!(
             refills.iter().all(|refill| *refill == refills[0]),

@@ -1,0 +1,205 @@
+{
+  "state": "complete",
+  "pid": 64688,
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_construct_v2.py": "1e4f31c4b14682c1712d23c0351044c0100b6eb273dfce3e2977ba71072a5372",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-original-grip-01\\proof.json": "3207d3a3acdb2d58070c32517f24fa2083040add6f4b841db290e5ba14e5120d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-original-grip-01\\case-00.npz": "0e70a5c92070fad15056c67272e87ee0c6bc5e300baf19a306eaf8581f06b56a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966"
+  },
+  "hands": {
+    "L": {
+      "book_relative_frame": [
+        [
+          -0.8703899489468704,
+          0.45701930611526875,
+          0.18312823075242005,
+          -0.1455325079588036
+        ],
+        [
+          0.10494406989141113,
+          -0.19119665772644776,
+          0.9759272345072856,
+          -0.032677146385981154
+        ],
+        [
+          0.4810319026418688,
+          0.8686626208601294,
+          0.11844663833531839,
+          -0.042911691762533344
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_palm_eigenvalues": [
+        0.0004995467043776264,
+        0.0007642538416881151,
+        0.0035607475299580566
+      ],
+      "support": "Reading book cover",
+      "underside_triangle": 8,
+      "support_normal": [
+        0.1197119172832521,
+        0.9928086708225144,
+        -0.0
+      ],
+      "contact": {
+        "projected_area": 0.0005301995843260512,
+        "spans": [
+          0.022763422155697266,
+          0.03204620731534401
+        ],
+        "certified_cells": 20,
+        "occluded_or_ambiguous_cells": 0,
+        "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+      },
+      "convex_vertex_checks": [
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover.001",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover.001",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages.001",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages.001",
+          "inside_vertices": 0
+        }
+      ],
+      "upper_palm_gap": 0.000499999999999997,
+      "thumb_under_plane_clearance": 0.03470030646323445
+    },
+    "R": {
+      "book_relative_frame": [
+        [
+          -0.8511887065560071,
+          -0.4901547799472921,
+          -0.1876566908817882,
+          0.14620179380642212
+        ],
+        [
+          -0.10263707335314062,
+          -0.1951926552419457,
+          0.9753814202488437,
+          -0.03259643333776839
+        ],
+        [
+          -0.5147107647021254,
+          0.849497229512517,
+          0.11582616423772087,
+          -0.04186486259935121
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_palm_eigenvalues": [
+        0.0004995470372108969,
+        0.0007642551130629647,
+        0.0035607396547512986
+      ],
+      "support": "Reading book cover.001",
+      "underside_triangle": 8,
+      "support_normal": [
+        -0.1197119172832521,
+        0.9928086708225144,
+        -0.0
+      ],
+      "contact": {
+        "projected_area": 0.0005301978556876733,
+        "spans": [
+          0.022751963021141117,
+          0.031504418386727524
+        ],
+        "certified_cells": 20,
+        "occluded_or_ambiguous_cells": 0,
+        "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+      },
+      "convex_vertex_checks": [
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover.001",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover.001",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages.001",
+          "inside_vertices": 0
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages.001",
+          "inside_vertices": 0
+        }
+      ],
+      "upper_palm_gap": 0.0005000000000000004,
+      "thumb_under_plane_clearance": 0.03469994268543525
+    }
+  },
+  "contact_gap": 0.0005,
+  "maximum_gap": 0.0015,
+  "construction": "Rigid hand placement from measured broad palm surfaces and finite cover undersides; original book frame retained",
+  "cache_sha256": "650acad9081d6472fd53cb9b868a8dd09b9f3ee3e70c918ecc4c5637609a9ef7",
+  "acceptance": "Cached construction only; full Blender frame, collision and visual verification pending"
+}

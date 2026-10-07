@@ -1,0 +1,135 @@
+{
+  "wasmSHA256": "62be0469ec5e25a29e13446ebb976645a03f9963b6c7f349de1ea5b02de4ecb8",
+  "pass": true,
+  "cases": [
+    {
+      "touch": false,
+      "state": {
+        "copy": 0,
+        "title": "the_locked_laundry",
+        "home": 10,
+        "funds": 994
+      },
+      "point": {
+        "x": 1030,
+        "y": 507,
+        "margin": 3,
+        "copy": 0,
+        "origin": {
+          "x": 656,
+          "y": 228.00021934509277
+        },
+        "bookPosition": [
+          12.75,
+          1
+        ]
+      },
+      "recovered": {
+        "copies": [
+          {
+            "id": 0,
+            "titleId": "the_locked_laundry",
+            "kind": "shelf"
+          }
+        ],
+        "funds": 994,
+        "dropped": 0
+      },
+      "gestures": [
+        {
+          "id": "close-help",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "speed-0",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "stage",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "book-copy-transfer-0",
+          "trusted": true,
+          "detail": 0
+        }
+      ],
+      "keyboard": true,
+      "touchPan": false,
+      "pass": true
+    },
+    {
+      "touch": true,
+      "state": {
+        "copy": 0,
+        "title": "the_locked_laundry",
+        "home": 10,
+        "funds": 994
+      },
+      "point": {
+        "x": 225,
+        "y": 479,
+        "margin": 3,
+        "copy": 0,
+        "origin": {
+          "x": -149,
+          "y": 200.00021934509277
+        },
+        "bookPosition": [
+          12.75,
+          1
+        ]
+      },
+      "recovered": {
+        "copies": [
+          {
+            "id": 0,
+            "titleId": "the_locked_laundry",
+            "kind": "shelf"
+          }
+        ],
+        "funds": 994,
+        "dropped": 0
+      },
+      "gestures": [
+        {
+          "id": "close-help",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "speed-0",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "stage",
+          "trusted": true,
+          "detail": 1
+        },
+        {
+          "id": "book-copy-transfer-0",
+          "trusted": true,
+          "detail": 1
+        }
+      ],
+      "keyboard": false,
+      "touchPan": true,
+      "pass": true
+    }
+  ],
+  "browserClosed": true
+}

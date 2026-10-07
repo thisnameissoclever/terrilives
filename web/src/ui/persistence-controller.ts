@@ -1,5 +1,5 @@
 import type { SaveStore } from '../storage/save-store.js';
-import { saveSchemaVersion } from '../storage/save-header.js';
+import { CURRENT_SAVE_VERSION, saveSchemaVersion } from '../storage/save-header.js';
 
 export interface PersistableSim {
   saveBytes(): Uint8Array;
@@ -244,7 +244,7 @@ export class PersistenceController {
   private protectSavedGame(bytes?: Uint8Array): void {
     this.savingPaused = true;
     const version = bytes ? saveSchemaVersion(bytes) : null;
-    const reason = version !== null && (version < 1 || version > 5)
+    const reason = version !== null && (version < 1 || version > CURRENT_SAVE_VERSION)
       ? `Saved game version ${version} is not supported.`
       : 'Load failed.';
     this.show(

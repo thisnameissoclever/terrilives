@@ -1,0 +1,59 @@
+{
+  "state": "prepared",
+  "scope": "One witness-directed whole-actor outward translation, preserving every complete bone frame and all source geometry",
+  "steps": {
+    "0": -0.010721143007278442,
+    "2": 0.010750289678573608
+  },
+  "rows": [
+    {
+      "owners": [
+        "0",
+        "1"
+      ],
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001"
+      ],
+      "required_y_shift": -0.007322754383087158
+    },
+    {
+      "owners": [
+        "0",
+        "1"
+      ],
+      "parts": [
+        "Turned sleeve cuff",
+        "Relaxed shirt sleeve.001"
+      ],
+      "required_y_shift": -0.010721143007278442
+    },
+    {
+      "owners": [
+        "1",
+        "2"
+      ],
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001"
+      ],
+      "required_y_shift": 0.008346255540847778
+    },
+    {
+      "owners": [
+        "1",
+        "2"
+      ],
+      "parts": [
+        "Relaxed shirt sleeve",
+        "Turned sleeve cuff.001"
+      ],
+      "required_y_shift": 0.010750289678573608
+    }
+  ],
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-clothed-author-01\\cached\\proof.json": "ed966cc26061d5db72f83cbd27d160b6a5c8f667c3a0be7abc55c7b71ad67064",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-clothed-author-01\\cached\\witnesses.npz": "583c13248480f2e1e31acf9e905f2925e698f4718a9d6735113fc5574d21f7d3",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-clothed-author-01\\raw\\authored-geometry.npz": "8db111c667b4a50520f47058a83d11bf2fb082d4d1e76a558347b886f6fe8009"
+  }
+}

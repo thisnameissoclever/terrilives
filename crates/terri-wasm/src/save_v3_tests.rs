@@ -5,6 +5,10 @@ use terri_core::{
 };
 
 pub(super) fn v2_bytes(snapshot: &SaveSnapshotV2) -> Vec<u8> {
+    assert_eq!(
+        snapshot.world.content_fingerprint, 0xcf78_7472_e9e8_38f5,
+        "synthetic historical wire fixtures use the frozen source catalogue"
+    );
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend_from_slice(&2u16.to_le_bytes());
     bytes.extend(postcard::to_allocvec(snapshot).unwrap());
@@ -12,6 +16,10 @@ pub(super) fn v2_bytes(snapshot: &SaveSnapshotV2) -> Vec<u8> {
 }
 
 fn v3_bytes(snapshot: &SaveSnapshotV3) -> Vec<u8> {
+    assert_eq!(
+        snapshot.world.content_fingerprint, 0xcf78_7472_e9e8_38f5,
+        "synthetic historical wire fixtures use the frozen source catalogue"
+    );
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend_from_slice(&3u16.to_le_bytes());
     bytes.extend(postcard::to_allocvec(snapshot).unwrap());
@@ -19,13 +27,26 @@ fn v3_bytes(snapshot: &SaveSnapshotV3) -> Vec<u8> {
 }
 
 fn v4_bytes(snapshot: &SaveSnapshotV4) -> Vec<u8> {
+    assert_eq!(
+        snapshot.world.content_fingerprint, 0xcf78_7472_e9e8_38f5,
+        "synthetic historical wire fixtures use the frozen source catalogue"
+    );
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend_from_slice(&4u16.to_le_bytes());
     bytes.extend(postcard::to_allocvec(snapshot).unwrap());
     bytes
 }
 
-fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
+pub(super) fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
+    assert_eq!(
+        snapshot.world.content_fingerprint, 0xcf78_7472_e9e8_38f5,
+        "synthetic historical wire fixtures use the frozen source catalogue"
+    );
+    raw_v5_bytes(snapshot)
+}
+
+/// Deliberately corrupt fingerprint fixtures opt out of source provenance explicitly.
+pub(super) fn raw_v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend_from_slice(&5u16.to_le_bytes());
     bytes.extend(postcard::to_allocvec(snapshot).unwrap());
@@ -144,7 +165,7 @@ fn assert_current_resave_is_stable(handle: &SimHandle) {
 #[test]
 fn grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut() {
     use terri_core::save::SavedSleepingPlaces;
-    let mut source = SimHandle::from_lot().sim.save_snapshot_v5();
+    let mut source = published_household().sim.save_snapshot_v5();
     for state in [
         SavedSleepingPlaces::default(),
         SavedSleepingPlaces {
@@ -195,7 +216,7 @@ fn grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut() {
 
 #[test]
 fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
-    let mut source = SimHandle::from_lot();
+    let mut source = published_household();
     let mut saved = source.sim.save_snapshot_v5();
     let agent = saved
         .world
@@ -290,10 +311,11 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
         bytes.extend(prefix);
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&bytes));
+        let historical_control = v5_bytes(&snapshot);
         expect_affinity_seed(&loaded, &mut snapshot);
-        assert_eq!(loaded.sim.save_snapshot_v5(), snapshot);
+        assert_eq!(loaded.sim.save_snapshot_v5(), current_v5(snapshot.clone()));
         let mut control = SimHandle::from_lot();
-        assert!(control.load_bytes(&v5_bytes(&snapshot)));
+        assert!(control.load_bytes(&historical_control));
         for _ in 0..60 {
             loaded.tick();
             control.tick();
@@ -339,7 +361,7 @@ fn independent_bed_release_wasm_saves_preserve_claims_and_pending_command_19() {
         assert!(loaded.load_bytes(bytes));
         let actual = loaded.sim.save_snapshot_v5();
         let mut normalized = expected.clone();
-        normalized.world.content_fingerprint = actual.world.content_fingerprint;
+        normalized.world = current_world(normalized.world);
         assert!(normalized.skills.is_none());
         normalized.skills = assert_seeded_from_states(&loaded);
         assert!(normalized.affinities.is_none());
@@ -372,7 +394,7 @@ fn independent_bed_release_wasm_saves_preserve_claims_and_pending_command_19() {
 
 #[test]
 fn published_v5_instinct_and_chronotype_prefix_survives_privacy_extension() {
-    let source = SimHandle::from_lot();
+    let source = published_household();
     let mut snapshot = source.sim.save_snapshot_v5();
     let person = snapshot.self_preservation[0].0;
     snapshot.self_preservation[0].1 = 73;
@@ -518,13 +540,13 @@ fn an_edit_of_a_loaded_historical_save_survives_save_load_and_replays() {
 
 #[test]
 fn chronotype_v5_roundtrips_exact_signed_offsets_and_legacy_defaults() {
-    let source = SimHandle::from_lot();
+    let source = published_household();
     let mut snapshot = source.sim.save_snapshot_v5();
     let people: Vec<_> = snapshot.self_preservation.iter().map(|row| row.0).collect();
     snapshot.chronotype_offsets = vec![(people[0], i32::MIN), (people[1], i32::MAX)];
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(&v5_bytes(&snapshot)));
-    assert_eq!(loaded.sim.save_snapshot_v5(), snapshot);
+    assert_eq!(loaded.sim.save_snapshot_v5(), current_v5(snapshot.clone()));
     assert_current_resave_is_stable(&loaded);
 
     let bytes = v5_bytes(&snapshot);
@@ -535,14 +557,22 @@ fn chronotype_v5_roundtrips_exact_signed_offsets_and_legacy_defaults() {
     // The prefix predates affinities too, so the load draws them.
     let mut seeded = snapshot.clone();
     expect_affinity_seed(&loaded, &mut seeded);
-    assert_eq!(loaded.sim.save_snapshot_v5().world, seeded.world);
+    assert_eq!(
+        loaded.sim.save_snapshot_v5().world,
+        current_world(seeded.world)
+    );
     assert_current_resave_is_stable(&loaded);
 }
 
 #[test]
 fn chronotype_v5_rejects_invalid_complete_rows_without_changing_the_live_world() {
     let mut live = SimHandle::from_lot();
-    let good = live.sim.save_snapshot_v5();
+    let good = published_household().sim.save_snapshot_v5();
+    let mut positive = SimHandle::from_lot();
+    assert!(
+        positive.load_bytes(&v5_bytes(&good)),
+        "uncorrupted historical chronotypes load"
+    );
     let people: Vec<_> = good.self_preservation.iter().map(|row| row.0).collect();
     let object = good
         .world
@@ -582,7 +612,7 @@ fn chronotype_v5_rejects_invalid_complete_rows_without_changing_the_live_world()
 
 #[test]
 fn chronotype_v5_rejects_every_partial_tail_and_noncanonical_length_atomically() {
-    let source = SimHandle::from_lot();
+    let source = published_household();
     let mut snapshot = source.sim.save_snapshot_v5();
     let person = snapshot.self_preservation[0].0;
     let mut loaded = SimHandle::from_lot();
@@ -620,7 +650,7 @@ fn chronotype_v5_rejects_every_partial_tail_and_noncanonical_length_atomically()
 /// V3 bytes here are built directly.
 #[test]
 fn v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body() {
-    let source = SimHandle::new(4, 4);
+    let source = published_empty(4, 4);
     let valid = v3_bytes(&source.sim.save_snapshot_v3());
     assert_eq!(&valid[8..10], &[3, 0]);
     assert_eq!(&valid[valid.len() - 3..], &[1, 0, 0]);
@@ -629,7 +659,10 @@ fn v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body() {
         restored.load_bytes(&valid),
         "an empty required facing list is valid"
     );
-    assert_eq!(v3_bytes(&restored.sim.save_snapshot_v3()), valid);
+    let mut expected = source.sim.save_snapshot_v3();
+    expected.world = current_world(expected.world);
+    assert_eq!(restored.sim.save_snapshot_v3(), expected);
+    assert_current_resave_is_stable(&restored);
     let mut mislabeled = v2_bytes(&source.sim.save_snapshot_v2());
     mislabeled[8] = 3;
     let mut trailing = valid.clone();
@@ -641,7 +674,7 @@ fn v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body() {
     future[8] = 5;
     let mut cases = vec![mislabeled, trailing, early, future];
     cases.extend((SAVE_HEADER_BYTES..valid.len()).map(|cut| valid[..cut].to_vec()));
-    let mut with_facing = SimHandle::new(4, 4);
+    let mut with_facing = published_empty(4, 4);
     assert!(with_facing.spawn_object(1.0, 1.0, "reading_chair"));
     let faced = v3_bytes(&with_facing.sim.save_snapshot_v3());
     cases.push(faced[..faced.len() - 1].to_vec());
@@ -658,7 +691,7 @@ fn v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body() {
 }
 
 #[test]
-fn v3_rotated_geometry_and_ordered_pending_commands_survive_the_public_envelope() {
+fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_envelope() {
     let mut source = SimHandle::new(8, 8);
     let content = source.sim.world().resource::<Content>().0;
     let tub = source.sim.spawn_object(
@@ -682,10 +715,14 @@ fn v3_rotated_geometry_and_ordered_pending_commands_survive_the_public_envelope(
     });
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
-    let decoded: SaveSnapshotV3 = postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
-    assert_eq!(decoded.object_facings, vec![(0, 0)]);
+    let (decoded, tail) =
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV6>(&bytes[SAVE_HEADER_BYTES..])
+            .unwrap();
+    assert!(tail.is_empty());
+    assert_eq!(&bytes[8..10], &7u16.to_le_bytes());
+    assert_eq!(decoded.legacy.object_facings, vec![(0, 0)]);
     assert_eq!(
-        decoded.world.queued_commands,
+        decoded.legacy.world.queued_commands,
         vec![
             SavedCommand::SetSpeed(2),
             SavedCommand::PlaceObject {
@@ -700,7 +737,7 @@ fn v3_rotated_geometry_and_ordered_pending_commands_survive_the_public_envelope(
     let mut loaded = SimHandle::new(1, 1);
     assert!(loaded.load_bytes(&bytes));
     assert_eq!(loaded.object_facing(0.0), Some(0));
-    assert_eq!(loaded.sim.save_snapshot_v3(), decoded);
+    assert_eq!(loaded.sim.save_snapshot_v6(), decoded);
     assert_eq!(loaded.save_bytes(), bytes);
     for _ in 0..20 {
         loaded.tick();
@@ -711,8 +748,13 @@ fn v3_rotated_geometry_and_ordered_pending_commands_survive_the_public_envelope(
 
 #[test]
 fn v3_bad_facing_rows_and_layout_are_refused_before_live_replacement() {
-    let source = SimHandle::from_lot();
+    let source = published_household();
     let valid = source.sim.save_snapshot_v3();
+    let mut positive = SimHandle::from_lot();
+    assert!(
+        positive.load_bytes(&v3_bytes(&valid)),
+        "uncorrupted historical facing rows load"
+    );
     let object = valid
         .world
         .entities
@@ -748,11 +790,11 @@ fn v3_bad_facing_rows_and_layout_are_refused_before_live_replacement() {
 
 /// [SL-save]: a V4 envelope ends with the retired list, and is read as
 /// strictly as V3: every truncation and trailing data refused, the running
-/// world untouched. The writer is V5 now, so the V4 bytes here are built
+/// world untouched. The writer is V6 now, so the V4 bytes here are built
 /// directly.
 #[test]
 fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
-    let mut source = SimHandle::new(4, 4);
+    let mut source = published_empty(4, 4);
     assert!(source.spawn_object(1.0, 1.0, "reading_chair"));
     let valid = v4_bytes(&source.sim.save_snapshot_v4());
     assert_eq!(&valid[8..10], &[4, 0]);
@@ -763,7 +805,10 @@ fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
     );
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&valid));
-    assert_eq!(restored.save_bytes(), source.save_bytes());
+    assert_eq!(
+        restored.sim.save_snapshot_v5(),
+        current_v5(source.sim.save_snapshot_v5())
+    );
     let mut trailing = valid.clone();
     trailing.push(0);
     let mut cases = vec![trailing];
@@ -784,15 +829,18 @@ fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
 /// the running world untouched. A recoloured object survives the round trip.
 #[test]
 fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
-    let mut source = SimHandle::new(4, 4);
+    let mut source = SimHandle {
+        sim: Sim::new_with_lot_and_content(4, 4, Content::published_pre_books()),
+    };
     assert!(source.spawn_object(1.0, 1.0, "reading_chair"));
-    let plain = source.save_bytes();
+    let plain = v5_bytes(&source.sim.save_snapshot_v5());
     assert_eq!(&plain[8..10], &[5, 0]);
     assert_eq!(plain, v5_bytes(&source.sim.save_snapshot_v5()));
     // Sleeping places are `Some` of two empty lists (1, 0, 0), then empty
     // shyness and boundary lists (0, 0), no dining (0), and skills and
     // affinities each as `Some` of an empty row list (1, 0): the encoding
     // of each field below.
+    let snapshot = source.sim.save_snapshot_v5();
     let mut tail = Vec::new();
     for field in [
         postcard::to_allocvec(&Some(terri_core::save::SavedSleepingPlaces::default())),
@@ -800,16 +848,16 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
         postcard::to_allocvec(&Vec::<terri_core::save::SavedBoundaryDecision>::new()),
         postcard::to_allocvec(&None::<terri_core::save::SavedDining>),
         postcard::to_allocvec(&Some(terri_core::save::SavedSkills::default())),
-        postcard::to_allocvec(&Some(terri_core::save::SavedAffinities::default())),
+        postcard::to_allocvec(&snapshot.affinities),
         postcard::to_allocvec(&None::<terri_core::save::SavedTargetedCleanup>),
         postcard::to_allocvec(&None::<terri_core::chores::SavedChores>),
         postcard::to_allocvec(&None::<terri_core::grime::SavedGrime>),
     ] {
         tail.extend(field.unwrap());
     }
-    assert_eq!(tail, [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0]);
+    assert_eq!(tail, [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]);
     assert_eq!(
-        &plain[plain.len() - 13..],
+        &plain[plain.len() - tail.len()..],
         &tail[..],
         "current saves carry sleeping places, privacy, dining, skills, affinities and cleanup explicitly"
     );
@@ -818,10 +866,13 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
         .unwrap();
     assert!(source.set_colourway(f64::from(chair), 3.0));
     source.sim.flush_commands();
-    let valid = source.save_bytes();
+    let valid = v5_bytes(&source.sim.save_snapshot_v5());
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&valid));
-    assert_eq!(restored.save_bytes(), valid);
+    assert_eq!(
+        restored.sim.save_snapshot_v5(),
+        current_v5(source.sim.save_snapshot_v5())
+    );
     assert_eq!(restored.object_colourway(f64::from(chair)), 3);
     let mut trailing = valid.clone();
     trailing.push(0);
@@ -848,10 +899,10 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     // Review finding [F1] on PR 131: a save written before ties existed but
     // WITH floors the player painted. Cutting the two family bytes leaves
     // those floors, and they must survive rather than look invented.
-    let mut painter = SimHandle::from_lot();
+    let mut painter = published_household();
     assert!(painter.set_floor(2.0, 2.0, 1.0));
     painter.flush_commands();
-    let painted = painter.save_bytes();
+    let painted = v5_bytes(&painter.sim.save_snapshot_v5());
     let tail = v5_appended_lengths(&painter.sim.save_snapshot_v5())[1..]
         .iter()
         .sum::<usize>();
@@ -888,10 +939,10 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
             "a save written before {what} existed must still load"
         );
         assert_eq!(
-            restored.save_bytes(),
-            valid,
-            "and it saves again with its own empty lists"
+            restored.sim.save_snapshot_v5(),
+            current_v5(source.sim.save_snapshot_v5())
         );
+        assert_current_resave_is_stable(&restored);
     }
 }
 
@@ -914,7 +965,7 @@ fn two_sims(handle: &mut SimHandle) -> (u32, u32) {
 /// people related, now named by SimId, and saves again in today's form.
 #[test]
 fn a_save_that_keyed_ties_on_entity_indices_loads_them_as_sim_ids() {
-    let mut handle = SimHandle::from_lot();
+    let mut handle = published_household();
     let (first, second) = two_sims(&mut handle);
     assert!(handle.set_family_tie(f64::from(first), f64::from(second), 1.0));
     handle.flush_commands();
@@ -948,12 +999,17 @@ fn a_save_that_keyed_ties_on_entity_indices_loads_them_as_sim_ids() {
 /// SimId this world never issued cannot be true.
 #[test]
 fn a_save_whose_ties_cannot_be_true_is_refused() {
-    let mut handle = SimHandle::from_lot();
+    let mut handle = published_household();
     let (first, second) = two_sims(&mut handle);
     assert!(handle.set_family_tie(f64::from(first), f64::from(second), 3.0));
     handle.flush_commands();
     let base = handle.sim.save_snapshot_v5();
     assert!(!base.family.ties().is_empty());
+    let mut positive = SimHandle::from_lot();
+    assert!(
+        positive.load_bytes(&v5_bytes(&base)),
+        "uncorrupted historical family ties load"
+    );
 
     let mut both = base.clone();
     both.family_by_index = terri_core::layout::FamilyTies::default();
@@ -1022,7 +1078,7 @@ fn a_save_whose_ties_cannot_be_true_is_refused() {
 /// covering nobody laid. Both are refused by the decoder itself.
 #[test]
 fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
-    let mut handle = SimHandle::from_lot();
+    let mut handle = published_household();
     let (first, second) = two_sims(&mut handle);
     let mut snapshot = handle.sim.save_snapshot_v5();
     let mut by_index = terri_core::layout::FamilyTies::default();
@@ -1036,7 +1092,7 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     let mut restored = SimHandle::from_lot();
     assert!(!restored.load_bytes(cut), "a relation nobody chose");
 
-    let mut painter = SimHandle::from_lot();
+    let mut painter = published_household();
     assert!(painter.set_floor(2.0, 2.0, 1.0));
     painter.flush_commands();
     let painted = painter.save_bytes();
@@ -1113,12 +1169,12 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
 
 #[test]
 fn pre_mortality_save_preserves_nonempty_floors_and_family() {
-    let mut handle = SimHandle::from_lot();
+    let mut handle = published_household();
     let (first, second) = two_sims(&mut handle);
     assert!(handle.set_floor(2.0, 2.0, 1.0));
     assert!(handle.set_family_tie(first.into(), second.into(), 1.0));
     handle.flush_commands();
-    let bytes = handle.save_bytes();
+    let bytes = v5_bytes(&handle.sim.save_snapshot_v5());
     let tail = v5_appended_lengths(&handle.sim.save_snapshot_v5())[3..]
         .iter()
         .sum::<usize>();
@@ -1155,7 +1211,7 @@ fn mortality_length_truncation_cannot_invent_an_empty_count_list() {
 
 #[test]
 fn waiting_length_truncation_cannot_invent_an_empty_list() {
-    let mut snapshot = SimHandle::from_lot().sim.save_snapshot_v5();
+    let mut snapshot = published_household().sim.save_snapshot_v5();
     snapshot.waiting_needs = (0..128).map(|i| (i, 129, 1)).collect();
     let tail = postcard::to_allocvec(&snapshot.waiting_needs).unwrap();
     assert_eq!(&tail[..2], &[128, 1]);
@@ -1172,7 +1228,7 @@ fn waiting_length_truncation_cannot_invent_an_empty_list() {
 
 #[test]
 fn pre_default_change_preserves_nonempty_mortality_and_enables_death() {
-    let mut source = SimHandle::from_lot();
+    let mut source = published_household();
     let (first, second) = two_sims(&mut source);
     assert!(source.set_floor(2.0, 2.0, 1.0));
     assert!(source.set_family_tie(first.into(), second.into(), 1.0));
@@ -1195,7 +1251,7 @@ fn pre_default_change_preserves_nonempty_mortality_and_enables_death() {
 
 #[test]
 fn shyness_length_and_record_truncations_cannot_invent_stats() {
-    let mut snapshot = SimHandle::from_lot().sim.save_snapshot_v5();
+    let mut snapshot = published_household().sim.save_snapshot_v5();
     snapshot.shyness = (0..128).map(|id| (id, 100)).collect();
     let tail = postcard::to_allocvec(&snapshot.shyness).unwrap();
     assert_eq!(&tail[..2], &[128, 1]);
@@ -1212,7 +1268,7 @@ fn shyness_length_and_record_truncations_cannot_invent_stats() {
 
 #[test]
 fn boundary_length_and_record_truncations_cannot_invent_decisions() {
-    let mut snapshot = SimHandle::from_lot().sim.save_snapshot_v5();
+    let mut snapshot = published_household().sim.save_snapshot_v5();
     snapshot.boundaries = (0..128)
         .map(|actor| terri_core::save::SavedBoundaryDecision {
             actor,
@@ -1288,7 +1344,7 @@ fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter()
 
 #[test]
 fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() {
-    let mut source = SimHandle::from_lot();
+    let mut source = published_household();
     let mut snapshot = source.sim.save_snapshot_v5();
     let counter = snapshot
         .world
@@ -1400,7 +1456,10 @@ fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() 
     assert!(loaded.load_bytes(&bytes));
     let actual = loaded.sim.save_snapshot_v5();
     assert_eq!(actual.domestic, snapshot.domestic);
-    assert_eq!(actual.world.entities, snapshot.world.entities);
+    assert_eq!(
+        actual.world.entities,
+        current_world(snapshot.world.clone()).entities
+    );
     assert_current_resave_is_stable(&loaded);
     // Every interior cut of the public domestic group must fail transactionally.
     let tail = postcard::to_allocvec(&snapshot.domestic).unwrap();
@@ -1419,7 +1478,7 @@ fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() 
 
 #[test]
 fn optional_group_multibyte_cuts_and_frozen_bed_none_fail_closed() {
-    let mut snapshot = SimHandle::from_lot().sim.save_snapshot_v5();
+    let mut snapshot = published_household().sim.save_snapshot_v5();
     snapshot.domestic = Some(terri_core::save::SavedDomestic {
         cleanliness: vec![(300, 0.73); 128],
         ..Default::default()
@@ -1477,7 +1536,7 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
     let bytes = include_bytes!("../../../web/review/domestic.save");
     assert_eq!(
         &bytes[..SAVE_HEADER_BYTES],
-        &SimHandle::from_lot().save_bytes()[..SAVE_HEADER_BYTES]
+        &v5_bytes(&published_household().sim.save_snapshot_v5())[..SAVE_HEADER_BYTES]
     );
     let mut expected = decode_v5(&bytes[SAVE_HEADER_BYTES..]).expect("released domestic payload");
     assert_eq!(expected.world.content_fingerprint, 0x85a2_d140_0dff_9da1);
@@ -1502,7 +1561,7 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
     }
     let mut loaded = SimHandle::from_lot();
     assert!(loaded.load_bytes(bytes));
-    expected.world.content_fingerprint = loaded.sim.save_snapshot_v5().world.content_fingerprint;
+    expected.world = current_world(expected.world);
     expected.sleeping_places = Some(terri_core::save::SavedSleepingPlaces::default());
     assert!(expected.skills.is_none());
     expected.skills = assert_seeded_from_states(&loaded);
@@ -1526,7 +1585,10 @@ fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
 /// inside postcard's two-byte long form, is refused with the live world untouched.
 #[test]
 fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
-    let mut source = SimHandle::from_lot();
+    let content = Content::published_pre_books();
+    let mut source = SimHandle {
+        sim: Sim::new_household_with_content(content, content.0.tuning.rng_seed),
+    };
     let pack = source.sim.world().resource::<Content>().0;
     let people: Vec<_> = source
         .sim
@@ -1546,7 +1608,7 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
     let snapshot = source.sim.save_snapshot_v5();
     let saved = snapshot.skills.clone().unwrap();
     assert_eq!(saved.rows.len(), people.len() * pack.skills.len());
-    let bytes = source.save_bytes();
+    let bytes = v5_bytes(&snapshot);
     let tail = postcard::to_allocvec(&snapshot.skills).unwrap();
     assert_eq!(v5_appended_lengths(&snapshot)[13], tail.len());
     let lengths = v5_appended_lengths(&snapshot);
@@ -1556,7 +1618,7 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
     let mut full = SimHandle::from_lot();
     assert!(full.load_bytes(&bytes));
     assert_eq!(full.sim.save_snapshot_v5().skills, Some(saved));
-    assert_eq!(full.save_bytes(), bytes);
+    assert_current_resave_is_stable(&full);
 
     let mut legacy = SimHandle::from_lot();
     assert!(
@@ -1603,8 +1665,8 @@ fn skills_tail_loads_whole_absent_and_refuses_every_partial_row() {
 /// fields still decodes, so the padding reaches the oldest V5 shape.
 #[test]
 fn decode_pads_the_affinities_list() {
-    let source = SimHandle::from_lot();
-    let snapshot = source.sim.save_snapshot_v5();
+    let bytes = include_bytes!("../tests/fixtures/published-f3cb7a1c/initial.bin").to_vec();
+    let snapshot = decode_v5(&bytes[SAVE_HEADER_BYTES..]).unwrap();
     let saved = snapshot
         .affinities
         .clone()
@@ -1613,19 +1675,18 @@ fn decode_pads_the_affinities_list() {
         saved.rows.len() >= 2,
         "the shipped household draws values, so the field has rows to cut"
     );
-    let bytes = source.save_bytes();
     let lengths = v5_appended_lengths(&snapshot);
     assert_eq!(lengths.len(), 18);
     let tail = postcard::to_allocvec(&snapshot.affinities).unwrap();
     assert_eq!(lengths[14], tail.len());
-    let end = bytes.len() - lengths[15..].iter().sum::<usize>();
+    let end = bytes.len();
     assert_eq!(&bytes[end - tail.len()..end], &tail);
     let start = end - tail.len();
 
     let mut full = SimHandle::from_lot();
     assert!(full.load_bytes(&bytes));
     assert_eq!(full.sim.save_snapshot_v5().affinities, Some(saved));
-    assert_eq!(full.save_bytes(), bytes);
+    assert_current_resave_is_stable(&full);
 
     let stripped = decode_v5(&bytes[SAVE_HEADER_BYTES..start]).expect("a pre-affinity save");
     assert_eq!(stripped.affinities, None);
@@ -1639,7 +1700,7 @@ fn decode_pads_the_affinities_list() {
     );
     let mut expected = snapshot.clone();
     expect_affinity_seed(&legacy, &mut expected);
-    assert_eq!(legacy.sim.save_snapshot_v5(), expected);
+    assert_eq!(legacy.sim.save_snapshot_v5(), current_v5(expected));
     assert_current_resave_is_stable(&legacy);
 
     let before = legacy.save_bytes();
@@ -1659,7 +1720,7 @@ fn decode_pads_the_affinities_list() {
         assert_eq!(legacy.world_hash(), hash);
     }
 
-    let oldest = bytes.len() - lengths.iter().sum::<usize>();
+    let oldest = bytes.len() - lengths[..15].iter().sum::<usize>();
     let decoded = decode_v5(&bytes[SAVE_HEADER_BYTES..oldest])
         .expect("a payload without any appended field decodes");
     assert_eq!(decoded.affinities, None);
@@ -1772,8 +1833,9 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         .iter()
         .position(|action| action.id == "grab_snack")
         .expect("the fridge offers a snack") as u32;
-    let good = handle.sim.save_snapshot_v5();
+    let good = handle.sim.save_snapshot_v6();
     let person = good
+        .legacy
         .world
         .entities
         .iter()
@@ -1781,19 +1843,26 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         .expect("the shipped household");
     let with_value = |value: f32| {
         let mut snapshot = good.clone();
-        snapshot.world.entities[person].habituation = Some(vec![terri_core::SavedHabituation {
-            object: "fridge".into(),
-            interaction: row,
-            value,
-        }]);
+        snapshot.legacy.world.entities[person].habituation =
+            Some(vec![terri_core::SavedHabituation {
+                object: "fridge".into(),
+                interaction: row,
+                value,
+            }]);
         snapshot
     };
 
+    let current_bytes = |snapshot: &terri_core::SaveSnapshotV6| {
+        let mut bytes = SAVE_MAGIC.to_vec();
+        bytes.extend_from_slice(&7u16.to_le_bytes());
+        bytes.extend(postcard::to_allocvec(snapshot).unwrap());
+        bytes
+    };
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
     for refused in [max + 0.001, 3.5] {
         assert!(
-            !handle.load_bytes(&v5_bytes(&with_value(refused))),
+            !handle.load_bytes(&current_bytes(&with_value(refused))),
             "{refused} is above the maximum {max}"
         );
         assert_eq!(handle.save_bytes(), bytes, "a refused load changes nothing");
@@ -1801,11 +1870,11 @@ fn overdone_habituation_loads_through_the_public_boundary() {
     }
 
     let overdone = with_value(2.0);
-    assert!(handle.load_bytes(&v5_bytes(&overdone)));
-    assert_eq!(handle.sim.save_snapshot_v5(), overdone);
+    assert!(handle.load_bytes(&current_bytes(&overdone)));
+    assert_eq!(handle.sim.save_snapshot_v6(), overdone);
     assert_eq!(
         handle.save_bytes(),
-        v5_bytes(&overdone),
+        current_bytes(&overdone),
         "2.0 round-trips exactly"
     );
 }

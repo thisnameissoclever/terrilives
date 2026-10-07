@@ -40,10 +40,10 @@ it('preserves bin scenery, placement, colours and saves through all four rotatio
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.objectName(6)).toBe('Receptacle for Later');
+    expect(sim.objectName(6)).toBe('Trash can');
     expect(sim.interactionLabels(6)).toEqual([]);
-    expect(sim.catalogue().find(row => row.name === 'Receptacle for Later')).toMatchObject({
-      price: 20, facings: 15, baseFacing: 0,
+    expect(sim.catalogue().find(row => row.name === 'Trash can')).toMatchObject({
+      price: 15, facings: 15, baseFacing: 0,
     });
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {
       const index = atlas.spriteIndex('offlineTrashcan' + suffix);

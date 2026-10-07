@@ -74,6 +74,11 @@ use crate::Content;
 #[derive(SystemParam)]
 pub struct BedState<'w, 's> {
     pub(super) assignments: Res<'w, crate::beds::BedAssignments>,
+    content: Res<'w, Content>,
+    seat_claims: Query<'w, 's, (Entity, &'static crate::seating::PhysicalClaim)>,
+    definitions: Query<'w, 's, &'static SmartObject>,
+    recipe_orders: Query<'w, 's, &'static crate::recipe_actions::RecipeOrder>,
+    journeys: Query<'w, 's, (Entity, &'static crate::reading::ReadingJourney)>,
     places: Option<Res<'w, terri_core::save::SavedDining>>,
     objects: Query<'w, 's, Entity, With<SmartObject>>,
     targets: Query<
@@ -98,11 +103,61 @@ impl BedState<'_, '_> {
             }),
             self.reservations.iter(),
         );
+        result.historical_endpoints(terri_data::is_pre_books_pack(self.content.0));
+        for (owner, claim) in self.seat_claims.iter() {
+            if let Ok(definition) = self.definitions.get(claim.furniture) {
+                if let Some(ordinal) = self
+                    .content
+                    .0
+                    .object(definition.0)
+                    .seats
+                    .iter()
+                    .position(|s| s.id == claim.seat)
+                {
+                    result.physical_seat_claim(owner, claim.furniture, ordinal as u16, claim.all);
+                }
+            }
+        }
+        for (owner, j) in self.journeys.iter() {
+            for endpoint in crate::reading::endpoints(owner, j) {
+                result.claim_endpoint(endpoint);
+            }
+        }
         for place in self
             .places
             .as_ref()
-            .map_or_else(Vec::new, |s| s.diners.clone())
+            .map_or_else(Vec::new, |state| state.diners.clone())
         {
+            if let Some((owner, target, _, _)) =
+                self.targets.iter().find(|(owner, target, _, agent)| {
+                    *agent
+                        && owner.index_u32() == place.person
+                        && target.object.index_u32() == place.station
+                })
+            {
+                let kind = if target.interaction == crate::systems::chain::CHAIN_STEP {
+                    Some(crate::seating::UseKind::Meal)
+                } else {
+                    self.definitions
+                        .get(target.object)
+                        .ok()
+                        .and_then(|object| {
+                            crate::seating::media_activity(
+                                self.content.0,
+                                object.0,
+                                target.interaction,
+                            )
+                        })
+                        .map(|_| crate::seating::UseKind::MediaEndpoint)
+                };
+                if let Some(kind) = kind {
+                    result.claim_endpoint(crate::seating::EndpointUse {
+                        owner,
+                        endpoint: place.endpoint,
+                        kind,
+                    });
+                }
+            }
             if let Some(chair) = place.chair {
                 if let Some((owner, _, _, _)) =
                     self.targets.iter().find(|(owner, target, _, agent)| {
@@ -112,7 +167,11 @@ impl BedState<'_, '_> {
                     })
                 {
                     if let Some(object) = self.objects.iter().find(|e| e.index_u32() == chair) {
-                        result.physical_claim(owner, object);
+                        if terri_data::is_pre_books_pack(self.content.0)
+                            && self.seat_claims.get(owner).is_err()
+                        {
+                            result.physical_claim(owner, object);
+                        }
                     }
                 }
             }
@@ -537,10 +596,12 @@ fn record_directed_chain(
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn serve_intents(
     mut commands: Commands,
-    scoped: Option<Res<terri_core::save::SavedTargetedCleanup>>,
-    grid: Res<TileGrid>,
-    content: Res<Content>,
-    social_company: Res<crate::social_company::SocialCompany>,
+    context: (
+        Option<Res<terri_core::save::SavedTargetedCleanup>>,
+        Res<TileGrid>,
+        Res<Content>,
+        Res<crate::social_company::SocialCompany>,
+    ),
     positions: Query<(&Position, Option<&Path>), With<Agent>>,
     need_levels: Query<&Needs>,
     beds: BedState,
@@ -548,6 +609,10 @@ pub fn serve_intents(
     mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
     identities: Query<&SimId>,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
+    journeys: Query<&crate::reading::ReadingJourney>,
+    carrying: Query<(), With<terri_core::Carrying>>,
+    reading: Option<Res<crate::reading::Options>>,
+    mut rng: ResMut<SimRng>,
     // Work outranks the queue - [E4]. serve_intents deliberately sees
     // mid-walk and mid-meal sims because a player intent preempts, but
     // the clock's preemption is not preemptable back: a commuting or
@@ -565,6 +630,7 @@ pub fn serve_intents(
             With<Agent>,
             Without<terri_core::AtWork>,
             Without<terri_core::Commuting>,
+            Without<crate::reading::PendingShift>,
         ),
     >,
     objects: Query<(
@@ -592,10 +658,12 @@ pub fn serve_intents(
             // as it waits out a shower. A commuter is already busy
             // through Has<Path>.
             Has<terri_core::AtWork>,
+            Has<crate::reading::ReadingJourney>,
         ),
         With<Agent>,
     >,
 ) {
+    let (scoped, grid, content, social_company) = context;
     let mut directed: Vec<Entity> = agents
         .iter()
         .filter(|(_, _, queue, ..)| !queue.is_empty())
@@ -606,6 +674,30 @@ pub fn serve_intents(
     let mut claimed: Vec<Entity> = Vec::new();
     let mut occupancy = beds.occupancy();
     let mut physical_places = beds.physical_places(&positions);
+    for place in &physical_places {
+        if let Some((owner, target, _, _)) = beds
+            .targets
+            .iter()
+            .find(|(owner, _, _, agent)| *agent && owner.index_u32() == place.person)
+        {
+            if beds
+                .definitions
+                .get(target.object)
+                .ok()
+                .is_some_and(|object| {
+                    crate::seating::media_activity(content.0, object.0, target.interaction)
+                        .is_some()
+                })
+            {
+                occupancy.claim_endpoint(crate::seating::EndpointUse {
+                    owner,
+                    endpoint: place.endpoint,
+                    kind: crate::seating::UseKind::MediaEndpoint,
+                });
+            }
+        }
+    }
+    let mut reading_copies = std::collections::BTreeSet::new();
     let furniture: Vec<_> = objects
         .iter()
         .map(
@@ -625,6 +717,61 @@ pub fn serve_intents(
         else {
             continue;
         };
+        if journeys.contains(agent) {
+            continue;
+        }
+        if let Some(entry) = queue.entries().first() {
+            let owned = objects
+                .get(entry.intent.object)
+                .is_ok_and(|(_, _, o, _, _)| {
+                    content
+                        .0
+                        .object(o.0)
+                        .interactions
+                        .get(entry.intent.interaction as usize)
+                        .is_some_and(|a| a.book_reading)
+                });
+            if owned {
+                if !carrying.contains(agent) {
+                    commands
+                        .entity(agent)
+                        .remove::<Restless>()
+                        .remove::<terri_core::Wander>();
+                    if target.is_none() {
+                        commands.entity(agent).remove::<Path>();
+                    }
+                    let origin = Target {
+                        object: entry.intent.object,
+                        interaction: entry.intent.interaction,
+                    };
+                    let id = entry.id;
+                    let plan = reading
+                        .as_ref()
+                        .and_then(|r| r.0.get(&(agent, origin.object, origin.interaction)))
+                        .and_then(|choices| {
+                            crate::reading::choose_plan(
+                                choices,
+                                agent,
+                                entry.title_id.as_deref(),
+                                &occupancy,
+                                &reading_copies,
+                                &mut rng,
+                                content.0,
+                            )
+                        });
+                    if let Some(plan) = plan {
+                        reading_copies.insert(plan.copy);
+                        crate::reading::publish_plan(&mut occupancy, agent, &plan);
+                        commands.queue(move |world: &mut World| {
+                            crate::reading::commit_plan(world, agent, origin, Some(id), plan);
+                        });
+                    } else {
+                        commands.entity(agent).insert(Blocked);
+                    }
+                }
+                continue;
+            }
+        }
         let Some(intent) = queue.front() else {
             continue;
         };
@@ -730,6 +877,7 @@ pub fn serve_intents(
                 has_eating,
                 has_talking,
                 at_work,
+                reading,
             )) = people.get(intent.object)
             else {
                 queue.pop();
@@ -747,7 +895,7 @@ pub fn serve_intents(
             // intent stays at the front and retries, select_action skips
             // the non-empty queue, and the sim stands rather than
             // strolls. `Blocked` says why out loud.
-            let busy = has_target || has_path || has_eating || has_talking || at_work;
+            let busy = has_target || has_path || has_eating || has_talking || at_work || reading;
             if (reserved_p && !held_here) || claimed.contains(&intent.object) || busy {
                 commands.entity(agent).insert(Blocked);
                 continue;
@@ -871,7 +1019,16 @@ pub fn serve_intents(
                 }
                 let adoptable = chain.id != crate::domestic::CLEANUP
                     || crate::domestic::cleaning_under_orders(domestic.as_deref(), agent);
-                if adoptable && chain_state.is_some_and(|state| state.chain == global) {
+                if adoptable
+                    && chain_state.is_some_and(|state| state.chain == global)
+                    && (beds.recipe_orders.get(agent).is_err()
+                        || beds.recipe_orders.get(agent).is_ok_and(|order| {
+                            queue
+                                .entries()
+                                .first()
+                                .is_some_and(|front| front.id == order.0)
+                        }))
+                {
                     record_directed_chain(&mut boundaries, &identities, agent, global);
                     continue;
                 }
@@ -889,8 +1046,18 @@ pub fn serve_intents(
                     .remove::<terri_core::StepWork>()
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
-                    .insert(terri_core::ChainState::begin(global));
+                    .insert(crate::recipe_actions::begin(
+                        content.0,
+                        placed.0,
+                        intent.interaction,
+                        global as usize,
+                        intent.object,
+                    ));
                 record_directed_chain(&mut boundaries, &identities, agent, global);
+                let order_id = queue.entries().first().expect("served front order").id;
+                commands
+                    .entity(agent)
+                    .insert(crate::recipe_actions::RecipeOrder(order_id));
                 commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
                 if chain.id == crate::domestic::CLEANUP {
                     commands.queue(move |world: &mut World| {
@@ -944,7 +1111,6 @@ pub fn serve_intents(
                     field: &field,
                     objects: &furniture,
                     occupancy: &occupancy,
-                    claims: &physical_places,
                 },
                 agent,
                 device,
@@ -1079,20 +1245,32 @@ pub fn serve_intents(
                 Path { steps, cursor: 0 },
             ));
         admission.apply(&mut commands.entity(agent));
+        commands.queue(move |world: &mut World| {
+            crate::seating::apply_admission(world, agent, admission)
+        });
         if let Some(plan) = media_plan {
             physical_places.retain(|d| d.person != agent.index_u32());
             let physical_place = plan.physical_place(agent, intent.object);
+            occupancy.claim_endpoint(crate::seating::EndpointUse {
+                owner: agent,
+                endpoint: physical_place.endpoint,
+                kind: crate::seating::UseKind::MediaEndpoint,
+            });
             if let Some(lease) = &plan.lease {
                 let chair = furniture
                     .iter()
                     .find(|item| Some(item.entity.index_u32()) == lease.chair)
                     .expect("planned physical seat")
                     .entity;
-                occupancy.physical_claim(agent, chair);
+                if let Some((_, ordinal)) = plan.seat {
+                    occupancy.physical_seat_claim(agent, chair, ordinal, false);
+                } else {
+                    occupancy.physical_claim(agent, chair);
+                }
             }
             physical_places.push(physical_place);
             commands
-                .queue(move |world: &mut World| crate::seating::replace(world, agent, plan.lease));
+                .queue(move |world: &mut World| crate::seating::replace_media(world, agent, plan));
         }
     }
 }
@@ -1140,6 +1318,7 @@ pub fn select_action(
     clock: Res<SimClock>,
     mut rng: ResMut<SimRng>,
     mortality: Res<terri_core::save::SavedMortality>,
+    reading: Option<Res<crate::reading::Options>>,
     beds: BedState,
     chore_state: Option<Res<terri_core::chores::SavedChores>>,
     agents: Query<
@@ -1166,6 +1345,8 @@ pub fn select_action(
             Without<terri_core::Commuting>,
             Without<terri_core::ChainState>,
             Without<terri_core::chores::ChoreWork>,
+            Without<crate::reading::ReadingJourney>,
+            Without<crate::reading::PendingShift>,
         ),
     >,
     people: Query<
@@ -1175,6 +1356,7 @@ pub fn select_action(
             Without<Target>,
             Without<Eating>,
             Without<Socialising>,
+            Without<crate::reading::ReadingJourney>,
             Without<Path>,
             Without<terri_core::AtWork>,
         ),
@@ -1316,6 +1498,30 @@ pub fn select_action(
     let mut decisions = Vec::new();
     let mut occupancy = beds.occupancy();
     let mut physical_places = beds.physical_places(&positions);
+    for place in &physical_places {
+        if let Some((owner, target, _, _)) = beds
+            .targets
+            .iter()
+            .find(|(owner, _, _, agent)| *agent && owner.index_u32() == place.person)
+        {
+            if beds
+                .definitions
+                .get(target.object)
+                .ok()
+                .is_some_and(|object| {
+                    crate::seating::media_activity(content.0, object.0, target.interaction)
+                        .is_some()
+                })
+            {
+                occupancy.claim_endpoint(crate::seating::EndpointUse {
+                    owner,
+                    endpoint: place.endpoint,
+                    kind: crate::seating::UseKind::MediaEndpoint,
+                });
+            }
+        }
+    }
+    let mut reading_copies = std::collections::BTreeSet::new();
     for (
         agent,
         agent_pos,
@@ -1387,7 +1593,6 @@ pub fn select_action(
                             field,
                             objects: &furniture,
                             occupancy: &occupancy,
-                            claims: &physical_places,
                         },
                         agent,
                         device,
@@ -1405,6 +1610,20 @@ pub fn select_action(
             let distance = distance as f32;
             let access = Access::new(definition, &content.0.sleep_tag, *facing, to, field);
             for (index, advert) in definition.interactions.iter().enumerate() {
+                if advert.book_reading {
+                    if let Some(choices) = reading
+                        .as_ref()
+                        .and_then(|r| r.0.get(&(agent, object, index as u32)))
+                    {
+                        if let Some(best) =
+                            crate::reading::best_plan(choices, agent, &occupancy, &reading_copies)
+                        {
+                            candidates.push((object, index as u32, best.score));
+                            risks.push(best.risk);
+                        }
+                    }
+                    continue;
+                }
                 let sleep =
                     !content.0.sleep_tag.is_empty() && advert.tags.contains(&content.0.sleep_tag);
                 let available = occupancy.admissions(
@@ -1432,15 +1651,11 @@ pub fn select_action(
                         .map(|route| (admission, route))
                     })
                     .collect();
-                let snack = (advert.id == "grab_snack")
-                    .then(|| {
-                        content
-                            .0
-                            .chains
-                            .iter()
-                            .find(|chain| chain.id == crate::domestic::SNACK)
-                    })
-                    .flatten();
+                let snack =
+                    crate::domestic::interaction_chain(content.0, advert).map(|(_, chain)| chain);
+                if snack.is_some_and(|chain| chain.id == crate::domestic::CLEANUP) {
+                    continue;
+                }
                 if snack.is_some_and(|chain| {
                     chain.steps.iter().enumerate().any(|(i, step)| {
                         role_positions[step.role as usize].is_empty()
@@ -1449,9 +1664,7 @@ pub fn select_action(
                 }) {
                     continue;
                 }
-                let duration = snack.map_or(advert.duration_ticks, |chain| {
-                    chain.steps.iter().map(|step| step.duration_ticks).sum()
-                });
+                let duration = advert.duration_ticks;
                 let social_available = media_plan.as_ref().is_some_and(|_| {
                     social_company.media_allowed(agent, object, index as u32, &relationships)
                 });
@@ -1476,22 +1689,16 @@ pub fn select_action(
                     .map_or(0., |seat| {
                         content.0.object(seat.definition).seat_comfort_rate()
                     });
-                let effective = snack.map_or_else(
-                    || {
-                        crate::need_interactions::benefits(
-                            content.0,
-                            advert,
-                            &needs,
-                            social_available,
-                            seat_rate,
-                            shared_available,
-                        )
-                    },
-                    |chain| chain.advertises.clone(),
+                let effective = crate::need_interactions::benefits(
+                    content.0,
+                    advert,
+                    &needs,
+                    social_available,
+                    seat_rate,
+                    shared_available,
                 );
                 let benefits = &effective;
-                let chain_tags = snack.map(super::chain::chain_tags);
-                let tags = chain_tags.as_ref().unwrap_or(&advert.tags);
+                let tags = &advert.tags;
                 let hab = habituation.get(placed.0, index as u32);
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
                     * personality.disposition(placed.0, index as u32)
@@ -1569,7 +1776,8 @@ pub fn select_action(
                                 preference,
                                 ordinal,
                             } => (preference, ordinal),
-                            crate::beds::Admission::Exclusive => {
+                            crate::beds::Admission::Exclusive
+                            | crate::beds::Admission::Seat { .. } => {
                                 (crate::beds::Preference::Unassigned, 0)
                             }
                         };
@@ -1606,7 +1814,7 @@ pub fn select_action(
             }
             let mut chain_row = 0u32;
             for chain in content.0.chains.iter() {
-                if chain.advertised_by != placed.0 {
+                if chain.advertised_by != placed.0 || !terri_data::is_pre_books_pack(content.0) {
                     continue;
                 }
                 let row = interactions_len + chain_row;
@@ -1890,26 +2098,62 @@ pub fn select_action(
             .remove::<terri_core::Wander>();
 
         if let Ok((_, _, placed, _, _)) = objects.get(object) {
-            let interactions_len = content.0.object(placed.0).interactions.len() as u32;
             if content
                 .0
                 .object(placed.0)
                 .interactions
                 .get(interaction as usize)
-                .is_some_and(|act| act.id == "grab_snack")
+                .is_some_and(|a| a.book_reading)
             {
-                if let Some(global) = content
-                    .0
-                    .chains
-                    .iter()
-                    .position(|chain| chain.id == crate::domestic::SNACK)
+                if let Some(plan) = reading
+                    .as_ref()
+                    .and_then(|r| r.0.get(&(agent, object, interaction)))
+                    .and_then(|choices| {
+                        crate::reading::choose_plan(
+                            choices,
+                            agent,
+                            None,
+                            &occupancy,
+                            &reading_copies,
+                            &mut rng,
+                            content.0,
+                        )
+                    })
                 {
-                    claimed.push(agent);
-                    commands
-                        .entity(agent)
-                        .insert(terri_core::ChainState::begin(global as u32));
-                    continue;
+                    reading_copies.insert(plan.copy);
+                    crate::reading::publish_plan(&mut occupancy, agent, &plan);
+                    commands.queue(move |world: &mut World| {
+                        crate::reading::commit_plan(
+                            world,
+                            agent,
+                            Target {
+                                object,
+                                interaction,
+                            },
+                            None,
+                            plan,
+                        );
+                    });
                 }
+                continue;
+            }
+            let interactions_len = content.0.object(placed.0).interactions.len() as u32;
+            if let Some((global, _)) = content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(interaction as usize)
+                .and_then(|action| crate::domestic::interaction_chain(content.0, action))
+            {
+                claimed.push(agent);
+                commands.entity(agent).insert(crate::recipe_actions::begin(
+                    content.0,
+                    placed.0,
+                    interaction,
+                    global,
+                    object,
+                ));
+                continue;
             }
             if interaction >= interactions_len {
                 let local = (interaction - interactions_len) as usize;
@@ -1922,9 +2166,13 @@ pub fn select_action(
                     .nth(local)
                 {
                     claimed.push(agent);
-                    commands
-                        .entity(agent)
-                        .insert(terri_core::ChainState::begin(global as u32));
+                    commands.entity(agent).insert(crate::recipe_actions::begin(
+                        content.0,
+                        placed.0,
+                        interaction,
+                        global,
+                        object,
+                    ));
                 }
                 continue;
             }
@@ -1984,20 +2232,32 @@ pub fn select_action(
             Path { steps, cursor: 0 },
         ));
         admission.apply(&mut commands.entity(agent));
+        commands.queue(move |world: &mut World| {
+            crate::seating::apply_admission(world, agent, admission)
+        });
         if let Some(plan) = media_plans.remove(&(object, interaction)) {
             physical_places.retain(|d| d.person != agent.index_u32());
             let physical_place = plan.physical_place(agent, object);
+            occupancy.claim_endpoint(crate::seating::EndpointUse {
+                owner: agent,
+                endpoint: physical_place.endpoint,
+                kind: crate::seating::UseKind::MediaEndpoint,
+            });
             if let Some(lease) = &plan.lease {
                 let chair = furniture
                     .iter()
                     .find(|item| Some(item.entity.index_u32()) == lease.chair)
                     .expect("planned physical seat")
                     .entity;
-                occupancy.physical_claim(agent, chair);
+                if let Some((_, ordinal)) = plan.seat {
+                    occupancy.physical_seat_claim(agent, chair, ordinal, false);
+                } else {
+                    occupancy.physical_claim(agent, chair);
+                }
             }
             physical_places.push(physical_place);
             commands
-                .queue(move |world: &mut World| crate::seating::replace(world, agent, plan.lease));
+                .queue(move |world: &mut World| crate::seating::replace_media(world, agent, plan));
         }
     }
     commands.insert_resource(super::autonomy::DecisionTelemetry(decisions));

@@ -114,6 +114,7 @@ struct ArchitectureFinishes { entries: array<ArchitectureFinish>, };
 @group(0) @binding(7) var<storage, read> architectureRegistration: ArchitectureRegistration;
 @group(0) @binding(8) var<storage, read> architectureFinishes: ArchitectureFinishes;
 // ARCHITECTURE_PATTERN_BINDINGS
+// JOINT_ALPHA_BINDING
 
 // ARCHITECTURE_MODE_HELPERS_BEGIN
 override maxArchitectureFinishSlot: u32;
@@ -135,7 +136,8 @@ fn architectureFinishSlot(mode: f32) -> u32 {
 }
 // ARCHITECTURE_MODE_HELPERS_END
 
-struct BedLayers { records: array<vec4u>, };
+struct PresentationLayers { layers: vec4u, extra: vec4u, };
+struct BedLayers { records: array<PresentationLayers>, };
 @group(0) @binding(9) var<storage, read> beds: BedLayers;
 struct DiningSupport { records: array<vec4f>, };
 @group(0) @binding(10) var<storage, read> dining: DiningSupport;
@@ -162,6 +164,7 @@ struct VertexOut {
   @location(11) @interpolate(flat) registration: vec4f,
   @location(12) @interpolate(flat) groundOrigin: vec2f,
   @location(13) @interpolate(flat) page: u32,
+  @location(15) @interpolate(flat) sceneExtra: vec4u,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -215,7 +218,9 @@ fn vertex(vi: u32, instance: vec4f, tint: vec4f, wall: vec4f, colourway: vec4f, 
   out.uvBounds = sprite.uv;
   out.corner = textureCorner;
   out.pair = vec2u(sprite.size.zw);
-  out.bed = beds.records[u32(instance.w)];
+  let scene = beds.records[u32(instance.w)];
+  out.bed = scene.layers;
+  out.sceneExtra = vec4u(scene.extra.xyz, select(scene.extra.w, u32(max(tint.x, 0.0)), scene.extra.y > 0u));
   let support = dining.records[u32(instance.w)];
   out.supportMask = u32(support.x);
   out.supportUv = vec2f(0.0);
@@ -224,6 +229,7 @@ fn vertex(vi: u32, instance: vec4f, tint: vec4f, wall: vec4f, colourway: vec4f, 
     out.supportUv = (corner * size - support.yz) / mask.size.xy;
   }
   out.tint = tint;
+  if (scene.extra.y > 0u) { out.tint = vec4f(1.0, 1.0, 1.0, tint.w); }
   out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + textureCorner * size;
   out.wall = wall;
   out.colourway = colourway;
@@ -341,6 +347,17 @@ fn bedLayer(reference: u32, corner: vec2f, sceneSize: vec2f) -> vec4f {
   return textureSampleLevel(atlasTexture, atlasSampler, uv, i32(sprite.registration.z), 0.0);
 }
 
+fn shelfDifference(pair: vec2u, corner: vec2f, sceneSize: vec2f) -> vec3f {
+  if (pair.x == 0u) { return vec3f(0.0); }
+  let sprite = atlas.sprites[pair.x - 1u];
+  let local = (corner * sceneSize - sprite.registration.xy) / sprite.size.xy;
+  if (any(local < vec2f(0.0)) || any(local > vec2f(1.0))) { return vec3f(0.0); }
+  let high = bedLayer(pair.x, corner, sceneSize).rgb;
+  let low = bedLayer(pair.y, corner, sceneSize).rgb;
+  let code = (high * 255.0 - 128.0) * 256.0 + low * 255.0;
+  return select(code, vec3f(0.0), abs(code) <= vec3f(0.0625)) / 32767.0;
+}
+
 @fragment
 fn fs(in: VertexOut) -> FragmentOut {
   // Complementary passes reconstruct the same complete occupied colour.
@@ -402,16 +419,47 @@ fn fs(in: VertexOut) -> FragmentOut {
       colour.a = 1.0;
     }
   }
-  if (in.bed.x > 0u) {
-    let sceneSize = atlas.sprites[in.bed.x - 1u].size.xy;
+  if (in.sceneExtra.y > 0u && in.bed.x == 0u) {
+    let base = atlas.sprites[in.sceneExtra.z - 1u];
+    colour = bedLayer(in.sceneExtra.z, in.corner, base.size.xy);
+    var rgb = colour.rgb;
+    for (var row = 0u; row < 4u; row++) {
+      let state = (in.sceneExtra.w >> (row * 6u)) & 63u;
+      let pair = beds.records[in.sceneExtra.y - 1u + row * 64u + state].layers.xy;
+      rgb += shelfDifference(pair, in.corner, base.size.xy);
+    }
+    colour = vec4f(clamp(rgb, vec3f(0.0), vec3f(1.0)), colour.a);
+  } else if (in.bed.x > 0u) {
+    var sceneSize = atlas.sprites[in.bed.x - 1u].size.xy;
+    if (in.sceneExtra.z > 0u) { sceneSize = atlas.sprites[in.sceneExtra.z - 1u].size.xy; }
     var furniture = bedLayer(in.bed.x, in.corner, sceneSize);
+    if (in.sceneExtra.y > 0u) {
+      let reach = beds.records[in.sceneExtra.y - 1u];
+      let stockSize = bitcast<vec2f>(reach.layers.zw);
+      let offset = bitcast<vec2f>(reach.extra.xy);
+      let shelfCorner = (in.corner * sceneSize - offset) / stockSize;
+      if (all(shelfCorner >= vec2f(0.0)) && all(shelfCorner <= vec2f(1.0))) {
+        var difference = vec3f(0.0);
+        for (var row = 0u; row < 4u; row++) {
+          let state = (in.sceneExtra.w >> (row * 6u)) & 63u;
+          let pair = beds.records[reach.layers.x - 1u + row * 64u + state].layers.xy;
+          difference += shelfDifference(pair, shelfCorner, stockSize);
+          if (reach.layers.y > 0u) {
+            let correction = beds.records[reach.layers.y - 1u + row * 64u + state].layers.xy;
+            difference += shelfDifference(correction, shelfCorner, stockSize);
+          }
+        }
+        furniture = vec4f(max(vec3f(0.0), furniture.rgb + difference), furniture.a);
+      }
+    }
     if (furniture.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
       let rgb = recolour(linearToSrgb(furniture.rgb / furniture.a), in.colourway);
       furniture = vec4f(srgbToLinear(rgb) * furniture.a, furniture.a);
     }
     // Fills already include shared-ink attenuation before export filtering.
     colour = furniture + bedLayer(in.bed.y, in.corner, sceneSize)
-      + bedLayer(in.bed.z, in.corner, sceneSize) + bedLayer(in.bed.w, in.corner, sceneSize);
+      + bedLayer(in.bed.z, in.corner, sceneSize) + bedLayer(in.bed.w, in.corner, sceneSize)
+      + bedLayer(in.sceneExtra.x, in.corner, sceneSize);
   } else if (in.pair.x > 0u) {
     let furniture = atlas.sprites[in.pair.x - 1u];
     let outline = atlas.sprites[in.pair.y - 1u];
@@ -443,11 +491,24 @@ fn fs(in: VertexOut) -> FragmentOut {
   // 0.5 rather than 0: keeping the partially-covered edge texels means
   // they blend against whatever is behind, which is what the alpha blend
   // configured in sprites.ts is for.
-  if ((!grimePass && colour.a < 0.5) || (grimePass && colour.a <= 0.0)) {
+  var visibleAlpha = colour.a;
+  var jointLayer = in.sceneExtra.w;
+  if (in.bed.x > 0u && in.sceneExtra.y > 0u) {
+    jointLayer = beds.records[in.sceneExtra.y - 1u].extra.z;
+  }
+  if (in.bed.x > 0u && jointLayer > 0u) {
+    let sceneSize = atlas.sprites[in.sceneExtra.z - 1u].size.xy * 2.0;
+    let halfTexel = vec2f(0.5) / sceneSize;
+    let sampleCorner = clamp(in.corner, halfTexel, vec2f(1.0) - halfTexel);
+    let registration = jointRegistration.records[jointLayer - 1u];
+    visibleAlpha = textureSampleLevel(jointAlpha, atlasSampler,
+      (registration.xy + sampleCorner * sceneSize) / vec2f(textureDimensions(jointAlpha)), i32(registration.z), 0.0).r;
+  }
+  if ((!grimePass && visibleAlpha < 0.5) || (grimePass && visibleAlpha <= 0.0)) {
     discard;
   }
   if (in.bed.x > 0u) {
-    colour = vec4f(linearToSrgb(colour.rgb / colour.a), clamp(colour.a, 0.0, 1.0));
+    colour = vec4f(linearToSrgb(colour.rgb / colour.a), clamp(visibleAlpha, 0.0, 1.0));
   } else if (in.pair.x > 0u) {
     colour = vec4f(colour.rgb / colour.a, colour.a);
   } else {

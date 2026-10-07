@@ -75,6 +75,307 @@ fn deliberate(sim: &mut Sim) {
         .insert_resource(Content(Box::leak(Box::new(pack))));
 }
 
+fn inherited_privacy_fixture(benefit: NeedId) -> (Sim, Entity, Entity, Entity, Entity) {
+    let mut sim = fixture();
+    deliberate(&mut sim);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.tuning.choice_temperature = 0.00001;
+    let mut model = pack.object(pack.find("fridge").unwrap()).clone();
+    model.id = "privacy_fridge".into();
+    model.interactions.truncate(1);
+    model.interactions[0].advertises = vec![(benefit as u8, 500.0)];
+    let selected_definition = terri_core::ObjectDefId(pack.objects.len() as u32);
+    pack.objects.push(model);
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    let spawn = |sim: &mut Sim, definition, x, y| {
+        let object = sim.spawn_object(Position { x, y }, definition);
+        let footprint = pack.object(definition).footprint;
+        for dy in 0..footprint.depth {
+            for dx in 0..footprint.width {
+                sim.world_mut()
+                    .resource_mut::<terri_core::TileGrid>()
+                    .set_blocked(x as usize + dx as usize, y as usize + dy as usize, true);
+            }
+        }
+        object
+    };
+    let selected = spawn(&mut sim, selected_definition, 4.0, 0.0);
+    spawn(&mut sim, pack.find("counter").unwrap(), 4.0, 3.0);
+    let actor = person(&mut sim, 1.25, 1.0);
+    sim.world_mut()
+        .get_mut::<Needs>(actor)
+        .unwrap()
+        .set(benefit, 20.0);
+    let mut choose = Schedule::default();
+    choose.add_systems(
+        (
+            super::prepare,
+            super::super::action::select_action,
+            super::super::chain::advance_chains,
+        )
+            .chain(),
+    );
+    choose.run(sim.world_mut());
+    assert_eq!(sim.world().get::<Target>(actor).unwrap().object, selected);
+    assert_eq!(
+        sim.world().get::<Target>(actor).unwrap().interaction,
+        super::super::chain::CHAIN_STEP
+    );
+    assert!(!crate::privacy::directed(sim.world(), actor));
+    assert_eq!(
+        sim.world()
+            .get::<crate::recipe_actions::Origin>(actor)
+            .unwrap()
+            .1,
+        crate::recipe_actions::SelectedUse::Station(selected)
+    );
+    *sim.world_mut().get_mut::<Needs>(actor).unwrap() = Needs::all_at(100.0);
+    let competitor = spawn(&mut sim, pack.find("fridge").unwrap(), 0.0, 3.0);
+    let toilet = spawn(&mut sim, pack.find("toilet").unwrap(), 4.0, 2.0);
+    let occupant = person(&mut sim, 3.0, 2.0);
+    using(&mut sim, occupant, toilet);
+    super::prepare(sim.world_mut());
+    (sim, actor, selected, competitor, occupant)
+}
+
+#[test]
+fn inherited_privacy_selected_station_survives_autonomous_detour_and_v6() {
+    let (mut sim, actor, selected, competitor, occupant) =
+        inherited_privacy_fixture(NeedId::Hunger);
+    let before = sim.save_snapshot_v6();
+    sim.load_snapshot_v6(before)
+        .expect("autonomous selected-stage save before privacy detour");
+    super::prepare(sim.world_mut());
+    crate::privacy::route(sim.world_mut());
+    assert_eq!(
+        sim.world().get::<Target>(actor).unwrap().object,
+        selected,
+        "reachable same-role B must not replace selected appliance A"
+    );
+    assert!(sim.world().get::<Reserved>(competitor).is_none());
+    let blocked = sim.save_snapshot_v6();
+    let hash = sim.world_hash();
+    sim.load_snapshot_v6(blocked)
+        .expect("blocked selected-stage save stays loadable");
+    assert_eq!(sim.world_hash(), hash);
+    sim.world_mut().entity_mut(occupant).remove::<Eating>();
+    for _ in 0..40 {
+        movement(&mut sim);
+        if sim.world().get::<terri_core::StepWork>(actor).is_some() {
+            break;
+        }
+    }
+    assert!(sim.world().get::<terri_core::StepWork>(actor).is_some());
+    assert_eq!(sim.world().get::<Target>(actor).unwrap().object, selected);
+    sim.load_snapshot_v6(sim.save_snapshot_v6())
+        .expect("selected use resumes after the room clears");
+}
+
+#[test]
+fn inherited_privacy_urgent_substitution_uses_action_benefits() {
+    for (benefit, urgent) in [
+        (NeedId::Comfort, NeedId::Hunger),
+        (NeedId::Hunger, NeedId::Comfort),
+    ] {
+        for raw_matches_action in [false, true] {
+            let (mut sim, actor, selected, _, _) = inherited_privacy_fixture(benefit);
+            let mut pack = sim.world().resource::<Content>().0.clone();
+            let recipe = sim
+                .world()
+                .get::<terri_core::ChainState>(actor)
+                .unwrap()
+                .chain as usize;
+            pack.chains[recipe].advertises = vec![(
+                if raw_matches_action { benefit } else { urgent } as u8,
+                40.0,
+            )];
+            let model = pack.find("privacy_fridge").unwrap();
+            pack.objects[model.0 as usize].interactions[0]
+                .advertises
+                .push((urgent as u8, -5.0));
+            let mut relief = pack.object(pack.find("counter").unwrap()).clone();
+            relief.id = "privacy_relief".into();
+            relief.interactions = vec![crate::test_content::interaction(
+                "relief",
+                &[(urgent, 30.0)],
+                10,
+            )];
+            let relief_id = terri_core::ObjectDefId(pack.objects.len() as u32);
+            pack.objects.push(relief);
+            sim.world_mut()
+                .insert_resource(Content(Box::leak(Box::new(pack))));
+            let relief = sim.spawn_object(Position { x: 0.0, y: 0.0 }, relief_id);
+            sim.world_mut()
+                .resource_mut::<terri_core::TileGrid>()
+                .set_blocked(0, 0, true);
+            sim.world_mut()
+                .get_mut::<Needs>(actor)
+                .unwrap()
+                .set(urgent, 5.0);
+            super::prepare(sim.world_mut());
+            crate::privacy::route(sim.world_mut());
+            assert_eq!(sim.world().get::<Target>(actor).unwrap().object, relief,
+                "negative action benefit cannot excuse urgent substitution: benefit={benefit:?}, raw_matches_action={raw_matches_action}, selected={selected:?}");
+            assert_eq!(
+                sim.world()
+                    .get::<crate::recipe_actions::Origin>(actor)
+                    .unwrap()
+                    .1,
+                crate::recipe_actions::SelectedUse::Station(selected),
+                "ordinary relief suspends the existing recipe"
+            );
+            sim.load_snapshot_v6(sim.save_snapshot_v6())
+                .expect("ordinary relief retains a valid suspended origin");
+        }
+    }
+}
+
+#[test]
+fn inherited_privacy_emergency_entry_uses_action_benefits_and_selected_alternatives() {
+    for benefit in [NeedId::Comfort, NeedId::Hunger] {
+        for relevant in [false, true] {
+            let (mut sim, actor, _, _, _) = inherited_privacy_fixture(benefit);
+            let other = if benefit == NeedId::Comfort {
+                NeedId::Hunger
+            } else {
+                NeedId::Comfort
+            };
+            let mut pack = sim.world().resource::<Content>().0.clone();
+            let recipe = sim
+                .world()
+                .get::<terri_core::ChainState>(actor)
+                .unwrap()
+                .chain as usize;
+            pack.chains[recipe].advertises = vec![(other as u8, 40.0)];
+            let model = pack.find("privacy_fridge").unwrap();
+            pack.objects[model.0 as usize].interactions[0]
+                .advertises
+                .push((other as u8, -5.0));
+            sim.world_mut()
+                .insert_resource(Content(Box::leak(Box::new(pack))));
+            sim.world_mut()
+                .get_mut::<Needs>(actor)
+                .unwrap()
+                .set(if relevant { benefit } else { other }, 5.0);
+            // The real route first anchors the fractional starting position.
+            // Give it enough movement passes to reach the room boundary.
+            for _ in 0..4 {
+                movement(&mut sim);
+            }
+            assert_eq!(sim.world().get::<Position>(actor).unwrap().x > 1.25, relevant,
+                "only positive bound relief permits emergency entry; another fridge is not a usable selected-stage alternative: benefit={benefit:?}, relevant={relevant}");
+        }
+    }
+}
+
+#[test]
+fn inherited_privacy_urgent_bound_action_replaces_recipe_instead_of_eating() {
+    let (mut sim, actor, _, competitor, _) = inherited_privacy_fixture(NeedId::Comfort);
+    sim.world_mut()
+        .get_mut::<Needs>(actor)
+        .unwrap()
+        .set(NeedId::Hunger, 5.0);
+    sim.world_mut()
+        .get_mut::<Needs>(actor)
+        .unwrap()
+        .set(NeedId::Comfort, 60.0);
+    super::prepare(sim.world_mut());
+    crate::privacy::route(sim.world_mut());
+    assert!(sim.world().get::<Eating>(actor).is_none());
+    let origin = sim
+        .world()
+        .get::<crate::recipe_actions::Origin>(actor)
+        .unwrap();
+    assert_eq!(
+        origin.1,
+        crate::recipe_actions::SelectedUse::Station(competitor),
+        "urgent recipe replacement must own its actual selected appliance"
+    );
+    assert!(
+        matches!(&origin.0, terri_core::save_v6::ChainOrigin::Action { model, action, .. }
+        if model == "fridge" && action == "grab_snack")
+    );
+    let target = sim.world().get::<Target>(actor);
+    assert!(
+        target.is_none_or(|t| t.interaction == super::super::chain::CHAIN_STEP),
+        "bound action cannot enter ordinary Eating through its public row"
+    );
+    sim.load_snapshot_v6(sim.save_snapshot_v6())
+        .expect("replacement has complete current origin state");
+    let mut advance = Schedule::default();
+    advance.add_systems(super::super::chain::advance_chains);
+    advance.run(sim.world_mut());
+    for _ in 0..40 {
+        movement(&mut sim);
+        assert!(sim.world().get::<Eating>(actor).is_none());
+        if sim.world().get::<terri_core::StepWork>(actor).is_some() {
+            break;
+        }
+    }
+    assert_eq!(sim.world().get::<Target>(actor).unwrap().object, competitor);
+    assert!(sim.world().get::<terri_core::StepWork>(actor).is_some());
+    sim.load_snapshot_v6(sim.save_snapshot_v6())
+        .expect("replacement stage resumes through current save");
+    let mut finish = Schedule::default();
+    finish.add_systems(
+        (
+            super::super::chain::tick_chain_steps,
+            super::super::chain::advance_chains,
+            super::prepare,
+            super::super::movement::follow_path,
+        )
+            .chain(),
+    );
+    for _ in 0..300 {
+        finish.run(sim.world_mut());
+        if sim.world().get::<terri_core::ChainState>(actor).is_none() {
+            break;
+        }
+    }
+    assert!(sim.world().get::<terri_core::ChainState>(actor).is_none());
+    let needs = sim.world().get::<Needs>(actor).unwrap();
+    assert_eq!(
+        needs.get(NeedId::Hunger),
+        45.0,
+        "replacement snack pays once"
+    );
+    assert_eq!(
+        needs.get(NeedId::Comfort),
+        60.0,
+        "abandoned recipe never pays its overridden benefit"
+    );
+}
+
+#[test]
+fn inherited_privacy_bound_relief_requires_recipe_stations() {
+    let (mut sim, actor, selected, _, _) = inherited_privacy_fixture(NeedId::Comfort);
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let counter = pack.find("counter").unwrap();
+    pack.objects[counter.0 as usize].roles.clear();
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+    sim.world_mut()
+        .get_mut::<Needs>(actor)
+        .unwrap()
+        .set(NeedId::Hunger, 5.0);
+    super::prepare(sim.world_mut());
+    crate::privacy::route(sim.world_mut());
+    assert_eq!(
+        sim.world()
+            .get::<crate::recipe_actions::Origin>(actor)
+            .unwrap()
+            .1,
+        crate::recipe_actions::SelectedUse::Station(selected),
+        "unavailable procedure cannot replace the active origin"
+    );
+    assert!(sim
+        .world()
+        .get::<Target>(actor)
+        .is_none_or(|t| t.interaction == super::super::chain::CHAIN_STEP));
+    assert!(sim.world().get::<Eating>(actor).is_none());
+}
+
 #[test]
 fn privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears() {
     let mut sim = fixture();
@@ -193,7 +494,12 @@ fn privacy_player_chain_origin_survives_save_load_with_its_order_queued() {
                 cleanup: None,
                 chore: None,
                 object: fridge,
-                interaction: pack.object(fridge_def).interactions.len() as u32,
+                interaction: pack
+                    .object(fridge_def)
+                    .interactions
+                    .iter()
+                    .position(|a| a.id == "cook_dinner")
+                    .unwrap() as u32,
             },
         ]));
     let mut schedule = Schedule::default();
@@ -205,10 +511,10 @@ fn privacy_player_chain_origin_survives_save_load_with_its_order_queued() {
         "the chain order outlives the chain's start"
     );
     assert!(crate::privacy::directed(sim.world(), a));
-    let saved = sim.save_snapshot_v5();
+    let saved = sim.save_snapshot_v6();
     let mut resumed = fixture();
     deliberate(&mut resumed);
-    resumed.load_snapshot_v5(saved).unwrap();
+    resumed.load_snapshot_v6(saved).unwrap();
     assert!(crate::privacy::directed(resumed.world(), a));
     assert_eq!(sim.world_hash(), resumed.world_hash());
     enter(&mut resumed, a);
@@ -761,6 +1067,7 @@ fn privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_jus
             pack.find("television").unwrap(),
         );
         let fridge = sim.spawn_object(Position { x: 4.0, y: 3.0 }, pack.find("fridge").unwrap());
+        sim.spawn_object(Position { x: 0.0, y: 3.0 }, pack.find("counter").unwrap());
         sim.world_mut().entity_mut(tv).insert(Reserved);
         sim.world_mut().entity_mut(a).insert(Target {
             object: tv,
@@ -778,6 +1085,9 @@ fn privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_jus
         }
         super::prepare(sim.world_mut());
         crate::privacy::route(sim.world_mut());
+        let mut advance = Schedule::default();
+        advance.add_systems(super::super::chain::advance_chains);
+        advance.run(sim.world_mut());
         assert_eq!(
             sim.world().get::<Target>(a).unwrap().object,
             fridge,
@@ -805,22 +1115,26 @@ fn privacy_wait_can_attend_to_a_different_critical_need_without_losing_chain_pro
     sim.world_mut()
         .get_mut::<Needs>(a)
         .unwrap()
-        .set(NeedId::Hunger, 5.0);
-    let fridge = sim.spawn_object(
+        .set(NeedId::Hygiene, 5.0);
+    let sink = sim.spawn_object(
         Position { x: 4.0, y: 3.0 },
-        sim.world().resource::<Content>().0.find("fridge").unwrap(),
+        sim.world()
+            .resource::<Content>()
+            .0
+            .find("kitchen_sink")
+            .unwrap(),
     );
     let chain = terri_core::ChainState::begin(0);
     sim.world_mut().entity_mut(a).insert(chain);
     super::prepare(sim.world_mut());
     crate::privacy::route(sim.world_mut());
-    assert_eq!(sim.world().get::<Target>(a).unwrap().object, fridge);
+    assert_eq!(sim.world().get::<Target>(a).unwrap().object, sink);
     assert_eq!(
         *sim.world().get::<terri_core::ChainState>(a).unwrap(),
         chain
     );
     assert!(sim.world().get::<Reserved>(toilet).is_none());
-    assert!(sim.world().get::<Reserved>(fridge).is_some());
+    assert!(sim.world().get::<Reserved>(sink).is_some());
 }
 
 #[test]

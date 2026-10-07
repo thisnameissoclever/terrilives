@@ -27,6 +27,13 @@ mod lifecycle_tests;
 mod tests;
 
 pub(crate) fn tick(world: &mut World) {
+    let pack = world.resource::<crate::Content>().0;
+    if std::ptr::eq(pack, terri_data::pre_books_pack())
+        || std::ptr::eq(pack, terri_data::published_pre_books_pack())
+        || std::ptr::eq(pack, terri_data::affinity_pre_books_pack())
+    {
+        return;
+    }
     if world
         .resource::<crate::Content>()
         .0
@@ -136,7 +143,7 @@ pub(crate) fn snapshot(world: &World) -> Option<SavedChores> {
         };
         let position = world
             .get::<terri_core::IntentQueue>(person)
-            .and_then(|q| q.as_slice().iter().position(|i| i.chore == Some(o.id)));
+            .and_then(|q| q.intents().position(|i| i.chore == Some(o.id)));
         if let Some(position) = position {
             o.queue_position = position as u32;
             true
@@ -295,30 +302,21 @@ pub(crate) fn prune(world: &mut World) {
         }
         valid
     });
-    let ids: std::collections::BTreeSet<_> = state.orders.iter().map(|o| o.id).collect();
-    let mut people = world.query::<(Entity, &terri_core::IntentQueue)>();
-    let queues: Vec<_> = people
+    let ids: std::collections::BTreeSet<_> = state.orders.iter().map(|order| order.id).collect();
+    let people: Vec<_> = world
+        .query::<(Entity, &terri_core::IntentQueue)>()
         .iter(world)
-        .filter(|(_, q)| {
-            q.as_slice()
-                .iter()
-                .any(|i| i.chore.is_some_and(|id| !ids.contains(&id)))
+        .filter(|(_, queue)| {
+            queue
+                .intents()
+                .any(|intent| intent.chore.is_some_and(|id| !ids.contains(&id)))
         })
-        .map(|(e, q)| {
-            (
-                e,
-                q.as_slice()
-                    .iter()
-                    .copied()
-                    .filter(|i| i.chore.is_none_or(|id| ids.contains(&id)))
-                    .collect::<Vec<_>>(),
-            )
-        })
+        .map(|(person, _)| person)
         .collect();
-    for (e, queue) in queues {
-        world
-            .entity_mut(e)
-            .insert(terri_core::IntentQueue::from_intents(queue));
+    for person in people {
+        if let Some(mut queue) = world.get_mut::<terri_core::IntentQueue>(person) {
+            queue.retain(|order| order.intent.chore.is_none_or(|id| ids.contains(&id)));
+        }
     }
     state.assignments.retain(|a| key_valid(world, a.key));
     for episode in &mut state.episodes {

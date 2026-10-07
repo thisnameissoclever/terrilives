@@ -10,6 +10,16 @@
 use serde::{Deserialize, Serialize};
 use terri_core::NEED_COUNT;
 
+/// Physical occupancy requested by an action. Exclusive preserves legacy claims.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SeatUse {
+    #[default]
+    Exclusive,
+    One,
+    All,
+}
+
 /// Defined in `terri-core`, re-exported here so content consumers have
 /// one import path. It lives there because `SmartObject` holds one and
 /// `terri-core` must not depend on the content crate.
@@ -185,6 +195,51 @@ pub struct CompiledPlacementSocket {
     pub facing: CompiledSocketFacing,
 }
 
+/// Gameplay media eligibility is independent of activity labels and animation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MediaBehavior {
+    Television,
+    Radio,
+}
+
+/// One resolved action's work schedule over a shared recipe.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RecipeBinding {
+    pub recipe: String,
+    pub selected_step: u32,
+    pub steps: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RecipeDef {
+    pub id: String,
+    pub selected_step: u32,
+}
+
+/// These shared procedures hand their final meal-table stage to dining admission.
+pub fn communal_recipe_step(recipe: &str, step: u32, steps: usize) -> bool {
+    matches!(recipe, "cook_dinner" | "eat_shared_meal") && step as usize + 1 == steps
+}
+
+pub(crate) fn binding_stage_error(
+    recipe: &str,
+    step: u32,
+    steps: usize,
+    role: &str,
+) -> Option<&'static str> {
+    if recipe == "eat_shared_meal" {
+        Some("shared-meal recipes require an invitation and cannot be public bindings")
+    } else if recipe == "clean_dishes" && step == 0 {
+        Some("cleanup collection repeats at dish sources; select the washing stage")
+    } else if communal_recipe_step(recipe, step, steps) && role == "meal_table" {
+        Some("communal dining selects its own meal table; select an appliance work stage")
+    } else {
+        None
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledInteraction {
     pub id: String,
@@ -231,6 +286,11 @@ pub struct CompiledInteraction {
     /// One-shot presentation metadata, excluded from save compatibility.
     /// Appended after activity to preserve preceding compiled fields.
     pub completion_sound: Option<CompiledCompletionSound>,
+    /// Owned-book requirement, independent of labels and presentation.
+    pub book_reading: bool,
+    pub seat_use: SeatUse,
+    pub media: Option<MediaBehavior>,
+    pub recipe: Option<RecipeBinding>,
 }
 
 #[cfg(test)]
@@ -301,6 +361,26 @@ pub struct ObjectPresentation {
     pub description: String,
 }
 
+/// Store classification. Rooms do not grant actions or constrain placement.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ModelMetadata {
+    pub category_id: String,
+    pub category_label: String,
+    pub type_id: String,
+    pub type_label: String,
+    pub rooms: Vec<String>,
+}
+
+/// One physical place shared by all seated activities on an object.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PhysicalSeat {
+    pub id: String,
+    pub x: f32,
+    pub y: f32,
+    pub facing: CompiledSocketFacing,
+    pub approaches: Vec<(i32, i32)>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledObject {
     pub id: String,
@@ -363,7 +443,12 @@ pub struct CompiledObject {
     pub presentation: Option<ObjectPresentation>,
     /// Ordered physical sleeping places. Saved ordinals follow this order.
     pub sleep_places: Vec<SleepPlaceAccess>,
-    /// Secondary-seat Comfort; balance data outside save compatibility.
+    /// Appended classification and future shared-seat geometry.
+    pub metadata: Option<ModelMetadata>,
+    pub seats: Vec<PhysicalSeat>,
+    pub shelf_capacity: u16,
+    pub shelf_access: Vec<(i32, i32)>,
+    pub cooking_front: Option<(i32, i32)>,
     pub seat_comfort_per_tick: f32,
 }
 
@@ -379,6 +464,7 @@ impl CompiledObject {
     pub fn seat_comfort_rate(&self) -> f32 {
         self.interactions
             .iter()
+            .filter(|action| !action.book_reading)
             .flat_map(|a| {
                 a.advertises.iter().filter_map(|(n, d)| {
                     (*n as usize == terri_core::NeedId::Comfort.index() && *d > 0.)
@@ -420,11 +506,65 @@ impl CompiledObject {
         )
     }
 
+    /// Authored shelf contacts rotate from the base-facing footprint.
+    pub fn shelf_approaches_at(&self, facing: Facing) -> Vec<(i32, i32)> {
+        let (width, depth) = (self.footprint.width as i32, self.footprint.depth as i32);
+        self.shelf_access
+            .iter()
+            .map(|&(x, y)| match self.relative_turn(facing) {
+                Facing::SouthEast => (x, y),
+                Facing::SouthWest => (depth - 1 - y, x),
+                Facing::NorthWest => (width - 1 - x, depth - 1 - y),
+                Facing::NorthEast => (y, width - 1 - x),
+            })
+            .collect()
+    }
+
+    /// Physical seats use the same centre and relative rotation as action sockets.
+    pub fn seat_at(
+        &self,
+        ordinal: usize,
+        origin_x: f32,
+        origin_y: f32,
+        facing: Facing,
+    ) -> Option<CompiledPlacementSocket> {
+        let seat = self.seats.get(ordinal)?;
+        let footprint = self.footprint_at(facing);
+        let turn = self.relative_turn(facing);
+        let (x, y) = turn.rotate_offset(seat.x, seat.y);
+        Some(CompiledPlacementSocket {
+            x: origin_x + (footprint.width - 1) as f32 / 2. + x,
+            y: origin_y + (footprint.depth - 1) as f32 / 2. + y,
+            facing: seat.facing.turned_with(turn),
+        })
+    }
+
+    pub fn seat_approaches_at(&self, ordinal: usize, facing: Facing) -> Option<Vec<(i32, i32)>> {
+        let seat = self.seats.get(ordinal)?;
+        let (width, depth) = (self.footprint.width as i32, self.footprint.depth as i32);
+        Some(
+            seat.approaches
+                .iter()
+                .map(|&(x, y)| match self.relative_turn(facing) {
+                    Facing::SouthEast => (x, y),
+                    Facing::SouthWest => (depth - 1 - y, x),
+                    Facing::NorthWest => (width - 1 - x, depth - 1 - y),
+                    Facing::NorthEast => (y, width - 1 - x),
+                })
+                .collect(),
+        )
+    }
+
     /// Primary identification for controls and accessible labels.
     pub fn display_name(&self) -> &str {
-        self.presentation
+        self.metadata
             .as_ref()
-            .map_or(&self.name, |text| &text.object_type)
+            .map(|meta| meta.type_label.as_str())
+            .unwrap_or_else(|| {
+                self.presentation
+                    .as_ref()
+                    .map_or(&self.name, |text| &text.object_type)
+            })
     }
 
     pub fn footprint_at(&self, facing: Facing) -> Footprint {
@@ -1219,6 +1359,8 @@ pub struct ContentPack {
     /// packs, and the content fingerprint does not read this. Appended at
     /// the pack tail.
     pub affinities: Vec<CompiledAffinityKind>,
+    pub books: Vec<crate::books::BookDefinition>,
+    pub reading: Option<crate::books::ReadingTuning>,
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -1369,6 +1511,15 @@ impl ContentPack {
     /// chain's steps takes a role the object has. The stove feeds nobody by
     /// itself; it serves hunger through Cook dinner.
     pub fn needs_served(&self, object: ObjectDefId) -> u32 {
+        self.needs_served_with_role_filter(object, |_, _| true)
+    }
+
+    /// Runtime buying facts can exclude authored roles that station admission rejects.
+    pub fn needs_served_with_role_filter(
+        &self,
+        object: ObjectDefId,
+        usable_role: impl Fn(&CompiledChain, u32) -> bool,
+    ) -> u32 {
         let definition = self.object(object);
         // A list names each need at most once, so its bits are joined with
         // `bitor` rather than `|`: any join of distinct bits gives the same
@@ -1401,13 +1552,18 @@ impl ContentPack {
             .iter()
             .filter(|chain| {
                 chain.advertised_by == object
-                    || chain
-                        .steps
-                        .iter()
-                        .any(|step| definition.roles.contains(&step.role))
+                    || chain.steps.iter().any(|step| {
+                        definition.roles.contains(&step.role) && usable_role(chain, step.role)
+                    })
             })
             .fold(0, |mask, chain| mask | served(&chain.advertises));
         own | chains
+    }
+}
+
+impl CompiledInteraction {
+    pub fn is_handwashing(&self) -> bool {
+        self.activity == Some(CompiledActivity::WashingHands)
     }
 }
 
@@ -1429,17 +1585,18 @@ mod tests {
         let serves = |id: &str| pack.needs_served(pack.find(id).unwrap());
         assert_eq!(serves("bed"), needs(&["energy", "comfort"]));
         assert_eq!(serves("television"), needs(&["fun", "social"]));
-        // A recipe provides Hunger and conditional seated Social. The chair provides Comfort.
-        // This catalogue mask describes potential benefits, not current company.
+        // Cook dinner advertises hunger and conditional company Social, and takes a fridge, a
+        // prep surface, a hob and an eating surface.
         assert_eq!(serves("stove"), needs(&["hunger", "social"]));
         assert_eq!(serves("counter"), needs(&["hunger", "social"]));
         assert_eq!(serves("fridge"), needs(&["hunger", "social"]));
+        // Chair-backed table sitting supplies comfort and social; prepared meals supply hunger.
         assert_eq!(
             serves("dining_table"),
             needs(&["hunger", "comfort", "social"])
         );
-        assert_eq!(serves("chair"), needs(&["comfort"]));
-        assert_eq!(serves("bookshelf"), needs(&["fun", "social"]));
+        // Sitting supplies comfort and reading supplies fun; dining eligibility is a separate role.
+        assert_eq!(serves("chair"), needs(&["comfort", "fun", "social"]));
     }
 
     /// Only a positive delta serves a need: a zero or a cost does not, and a
@@ -1483,6 +1640,10 @@ mod tests {
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {
+            media: None,
+            recipe: None,
+            book_reading: false,
+            seat_use: Default::default(),
             completion_sound: None,
             id: id.to_string(),
             advertises: vec![(0, 35.0), (6, 5.0)],
@@ -1673,6 +1834,8 @@ mod tests {
 
     fn three_objects() -> ContentPack {
         ContentPack {
+            books: Vec::new(),
+            reading: None,
             circadian: None,
             sleep_tag: String::new(),
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
@@ -1700,6 +1863,11 @@ mod tests {
                         });
                     }
                     CompiledObject {
+                        cooking_front: None,
+                        shelf_capacity: 0,
+                        shelf_access: vec![],
+                        metadata: None,
+                        seats: vec![],
                         sleep_places: Vec::new(),
                         seat_comfort_per_tick: 0.,
                         id: (*id).to_string(),
@@ -1797,6 +1965,10 @@ mod tests {
             // interaction above, so the round trip can see the social
             // list written into the objects' slot or vice versa.
             social: vec![CompiledInteraction {
+                media: None,
+                recipe: None,
+                book_reading: false,
+                seat_use: Default::default(),
                 completion_sound: None,
                 id: "chat".to_string(),
                 advertises: vec![(4, 30.0), (5, 6.0)],
@@ -2045,6 +2217,11 @@ mod tests {
         facing_foreground_sprites: FacingSprites,
     ) -> CompiledObject {
         CompiledObject {
+            cooking_front: None,
+            shelf_capacity: 0,
+            shelf_access: vec![],
+            metadata: None,
+            seats: vec![],
             sleep_places: Vec::new(),
             seat_comfort_per_tick: 0.,
             id: "thing".to_string(),

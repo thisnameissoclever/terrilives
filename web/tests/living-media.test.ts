@@ -15,9 +15,9 @@ beforeAll(async () => {
 });
 
 const media = [
-  { id: 17, name: 'Cathode Companion', prefix: 'offlineTelevision', start: 1262,
-    x: 10, y: 3, price: 350, action: 'Watch TV', activity: 14 },
-  { id: 16, name: 'Frequency of Record', prefix: 'offlineRadio', start: 1266,
+  { id: 17, name: 'Television', prefix: 'offlineTelevision', start: 1262,
+    x: 10, y: 3, price: 240, action: 'Watch TV', activity: 14 },
+  { id: 16, name: 'Radio', prefix: 'offlineRadio', start: 1266,
     x: 8, y: 3, price: 60, action: 'Listen to the radio', activity: 18 },
 ] as const;
 

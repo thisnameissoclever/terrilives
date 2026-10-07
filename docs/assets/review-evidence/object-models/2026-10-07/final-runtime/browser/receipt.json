@@ -1,0 +1,279 @@
+{
+  "checks": [
+    {
+      "name": "desktop television facts",
+      "words": "Footprint: 1 x 1 tiles.\nWatch TV: 2 users at once; about 55 minutes. Social +24; Fun +30; life satisfaction +0.002 points. Conditional details: Social requires liked company using the same device; Comfort depends on the seat actually used.\nTimes are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration."
+    },
+    {
+      "name": "desktop radio facts",
+      "words": "Footprint: 1 x 1 tiles.\nListen to the radio: 2 users at once; about 38 minutes. Social +5; Fun +22. Conditional details: Social requires liked company using the same device; Comfort depends on the seat actually used.\nTimes are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration."
+    },
+    {
+      "name": "desktop bookshelf facts",
+      "words": "Footprint: 1 x 1 tiles.\nShelf space: 24 copies, including borrowed copies' reserved spaces.\nCollect or return: 1 person at once.\nRead a book: Readers use separate copies elsewhere. Up to 60 minutes per session. Standard reading speed. Fun +30 per reading hour; life satisfaction +0.003 points per reading hour. Requires an available shelved copy. Conditional details: Social requires liked company sharing this activity nearby.\nThe chosen seat affects reading comfort and enjoyment.\nTimes are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration."
+    },
+    {
+      "name": "keyboard description stays click-only"
+    },
+    {
+      "name": "Real furniture sales fund one real shelved purchase",
+      "funding": {
+        "funds": 0,
+        "items": [
+          {
+            "id": 14,
+            "model": "coat_rack"
+          },
+          {
+            "id": 15,
+            "model": "floor_lamp"
+          },
+          {
+            "id": 20,
+            "model": "nightstand"
+          },
+          {
+            "id": 21,
+            "model": "dresser"
+          },
+          {
+            "id": 23,
+            "model": "desk"
+          },
+          {
+            "id": 31,
+            "model": "bathtub"
+          },
+          {
+            "id": 33,
+            "model": "laundry"
+          }
+        ]
+      },
+      "title": "the_locked_laundry",
+      "shelf": "10",
+      "purchased": {
+        "id": 0,
+        "titleId": "the_locked_laundry",
+        "location": {
+          "kind": "shelf",
+          "home": {
+            "shelf": "10",
+            "slot": 0
+          }
+        },
+        "home": {
+          "shelf": "10",
+          "slot": 0
+        },
+        "borrowerSimId": null
+      }
+    },
+    {
+      "name": "Actual Edit dialog prepares a named reader through accepted command"
+    },
+    {
+      "name": "Object-menu description requires activation"
+    },
+    {
+      "name": "Actual reader pickup midpoint",
+      "ticks": 61,
+      "stage": 6,
+      "person": 35,
+      "remaining": 2,
+      "total": 4,
+      "copy": {
+        "id": 0,
+        "titleId": "the_locked_laundry",
+        "location": {
+          "kind": "shelf",
+          "home": {
+            "shelf": "10",
+            "slot": 0
+          }
+        },
+        "home": {
+          "shelf": "10",
+          "slot": 0
+        },
+        "borrowerSimId": 1
+      }
+    },
+    {
+      "name": "Accepted active-reader edit preserves ownership/work/skill/satisfaction and stable affinity",
+      "arrival": {
+        "ticks": 41,
+        "status": "Reading: The Locked Laundry. Title progress: 8% of 120 baseline game minutes."
+      },
+      "before": {
+        "name": "Bill",
+        "simId": 1,
+        "tick": "104",
+        "copy": "{\"copies\":[{\"id\":0,\"titleId\":\"the_locked_laundry\",\"location\":{\"kind\":\"carried\",\"simId\":1},\"home\":{\"shelf\":\"10\",\"slot\":0},\"borrowerSimId\":1}],\"shelves\":[{\"entity\":10,\"capacity\":24,\"visible\":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],\"reserved\":[0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}]}",
+        "memory": "{\"simId\":1,\"titleId\":\"the_locked_laundry\",\"progressTicks\":10,\"progressFraction\":0,\"passNovelty\":1,\"familiarity\":0.08332477509975433,\"lastReadTick\":\"104\",\"completedPasses\":0}",
+        "skills": [
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          },
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          },
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          }
+        ],
+        "satisfaction": 50,
+        "interest": 1.1288084983825684,
+        "status": "Reading: The Locked Laundry. Title progress: 8% of 120 baseline game minutes."
+      },
+      "after": {
+        "name": "Reader Bill",
+        "simId": 1,
+        "tick": "104",
+        "copy": "{\"copies\":[{\"id\":0,\"titleId\":\"the_locked_laundry\",\"location\":{\"kind\":\"carried\",\"simId\":1},\"home\":{\"shelf\":\"10\",\"slot\":0},\"borrowerSimId\":1}],\"shelves\":[{\"entity\":10,\"capacity\":24,\"visible\":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],\"reserved\":[0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}]}",
+        "memory": "{\"simId\":1,\"titleId\":\"the_locked_laundry\",\"progressTicks\":10,\"progressFraction\":0,\"passNovelty\":1,\"familiarity\":0.08332477509975433,\"lastReadTick\":\"104\",\"completedPasses\":0}",
+        "skills": [
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          },
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          },
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          }
+        ],
+        "satisfaction": 50,
+        "interest": 0.8361544609069824,
+        "status": "Reading: The Locked Laundry. Title progress: 8% of 120 baseline game minutes."
+      }
+    },
+    {
+      "name": "Actual Save/Load continues edited reading with earlier reward history",
+      "sha256": "162734e2d41f282a9620677633c1b277000e533eab721b7ced918d4d13d0528c"
+    },
+    {
+      "name": "Actual reader shelving midpoint",
+      "ticks": 76,
+      "stage": 7,
+      "person": 35,
+      "remaining": 2,
+      "total": 4,
+      "copy": {
+        "id": 0,
+        "titleId": "the_locked_laundry",
+        "location": {
+          "kind": "carried",
+          "simId": 1
+        },
+        "home": {
+          "shelf": "10",
+          "slot": 0
+        },
+        "borrowerSimId": 1
+      }
+    },
+    {
+      "name": "Completed session returns its copy and displays learned Reading skill",
+      "completed": {
+        "ticks": 2,
+        "skills": [
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          },
+          {
+            "level": 0,
+            "progress": 0,
+            "mastery": 0
+          },
+          {
+            "level": 0,
+            "progress": 0.11999999731779099,
+            "mastery": 0.012000000104308128
+          }
+        ],
+        "copies": [
+          {
+            "id": 0,
+            "titleId": "the_locked_laundry",
+            "location": {
+              "kind": "shelf",
+              "home": {
+                "shelf": "10",
+                "slot": 0
+              }
+            },
+            "home": {
+              "shelf": "10",
+              "slot": 0
+            },
+            "borrowerSimId": null
+          }
+        ]
+      },
+      "skillsText": "Cooking\nLevel 0 of 10, 0% to the next level\n\nTurning ingredients into a meal somebody will eat.\n\nFitness\nLevel 0 of 10, 0% to the next level\n\nGetting more out of a workout each time.\n\nReading\nLevel 0 of 10, 0% to the next level\n\nGetting through a book, and getting something from it."
+    },
+    {
+      "name": "touch television facts",
+      "words": "Footprint: 1 x 1 tiles.\nWatch TV: 2 users at once; about 55 minutes. Social +24; Fun +30; life satisfaction +0.002 points. Conditional details: Social requires liked company using the same device; Comfort depends on the seat actually used.\nTimes are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration."
+    },
+    {
+      "name": "touch radio facts",
+      "words": "Footprint: 1 x 1 tiles.\nListen to the radio: 2 users at once; about 38 minutes. Social +5; Fun +22. Conditional details: Social requires liked company using the same device; Comfort depends on the seat actually used.\nTimes are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration."
+    },
+    {
+      "name": "touch bookshelf facts",
+      "words": "Footprint: 1 x 1 tiles.\nShelf space: 24 copies, including borrowed copies' reserved spaces.\nCollect or return: 1 person at once.\nRead a book: Readers use separate copies elsewhere. Up to 60 minutes per session. Standard reading speed. Fun +30 per reading hour; life satisfaction +0.003 points per reading hour. Requires an available shelved copy. Conditional details: Social requires liked company sharing this activity nearby.\nThe chosen seat affects reading comfort and enjoyment.\nTimes are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration."
+    },
+    {
+      "name": "touch description stays click-only"
+    },
+    {
+      "name": "390px touch facts, disclosure and active-reader rename preserve state"
+    },
+    {
+      "name": "Published skills-era startup preserves exact V5 backup and grants starter books once"
+    }
+  ],
+  "screenshots": [
+    "desktop-store-capacity.png",
+    "desktop-fetching-book.png",
+    "desktop-reading-owned-book.png",
+    "desktop-active-reader-edit.png",
+    "desktop-returning-book.png",
+    "desktop-skills-after-reading.png",
+    "touch-store-capacity.png",
+    "touch-edit-reader.png"
+  ],
+  "pageErrors": [],
+  "consoleErrors": [
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:8787/favicon.ico"
+    }
+  ],
+  "networkFailures": [],
+  "classification": "Running-build controls, ownership, reading and book-handling images; owner acceptance is separate",
+  "serverPid": 187264,
+  "knownFavicon": [],
+  "faviconProbe": {
+    "url": "http://127.0.0.1:8787/favicon.ico",
+    "status": 404
+  },
+  "unexpectedConsole": [],
+  "pass": true
+}

@@ -1,0 +1,13 @@
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\.tmp\object-models\upstream-2f319c3b-20261006\capture-source\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.97s
+     Running `D:/VIBES/.worktrees/f24d/terrilives/.tmp/object-models/upstream-2f319c3b-20261006/capture-target\debug\examples\pinned_2f_company.exe D:/VIBES/.worktrees/f24d/terrilives/.tmp/object-models/upstream-2f319c3b-20261006/capture-company-output`
+friends	103	35	36	0.17291863	0.1328075
+capture	two-viewer-tv	157	3665	true	true	true	true
+observed	two-viewer-tv	true
+friends	103	35	36	0.17291863	0.1328075
+capture	two-listener-radio	124	3583	true	true	true	true
+observed	two-listener-radio	true
+friends	103	35	36	0.17291863	0.1328075
+observed	seated-company-meal	false
+friends	103	35	36	0.17291863	0.1328075
+observed	standing-meal	false

@@ -1,0 +1,202 @@
+{
+  "state": "complete",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_sleeve_fold_controls.py": "95f285d7e911328c1314fc3b6b0a8b59f16a28558b3dfcbee688c20eb1b2f934",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_attachment_fold_contract.py": "51ad6e0046384e8c352220283555b6688ff04174acfc800271f36a1e91e18e34",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_sleeve_fold_regions.py": "3ecce23ec485c54bca71bad4bc6e877b3805c8008266d5a89407ae83afae3757",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_view_area.py": "015e893c5353ea551445002f1e6c3cca2eabf57339c1e20c7842e952aabda4af",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-compare-01\\proof.json": "0fc58e118071feaca67a7c3616b5c8b9f365d801e7f48dcbec13a34b893d7775",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-reading-compare-01\\proposal.npz": "89718c49e4dc26256f1a1b875f652b51d7c28a1f4764252f447a070f629c6f47",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-sleeve-fold-regions-01\\proof.json": "cfb829b5eaa85753bf0dd0faaf0286a6c91389b2f39f8361ed1c166c07e833ac",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-alt2-replay-01\\proof.json": "016c0a9cb848b17e873d76680d8090bf023c441b2f2e917bd0a3aea0062d2afc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\source-binding.npz": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-static-views-01\\proof.json": "6a09349cf0d362a0d6551519f63e74f45b33d6910e21b78d992b0a3e9177ac24",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-wrist-controls-01\\proof.json": "c41dfb491ee21f05c4946c1b0112275512e0797fb28a38a7d2f6c2a54268661a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-wrist-controls-01\\witnesses.npz": "858ba21b5847340a2eb2e11e36654456f500db595ae5b00c204eb195baf8f717"
+  },
+  "cases": [
+    {
+      "part": "Relaxed shirt sleeve",
+      "source_caps": [
+        [
+          96,
+          1.0485328435897827
+        ],
+        [
+          97,
+          1.3653762340545654
+        ]
+      ],
+      "visibility": [
+        {
+          "view": "static-SE",
+          "projected_triangle_area": 8.481110890348753e-05,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "static-SW",
+          "projected_triangle_area": 0.00016368214829165506,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "static-NW",
+          "projected_triangle_area": 9.74409585354774e-05,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "static-NE",
+          "projected_triangle_area": 0.00010131511137402571,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "close-front",
+          "projected_triangle_area": 0.00014033259070016235,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "close-back",
+          "projected_triangle_area": 0.0001243785226788252,
+          "visible_projected_area": 0
+        }
+      ],
+      "valid": true,
+      "classification": "buried garment surface in proved proximal attachment",
+      "garment_material": true,
+      "proved_join": true,
+      "all_fold_triangles_buried": true,
+      "all_required_views_hidden": true,
+      "scope": "Only these indexed garment triangles in this evaluated join. No whole mesh, skin, source polygon name or invisible-camera exemption."
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "source_caps": [
+        [
+          96,
+          1.0485328435897827
+        ],
+        [
+          97,
+          1.3653762340545654
+        ]
+      ],
+      "visibility": [
+        {
+          "view": "static-SE",
+          "projected_triangle_area": 0.00013474527797235902,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "static-SW",
+          "projected_triangle_area": 7.542458999544588e-05,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "static-NW",
+          "projected_triangle_area": 7.610497047702558e-05,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "static-NE",
+          "projected_triangle_area": 8.94096566066982e-05,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "close-front",
+          "projected_triangle_area": 0.00010679166137549101,
+          "visible_projected_area": 0
+        },
+        {
+          "view": "close-back",
+          "projected_triangle_area": 8.994435095589781e-05,
+          "visible_projected_area": 0
+        }
+      ],
+      "valid": true,
+      "classification": "buried garment surface in proved proximal attachment",
+      "garment_material": true,
+      "proved_join": true,
+      "all_fold_triangles_buried": true,
+      "all_required_views_hidden": true,
+      "scope": "Only these indexed garment triangles in this evaluated join. No whole mesh, skin, source polygon name or invisible-camera exemption."
+    }
+  ],
+  "controls": [
+    {
+      "name": "Relaxed shirt sleeve buried actual patch",
+      "passed": true
+    },
+    {
+      "name": "Relaxed shirt sleeve same source labels outside shirt",
+      "passed": true,
+      "decision": {
+        "valid": false,
+        "classification": "true fold or unresolved attachment surface",
+        "garment_material": true,
+        "proved_join": true,
+        "all_fold_triangles_buried": false,
+        "all_required_views_hidden": true,
+        "scope": "Only these indexed garment triangles in this evaluated join. No whole mesh, skin, source polygon name or invisible-camera exemption."
+      }
+    },
+    {
+      "name": "Relaxed shirt sleeve missing demonstrated join",
+      "passed": true
+    },
+    {
+      "name": "Relaxed shirt sleeve.001 buried actual patch",
+      "passed": true
+    },
+    {
+      "name": "Relaxed shirt sleeve.001 same source labels outside shirt",
+      "passed": true,
+      "decision": {
+        "valid": false,
+        "classification": "true fold or unresolved attachment surface",
+        "garment_material": true,
+        "proved_join": true,
+        "all_fold_triangles_buried": false,
+        "all_required_views_hidden": true,
+        "scope": "Only these indexed garment triangles in this evaluated join. No whole mesh, skin, source polygon name or invisible-camera exemption."
+      }
+    },
+    {
+      "name": "Relaxed shirt sleeve.001 missing demonstrated join",
+      "passed": true
+    },
+    {
+      "name": "original after Relaxed palm.001",
+      "actual_skin_fold_pairs": 498,
+      "distal_winding": 1.0,
+      "passed": true,
+      "decision": {
+        "valid": false,
+        "classification": "true fold or unresolved attachment surface",
+        "garment_material": false,
+        "proved_join": true,
+        "all_fold_triangles_buried": true,
+        "all_required_views_hidden": true,
+        "scope": "Only these indexed garment triangles in this evaluated join. No whole mesh, skin, source polygon name or invisible-camera exemption."
+      }
+    },
+    {
+      "name": "original after Resting thumb.001",
+      "actual_skin_fold_pairs": 498,
+      "distal_winding": 1.0,
+      "passed": true,
+      "decision": {
+        "valid": false,
+        "classification": "true fold or unresolved attachment surface",
+        "garment_material": false,
+        "proved_join": true,
+        "all_fold_triangles_buried": true,
+        "all_required_views_hidden": true,
+        "scope": "Only these indexed garment triangles in this evaluated join. No whole mesh, skin, source polygon name or invisible-camera exemption."
+      }
+    }
+  ],
+  "passed": true,
+  "elapsed_seconds": 0.7943666999926791,
+  "cache_sha256": "86961191cab0c09363d7b006e9471cc27bb966520fc625aa8a796590b42ffdeb",
+  "semantics": "Exact orthographic subtraction of the actual shirt triangles from every involved folded triangle, using the six recorded diagnostic directions. Areas sum per triangle; zero proves no visible patch in these views. The enclosure/material proof is separate and no closed shirt volume is manufactured.",
+  "scope": "Cached classification and negative controls only. Shared evaluator and prior rejection receipts are unchanged; no new pose, binding or render."
+}

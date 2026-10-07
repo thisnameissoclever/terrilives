@@ -1,0 +1,186 @@
+# Personality archetypes - [H3] in
+# docs/specs/2026-07-30-household-and-relationships-design.md.
+#
+# An archetype is three kinds of multiplier, and every one of them
+# defaults to 1.0 when absent, so the two or three numbers written here
+# ARE the personality rather than being buried in restated defaults:
+#
+#   drain          how fast a need falls for this sim
+#   satisfaction   how much a positive delta restores for them - and,
+#                  through selection, how attractive it looks
+#   disposition    a weight on one specific interaction; 0 is a refusal
+#                  ("fear of couches"), above 1 is a love
+#
+# **Every multiplier in this file and every starting need in
+# household.toml is pairwise distinct**, the same [L26]/[L29] discipline
+# objects.toml keeps: a test cannot tell one slot from another when two
+# slots hold the same number, and a drain written into a satisfaction
+# column would be invisible the moment any two values matched.
+#
+# One KNOWN collision crosses files: the_settled's desk weight of 0.45
+# equals `habituation_floor` in tuning.toml, and the two meet in one
+# expression - `benefit_scale(hab, floor) * disposition` - where a fresh
+# sim's desk row prints scale 0.45 from either factor. Tolerated for now
+# rather than renumbered, because any content change reshuffles every
+# weighted draw and invalidates the measured session in
+# docs/alpha-feel-notes.md [A-9], and because the factor confusion the
+# collision could hide is pinned by golden-value tests that do not read
+# shipped content (`benefit_scale_runs_from_one_...` uses its own 0.45
+# constant; `a_disposition_reads_back_by_its_own_key_...` uses 0.25 and
+# 1.75). Whoever next rebalances this file owns moving the 0.45.
+#
+# The three shipped archetypes are built to be told apart from across the
+# room in the first minute of watching, because that is goal item 1's
+# actual test: "visibly different behaviour traceable to personality
+# data". Each one's numbers point at a different room of the house.
+
+# The one who is going to sort her life out any day now. Bores fast,
+# hard to entertain, doesn't notice discomfort - and drawn to the two
+# objects the house keeps for the person you meant to become: the desk
+# and the Wall of Intent. Disdains the television, which is how the
+# house's biggest fun-dispenser stays available for everyone else.
+[[archetype]]
+id = "the_correspondent"
+cleanliness = 0.9
+# What the New housemate form says about her ([CS-personality]). Each verb
+# follows [TL-affinity]'s lines: the desk's 1.7 is love, the bookshelf's
+# 1.45 and the reading chair's 1.28 are liking, the television's 0.55 is
+# dislike. The rest reads the numbers below: up 90 ticks early, fun drains
+# at 1.3 and refills at 0.85, and comfort drains at 0.7.
+description = "Up early, bored fast and hard to entertain, and does not notice discomfort. Loves working at the desk, likes reading, dislikes television."
+# Where this archetype samples the circadian curve, in ticks - [ML-chrono].
+# Tim is up before the others: 90 ticks is an hour and a half early.
+#
+# This one number is what stops the household going to bed on the same
+# tick, which reads as a screensaver rather than as a home. It is the
+# highest-value line in the whole circadian feature.
+chronotype_offset_ticks = -90
+drain = { fun = 1.3, comfort = 0.7 }
+satisfaction = { fun = 0.85, energy = 1.15 }
+
+  [[archetype.disposition]]
+  object = "desk"
+  interaction = "attend_correspondence"
+  weight = 1.7
+
+  [[archetype.disposition]]
+  object = "bookshelf"
+  interaction = "read"
+  weight = 1.45
+
+  # **The other end of the same hobby, and its absence was a bug the
+  # alpha acceptance pass caught** - [X3]. The wingback carries the
+  # identical `reading` tag and exists, by its own note in
+  # objects.toml, to be "the bookshelf read's twin - one hobby, two
+  # chairs' worth of routes, which is also what keeps habituation from
+  # parking a reader on a single object forever." It was authored
+  # before archetypes had dispositions and never got one, so the only
+  # sim in the house who reads for a living loved one route and was
+  # indifferent to the other. The chair lost every contest and was used
+  # ZERO times over 12 000 ticks, which criterion 3 forbids by name.
+  #
+  # 1.28 rather than the bookshelf's 1.45 on purpose: the shelf stays
+  # her first choice, and the chair is where habituation sends her when
+  # it is sick of her. Twice before, the chair was rescued by shaving
+  # its duration and raising its fun - both times it fell back to zero
+  # the moment new content competed for the same needs, and its own
+  # comment predicted the third fall and asked for "a rethink of
+  # middling on purpose" instead of a third shave. This is that: the
+  # chair stops competing on need deltas it can never win and becomes
+  # what it was designed to be, the second route for a reader's hobby.
+  #
+  # Two decimals because every multiplier in this file must be pairwise
+  # DISTINCT - [L26], enforced by
+  # `every_shipped_archetype_is_distinct_and_none_is_secretly_neutral`.
+  # The natural 1.3 is already this archetype's own `fun` drain, and two
+  # equal multipliers in different slots make a transposition between
+  # them invisible to every test.
+  [[archetype.disposition]]
+  object = "reading_chair"
+  interaction = "settle_in"
+  weight = 1.28
+
+  [[archetype.disposition]]
+  object = "television"
+  interaction = "watch_tv"
+  weight = 0.55
+
+# The one the armchair belongs to. Comfort aches constantly and nothing
+# else hurries him; the 1.85 on "Take the good chair" is what turns the
+# house's single-slot best seat into a contested territory with an
+# incumbent, which is the contention fixture goal item 1 asks to watch.
+# The 0.45 on the desk is the same fact from the other side.
+[[archetype]]
+id = "the_settled"
+cleanliness = 0.08
+# Ordinary hours, comfort draining at 1.5; the armchair's 1.85 is love, the
+# long sofa's 1.35 liking, and the desk's 0.45 is under the hate line.
+description = "Keeps ordinary hours and aches for comfort. Loves the armchair, likes lying on the sofa, hates the desk."
+# Bill keeps ordinary hours, and 0 is what every archetype had before
+# chronotypes existed.
+chronotype_offset_ticks = 0
+drain = { comfort = 1.5, energy = 0.8 }
+satisfaction = { comfort = 1.25 }
+
+  [[archetype.disposition]]
+  object = "armchair"
+  interaction = "take_the_chair"
+  weight = 1.85
+
+  [[archetype.disposition]]
+  object = "long_sofa"
+  interaction = "stretch_out"
+  weight = 1.35
+
+  [[archetype.disposition]]
+  object = "desk"
+  interaction = "attend_correspondence"
+  weight = 0.45
+
+# The one the house is too quiet for. Social drains almost half again as
+# fast as anyone else's and each dose restores LESS (0.75), so she works
+# the house's social taps harder than anyone: measured over 36 000 ticks,
+# television 69 uses to Bill's 42 and Tim's 34, dining table 20 to
+# their 3 and 13. **The radio is the exception and the 1.6 below is a
+# muted preference, knowingly kept**: the radio is mostly a fun object
+# (fun 22, social 5), her fun runs the highest floor in the household
+# because everything she does for social also pays fun, and a cubed
+# near-zero fun deficit kills the radio's dominant term before the weight
+# can act - she used it zero times in that trace while unweighted Tim
+# used it twelve. That is [L54]'s shape one layer up: a weight tuned
+# against an object's headline need rather than against what decides
+# between it and its competitor. It stays because it is honest character
+# data that will matter whenever her fun is not full, and because M2d is
+# about to change what "social tap" means anyway.
+#
+# **She is deliberately under-served**: the only real social supply is
+# other sims, which is M2d, and this archetype is the demand side of that
+# feature built first. Watch her social floor in the trace; if it ever
+# pins near zero that is [C2] and the number to soften is the 1.4.
+[[archetype]]
+id = "the_flitting"
+cleanliness = 0.55
+# Three hours late to bed, social draining at 1.4 and refilling at 0.75;
+# the radio's 1.6 is love, the television's 1.2 and the dining table's
+# 1.05 are liking.
+description = "A night owl who needs company more than anyone and gets less from each chat. Loves the radio, likes television and a proper sit-down meal."
+# Casey is a night owl: three hours later than the curve's nominal shape,
+# so she is still up when the other two have gone to bed.
+chronotype_offset_ticks = 180
+drain = { social = 1.4, hygiene = 0.9 }
+satisfaction = { social = 0.75, hunger = 1.1 }
+
+  [[archetype.disposition]]
+  object = "radio"
+  interaction = "listen"
+  weight = 1.6
+
+  [[archetype.disposition]]
+  object = "dining_table"
+  interaction = "sit_properly"
+  weight = 1.05
+
+  [[archetype.disposition]]
+  object = "television"
+  interaction = "watch_tv"
+  weight = 1.2

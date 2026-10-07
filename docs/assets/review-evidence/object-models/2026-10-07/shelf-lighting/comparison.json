@@ -1,0 +1,173 @@
+{
+  "passed": true,
+  "comparisons": [
+    {
+      "facing": "SW",
+      "mask": 16777215,
+      "maximum": 4.57763671875e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SW",
+      "mask": 5592405,
+      "maximum": 4.57763671875e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SW",
+      "mask": 9586981,
+      "maximum": 3.0517578125e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SW",
+      "mask": 9845850,
+      "maximum": 4.57763671875e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SW",
+      "mask": 1267611,
+      "maximum": 4.57763671875e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SW",
+      "mask": 11259375,
+      "maximum": 3.0517578125e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SE",
+      "mask": 16777215,
+      "maximum": 3.0517578125e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SE",
+      "mask": 5592405,
+      "maximum": 2.288818359375e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SE",
+      "mask": 9586981,
+      "maximum": 3.0517578125e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SE",
+      "mask": 9845850,
+      "maximum": 2.288818359375e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SE",
+      "mask": 1267611,
+      "maximum": 2.288818359375e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "SE",
+      "mask": 11259375,
+      "maximum": 3.0517578125e-05,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NW",
+      "mask": 16777215,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NW",
+      "mask": 5592405,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NW",
+      "mask": 9586981,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NW",
+      "mask": 9845850,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NW",
+      "mask": 1267611,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NW",
+      "mask": 11259375,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NE",
+      "mask": 16777215,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NE",
+      "mask": 5592405,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NE",
+      "mask": 9586981,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NE",
+      "mask": 9845850,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NE",
+      "mask": 1267611,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    },
+    {
+      "facing": "NE",
+      "mask": 11259375,
+      "maximum": 0.0,
+      "p95": 0,
+      "passGate": true
+    }
+  ]
+}

@@ -1,11 +1,19 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 mod action_queue;
+pub mod action_rows;
 #[cfg(test)]
 mod activity_tests;
 pub mod affinity;
 pub mod beds;
+pub mod books;
 pub mod chores;
+mod reading;
+mod recipe_actions;
+pub use recipe_actions::{
+    recipe_buying_requirements, usable_buying_role, usable_catalogue_needs, usable_recipe_role,
+};
+pub use save::books_migration::{LegacySnapshot, PreBookSource};
 mod compatibility;
 #[cfg(test)]
 mod completion_sound_tests;
@@ -60,6 +68,21 @@ pub use save::{SaveError, MAX_TEXT_BYTES};
 /// which is what lets a test point a world at a pack of its own.
 #[derive(Resource, Debug, Clone, Copy)]
 pub struct Content(pub &'static terri_data::ContentPack);
+
+impl Content {
+    /// Frozen source catalogue for the published V1-V5 positional formats.
+    pub fn pre_books() -> Self {
+        Self(terri_data::pre_books_pack())
+    }
+    /// Published positional source after skills, before owned books.
+    pub fn published_pre_books() -> Self {
+        Self(terri_data::published_pre_books_pack())
+    }
+    /// Published affinity, calendar and chore source before owned books.
+    pub fn latest_pre_books() -> Self {
+        Self(terri_data::latest_pre_books_pack())
+    }
+}
 
 /// Rectangle occupied at the live direction, or the definition's authored base.
 pub fn placed_footprint(
@@ -649,13 +672,13 @@ fn stove_front(
     facing: Option<&terri_core::ObjectFacing>,
 ) -> Option<terri_core::Position> {
     let definition = pack.object(object.0);
-    if definition.id != "stove" {
-        return None;
-    }
+    let front = definition.cooking_front.or_else(|| {
+        (terri_data::is_pre_books_pack(pack) && definition.id == "stove").then_some((1, 0))
+    })?;
     let center = object_footprint_centre(pack, object, position, facing)?;
-    let (dx, dy) = facing
-        .map_or(definition.base_facing, |f| f.0)
-        .rotate_axis(1, 0);
+    let turn = facing.map_or(definition.base_facing, |f| f.0).code();
+    let relative = terri_core::Facing::from_code((turn + 4 - definition.base_facing.code()) % 4)?;
+    let (dx, dy) = relative.rotate_axis(front.0, front.1);
     Some(terri_core::Position {
         x: center.x + dx as f32,
         y: center.y + dy as f32,
@@ -681,7 +704,6 @@ fn cooking_projection(world: &World, person: Entity) -> Option<SocketActionProje
     let target = world.get::<Target>(person)?;
     let object = world.get::<SmartObject>(target.object)?;
     if target.interaction != systems::chain::CHAIN_STEP
-        || pack.object(object.0).id != "stove"
         || !pack.object(object.0).roles.contains(&step.role)
     {
         return None;
@@ -692,18 +714,13 @@ fn cooking_projection(world: &World, person: Entity) -> Option<SocketActionProje
         world.get::<Position>(target.object)?,
         world.get::<terri_core::ObjectFacing>(target.object),
     )?;
-    let front = stove_front(
+    let front = cooking_contact(
+        world.resource::<terri_core::TileGrid>(),
         pack,
         object,
         world.get::<Position>(target.object)?,
         world.get::<terri_core::ObjectFacing>(target.object),
     )?;
-    if !world
-        .resource::<terri_core::TileGrid>()
-        .is_walkable(front.x.round() as i32, front.y.round() as i32)
-    {
-        return None;
-    }
     let facing = facing_toward(person, &front, target.object, &center);
     Some(SocketActionProjection {
         x: front.x,
@@ -713,6 +730,24 @@ fn cooking_projection(world: &World, person: Entity) -> Option<SocketActionProje
         visual_action: render_buffer::visual_action::COOK,
         activity: render_buffer::activity::COOKING,
     })
+}
+
+fn cooking_contact(
+    grid: &terri_core::TileGrid,
+    pack: &terri_data::ContentPack,
+    object: &terri_core::SmartObject,
+    position: &terri_core::Position,
+    facing: Option<&terri_core::ObjectFacing>,
+) -> Option<terri_core::Position> {
+    let front = stove_front(pack, object, position, facing)?;
+    let endpoint = (front.x.round() as i32, front.y.round() as i32);
+    (grid.is_walkable(endpoint.0, endpoint.1)
+        && grid.can_interact_with_rect(
+            endpoint,
+            (position.x.round() as i32, position.y.round() as i32),
+            placed_footprint(pack, object.0, facing),
+        ))
+    .then_some(front)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -885,9 +920,130 @@ fn authored_object_sound(
     None
 }
 
+/// Read-only snapshot source shared by public saves and atomic placement previews.
+pub(crate) struct SnapshotSource<'a> {
+    pub(crate) world: &'a World,
+}
+impl SnapshotSource<'_> {
+    pub fn save_snapshot_v3(&self) -> terri_core::SaveSnapshotV3 {
+        let world = save::capture_world(self.world);
+        let content = self.world.resource::<Content>().0;
+        let object_facings = world
+            .entities
+            .iter()
+            .filter_map(|saved| {
+                let id = content.find(saved.smart_object.as_deref()?)?;
+                let entity = self.world.entities().resolve_from_index(
+                    bevy_ecs::entity::EntityIndex::from_raw_u32(saved.index).unwrap(),
+                );
+                let facing = self
+                    .world
+                    .get::<terri_core::ObjectFacing>(entity)
+                    .map_or(content.object(id).base_facing, |f| f.0);
+                Some((saved.index, facing.code()))
+            })
+            .collect();
+        terri_core::SaveSnapshotV3 {
+            world,
+            layout: self
+                .world
+                .resource::<terri_core::layout::SavedLayout>()
+                .clone(),
+            object_facings,
+        }
+    }
+    pub fn save_snapshot_v4(&self) -> terri_core::SaveSnapshotV4 {
+        let terri_core::SaveSnapshotV3 {
+            world,
+            layout,
+            object_facings,
+        } = self.save_snapshot_v3();
+        terri_core::SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices: self
+                .world
+                .get_resource::<placement::sale::RetiredIndices>()
+                .map_or_else(Vec::new, |retired| retired.as_slice().to_vec()),
+        }
+    }
+    pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
+        let terri_core::SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+        } = self.save_snapshot_v4();
+        let content = self.world.resource::<Content>().0;
+        let predates_chores = terri_data::is_pre_books_pack(content)
+            && !terri_data::is_latest_pre_books_pack(content);
+        let mut object_colourways = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::Colourway)>() {
+            for (entity, colourway) in query.iter(self.world) {
+                object_colourways.push((
+                    entity.index_u32(),
+                    content.colourways[colourway.0 as usize].id.clone(),
+                ));
+            }
+        }
+        object_colourways.sort_unstable_by_key(|(index, _)| *index);
+        terri_core::SaveSnapshotV5 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+            object_colourways,
+            floors: self
+                .world
+                .get_resource::<terri_core::layout::SavedFloors>()
+                .cloned()
+                .unwrap_or_default(),
+            // [FM-identity]: written empty, read only from older saves.
+            mortality: mortality::snapshot(self.world),
+            death_default_applied: true,
+            waiting_needs: waiting::snapshot(self.world),
+            self_preservation: save::self_preservation::capture(self.world),
+            chronotype_offsets: save::chronotype::capture(self.world),
+            sleeping_places: Some(save::sleeping_places::capture(self.world)),
+            shyness: shyness::deviations(self.world),
+            boundaries: self
+                .world
+                .resource::<privacy::BoundaryDecisions>()
+                .0
+                .values()
+                .cloned()
+                .collect(),
+            domestic: domestic::snapshot(self.world),
+            dining: dining::snapshot(self.world),
+            skills: save::skills::capture(self.world, content),
+            affinities: save::affinities::capture(self.world, content),
+            targeted_cleanup: (!predates_chores)
+                .then(|| targeted_cleanup::snapshot(self.world))
+                .flatten(),
+            chores: (!predates_chores)
+                .then(|| chores::snapshot(self.world))
+                .flatten(),
+            grime: (!predates_chores)
+                .then(|| {
+                    self.world
+                        .get_resource::<terri_core::grime::SavedGrime>()
+                        .cloned()
+                })
+                .flatten(),
+            family_by_index: terri_core::layout::FamilyTies::default(),
+            family: self
+                .world
+                .get_resource::<terri_core::layout::FamilyTies>()
+                .cloned()
+                .unwrap_or_default(),
+        }
+    }
+}
+
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v5` for complete persistence of a current world.
+    /// Use `save_snapshot_v6` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
@@ -923,114 +1079,18 @@ impl Sim {
 
     /// Captures architecture and runtime directions without changing historical records.
     pub fn save_snapshot_v3(&self) -> terri_core::SaveSnapshotV3 {
-        let world = save::capture(self);
-        let content = self.world.resource::<Content>().0;
-        let object_facings = world
-            .entities
-            .iter()
-            .filter_map(|saved| {
-                let id = content.find(saved.smart_object.as_deref()?)?;
-                let entity = self.world.entities().resolve_from_index(
-                    bevy_ecs::entity::EntityIndex::from_raw_u32(saved.index).unwrap(),
-                );
-                let facing = self
-                    .world
-                    .get::<terri_core::ObjectFacing>(entity)
-                    .map_or(content.object(id).base_facing, |f| f.0);
-                Some((saved.index, facing.code()))
-            })
-            .collect();
-        terri_core::SaveSnapshotV3 {
-            world,
-            layout: self
-                .world
-                .resource::<terri_core::layout::SavedLayout>()
-                .clone(),
-            object_facings,
-        }
+        SnapshotSource { world: &self.world }.save_snapshot_v3()
     }
 
     /// The previous envelope - [SL-save]: V3's, with the indices sales retired.
     pub fn save_snapshot_v4(&self) -> terri_core::SaveSnapshotV4 {
-        let terri_core::SaveSnapshotV3 {
-            world,
-            layout,
-            object_facings,
-        } = self.save_snapshot_v3();
-        terri_core::SaveSnapshotV4 {
-            world,
-            layout,
-            object_facings,
-            retired_indices: self
-                .world
-                .get_resource::<placement::sale::RetiredIndices>()
-                .map_or_else(Vec::new, |retired| retired.as_slice().to_vec()),
-        }
+        SnapshotSource { world: &self.world }.save_snapshot_v4()
     }
 
-    /// The current envelope - [RC-save]: V4's, with each placed object's
-    /// colourway, ascending by entity index, for the objects not as drawn.
+    /// Legacy V5 projection. It omits books; use V6 for current persistence.
+    /// Colourways remain ascending by entity index for objects not as drawn.
     pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
-        let terri_core::SaveSnapshotV4 {
-            world,
-            layout,
-            object_facings,
-            retired_indices,
-        } = self.save_snapshot_v4();
-        let content = self.world.resource::<Content>().0;
-        let mut object_colourways = Vec::new();
-        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::Colourway)>() {
-            for (entity, colourway) in query.iter(&self.world) {
-                object_colourways.push((
-                    entity.index_u32(),
-                    content.colourways[colourway.0 as usize].id.clone(),
-                ));
-            }
-        }
-        object_colourways.sort_unstable_by_key(|(index, _)| *index);
-        terri_core::SaveSnapshotV5 {
-            world,
-            layout,
-            object_facings,
-            retired_indices,
-            object_colourways,
-            floors: self
-                .world
-                .get_resource::<terri_core::layout::SavedFloors>()
-                .cloned()
-                .unwrap_or_default(),
-            // [FM-identity]: written empty, read only from older saves.
-            mortality: mortality::snapshot(&self.world),
-            death_default_applied: true,
-            waiting_needs: waiting::snapshot(&self.world),
-            self_preservation: save::self_preservation::capture(&self.world),
-            chronotype_offsets: save::chronotype::capture(&self.world),
-            sleeping_places: Some(save::sleeping_places::capture(&self.world)),
-            shyness: shyness::deviations(&self.world),
-            boundaries: self
-                .world
-                .resource::<privacy::BoundaryDecisions>()
-                .0
-                .values()
-                .cloned()
-                .collect(),
-            domestic: domestic::snapshot(&self.world),
-            dining: dining::snapshot(&self.world),
-            skills: save::skills::capture(&self.world, content),
-            targeted_cleanup: targeted_cleanup::snapshot(&self.world),
-            chores: chores::snapshot(&self.world),
-            grime: self
-                .world
-                .get_resource::<terri_core::grime::SavedGrime>()
-                .cloned(),
-            affinities: save::affinities::capture(&self.world, content),
-            family_by_index: terri_core::layout::FamilyTies::default(),
-            family: self
-                .world
-                .get_resource::<terri_core::layout::FamilyTies>()
-                .cloned()
-                .unwrap_or_default(),
-        }
+        SnapshotSource { world: &self.world }.save_snapshot_v5()
     }
 
     /// Validates the complete candidate before replacing the running simulation.
@@ -1042,6 +1102,43 @@ impl Sim {
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let restored = save::architecture::restore_v5(snapshot, content, active_portals)?;
         self.adopt(restored);
+        Ok(())
+    }
+
+    /// Complete current persistence, including owned copies and reading memory.
+    pub fn save_snapshot_v6(&self) -> terri_core::SaveSnapshotV6 {
+        save::v6::capture(self)
+    }
+
+    pub fn load_snapshot_v6(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV6,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::v6::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
+    /// Decode the immutable unpublished owned-book envelope under its original contract.
+    pub fn load_frozen_owned_snapshot(
+        &mut self,
+        snapshot: terri_core::save_v6::FrozenSaveSnapshotV6,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::v6::restore_frozen_owned(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
+    /// Production V1-V5 migration. Native older helpers remain legacy projections.
+    pub fn load_legacy_snapshot(&mut self, snapshot: LegacySnapshot) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::books_migration::restore(snapshot, content, portals)?;
+        self.adopt(candidate);
         Ok(())
     }
 
@@ -1096,6 +1193,10 @@ impl Sim {
         let content = restored.world.resource::<Content>().0;
         save::yard::grow(&mut restored, content);
         save::self_preservation::migrate(&mut restored.world);
+        self.adopt_current(restored);
+    }
+
+    fn adopt_current(&mut self, mut restored: Sim) {
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -1140,6 +1241,12 @@ impl Sim {
     /// expected to move, or [`Sim::new_from_lot`] to load an authored
     /// lot with its walls and objects.
     pub fn new() -> Self {
+        Self::new_with_content(Content(terri_data::pack()))
+    }
+
+    /// Choose the catalogue and its RNG seed before creating any world state.
+    pub fn new_with_content(content: Content) -> Self {
+        let pack = content.0;
         let mut world = World::new();
         world.insert_resource(SimClock::default());
         world.insert_resource(completion_sounds::CompletionSounds::default());
@@ -1155,7 +1262,8 @@ impl Sim {
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
         world.insert_resource(terri_core::layout::SavedLayout::default());
-        world.insert_resource(Content(terri_data::pack()));
+        world.insert_resource(content);
+        world.insert_resource(books::BookLibrary::new(pack.tuning.rng_seed));
         // The simulation PRNG, as a world resource per [D-3]. Randomness
         // must not mean nondeterminism: the golden hashes, replay, the
         // save-file command log and the planned multiplayer all rest on
@@ -1165,9 +1273,7 @@ impl Sim {
         // Seeded from the pack, which means from `content/tuning.toml`.
         // A test that installs its own pack must reseed to match - see
         // `test_content::sim_with`, which does.
-        world.insert_resource(terri_core::SimRng::from_seed(
-            terri_data::pack().tuning.rng_seed,
-        ));
+        world.insert_resource(terri_core::SimRng::from_seed(pack.tuning.rng_seed));
         // The staging area for player input - [D-2]. It has to exist from
         // construction rather than on first use, because `drain_commands`
         // takes it as `ResMut` and a missing resource is a panic on the
@@ -1333,6 +1439,7 @@ impl Sim {
                 // working sim outright. After `advance_clock`, because
                 // the day clock it reads must be THIS tick's.
                 (
+                    reading::reconcile,
                     systems::career::start_shift,
                     media::maintain,
                     social_company::refresh,
@@ -1351,6 +1458,7 @@ impl Sim {
                 // an intent PREEMPTS a running interaction. See that
                 // function's docs for why that is the choice.
                 (
+                    reading::prepare,
                     systems::action::serve_intents,
                     crate::relationship_effects::reset,
                     domestic::tick,
@@ -1397,6 +1505,7 @@ impl Sim {
                 // paid return.
                 systems::career::commute_and_work,
                 (
+                    reading::tick,
                     domestic::gather_diners,
                     social_company::tick_meals,
                     need_interactions::tick,
@@ -1452,7 +1561,11 @@ impl Sim {
 
     /// Creates a sim with an empty walkable lot of the given size.
     pub fn new_with_lot(width: usize, height: usize) -> Self {
-        let mut sim = Self::new();
+        Self::new_with_lot_and_content(width, height, Content(terri_data::pack()))
+    }
+
+    pub fn new_with_lot_and_content(width: usize, height: usize, content: Content) -> Self {
+        let mut sim = Self::new_with_content(content);
         sim.world
             .insert_resource(terri_core::TileGrid::new(width, height));
         sim
@@ -1495,8 +1608,19 @@ impl Sim {
         lot: &terri_data::CompiledLot,
         objects: &[terri_data::CompiledObject],
     ) -> Self {
-        let mut sim = Self::new();
+        Self::place_initial_lot(Self::new(), lot, objects)
+    }
 
+    pub fn new_from_lot_and_content(lot: &terri_data::CompiledLot, content: Content) -> Self {
+        let objects = &content.0.objects;
+        Self::place_initial_lot(Self::new_with_content(content), lot, objects)
+    }
+
+    fn place_initial_lot(
+        mut sim: Self,
+        lot: &terri_data::CompiledLot,
+        objects: &[terri_data::CompiledObject],
+    ) -> Self {
         let mut grid = terri_core::TileGrid::new(lot.width as usize, lot.height as usize);
         for &(x, y) in &lot.walls {
             grid.set_blocked(x as usize, y as usize, true);
@@ -1596,10 +1720,16 @@ impl Sim {
 
     /// Seeds household draws before any person is created.
     pub fn new_from_shipped_lot_with_seed(seed: u64) -> Self {
-        let pack = terri_data::pack();
-        let mut sim = Self::new_from_lot(&pack.lot, &pack.objects);
+        Self::new_household_with_content(Content(terri_data::pack()), seed)
+    }
+
+    /// Initialize the chosen era's lot, seed, portals and people in that order.
+    pub fn new_household_with_content(content: Content, seed: u64) -> Self {
+        let pack = content.0;
+        let mut sim = Self::new_from_lot_and_content(&pack.lot, content);
         sim.world
             .insert_resource(terri_core::SimRng::from_seed(seed));
+        sim.world.insert_resource(books::BookLibrary::new(seed));
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
@@ -1612,7 +1742,12 @@ impl Sim {
     /// before the yard was made on this lot.
     #[cfg(test)]
     pub(crate) fn new_from_pre_yard_lot() -> Self {
-        let pack = terri_data::pack();
+        Self::new_from_pre_yard_lot_with_content(Content(terri_data::pack()))
+    }
+
+    #[cfg(test)]
+    pub(crate) fn new_from_pre_yard_lot_with_content(content: Content) -> Self {
+        let pack = content.0;
         let (width, height) = pack.lot.house;
         let lot = terri_data::CompiledLot {
             width,
@@ -1626,7 +1761,7 @@ impl Sim {
                 .collect(),
             ..test_content::historical_lot(pack)
         };
-        let mut sim = Self::new_from_lot(&lot, &pack.objects);
+        let mut sim = Self::new_from_lot_and_content(&lot, content);
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
@@ -1690,6 +1825,7 @@ impl Sim {
     pub fn flush_commands(&mut self) {
         self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
+        seating::maintain(&mut self.world);
         privacy::maintain(&mut self.world);
         media::maintain(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
@@ -1832,6 +1968,22 @@ impl Sim {
         self.render.sound_actions.clear();
         self.render.sound_sources.clear();
         self.render.carrying.clear();
+        self.render.carried_books.clear();
+        self.render.shelf_book_offsets.clear();
+        self.render.shelf_book_counts.clear();
+        self.render.shelf_book_masks.clear();
+        self.render.dropped_book_ids.clear();
+        self.render.dropped_book_positions.clear();
+        self.render.reading_stages.clear();
+        self.render.reading_copies.clear();
+        self.render.reading_seats.clear();
+        self.render.seated_furniture.clear();
+        self.render.seated_places.clear();
+        self.render.seated_whole.clear();
+        self.render.reading_home_shelves.clear();
+        self.render.reading_home_slots.clear();
+        self.render.reading_reach_remaining.clear();
+        self.render.reading_reach_totals.clear();
         self.render.dirty_dishes.clear();
         self.render.dirty_settings.clear();
         self.render.surface_grime.clear();
@@ -2056,8 +2208,8 @@ impl Sim {
                 None
             };
             let station_visual = if is_agent && !socially_active && !at_work {
-                chore_visual
-                    .map(|p| p.0)
+                reading::projection(&self.world, entity)
+                    .or_else(|| chore_visual.map(|p| p.0))
                     .or_else(|| dining::projection(&self.world, entity))
                     .or_else(|| media::projection(&self.world, entity))
                     .or_else(|| seating::ordinary_projection(&self.world, entity))
@@ -2163,6 +2315,10 @@ impl Sim {
                 render_buffer::activity::AT_WORK
             } else if socially_active {
                 render_buffer::activity::TALKING
+            } else if reading::stage_code(&self.world, entity) == 3 {
+                render_buffer::activity::READING
+            } else if reading::stage_code(&self.world, entity) == 5 {
+                render_buffer::activity::WAITING
             } else if eating.is_some() {
                 if let Some(activity) = authored_activity.or_else(|| {
                     self::authored_activity(
@@ -2314,6 +2470,40 @@ impl Sim {
             );
         }
         let carried_dishes = domestic::carried_dishes(&self.world);
+        let carried_books: std::collections::HashMap<_, _> = self
+            .world
+            .resource::<books::BookLibrary>()
+            .state()
+            .copies
+            .iter()
+            .filter_map(|copy| {
+                if let terri_core::books::BookLocation::Carried(person) = copy.location {
+                    Some((person.0, copy.id.0))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        let mut shelf_ranges = std::collections::HashMap::new();
+        let mut dropped: Vec<_> = self
+            .world
+            .resource::<books::BookLibrary>()
+            .state()
+            .copies
+            .iter()
+            .filter_map(|copy| {
+                if let terri_core::books::BookLocation::Lot { x, y } = copy.location {
+                    Some((copy.id.0, x, y))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        dropped.sort_by_key(|(id, _, _)| *id);
+        for (id, x, y) in dropped {
+            self.render.dropped_book_ids.push(id);
+            self.render.dropped_book_positions.extend([x, y]);
+        }
         for row in &rows {
             self.render
                 .surface_grime
@@ -2374,6 +2564,100 @@ impl Sim {
             self.render.sound_actions.push(row.sound_action);
             self.render.sound_sources.push(row.sound_source);
             self.render.carrying.push(row.carrying);
+            let capacity = self
+                .world
+                .get::<SmartObject>(row.entity)
+                .map_or(0, |o| content.object(o.0).shelf_capacity);
+            let offset = self.render.shelf_book_masks.len();
+            let count = usize::from(capacity).div_ceil(32);
+            self.render.shelf_book_offsets.push(offset as u32);
+            self.render.shelf_book_counts.push(count as u32);
+            self.render.shelf_book_masks.resize(offset + count, 0);
+            if count > 0 {
+                shelf_ranges.insert(u64::from(row.index), (offset, capacity));
+            }
+
+            self.render
+                .reading_stages
+                .push(reading::stage_code(&self.world, row.entity));
+            self.render.reading_copies.push(
+                self.world
+                    .get::<reading::ReadingJourney>(row.entity)
+                    .map_or(u32::MAX, |journey| journey.copy.0),
+            );
+            self.render.reading_seats.push(
+                self.world
+                    .get::<reading::ReadingJourney>(row.entity)
+                    .and_then(|j| j.seat.as_ref())
+                    .map_or(u32::MAX, |(e, _)| e.index_u32()),
+            );
+            // The winning pose, rather than the lease alone, owns a visible seat.
+            let seated = (row.socket_projected
+                || (row.activity == render_buffer::activity::LOUNGING
+                    && self.world.get::<terri_core::Eating>(row.entity).is_some()
+                    && self.world.get::<terri_core::Path>(row.entity).is_none()))
+                && matches!(
+                    row.activity,
+                    render_buffer::activity::SITTING
+                        | render_buffer::activity::READING
+                        | render_buffer::activity::EATING
+                        | render_buffer::activity::WATCHING_TV
+                        | render_buffer::activity::LISTENING_RADIO
+                        | render_buffer::activity::LOUNGING
+                );
+            let physical = seated
+                .then(|| self.world.get::<seating::PhysicalClaim>(row.entity))
+                .flatten()
+                .filter(|claim| {
+                    self.world.get::<terri_core::Target>(row.entity) == Some(&claim.target)
+                })
+                .and_then(|claim| {
+                    seating::ordinal(&self.world, claim).map(|ordinal| (claim, ordinal))
+                });
+            self.render
+                .seated_furniture
+                .push(physical.map_or(u32::MAX, |(claim, _)| claim.furniture.index_u32()));
+            self.render
+                .seated_places
+                .push(physical.map_or(u32::MAX, |(_, ordinal)| u32::from(ordinal)));
+            self.render
+                .seated_whole
+                .push(physical.map_or(0, |(claim, _)| u32::from(claim.all)));
+            let journey = self.world.get::<reading::ReadingJourney>(row.entity);
+            let home = journey.and_then(|journey| {
+                self.world
+                    .resource::<books::BookLibrary>()
+                    .copy(journey.copy)
+                    .and_then(|copy| copy.home)
+            });
+            self.render
+                .reading_home_shelves
+                .push(home.map_or(u32::MAX, |home| home.shelf.0 as u32));
+            self.render
+                .reading_home_slots
+                .push(home.map_or(u32::MAX, |home| u32::from(home.slot)));
+            let reach_total = journey.map_or(0, |journey| {
+                content
+                    .reading
+                    .as_ref()
+                    .map_or(0, |tuning| match journey.stage {
+                        terri_core::save_v6::ReadingStage::Pickup => tuning.pickup_ticks,
+                        terri_core::save_v6::ReadingStage::Shelve => tuning.shelve_ticks,
+                        _ => 0,
+                    })
+            });
+            self.render.reading_reach_totals.push(reach_total);
+            self.render.reading_reach_remaining.push(
+                journey
+                    .filter(|_| reach_total > 0)
+                    .map_or(0, |journey| journey.reach_remaining),
+            );
+            self.render.carried_books.push(
+                self.world
+                    .get::<terri_core::SimId>(row.entity)
+                    .and_then(|id| carried_books.get(&id.0).copied())
+                    .unwrap_or(u32::MAX),
+            );
             self.render.voice_firsts.push(row.voice_first);
             self.render.voice_seconds.push(row.voice_second);
             self.render.conversation_owners.push(row.conversation_owner);
@@ -2383,6 +2667,16 @@ impl Sim {
             self.render
                 .conversation_end_highs
                 .push(row.conversation_end_high);
+        }
+        for copy in &self.world.resource::<books::BookLibrary>().state().copies {
+            if let terri_core::books::BookLocation::Shelf(home) = copy.location {
+                if let Some(&(offset, capacity)) = shelf_ranges.get(&home.shelf.0) {
+                    if home.slot < capacity {
+                        self.render.shelf_book_masks[offset + usize::from(home.slot) / 32] |=
+                            1u32 << (home.slot % 32);
+                    }
+                }
+            }
         }
         self.render.count = rows.len();
 
@@ -3012,26 +3306,15 @@ impl Sim {
         // serve_intents all agree without the wire changing: row n
         // past the interactions is the object's nth chain.
         Some(
-            pack.object(object.0)
-                .interactions
-                .iter()
-                .map(|act| act.label.as_str())
-                .chain(
-                    pack.chains
-                        .iter()
-                        .filter(|chain| chain.advertised_by == object.0)
-                        .filter(|chain| !domestic::hidden_chain(&chain.id))
-                        .map(|chain| {
-                            if chain.id == "cook_dinner" {
-                                domestic::meal_label(
-                                    self.world.resource::<SimClock>().tick,
-                                    pack.tuning.day_ticks,
-                                )
-                            } else {
-                                chain.label.as_str()
-                            }
-                        }),
-                )
+            action_rows::rows(pack, object.0)
+                .into_iter()
+                .filter(|row| row.public)
+                .map(|row| {
+                    row.label(
+                        self.world.resource::<SimClock>().tick,
+                        pack.tuning.day_ticks,
+                    )
+                })
                 .collect(),
         )
     }
@@ -3568,6 +3851,31 @@ impl Sim {
                         }
                         fields
                     }
+                    Book(command) => {
+                        use terri_core::command::BookCommand;
+                        match command {
+                            BookCommand::Purchase { title, shelf } => {
+                                vec![22, id_digest(title), shelf.map_or(u64::MAX, u64::from)]
+                            }
+                            BookCommand::Transfer { copy, shelf } => {
+                                vec![23, u64::from(*copy), shelf.map_or(u64::MAX, u64::from)]
+                            }
+                            BookCommand::Read {
+                                agent,
+                                object,
+                                action,
+                                title,
+                                front,
+                            } => vec![
+                                24,
+                                u64::from(*agent),
+                                u64::from(*object),
+                                id_digest(action),
+                                id_digest(title),
+                                u64::from(*front),
+                            ],
+                        }
+                    }
                     SetDeathEnabled(enabled) => vec![17, u64::from(*enabled)],
                     SetBedAssignment { agent, place } => match place {
                         Some((bed, ordinal)) => {
@@ -3937,6 +4245,7 @@ impl Sim {
         if let Some(state) = chores::snapshot(&self.world) {
             state.hash_into(&mut hasher);
         }
+        save::v6::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -4023,6 +4332,11 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                cooking_front: None,
+                shelf_capacity: 0,
+                shelf_access: vec![],
+                metadata: None,
+                seats: vec![],
                 sleep_places: Vec::new(),
                 seat_comfort_per_tick: 0.,
                 id: format!("object_{index}"),
@@ -5981,7 +6295,11 @@ mod determinism_tests {
         // assignments, daily decisions and a separate seeded stream to the digest.
         // Board autonomy can also select real floor work in this fixture.
         // Native assertion measured this encoding and behavior change.
-        const GOLDEN: u64 = 8890656731713008279;
+        // Owned books append their canonical books-v1 state to the digest.
+        // Continuing FNV-1a from the prior 8890656731713008279 with the empty
+        // library and taste seed 20260728 yields this value exactly; rebuilt
+        // release WASM independently measured the same result.
+        const GOLDEN: u64 = 7871509166762830360;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

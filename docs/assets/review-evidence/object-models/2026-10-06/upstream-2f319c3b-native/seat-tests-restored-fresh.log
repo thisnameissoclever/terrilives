@@ -1,0 +1,11 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.72s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 2 tests
+test seating::tests::a_larger_book_reading_comfort_bonus_cannot_leak_into_media_seating ... ok
+test seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 1261 filtered out; finished in 0.25s
+

@@ -1,0 +1,1629 @@
+{
+  "wasmSHA256": "62be0469ec5e25a29e13446ebb976645a03f9963b6c7f349de1ea5b02de4ecb8",
+  "codecSHA256": "a05a917af9e1e594d517779424271866783ded506b2d8dcfe9c0adaab2eda81a",
+  "needNames": [
+    "hunger",
+    "energy",
+    "hygiene",
+    "bladder",
+    "social",
+    "fun",
+    "comfort"
+  ],
+  "models": [
+    {
+      "definition": 0,
+      "id": "fridge",
+      "typeLabel": "Fridge",
+      "modelName": "Basic Two-Door",
+      "description": "Plain enamel doors, brass handles and a roomy cabinet. A sensible first fridge, with very few features for its manufacturer to get excited about.",
+      "typeId": "fridge",
+      "categoryId": "kitchen",
+      "categoryLabel": "Kitchen",
+      "rooms": [
+        "kitchen"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "grab_snack",
+          "label": "Grab a snack",
+          "durationTicks": 85,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              0,
+              40
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [
+            "cold_storage",
+            "prep_surface"
+          ],
+          "workKind": "recipe",
+          "optionalRequirements": []
+        },
+        {
+          "id": "cook_dinner",
+          "label": "Cook dinner",
+          "durationTicks": 330,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              0,
+              70
+            ],
+            [
+              6,
+              15
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [],
+          "requirements": [
+            "cold_storage",
+            "hob",
+            "prep_surface"
+          ],
+          "workKind": "recipe",
+          "optionalRequirements": [
+            "dining_seat",
+            "meal_table"
+          ]
+        }
+      ],
+      "roles": [
+        "cold_storage"
+      ],
+      "price": 280,
+      "needsMask": 65
+    },
+    {
+      "definition": 1,
+      "id": "bed",
+      "typeLabel": "Bunk bed",
+      "modelName": "Basic Oak",
+      "description": "A sturdy oak frame with guard rails and a straight ladder. The mattress budget was modest; the amount of floor it gives back is more convincing.",
+      "typeId": "bunk_bed",
+      "categoryId": "sleeping",
+      "categoryLabel": "Sleeping",
+      "rooms": [
+        "bedroom"
+      ],
+      "width": 2,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "sleep",
+          "label": "Sleep",
+          "durationTicks": 180,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              1,
+              100
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 180,
+      "needsMask": 2
+    },
+    {
+      "definition": 2,
+      "id": "shower",
+      "typeLabel": "Shower",
+      "modelName": "Daybreak Standard",
+      "description": "Solid corner panels and plain metal fittings keep this shower compact and practical. A brisk wash for mornings when staying in the bathroom is the more attractive option.",
+      "typeId": "shower",
+      "categoryId": "hygiene",
+      "categoryLabel": "Hygiene",
+      "rooms": [
+        "bathroom"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "take_shower",
+          "label": "Take a shower",
+          "durationTicks": 45,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              1,
+              -12
+            ],
+            [
+              2,
+              70
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 240,
+      "needsMask": 4
+    },
+    {
+      "definition": 3,
+      "id": "toilet",
+      "typeLabel": "Toilet",
+      "modelName": "Basic Ceramic",
+      "description": "A rounded ceramic bowl, plain seat and ordinary cistern. Nothing extravagant, which is a perfectly respectable ambition for a toilet.",
+      "typeId": "toilet",
+      "categoryId": "hygiene",
+      "categoryLabel": "Hygiene",
+      "rooms": [
+        "bathroom"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "relieve_self",
+          "label": "Use the toilet",
+          "durationTicks": 24,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              3,
+              95
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 120,
+      "needsMask": 8
+    },
+    {
+      "definition": 4,
+      "id": "television",
+      "typeLabel": "Television",
+      "modelName": "Walnut Vision",
+      "description": "A modest glass screen in a substantial walnut cabinet, with chunky controls and four wooden legs. The furniture seems to have received most of the budget.",
+      "typeId": "television",
+      "categoryId": "entertainment",
+      "categoryLabel": "Entertainment",
+      "rooms": [
+        "bedroom",
+        "living_room"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "watch_tv",
+          "label": "Watch TV",
+          "durationTicks": 55,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              4,
+              24
+            ],
+            [
+              5,
+              30
+            ]
+          ],
+          "satisfactionPoints": 0.0020000000949949026,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 240,
+      "needsMask": 48
+    },
+    {
+      "definition": 5,
+      "id": "sofa",
+      "typeLabel": "Ottoman",
+      "modelName": "Low Profile",
+      "description": "One square cushion on four wooden feet, with a neatly sewn edge. Inexpensive upholstered seating for anyone willing to supply their own back support.",
+      "typeId": "ottoman",
+      "categoryId": "seating",
+      "categoryLabel": "Seating",
+      "rooms": [
+        "bedroom",
+        "living_room"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "lounge",
+          "label": "Sit",
+          "durationTicks": 40,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              6,
+              20
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "read",
+          "label": "Read a book",
+          "durationTicks": 60,
+          "capacity": 1,
+          "reading": true,
+          "benefits": [
+            [
+              5,
+              30
+            ],
+            [
+              6,
+              9
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [
+            30,
+            9,
+            0.003000000026077032,
+            1
+          ],
+          "requirements": [
+            "Available shelved book"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [
+        "turnable_seat"
+      ],
+      "price": 80,
+      "needsMask": 96
+    },
+    {
+      "definition": 6,
+      "id": "sink",
+      "typeLabel": "Bathroom sink",
+      "modelName": "Standard Pedestal",
+      "description": "A simple ceramic basin on a narrow pedestal. The exposed floor keeps a small bathroom feeling less crowded, and the pedestal spares everyone a view of the plumbing.",
+      "typeId": "bathroom_sink",
+      "categoryId": "hygiene",
+      "categoryLabel": "Hygiene",
+      "rooms": [
+        "bathroom"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "wash_hands",
+          "label": "Wash hands",
+          "durationTicks": 21,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              2,
+              22
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 80,
+      "needsMask": 4
+    },
+    {
+      "definition": 7,
+      "id": "bookshelf",
+      "typeLabel": "Bookcase",
+      "modelName": "Oakline 24",
+      "description": "Four open rows in a warm wooden frame. A compact, unpretentious home for a collection small enough that you might actually remember what you own.",
+      "typeId": "bookcase",
+      "categoryId": "storage",
+      "categoryLabel": "Storage",
+      "rooms": [
+        "bedroom",
+        "living_room",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 24,
+      "shelfAccessPoints": 1,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "read",
+          "label": "Read a book",
+          "durationTicks": 60,
+          "capacity": null,
+          "reading": true,
+          "benefits": [
+            [
+              5,
+              30
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [
+            30,
+            0,
+            0.003000000026077032,
+            1
+          ],
+          "requirements": [
+            "Available shelved book"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 100,
+      "needsMask": 32
+    },
+    {
+      "definition": 8,
+      "id": "stove",
+      "typeLabel": "Stove",
+      "modelName": "Basic Four",
+      "description": "Four burners and an enamel oven, with a plain row of controls. An affordable start to a proper kitchen, provided somebody is prepared to do the cooking.",
+      "typeId": "stove",
+      "categoryId": "kitchen",
+      "categoryLabel": "Kitchen",
+      "rooms": [
+        "kitchen"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [
+        "hob"
+      ],
+      "price": 220,
+      "needsMask": 65
+    },
+    {
+      "definition": 9,
+      "id": "counter",
+      "typeLabel": "Kitchen counter",
+      "modelName": "Standard Worktop",
+      "description": "A pale worktop over a simple enamel cabinet, finished with a brass handle. A modest unit that gives a busy kitchen some much-needed working space.",
+      "typeId": "kitchen_counter",
+      "categoryId": "kitchen",
+      "categoryLabel": "Kitchen",
+      "rooms": [
+        "kitchen"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [
+        "prep_surface"
+      ],
+      "price": 70,
+      "needsMask": 65
+    },
+    {
+      "definition": 10,
+      "id": "kitchen_sink",
+      "typeLabel": "Kitchen sink",
+      "modelName": "Standard Basin Unit",
+      "description": "A deep basin set into a pale worktop, with an enamel cabinet below. A practical washing station for hands, dishes and the aftermath of dinner.",
+      "typeId": "kitchen_sink",
+      "categoryId": "kitchen",
+      "categoryLabel": "Kitchen",
+      "rooms": [
+        "kitchen"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "wash_up",
+          "label": "Wash hands",
+          "durationTicks": 23,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              2,
+              20
+            ],
+            [
+              6,
+              -6
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "clean_dishes",
+          "label": "Clean dishes",
+          "durationTicks": 50,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [
+            "dish_sink",
+            "prep_surface"
+          ],
+          "workKind": "dish_cleanup",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [
+        "dish_sink"
+      ],
+      "price": 140,
+      "needsMask": 4
+    },
+    {
+      "definition": 11,
+      "id": "dining_table",
+      "typeLabel": "Dining table",
+      "modelName": "Oakline Family",
+      "description": "A broad oak top on four plain legs. Solid, unshowy furniture with room for a meal and the conversation that keeps it from ending.",
+      "typeId": "dining_table",
+      "categoryId": "tables",
+      "categoryLabel": "Tables",
+      "rooms": [
+        "dining_room",
+        "kitchen"
+      ],
+      "width": 2,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "sit_properly",
+          "label": "Sit",
+          "durationTicks": 62,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              4,
+              11
+            ],
+            [
+              6,
+              37
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "take_prepared_food",
+          "label": "Eat prepared food",
+          "durationTicks": 20,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [
+        "meal_table"
+      ],
+      "price": 120,
+      "needsMask": 81
+    },
+    {
+      "definition": 12,
+      "id": "chair",
+      "typeLabel": "Dining chair",
+      "modelName": "Basic Ladderback",
+      "description": "An oak frame, three back rails and an unpadded seat. Good for dinner; less persuasive when dinner becomes a three-hour discussion.",
+      "typeId": "dining_chair",
+      "categoryId": "seating",
+      "categoryLabel": "Seating",
+      "rooms": [
+        "dining_room",
+        "kitchen"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "sit",
+          "label": "Sit",
+          "durationTicks": 30,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              6,
+              9
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "read",
+          "label": "Read a book",
+          "durationTicks": 60,
+          "capacity": 1,
+          "reading": true,
+          "benefits": [
+            [
+              5,
+              30
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [
+            30,
+            6,
+            0.003000000026077032,
+            1
+          ],
+          "requirements": [
+            "Available shelved book"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [
+        "dining_seat"
+      ],
+      "price": 40,
+      "needsMask": 96
+    },
+    {
+      "definition": 13,
+      "id": "trashcan",
+      "typeLabel": "Trash can",
+      "modelName": "Basic Pedal",
+      "description": "A plain grey bin with a fitted lid and a small pedal. Discreet enough to sit beside considerably more expensive kitchen fittings.",
+      "typeId": "trash_can",
+      "categoryId": "other",
+      "categoryLabel": "Other",
+      "rooms": [
+        "bathroom",
+        "kitchen",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [],
+      "price": 15,
+      "needsMask": 0
+    },
+    {
+      "definition": 14,
+      "id": "long_sofa",
+      "typeLabel": "Sofa",
+      "modelName": "Company Three",
+      "description": "Three broad cushions, rounded arms and a long upholstered back. Comfortable room for company, until somebody decides to lie across the entire thing.",
+      "typeId": "sofa",
+      "categoryId": "seating",
+      "categoryLabel": "Seating",
+      "rooms": [
+        "living_room"
+      ],
+      "width": 2,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "stretch_out",
+          "label": "Lie down",
+          "durationTicks": 72,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              1,
+              9
+            ],
+            [
+              5,
+              13
+            ],
+            [
+              6,
+              43
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [
+            "All 3 seats"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "sit",
+          "label": "Sit",
+          "durationTicks": 44,
+          "capacity": 3,
+          "reading": false,
+          "benefits": [
+            [
+              5,
+              4
+            ],
+            [
+              6,
+              25
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "read",
+          "label": "Read a book",
+          "durationTicks": 60,
+          "capacity": 3,
+          "reading": true,
+          "benefits": [
+            [
+              5,
+              30
+            ],
+            [
+              6,
+              13.199999809265137
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [
+            30,
+            13.199999809265137,
+            0.003000000026077032,
+            1
+          ],
+          "requirements": [
+            "Available shelved book"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 300,
+      "needsMask": 98
+    },
+    {
+      "definition": 15,
+      "id": "armchair",
+      "typeLabel": "Armchair",
+      "modelName": "Standard Lounge",
+      "description": "Broad cushions, a low upholstered back and walnut feet. A comfortable everyday chair with most of its money spent where you sit.",
+      "typeId": "armchair",
+      "categoryId": "seating",
+      "categoryLabel": "Seating",
+      "rooms": [
+        "bedroom",
+        "living_room",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "take_the_chair",
+          "label": "Sit",
+          "durationTicks": 41,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              6,
+              29
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "read",
+          "label": "Read a book",
+          "durationTicks": 60,
+          "capacity": 1,
+          "reading": true,
+          "benefits": [
+            [
+              5,
+              30
+            ],
+            [
+              6,
+              15
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [
+            30,
+            15,
+            0.003000000026077032,
+            1
+          ],
+          "requirements": [
+            "Available shelved book"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 140,
+      "needsMask": 96
+    },
+    {
+      "definition": 16,
+      "id": "radio",
+      "typeLabel": "Radio",
+      "modelName": "Walnut Dial",
+      "description": "A compact walnut cabinet with a brass grille and tuning dial. Modest, affordable entertainment that leaves room for the rest of the furniture.",
+      "typeId": "radio",
+      "categoryId": "entertainment",
+      "categoryLabel": "Entertainment",
+      "rooms": [
+        "bedroom",
+        "kitchen",
+        "living_room",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "listen",
+          "label": "Listen to the radio",
+          "durationTicks": 38,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              4,
+              5
+            ],
+            [
+              5,
+              22
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 60,
+      "needsMask": 48
+    },
+    {
+      "definition": 17,
+      "id": "potted_plant",
+      "typeLabel": "Potted plant",
+      "modelName": "Broadleaf Basic",
+      "description": "Broad green leaves in a square terracotta pot. An inexpensive patch of greenery for a room that has been mostly furniture until now.",
+      "typeId": "potted_plant",
+      "categoryId": "decoration",
+      "categoryLabel": "Decoration",
+      "rooms": [
+        "bedroom",
+        "living_room",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [],
+      "price": 25,
+      "needsMask": 0
+    },
+    {
+      "definition": 18,
+      "id": "floor_lamp",
+      "typeLabel": "Floor lamp",
+      "modelName": "Standard Shade",
+      "description": "A cream shade on a slim metal stand. Plain fittings and a warm pool of light make it easy to find a place for this one.",
+      "typeId": "floor_lamp",
+      "categoryId": "lighting",
+      "categoryLabel": "Lighting",
+      "rooms": [
+        "bedroom",
+        "living_room",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [],
+      "price": 45,
+      "needsMask": 0
+    },
+    {
+      "definition": 19,
+      "id": "coat_rack",
+      "typeLabel": "Coat rack",
+      "modelName": "Hallkeeper",
+      "description": "A slender wooden stand with a crossbar and a length of teal cloth draped over it. A modest finishing touch for an entrance that could use some attention.",
+      "typeId": "coat_rack",
+      "categoryId": "storage",
+      "categoryLabel": "Storage",
+      "rooms": [
+        "hallway",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [],
+      "price": 20,
+      "needsMask": 0
+    },
+    {
+      "definition": 20,
+      "id": "double_bed",
+      "typeLabel": "Bed",
+      "modelName": "Standard Double",
+      "description": "A broad oak frame, soft pillows and a generous cover. A comfortable place for two people to put off the morning together.",
+      "typeId": "bed",
+      "categoryId": "sleeping",
+      "categoryLabel": "Sleeping",
+      "rooms": [
+        "bedroom"
+      ],
+      "width": 2,
+      "depth": 2,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "sleep_properly",
+          "label": "Go to bed",
+          "durationTicks": 210,
+          "capacity": 2,
+          "reading": false,
+          "benefits": [
+            [
+              1,
+              108
+            ],
+            [
+              6,
+              10
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 400,
+      "needsMask": 66
+    },
+    {
+      "definition": 21,
+      "id": "nightstand",
+      "typeLabel": "Nightstand",
+      "modelName": "Oakline Two",
+      "description": "A compact oak case with two drawer fronts and satin handles. A small matching piece for a bedroom that doesn't need another large chest.",
+      "typeId": "nightstand",
+      "categoryId": "tables",
+      "categoryLabel": "Tables",
+      "rooms": [
+        "bedroom"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [],
+      "price": 25,
+      "needsMask": 0
+    },
+    {
+      "definition": 22,
+      "id": "dresser",
+      "typeLabel": "Dresser",
+      "modelName": "Oakline Three",
+      "description": "Three broad drawer fronts and satin handles give this oak chest a solid, orderly appearance. It looks reassuringly organized from across the room.",
+      "typeId": "dresser",
+      "categoryId": "storage",
+      "categoryLabel": "Storage",
+      "rooms": [
+        "bedroom"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [],
+      "price": 55,
+      "needsMask": 0
+    },
+    {
+      "definition": 23,
+      "id": "moving_box",
+      "typeLabel": "Exercise bike",
+      "modelName": "Nowhere 250",
+      "description": "An enamel frame, padded saddle and small display make pedalling on the spot feel official. The towel on the handlebar is a thoughtful inclusion.",
+      "typeId": "exercise_bike",
+      "categoryId": "exercise",
+      "categoryLabel": "Exercise",
+      "rooms": [
+        "bedroom",
+        "gym"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "use_exercise_bike",
+          "label": "Use the exercise bike",
+          "durationTicks": 75,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              1,
+              -8
+            ],
+            [
+              2,
+              -5
+            ],
+            [
+              5,
+              32
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 200,
+      "needsMask": 32
+    },
+    {
+      "definition": 24,
+      "id": "desk",
+      "typeLabel": "Desk",
+      "modelName": "Oakline Office",
+      "description": "A broad oak top on dark metal supports, with space to spread out the correspondence. Substantial office furniture for people with something to write, or something to put off.",
+      "typeId": "desk",
+      "categoryId": "tables",
+      "categoryLabel": "Tables",
+      "rooms": [
+        "bedroom",
+        "office"
+      ],
+      "width": 2,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "attend_correspondence",
+          "label": "Handle correspondence",
+          "durationTicks": 58,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              1,
+              -7
+            ],
+            [
+              5,
+              36
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 150,
+      "needsMask": 32
+    },
+    {
+      "definition": 25,
+      "id": "desk_chair",
+      "typeLabel": "Office chair",
+      "modelName": "Standard Task",
+      "description": "A padded seat and back on a five-caster base. Decent support for a small office, without paying lounge-chair prices.",
+      "typeId": "office_chair",
+      "categoryId": "seating",
+      "categoryLabel": "Seating",
+      "rooms": [
+        "bedroom",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "sit",
+          "label": "Sit",
+          "durationTicks": 40,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              6,
+              17
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "read",
+          "label": "Read a book",
+          "durationTicks": 60,
+          "capacity": 1,
+          "reading": true,
+          "benefits": [
+            [
+              5,
+              30
+            ],
+            [
+              6,
+              10.800000190734863
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [
+            30,
+            10.800000190734863,
+            0.003000000026077032,
+            1
+          ],
+          "requirements": [
+            "Available shelved book"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 70,
+      "needsMask": 96
+    },
+    {
+      "definition": 26,
+      "id": "reading_chair",
+      "typeLabel": "Armchair",
+      "modelName": "Chapterhouse Wingback",
+      "description": "A tall padded back, rolled arms and stitched piping give this armchair a formal finish. The extra support makes reading more comfortable than in the low-backed lounge model.",
+      "typeId": "armchair",
+      "categoryId": "seating",
+      "categoryLabel": "Seating",
+      "rooms": [
+        "bedroom",
+        "living_room",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "settle_in",
+          "label": "Sit and read",
+          "durationTicks": 60,
+          "capacity": 1,
+          "reading": true,
+          "benefits": [
+            [
+              5,
+              37.5
+            ],
+            [
+              6,
+              18.75
+            ]
+          ],
+          "satisfactionPoints": 0.003000000026077032,
+          "readingBenefits": [
+            37.5,
+            18.75,
+            0.003000000026077032,
+            1
+          ],
+          "requirements": [
+            "Available shelved book"
+          ],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        },
+        {
+          "id": "sit",
+          "label": "Sit",
+          "durationTicks": 41,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              6,
+              29
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 180,
+      "needsMask": 96
+    },
+    {
+      "definition": 27,
+      "id": "reference_shelf",
+      "typeLabel": "Aquarium",
+      "modelName": "Stillwater Cabinet",
+      "description": "A planted tank with three small fish above a neat wooden cabinet. A restful, absorbing corner of the room whose residents keep their disagreements to themselves.",
+      "typeId": "aquarium",
+      "categoryId": "entertainment",
+      "categoryLabel": "Entertainment",
+      "rooms": [
+        "living_room",
+        "office"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "watch_fish",
+          "label": "Watch the fish",
+          "durationTicks": 67,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              5,
+              25
+            ],
+            [
+              6,
+              21
+            ]
+          ],
+          "satisfactionPoints": 0.0010000000474974513,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 200,
+      "needsMask": 96
+    },
+    {
+      "definition": 28,
+      "id": "bathtub",
+      "typeLabel": "Bathtub",
+      "modelName": "Soakster 9,001",
+      "description": "A generous enamel tub with metal fittings and a broad rim. Comfort takes priority over speed; the extra digit in the name has done nothing to hurry a bath.",
+      "typeId": "bathtub",
+      "categoryId": "hygiene",
+      "categoryLabel": "Hygiene",
+      "rooms": [
+        "bathroom"
+      ],
+      "width": 1,
+      "depth": 2,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [
+        {
+          "id": "soak",
+          "label": "Take a bath",
+          "durationTicks": 78,
+          "capacity": 1,
+          "reading": false,
+          "benefits": [
+            [
+              1,
+              -3
+            ],
+            [
+              2,
+              58
+            ],
+            [
+              6,
+              31
+            ]
+          ],
+          "satisfactionPoints": 0,
+          "readingBenefits": [],
+          "requirements": [],
+          "workKind": "ordinary",
+          "optionalRequirements": []
+        }
+      ],
+      "roles": [],
+      "price": 320,
+      "needsMask": 68
+    },
+    {
+      "definition": 29,
+      "id": "laundry",
+      "typeLabel": "Washer-dryer",
+      "modelName": "Stackwell Duo",
+      "description": "Two round doors and matching enamel cabinets in a tidy vertical stack. An economical way to give the laundry corner a more finished appearance.",
+      "typeId": "washing_machine",
+      "categoryId": "utility",
+      "categoryLabel": "Utility",
+      "rooms": [
+        "kitchen",
+        "utility"
+      ],
+      "width": 1,
+      "depth": 1,
+      "shelfCapacity": 0,
+      "shelfAccessPoints": 0,
+      "sessionTicks": 60,
+      "actions": [],
+      "roles": [],
+      "price": 60,
+      "needsMask": 0
+    }
+  ],
+  "books": [
+    {
+      "id": "the_locked_laundry",
+      "title": "The Locked Laundry",
+      "description": "A caretaker finds the laundry locked from the inside, every machine running, and the building's least popular tenant missing.",
+      "genre": "mystery",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "one_spoon_missing",
+      "title": "One Spoon Missing",
+      "description": "A hotel detective investigates a stolen silver spoon and discovers that everyone at breakfast has lied about something larger.",
+      "genre": "mystery",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "the_last_tenant",
+      "title": "The Last Tenant",
+      "description": "A woman clearing her late brother's flat finds rent receipts dated years after the landlord's death.",
+      "genre": "mystery",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "an_excellent_alibi",
+      "title": "An Excellent Alibi",
+      "description": "Six guests can account for every minute of a country-house murder. The inspector begins to suspect they rehearsed.",
+      "genre": "mystery",
+      "readingMinutes": 240,
+      "price": 14
+    },
+    {
+      "id": "wrong_number_right_person",
+      "title": "Wrong Number, Right Person",
+      "description": "Two strangers keep answering each other's misdirected messages long after they have corrected the mistake.",
+      "genre": "romance",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "a_second_cup",
+      "title": "A Second Cup",
+      "description": "A cafe owner and an early-morning regular spend a wet autumn finding reasons to extend breakfast.",
+      "genre": "romance",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "the_house_between_us",
+      "title": "The House Between Us",
+      "description": "Former partners inherit equal shares in a house neither can afford to keep alone. Renovation makes old disagreements difficult to ignore.",
+      "genre": "romance",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "letters_from_low_tide",
+      "title": "Letters from Low Tide",
+      "description": "Letters exchanged between a dockworker and a travelling musician follow their affection through years of missed arrivals.",
+      "genre": "romance",
+      "readingMinutes": 240,
+      "price": 14
+    },
+    {
+      "id": "warranty_void_at_dawn",
+      "title": "Warranty Void at Dawn",
+      "description": "A household robot develops an inconvenient attachment to its owners on the morning it is due for replacement.",
+      "genre": "science_fiction",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "the_quiet_moon",
+      "title": "The Quiet Moon",
+      "description": "A maintenance crew reaches a silent lunar station and finds that its occupants have left careful instructions for being forgotten.",
+      "genre": "science_fiction",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "the_last_local_train",
+      "title": "The Last Local Train",
+      "description": "The final commuter service on a dying colony keeps collecting passengers from stations that were demolished decades ago.",
+      "genre": "science_fiction",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "a_map_of_unoccupied_stars",
+      "title": "A Map of Unoccupied Stars",
+      "description": "Rival survey crews search for a habitable world while their maps disagree about which stars have already disappeared.",
+      "genre": "science_fiction",
+      "readingMinutes": 240,
+      "price": 14
+    },
+    {
+      "id": "the_wizards_notice",
+      "title": "The Wizard's Notice",
+      "description": "A village wizard announces his retirement, leaving his apprentice to discover how much of the village was being held together by habit and threats.",
+      "genre": "fantasy",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "the_orchard_under_the_sea",
+      "title": "The Orchard Under the Sea",
+      "description": "A pearl diver finds a living orchard beneath the tide and takes a piece of fruit that was already promised to someone else.",
+      "genre": "fantasy",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "the_minor_dragon",
+      "title": "The Minor Dragon",
+      "description": "A small dragon takes a post guarding a royal treasury and finds the accounts far more alarming than the thieves.",
+      "genre": "fantasy",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "the_river_that_kept_its_dead",
+      "title": "The River That Kept Its Dead",
+      "description": "A ferryman's daughter follows a river upstream to bargain for the return of a village it swallowed fifty years earlier.",
+      "genre": "fantasy",
+      "readingMinutes": 240,
+      "price": 14
+    },
+    {
+      "id": "a_short_history_of_bad_bridges",
+      "title": "A Short History of Bad Bridges",
+      "description": "An illustrated account of ambitious crossings, optimistic engineers and the rivers that remained unconvinced.",
+      "genre": "history",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "the_winter_of_three_mayors",
+      "title": "The Winter of Three Mayors",
+      "description": "A town chronicle follows a disputed election, a flooded council chamber and three men who each ordered a new nameplate.",
+      "genre": "history",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "salt_rail_and_sunday_dinner",
+      "title": "Salt, Rail and Sunday Dinner",
+      "description": "Family diaries and freight records trace how preserved food and the railway changed what ordinary households ate.",
+      "genre": "history",
+      "readingMinutes": 240,
+      "price": 14
+    },
+    {
+      "id": "the_border_moved_on_tuesday",
+      "title": "The Border Moved on Tuesday",
+      "description": "An account of a border town whose residents outlasted several flags, currencies and official explanations.",
+      "genre": "history",
+      "readingMinutes": 240,
+      "price": 14
+    },
+    {
+      "id": "please_leave_the_light_on",
+      "title": "Please Leave the Light On",
+      "description": "A babysitter receives one final instruction after the parents leave: the spare room must remain lit, even when someone inside asks for darkness.",
+      "genre": "horror",
+      "readingMinutes": 120,
+      "price": 6
+    },
+    {
+      "id": "no_one_on_the_landing",
+      "title": "No One on the Landing",
+      "description": "Night after night, a tenant hears someone stop outside her door and carefully read her name aloud.",
+      "genre": "horror",
+      "readingMinutes": 180,
+      "price": 10
+    },
+    {
+      "id": "the_winter_guests",
+      "title": "The Winter Guests",
+      "description": "A snowbound boarding house fills with travellers who insist they have stayed there before. The oldest guest book agrees.",
+      "genre": "horror",
+      "readingMinutes": 240,
+      "price": 14
+    },
+    {
+      "id": "the_empty_rooms",
+      "title": "The Empty Rooms",
+      "description": "A surveyor measuring an abandoned hospital finds an extra room on each visit, furnished with things from his childhood.",
+      "genre": "horror",
+      "readingMinutes": 240,
+      "price": 14
+    }
+  ]
+}

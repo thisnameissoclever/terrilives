@@ -1,4 +1,8 @@
+function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
+
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodeBookCatalogue, decodeBookCopies, decodeBookMemory, decodeBookResults,
+  decodeBookShelves, decodeModelFacts, shelfEntity, type ModelFacts, type BookTitle } from './books/codec.js';
 import { decodeWindowCatalogue, decodeWindowPreview, type WindowDefinition,
   type WindowEditPreview } from './architecture/windows.js';
 
@@ -159,6 +163,7 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
 
 /** One object for sale - [BM-shell]. */
 export interface CatalogueItem {
+  readonly model?: ModelFacts;
   /** The pack object index a purchase names. */
   readonly definition: number;
   readonly name: string;
@@ -393,6 +398,75 @@ function pushVarint(out: number[], value: number): void {
  * See ARCHITECTURE.md [D11] and risk [R1].
  */
 export class SimBridge {
+  private modelsCache: ModelFacts[] | null = null;
+  private titlesCache: BookTitle[] | null = null;
+
+  modelFacts(): readonly ModelFacts[] { return this.modelsCache ??= decodeModelFacts(this.handle.modelMetadata()); }
+  objectModel(entity: number): ModelFacts | undefined {
+    if (!isBookIndex(entity)) return undefined;
+    const id = this.handle.objectModelId(entity);
+    return this.modelFacts().find(model => model.id === id);
+  }
+  bookCatalogue(): readonly BookTitle[] { return this.titlesCache ??= decodeBookCatalogue(this.handle.bookCatalogue()); }
+  bookCopies() { return decodeBookCopies(this.handle.bookCopies(), this.bookCatalogue()); }
+  bookShelves() { return decodeBookShelves(this.handle.bookShelves()); }
+  bookShelfSlots(entity: number, reserved: boolean): readonly (number | null)[] {
+    if (!isBookIndex(entity)) throw new Error('Invalid bookcase entity.');
+    return Array.from(this.handle.bookShelfSlots(entity, reserved), id => id === 0xffffffff ? null : id);
+  }
+  bookState() {
+    const copies = this.bookCopies(); const shelves = this.bookShelves().map(shelf => ({ ...shelf,
+      visible: this.bookShelfSlots(shelf.entity, false), reserved: this.bookShelfSlots(shelf.entity, true) }));
+    for (const shelf of shelves) {
+      if (shelf.visible.length !== shelf.capacity || shelf.reserved.length !== shelf.capacity) throw new Error('Inconsistent shelf capacity.');
+      for (let slot = 0; slot < shelf.capacity; slot++) {
+        const physical = copies.find(c => c.location.kind === 'shelf' && shelfEntity(c.location.home.shelf) === shelf.entity && c.location.home.slot === slot);
+        const home = copies.find(c => c.home && shelfEntity(c.home.shelf) === shelf.entity && c.home.slot === slot);
+        if (shelf.visible[slot] !== (physical?.id ?? null) || shelf.reserved[slot] !== (home?.id ?? null)) throw new Error('Inconsistent book slot projection.');
+      }
+    }
+    for (const copy of copies) if (copy.home && !shelves.some(s => s.entity === shelfEntity(copy.home!.shelf) && copy.home!.slot < s.capacity)) throw new Error('Unknown book home.');
+    return { copies, shelves };
+  }
+  buyBook(title: string, shelf: number | null): boolean {
+    return title.trim() !== '' && (shelf === null || isBookIndex(shelf)) && this.handle.buyBook(title, shelf ?? undefined);
+  }
+  transferBook(copy: number, shelf: number | null): boolean {
+    return isBookIndex(copy) && (shelf === null || isBookIndex(shelf)) && this.handle.transferBook(copy, shelf ?? undefined);
+  }
+  readBook(agent: number, object: number, action: string, title: string, front: boolean): boolean {
+    return isBookIndex(agent) && isBookIndex(object) && action.trim() !== '' && title.trim() !== '' && this.handle.readBook(agent, object, action, title, front);
+  }
+  pendingBookCommands(): number { return this.handle.pendingBookCommands(); }
+  takeBookResults() { return decodeBookResults(this.handle.takeBookResults()); }
+  takeLegacyBookImportNotice(): boolean { return this.handle.takeLegacyBookImportNotice(); }
+  bookInterest(agent: number, title: string, object?: number, action?: string): number | null {
+    if (!isBookIndex(agent) || (object !== undefined && !isBookIndex(object))) return null;
+    const value = object === undefined ? this.handle.bookInterest(agent, title) : this.handle.bookInterestAt(agent, object, action ?? '', title);
+    if (value === undefined) return null;
+    if (!Number.isFinite(value) || value < 0) throw new Error('Invalid book interest.');
+    return value;
+  }
+  readingAvailableTitles(agent: number, object: number, action: string): readonly string[] {
+    return isBookIndex(agent) && isBookIndex(object) ? this.handle.readingAvailableTitles(agent, object, action) : [];
+  }
+  readingProgress(agent: number, title: string) { return isBookIndex(agent) ? decodeBookMemory(this.handle.readingProgress(agent, title)) : null; }
+  readingStatusOf(agent: number): string | null { return isBookIndex(agent) ? this.handle.readingStatusOf(agent) || null : null; }
+  readingChoices(object: number): { entries: import('./ui/object-menu.js').MenuEntry[]; notice: string } | undefined {
+    const actions = this.objectModel(object)?.actions.filter(action => action.reading) ?? [];
+    if (actions.length === 0) return undefined;
+    const person = this.selectedIndex();
+    if (person === null) return { entries: [], notice: 'Select a person to choose a title.' };
+    const entries = actions.flatMap(action => this.readingAvailableTitles(person, object, action.id).map(id => {
+      const title = this.bookCatalogue().find(title => title.id === id);
+      if (!title) throw new Error('Unknown readable title.');
+      const interest = this.bookInterest(person, id, object, action.id);
+      return { label: `${action.label}: ${title.title} (current interest: ${interest === null ? 'unavailable' : `${Math.round(interest * 100)}%`})`,
+        titleChoice: true, action: { kind: 'read' as const, object, action: action.id, title: id } };
+    }));
+    return { entries, notice: entries.length ? 'Automatic Read chooses an available title. Each visit reads part of a book.'
+      : 'No available shelved books can be read here. Put an unborrowed copy on an accessible bookcase.' };
+  }
   constructor(
     private readonly handle: SimHandle,
     private readonly memory: WebAssembly.Memory,
@@ -407,11 +481,17 @@ export class SimBridge {
     const words = this.handle.catalogue();
     const needs = this.handle.catalogue_needs();
     const details = this.handle.catalogue_details();
-    return this.handle.catalogue_names().map((name, row) => ({
+    const names = this.handle.catalogue_names();
+    if (words.length !== names.length * 4 || needs.length !== names.length || details.length !== names.length * 2) throw new Error('Malformed furniture catalogue.');
+    return names.map((name, row) => {
+      const model = this.modelFacts().find(model => model.definition === words[row * 4]);
+      if (!model || model.typeLabel !== name || (details[row * 2] && details[row * 2] !== model.modelName)) throw new Error('Furniture model identities are misaligned.');
+      return ({
       definition: words[row * 4], name, price: words[row * 4 + 1],
+      model,
       facings: words[row * 4 + 2], baseFacing: words[row * 4 + 3], needs: needs[row],
       ...(details[row * 2] ? { details: { modelName: details[row * 2], description: details[row * 2 + 1] } } : {}),
-    }));
+    }); });
   }
 
   /** The ghost for an object not yet bought; the same shape as `placementPreview`. Never writes. */
@@ -633,7 +713,9 @@ export class SimBridge {
 
   /** Atomic restore. Rejected bytes leave the running simulation untouched. */
   loadBytes(bytes: Uint8Array): boolean {
-    return this.handle.load_bytes(bytes);
+    const loaded = this.handle.load_bytes(bytes);
+    if (loaded) { this.modelsCache = null; this.titlesCache = null; }
+    return loaded;
   }
 
   get count(): number {
@@ -791,6 +873,54 @@ export class SimBridge {
   /** Places within sleepingBeds; 0xffffffff means absent. Refresh after sync or memory growth. */
   sleepingPlaces(): Uint32Array {
     return new Uint32Array(this.memory.buffer, this.handle.sleeping_places_ptr(), this.count);
+  }
+
+  private readonly presentationViews = new Map<string, Uint32Array | Float32Array>();
+
+  private presentationU32(name: string, pointer: number, count = this.count): Uint32Array {
+    const old = this.presentationViews.get(name);
+    if (old instanceof Uint32Array && old.buffer === this.memory.buffer
+        && old.byteOffset === pointer && old.length === count) return old;
+    const view = new Uint32Array(this.memory.buffer, pointer, count);
+    this.presentationViews.set(name, view);
+    return view;
+  }
+
+  seatedFurniture(): Uint32Array { return this.presentationU32('seatedFurniture', this.handle.seated_furniture_ptr()); }
+  seatedPlaces(): Uint32Array { return this.presentationU32('seatedPlaces', this.handle.seated_places_ptr()); }
+  seatedWhole(): Uint32Array { return this.presentationU32('seatedWhole', this.handle.seated_whole_ptr()); }
+  carriedBooks(): Uint32Array { return this.presentationU32('carriedBooks', this.handle.carriedBooksPtr()); }
+  readingStages(): Uint32Array { return this.presentationU32('readingStages', this.handle.readingStagesPtr()); }
+  readingCopies(): Uint32Array { return this.presentationU32('readingCopies', this.handle.reading_copies_ptr()); }
+  readingSeats(): Uint32Array { return this.presentationU32('readingSeats', this.handle.readingSeatsPtr()); }
+  readingHomeShelves(): Uint32Array { return this.presentationU32('readingHomeShelves', this.handle.reading_home_shelves_ptr()); }
+  readingHomeSlots(): Uint32Array { return this.presentationU32('readingHomeSlots', this.handle.reading_home_slots_ptr()); }
+  readingReachRemaining(): Uint32Array { return this.presentationU32('readingReachRemaining', this.handle.reading_reach_remaining_ptr()); }
+  readingReachTotals(): Uint32Array { return this.presentationU32('readingReachTotals', this.handle.reading_reach_totals_ptr()); }
+  shelfBookOffsets(): Uint32Array { return this.presentationU32('shelfBookOffsets', this.handle.shelfBookOffsetsPtr()); }
+  shelfBookCounts(): Uint32Array { return this.presentationU32('shelfBookCounts', this.handle.shelfBookCountsPtr()); }
+  shelfBookMasks(): Uint32Array {
+    return this.presentationU32('shelfBookMasks', this.handle.shelfBookMasksPtr(), this.handle.shelfBookMaskCount());
+  }
+  get droppedBookCount(): number { return this.handle.droppedBookCount(); }
+  droppedBookIds(): Uint32Array {
+    return this.presentationU32('droppedBookIds', this.handle.droppedBookIdsPtr(), this.droppedBookCount);
+  }
+  droppedBookPositions(): Float32Array {
+    const pointer = this.handle.droppedBookPositionsPtr(), count = this.droppedBookCount * 2;
+    const old = this.presentationViews.get('droppedBookPositions');
+    if (old instanceof Float32Array && old.buffer === this.memory.buffer
+        && old.byteOffset === pointer && old.length === count) return old;
+    const view = new Float32Array(this.memory.buffer, pointer, count);
+    this.presentationViews.set('droppedBookPositions', view);
+    return view;
+  }
+
+  private readonly modelSeatIdsCache = new Map<string, readonly string[]>();
+  modelSeatIds(model: string): readonly string[] {
+    let ids = this.modelSeatIdsCache.get(model);
+    if (!ids) { ids = this.handle.model_seat_ids(model); this.modelSeatIdsCache.set(model, ids); }
+    return ids;
   }
 
   /**

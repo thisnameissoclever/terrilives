@@ -43,7 +43,7 @@ impl CommandFeedback {
     /// from a rejection because the shell says something different for
     /// each: "your order was refused" is the wrong sentence for "your
     /// order went in and an older one fell off".
-    fn record_intent_displacement(&mut self) {
+    pub(crate) fn record_intent_displacement(&mut self) {
         self.intent_displacements = self.intent_displacements.saturating_add(1);
     }
 
@@ -113,7 +113,8 @@ impl Placement {
             | SimCommand::TalkToFirst { .. }
             | SimCommand::CleanDishesFirst { .. }
             | SimCommand::CleanChoreFirst { .. } => Self::Front,
-            SimCommand::Select(_)
+            SimCommand::Book(_)
+            | SimCommand::Select(_)
             | SimCommand::UseObject { .. }
             | SimCommand::CleanDishes { .. }
             | SimCommand::CleanChore { .. }
@@ -152,6 +153,10 @@ fn place_in(
     cap: usize,
     feedback: &mut CommandFeedback,
 ) -> Option<Intent> {
+    if !queue.can_allocate() {
+        feedback.record_intent_capacity_rejection();
+        return None;
+    }
     match placement {
         Placement::Back => {
             if cap == 0 || queue.len() < cap {
@@ -164,7 +169,10 @@ fn place_in(
         Placement::Front => {
             let displaced = if cap != 0 && queue.len() >= cap {
                 feedback.record_intent_displacement();
-                queue.pop_back()
+                queue
+                    .pop_back_order()
+                    .filter(|e| e.title_id.is_none())
+                    .map(|e| e.intent)
             } else {
                 None
             };
@@ -187,26 +195,26 @@ fn place_in(
 /// end, `select_action` would skip the agent for ever on its
 /// `Without<Eating>`, and the sim would freeze while its needs drained.
 /// That is [L17] reached by a button rather than by a distance metric.
-fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
-    // Resolve occupancy after preceding deferred releases, keeping any
-    // other owner of the object. A vanished target is safe to release.
-    crate::reservations::release(commands, agent, target);
-    commands
-        .entity(agent)
-        .remove::<Target>()
-        .remove::<Path>()
-        .remove::<Eating>()
-        // Reachable since TalkTo: a directed sim can be mid-conversation
-        // when the release lands, and a Socialising left behind with no
-        // Target is a talk tick_social finishes against nobody. The
-        // Reserved release above already freed the partner, and
-        // tick_social's disturbed check would self-heal one tick later -
-        // this makes the release whole on its own tick instead.
-        .remove::<terri_core::Socialising>()
-        .remove::<terri_core::ConversationVoice>()
-        // A fumble belongs to the attempt; ending the attempt closes it
-        // unfinished, unlearned.
-        .remove::<terri_core::Fumbled>();
+pub(crate) fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
+    commands.queue(move |world: &mut World| {
+        if let Some(journey) = world.get::<crate::reading::ReadingJourney>(agent) {
+            if journey.order.is_some() {
+                crate::reading::request_return(world, agent);
+            }
+            return;
+        }
+        crate::reservations::release_now(world, agent, target);
+        if let Ok(mut actor) = world.get_entity_mut(agent) {
+            actor.remove::<(
+                Target,
+                Path,
+                Eating,
+                terri_core::Socialising,
+                terri_core::ConversationVoice,
+                terri_core::Fumbled,
+            )>();
+        }
+    });
 }
 
 /// Places one resolved intent for `agent`, whether its queue is live, was
@@ -450,7 +458,8 @@ pub(crate) fn drain_ordinary_commands(
                     placement,
                 );
             }
-            SimCommand::PlaceObject { .. }
+            SimCommand::Book(_)
+            | SimCommand::PlaceObject { .. }
             | SimCommand::SetWallEdge { .. }
             | SimCommand::FitWindow { .. }
             | SimCommand::RemoveWindow { .. }
@@ -685,7 +694,8 @@ pub(crate) fn drain_ordinary_commands(
                 }
                 commands
                     .entity(agent)
-                    .remove::<terri_core::ChainState>()
+                    .remove::<crate::recipe_actions::ActiveRecipe>()
+                    .remove::<crate::recipe_actions::RecipeOrder>()
                     .remove::<terri_core::Carrying>()
                     .remove::<terri_core::StepWork>();
             }
@@ -2877,8 +2887,7 @@ mod tests {
 
     fn intents_of(sim: &Sim, agent: Entity) -> Vec<(Entity, u32)> {
         queue_of(sim, agent)
-            .as_slice()
-            .iter()
+            .intents()
             .map(|intent| (intent.object, intent.interaction))
             .collect()
     }

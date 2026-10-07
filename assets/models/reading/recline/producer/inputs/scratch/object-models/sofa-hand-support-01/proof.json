@@ -1,0 +1,2956 @@
+{
+  "state": "complete",
+  "pid": 75372,
+  "background": true,
+  "blender_version": "4.5.14 LTS",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\owner-review-pending\\long-sofa\\candidate-01\\long-sofa-authoring.blend": "075abd2472f09d3933e541a7024f2bf9fb3b2dd67cc5b79d8c4a976f83041b76",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_shared_sofa_tucked.py": "0d2eb7c5d6ab28e2ca85733e11be6a4deb9cdcb88089b239c6a1ffcd6c67b8fd",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bathroom\\check_toilet_scene.py": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\double_bed_sleep.py": "719d9d69dbdace0b3772dfd2f46f3c3ce5f2f701d62ebd1b7b94ef36ee759138",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_shared_sofa_coupled.py": "5c57df560d0c7f9a882ccd71665c470e511b651ae10c92799892d892b5d39651",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\measure_sofa_depth.py": "2dab649dd0b62227bc9bb5830117c8fc725f8a8f7504daf1bafc46cc318fcb96",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_witnesses.py": "5fbd021945ab84516721cbdbc60c8e15e1d43632840ce54b2459df41ef39c67a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\audit_sofa_binding.py": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\seating\\pose_profiles.py": "b26797c83012cf5f6e83f63fd1ffb579500f5be0de65a6c952b9ab337af1ce6a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_contact.py": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\kitchen\\check_stove_scene.py": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_support.py": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_outward_torso.py": "58d113d25b8bea5486280ca37aa4bb9c613ec92a8e6866b3f339384ef159ab94",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\measure_sofa_regions.py": "2fbdc9b4fdd4321da78e69f61358a24381fe1d6e256a637c738e3d6d48409c0c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_layout.py": "c5cd8cc02aba1779a1e8676cb1a6a5b808005a455b6b58cb96bd113acb1fb8c8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\seating\\neutral_pose.py": "d58755138d35d1305356aee6ad73fd982705c65a738ad7987ad6b812a2f400e7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_derived_binding_v3.py": "51fc4777f13b39f9a9763c0a1f519bf0ac4139f71f2b9781980b5db6c3a99bfa",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_derived_binding.py": "03b0d0bb3cceff9637e989c641ece4d78a5294ce863f6a9e7590c7d1f4dd0e11",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_rest_initialization.py": "4aca5e5163942e09cc9c848c8014a875d3271e45f2a02c8a3138b0384f80ccdc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\proof.json": "050aef2b31431a15c23c0acb9060b4c9cd65a7e584e2899dfd16c46e910ea9ff",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\source-binding.npz": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_hand_support.py": "9fe21e797c8e76cb5ea857aedbac7d5a3df1036f838b056a6210c03cbdc912d7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_resting_hand_solver.py": "a4939ab506df9fab6b1cc5c0c813843dae2fcd0d8d543e683aaf287937c796a1",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_book_support.py": "dd54c8851972bea14b935a23a7016863ad4a99f713ccad7e2fb92b9be9cb8189",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\proof.json": "433ad3c33cb1eb9d5ebb1abc4dd6fb9dc8b651bae65c9e667919edac6b964823",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\derived-waist-binding.blend": "79ffb20dbeafd59278b83446d961d7384288ebca842b80a90e1110c5afe3ef9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0"
+  },
+  "stage": "complete",
+  "hands": [
+    {
+      "seat": 0,
+      "side": "L",
+      "state": "measured",
+      "measurement": {
+        "side": "L",
+        "support": "Tailored trouser leg",
+        "support_normal": [
+          -0.42561158537864685,
+          0.09337779134511948,
+          0.9000751972198486
+        ],
+        "support_triangle": 3622,
+        "source_palm_eigenvalues": [
+          0.000499545371074176,
+          0.0007642554947988534,
+          0.00356074980838301
+        ],
+        "contact_gap": 0.0005,
+        "near_gap": 0.0015,
+        "wrist": [
+          -0.48456770181655884,
+          -0.45638251304626465,
+          0.7443655133247375
+        ],
+        "stage": "contact-measured",
+        "patch": {
+          "vertices": 3,
+          "area": 6.393091542267193e-10,
+          "spans": [
+            0.02705173247071324,
+            0.00018826339771527145
+          ],
+          "hull": [
+            [
+              0.18415604981904388,
+              0.5253961610005304
+            ],
+            [
+              0.21120778228975712,
+              0.5255844243982457
+            ],
+            [
+              0.1976819192962873,
+              0.525490339987621
+            ]
+          ]
+        },
+        "elbow": [
+          -0.529396653175354,
+          -0.44704872369766235,
+          0.9539276361465454
+        ],
+        "rigid_palm_replay_error": 4.869655608066259e-07,
+        "status": "Measured resting contact; complete reach, garment, furniture, neighbor and visual checks remain required"
+      },
+      "ray_array": "hand/0/L/support_rays"
+    },
+    {
+      "seat": 0,
+      "side": "R",
+      "state": "measured",
+      "measurement": {
+        "side": "R",
+        "support": "Arm left",
+        "support_normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "support_triangle": 294,
+        "source_palm_eigenvalues": [
+          0.0004995453710741823,
+          0.0007642554948071754,
+          0.0035607498085041675
+        ],
+        "contact_gap": 0.0005,
+        "near_gap": 0.0015,
+        "wrist": [
+          -0.2787676453590393,
+          -0.854732871055603,
+          0.7764852643013
+        ],
+        "stage": "contact-measured",
+        "patch": {
+          "vertices": 5,
+          "area": 0.00028467250850283676,
+          "spans": [
+            0.027051687240600586,
+            0.021041810512542725
+          ],
+          "hull": [
+            [
+              0.3195110261440277,
+              0.8600939512252808
+            ],
+            [
+              0.33269575238227844,
+              0.8494789004325867
+            ],
+            [
+              0.3465627133846283,
+              0.8599055409431458
+            ],
+            [
+              0.33337798714637756,
+              0.8705207109451294
+            ]
+          ]
+        },
+        "elbow": [
+          -0.4842286705970764,
+          -0.7989792823791504,
+          0.8027594685554504
+        ],
+        "rigid_palm_replay_error": 5.987546636818872e-07,
+        "status": "Measured resting contact; complete reach, garment, furniture, neighbor and visual checks remain required"
+      },
+      "ray_array": "hand/0/R/support_rays"
+    },
+    {
+      "seat": 1,
+      "side": "L",
+      "state": "measured",
+      "measurement": {
+        "side": "L",
+        "support": "Tailored trouser leg",
+        "support_normal": [
+          -0.4256116449832916,
+          0.09337767958641052,
+          0.9000751972198486
+        ],
+        "support_triangle": 3622,
+        "source_palm_eigenvalues": [
+          0.000499545371074176,
+          0.0007642554947988534,
+          0.00356074980838301
+        ],
+        "contact_gap": 0.0005,
+        "near_gap": 0.0015,
+        "wrist": [
+          -0.4845677614212036,
+          0.12361747026443481,
+          0.7443657517433167
+        ],
+        "stage": "contact-measured",
+        "patch": {
+          "vertices": 3,
+          "area": 8.833101325031456e-10,
+          "spans": [
+            0.02705171377231752,
+            0.0001884191816576425
+          ],
+          "hull": [
+            [
+              0.15868290363615112,
+              -0.05150710745580783
+            ],
+            [
+              0.18573461740846864,
+              -0.05131868827415019
+            ],
+            [
+              0.17220875184126516,
+              -0.051412832620144344
+            ]
+          ]
+        },
+        "elbow": [
+          -0.5647029876708984,
+          0.17160116136074066,
+          0.9374692440032959
+        ],
+        "rigid_palm_replay_error": 8.055423270457448e-07,
+        "status": "Measured resting contact; complete reach, garment, furniture, neighbor and visual checks remain required"
+      },
+      "ray_array": "hand/1/L/support_rays"
+    },
+    {
+      "seat": 1,
+      "side": "R",
+      "state": "measured",
+      "measurement": {
+        "side": "R",
+        "support": "Tailored trouser leg.001",
+        "support_normal": [
+          -0.4260600507259369,
+          -0.09338083118200302,
+          0.8998626470565796
+        ],
+        "support_triangle": 3652,
+        "source_palm_eigenvalues": [
+          0.0004995453710741823,
+          0.0007642554948071754,
+          0.0035607498085041675
+        ],
+        "contact_gap": 0.0005,
+        "near_gap": 0.0015,
+        "wrist": [
+          -0.48459112644195557,
+          -0.12362081557512283,
+          0.7443891167640686
+        ],
+        "stage": "contact-measured",
+        "patch": {
+          "vertices": 3,
+          "area": 6.20765881406693e-10,
+          "spans": [
+            0.02705170783596511,
+            0.00018842847563146914
+          ],
+          "hull": [
+            [
+              0.15825353136801273,
+              0.051487176142359994
+            ],
+            [
+              0.18530523920397785,
+              0.051298747666728525
+            ],
+            [
+              0.1717793970676707,
+              0.05139300771724367
+            ]
+          ]
+        },
+        "elbow": [
+          -0.5647257566452026,
+          -0.1716061234474182,
+          0.9374924898147583
+        ],
+        "rigid_palm_replay_error": 8.139901897144503e-07,
+        "status": "Measured resting contact; complete reach, garment, furniture, neighbor and visual checks remain required"
+      },
+      "ray_array": "hand/1/R/support_rays"
+    },
+    {
+      "seat": 2,
+      "side": "L",
+      "state": "measured",
+      "measurement": {
+        "side": "L",
+        "support": "Arm right",
+        "support_normal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "support_triangle": 294,
+        "source_palm_eigenvalues": [
+          0.000499545371074176,
+          0.0007642554947988534,
+          0.00356074980838301
+        ],
+        "contact_gap": 0.0005,
+        "near_gap": 0.0015,
+        "wrist": [
+          -0.2787676453590393,
+          0.854732871055603,
+          0.7764852046966553
+        ],
+        "stage": "contact-measured",
+        "patch": {
+          "vertices": 5,
+          "area": 0.0002846739474176019,
+          "spans": [
+            0.02705174684524536,
+            0.0210418701171875
+          ],
+          "hull": [
+            [
+              0.31951096653938293,
+              -0.8600940704345703
+            ],
+            [
+              0.33337798714637756,
+              -0.8705207705497742
+            ],
+            [
+              0.3465627133846283,
+              -0.8599056601524353
+            ],
+            [
+              0.33269569277763367,
+              -0.8494789004325867
+            ]
+          ]
+        },
+        "elbow": [
+          -0.4842286705970764,
+          0.7989791631698608,
+          0.8027593493461609
+        ],
+        "rigid_palm_replay_error": 6.175892674234446e-07,
+        "status": "Measured resting contact; complete reach, garment, furniture, neighbor and visual checks remain required"
+      },
+      "ray_array": "hand/2/L/support_rays"
+    },
+    {
+      "seat": 2,
+      "side": "R",
+      "state": "measured",
+      "measurement": {
+        "side": "R",
+        "support": "Tailored trouser leg.001",
+        "support_normal": [
+          -0.4260600805282593,
+          -0.09338094294071198,
+          0.8998627066612244
+        ],
+        "support_triangle": 3652,
+        "source_palm_eigenvalues": [
+          0.0004995453710741823,
+          0.0007642554948071754,
+          0.0035607498085041675
+        ],
+        "contact_gap": 0.0005,
+        "near_gap": 0.0015,
+        "wrist": [
+          -0.484591007232666,
+          0.45637914538383484,
+          0.7443889379501343
+        ],
+        "stage": "contact-measured",
+        "patch": {
+          "vertices": 3,
+          "area": 3.3552541994774643e-10,
+          "spans": [
+            0.027051701292178265,
+            0.00018827893658768247
+          ],
+          "hull": [
+            [
+              0.18376010225896777,
+              -0.52541449481463
+            ],
+            [
+              0.21081180355114604,
+              -0.5256027737512177
+            ],
+            [
+              0.1972859401196132,
+              -0.5255086093877028
+            ]
+          ]
+        },
+        "elbow": [
+          -0.5294264554977417,
+          0.44704657793045044,
+          0.9539497494697571
+        ],
+        "rigid_palm_replay_error": 4.689593106769799e-07,
+        "status": "Measured resting contact; complete reach, garment, furniture, neighbor and visual checks remain required"
+      },
+      "ray_array": "hand/2/R/support_rays"
+    }
+  ],
+  "reading": [
+    {
+      "near_gap": 0.0015,
+      "numerical_plane_epsilon": 1e-06,
+      "books": {
+        "Reading book cover": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006408009969467434
+          }
+        },
+        "Reading book cover.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006407996498394289
+          }
+        },
+        "Reading book pages": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630429042742992
+          }
+        },
+        "Reading book pages.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630421179518823
+          }
+        }
+      },
+      "pairs": [
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm/Reading book cover",
+          "actual_crossing_pairs": 36,
+          "strictly_inside_book_vertices": 19,
+          "deepest_vertex_inside": 0.004368336999558282,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 9,
+              "footprint": {
+                "vertices": 9,
+                "area": 0.002424733265631321,
+                "spans": [
+                  0.07142579555511475,
+                  0.056062694783806766
+                ],
+                "hull": [
+                  [
+                    0.6996254920959473,
+                    0.2612842875921726
+                  ],
+                  [
+                    0.7118045687675476,
+                    0.23102166131325066
+                  ],
+                  [
+                    0.735334038734436,
+                    0.2180079369945079
+                  ],
+                  [
+                    0.7622659206390381,
+                    0.21463788484752178
+                  ],
+                  [
+                    0.771051287651062,
+                    0.22810787066459653
+                  ],
+                  [
+                    0.7660862803459167,
+                    0.2418360932701826
+                  ],
+                  [
+                    0.7216662168502808,
+                    0.27070057963132854
+                  ],
+                  [
+                    0.704970121383667,
+                    0.26932326109349725
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb/Reading book cover",
+          "actual_crossing_pairs": 146,
+          "strictly_inside_book_vertices": 93,
+          "deepest_vertex_inside": 0.007909381655635987,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm.001/Reading book cover.001",
+          "actual_crossing_pairs": 129,
+          "strictly_inside_book_vertices": 57,
+          "deepest_vertex_inside": 0.007734958555812023,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb.001/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb/Reading book pages",
+          "actual_crossing_pairs": 70,
+          "strictly_inside_book_vertices": 61,
+          "deepest_vertex_inside": 0.008499026562189428,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 3,
+              "footprint": {
+                "vertices": 3,
+                "area": 9.173501842291154e-06,
+                "spans": [
+                  0.025763511657714844,
+                  0.010914365636110313
+                ],
+                "hull": [
+                  [
+                    0.6851325631141663,
+                    0.22628055146701634
+                  ],
+                  [
+                    0.7044586539268494,
+                    0.21738118137426674
+                  ],
+                  [
+                    0.7108960747718811,
+                    0.21536618583090603
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm.001/Reading book pages.001",
+          "actual_crossing_pairs": 95,
+          "strictly_inside_book_vertices": 45,
+          "deepest_vertex_inside": 0.008490050261082616,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb.001/Reading book pages.001",
+          "actual_crossing_pairs": 38,
+          "strictly_inside_book_vertices": 24,
+          "deepest_vertex_inside": 0.00466651275606915,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                0.99281
+              ],
+              "vertices": 14,
+              "footprint": {
+                "vertices": 14,
+                "area": 0.001058905742648955,
+                "spans": [
+                  0.0458683967590332,
+                  0.033169677907899014
+                ],
+                "hull": [
+                  [
+                    0.6866838932037354,
+                    0.2399506484579295
+                  ],
+                  [
+                    0.6900805234909058,
+                    0.23091784905068574
+                  ],
+                  [
+                    0.7012297511100769,
+                    0.2200436518447846
+                  ],
+                  [
+                    0.7077192664146423,
+                    0.21784464818172156
+                  ],
+                  [
+                    0.7141361236572266,
+                    0.21619634645752608
+                  ],
+                  [
+                    0.7203221917152405,
+                    0.2151393960695714
+                  ],
+                  [
+                    0.7269546985626221,
+                    0.2176696342354268
+                  ],
+                  [
+                    0.7325522899627686,
+                    0.2278919850116223
+                  ],
+                  [
+                    0.7310343384742737,
+                    0.234701879933998
+                  ],
+                  [
+                    0.7263921499252319,
+                    0.23857820722155273
+                  ],
+                  [
+                    0.7212173938751221,
+                    0.2424948323941231
+                  ],
+                  [
+                    0.7156375646591187,
+                    0.24635512867331505
+                  ],
+                  [
+                    0.6996037364006042,
+                    0.2483090739774704
+                  ],
+                  [
+                    0.6898921132087708,
+                    0.24580949780270456
+                  ]
+                ]
+              },
+              "role": "upper-face grip or steadying",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        }
+      ],
+      "semantics": "Record underside support and opposing grip/steadying patches; no mandatory thumb-distance rule",
+      "phase": 0.0,
+      "cache": {
+        "path": "reading-0.npz",
+        "sha256": "357b33e1c89357fdf734fbb6c3e37f23e243ff3b636d76c8f078b76d42a054d7"
+      }
+    },
+    {
+      "near_gap": 0.0015,
+      "numerical_plane_epsilon": 1e-06,
+      "books": {
+        "Reading book cover": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006408009969467434
+          }
+        },
+        "Reading book cover.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006407996498394289
+          }
+        },
+        "Reading book pages": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630429042742992
+          }
+        },
+        "Reading book pages.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630421179518823
+          }
+        }
+      },
+      "pairs": [
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm/Reading book cover",
+          "actual_crossing_pairs": 48,
+          "strictly_inside_book_vertices": 35,
+          "deepest_vertex_inside": 0.0073467175320556305,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 6,
+              "footprint": {
+                "vertices": 6,
+                "area": 0.002918157669112742,
+                "spans": [
+                  0.06972712278366089,
+                  0.06882833192527293
+                ],
+                "hull": [
+                  [
+                    0.7104708552360535,
+                    0.2776554062575102
+                  ],
+                  [
+                    0.7196195125579834,
+                    0.21783300439305603
+                  ],
+                  [
+                    0.7584972977638245,
+                    0.20882707433223724
+                  ],
+                  [
+                    0.7762242555618286,
+                    0.21685655861079692
+                  ],
+                  [
+                    0.7801979780197144,
+                    0.2228334733712673
+                  ],
+                  [
+                    0.7711879014968872,
+                    0.24931599605262278
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb/Reading book cover",
+          "actual_crossing_pairs": 150,
+          "strictly_inside_book_vertices": 99,
+          "deepest_vertex_inside": 0.00791856921504229,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm.001/Reading book cover.001",
+          "actual_crossing_pairs": 143,
+          "strictly_inside_book_vertices": 78,
+          "deepest_vertex_inside": 0.007980268308355267,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb.001/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb/Reading book pages",
+          "actual_crossing_pairs": 74,
+          "strictly_inside_book_vertices": 73,
+          "deepest_vertex_inside": 0.00833667012791487,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 3,
+              "footprint": {
+                "vertices": 3,
+                "area": 3.782765297628832e-05,
+                "spans": [
+                  0.015970587730407715,
+                  0.013250381667017919
+                ],
+                "hull": [
+                  [
+                    0.7228144407272339,
+                    0.21343783442504705
+                  ],
+                  [
+                    0.7347797155380249,
+                    0.2186279472399503
+                  ],
+                  [
+                    0.7387850284576416,
+                    0.22668821609206496
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm.001/Reading book pages.001",
+          "actual_crossing_pairs": 113,
+          "strictly_inside_book_vertices": 49,
+          "deepest_vertex_inside": 0.008443467785182214,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb.001/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        }
+      ],
+      "semantics": "Record underside support and opposing grip/steadying patches; no mandatory thumb-distance rule",
+      "phase": 0.25,
+      "cache": {
+        "path": "reading-1.npz",
+        "sha256": "43b1a741df7eb17b12e9014835b4eb3c17690dabf282e9c65cb1e1bfddb0f375"
+      }
+    },
+    {
+      "near_gap": 0.0015,
+      "numerical_plane_epsilon": 1e-06,
+      "books": {
+        "Reading book cover": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006408009969467434
+          }
+        },
+        "Reading book cover.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006407996498394289
+          }
+        },
+        "Reading book pages": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630429042742992
+          }
+        },
+        "Reading book pages.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630421179518823
+          }
+        }
+      },
+      "pairs": [
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm/Reading book cover",
+          "actual_crossing_pairs": 36,
+          "strictly_inside_book_vertices": 19,
+          "deepest_vertex_inside": 0.004368336999558282,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 9,
+              "footprint": {
+                "vertices": 9,
+                "area": 0.002424733265631321,
+                "spans": [
+                  0.07142579555511475,
+                  0.056062694783806766
+                ],
+                "hull": [
+                  [
+                    0.6996254920959473,
+                    0.2612842875921726
+                  ],
+                  [
+                    0.7118045687675476,
+                    0.23102166131325066
+                  ],
+                  [
+                    0.735334038734436,
+                    0.2180079369945079
+                  ],
+                  [
+                    0.7622659206390381,
+                    0.21463788484752178
+                  ],
+                  [
+                    0.771051287651062,
+                    0.22810787066459653
+                  ],
+                  [
+                    0.7660862803459167,
+                    0.2418360932701826
+                  ],
+                  [
+                    0.7216662168502808,
+                    0.27070057963132854
+                  ],
+                  [
+                    0.704970121383667,
+                    0.26932326109349725
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb/Reading book cover",
+          "actual_crossing_pairs": 146,
+          "strictly_inside_book_vertices": 93,
+          "deepest_vertex_inside": 0.007909381655635987,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm.001/Reading book cover.001",
+          "actual_crossing_pairs": 129,
+          "strictly_inside_book_vertices": 57,
+          "deepest_vertex_inside": 0.007734958555812023,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb.001/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb/Reading book pages",
+          "actual_crossing_pairs": 70,
+          "strictly_inside_book_vertices": 61,
+          "deepest_vertex_inside": 0.008499026562189428,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 3,
+              "footprint": {
+                "vertices": 3,
+                "area": 9.173501842291154e-06,
+                "spans": [
+                  0.025763511657714844,
+                  0.010914365636110313
+                ],
+                "hull": [
+                  [
+                    0.6851325631141663,
+                    0.22628055146701634
+                  ],
+                  [
+                    0.7044586539268494,
+                    0.21738118137426674
+                  ],
+                  [
+                    0.7108960747718811,
+                    0.21536618583090603
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm.001/Reading book pages.001",
+          "actual_crossing_pairs": 95,
+          "strictly_inside_book_vertices": 45,
+          "deepest_vertex_inside": 0.008490050261082616,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb.001/Reading book pages.001",
+          "actual_crossing_pairs": 38,
+          "strictly_inside_book_vertices": 24,
+          "deepest_vertex_inside": 0.00466651275606915,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                0.99281
+              ],
+              "vertices": 14,
+              "footprint": {
+                "vertices": 14,
+                "area": 0.001058905742648955,
+                "spans": [
+                  0.0458683967590332,
+                  0.033169677907899014
+                ],
+                "hull": [
+                  [
+                    0.6866838932037354,
+                    0.2399506484579295
+                  ],
+                  [
+                    0.6900805234909058,
+                    0.23091784905068574
+                  ],
+                  [
+                    0.7012297511100769,
+                    0.2200436518447846
+                  ],
+                  [
+                    0.7077192664146423,
+                    0.21784464818172156
+                  ],
+                  [
+                    0.7141361236572266,
+                    0.21619634645752608
+                  ],
+                  [
+                    0.7203221917152405,
+                    0.2151393960695714
+                  ],
+                  [
+                    0.7269546985626221,
+                    0.2176696342354268
+                  ],
+                  [
+                    0.7325522899627686,
+                    0.2278919850116223
+                  ],
+                  [
+                    0.7310343384742737,
+                    0.234701879933998
+                  ],
+                  [
+                    0.7263921499252319,
+                    0.23857820722155273
+                  ],
+                  [
+                    0.7212173938751221,
+                    0.2424948323941231
+                  ],
+                  [
+                    0.7156375646591187,
+                    0.24635512867331505
+                  ],
+                  [
+                    0.6996037364006042,
+                    0.2483090739774704
+                  ],
+                  [
+                    0.6898921132087708,
+                    0.24580949780270456
+                  ]
+                ]
+              },
+              "role": "upper-face grip or steadying",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        }
+      ],
+      "semantics": "Record underside support and opposing grip/steadying patches; no mandatory thumb-distance rule",
+      "phase": 0.5,
+      "cache": {
+        "path": "reading-2.npz",
+        "sha256": "357b33e1c89357fdf734fbb6c3e37f23e243ff3b636d76c8f078b76d42a054d7"
+      }
+    },
+    {
+      "near_gap": 0.0015,
+      "numerical_plane_epsilon": 1e-06,
+      "books": {
+        "Reading book cover": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006408009969467434
+          }
+        },
+        "Reading book cover.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0006407996498394289
+          }
+        },
+        "Reading book pages": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630429042742992
+          }
+        },
+        "Reading book pages.001": {
+          "closed": true,
+          "convex_outward_planes": true,
+          "topology": {
+            "vertices": 8,
+            "triangles": 12,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "signed_volume": 0.0005630421179518823
+          }
+        }
+      },
+      "pairs": [
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm/Reading book cover",
+          "actual_crossing_pairs": 22,
+          "strictly_inside_book_vertices": 7,
+          "deepest_vertex_inside": 0.001390015643070193,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 6,
+              "footprint": {
+                "vertices": 6,
+                "area": 0.001029797642942823,
+                "spans": [
+                  0.05052995681762695,
+                  0.031149841748997598
+                ],
+                "hull": [
+                  [
+                    0.7104028463363647,
+                    0.25371276998102665
+                  ],
+                  [
+                    0.7164626717567444,
+                    0.23828905432105063
+                  ],
+                  [
+                    0.7397641539573669,
+                    0.2249020931340009
+                  ],
+                  [
+                    0.7559256553649902,
+                    0.22647594018936157
+                  ],
+                  [
+                    0.7609328031539917,
+                    0.2340072803413868
+                  ],
+                  [
+                    0.7445082664489746,
+                    0.2560519348829985
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Relaxed palm.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb/Reading book cover",
+          "actual_crossing_pairs": 148,
+          "strictly_inside_book_vertices": 87,
+          "deepest_vertex_inside": 0.00772304732026459,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover",
+          "cache_prefix": "Resting thumb.001/Reading book cover",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Relaxed palm.001/Reading book cover.001",
+          "actual_crossing_pairs": 113,
+          "strictly_inside_book_vertices": 48,
+          "deepest_vertex_inside": 0.00799196960911783,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book cover.001",
+          "cache_prefix": "Resting thumb.001/Reading book cover.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                0.99281
+              ],
+              "vertices": 7,
+              "footprint": {
+                "vertices": 7,
+                "area": 0.00010368166471252938,
+                "spans": [
+                  0.018045365810394287,
+                  0.014320506246089937
+                ],
+                "hull": [
+                  [
+                    0.7018110156059265,
+                    0.2380075753890723
+                  ],
+                  [
+                    0.7048652172088623,
+                    0.22905978939525784
+                  ],
+                  [
+                    0.7111251950263977,
+                    0.22621584075503048
+                  ],
+                  [
+                    0.7172285318374634,
+                    0.22368706914298236
+                  ],
+                  [
+                    0.7198563814163208,
+                    0.2284860748397559
+                  ]
+                ]
+              },
+              "role": "upper-face grip or steadying",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Relaxed palm.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb/Reading book pages",
+          "actual_crossing_pairs": 60,
+          "strictly_inside_book_vertices": 47,
+          "deepest_vertex_inside": 0.00849029367848778,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                -0.99281
+              ],
+              "vertices": 1,
+              "footprint": {
+                "vertices": 1,
+                "area": 0.0,
+                "spans": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": false
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages",
+          "cache_prefix": "Resting thumb.001/Reading book pages",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Relaxed palm.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Relaxed palm.001/Reading book pages.001",
+          "actual_crossing_pairs": 83,
+          "strictly_inside_book_vertices": 35,
+          "deepest_vertex_inside": 0.008146670677662,
+          "planes": [
+            {
+              "normal": [
+                0.0,
+                -0.11971,
+                -0.99281
+              ],
+              "vertices": 3,
+              "footprint": {
+                "vertices": 3,
+                "area": 7.220933823243181e-07,
+                "spans": [
+                  0.006757855415344238,
+                  0.00953185818791391
+                ],
+                "hull": [
+                  [
+                    0.7786628007888794,
+                    -0.20795568030178546
+                  ],
+                  [
+                    0.7854206562042236,
+                    -0.21748753848969937
+                  ],
+                  [
+                    0.7820942401885986,
+                    -0.21258197149217128
+                  ]
+                ]
+              },
+              "role": "underside support",
+              "finite_neighborhood": true
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb/Reading book pages.001",
+          "actual_crossing_pairs": 0,
+          "strictly_inside_book_vertices": 0,
+          "deepest_vertex_inside": 0.0,
+          "planes": [],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        },
+        {
+          "hand": "Resting thumb.001",
+          "book": "Reading book pages.001",
+          "cache_prefix": "Resting thumb.001/Reading book pages.001",
+          "actual_crossing_pairs": 79,
+          "strictly_inside_book_vertices": 93,
+          "deepest_vertex_inside": 0.008432071417408033,
+          "planes": [
+            {
+              "normal": [
+                -0.0,
+                0.11971,
+                0.99281
+              ],
+              "vertices": 1,
+              "footprint": {
+                "vertices": 1,
+                "area": 0.0,
+                "spans": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "role": "upper-face grip or steadying",
+              "finite_neighborhood": false
+            }
+          ],
+          "status": "Physical support/grip classification includes these patches and the separate penetration witnesses"
+        }
+      ],
+      "semantics": "Record underside support and opposing grip/steadying patches; no mandatory thumb-distance rule",
+      "phase": 0.75,
+      "cache": {
+        "path": "reading-3.npz",
+        "sha256": "1d59de2d127bfc4c79790235bdcc0c00aa44caeb42080f38a4d422807ee3f86e"
+      }
+    }
+  ],
+  "scope": "One phase-zero resting construction plus independent four-phase reading support; no render or complete-pose acceptance",
+  "bone_names": [
+    "root",
+    "hips",
+    "spine",
+    "head",
+    "upper_arm.L",
+    "forearm.L",
+    "hand.L",
+    "upper_arm.R",
+    "forearm.R",
+    "hand.R",
+    "thigh.L",
+    "shin.L",
+    "foot.L",
+    "thigh.R",
+    "shin.R",
+    "foot.R",
+    "book"
+  ],
+  "sitting": {
+    "furniture": [
+      {
+        "seat": 0,
+        "body": "Forearm with elbow and wrist sections.001",
+        "furniture": "Arm left",
+        "evidence": {
+          "kind": "surface",
+          "triangle_pairs": 122,
+          "witness_array": "collision/furniture/0/Forearm with elbow and wrist sections.001/Arm left"
+        }
+      },
+      {
+        "seat": 2,
+        "body": "Forearm with elbow and wrist sections",
+        "furniture": "Arm right",
+        "evidence": {
+          "kind": "surface",
+          "triangle_pairs": 125,
+          "witness_array": "collision/furniture/2/Forearm with elbow and wrist sections/Arm right"
+        }
+      }
+    ],
+    "neighbors": [],
+    "self_contacts": [
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 76,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Relaxed palm"
+        ],
+        "before": 263,
+        "after": 270,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections/Relaxed palm",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Relaxed shirt sleeve"
+        ],
+        "before": 167,
+        "after": 136,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections/Relaxed shirt sleeve",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Resting thumb"
+        ],
+        "before": 167,
+        "after": 170,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections/Resting thumb",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Turned sleeve cuff"
+        ],
+        "before": 280,
+        "after": 279,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections/Turned sleeve cuff",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 126,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Relaxed palm.001"
+        ],
+        "before": 269,
+        "after": 298,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections.001/Relaxed palm.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Relaxed shirt sleeve.001"
+        ],
+        "before": 167,
+        "after": 270,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections.001/Relaxed shirt sleeve.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Resting thumb.001"
+        ],
+        "before": 169,
+        "after": 208,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections.001/Resting thumb.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Turned sleeve cuff.001"
+        ],
+        "before": 280,
+        "after": 293,
+        "witness_prefix": "self/0/Forearm with elbow and wrist sections.001/Turned sleeve cuff.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed palm",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 80,
+        "witness_prefix": "self/0/Relaxed palm/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed palm",
+          "Resting thumb"
+        ],
+        "before": 138,
+        "after": 138,
+        "witness_prefix": "self/0/Relaxed palm/Resting thumb",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed palm",
+          "Shirt lower hem"
+        ],
+        "before": 0,
+        "after": 12,
+        "witness_prefix": "self/0/Relaxed palm/Shirt lower hem",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed palm.001",
+          "Relaxed shirt sleeve.001"
+        ],
+        "before": 0,
+        "after": 78,
+        "witness_prefix": "self/0/Relaxed palm.001/Relaxed shirt sleeve.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed palm.001",
+          "Resting thumb.001"
+        ],
+        "before": 134,
+        "after": 134,
+        "witness_prefix": "self/0/Relaxed palm.001/Resting thumb.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed palm.001",
+          "Turned sleeve cuff.001"
+        ],
+        "before": 0,
+        "after": 67,
+        "witness_prefix": "self/0/Relaxed palm.001/Turned sleeve cuff.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "One sewn breast pocket"
+        ],
+        "before": 119,
+        "after": 83,
+        "witness_prefix": "self/0/Relaxed shirt sleeve/One sewn breast pocket",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "Overshirt body"
+        ],
+        "before": 279,
+        "after": 319,
+        "witness_prefix": "self/0/Relaxed shirt sleeve/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "Turned sleeve cuff"
+        ],
+        "before": 288,
+        "after": 288,
+        "witness_prefix": "self/0/Relaxed shirt sleeve/Turned sleeve cuff",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed shirt sleeve.001",
+          "Overshirt body"
+        ],
+        "before": 255,
+        "after": 261,
+        "witness_prefix": "self/0/Relaxed shirt sleeve.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Relaxed shirt sleeve.001",
+          "Turned sleeve cuff.001"
+        ],
+        "before": 288,
+        "after": 288,
+        "witness_prefix": "self/0/Relaxed shirt sleeve.001/Turned sleeve cuff.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Turned sleeve cuff",
+          "One sewn breast pocket"
+        ],
+        "before": 17,
+        "after": 48,
+        "witness_prefix": "self/0/Turned sleeve cuff/One sewn breast pocket",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Turned sleeve cuff",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 80,
+        "witness_prefix": "self/0/Turned sleeve cuff/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 0,
+        "parts": [
+          "Turned sleeve cuff.001",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 68,
+        "witness_prefix": "self/0/Turned sleeve cuff.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Relaxed palm"
+        ],
+        "before": 263,
+        "after": 260,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections/Relaxed palm",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Relaxed shirt sleeve"
+        ],
+        "before": 167,
+        "after": 179,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections/Relaxed shirt sleeve",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Resting thumb"
+        ],
+        "before": 167,
+        "after": 160,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections/Resting thumb",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Turned sleeve cuff"
+        ],
+        "before": 280,
+        "after": 282,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections/Turned sleeve cuff",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Relaxed palm.001"
+        ],
+        "before": 269,
+        "after": 264,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections.001/Relaxed palm.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Relaxed shirt sleeve.001"
+        ],
+        "before": 167,
+        "after": 179,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections.001/Relaxed shirt sleeve.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Resting thumb.001"
+        ],
+        "before": 169,
+        "after": 166,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections.001/Resting thumb.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Turned sleeve cuff.001"
+        ],
+        "before": 280,
+        "after": 282,
+        "witness_prefix": "self/1/Forearm with elbow and wrist sections.001/Turned sleeve cuff.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed palm",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 81,
+        "witness_prefix": "self/1/Relaxed palm/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed palm",
+          "Resting thumb"
+        ],
+        "before": 138,
+        "after": 138,
+        "witness_prefix": "self/1/Relaxed palm/Resting thumb",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed palm",
+          "Shirt lower hem"
+        ],
+        "before": 0,
+        "after": 12,
+        "witness_prefix": "self/1/Relaxed palm/Shirt lower hem",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed palm.001",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 79,
+        "witness_prefix": "self/1/Relaxed palm.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed palm.001",
+          "Resting thumb.001"
+        ],
+        "before": 134,
+        "after": 134,
+        "witness_prefix": "self/1/Relaxed palm.001/Resting thumb.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed palm.001",
+          "Shirt lower hem"
+        ],
+        "before": 0,
+        "after": 8,
+        "witness_prefix": "self/1/Relaxed palm.001/Shirt lower hem",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "One sewn breast pocket"
+        ],
+        "before": 119,
+        "after": 97,
+        "witness_prefix": "self/1/Relaxed shirt sleeve/One sewn breast pocket",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "Overshirt body"
+        ],
+        "before": 283,
+        "after": 295,
+        "witness_prefix": "self/1/Relaxed shirt sleeve/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "Turned sleeve cuff"
+        ],
+        "before": 288,
+        "after": 288,
+        "witness_prefix": "self/1/Relaxed shirt sleeve/Turned sleeve cuff",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed shirt sleeve.001",
+          "Overshirt body"
+        ],
+        "before": 255,
+        "after": 261,
+        "witness_prefix": "self/1/Relaxed shirt sleeve.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Relaxed shirt sleeve.001",
+          "Turned sleeve cuff.001"
+        ],
+        "before": 288,
+        "after": 288,
+        "witness_prefix": "self/1/Relaxed shirt sleeve.001/Turned sleeve cuff.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 1,
+        "parts": [
+          "Turned sleeve cuff",
+          "One sewn breast pocket"
+        ],
+        "before": 17,
+        "after": 46,
+        "witness_prefix": "self/1/Turned sleeve cuff/One sewn breast pocket",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 120,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Relaxed palm"
+        ],
+        "before": 263,
+        "after": 308,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections/Relaxed palm",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Relaxed shirt sleeve"
+        ],
+        "before": 167,
+        "after": 264,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections/Relaxed shirt sleeve",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Resting thumb"
+        ],
+        "before": 167,
+        "after": 206,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections/Resting thumb",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections",
+          "Turned sleeve cuff"
+        ],
+        "before": 280,
+        "after": 287,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections/Turned sleeve cuff",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 78,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Relaxed palm.001"
+        ],
+        "before": 269,
+        "after": 274,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections.001/Relaxed palm.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Relaxed shirt sleeve.001"
+        ],
+        "before": 167,
+        "after": 136,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections.001/Relaxed shirt sleeve.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Resting thumb.001"
+        ],
+        "before": 169,
+        "after": 170,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections.001/Resting thumb.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Forearm with elbow and wrist sections.001",
+          "Turned sleeve cuff.001"
+        ],
+        "before": 280,
+        "after": 279,
+        "witness_prefix": "self/2/Forearm with elbow and wrist sections.001/Turned sleeve cuff.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed palm",
+          "Relaxed shirt sleeve"
+        ],
+        "before": 0,
+        "after": 78,
+        "witness_prefix": "self/2/Relaxed palm/Relaxed shirt sleeve",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed palm",
+          "Resting thumb"
+        ],
+        "before": 138,
+        "after": 138,
+        "witness_prefix": "self/2/Relaxed palm/Resting thumb",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed palm",
+          "Turned sleeve cuff"
+        ],
+        "before": 0,
+        "after": 65,
+        "witness_prefix": "self/2/Relaxed palm/Turned sleeve cuff",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed palm.001",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 77,
+        "witness_prefix": "self/2/Relaxed palm.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed palm.001",
+          "Resting thumb.001"
+        ],
+        "before": 134,
+        "after": 134,
+        "witness_prefix": "self/2/Relaxed palm.001/Resting thumb.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed palm.001",
+          "Shirt lower hem"
+        ],
+        "before": 0,
+        "after": 8,
+        "witness_prefix": "self/2/Relaxed palm.001/Shirt lower hem",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "One sewn breast pocket"
+        ],
+        "before": 119,
+        "after": 0,
+        "witness_prefix": "self/2/Relaxed shirt sleeve/One sewn breast pocket",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "Overshirt body"
+        ],
+        "before": 283,
+        "after": 293,
+        "witness_prefix": "self/2/Relaxed shirt sleeve/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed shirt sleeve",
+          "Turned sleeve cuff"
+        ],
+        "before": 288,
+        "after": 288,
+        "witness_prefix": "self/2/Relaxed shirt sleeve/Turned sleeve cuff",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed shirt sleeve.001",
+          "Overshirt body"
+        ],
+        "before": 253,
+        "after": 277,
+        "witness_prefix": "self/2/Relaxed shirt sleeve.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Relaxed shirt sleeve.001",
+          "Turned sleeve cuff.001"
+        ],
+        "before": 288,
+        "after": 288,
+        "witness_prefix": "self/2/Relaxed shirt sleeve.001/Turned sleeve cuff.001",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Turned sleeve cuff",
+          "One sewn breast pocket"
+        ],
+        "before": 17,
+        "after": 0,
+        "witness_prefix": "self/2/Turned sleeve cuff/One sewn breast pocket",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Turned sleeve cuff",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 72,
+        "witness_prefix": "self/2/Turned sleeve cuff/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      },
+      {
+        "seat": 2,
+        "parts": [
+          "Turned sleeve cuff.001",
+          "Overshirt body"
+        ],
+        "before": 0,
+        "after": 82,
+        "witness_prefix": "self/2/Turned sleeve cuff.001/Overshirt body",
+        "classification": "Named self contacts require source-region classification; no pair exemption"
+      }
+    ],
+    "internal": [
+      {
+        "seat": 0,
+        "part": "Forearm with elbow and wrist sections",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Forearm with elbow and wrist sections.001",
+        "before": 0,
+        "after": 498,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Relaxed palm",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Relaxed palm.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Relaxed shirt sleeve",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Relaxed shirt sleeve.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Resting thumb",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Resting thumb.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Turned sleeve cuff",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 0,
+        "part": "Turned sleeve cuff.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Forearm with elbow and wrist sections",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Forearm with elbow and wrist sections.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Relaxed palm",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Relaxed palm.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Relaxed shirt sleeve",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Relaxed shirt sleeve.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Resting thumb",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Resting thumb.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Turned sleeve cuff",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 1,
+        "part": "Turned sleeve cuff.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Forearm with elbow and wrist sections",
+        "before": 0,
+        "after": 482,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Forearm with elbow and wrist sections.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Relaxed palm",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Relaxed palm.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Relaxed shirt sleeve",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Relaxed shirt sleeve.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Resting thumb",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Resting thumb.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Turned sleeve cuff",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      },
+      {
+        "seat": 2,
+        "part": "Turned sleeve cuff.001",
+        "before": 0,
+        "after": 0,
+        "classification": "Changed-mesh self intersections remain explicit; adjacency alone is excluded"
+      }
+    ],
+    "support": [
+      {
+        "valid": true,
+        "measurement": {
+          "min_gap": 0.0004998445510864258,
+          "ray_hits": 890,
+          "contact_count": 34,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.37460482120513916,
+              -0.6799563765525818,
+              0.5605000257492065
+            ],
+            [
+              -0.2885623276233673,
+              -0.4800436496734619,
+              0.5677723288536072
+            ]
+          ],
+          "xy_hull_area": 0.014048458161538768
+        }
+      },
+      {
+        "valid": true,
+        "measurement": {
+          "min_gap": 0.0004999637603759766,
+          "ray_hits": 970,
+          "contact_count": 34,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.37460482120513916,
+              -0.09995639324188232,
+              0.5605000257492065
+            ],
+            [
+              -0.2885623276233673,
+              0.09995632618665695,
+              0.5677723288536072
+            ]
+          ],
+          "xy_hull_area": 0.01404845746253841
+        }
+      },
+      {
+        "valid": true,
+        "measurement": {
+          "min_gap": 0.0004999637603759766,
+          "ray_hits": 890,
+          "contact_count": 34,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.37460482120513916,
+              0.48004359006881714,
+              0.5605000257492065
+            ],
+            [
+              -0.2885623276233673,
+              0.679956316947937,
+              0.5677723288536072
+            ]
+          ],
+          "xy_hull_area": 0.014048457732918962
+        }
+      }
+    ],
+    "bones": [
+      {
+        "seat": 0,
+        "maximum_length_error": 2.5896419253435e-07,
+        "maximum_scale_error": 2.86102294921875e-06,
+        "wrist_join_error": {
+          "L": 1.1137309703256242e-06,
+          "R": 6.208618478774923e-07
+        }
+      },
+      {
+        "seat": 1,
+        "maximum_length_error": 2.32883362982772e-07,
+        "maximum_scale_error": 2.2649765014648438e-06,
+        "wrist_join_error": {
+          "L": 1.0794860289260646e-06,
+          "R": 1.0167790716428744e-06
+        }
+      },
+      {
+        "seat": 2,
+        "maximum_length_error": 2.2960967233087715e-07,
+        "maximum_scale_error": 2.86102294921875e-06,
+        "wrist_join_error": {
+          "L": 6.690604782296314e-07,
+          "R": 1.0220339195538368e-06
+        }
+      }
+    ]
+  },
+  "resting_cache_sha256": "660de1f0b3b83b98a5d42106b8ad51913b40d3909515c21d41a78675245f779f",
+  "acceptance": "Contact diagnostic only; all-phase final assembly, contact classification and owner visual acceptance remain required"
+}

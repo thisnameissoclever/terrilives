@@ -1,0 +1,25 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_reader_subset_export_v1.py"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk f9fd43 returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 3.5159386,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "a1b789d60c6d4949b99ee1a36aa9245d1c2ddf9f0fae5e2b6cdb2eb4482af8c9"
+  },
+  "exporter_sha256": "cbfd9b4ee491c7c53ade700c48f084a847eba98a92d4a9227a13c2f857da31c0",
+  "output": {
+    "records": 48,
+    "uniqueTextures": 29,
+    "maximumError": 4,
+    "p95": 1
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for furniture-origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGBzero and coverage in alpha; not L or u16",
+  "beautyReference": "reference_beauty: float-linear premultiplied BOX8-to2 then display once",
+  "reconstruction": "encode_scene uses double_bed_linear.encode with shared-ink attenuation before filtering; double_bed_linear.reconstruct adds visible contributions once; double_bed_layers.comparison on premultiplied display with stricter6/2 gates"
+}

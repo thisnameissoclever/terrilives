@@ -49,6 +49,7 @@ pub struct SaleResult {
 pub struct SalePlan {
     grid: TileGrid,
     entity: Entity,
+    books: Option<crate::books::BookLibrary>,
     pub payout: u32,
 }
 
@@ -66,7 +67,9 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
     let (entity, definition, _) = object_definition(world, object).ok_or(UnknownObject)?;
     let CurrentLayout { walls, rectangles } = current_layout(world)?;
     let mut people = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
-    if world.get::<Reserved>(entity).is_some()
+    if crate::reading::placement::pins_sale(world, entity)
+        || crate::recipe_actions::pins_sale(world, entity)
+        || world.get::<Reserved>(entity).is_some()
         || crate::dining::object_in_use(world, object)
         || crate::domestic::surface_in_use(world, object)
         || crate::chores::object_claimed(
@@ -83,6 +86,14 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
     {
         return Err(InUse);
     }
+    let books = if definition.shelf_capacity > 0 {
+        crate::books::prepare_shelf_sale(world, object).map_err(|error| match error {
+            crate::books::BookError::Borrowed(_) => InUse,
+            _ => UnsupportedLayout,
+        })?
+    } else {
+        None
+    };
     let price = definition.price.ok_or(NotForSale)?;
     let content = world.resource::<Content>().0;
     // The fixed architecture with every other object standing on it: the
@@ -97,6 +108,7 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
     Ok(SalePlan {
         grid,
         entity,
+        books,
         payout: sale_value(price, fraction),
     })
 }
@@ -112,6 +124,9 @@ pub(crate) fn commit(world: &mut World, object: u32) {
     let reason = result.as_ref().err().copied();
     let mut payout = None;
     if let Ok(plan) = result {
+        if let Some(books) = plan.books {
+            world.insert_resource(books);
+        }
         world.insert_resource(plan.grid);
         world
             .resource_mut::<crate::beds::BedAssignments>()

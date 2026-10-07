@@ -67,6 +67,13 @@ pub(crate) fn has_active(world: &World, person: u32) -> bool {
 
 /// Validate a replacement before releasing the current scoped work.
 pub(crate) fn interrupt_for_order(world: &mut World, person: Entity, id: u32) {
+    if world
+        .get::<crate::reading::ReadingJourney>(person)
+        .is_some()
+    {
+        crate::reading::request_return(world, person);
+        return;
+    }
     let valid = world
         .get_resource::<SavedTargetedCleanup>()
         .and_then(|state| state.orders.iter().find(|order| order.id == id))
@@ -109,7 +116,8 @@ pub(crate) fn interrupt_active(world: &mut World, person: Entity) {
         .remove::<terri_core::Eating>()
         .remove::<terri_core::StepWork>()
         .remove::<terri_core::Carrying>()
-        .remove::<ChainState>();
+        .remove::<crate::recipe_actions::ActiveRecipe>()
+        .remove::<crate::recipe_actions::RecipeOrder>();
 }
 
 pub(crate) fn abandon(world: &mut World, person: u32) {
@@ -180,6 +188,13 @@ fn candidates(world: &World, order: &SavedCleanupOrder) -> (Vec<u32>, bool) {
 }
 
 pub(crate) fn activate(world: &mut World, person: Entity, id: u32) {
+    if world
+        .get::<crate::reading::ReadingJourney>(person)
+        .is_some()
+    {
+        crate::reading::request_return(world, person);
+        return;
+    }
     let order = world
         .get_resource::<SavedTargetedCleanup>()
         .and_then(|s| s.orders.iter().find(|o| o.id == id))
@@ -217,7 +232,8 @@ pub(crate) fn activate(world: &mut World, person: Entity, id: u32) {
         .remove::<terri_core::StepWork>()
         .remove::<terri_core::Carrying>()
         .remove::<terri_core::Fumbled>()
-        .remove::<ChainState>();
+        .remove::<crate::recipe_actions::ActiveRecipe>()
+        .remove::<crate::recipe_actions::RecipeOrder>();
     order.queue_position = None;
     if let Some(o) = world
         .resource_mut::<SavedTargetedCleanup>()
@@ -263,9 +279,8 @@ fn begin(world: &mut World, person: Entity, dishes: Vec<u32>) {
         directed: true,
     });
     state.cleanup.sort_by_key(|t| t.person);
-    world
-        .entity_mut(person)
-        .insert(ChainState::begin(chain as u32));
+    let active = crate::recipe_actions::internal(world.resource::<Content>().0, chain as u32);
+    world.entity_mut(person).insert(active);
 }
 
 /// Refresh only collection work. Washing never claims dishes still on a surface.
@@ -286,7 +301,10 @@ pub(crate) fn refresh(world: &mut World, person: Entity) {
     }
     if surface(world, order.surface).is_none() || !washing_available(world, person) {
         crate::domestic::abandon(world, person);
-        world.entity_mut(person).remove::<ChainState>();
+        world
+            .entity_mut(person)
+            .remove::<crate::recipe_actions::ActiveRecipe>()
+            .remove::<crate::recipe_actions::RecipeOrder>();
         return;
     }
     let (ids, visible) = candidates(world, &order);
@@ -306,7 +324,8 @@ pub(crate) fn refresh(world: &mut World, person: Entity) {
         crate::domestic::abandon(world, person);
         world
             .entity_mut(person)
-            .remove::<ChainState>()
+            .remove::<crate::recipe_actions::ActiveRecipe>()
+            .remove::<crate::recipe_actions::RecipeOrder>()
             .remove::<terri_core::Blocked>();
     }
 }
@@ -352,7 +371,7 @@ pub(crate) fn snapshot(world: &World) -> Option<SavedTargetedCleanup> {
         }
         let position = world
             .get::<IntentQueue>(person)
-            .and_then(|q| q.as_slice().iter().position(|i| i.cleanup == Some(o.id)));
+            .and_then(|q| q.intents().position(|i| i.cleanup == Some(o.id)));
         o.queue_position = position.map(|p| p as u32);
         position.is_some()
     });
@@ -407,7 +426,7 @@ pub(crate) fn restore(
         let person = crate::dining::entity(world, o.person).unwrap();
         let mut intents = world
             .get::<IntentQueue>(person)
-            .map_or(vec![], |q| q.as_slice().to_vec());
+            .map_or(vec![], |q| q.intents().copied().collect());
         let position = o.queue_position.unwrap() as usize;
         let cap = world.resource::<Content>().0.tuning.max_queued_intents as usize;
         if position > intents.len() || (cap > 0 && intents.len() >= cap) {

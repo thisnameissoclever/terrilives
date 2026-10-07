@@ -74,6 +74,8 @@ pub struct CircadianFile {
 #[derive(Debug, Deserialize)]
 pub struct TuningFile {
     #[serde(default)]
+    pub reading: Option<crate::books::ReadingTuning>,
+    #[serde(default)]
     pub domestic: Option<crate::pack::DomesticTuning>,
     /// The circadian rhythm, optional so every existing tuning fixture
     /// still parses. See `CircadianFile`.
@@ -347,7 +349,16 @@ pub struct NeedDef {
 /// Mirrors `content/objects.toml`.
 #[derive(Debug, Deserialize)]
 pub struct ObjectsFile {
+    #[serde(default)]
     pub object: Vec<ObjectDef>,
+    #[serde(default)]
+    pub category: Vec<crate::hierarchy::CategoryDef>,
+    #[serde(default)]
+    pub object_type: Vec<crate::hierarchy::ObjectTypeDef>,
+    #[serde(default)]
+    pub action_template: Vec<crate::hierarchy::ActionTemplate>,
+    #[serde(default)]
+    pub model: Vec<crate::hierarchy::ModelDef>,
     /// The colourways any placed object can be drawn in - [RC-content] in
     /// `docs/specs/2026-09-22-colourways.md`. Absent means none.
     #[serde(default)]
@@ -414,7 +425,19 @@ pub struct SocialFile {
 pub const FACINGS: [&str; 4] = ["NE", "NW", "SE", "SW"];
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ObjectDef {
+    #[serde(default)]
+    pub cooking_front: Option<(i32, i32)>,
+    #[serde(default)]
+    pub shelf_capacity: u16,
+    #[serde(default)]
+    pub shelf_access: Vec<(i32, i32)>,
+    /// Filled by the hierarchy resolver; authored metadata is rejected.
+    #[serde(skip)]
+    pub metadata: Option<crate::pack::ModelMetadata>,
+    #[serde(default)]
+    pub seat: Vec<SeatDef>,
     pub id: String,
     pub name: String,
     /// Type and flavor text, with `name` identifying the model when present.
@@ -498,7 +521,7 @@ pub struct ObjectDef {
 }
 
 /// A named presentation point in object-local lot coordinates.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ActionSocketDef {
     pub id: String,
     pub x: f32,
@@ -506,8 +529,27 @@ pub struct ActionSocketDef {
     pub facing: String,
 }
 
+/// Physical occupancy and access, authored in base-facing coordinates.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SeatDef {
+    pub id: String,
+    pub x: f32,
+    pub y: f32,
+    pub facing: String,
+    pub approaches: Vec<(i32, i32)>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct InteractionDef {
+    #[serde(default)]
+    pub media: Option<crate::pack::MediaBehavior>,
+    #[serde(default)]
+    pub recipe: Option<crate::pack::RecipeDef>,
+    #[serde(default)]
+    pub book_reading: bool,
+    #[serde(default)]
+    pub seat_use: crate::pack::SeatUse,
     pub id: String,
     /// What the right-click flyout calls this interaction, as
     /// `label = "Eat standing up"`.
@@ -600,7 +642,7 @@ pub struct InteractionDef {
 /// error that must name the owning object interaction, `social.toml`
 /// interaction, or chain step; the compiled pack uses enums and cannot
 /// represent an unknown value.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct VisualDef {
     #[serde(default)]
     pub action: Option<String>,

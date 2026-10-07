@@ -1,0 +1,24 @@
+{
+  "originalBytes": 109712623,
+  "compactBytes": 106473408,
+  "values": [
+    {
+      "name": "SHARED_SEAT_CATALOG",
+      "originalBytes": 5138106,
+      "compactBytes": 2173493,
+      "valueSha256": "562645e7bbef7a3eec3849120ce872f6908ff0e294706706f8fe34f82f318827"
+    },
+    {
+      "name": "SHARED_SEAT_LAYERS",
+      "originalBytes": 597314,
+      "compactBytes": 331073,
+      "valueSha256": "ad4660a6c6e72beda197a18b8c18a46050ba26f05abfdf3097865eae6eee24e2"
+    },
+    {
+      "name": "SHARED_SEAT_PREVIEW_CATALOG",
+      "originalBytes": 14466,
+      "compactBytes": 6105,
+      "valueSha256": "96fb21f42020b35f346252cdd68a437e08a208b70181f43a3681e498afd60371"
+    }
+  ]
+}

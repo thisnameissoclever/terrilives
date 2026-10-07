@@ -1,0 +1,33 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 53.75s
+     Running unittests src\lib.rs (target\debug\deps\terri_data-c6b1992c464e518b.exe)
+
+running 1 test
+test published_pack_wire::authentic_2f_pack_decodes_and_reencodes_exactly ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 313 filtered out; finished in 0.00s
+
+     Running tests\bathroom_layout.rs (target\debug\deps\bathroom_layout-72b767ac6158c265.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests\book_content.rs (target\debug\deps\book_content-2e70c8ed836a3647.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests\content_hierarchy.rs (target\debug\deps\content_hierarchy-602ea9a1e3100e4e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
+
+     Running tests\inherited_runtime.rs (target\debug\deps\inherited_runtime-fcab9b62bb478e57.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+

@@ -130,6 +130,14 @@ pub(crate) fn tick(world: &mut World) {
                         .get(e.interaction as usize)?,
                 ))
             });
+            let act = act.or_else(|| {
+                let journey = world.get::<crate::reading::ReadingJourney>(entity)?;
+                if journey.stage != terri_core::save_v6::ReadingStage::Read {
+                    return None;
+                }
+                let target = *world.get::<Target>(entity)?;
+                crate::reading::action(world, target).map(|a| (target.object, a))
+            });
             if act.is_some_and(|(_, a)| {
                 a.tags
                     .iter()

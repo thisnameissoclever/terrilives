@@ -24,7 +24,7 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
-it('loads a released-main save with its published state intact and empty chore extensions', () => {
+it('imports an actual released-main save, migrates owned books and preserves the aquarium', () => {
   const bytes = Uint8Array.from(readFileSync('tests/fixtures/aquarium-released-main.sav'));
   expect(createHash('sha256').update(bytes).digest('hex'))
     .toBe('117f99a05d6e9ad879954ec46c6ccc84858a3d9d7c6d7b957847927600a6eea6');
@@ -32,27 +32,11 @@ it('loads a released-main save with its published state intact and empty chore e
   try {
     const sim = new SimBridge(handle, memory);
     expect(sim.loadBytes(bytes)).toBe(true);
-    // Written before skills and affinities existed, so its next save
-    // appends the skills field after the loaded bytes: Some (1), then the
-    // seeded practice rows, and then the drawn affinity values. Drawing
-    // those values ([OA-values]) moves the saved generator, which follows
-    // the content fingerprint and the tick; every other loaded byte is kept.
-    const saved = sim.saveBytes();
-    const rngStart = skipVarints(bytes, 10, 2);
-    const rngEnd = skipVarints(bytes, rngStart, 2);
-    const savedRngEnd = skipVarints(saved, rngStart, 2);
-    expect(saved.slice(0, rngStart)).toEqual(bytes.slice(0, rngStart));
-    expect(saved.slice(rngStart, savedRngEnd)).not.toEqual(bytes.slice(rngStart, rngEnd));
-    const rest = bytes.length - rngEnd;
-    expect(saved.slice(savedRngEnd, savedRngEnd + rest)).toEqual(bytes.slice(rngEnd));
-    expect(saved[savedRngEnd + rest]).toBe(1);
-    // Moved from 6601771059661594058 when the skill ladder became flat and the seeded practice changed.
-    // Moved from 13907076554945442085 when loading began drawing each person's affinity values once
-    // ([OA-values]): the draws advance the generator and the values join the hash. Measured natively.
-    // Moved from 11804688860418536815 when the aquarium kind took the trait tag `aquarium`, so Fish
-    // watcher sets a mild 0.4 in place of the drawn value; with the tag removed the old value returns.
-    expect(sim.worldHash().toString()).toBe('4526374402505414594');
-    expect([...saved.slice(-3)]).toEqual([0, 0, 0]);
+    expect(sim.bookCopies()).toHaveLength(5);
+    expect(sim.takeLegacyBookImportNotice()).toBe(true);
+    const current = sim.saveBytes();
+    expect(sim.loadBytes(current)).toBe(true);
+    expect(sim.saveBytes()).toEqual(current);
     const row = Array.from(sim.ids()).indexOf(27);
     expect(row).toBeGreaterThanOrEqual(0);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineAquarium'));
@@ -96,8 +80,8 @@ it('preserves aquarium placement, colours and save bytes through four rotations'
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.catalogue().find(row => row.name === 'Aquarium of Managed Expectations'))
-      .toMatchObject({ price: 220, facings: 15, baseFacing: 0 });
+    expect(sim.catalogue().find(row => row.name === 'Aquarium'))
+      .toMatchObject({ price: 200, facings: 15, baseFacing: 0 });
     expect(sim.interactionLabels(27)).toEqual(['Watch the fish']);
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {
       const index = atlas.spriteIndex('offlineAquarium' + suffix);
@@ -140,7 +124,7 @@ it('keeps watching beside the tank and restores the same active action', () => {
     for (let tick = 0; tick < 1200; tick++) {
       sim.tick();
       if (sim.activityOf(34) !== 10 || sim.actionQueueOf(34)[0] !==
-          'Watch the fish: Aquarium of Managed Expectations') continue;
+          'Watch the fish: Aquarium') continue;
       const save = sim.saveBytes(), hash = sim.worldHash();
       expect(sim.loadBytes(save)).toBe(true);
       expect(sim.saveBytes()).toEqual(save); expect(sim.worldHash()).toBe(hash);

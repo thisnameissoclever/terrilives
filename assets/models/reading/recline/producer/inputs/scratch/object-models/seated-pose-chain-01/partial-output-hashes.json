@@ -1,0 +1,14 @@
+{
+  "state": "interrupted_by_memory_guard",
+  "files": {
+    "input-manifest.json": "3e746da6769b35e5737478c2b1d571231e67c43954ea92e83913c57ceaac98e3",
+    "interruption.json": "25062c29c3a87e0cb8a639dc2fabd7d26abb4843c0cdb02a7f2568c92d524481",
+    "process-exit.json": "328fb64b70a91309c2a9bdc18c58381fa9e7e5cadca1ca906b565a048a8d8a0a",
+    "raw/authored-geometry.npz": "1617aa7d5bf2e54cf3d98c5d8e1da9f1b772cb8f223ebd9004bbcbbd20f096ce",
+    "raw/authored-mixed-sofa.blend": "36d0bc72af3629913d14076bad8362fb28c8322d47ae9bb14ef4a3e13da586d0",
+    "raw/authored-pose.json": "956c34668286923d45f73544d4c5147b8973fa3d1b1fbd72eb9271d7955a4a37",
+    "raw/proof.json": "5b14da2019772963bfd6525f6a3809e3fa919450c26f47411c5b17863acd542f",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

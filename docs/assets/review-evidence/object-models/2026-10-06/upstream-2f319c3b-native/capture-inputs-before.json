@@ -1,0 +1,1374 @@
+{
+  "revision": "2f319c3bb14b4c798505e1b6c75fa3186f6f4822",
+  "zip_sha256": "ca00a3eb3c041c403faf4ba5912f8acac2fb388f22ca96b6fe28b6e8e474137c",
+  "source_files": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "eb5fa97b79d48233d3ba235304ac84a9ca9d69df803f17e6b50e25872f9a5123",
+      "bytes": 26732,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "b30f85be50f6aef5ca8e4dda09fee3fd4ba22b41c6dd104cea0b9c0dab7a2927",
+      "bytes": 1117,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "assets/models/architecture/architecture.json",
+      "sha256": "58f1e8b1fdaaafbb2ab30da4a3363776e4f39ba33c29a353a557fdee140d1079",
+      "bytes": 2012,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "assets/sprites/atlas.toml",
+      "sha256": "81b3103398d41de28329a69b92a01a06b858c88d4ff15f29a49f74c9ab7f121f",
+      "bytes": 393425,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/careers.toml",
+      "sha256": "37cead6a00bb5cc0b4bf74aa505ef292c61c137e0e9d2ab7e79bdc6e37322f5e",
+      "bytes": 2234,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/chains.toml",
+      "sha256": "2bd184f491e95ee3650f658d23170d4f5b75deba5ab8e033ae62c89b6c534932",
+      "bytes": 5060,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/household.toml",
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2",
+      "bytes": 3803,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/lot.toml",
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9",
+      "bytes": 12939,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/needs.toml",
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0",
+      "bytes": 937,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/objects.toml",
+      "sha256": "fca3449f107d219528bbd43087a463d7fbea03c99387840b4c462b3435abe8f8",
+      "bytes": 42862,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/personalities.toml",
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5",
+      "bytes": 8833,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/skills.toml",
+      "sha256": "3c3dfba810d92a20a6e47fcbabcea535fd9fee20c2eadf7bbc082a726ee146cc",
+      "bytes": 946,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/social.toml",
+      "sha256": "f10965dba9b9aa8a71ff29c463aa107de94640b6540fc8cb2231273a57e0e5f9",
+      "bytes": 7684,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/traits.toml",
+      "sha256": "c32e5eae66a6c88ef61a016c5a4c4514cd1d86c0a071703fddc3fd9e77057bd0",
+      "bytes": 7355,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/tuning.toml",
+      "sha256": "de6396e22f0c8e9f3856aca7a78d1b3c0eccbf94b8c2290fa46ca4450c4c24e4",
+      "bytes": 50060,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "content/voice.toml",
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5",
+      "bytes": 3350,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/Cargo.toml",
+      "sha256": "6fd270d9ee0eb66d5075a521fc1c96253b2c65629036897efce3e69557d5a21d",
+      "bytes": 418,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/examples/find_fscore_counterexample.rs",
+      "sha256": "fa6ca474dd5e7ef3d4ac8b8dfbe0e936eb4857cde26378a5290d9a6d4a2124cd",
+      "bytes": 8113,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/chores.rs",
+      "sha256": "8b911f29e382e4ac5a066ed8378fe0f3b88e92b00ddc6e73cda76e5e6c7905bd",
+      "bytes": 8360,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/clock.rs",
+      "sha256": "169de91cfb40128444746373d8a23c928edd279dd557d6cd98cedb028176ca53",
+      "bytes": 5093,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/command.rs",
+      "sha256": "97e84cb2b7a7809fb05095ec5bb483c9fe96f0c3c6e3045b8f012f8cef30c371",
+      "bytes": 37837,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/components.rs",
+      "sha256": "96c494cc2ed428f08a72df0b510d5c9d716f8fdd1c59b759f1b4358bb7d15b45",
+      "bytes": 61523,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/facing.rs",
+      "sha256": "637dc2b355c95b238bbd8fe6940293ac4f4c9cc55f3c119a4da2a42e4a7d828b",
+      "bytes": 7729,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/grid.rs",
+      "sha256": "a9f0d9fb1e95ef1c0a54411c75013bee962a622a5f476aa667e98be8aafed53e",
+      "bytes": 69243,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/grid/distance_tests.rs",
+      "sha256": "35cdb9279edabf019e67ad6a11a37188c6fb2e6e69cf6f2f574dfde8f8d13d30",
+      "bytes": 802,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/grid/edge_tests.rs",
+      "sha256": "e93a032a541df42486d32a2be9c466efd3d11bcd827deb6d2878b7461567a759",
+      "bytes": 10708,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/grid/segment_tests.rs",
+      "sha256": "b77b7c047c3f7dc4a2b09e88fec365cc9b06c9e2d3412c9e31eb9a4a61981133",
+      "bytes": 3251,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/grime.rs",
+      "sha256": "00a523642f850146968381e49378459e74d01c50245210779b1aa009517249ae",
+      "bytes": 1160,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/hash.rs",
+      "sha256": "4fb4ff4965da780887c5a1492a53393e5febefa7cc92c335ee172a278d777caa",
+      "bytes": 7174,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/ids.rs",
+      "sha256": "1fc0f8a7dcb59a39362cebc9fb4c356b3a4fb63281b604d26c7d3031ffa3c8de",
+      "bytes": 621,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/layout.rs",
+      "sha256": "9359467cc838c06d6253dc03ae6c1908a68b12296d818c0261e39a520ac955ba",
+      "bytes": 31759,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/legacy_chores_preview.rs",
+      "sha256": "cd9cfd40f3e6a3f0c021014c7631783b87cded1e15c7073f0ef68910dc15beb1",
+      "bytes": 11716,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/lib.rs",
+      "sha256": "5b410b16fec3f1af5882ca5ba5189a9578e7b094cc6f22b455e876f55b904e47",
+      "bytes": 2043,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/needs.rs",
+      "sha256": "d69ab29dfb2a3a4ed54ef77aca8f2781a085d6fae00edc016c180b2cfb18af64",
+      "bytes": 5885,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/rng.rs",
+      "sha256": "c2add9739db6af65f368eba6e53dd7b1d19a5fd26b0261ea5961321616afb977",
+      "bytes": 14878,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/save.rs",
+      "sha256": "1799ac5b4a815e40577f752270883b6123328d69f06f5ef42a094ee77904d269",
+      "bytes": 32455,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/save_before_voice.rs",
+      "sha256": "a7d7e8b7e17c5be442ad728aee78022a54b6e656a384ab073e6ddc3fc93bb4d7",
+      "bytes": 3988,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/shyness.rs",
+      "sha256": "d7ee00a8f411eace957ef19a61c0b64ed32450183361717f96d366df0960c0be",
+      "bytes": 2256,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-core/src/windows.rs",
+      "sha256": "0ad79601f7c84eea2365ef4d0d5de74e1b7b43474a1cb8c32e173aa16880569e",
+      "bytes": 9534,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/Cargo.toml",
+      "sha256": "7a7064014240735d044933788b21cb9e35934cd03d4035c496bcb563f7bd2c56",
+      "bytes": 1548,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/build.rs",
+      "sha256": "b973b296d30057a3cf7d5b84515158ea7ce1d1fad48214f2733d6669dbc6b6b9",
+      "bytes": 14684,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/src/compile.rs",
+      "sha256": "5eb50820d87758f455915bade18cb517d4322429df14ef55db12d57f8acc1f94",
+      "bytes": 522955,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/src/error.rs",
+      "sha256": "1bfefc94fbae753eb922368b89c6af2a96757c902332e278f85814629571edac",
+      "bytes": 102973,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/src/lib.rs",
+      "sha256": "aae887f7bc7fd788b6e9a3caec5d8feb919ccbe436a7a675fcf657d2d2882d91",
+      "bytes": 136779,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/src/need_tuning.rs",
+      "sha256": "99a41339738813a6c322038033e769ec2a6810727e7ee0537a24ce19905ee9d7",
+      "bytes": 1763,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/src/pack.rs",
+      "sha256": "775af1b90443e515e4908b387326408d40989aa62e54b05397bd7dbdb2956329",
+      "bytes": 119339,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/src/relationship_tuning.rs",
+      "sha256": "96b05bb100d7070137580374009227f63ed65d75d33e888bf4b8380824e02f39",
+      "bytes": 3249,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/src/schema.rs",
+      "sha256": "31dc78b01f0a6bd0fd0750f8c9fc70b7aa1da1d3c79e044a9191d25130b79357",
+      "bytes": 85907,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-data/tests/bathroom_layout.rs",
+      "sha256": "2f74c2d35c7427e153f673ccfa4ed70c61bbb976c9f0782e6c832ce49cdce9bf",
+      "bytes": 650,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/Cargo.toml",
+      "sha256": "f9fae2c190ef9dabd3cf27819669448bd0a10412833ebe03b820da36afd12532",
+      "bytes": 449,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/examples/grime_balance.rs",
+      "sha256": "65bb0e34817cfe97df4348b333f2b7a26a17e60cd481c2562651a4a99de54b76",
+      "bytes": 3095,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/examples/relationship_balance.rs",
+      "sha256": "f558b22f6c8b01be607e52df3173c0cee5610bda4f0f5c1011708388a4d1bf2d",
+      "bytes": 23944,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/examples/satisfaction_study.rs",
+      "sha256": "79bc4e01cdbdb61c8f448236791e95a6bd164eaae469d39bd3cec6ceff79b0ea",
+      "bytes": 1027,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/examples/trace.rs",
+      "sha256": "aa742477b15d936bf6f6ce54728243f5a7dd45e95f3f5900fbbe2911321092e4",
+      "bytes": 49759,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/examples/trace/relationships.rs",
+      "sha256": "d7cee32bd9f78476b73b209cbc2d395beb98f070cc1fee5a35c582c91d331819",
+      "bytes": 5222,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/action_queue.rs",
+      "sha256": "ae7aaa49c8ece3db7b900c0755af6c75a5d23b67fa92d7260db227e4e4caff96",
+      "bytes": 20596,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/activity_tests.rs",
+      "sha256": "ba9a71282bf274c9a93ebcc0cbd483290e91b107457c9ebbfc20e9905654c8a4",
+      "bytes": 20192,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/affinity.rs",
+      "sha256": "9e7d180bb8dd5a5c52f40cf5a793af5d9346c32721e9df886011973994aee692",
+      "bytes": 20759,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/affinity_tests.rs",
+      "sha256": "527f839e113b11065496bba8225b92d29d9a1b04c389d8a9fb172633165693d7",
+      "bytes": 32412,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/beds.rs",
+      "sha256": "b79974c9ddf4ca5e2f53224c5b69407830bd07460b17075d5825f10b4f825116",
+      "bytes": 16137,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/navigation.rs",
+      "sha256": "1f1bf0e34c8c7d4cbfcd13c7c870b80805390548fd93494807140d2b7ed48343",
+      "bytes": 3267,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests.rs",
+      "sha256": "3558ae91df7ec95e9ced998031dd8a3c2dd44d6d0249d6d8d2efcb97c9904e57",
+      "bytes": 32361,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/lifecycle.rs",
+      "sha256": "ffb9fe1c054be62ccb8d4ca0b0f50d3706119b917b63163d55b862418c70efc4",
+      "bytes": 14606,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/navigation.rs",
+      "sha256": "500204797747f5df6f13dd55a756c185b78dddf9a10222e0e4f99d066b5d7a13",
+      "bytes": 7622,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/projection.rs",
+      "sha256": "d6431a8f1d4348e286560b16ead32161e1d984a9460d30810c13d9d82ba8b6fb",
+      "bytes": 7217,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/beds/tests/shipped.rs",
+      "sha256": "3d83232906681310daa66081f26e94b3138cbce3af417ef4fd3d630dbcf16555",
+      "bytes": 6630,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/board.rs",
+      "sha256": "b738c9a4acae6c23505ea9680c48b68939305cf184f0d64ec4fdeb2ba85ebcba",
+      "bytes": 14185,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/board_tests.rs",
+      "sha256": "a79d5fe93b39024f9f6d9868e00a5a3d264391490562a868d9d20977a3bb494a",
+      "bytes": 8897,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/consequences.rs",
+      "sha256": "174077e0610d1433ae474e3645779f0f1446b031d7395f8836992b272b13ec83",
+      "bytes": 6714,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/grime.rs",
+      "sha256": "be931bb596a7e1e2c5da5dde22dcb4818642a4eade40af261c245287a17906e5",
+      "bytes": 7682,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/grime_tests.rs",
+      "sha256": "8e59d1569f6c94e92371e15a10d7ddf64fd226427da14310259c66d76511ce20",
+      "bytes": 25838,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/groups.rs",
+      "sha256": "1f8dee6b755b9cbe69fde896b9bbf4f3f789741bbf1c760bca0ac5c13b6fb052",
+      "bytes": 20633,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/integration_tests.rs",
+      "sha256": "8813cc240f62e670a4cd6ff246d120b0049cafa6d0cf1ac964abab2597858481",
+      "bytes": 9255,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/lifecycle_tests.rs",
+      "sha256": "82d53951d224820deda4962d84368ee56869ad413c053b45386925bfa89a36ed",
+      "bytes": 14412,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/mod.rs",
+      "sha256": "6d253bee603cae061b3578d13200ff6d1bb4c0b95cb653d7df170e29ff1dcf4e",
+      "bytes": 18796,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/patches.rs",
+      "sha256": "42d915d2b42b2497d6fd2dfc4e4a11b42453795af7a9df8bc2f51b864963d921",
+      "bytes": 7604,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/policy.rs",
+      "sha256": "55b845d56f57d8032e96e8539d607cae07fd4fdf9a5be5c2833aa6386d5f690e",
+      "bytes": 5856,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/presentation.rs",
+      "sha256": "9228e698e3aa94653fd4d032f2b3549ce147468a96afe415b54e27df72432306",
+      "bytes": 10460,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/save.rs",
+      "sha256": "de6464205630283ae99bc238755ec8887726575f44f41e075d23fd1af6ba3311",
+      "bytes": 9386,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/tests.rs",
+      "sha256": "619acda013e9714c0baa0d49aca7e1f27bbe62a6fcfb58db27e08771dc79356d",
+      "bytes": 11211,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/chores/work.rs",
+      "sha256": "b47660269e283fe3a8cc8aae9050d30cac2160c2d1d912902d213408440bf6a9",
+      "bytes": 24583,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/compatibility.rs",
+      "sha256": "16cad7ce8365a6b099a6e4cbb82e3d99c305e25f4de34b2c786fe923cfe3eda6",
+      "bytes": 6323,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/completion_sound_tests.rs",
+      "sha256": "523244a05f1c0948063ae12427241c7c3785d64f731e06f7e4e3de80bae1b420",
+      "bytes": 10544,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/completion_sounds.rs",
+      "sha256": "296b0486f587f1200ea10d5edb1c8b1c8cb01858ca71f0915f01a7015e73bb42",
+      "bytes": 734,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/details.rs",
+      "sha256": "1400db7994540ee538c6793b8fbc301d134ddcdd52491a8ea978d7a161b20a83",
+      "bytes": 10982,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/dining.rs",
+      "sha256": "e2e3d495f7cbe93e7bdf7d8dadb2acb3ed156c1481559912112b1aec8d980751",
+      "bytes": 32530,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/table_actions.rs",
+      "sha256": "f94ed247e97baf1b9546a829171f7786eb2dd4aafaf1c4fc45b406e479348e51",
+      "bytes": 13460,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/dining/tests.rs",
+      "sha256": "d66f90c59263873e198bf8cc7bb886430f63896763f79c44986b6d9f8b3fabad",
+      "bytes": 37828,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/domestic.rs",
+      "sha256": "4f7e1192b9287f015896279c92fb011c00972b3767e9cd88fbcde51d8c781002",
+      "bytes": 64118,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/domestic/tests.rs",
+      "sha256": "05750677f6c79e9e7bfc039f857df7f42924e01444f5bbd983d55afdcfee60dd",
+      "bytes": 94864,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/ecs_lifecycle_tests.rs",
+      "sha256": "37bfbc8947b62e71abcdcb4f6cec06fa75c25ce7f657910246d9e64865d12df6",
+      "bytes": 3410,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/edit.rs",
+      "sha256": "951bcaab6c6ff518a376948d7dce71b266fe2dfebf5d02722af90fb0a4d8ecc6",
+      "bytes": 9414,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/edit_tests.rs",
+      "sha256": "8f9872502497fa920829f0be6bc51698cbce6554525e9e212afc65599aaea9bc",
+      "bytes": 73140,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/facing_tests.rs",
+      "sha256": "5f23981405ace89f6b24acb9eab6b7a09b1aec9e71f2e8209791c20fbd1aa763",
+      "bytes": 7207,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/family.rs",
+      "sha256": "9496f263959b645c2ac643bfdcf5057df3b7ade6c76aa1388ce9244c9c334540",
+      "bytes": 6385,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/household.rs",
+      "sha256": "fecb5f20b518cbe04d94f03d5ff9b75e28d2ef1e43860188c715a4f860785f2e",
+      "bytes": 13724,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/household_tests.rs",
+      "sha256": "9c81d23b511af9af38156aba665d844aa3fb7e8c8925c8ff1c033332b8f6e9d9",
+      "bytes": 33125,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/lib.rs",
+      "sha256": "ba1603a420ca8aad664dcf5a135bfe5a207254fa80b8bae566778758a354c611",
+      "bytes": 268346,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/media.rs",
+      "sha256": "a60081bb28a0b9c68dcf944b6c41b7ed221ef8e2126b0363a0d8157968283903",
+      "bytes": 22073,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/mood.rs",
+      "sha256": "939ef6680ff0a2fedf88d3633ca4ea76c4b644982716790bc86ce5d49684ef24",
+      "bytes": 61608,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/mortality.rs",
+      "sha256": "8f4414c03d198ad3175f75caf74a1cc43551348d4dd1949ac10b0941588b98f8",
+      "bytes": 42684,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/need_interactions.rs",
+      "sha256": "f04032ba63a847790d5e4eaa11dbd8eb174d3598f61e1bd4fcd998f15a890eb1",
+      "bytes": 13358,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/need_interactions/tests.rs",
+      "sha256": "26c42fdc9d05d5bf22930c6fc7f9e7b0cec2c232393e38c98297eaed61e429a1",
+      "bytes": 15008,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement.rs",
+      "sha256": "66b6ec145ce2852a7cc21192a0210224ca45ccca649f28c8798d86edd92909f4",
+      "bytes": 21886,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/colourway.rs",
+      "sha256": "d49c33b5e9a3064340747365637fd220c3cf7fe808c78b8e2e16db88a3de91d6",
+      "bytes": 2172,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/colourway_tests.rs",
+      "sha256": "514eae37cddf8fc3a56d9725a227adb424e18f0cb6b647107a19e400a57a687f",
+      "bytes": 12210,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/floors.rs",
+      "sha256": "e3fdc9a46ab0ad16159cf1fee51a9307083982923fdf62fefb60a26affc0fbfe",
+      "bytes": 2521,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/purchase.rs",
+      "sha256": "c3cc7d45e5d1a308dca4149b91a95094d0f8c921ea21e994d2faa111c916a81e",
+      "bytes": 4974,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/purchase_tests.rs",
+      "sha256": "f327173cd95b2a3f4f99f3bb636a597f4f7b95606eb88308e1317029e7bf670b",
+      "bytes": 33730,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/room_tests.rs",
+      "sha256": "1c91645b18494b7ed3f1bafdbd98b36eefe33b4232f27b4f8a14c5d478647207",
+      "bytes": 33151,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/rooms.rs",
+      "sha256": "c3f0f9cc8712c4f0e0ac60c98af03d37f5d0a19ba866acce240be011b94373a5",
+      "bytes": 8141,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/sale.rs",
+      "sha256": "91bc78b5cca29d2c8ea478fe3a13ae8fa3dbd341863b6d9c4e29fd51ec87c1a4",
+      "bytes": 5173,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/sale_tests.rs",
+      "sha256": "f92076f96eabd712c29cb5c062b2b848586d10fdcf9f14b9224987e5c7d47279",
+      "bytes": 18548,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/tests.rs",
+      "sha256": "0e2e073934d99f196bef29e1a7b89795e8a26b99077cbc05ddcdd60722b848bc",
+      "bytes": 38547,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/wall_tests.rs",
+      "sha256": "63bd27a5af99271c731c00fe53392708b8c751c3bdd7200ff27f070f6541b433",
+      "bytes": 37021,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/walls.rs",
+      "sha256": "fa9709355cd1ace3ba1fec3c2fe34e7d28d2e5d25b977d59bacd0476bd8359a7",
+      "bytes": 11673,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/window_tests.rs",
+      "sha256": "e379efa423524fd175e1b7728cfa517c1be887fd670cc4ab1b7739e057b80370",
+      "bytes": 19566,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/placement/windows.rs",
+      "sha256": "09be830ed60c51458eb40e49b10355222e124d9e0c5ebdfc59e5cf749c5ec7d0",
+      "bytes": 9966,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/portals.rs",
+      "sha256": "7b522437ad558447d2895b36e7601be9ab3c146c387ddd5c63904df6d0ec7db6",
+      "bytes": 49205,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/privacy.rs",
+      "sha256": "5cfb87184aba53d06ba40f6ab1a2ac576adf0ce3f45a829b648970e50ca000e5",
+      "bytes": 31994,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/privacy_bed_tests.rs",
+      "sha256": "f1c00c2a1cf7f7b69540c0f4650f1d3db740001c7358cad648b0a5be914fe37b",
+      "bytes": 17245,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/relationship_dynamics.rs",
+      "sha256": "42d2d4d42a7d87f7b60a77ef90ac41c68be371a3e465ab79604aafe85545f364",
+      "bytes": 21141,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/relationship_effects.rs",
+      "sha256": "525ceee7fc27bee11cc82828467761f077769b7a024ed756622f34b4da54b06d",
+      "bytes": 2557,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/render_buffer.rs",
+      "sha256": "1925c9e8e1bac3343f160a2a1411533cd62bf74f7408d9d7f6887710e676ac18",
+      "bytes": 204301,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/render_buffer/toilet_projection_tests.rs",
+      "sha256": "4ff87923605a42a7bf6a8d60583931e96aadc53bcdd68dff04e45a63aea98234",
+      "bytes": 5403,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/reservations.rs",
+      "sha256": "983dea525fe1b6c3228e3af89dde2b0dc7ca13baceb166431d7f89b510aa7586",
+      "bytes": 6076,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/reservations_tests.rs",
+      "sha256": "545866240c7213c7efafac8a6fe7c2c261651a97bf7059301284c0512c3c7e9c",
+      "bytes": 11947,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/room_regions.rs",
+      "sha256": "74f635bbe73fbd1f2ca77cea01a8ffe85aba1ca8ad14071ff5b6b0841ff2dd6d",
+      "bytes": 10438,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save.rs",
+      "sha256": "138fc3a1ba2412e92df3315218ea6f6c608d841c6f6280db146bd17af00a92a0",
+      "bytes": 183028,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/affinities.rs",
+      "sha256": "d6069d8f3ae7df27f400a6843ebe807b0c82b380b784756754da9062e6739239",
+      "bytes": 5273,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/affinities_tests.rs",
+      "sha256": "1835a7eaaee50e0ad26abce757ccbd684f562f16186f5aa5a17b82f60f9c123b",
+      "bytes": 13479,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/architecture.rs",
+      "sha256": "bd0d713f8fb7fa713c43329f32bdf95b86a6b5c004c5ddeef7e4224a4834c189",
+      "bytes": 36112,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/architecture_boundary_tests.rs",
+      "sha256": "6c8d6d3e82d4fab95a879255945f3f00e198769133dedaf89232dc192ed65054",
+      "bytes": 12324,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub.rs",
+      "sha256": "e6ff8bdf3c37b632176171c00de185c1597674ea9f49d99255d884a7c5e32ab6",
+      "bytes": 15236,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub/mutation_tests.rs",
+      "sha256": "e64e68c718d1ad6a48152c266de1c6264e995657baa255d5475fc4f1c63cbf51",
+      "bytes": 2630,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub/source_layout.rs",
+      "sha256": "14914917e9cc050cd7d3c86df93c340e42b19ff53f40e7e72556b37d111581e8",
+      "bytes": 3171,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/bathtub_tests.rs",
+      "sha256": "3d8e10d6a1e6bef7f36ff01713c1609333d11f73badce53fed961042f7186c9c",
+      "bytes": 26788,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/chronotype.rs",
+      "sha256": "f36a0c445e4eb35b061cdd398e82410a08f1c99a0e12334d0ef25e52a5ef133d",
+      "bytes": 5707,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/meal_migration.rs",
+      "sha256": "65081bdcaab92074734d1b355d9e198b5294f60e3c88aa356778ce1af2866068",
+      "bytes": 1812,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/self_preservation.rs",
+      "sha256": "65400a4de5cec2744ba1ced4ae3a036ec422734e324f4ca7e74ddc62c700b05a",
+      "bytes": 7180,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/skills.rs",
+      "sha256": "792da9037e31e8d3d11baba8a9076aae12e5281eaf819126b1387328688b402e",
+      "bytes": 5249,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/skills_tests.rs",
+      "sha256": "c91e6b1b7f21c148e1e2b3c202ce072f7afa1e570c931e436998d559e95c5622",
+      "bytes": 13485,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/sleeping_places.rs",
+      "sha256": "baf6b55d8cac59675af073600e37758a9f0c4b3593391e93f5312959a0559779",
+      "bytes": 5791,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/v3_tests.rs",
+      "sha256": "d5b5cbcf1726e6100e8809ed213675a7790b2297206cf88be3f80e590b83e209",
+      "bytes": 5780,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/wall_migration.rs",
+      "sha256": "6592d4908378b1aa3767c5b67db90a2d9242d049a1ee2aeefa22b6bdb63c76ba",
+      "bytes": 3940,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/wall_migration_tests.rs",
+      "sha256": "e1287bfe260c875be51d9e5b5628daa3622f3b08a1cd41b3cc61d6857d0fda5f",
+      "bytes": 12392,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/yard.rs",
+      "sha256": "bf97cdc42f5b76eb21e01465b859f84aab9dcfb798c5a23dc186a0783f7a2d01",
+      "bytes": 2739,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/save/yard_tests.rs",
+      "sha256": "6f65eb4d9e9ab19c8a34852ca310586739cfb096c31181a18e4f34d6e551f837",
+      "bytes": 5115,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/seating.rs",
+      "sha256": "c2eebd2905e00f08eef5660c6991aa79c9e7b94f7d1ac23b576bb84249014b75",
+      "bytes": 7609,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/seating/tests.rs",
+      "sha256": "45bbcba89a62e4cfdc1d75c7fa3694e9991530349bb75c063ed838a80392dddd",
+      "bytes": 51497,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/shyness.rs",
+      "sha256": "e546eb3e13b4d85e8a67e8dda226e7706d2a25b1c6fe960333ef24233de35112",
+      "bytes": 1623,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/skills.rs",
+      "sha256": "cb0ee73059bba4dfb26c786fac5d91ca2df38a5e8023b17e94e16d0029ac440d",
+      "bytes": 9532,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/skills_tests.rs",
+      "sha256": "15e466a8ca278a82dc11d98b1288fa92f57b632f3ee2abe6b47310f6078e6d0a",
+      "bytes": 34541,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/social_company.rs",
+      "sha256": "80c89ff6ba7f798fe7933c5b4231d80aa15b1a7899b747e69ef6c2f6fbc826c6",
+      "bytes": 25286,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/action.rs",
+      "sha256": "5c013db2026b1b2296f1296658ad05e08cf6f26806e35679627c24c807ae4c6a",
+      "bytes": 239126,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/advertise.rs",
+      "sha256": "a622cf8ec984f299167c8bbc4afc38067e16d51ab6bb3a66fbd97586370954b0",
+      "bytes": 26368,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/autonomy.rs",
+      "sha256": "8a64def5b6cd1394db61512dcd5800de831e44e66843ceeab1b7c3d3eb3f7c8d",
+      "bytes": 23154,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/career.rs",
+      "sha256": "847674f5a336d1fae3f458a25b2e12f09f7688ee67a23b964dc6155057d91c6a",
+      "bytes": 69588,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/chain.rs",
+      "sha256": "ba016bbafe93e50bb0b648b0487f415398866f065331f251040e3df7f61b8231",
+      "bytes": 83388,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/circadian.rs",
+      "sha256": "79d04c16245704d4762c591d5247c7930241bf80b33333c74f49330f8eb1d60a",
+      "bytes": 32346,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/command.rs",
+      "sha256": "2ddcab563209feb056c25e2d97ab472b457fb3b1e4ff066f9c4237518b15bc83",
+      "bytes": 144135,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/habituation.rs",
+      "sha256": "d2fad77073db0d13e537e3319e73d8348620f036c9261bba6f334e87815994ee",
+      "bytes": 25182,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/idle.rs",
+      "sha256": "9c4e50c98256f7f1e3818faf0e7c6a537a83aaa2de61347cab1bdcaa140c7818",
+      "bytes": 37121,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interact.rs",
+      "sha256": "9bad8c8538d28f13eb7322087285755dedd240b2e8b8f41da8483ec6dcfc8bc0",
+      "bytes": 64031,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interpersonal.rs",
+      "sha256": "9abe78a266e3ca84b629884b33aa7b0f659352901e62b92ff6a1c45bd5f7a82d",
+      "bytes": 28798,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/interpersonal_tests.rs",
+      "sha256": "614085c1a87c6026b3d29dd05c99e9af604a31346b890e1b75493f96eadce4f2",
+      "bytes": 45952,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/lot_edit.rs",
+      "sha256": "43e74f57827695b17253ec9a324f4ba062d411008eed5ea88b4b83a47d07854e",
+      "bytes": 7962,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/mod.rs",
+      "sha256": "fb9018709f812d0a961e7c017f04e784490c1597e24d363065c4503f86dcfb7a",
+      "bytes": 2277,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/movement.rs",
+      "sha256": "2b48a93c3f3937d232bf5c52d4a4776c1cb2578950ff2853c9632e2f5863db75",
+      "bytes": 42941,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/movement_edge_tests.rs",
+      "sha256": "ecd03c6724c209fca38643d6d21ed79efdf20230cc80c85516e53b85ac383544",
+      "bytes": 6435,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/needs.rs",
+      "sha256": "375b8656d611e275e5e5f52dfaca9b8eae3812a27a1650b8d4302cf5c5731935",
+      "bytes": 22148,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/satisfaction.rs",
+      "sha256": "67e386a04ded6f215017f2f21de03a52c0551b16f3e6b8f142b4c3a4e67eedd1",
+      "bytes": 19158,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/social.rs",
+      "sha256": "420653dfa5f4a9463aa5148210f6a9232043d68cb295ae04ca7722db7ba435d9",
+      "bytes": 95299,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/street_tests.rs",
+      "sha256": "3aee4d3f4329746fe6dc17a8c070cea3b407a2353939288994751903c105d185",
+      "bytes": 11363,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/systems/trait_effects.rs",
+      "sha256": "bcebecbbcc422fe28d1de496f154cef5407b8a4839a09eba63b6acab98bfc660",
+      "bytes": 32509,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/targeted_cleanup.rs",
+      "sha256": "6f97c86e6b3edf2dbf7ff8089ec4e31fb921a4c852e242b25993ac454f0cfc10",
+      "bytes": 21098,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/test_content.rs",
+      "sha256": "11e2588aade955addf82472c558394711e26b484e8564c5f375ba6d59f9eba74",
+      "bytes": 20020,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-sim/src/waiting.rs",
+      "sha256": "08fa512a09f011b66faae98feaf1fa46b062302ab351a4b9b98229b42bd79849",
+      "bytes": 22437,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/Cargo.toml",
+      "sha256": "b834312136d119ec21eee01274d708d0301499f021ba598ceca490e0001008d4",
+      "bytes": 982,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/examples/chores_review.rs",
+      "sha256": "7e2cff6f941139521ca5f33dbbdb43754652e9bfa709fb20a18bef6464bc30c2",
+      "bytes": 4114,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/examples/cleaning_animation_review.rs",
+      "sha256": "6ca9db0553ce5750e103c37cc0adfc77d7a8d423f2083f80731fc5a3d766d787",
+      "bytes": 3902,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/examples/domestic_review.rs",
+      "sha256": "c24799cbe0a9e9486c5631bbec75df6321d3adc0ee86c8555209473ab946f192",
+      "bytes": 6018,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/examples/migrate_chores_preview.rs",
+      "sha256": "b6a6aa3a8d46d799cf5361a58a5b3482ffb9d4bff040893ee42ce4d180dc4cc2",
+      "bytes": 13979,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/examples/relationship_qa.rs",
+      "sha256": "8e206ac81a38ce88dc90e7ebed9f0a0900082a6242a2cbd94ef4d0d9f60e9983",
+      "bytes": 8160,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/examples/targeted_cleanup_review.rs",
+      "sha256": "07d9bb6e69f0d0382c9a97a1f1d2ec76263bef8e19fbb27541b08ed7c5cf1c7c",
+      "bytes": 2721,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/affinity_boundary_tests.rs",
+      "sha256": "c66d934a12325464da736d2f83564118134ef7832bb8dea5f31a67ccc4ce7986",
+      "bytes": 6819,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/bed_assignment_tests.rs",
+      "sha256": "5293de2f59df4cb0a3a7fb02746730be76064784fe82ceab68f44cd31bbd05cf",
+      "bytes": 3609,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/calendar_boundary_tests.rs",
+      "sha256": "50e76b73b5a9cbc3d2f2d1a6632a4dbbcf938e783a4b03be283685ee8cd8035b",
+      "bytes": 6649,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/lib.rs",
+      "sha256": "c5d9ead639496a4e5e574cc22e99de63fc0413eda9890b00486613046d91d6d0",
+      "bytes": 392735,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/placement_tests.rs",
+      "sha256": "64f0bd3c5c046b227b8eb013d3514ea679472f1360013498e34e5b953b335b26",
+      "bytes": 8813,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_before_voice.rs",
+      "sha256": "0f7561516f3b8b8840d23814cae0e499f949c76aacf0325a5a7138510dda0534",
+      "bytes": 1512,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_before_voice_tests.rs",
+      "sha256": "5bcdeae5ba32b189b9c3fdd9923a4e7545a66b44b9130b5d9e8f26f857040ed0",
+      "bytes": 5495,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/save_v3_tests.rs",
+      "sha256": "6d92d64b02e5fdbbc2e2806ed8ba111fc768faaa105b1c9cc5b53da79535aa75",
+      "bytes": 69248,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/sim_details_tests.rs",
+      "sha256": "7d759f0ae5614ccf6c039ff55f67e4be5bf17f422b39c1ab2bad8a1912153654",
+      "bytes": 3469,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/skills_boundary_tests.rs",
+      "sha256": "4b0c17ebf4c176cb28093767fc672cf9f80a4c95baa3cac9030b0da22b2ce4be",
+      "bytes": 6496,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/spawn_boundary_tests.rs",
+      "sha256": "f1e2b827cedf56bf1a20029c2a27ce6368bfbaeaa20204002b9d9312c4b5d219",
+      "bytes": 3051,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/targeted_cleanup_tests.rs",
+      "sha256": "e9f2c67a526bea9d073c8896e52c661603611a5ce1d0a61e8a8d6840003763d7",
+      "bytes": 6768,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/src/unlimited_queue_tests.rs",
+      "sha256": "aaab3b3fb2cd8834f99b826ef63131a8075d9a11624df12c72a5ba3aa7eff6c9",
+      "bytes": 2398,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/README.md",
+      "sha256": "baf6a4cc7bd27c78d43bf06bf9c739ccba4de281d2b325f1d4b24aad60aba599",
+      "bytes": 6952,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-manifest.json",
+      "sha256": "b9e906e00a8db9bc2bd9532483f2d83daa855d73e7fb2f10dfdf3bfa2c166bc1",
+      "bytes": 3770,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-two-sleeping-assigned.bin",
+      "sha256": "e5e806e578f0c770800466a77afe6093e54964442770bfda2bffe65060271ea8",
+      "bytes": 3216,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-two-sleeping-pending-clear.bin",
+      "sha256": "974e6b669f710c974b4aa949e2ef0ea4b146851f4945e6312fa24c5c2e1a56c3",
+      "bytes": 3219,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/bed-era-two-walking-assigned.bin",
+      "sha256": "fadfcb1a1404eaa557a72f2ba018b4f99801adde34220cb6841161125f1a3b2c",
+      "bytes": 3234,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/main-commuting-366.hex",
+      "sha256": "f561979d03b43afde233c0e6e4b7bd5f930620a88730b1bda71caa4324bc763a",
+      "bytes": 6006,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-bathtub-rotation.hex",
+      "sha256": "90484172cd416f3b3b3644d83d67468c01c31841c567107c03edf9c0def4d2be",
+      "bytes": 5214,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-builder-600.hex",
+      "sha256": "215cc03598a9f5a7c28e51d94bf59903103c21f6cb7866ad48ffb893d88cf8a3",
+      "bytes": 5235,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-builder-908.hex",
+      "sha256": "82ecff8208b3d276cb0682ff0b085ce3db8ee360a3e9a558397e163c2a5cbe31",
+      "bytes": 5239,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-front-door-schema2.hex",
+      "sha256": "5869bb457bdc86bf3227fc6e9c60e1102836cde581ce49f9033462bd5022fbb1",
+      "bytes": 5414,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-meals-dinner.hex",
+      "sha256": "c2f23f55eec2bfa603569cdac31abc3780934e4713379a9de9aa70dc4b40c924",
+      "bytes": 8110,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-meals-snack.hex",
+      "sha256": "84fd0ce9349d37e2d46f45062495ea4e50471631b7707b3eb1e185599c6e4cc9",
+      "bytes": 8052,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-trait-library-2400.hex",
+      "sha256": "0c97e223ba2a2af3c0c6e4d6e06068bfb8cf3803478fe45cac66a065ec36f7c7",
+      "bytes": 5736,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-trait-library-600.hex",
+      "sha256": "e18b8b3fb490fac2f42ed714a7750edc03f3520b0e2c887600fed76991a62ee0",
+      "bytes": 5666,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-voice-157.hex",
+      "sha256": "54337d66bf0a3a5abeefdb98fe87e7eb3623badc56b0cb082daafbcb73d6eddf",
+      "bytes": 5296,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/pre-yard-600.hex",
+      "sha256": "eef3091c1617d305cb995eb492a62a36c49f2c4e1fdf7fa2cca015873b1a4389",
+      "bytes": 5888,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/terri-wasm/tests/fixtures/public-main-meal.hex",
+      "sha256": "0bb192f757e70e38b25f52790ccf4d8f7ff8010f3a650860aecba7c6e4d6b57a",
+      "bytes": 6359,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "crates/test-fixtures/pre-yard-placements.rs",
+      "sha256": "6723a7690da821f333217a20071b5445a7d132f082a15323c4c8aaf0d9b50439",
+      "bytes": 1634,
+      "kind": "pinned-source-zip"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-1.wav",
+      "sha256": "d67da7c19ddfc91d7d571e42a9693343363f80f2656fc04e0a3bc64b837bb013",
+      "bytes": 297644,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-10.wav",
+      "sha256": "df951d5c29a79778a2aac0e9d368320eb90c772d7960bf496e9d9a1d199f8387",
+      "bytes": 336044,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-11.wav",
+      "sha256": "3aa42dd4f74b84a00292506990dad218a9d92d0fa7b9b24ad5497c9d3c75e42d",
+      "bytes": 441644,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-12.wav",
+      "sha256": "def27e3c8b2e3491f95d7fd041f4074303069d1a0b37027b5b8e018ac2cf850f",
+      "bytes": 364844,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-2.wav",
+      "sha256": "7adf6eef720eaf9583090049fdbd04f1830c05f221617cb1604b55501e703717",
+      "bytes": 240044,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-3.wav",
+      "sha256": "eb2e52c1a6e8654dc5b546e0473fb8f32efc7f0843e31c92434939fe0816ff8e",
+      "bytes": 316844,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-4.wav",
+      "sha256": "a6e7f0232ab2424ddbebe0cc6bf6134d0fcd04ea3f099ae580ffc95c4c238e60",
+      "bytes": 316844,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-5.wav",
+      "sha256": "dad7de2530ddf504ca4255668c847f50ce31f0ec0e9dc74d146a5228690f3a50",
+      "bytes": 278444,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-6.wav",
+      "sha256": "799445ef7a1e4c1f0102cef603aa296fa1249564c5ff65d067e875ff4244dd07",
+      "bytes": 345644,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-7.wav",
+      "sha256": "66b2a6d9bb15a80ac78ca291865844c8c7cef2f25b353ad2d5dd8b03b001f5cd",
+      "bytes": 316844,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-8.wav",
+      "sha256": "2e4e79d013a15983f0a0ab4dc1fa8f5d12fa7f330b13e58cccb097b5663a76ff",
+      "bytes": 316844,
+      "kind": "preserved-890-voice-build-input"
+    },
+    {
+      "path": "web/public/audio/voice/sim-talking-9.wav",
+      "sha256": "add01d80b1f5e2c87e4e8f85e122d92f90dc21119d0bfc845e8ea73aec838d18",
+      "bytes": 297644,
+      "kind": "preserved-890-voice-build-input"
+    }
+  ]
+}

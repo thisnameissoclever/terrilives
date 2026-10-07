@@ -42,6 +42,11 @@ pub fn drain_commands(world: &mut World) {
                     flush_ordinary(world);
                 }
             }
+            SimCommand::Book(command) => {
+                flush_ordinary(world);
+                crate::books::commit(world, command);
+                crate::reading::reconcile(world);
+            }
             SimCommand::SetDeathEnabled(enabled) => {
                 flush_ordinary(world);
                 world
@@ -222,5 +227,6 @@ fn flush_ordinary(world: &mut World) {
         world
             .run_system_once(super::command::drain_ordinary_commands)
             .expect("ordinary command parameters exist");
+        crate::reading::reconcile(world);
     }
 }

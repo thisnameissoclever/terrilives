@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/buying-details.test.ts tests/book-bridge.test.ts tests/long-sofa.test.ts tests/toilet-production.test.ts tests/recline-production.test.ts tests/purchase-facts.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+
+ Test Files  6 passed (6)
+      Tests  24 passed (24)
+   Start at  16:22:36
+   Duration  6.60s (transform 2.45s, setup 0ms, import 4.97s, tests 838ms, environment 0ms)
+

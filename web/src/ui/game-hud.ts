@@ -14,6 +14,7 @@ export interface CareerSchedule {
 }
 
 export interface GameHudSource {
+  readingStatusOf?(entityIndex: number): string | null;
   selectedIndex(): number | null;
   satisfactionOf(entityIndex: number): number | null;
   careerOf(entityIndex: number): string | null;
@@ -237,7 +238,7 @@ export class GameHud {
     );
 
     const activity = selected === null ? null : source.activityOf(selected);
-    const chain = selected === null ? null : source.chainStatusOf(selected);
+    const chain = selected === null ? null : source.readingStatusOf?.(selected) ?? source.chainStatusOf(selected);
     const stalled = selected === null ? null : source.stallReasonOf(selected);
     setTextIfChanged(this.roots.activity, formatActivity(activity, chain, stalled));
 

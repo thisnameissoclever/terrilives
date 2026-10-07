@@ -1,0 +1,5 @@
+page.waitForFunction: Timeout 12000ms exceeded.
+    at D:\VIBES\.worktrees\f24d\terrilives\.tmp\object-models\drop-recovery-mutation.cjs:7:203 {
+  log: [],
+  name: 'TimeoutError'
+}

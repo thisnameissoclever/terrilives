@@ -861,6 +861,7 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
     };
     let mut checked = 0;
     let mut reloaded = Sim::new_from_shipped_lot();
+    let mut builder = Sim::new_from_shipped_lot();
     for stop in [180u64, 620] {
         // Bounded, so a clock that stops advancing fails here instead of
         // spinning: the mutation sweep caught the unbounded form hanging when
@@ -874,7 +875,7 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             stop,
             "one tick per `Sim::tick`"
         );
-        let base = sim.save_snapshot_v3();
+        let base = sim.save_snapshot_v6();
         let rectangles = super::super::current_layout(sim.world())
             .expect("the shipped house is consistent")
             .rectangles;
@@ -904,13 +905,14 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
             if !plan.changed {
                 continue;
             }
-            // A commit writes the plan's edge list and the grid built from it,
-            // and the loader rebuilds that grid from the list, so the save a
-            // commit would leave is the base save carrying this list.
-            let mut after = base.clone();
-            after.layout = plan.layout;
+            // The public edit also reconciles media and physical leases. A new
+            // wall can end an obstructed TV seat before the next game tick.
+            builder.load_snapshot_v6(base.clone()).unwrap();
+            stage(&mut builder, request);
+            assert_eq!(last(&builder).unwrap().reason, None);
+            let after = builder.save_snapshot_v6();
             assert_eq!(
-                reloaded.load_snapshot_v3(after).err(),
+                reloaded.load_snapshot_v6(after).err(),
                 None,
                 "an accepted {request:?} at tick {stop} left a save that will not load"
             );

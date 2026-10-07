@@ -66,23 +66,43 @@ pub(crate) fn release(world: &mut World, person: u32) -> Option<SavedDiner> {
     crate::seating::release(world, person)
 }
 
+fn dining_seat(world: &World, chair: Entity) -> bool {
+    if role(world, chair, "dining_seat") {
+        return true;
+    }
+    let pack = world.resource::<Content>().0;
+    // Published saves are first validated with this immutable pre-feature pack.
+    terri_data::is_pre_books_pack(pack)
+        && world
+            .get::<SmartObject>(chair)
+            .is_some_and(|o| pack.object(o.0).id == "chair")
+}
+
 /// Four authored place settings: two along each long edge, rotated with the table.
 fn setting_for(world: &World, table: Entity, chair: Entity) -> Option<(u8, (i32, i32))> {
-    if world
-        .get::<SmartObject>(chair)
-        .is_none_or(|o| world.resource::<Content>().0.object(o.0).id != "chair")
-    {
+    if !dining_seat(world, chair) {
         return None;
     }
     let p = world.get::<Position>(table)?;
-    let c = world.get::<Position>(chair)?;
+    let origin = world.get::<Position>(chair)?;
+    let definition = world
+        .resource::<Content>()
+        .0
+        .object(world.get::<SmartObject>(chair)?.0);
+    let chair_facing = world
+        .get::<ObjectFacing>(chair)
+        .map_or(definition.base_facing, |f| f.0);
+    let socket = definition.seat_at(0, origin.x, origin.y, chair_facing);
+    let c = socket
+        .as_ref()
+        .map_or(*origin, |s| Position { x: s.x, y: s.y });
     let facing = world
         .get::<ObjectFacing>(table)
         .map_or(terri_core::Facing::SouthEast, |f| f.0);
     let chair_facing = world
         .get::<ObjectFacing>(chair)
         .map_or(terri_core::Facing::SouthEast, |f| f.0);
-    setting_at(*p, facing, *c, chair_facing).map(|slot| (slot, chair_approaches(world, chair)[0]))
+    setting_at(*p, facing, c, chair_facing).map(|slot| (slot, chair_approaches(world, chair)[0]))
 }
 
 pub(crate) fn setting_at(
@@ -117,21 +137,56 @@ pub(crate) fn setting_at(
     None
 }
 
-fn chair_approaches(world: &World, chair: Entity) -> [(i32, i32); 3] {
+fn chair_approaches(world: &World, chair: Entity) -> Vec<(i32, i32)> {
     let p = world.get::<Position>(chair).unwrap();
     let (x, y) = (p.x.round() as i32, p.y.round() as i32);
+    let definition = world
+        .resource::<Content>()
+        .0
+        .object(world.get::<SmartObject>(chair).unwrap().0);
+    let facing = world
+        .get::<ObjectFacing>(chair)
+        .map_or(definition.base_facing, |f| f.0);
+    if let Some(offsets) = definition.seat_approaches_at(0, facing) {
+        return offsets
+            .into_iter()
+            .map(|(dx, dy)| (x + dx, y + dy))
+            .collect();
+    }
     let front = world
         .get::<ObjectFacing>(chair)
         .map_or(terri_core::Facing::SouthEast, |f| f.0)
         .rotate_axis(0, 1);
-    [
+    vec![
         (x - front.1, y + front.0),
         (x + front.1, y - front.0),
         (x - front.0, y - front.1),
     ]
 }
 
-fn standing_contact(world: &World, station: Entity, endpoint: (i32, i32)) -> bool {
+fn chair_contact(world: &World, chair: Entity, endpoint: (i32, i32)) -> bool {
+    let pack = world.resource::<Content>().0;
+    let definition = pack.object(world.get::<SmartObject>(chair).unwrap().0);
+    let grid = world.resource::<TileGrid>();
+    if terri_data::is_pre_books_pack(pack) {
+        return grid.is_walkable(endpoint.0, endpoint.1)
+            && chair_approaches(world, chair).contains(&endpoint);
+    }
+    let origin = world.get::<Position>(chair).unwrap();
+    let facing = world
+        .get::<ObjectFacing>(chair)
+        .map_or(definition.base_facing, |f| f.0);
+    crate::seating::legal_contact(
+        grid,
+        definition,
+        facing,
+        (origin.x.round() as i32, origin.y.round() as i32),
+        Some(0),
+        endpoint,
+    )
+}
+
+pub(crate) fn standing_contact(world: &World, station: Entity, endpoint: (i32, i32)) -> bool {
     let Some(p) = world.get::<Position>(station) else {
         return false;
     };
@@ -278,7 +333,10 @@ pub(crate) fn advance(world: &mut World) {
         .map(|(_, t)| t.object)
         .collect();
     for person in people {
-        if !terminal(world, person)
+        if world
+            .get::<crate::reading::ReadingJourney>(person)
+            .is_some()
+            || !terminal(world, person)
             || world.get::<Target>(person).is_some()
             || world.get::<Path>(person).is_some()
             || world.get::<Eating>(person).is_some()
@@ -296,6 +354,7 @@ pub(crate) fn advance(world: &mut World) {
                     |object| world.get::<SmartObject>(object).map(|placed| placed.0),
                 )
             })
+                && !crate::reading::food_before_read(world, person)
         {
             continue;
         }
@@ -326,10 +385,7 @@ pub(crate) fn advance(world: &mut World) {
         for table in &tables {
             let ordinary_occupied = exclusive.contains(table);
             for chair in &furniture {
-                if world
-                    .get::<SmartObject>(*chair)
-                    .is_none_or(|o| world.resource::<Content>().0.object(o.0).id != "chair")
-                {
+                if !dining_seat(world, *chair) {
                     continue;
                 }
                 let Some((setting, _approach)) = setting_for(world, *table, *chair) else {
@@ -337,6 +393,9 @@ pub(crate) fn advance(world: &mut World) {
                 };
                 if ordinary_occupied
                     || world.get::<Reserved>(*chair).is_some()
+                    || world
+                        .try_query::<&crate::seating::PhysicalClaim>()
+                        .is_some_and(|mut q| q.iter(world).any(|c| c.furniture == *chair))
                     || world.resource::<SavedDining>().diners.iter().any(|d| {
                         d.chair == Some(chair.index_u32())
                             || (d.station == table.index_u32() && d.setting == Some(setting))
@@ -347,13 +406,16 @@ pub(crate) fn advance(world: &mut World) {
                 let options = chair_approaches(world, *chair);
                 let path = options
                     .into_iter()
-                    .filter(|p| grid.is_walkable(p.0, p.1))
+                    .filter(|p| chair_contact(world, *chair, *p))
                     .filter(|p| {
-                        !world
-                            .resource::<SavedDining>()
-                            .diners
-                            .iter()
-                            .any(|d| d.endpoint == *p)
+                        crate::seating::endpoint_available(
+                            world,
+                            crate::seating::EndpointUse {
+                                owner: person,
+                                endpoint: *p,
+                                kind: crate::seating::UseKind::Meal,
+                            },
+                        )
                     })
                     .filter_map(|p| {
                         grid.find_path(from, p)
@@ -414,11 +476,14 @@ pub(crate) fn advance(world: &mut World) {
                 for y in origin.1 - 2..=origin.1 + f.depth as i32 + 1 {
                     for x in origin.0 - 2..=origin.0 + f.width as i32 + 1 {
                         if !grid.is_walkable(x, y)
-                            || world
-                                .resource::<SavedDining>()
-                                .diners
-                                .iter()
-                                .any(|d| d.endpoint == (x, y))
+                            || !crate::seating::endpoint_available(
+                                world,
+                                crate::seating::EndpointUse {
+                                    owner: person,
+                                    endpoint: (x, y),
+                                    kind: crate::seating::UseKind::Meal,
+                                },
+                            )
                         {
                             continue;
                         }
@@ -509,6 +574,20 @@ pub(crate) fn advance(world: &mut World) {
                     cursor: 0,
                 },
             ));
+        if let Some(chair) = claim(world, person.index_u32())
+            .and_then(|d| d.chair)
+            .and_then(|id| entity(world, id))
+        {
+            if !world
+                .resource::<Content>()
+                .0
+                .object(world.get::<SmartObject>(chair).unwrap().0)
+                .seats
+                .is_empty()
+            {
+                crate::seating::install(world, person, chair, 0, false);
+            }
+        }
     }
 }
 
@@ -565,7 +644,11 @@ pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketA
         return None;
     }
     let chair = entity(world, d.chair?)?;
-    let p = world.get::<Position>(chair)?;
+    let fallback = *world.get::<Position>(chair)?;
+    let socket = crate::seating::body(world, person);
+    let p = socket
+        .as_ref()
+        .map_or(fallback, |s| Position { x: s.x, y: s.y });
     let front = world
         .get::<ObjectFacing>(chair)
         .map_or(terri_core::Facing::SouthEast, |f| f.0)
@@ -579,7 +662,7 @@ pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketA
     Some(crate::SocketActionProjection {
         x: p.x,
         y: p.y,
-        facing,
+        facing: socket.map_or(facing, |s| crate::seating::wire_facing(s.facing)),
         target_entity: chair.index_u32(),
         visual_action: crate::render_buffer::visual_action::SEATED_EAT,
         activity: crate::render_buffer::activity::EATING,
@@ -645,12 +728,30 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
     {
         return Err(SaveError::InvalidValue);
     }
+    let historical = terri_data::is_pre_books_pack(world.resource::<Content>().0);
     for (i, d) in state.diners.iter().enumerate() {
+        let endpoint = crate::seating::endpoint_use(world, d).ok_or(SaveError::InvalidValue)?;
+        if state.diners[..i]
+            .iter()
+            .filter_map(|other| crate::seating::endpoint_use(world, other))
+            .any(|other| crate::seating::endpoints_conflict(endpoint, other, historical))
+        {
+            return Err(SaveError::InvalidValue);
+        }
         if crate::seating::kind(world, d) == Some(crate::seating::UseKind::Media) {
             if !crate::media::valid_lease(world, d)
-                || state.diners[..i]
-                    .iter()
-                    .any(|other| other.chair == d.chair || other.endpoint == d.endpoint)
+                || state.diners[..i].iter().any(|other| {
+                    if let (Some(a), Some(b)) = (
+                        entity(world, d.person)
+                            .and_then(|p| world.get::<crate::seating::PhysicalClaim>(p)),
+                        entity(world, other.person)
+                            .and_then(|p| world.get::<crate::seating::PhysicalClaim>(p)),
+                    ) {
+                        a.furniture == b.furniture && (a.all || b.all || a.seat == b.seat)
+                    } else {
+                        other.chair == d.chair
+                    }
+                })
             {
                 return Err(SaveError::InvalidValue);
             }
@@ -688,16 +789,10 @@ pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(
             {
                 return Err(SaveError::InvalidValue);
             }
-            if !chair_approaches(world, entity(world, c).unwrap()).contains(&d.endpoint) {
+            if !chair_contact(world, entity(world, c).unwrap(), d.endpoint) {
                 return Err(SaveError::InvalidValue);
             }
         } else if !standing_contact(world, station, d.endpoint) {
-            return Err(SaveError::InvalidValue);
-        }
-        if state.diners[..i]
-            .iter()
-            .any(|other| other.endpoint == d.endpoint)
-        {
             return Err(SaveError::InvalidValue);
         }
         if world.get::<Target>(p).is_none_or(|t| {

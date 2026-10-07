@@ -1,0 +1,10 @@
+{
+  "base": "b04cc50a",
+  "objects": 30,
+  "changedFieldsOnly": [
+    "name",
+    "presentation"
+  ],
+  "nonCopyContentIdentical": true,
+  "contentSha256": "e4b212b9c44cda9775dd658d9ff14c30374d7d1ab8ad8ded802c73b45c9ec218"
+}

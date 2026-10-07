@@ -80,7 +80,14 @@ pub fn start_shift(
     content: Res<Content>,
     grid: Res<TileGrid>,
     workers: Query<
-        (Entity, &Position, &Career, Option<&Target>),
+        (
+            Entity,
+            &Position,
+            &Career,
+            Option<&Target>,
+            Option<&crate::reading::PendingShift>,
+            Has<crate::reading::ReadingJourney>,
+        ),
         (With<Agent>, Without<AtWork>, Without<Commuting>),
     >,
     approachers: Query<(Entity, &Target), With<Agent>>,
@@ -97,26 +104,37 @@ pub fn start_shift(
     // deterministically and costs nothing.
     let mut leaving: Vec<Entity> = workers
         .iter()
-        .filter(|(_, _, career, _)| {
+        .filter(|(_, _, career, _, pending, _)| {
             let career = &content.0.careers[career.0 as usize];
-            clock.tick % day_ticks == career.shift_start as u64
-                && works_today(career, &clock, &content.0.tuning)
+            pending.is_some()
+                || (clock.tick % day_ticks == career.shift_start as u64
+                    && works_today(career, &clock, &content.0.tuning))
         })
-        .map(|(entity, _, _, _)| entity)
+        .map(|(entity, ..)| entity)
         .collect();
     leaving.sort_by_key(|entity| entity.index());
 
     for worker in leaving {
-        let Ok((_, pos, career, target)) = workers.get(worker) else {
+        let Ok((_, pos, career, target, pending, reading)) = workers.get(worker) else {
             continue;
         };
-        let career = &content.0.careers[career.0 as usize];
-        debug_assert_eq!(
-            clock.tick % day_ticks,
-            career.shift_start as u64,
-            "the filter above selected this worker"
-        );
-
+        if reading {
+            let career = career.0;
+            let scheduled_tick = pending.map_or(clock.tick, |p| p.scheduled_tick);
+            commands.queue(move |world: &mut World| {
+                world
+                    .entity_mut(worker)
+                    .insert(crate::reading::PendingShift {
+                        scheduled_tick,
+                        career,
+                    });
+                crate::reading::request_return(world, worker);
+            });
+            continue;
+        }
+        commands
+            .entity(worker)
+            .remove::<crate::reading::PendingShift>();
         // The CancelIntents removal set: whatever the worker held is
         // released whole on this tick, not left to self-heal.
         if let Some(target) = target {

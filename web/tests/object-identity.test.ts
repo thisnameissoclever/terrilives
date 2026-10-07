@@ -21,8 +21,8 @@ function identity() {
   const doc = { activeElement: null as Element | null, createElement: (tag: string) => new Element(tag) };
   const boundary = new Element('div');
   const control = createObjectIdentity(doc as unknown as Document, 'Washing machine', {
-    modelName: 'Perpetual Cycle', description: 'Decorative appliance.',
-  }, boundary as unknown as HTMLElement);
+    modelName: 'Home Wash', description: 'Decorative appliance.',
+  });
   const root = control.element as unknown as Element;
   boundary.append(root);
   return { doc, root, boundary, dispose: control.dispose, summary: root.children[0] };
@@ -34,17 +34,17 @@ describe('object identity disclosure', () => {
     expect(root.tag).toBe('details');
     expect(summary.tag).toBe('summary');
     expect(summary.children.map(child => [child.className, child.textContent])).toEqual([
-      ['object-model', 'Perpetual Cycle'], ['object-type', 'Washing machine'],
+      ['object-type', 'Washing machine'], ['object-model', 'Home Wash'],
     ]);
-    expect(summary.attributes.get('aria-label')).toBe('Washing machine: Perpetual Cycle. Object description');
+    expect(summary.attributes.get('aria-label')).toBe('Washing machine: Home Wash. Object description');
     expect(root.children[1].textContent).toBe('Decorative appliance.');
     expect(root.open).toBe(false);
   });
 
-  it('reveals on hover, preserves an activated disclosure, and closes on another activation', () => {
+  it('stays closed on hover and toggles only when the name is activated', () => {
     const { root, summary, boundary } = identity();
     root.fire('pointerenter', { pointerType: 'mouse' });
-    expect(root.open).toBe(true);
+    expect(root.open).toBe(false);
     boundary.fire('pointerleave');
     expect(root.open).toBe(false);
     root.fire('pointerenter', { pointerType: 'mouse' });
@@ -55,26 +55,27 @@ describe('object identity disclosure', () => {
     expect(root.open).toBe(false);
   });
 
-  it('keeps the description open when moving to actions and removes boundary listeners on disposal', () => {
-    const { root, boundary, dispose } = identity();
+  it('keeps an activated description open while moving to actions', () => {
+    const { root, summary, boundary, dispose } = identity();
+    summary.fire('click');
     root.fire('pointerenter', { pointerType: 'mouse' });
     root.fire('pointerleave');
     expect(root.open).toBe(true);
     boundary.fire('pointerleave');
-    expect(root.open).toBe(false);
+    expect(root.open).toBe(true);
     dispose();
-    expect(boundary.listeners.has('pointerleave')).toBe(false);
+    expect(summary.listeners.has('click')).toBe(false);
   });
 
-  it('supports keyboard focus and touch activation without relying on hover', () => {
+  it('keeps keyboard focus and touch hover from opening the description', () => {
     const { doc, root, summary, boundary } = identity();
     root.fire('pointerenter', { pointerType: 'touch' });
     expect(root.open).toBe(false);
     doc.activeElement = summary;
     root.fire('focusin');
-    expect(root.open).toBe(true);
+    expect(root.open).toBe(false);
     boundary.fire('pointerleave');
-    expect(root.open).toBe(true);
+    expect(root.open).toBe(false);
     doc.activeElement = null;
     root.fire('focusout', { relatedTarget: null });
     expect(root.open).toBe(false);

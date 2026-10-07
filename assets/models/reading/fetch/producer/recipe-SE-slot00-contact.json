@@ -1,0 +1,39 @@
+{
+  "inputs": {
+    "repo:assets/models/sims/sim-01/render_shirt_variants.py": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b",
+    "repo:assets/models/sims/sim-01/shirt_colors.py": "586acf888a102130ce032546827cf7fbe2e9d1ec91005e2c19c8fb950e3fd4c0",
+    "repo:assets/models/living/owner-review-pending/bookcase/candidate-01/proof.json": "e11179fd9a813c8d33ed10007cff1039994f53b3c74a3f72a2cc924b890d8400",
+    "seed.blend": "9f2327cf7971658121faa049ac7c74977caecb2f3f1b2fc70df7294e87113a74",
+    "poses.json": "b9c7316121217e6e9a999a0f1cc537a7660c9ff185f9e080881799a7e4e0ea22",
+    "pose_complete_fetch_spine_render_v20.py": "73d4ff8f631fc301ae9be5df1c14f89a2ef5fee2b1846202c3c3c23b0a9efc23",
+    "pose_complete_fetch_spine_geometric_ink_v2.py": "3dc113cc2eb422f6da98d379f15960f29ffbc5c79419523257bd7119f4d1a095"
+  },
+  "seed_scene": "seed.blend",
+  "rig": "Place 1 SIM_01_SHARED_RIG",
+  "body_collection": "Double bed sleeper 1",
+  "plan": "poses.json",
+  "camera_fixture": "repo:assets/models/living/owner-review-pending/bookcase/candidate-01/proof.json",
+  "slot": 0,
+  "phase": 0,
+  "facing": "SE",
+  "facing_radians": 1.5707963267948966,
+  "density": 8,
+  "jobs": {
+    "render_script": "pose_complete_fetch_spine_render_v20.py"
+  },
+  "outputs": {
+    "render": "chosen-output-directory"
+  },
+  "linked_light_policy": true,
+  "stationary_contact": true,
+  "canvas": [
+    124,
+    128
+  ],
+  "pixel_offset": [
+    14,
+    0
+  ],
+  "owner_full_only": false,
+  "full_stock_reference_mask": 16777215
+}

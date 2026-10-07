@@ -166,7 +166,7 @@ fn hash_observes_only_a_changed_object_direction() {
 
 #[test]
 fn legacy_dynamic_desk_keeps_its_two_by_one_collision_with_the_new_base_art() {
-    let pack = terri_data::pack();
+    let pack = terri_data::pre_books_pack();
     let id = pack.find("desk").unwrap();
     let mut source = test_content::sim_with(16, 16, pack);
     let entity = source.spawn_object(Position { x: 8.0, y: 8.0 }, id);

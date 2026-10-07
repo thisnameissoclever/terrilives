@@ -8,7 +8,8 @@ import { pickSprite } from '../src/input.js';
 import { screenX, screenY, TILE_HALF_HEIGHT } from '../src/render/iso.js';
 import { INTERACTION_SPRITES, SPRITES, SPRITE_ANCHORS, SPRITE_PAIRS,
   SPRITE_CONTENT_BOUNDS, spriteIndex } from '../src/render/atlas.js';
-import { BED_CATALOG, BED_COVERAGE } from '../src/render/atlas.js';
+import { BED_CATALOG, BED_COVERAGE, SHARED_SEAT_CATALOG } from '../src/render/atlas.js';
+import { sharedSeatKey, sharedSeatPhase } from '../src/render/shared-seat-sprites.js';
 import { bedSceneKey, sampleBedCoverage } from '../src/render/bed-sprites.js';
 
 let memory: WebAssembly.Memory;
@@ -56,13 +57,13 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
     const handle = new SimHandle(16, 16);
     const source = new SimBridge(handle, memory);
     try {
-      expect(source.spawnObject(4, 4, object)).toBe(true);
-      source.spawnAgent(3, 4, 50);
+      if (object === 'reading_chair') expect(source.loadBytes(Uint8Array.from(readFileSync('tests/fixtures/owned-reading-seated.sav')))).toBe(true);
+      else { expect(source.spawnObject(4, 4, object)).toBe(true); source.spawnAgent(3, 4, 50); }
       const objectId = source.ids()[0];
       const agentId = source.ids()[1];
       expect(source.sprites()[0]).toBe(spriteIndex(sprite));
       expect(source.foregroundSprites()[0]).toBe(0xffffffff);
-      expect(source.useObject(agentId, objectId, 0)).toBe(true);
+      if (object !== 'reading_chair') expect(source.useObject(agentId, objectId, 0)).toBe(true);
       let active = false;
       for (let tick = 0; tick < 100; tick++) {
         source.tick();
@@ -74,13 +75,15 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
         const body = data[FLOATS_PER_INSTANCE + 3];
         const profile = INTERACTION_SPRITES[spriteIndex(sprite)];
         const variant = simShirtVariant(source.simIds()[1]);
-        const bed = action === 9 ? BED_CATALOG[spriteIndex(sprite)][bedSceneKey(1,
-          ['green', 'blue', 'red'].indexOf(variant), 0)] : undefined;
+        const palette = ['green', 'blue', 'red'].indexOf(variant);
+        const reading = object === 'reading_chair' ? SHARED_SEAT_CATALOG[spriteIndex(sprite)] : undefined;
+        const bed = action === 9 ? BED_CATALOG[spriteIndex(sprite)][bedSceneKey(1, palette, 0)]
+          : reading?.scenes[sharedSeatKey(2, sharedSeatPhase(source.clockTick(), false), palette, 0, 0)];
         if (bed) expect(body).toBe(bed.sprite);
         else expect(profile.frames[variant]).toContain(body);
         // Every active occupied interaction has a bubble.
-        expect(instanceCount(source, null)).toBe(3);
-        if (action === 9 || action === 8) {
+        expect(instanceCount(source, null)).toBe(object === 'reading_chair' ? 4 : 3);
+        if (action === 9 || action === 8 || reading) {
           const [left,top,right,bottom] = SPRITE_CONTENT_BOUNDS[body];
           const [anchorX,anchorY] = SPRITE_ANCHORS[body];
           const [wx,wy] = source.positions();
@@ -105,7 +108,7 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
           expect(Array.from(buildInstances(source,1,0,0,16,null,1,false,source.clockTick())
             .slice(0,before.length))).toEqual(before);
           const still = buildInstances(source,1,0,0,16,null,1,true,source.clockTick());
-          expect(still[FLOATS_PER_INSTANCE+3]).toBe(bed?.sprite ?? profile.frames[variant][0]);
+          expect(still[FLOATS_PER_INSTANCE+3]).toBe(reading?.scenes[sharedSeatKey(2, 0, palette, 0, 0)].sprite ?? bed?.sprite ?? profile.frames[variant][0]);
           const saved = source.saveBytes();
           for (let step=0; step<20; step++) source.tick();
           expect(source.loadBytes(saved)).toBe(true);
@@ -120,6 +123,10 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
       expect(active).toBe(true);
       expect(source.cancelIntents(agentId)).toBe(true);
       source.tick();
+      if (object === 'reading_chair') {
+        for (let tick = 0; tick < 200 && source.readingStatusOf(agentId) !== null; tick++) source.tick();
+        expect(source.readingStatusOf(agentId)).toBeNull();
+      }
       const data = buildInstances(source, 1, 0, 0, 16, null, 1, true, source.clockTick());
       expect(data[3]).toBe(spriteIndex(sprite));
       expect(data[0]).not.toBe(-1e6);

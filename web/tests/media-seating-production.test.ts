@@ -82,10 +82,21 @@ it.each([['offlineTelevision', 14], ['offlineRadio', 18]] as const)(
       const before = snapshot();
       expect(SEATING_LAYERS[before[agentRow * FLOATS_PER_INSTANCE + 3]]).toBeDefined();
       const saved = source.saveBytes();
-      for (let tick = 0; tick < 10; tick++) source.tick();
+      source.tick();
+      const continued = snapshot();
+      for (let tick = 0; tick < 9; tick++) source.tick();
       expect(source.loadBytes(saved)).toBe(true);
       expect(Array.from(source.saveBytes())).toEqual(Array.from(saved));
-      expect(snapshot()).toEqual(before);
+      // The active media owner and its furniture retain their complete registered pose.
+      // Unrelated walking rows reseed their previous-position interpolation on load.
+      const loaded = snapshot();
+      const chairRow = Array.from(source.ids()).indexOf(chair);
+      for (const row of [agentRow, chairRow]) {
+        expect(loaded.slice(row * FLOATS_PER_INSTANCE, (row + 1) * FLOATS_PER_INSTANCE))
+          .toEqual(before.slice(row * FLOATS_PER_INSTANCE, (row + 1) * FLOATS_PER_INSTANCE));
+      }
+      source.tick();
+      expect(snapshot()).toEqual(continued);
       source.cancelIntents(agent); source.flushCommands();
       expect(source.interactionTargets()[agentRow]).toBe(0xffffffff);
     } finally { handle.free(); }

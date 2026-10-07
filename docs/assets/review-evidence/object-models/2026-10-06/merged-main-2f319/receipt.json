@@ -1,0 +1,44 @@
+{
+  "wasmSHA256": "05a3e87727c70e197d7e033b7b3e5fd422af0a02d84bcac97086348936d946e0",
+  "models": 30,
+  "books": 24,
+  "projectionContract": {
+    "wireTupleUnchanged": true,
+    "optionalRequirements": "Typed canonical optional station-role IDs only",
+    "additionalDetails": "Opaque display-only conditional notes; never used for runtime eligibility"
+  },
+  "nativeWasmRuntime": {
+    "toilet18": "PASS in compiled use/save-load/cancel production test",
+    "recline": "PASS real whole claim; activity15,visual0,fourfacings",
+    "ownershipAndRecovery": "PASS same-copy atomic purchase/transfer and dropped recovery tests",
+    "extraReturnProgressAssertion": "PASS: corrected actual-stage boundary proof observed61Return and4Shelve ticks with unchanged title memory and exactly one restored copy; the earlier three invalid cancellation probes remain preserved"
+  },
+  "checks": {
+    "wasmBuildExit": 0,
+    "typecheckExit": 0,
+    "affectedFiles": 6,
+    "affectedTests": 24,
+    "affectedExit": 0,
+    "productionBuildExit": 0,
+    "fullSuiteBeforeTwoStaleExpectedRepairs": {
+      "filesPassed": 169,
+      "testsPassed": 2180,
+      "staleFailures": 2,
+      "filesTotal": 171,
+      "testsTotal": 2182
+    }
+  },
+  "remainingArt": "Full mixed-sofa and24slotreach exports remain unaccepted; no source promotion",
+  "copyAndBalance": "Proposed; owner review pending",
+  "finalLogicReview": {
+    "scope": "Native/content/save and web logic at9a3bb24a against2f319c3b; pending art excluded",
+    "mode": "Fresh read-only installed CLI review; no source mutation or full-suite rerun",
+    "command": "codex exec --model gpt-5.5 --sandbox read-only --ephemeral --output-last-message .tmp/object-models/delivery-final-review.md --json -",
+    "exit": 0,
+    "blockersFound": 0,
+    "actionableLowerRiskSuggestions": 0,
+    "outputSHA256": "559031b1ef4c9c597ad84b5ed50a23b9c0a01b9f1eafe3703f6ec5d3803c5107",
+    "output": "final-logic-review.md",
+    "qualification": "Review prompt described a stale return receipt; that wording was corrected during review. No claim of art or copy acceptance."
+  }
+}

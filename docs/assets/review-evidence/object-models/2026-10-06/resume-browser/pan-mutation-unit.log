@@ -1,0 +1,30 @@
+
+> test
+> vitest run --maxWorkers=1 tests/input.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+ ❯ tests/input.test.ts (91 tests | 1 failed) 31ms
+   × limits click suppression to its gesture: drag without click 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/input.test.ts > limits click suppression to its gesture: drag without click
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ tests/input.test.ts:106:19
+    104|     // omitted the previous gesture's compatibility click entirely.
+    105|     emit('pointerdown'); emit('pointerup'); emit('click');
+    106|     expect(click).toHaveBeenCalledTimes(1);
+       |                   ^
+    107|   } finally { vi.useRealTimers(); }
+    108| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 90 passed (91)
+   Start at  14:39:48
+   Duration  1.96s (transform 1.41s, setup 0ms, import 1.83s, tests 31ms, environment 0ms)
+

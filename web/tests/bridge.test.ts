@@ -26,6 +26,17 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('exports reading stages and physical copy identity through distinct buffers', () => {
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(bridge.readingStages()).toHaveLength(bridge.count);
+    expect(bridge.readingCopies()).toHaveLength(bridge.count);
+    expect(Array.from(bridge.readingStages()).every(stage => stage === 0)).toBe(true);
+    expect(Array.from(bridge.readingCopies()).every(copy => copy === 0xffffffff)).toBe(true);
+    expect(bridge.loadBytes(bridge.saveBytes())).toBe(true);
+    expect(Array.from(bridge.readingStages()).every(stage => stage === 0)).toBe(true);
+    expect(Array.from(bridge.readingCopies()).every(copy => copy === 0xffffffff)).toBe(true);
+  });
+
   it('exposes trait-adjusted starting satisfaction from the rebuilt simulation', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const scores = Array.from(bridge.ids())
@@ -74,13 +85,13 @@ describe('SimBridge', () => {
     const saved = handle.save_bytes();
     const catalogue = bridge.catalogue();
     const ids = Array.from(bridge.ids().subarray(0, bridge.count));
-    for (const [type, model] of [['Washing machine', 'Perpetual Cycle'], ['Armchair', 'Staying In'], ['Dining table', 'Visiting Hours']]) {
-      const item = catalogue.find(item => item.name === type)!;
-      expect(item.details?.modelName).toBe(model);
+    expect(catalogue).toHaveLength(30);
+    for (const item of catalogue) {
+      expect(item.details?.modelName.trim().length).toBeGreaterThan(0);
       expect(item.details?.description.length).toBeGreaterThan(10);
-      const entity = ids.find(id => bridge.objectName(id) === type)!;
-      expect(entity).toBeDefined();
-      expect(bridge.objectDetails(entity)).toEqual(item.details);
+      const entity = ids.find(id => bridge.objectModel(id)?.id === item.model?.id);
+      expect(item.model?.id).toBeTruthy();
+      if (entity !== undefined) expect(bridge.objectDetails(entity)).toEqual(item.details);
     }
     expect(bridge.objectDetails(-1)).toBeUndefined();
     expect(bridge.objectDetails(0.5)).toBeUndefined();
@@ -557,9 +568,7 @@ describe('SimBridge', () => {
 
   it('reacquires loaded reading columns after real release-wasm memory growth', () => {
     const source = new SimBridge(new SimHandle(64, 64), wasmMemory);
-    expect(source.spawnObject(11.5, 13.25, 'reading_chair')).toBe(true);
-    source.spawnAgent(10, 13, 80);
-    expect(source.useObject(1, 0, 0)).toBe(true);
+    expect(source.loadBytes(Uint8Array.from(readFileSync('tests/fixtures/owned-reading-seated.sav')))).toBe(true);
 
     const rowOf = (bridge: SimBridge, entity: number): number =>
       Array.from(bridge.ids()).indexOf(entity);
@@ -641,9 +650,7 @@ describe('SimBridge', () => {
 
   it('reacquires standing bookshelf reading after real release-wasm memory growth', () => {
     const bridge = new SimBridge(new SimHandle(24, 24), wasmMemory);
-    expect(bridge.spawnObject(11.5, 13.25, 'bookshelf')).toBe(true);
-    bridge.spawnAgent(9, 13.25, 80);
-    expect(bridge.useObject(1, 0, 0)).toBe(true);
+    expect(bridge.loadBytes(Uint8Array.from(readFileSync('tests/fixtures/owned-reading-standing.sav')))).toBe(true);
 
     const rowOf = (entity: number): number =>
       Array.from(bridge.ids()).indexOf(entity);
@@ -658,7 +665,7 @@ describe('SimBridge', () => {
     expect(readerRow).toBeGreaterThanOrEqual(0);
     expect(bridge.visualActions()[readerRow]).toBe(4);
     expect(bridge.activities()[readerRow]).toBe(8);
-    expect(bridge.facings()[readerRow]).toBe(1);
+    expect(bridge.facings()[readerRow]).toBe(2);
     const readerPosition = [
       bridge.positions()[readerRow * 2],
       bridge.positions()[readerRow * 2 + 1],
@@ -700,7 +707,7 @@ describe('SimBridge', () => {
       actions[readerRow],
       activities[readerRow],
       facings[readerRow],
-    ]).toEqual([4, 8, 1]);
+    ]).toEqual([4, 8, 2]);
     expect([
       positions[readerRow * 2],
       positions[readerRow * 2 + 1],
@@ -880,7 +887,7 @@ describe('SimBridge', () => {
     for (let tick = 0; tick < 173; tick++) original.tick();
     const before = original.worldHash();
     const bytes = original.saveBytes();
-    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 5, 0]);
+    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 7, 0]);
     const expectedEdges = original.wallEdges()!.slice();
     expect(expectedEdges).toHaveLength((34 + 28) * 4);
 
@@ -902,8 +909,8 @@ describe('SimBridge', () => {
   it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const legacyCells = blank.saveBytes();
-    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 5, 0]);
-    // V5 ends with SavedLayout, the required empty facing list, the empty
+    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 7, 0]);
+    // The current V5 prefix contains SavedLayout, the empty facing list, the empty
     // retired-index list ([SL-save]) and the empty colourway list
     // ([RC-save]). Change only that tag to EdgeWallsV1 (2). This fixture has
     // no entities or walls; it tests the distinction between undefined and
@@ -914,12 +921,13 @@ describe('SimBridge', () => {
     // Some(SavedSkills) and Some(SavedAffinities) each add a tag and an
     // empty row count.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0,
-      1, 0, 1, 0, 0, 0, 0];
-    expect(Array.from(legacyCells.slice(-tail.length))).toEqual(tail);
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0, 1, 0];
+    const offsets = Array.from(legacyCells.keys()).filter(index =>
+      tail.every((value, offset) => legacyCells[index + offset] === value));
+    expect(offsets).toHaveLength(1);
     const edgeBytes = legacyCells.slice();
-    // The layout tag precedes the appended save fields.
-    edgeBytes[edgeBytes.length - tail.length] = 2;
+    // The V7 manifest and books follow this world prefix.
+    edgeBytes[offsets[0]!] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -932,45 +940,15 @@ describe('SimBridge', () => {
     expect(restored.saveBytes()).toEqual(legacyCells);
   });
 
-  it('rejects V5 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
+  it('rejects every V7 truncation, trailing bytes and future versions transactionally', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
-    expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
-    // Current tail: layout and appended lists, mortality, migration,
-    // waiting, instincts and chronotypes, then sleeping places, the privacy
-    // fields, dining (none), skills (Some of no rows) and affinities (Some
-    // of no rows).
-    const sleepingPlacesTail = [1, 0, 0];
-    const skillsTail = [1, 0];
-    const affinitiesTail = [1, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0, 0,
-      ...skillsTail, ...affinitiesTail, 0, 0, 0];
-    expect(Array.from(valid.slice(-tail.length))).toEqual(tail);
-    // A save written before affinities lacks that field, and one written
-    // before skills lacks both; a complete bed-era save also lacks dining
-    // and both privacy fields. Earlier V5 saves also lack the whole grouped
-    // bed record; all remain loadable.
-    const c = 3;
-    const a = c + affinitiesTail.length;
-    const s = a + skillsTail.length;
-    for (const absent of [1, 2, 3, a, s, s + 1, s + 2, s + 3, s + 3 + sleepingPlacesTail.length,
-      s + 4 + sleepingPlacesTail.length]) {
-      const historical = new SimBridge(new SimHandle(4, 4), wasmMemory);
-      expect(historical.loadBytes(valid.slice(0, -absent))).toBe(true);
-      expect(historical.saveBytes()).toEqual(valid);
-    }
+    expect(Array.from(valid.slice(8, 10))).toEqual([7, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
-    future[8] = 6;
-    // Cuts at historical field boundaries load. A cut inside affinities,
-    // inside skills, inside mortality or before the appended fields remains
-    // malformed.
-    const invalid = [valid.slice(0, -c - 1), valid.slice(0, -a - 1), valid.slice(0, -4 - s),
-      valid.slice(0, -5 - s),
-      valid.slice(0, -9 - s - sleepingPlacesTail.length),
-      valid.slice(0, -16 - s - sleepingPlacesTail.length),
-      valid.slice(0, valid.length / 2), trailing, future];
+    future[8] = 8;
+    const invalid = [trailing, future, ...Array.from({ length: valid.length }, (_, length) => valid.slice(0, length))];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
@@ -1379,11 +1357,9 @@ describe('SimBridge', () => {
     // Varied autonomy changes selection draws and hashes each person's instinct.
     // With no counter, snacks are ineligible and selection draws change.
     // Independently measured on native and rebuilt release WASM: identical.
-    // Native and rebuilt WebAssembly independently measured the new chore
-    // digest, including its saved random stream and board work selection.
-    // Usage-driven grime adds its saved random stream and removes passive aging.
-    // This value is measured independently by the native fixed-scenario assertion.
-    expect(bridge.worldHash()).toBe(8890656731713008279n);
+    // The canonical empty books-v1 suffix extends the native pre-books
+    // digest 8890656731713008279 to this independently measured WASM value.
+    expect(bridge.worldHash()).toBe(0x6d3d37e1d3212a18n);
   });
 
   // ---- Player commands -------------------------------------------------

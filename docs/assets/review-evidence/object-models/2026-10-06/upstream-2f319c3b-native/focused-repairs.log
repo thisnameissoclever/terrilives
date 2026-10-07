@@ -1,0 +1,107 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.62s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 85 tests
+test dining::tests::all_stove_facings_route_cooks_to_the_actual_front_and_project_there ... ok
+test dining::tests::claimed_chairs_refuse_move_rotation_and_sale_until_released ... ok
+test dining::tests::cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker ... ok
+test dining::tests::critical_comfort_relationship_help_recognizes_actual_meal_seating ... ok
+test dining::tests::completing_a_meal_pays_only_the_social_minutes_actually_shared ... ok
+test dining::tests::dining_hash_observes_endpoint_setting_and_pending_decision ... ok
+test dining::tests::current_dining_records_cannot_omit_a_claim_or_a_dirty_setting ... ok
+test dining::tests::dirty_settings_force_standing_and_complain_only_once_across_interruptions ... ok
+test dining::tests::endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact ... ok
+test dining::tests::forged_endpoint_and_duplicate_chair_fail_transactionally ... ok
+test dining::tests::hash_observes_every_future_dining_decision_field ... ok
+test dining::tests::endpoint_meal_and_media_admission_and_restore_are_symmetric ... ok
+test dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table ... ok
+test dining::tests::missing_or_wrong_facing_chairs_cannot_supply_a_seat ... ok
+test dining::tests::needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost ... ok
+test dining::tests::one_dirty_chair_setting_leaves_the_other_physical_seat_available ... ok
+test dining::tests::paused_cancel_clears_complaints_and_round_trips_before_another_tick ... ok
+test dining::tests::physical_dining_and_ordinary_sitting_cannot_share_a_chair ... ok
+test dining::tests::physical_dining_role_accepts_another_model_without_a_chair_name_check ... ok
+test dining::tests::historical_in_flight_diners_adopt_standing_claims_before_resaving ... ok
+test dining::tests::privacy_routes_preserve_exact_seated_and_standing_claims_and_reload ... ok
+test dining::tests::regression_dining_wall_contact_live_and_current_rollback ... ok
+test dining::tests::regression_dining_wall_contact_published_meal_migration ... ok
+test dining::tests::seated_art_targets_the_claimed_chair_while_food_keeps_the_table_target ... ok
+test dining::tests::simultaneous_diners_claim_two_real_chairs_and_the_third_stands ... ok
+test dining::tests::physical_frozen_meal_leases_migrate_into_current_claims ... ok
+test dining::tests::washing_a_blocking_pile_while_someone_dines_clears_annoyance_and_remains_loadable ... ok
+test need_interactions::tests::autonomous_washing_scores_only_hygiene_available_below_the_cap ... ok
+test need_interactions::tests::critical_social_relationship_help_requires_actual_successful_sharing ... ok
+test need_interactions::tests::differing_or_failed_activities_do_not_supply_shared_social ... ok
+test need_interactions::tests::handwashing_benefits_and_cap_track_personality_scaled_delivery ... ok
+test need_interactions::tests::shared_activity_reload_rebuilds_context_before_first_payment ... ok
+test need_interactions::tests::shared_contact_radius_uses_both_actual_positions ... ok
+test need_interactions::tests::shared_social_obeys_room_radius_distinct_object_and_both_preferences ... ok
+test need_interactions::tests::shared_social_requires_actual_matching_activity_and_directional_liking ... ok
+test need_interactions::tests::standing_food_cost_requires_consumption_without_travel_preparation_or_gathering ... ok
+test reading::tests::contextual_reading_relief_matches_delivery_and_never_double_pays_comfort ... ok
+test dining::tests::tableless_shared_diners_finish_together_and_every_transition_loads ... ok
+test reading::tests::upstream_integration::upstream_capacity_facts_follow_actual_media_admission_and_book_ownership ... ok
+test seating::tests::a_standing_viewer_takes_a_seat_when_it_becomes_available ... ok
+test seating::tests::a_viewing_seat_does_not_require_reaching_the_device_perimeter ... ok
+test reading::tests::owned_reading_company_requires_actual_read_stage_and_directional_liking ... ok
+test seating::tests::an_invalidated_viewing_seat_replans_to_another_available_seat ... ok
+test seating::tests::autonomous_media_choice_uses_the_same_physical_seat_route ... ok
+test seating::tests::an_invalid_current_endpoint_releases_the_media_commitment ... ok
+test seating::tests::cancellation_releases_media_seat_without_advancing_the_clock ... ok
+test seating::tests::every_media_rotation_uses_its_physical_front_and_seat_front ... ok
+test seating::tests::exact_release_does_not_remove_a_replacement_media_lease ... ok
+test seating::tests::exact_release_removes_the_live_media_lease_before_any_maintenance ... ok
+test seating::tests::explicit_ottoman_visual_keeps_its_authored_socket_instead_of_the_neutral_fallback ... ok
+test seating::tests::every_fitted_seat_type_can_supply_a_media_place ... ok
+test seating::tests::farther_available_seat_beats_a_nearer_occupied_or_unreachable_seat ... ok
+test seating::tests::media_completion_releases_its_secondary_chair ... ok
+test seating::tests::media_destinations_are_exclusive_while_reading_seat_approaches_can_be_shared ... ok
+test seating::tests::media_lease_cannot_share_a_chair_with_an_ordinary_sitter ... ok
+test seating::tests::media_cone_includes_its_angle_and_radius_edges_but_excludes_outside_seats ... ok
+test seating::tests::media_seat_restores_during_travel_and_active_use ... ok
+test seating::tests::media_seats_refuse_move_rotation_and_sale_during_travel_and_use ... ok
+test seating::tests::media_users_keep_distinct_destinations_when_sofa_seats_share_one_approach ... ok
+test seating::tests::nuisance_crossing_zero_stops_social_that_minute_but_keeps_chair_comfort ... ok
+test seating::tests::ordinary_ottoman_sitting_uses_the_fitted_body_without_a_media_lease ... ok
+test seating::tests::needs_correction_media_gains_only_the_occupied_seats_comfort ... ok
+test seating::tests::physical_media_and_ordinary_users_share_distinct_sofa_places ... ok
+test seating::tests::physical_media_and_sitting_admission_share_one_chair_in_both_orders ... ok
+test seating::tests::physical_published_media_lease_migrates_to_stable_current_seat ... ok
+test seating::tests::physical_sit_is_available_on_each_seating_type ... ok
+test seating::tests::physical_sit_uses_authored_front_in_every_direction ... ok
+test seating::tests::physical_claims_survive_entity_generation_reuse_and_seat_definition_reordering ... ok
+test seating::tests::physical_sitting_round_trips_and_a_missing_claim_rolls_back ... ok
+test seating::tests::physical_sofa_admits_three_travelling_sitters_and_refuses_fourth ... ok
+test seating::tests::physical_sofa_recline_blocks_all_places_and_sitting_blocks_recline ... ok
+test seating::tests::privacy_substitution_routes_directly_to_the_media_seat ... ok
+test seating::tests::radio_uses_the_same_seat_with_its_own_activity ... ok
+test seating::tests::regression_stale_seat_release_preserves_a_reused_person_generation ... ok
+test seating::tests::seated_viewer_projects_chair_contact_with_television_activity ... ok
+test seating::tests::physical_sofa_places_are_reused_after_completion_cancellation_and_death ... ok
+test seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy ... FAILED
+test seating::tests::shared_media_refill_is_directional_and_stops_when_company_leaves ... ok
+test seating::tests::solo_media_does_not_refill_social ... ok
+test seating::tests::standing_media_routes_restore_away_from_the_device_perimeter ... ok
+test seating::tests::suspended_meal_cleanup_does_not_release_the_current_media_seat ... ok
+test seating::tests::television_order_routes_to_available_front_seat_but_keeps_device_target ... ok
+test seating::tests::two_media_orders_share_the_device_but_reserve_distinct_positions ... ok
+test seating::tests::waiting_for_media_without_liked_company_does_not_claim_social_relief ... ok
+test seating::tests::standing_shared_media_saves_preserve_capacity_and_distinct_endpoints ... ok
+
+failures:
+
+---- seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy stdout ----
+
+thread 'seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy' (35000) panicked at crates\terri-sim\src\seating\tests.rs:118:9:
+sofa
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    seating::tests::secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy
+
+test result: FAILED. 84 passed; 1 failed; 0 ignored; 0 measured; 1177 filtered out; finished in 3.90s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

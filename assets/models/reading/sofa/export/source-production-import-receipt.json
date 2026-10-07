@@ -1,0 +1,17 @@
+{
+  "manifestSHA256": "20f2b7ab7570be9f99ed2e2f6e70f69ae023556cc44da54dc97ac9e6149a92e4",
+  "geometryViews": 108,
+  "actualUniformWitnesses": 324,
+  "sourceRecords": 5488,
+  "runtimeScenes": 11664,
+  "physicalFacings": 4,
+  "maxError": 5,
+  "p95Error": 2,
+  "staticPhaseAliases": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "pass": true
+}

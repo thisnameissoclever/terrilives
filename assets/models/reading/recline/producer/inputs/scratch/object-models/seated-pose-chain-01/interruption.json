@@ -1,0 +1,23 @@
+{
+  "state": "interrupted_by_memory_guard",
+  "inputs_rehashed_unchanged": true,
+  "input_count": 216,
+  "writer_exit_code": -1,
+  "completed_renders": 0,
+  "raw_receipt_left_unchanged": true,
+  "source_identity_equal": true,
+  "maximum_protected_frame_error": 3.0100345611572266e-06,
+  "maximum_protected_surface_error": 6.107658604359387e-07,
+  "actual_elbow_transport_errors": [
+    1.7161027269577134e-06,
+    1.6561966006342632e-06
+  ],
+  "cached_fold_receipt": "../seated-pose-chain-cached-folds-01/proof.json",
+  "remaining": [
+    "Four beauty views and native copies",
+    "Whole-scene crossing and containment inventory",
+    "Current finite-contact replay",
+    "Complete successful writer exit"
+  ],
+  "acceptance": false
+}

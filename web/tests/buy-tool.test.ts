@@ -30,7 +30,7 @@ const BED: CatalogueItem = { definition: 1, name: 'Bed', price: 250, facings: 0b
   needs: (1 << ENERGY) | (1 << COMFORT) };
 
 it('sorts models within their primary type without changing definition ids', () => {
-  const first = { ...CHAIR, name: 'Armchair', details: { modelName: 'Staying In', description: 'Seat.' } };
+  const first = { ...CHAIR, name: 'Armchair', details: { modelName: 'Lounge', description: 'Seat.' } };
   const second = { ...CHAIR, definition: 99, name: 'Armchair', details: { modelName: 'Early Retirement', description: 'Seat.' } };
   expect(listed([BED, first, second]).map(item => item.definition)).toEqual([99, CHAIR.definition, BED.definition]);
 });
@@ -514,16 +514,16 @@ describe('BuyToolControls', () => {
   }
 
   it('shows the chosen identity, retains expansion on redraw, and clears it when selection changes', () => {
-    const chair = { ...CHAIR, name: 'Armchair', details: { modelName: 'Staying In', description: 'A chair for sitting.' } };
+    const chair = { ...CHAIR, name: 'Armchair', details: { modelName: 'Lounge', description: 'A chair for sitting.' } };
     const { buy, view, element } = controls([chair, BED]);
-    expect(element('buy-object').children.map(option => option.textContent)).toContain('Armchair: Staying In (40)');
+    expect(element('buy-object').children.map(option => option.textContent)).toContain('Armchair: Lounge (40)');
     buy.enter();
     buy.choose(CHAIR.definition);
     view.render();
     const identity = element('buy-identity');
     expect(identity.hidden).toBe(false);
     const disclosure = identity.children[0];
-    expect(disclosure.children[0].children.map(child => child.textContent)).toEqual(['Staying In', 'Armchair']);
+    expect(disclosure.children[0].children.map(child => child.textContent)).toEqual(['Armchair', 'Lounge']);
     expect(disclosure.children[1].textContent).toBe('A chair for sitting.');
     disclosure.open = true;
     view.render();
@@ -673,7 +673,7 @@ describe('BuyToolControls', () => {
   });
 
   it('writes a price the way the Funds line does, apart from a name with a comma in it', () => {
-    expect(itemLabel('Chair, Standard Issue', 1_250)).toBe('Chair, Standard Issue (1,250)');
+    expect(itemLabel('Dining chair', 1_250)).toBe('Dining chair (1,250)');
   });
 });
 
@@ -724,7 +724,7 @@ describe('the Buy tool on real wasm', () => {
         }
       }
     }
-    expect(lights.sort()).toEqual(['Cathode Companion', 'Illumination, Ambient']);
+    expect(lights.sort()).toEqual(['Floor lamp', 'Television']);
   });
 
   it('lists the whole catalogue and words the refusal a household with no money gets', () => {

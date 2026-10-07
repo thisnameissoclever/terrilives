@@ -1,0 +1,161 @@
+{
+  "state": "tracked_relative_source_inputs",
+  "scripts": [
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v20.py",
+      "originalSHA256": "2c1dda3f9542ab82e4fbc645b010cfcde60f24f9268d02f74a75d3c87ea0a6b1",
+      "portable": "pose_complete_fetch_spine_render_v20.py",
+      "portableSHA256": "73d4ff8f631fc301ae9be5df1c14f89a2ef5fee2b1846202c3c3c23b0a9efc23",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored geometry/lighting/render code retained separately."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v19.py",
+      "originalSHA256": "bc967a72f61b8b1262054415969636d9d9ccff30ed299914e213f27bc89b347d",
+      "portable": "pose_complete_fetch_spine_render_v19.py",
+      "portableSHA256": "56de36ff1e476a5f098706636c4fd312b9b493fbc8526d54dacdffc6ded5f5c1",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored geometry/lighting/render code retained separately."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_geometric_ink_v2.py",
+      "originalSHA256": "9c045cf87726829fc1fa5d7dd236dd0f00cadca76fac9f982360a461e09bdef2",
+      "portable": "pose_complete_fetch_spine_geometric_ink_v2.py",
+      "portableSHA256": "3dc113cc2eb422f6da98d379f15960f29ffbc5c79419523257bd7119f4d1a095",
+      "normalization": "Only repository root lookup follows tracked parents; original producer bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_chunk_v1.py",
+      "originalSHA256": "11b903a5769a1c2d74d1680273e982094b4e7e251b2c224a4d4ef2141cd79cf2",
+      "portable": "pose_complete_fetch_spine_render_chunk_v1.py",
+      "portableSHA256": "62d0f14cab07725768fa51076bd47da7f188ee16f1eed09b6b0fdc0d3b7bd3f2",
+      "normalization": "Only repository root lookup follows tracked parents; original producer bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v27.py",
+      "originalSHA256": "846608a3d22ce1b57a9cf41115127a7200a6784838fe628f85c5ce4d73a91b7d",
+      "portable": "pose_complete_fetch_spine_render_v27.py",
+      "portableSHA256": "fb8249605c83f76d446147347a504d66ab912027f343c76af04e2857a8658cb9",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v28.py",
+      "originalSHA256": "846608a3d22ce1b57a9cf41115127a7200a6784838fe628f85c5ce4d73a91b7d",
+      "portable": "pose_complete_fetch_spine_render_v28.py",
+      "portableSHA256": "fb8249605c83f76d446147347a504d66ab912027f343c76af04e2857a8658cb9",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_geometric_ink_v3.py",
+      "originalSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "portable": "pose_complete_fetch_spine_geometric_ink_v3.py",
+      "portableSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v37.py",
+      "originalSHA256": "86876b0640cb6f98e5e3e514ad29be38d4441077ffa6ee89980e69addf6dbeac",
+      "portable": "pose_complete_fetch_spine_render_v37.py",
+      "portableSHA256": "df0b79116488e69d0aa38ba6fa83ad7121f9a564d5a0bd967d4396dc0f8a7655",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_geometric_ink_v6.py",
+      "originalSHA256": "e471ac8cd17152d62954d6e510b8a410d4c5486b6d48ad711dfe98280dd38c06",
+      "portable": "pose_complete_fetch_spine_geometric_ink_v6.py",
+      "portableSHA256": "e471ac8cd17152d62954d6e510b8a410d4c5486b6d48ad711dfe98280dd38c06",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_pixel_ink_v3.py",
+      "originalSHA256": "c6e9a4648aa3847d2e0322c6a6ede9c295ecbb3c4aa488085109e42f0ba2d082",
+      "portable": "pose_complete_fetch_spine_pixel_ink_v3.py",
+      "portableSHA256": "c6e9a4648aa3847d2e0322c6a6ede9c295ecbb3c4aa488085109e42f0ba2d082",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v47.py",
+      "originalSHA256": "ce47fa6641015637770e3b8466a4459efa5879645f6bed7bae94e050a5a2b216",
+      "portable": "pose_complete_fetch_spine_render_v47.py",
+      "portableSHA256": "28f92a3fc5aeaafde734e1f14a818125f98131253774f8566b7554c90a84cb05",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_geometric_ink_v3.py",
+      "originalSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "portable": "pose_complete_fetch_spine_geometric_ink_v3.py",
+      "portableSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v52.py",
+      "originalSHA256": "0cb64d6ac2d9f68a0fa61f0623c385a2e173fddae53afbfaa8f94be99e27ba6f",
+      "portable": "pose_complete_fetch_spine_render_v52.py",
+      "portableSHA256": "b57fd86708cfc7a1d2385c257fff1881c4bf3db403d6ed5e1590d2b13a3920ec",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_geometric_ink_v3.py",
+      "originalSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "portable": "pose_complete_fetch_spine_geometric_ink_v3.py",
+      "portableSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_render_v54.py",
+      "originalSHA256": "0c6dfc4206535a755bc84470e1884afbcde4f94dfde53806aebb99f5642fa022",
+      "portable": "pose_complete_fetch_spine_render_v54.py",
+      "portableSHA256": "73fff16a5cc617889b700a6d2813ade6a7e2e7bec7ad479544820246667fdc99",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    },
+    {
+      "original": "original-scripts/pose_complete_fetch_spine_geometric_ink_v3.py",
+      "originalSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "portable": "pose_complete_fetch_spine_geometric_ink_v3.py",
+      "portableSHA256": "333c3b573ce0a10a8b8b88bfdc8dd74ccc119a9ace8392da734c5336cd43d864",
+      "normalization": "Repository root and recipe relative-path resolution only; original authored source bytes retained."
+    }
+  ],
+  "seed": {
+    "path": "seed.blend.gz",
+    "sha256": "c43c288f5c71a889d623a6e42e0097231358e339cbe186732c2322c13ff848ba",
+    "decodedSHA256": "9f2327cf7971658121faa049ac7c74977caecb2f3f1b2fc70df7294e87113a74",
+    "decodedBytes": 27490976,
+    "roundtripVerified": true
+  },
+  "poses": {
+    "path": "poses.json",
+    "sha256": "b9c7316121217e6e9a999a0f1cc537a7660c9ff185f9e080881799a7e4e0ea22"
+  },
+  "physicalRegistry": {
+    "path": "physical-registry-original.json",
+    "sha256": "322e34b356ba4718d7133326998a83957c967dd1e2aa881f0e6c37978ff7377b"
+  },
+  "repositoryDependencies": [
+    {
+      "path": "assets/models/sims/sim-01/render_shirt_variants.py",
+      "sha256": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b"
+    },
+    {
+      "path": "assets/models/sims/sim-01/shirt_colors.py",
+      "sha256": "586acf888a102130ce032546827cf7fbe2e9d1ec91005e2c19c8fb950e3fd4c0"
+    },
+    {
+      "path": "assets/models/living/owner-review-pending/bookcase/candidate-01/proof.json",
+      "sha256": "e11179fd9a813c8d33ed10007cff1039994f53b3c74a3f72a2cc924b890d8400"
+    }
+  ],
+  "replayContract": "Resolve source-manifest relative paths against its saved directory; decompress the seed into a chosen temporary output directory. Original receipts remain original evidence, not replay instructions.",
+  "portableFullRasterRebuildClaim": false,
+  "originalPoseEvidence": {
+    "path": "original-poses-proof.json",
+    "sha256": "502d60fd92e21c6e2d42184613b18cd41eb1db5d64e6b95d78e36b12530899d6"
+  },
+  "relativeRecipe": {
+    "path": "recipe-SE-slot00-contact.json",
+    "sha256": "e4fea3f5156b70f7627931106089d0c68d35848d3e71d2c194f22634b0213424"
+  },
+  "finalRecipe": {
+    "path": "recipe-row-lighting-SE-slot00-contact.json",
+    "sha256": "9fd75221ad13222024dd3bc863e6528d978761c87e13257ea603d776f8de9aae"
+  },
+  "finalSourcePolicy": "Immutable evaluated render meshes preserve authored world geometry and material indices. Actor lights retain shadows with fixed one millimetre world resolution, one ray and six shadow steps. Cabinet self-shadows and within-row book shadows remain; book shadows on the cabinet and other rows are intentionally excluded so independently changing inventory rows compose correctly. Camera clip .1-32m and one source sample initialize before owned geometric vector ink. Actual beauty RGB uses verified binary, disjoint and complete owner masks."
+}

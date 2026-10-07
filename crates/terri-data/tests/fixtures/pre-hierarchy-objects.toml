@@ -1,0 +1,217 @@
+[[object]]
+id = "fridge"
+name = "fridge"
+price = 300
+sprite = "offlineFridge"
+roles = ["cold_storage"]
+interaction = [{ id = "grab_snack", activity = "eating", label = "Grab a snack", advertises = { hunger = 40.0 }, duration_ticks = 85, slots = 1, visual = { action = "eat", anchor = "object", facing = "toward_anchor" } }]
+
+[[object]]
+id = "bed"
+name = "bed"
+price = 250
+sprite = "offlineBunk"
+footprint = { width = 2, depth = 1 }
+action_socket = [{ id = "lower_bunk", x = 0.0, y = 0.0, facing = "SE" }]
+interaction = [{ id = "sleep", activity = "sleeping", label = "Sleep", advertises = { energy = 100.0 }, duration_ticks = 180, slots = 1, tags = ["sleep"], visual = { action = "sleep", anchor = "object_socket", facing = "socket", socket = "lower_bunk" } }]
+
+[[object]]
+id = "shower"
+name = "shower"
+price = 250
+sprite = "offlineShower"
+interaction = [{ id = "take_shower", tags = ["bathroom_privacy"], activity = "showering", label = "Take a shower", advertises = { hygiene = 70.0, energy = -12.0 }, duration_ticks = 45, slots = 1, sound_action = "shower_water" }]
+
+[[object]]
+id = "toilet"
+name = "toilet"
+price = 150
+sprite = "offlineToilet"
+interaction = [{ id = "relieve_self", completion_sound = "toilet_flush", tags = ["bathroom_privacy"], activity = "using_toilet", label = "Use the toilet", advertises = { bladder = 95.0 }, duration_ticks = 24, slots = 1 }]
+
+[[object]]
+id = "television"
+name = "television"
+price = 350
+sprite = "offlineTelevision"
+interaction = [{ id = "watch_tv", activity = "watching_tv", label = "Watch TV", advertises = { social = 24.0, fun = 30.0 }, duration_ticks = 55, slots = 2, tags = ["television"], satisfaction = 2.0 }]
+
+[[object]]
+id = "sofa"
+name = "sofa"
+price = 200
+sprite = "offlineOttoman"
+interaction = [{ id = "lounge", activity = "sitting", label = "Sit down", tags = ["lounging"], advertises = { fun = 18.0, comfort = 34.0 }, duration_ticks = 50, slots = 2 }]
+
+[[object]]
+id = "sink"
+name = "sink"
+price = 80
+sprite = "offlineBathroomSink"
+interaction = [{ id = "wash_hands", activity = "washing_hands", label = "Wash hands", sound_action = "sink_water", advertises = { hygiene = 32.0 }, duration_ticks = 21, slots = 1 }]
+
+[[object]]
+id = "bookshelf"
+name = "bookshelf"
+price = 120
+sprite = "offlineBookcase"
+interaction = [{ id = "read", activity = "reading", label = "Read a book", advertises = { fun = 26.0 }, duration_ticks = 34, slots = 1, visual = { action = "read", anchor = "object", facing = "toward_anchor" }, tags = ["reading"], shared_activity = "reading", satisfaction = 3.0 }]
+
+[[object]]
+id = "stove"
+name = "stove"
+price = 260
+sprite = "offlineStove"
+roles = ["hob"]
+
+[[object]]
+id = "counter"
+name = "counter"
+price = 90
+sprite = "offlineCounter"
+roles = ["prep_surface"]
+
+[[object]]
+id = "kitchen_sink"
+name = "kitchen_sink"
+price = 150
+sprite = "offlineSink"
+roles = ["prep_surface", "dish_sink"]
+interaction = [{ id = "wash_up", activity = "washing_hands", label = "Wash hands", sound_action = "sink_water", advertises = { hygiene = 20.0, comfort = -6.0 }, duration_ticks = 23, slots = 1 }]
+
+[[object]]
+id = "dining_table"
+name = "dining_table"
+price = 120
+sprite = "offlineDiningTable"
+footprint = { width = 2, depth = 1 }
+roles = ["eating_surface", "meal_table"]
+interaction = [{ id = "sit_properly", activity = "sitting", label = "Sit down to eat", advertises = { comfort = 37.0, social = 11.0 }, duration_ticks = 62, slots = 2 }]
+
+[[object]]
+id = "chair"
+name = "chair"
+price = 40
+sprite = "offlineDiningChair"
+
+[[object]]
+id = "trashcan"
+name = "trashcan"
+price = 20
+sprite = "offlineTrashcan"
+
+[[object]]
+id = "long_sofa"
+name = "long_sofa"
+price = 280
+sprite = "offlineLongSofa"
+footprint = { width = 2, depth = 1 }
+interaction = [{ id = "stretch_out", activity = "lounging", label = "Lie down", tags = ["lounging"], advertises = { comfort = 43.0, fun = 13.0, energy = 9.0 }, duration_ticks = 72, slots = 3 }]
+
+[[object]]
+id = "armchair"
+name = "armchair"
+price = 140
+sprite = "offlineArmchair"
+action_socket = [{ id = "seat", x = 0.0, y = 0.0, facing = "SW" }]
+interaction = [{ id = "take_the_chair", activity = "sitting", label = "Sit down", tags = ["lounging"], advertises = { comfort = 29.0 }, duration_ticks = 41, slots = 1, visual = { action = "sit", anchor = "object_socket", facing = "socket", socket = "seat" } }]
+
+[[object]]
+id = "radio"
+name = "radio"
+price = 60
+sprite = "offlineRadio"
+interaction = [{ id = "listen", activity = "listening_radio", label = "Listen to the radio", advertises = { fun = 22.0, social = 5.0 }, duration_ticks = 38, slots = 2 }]
+
+[[object]]
+id = "potted_plant"
+name = "potted_plant"
+price = 30
+sprite = "offlinePottedPlant"
+
+[[object]]
+id = "floor_lamp"
+name = "floor_lamp"
+price = 45
+sprite = "offlineFloorLamp"
+
+[[object]]
+id = "coat_rack"
+name = "coat_rack"
+price = 35
+sprite = "offlineCoatRack"
+
+[[object]]
+id = "double_bed"
+name = "double_bed"
+price = 400
+sprite = "offlineDoubleBed"
+footprint = { width = 2, depth = 2 }
+sleep_place = [{ id = "place_0", approaches = [[0, -1], [1, -1]] }, { id = "place_1", approaches = [[0, 2], [1, 2]] }]
+interaction = [{ id = "sleep_properly", activity = "sleeping", visual = { action = "sleep", anchor = "object", facing = "toward_anchor" }, label = "Go to bed", advertises = { energy = 108.0, comfort = 10.0 }, duration_ticks = 210, slots = 2, tags = ["sleep"] }]
+
+[[object]]
+id = "nightstand"
+name = "nightstand"
+price = 50
+sprite = "offlineNightstand"
+
+[[object]]
+id = "dresser"
+name = "dresser"
+price = 110
+sprite = "offlineDresser"
+
+[[object]]
+id = "moving_box"
+name = "moving_box"
+price = 260
+sprite = "offlineBike"
+action_socket = [{ id = "saddle", x = 0.0, y = 0.0, facing = "SE" }]
+interaction = [{ id = "use_exercise_bike", activity = "exercising", label = "Use the exercise bike", advertises = { fun = 28.0, energy = -8.0, hygiene = -5.0 }, duration_ticks = 83, slots = 1, tags = ["exercise"], shared_activity = "exercise", satisfaction = 2.0, visual = { action = "exercise", anchor = "object_socket", facing = "socket", socket = "saddle" } }]
+
+[[object]]
+id = "desk"
+name = "desk"
+price = 180
+sprite = "offlineDeskSW"
+base_facing = "SW"
+footprint = { width = 2, depth = 1 }
+roles = ["eating_surface"]
+interaction = [{ id = "attend_correspondence", activity = "correspondence", label = "Work", advertises = { fun = 36.0, energy = -7.0 }, duration_ticks = 58, slots = 1, tags = ["correspondence"], satisfaction = 3.0 }]
+
+[[object]]
+id = "desk_chair"
+name = "desk_chair"
+price = 60
+sprite = "offlineDeskChair"
+
+[[object]]
+id = "reading_chair"
+name = "reading_chair"
+price = 110
+sprite = "offlineChair"
+action_socket = [{ id = "seat", x = 0.0, y = 0.0, facing = "SE" }]
+interaction = [{ id = "settle_in", activity = "reading", label = "Sit and read", advertises = { comfort = 15.0, fun = 19.0 }, duration_ticks = 46, slots = 1, tags = ["reading", "lounging"], shared_activity = "reading", satisfaction = 3.0, visual = { action = "read", anchor = "object_socket", facing = "socket", socket = "seat" } }]
+
+[[object]]
+id = "reference_shelf"
+name = "reference_shelf"
+price = 220
+sprite = "offlineAquarium"
+interaction = [{ id = "watch_fish", activity = "watching_fish", label = "Watch the fish", advertises = { fun = 25.0, comfort = 21.0 }, duration_ticks = 67, slots = 1, tags = ["aquarium"], shared_activity = "aquarium", satisfaction = 1.0, visual = { action = "watch", anchor = "object", facing = "toward_anchor" } }]
+
+[[object]]
+id = "bathtub"
+name = "bathtub"
+price = 320
+sprite = "offlineBathtubSW"
+base_facing = "SW"
+footprint = { width = 1, depth = 2 }
+interaction = [{ id = "soak", tags = ["bathroom_privacy"], activity = "bathing", label = "Take a bath", advertises = { hygiene = 58.0, comfort = 31.0, energy = -3.0 }, duration_ticks = 78, slots = 1 }]
+
+[[object]]
+id = "laundry"
+name = "laundry"
+price = 300
+sprite = "offlineLaundry"

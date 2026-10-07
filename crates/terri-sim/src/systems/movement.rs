@@ -115,6 +115,8 @@ pub fn follow_path(
         Option<&terri_core::Traits>,
         Option<&terri_core::Skills>,
         Option<&mut terri_core::ChainState>,
+        Option<&crate::recipe_actions::Origin>,
+        Has<crate::reading::ReadingJourney>,
     )>,
     objects: Query<&SmartObject>,
     furniture: Query<
@@ -142,21 +144,22 @@ pub fn follow_path(
         })
         .collect();
     let occupancy = beds.occupancy();
-    let mut walking: Vec<Entity> = agents
-        .iter()
-        .map(|(entity, _, _, _, _, _, _)| entity)
-        .collect();
+    let mut walking: Vec<Entity> = agents.iter().map(|(entity, ..)| entity).collect();
     walking.sort_by_key(|entity| entity.index());
 
     for entity in walking {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, mut pos, mut path, target, traits, skills, mut chain_state)) =
+        let Ok((_, mut pos, mut path, target, traits, skills, mut chain_state, origin, reading)) =
             agents.get_mut(entity)
         else {
             continue;
         };
         let Some((tx, ty)) = path.next_step() else {
+            if reading {
+                commands.entity(entity).remove::<Path>();
+                continue;
+            }
             // Path exhausted. With no target this was a wander, so the
             // walk simply ends and the agent goes back to being idle.
             let Some(target) = target else {
@@ -192,19 +195,23 @@ pub fn follow_path(
                 };
                 let chain = &content.0.chains[chain_state.chain as usize];
                 let step = &chain.steps[chain_state.step as usize];
+                let base_work = crate::recipe_actions::duration(content.0, chain_state, origin);
                 let work_ticks = if chain.id == crate::domestic::CLEANUP && chain_state.step == 1 {
-                    domestic.as_ref().map_or(step.duration_ticks, |state| {
-                        crate::domestic::wash_ticks(
+                    domestic.as_ref().map_or(base_work, |state| {
+                        let extra = crate::domestic::wash_ticks(
                             state,
                             entity.index_u32(),
-                            step.duration_ticks,
+                            0,
                             tuning
                                 .domestic
                                 .map_or(0, |tuning| tuning.wash_ticks_per_unit),
-                        )
+                        );
+                        base_work.saturating_add(crate::recipe_actions::cleanup_extra(
+                            content.0, origin, extra,
+                        ))
                     })
                 } else {
-                    step.duration_ticks
+                    base_work
                 };
                 let remaining_ticks = sample_duration(
                     work_ticks,
