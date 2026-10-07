@@ -1415,6 +1415,35 @@ fn privacy_substitution_routes_directly_to_the_media_seat() {
 }
 
 #[test]
+fn privacy_substitution_still_offers_a_chairless_desk_standing() {
+    // The chair faces away, so desk work has no seat plan. Substitution must
+    // still route to the desk by its ordinary perimeter, as before seating.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::NorthEast,
+        "desk_chair",
+    );
+    sim.world_mut().entity_mut(person).remove::<IntentQueue>();
+    sim.world_mut()
+        .get_mut::<terri_core::Needs>(person)
+        .unwrap()
+        .set(terri_core::NeedId::Fun, 0.);
+    let safe = sim.world().resource::<terri_core::TileGrid>().clone();
+    assert!(crate::privacy::substitute(
+        sim.world_mut(),
+        person,
+        terri_core::NeedId::Fun.index() as u8,
+        &safe,
+        false
+    ));
+    assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+    assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
+}
+
+#[test]
 fn media_seats_refuse_move_rotation_and_sale_during_travel_and_use() {
     let pack = terri_data::pack();
     let mut lot = pack.lot.clone();
