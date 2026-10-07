@@ -5,7 +5,6 @@ fn reusable_actions_accept_explicit_book_and_seat_contracts() {
 id = "reading"
 [action_template.properties]
 duration_ticks = { set = 60.0 }
-slots = { set = 1.0 }
 advertises = { set = { fun = 30.0 } }
 book_reading = { set = true }
 seat_use = { set = "one" }

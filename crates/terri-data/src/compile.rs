@@ -371,6 +371,16 @@ pub fn compile(
                     reason: "seat_use one or all requires physical seats".into(),
                 });
             }
+            if act
+                .seat_use
+                .capacity(object.seat.len())
+                .is_some_and(|capacity| capacity != act.slots)
+            {
+                return Err(ContentError::InvalidHierarchy {
+                    context: format!("object.{}.action.{}", object.id, act.id),
+                    reason: "seat action capacity must match the furniture's seats".into(),
+                });
+            }
             if !seen_interactions.insert(act.id.clone()) {
                 return Err(ContentError::DuplicateInteractionId {
                     object: object.id.clone(),
@@ -6283,6 +6293,34 @@ mod tests {
             let pack = compile_objects(full_needs(), objects).unwrap();
             assert!(pack.objects[0].interactions[0].book_reading);
             assert_eq!(pack.objects[0].interactions[0].seat_use, seat_use);
+        }
+    }
+
+    #[test]
+    fn seat_action_capacity_must_match_the_furnitures_seats() {
+        for (seat_use, slots, accepted) in [
+            (crate::SeatUse::One, 1, true),
+            (crate::SeatUse::One, 2, false),
+            (crate::SeatUse::All, 1, true),
+            (crate::SeatUse::All, 2, false),
+        ] {
+            let mut object = reading_object();
+            object.interaction[0].seat_use = seat_use;
+            object.interaction[0].slots = slots;
+            object.seat = vec![crate::schema::SeatDef {
+                id: "place".into(),
+                x: 0.0,
+                y: 0.0,
+                facing: "SE".into(),
+                approaches: vec![(0, -1)],
+            }];
+            let mut objects = one_object(snack());
+            objects.object = vec![object];
+            assert_eq!(
+                compile_objects(full_needs(), objects).is_ok(),
+                accepted,
+                "{seat_use:?} with {slots} on one seat"
+            );
         }
     }
 

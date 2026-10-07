@@ -450,6 +450,13 @@ during travel and use. Ordinary sitting, reading, dining and seated media share 
 same admission view. A full-sofa action excludes every individual seat; changing
 the action does not create additional seating capacity.
 
+A seat action's capacity therefore comes only from the furniture's seats: one
+person per seat for `seat_use = "one"`, one person for the whole furniture for
+`"all"`. Content never authors `slots` on a seat action. The layered resolver
+fills it from the seats, and the build rejects an authored value or one that
+disagrees with the seats, because admission never reads it and an edited number
+would otherwise change nothing.
+
 Meal and media approach reservations are separate from physical seat ownership.
 A meal keeps its approach clear. People using different seats for media may
 share an approach, including the middle and end places on a sofa. Planning and
@@ -804,6 +811,8 @@ nonsense**, with the message naming the offending id:
 - a duplicate object or interaction id
 - a zero `duration_ticks` (an interaction that finishes before it starts) or
   zero `slots`
+- a `slots` value on a seat action; its capacity comes from the furniture's
+  seats
 - an incomplete or unknown interaction or chain-step `visual` contract, or a
   known action and anchor in a combination the owning social, object, or chain
   step cannot legally resolve

@@ -484,8 +484,9 @@ impl ActionState {
         Ok(())
     }
 
-    fn finish(self, context: &str) -> Result<InteractionDef, ContentError> {
+    fn finish(self, context: &str, seats: usize) -> Result<InteractionDef, ContentError> {
         let context = format!("{context}.action.{}", self.id);
+        let seat_use = self.seat_use.unwrap_or_default();
         let duration = required(self.duration_ticks, &context, "duration_ticks")?;
         let duration_ticks = integer(
             duration.round(),
@@ -494,13 +495,22 @@ impl ActionState {
             &context,
             "duration_ticks",
         )? as u32;
-        let slots = integer(
-            required(self.slots, &context, "slots")?,
-            1.0,
-            u8::MAX as f64,
-            &context,
-            "slots",
-        )? as u8;
+        let slots = match (seat_use.capacity(seats), self.slots) {
+            (Some(_), Some(_)) => {
+                return Err(invalid(
+                    &context,
+                    "seat actions take capacity from the furniture's seats; remove 'slots'",
+                ))
+            }
+            (Some(capacity), None) => capacity,
+            (None, slots) => integer(
+                required(slots, &context, "slots")?,
+                1.0,
+                u8::MAX as f64,
+                &context,
+                "slots",
+            )? as u8,
+        };
         let advertises = required(self.advertises, &context, "advertises")?
             .into_iter()
             .map(|(need, value)| float(value, &context).map(|value| (need, value)))
@@ -509,7 +519,7 @@ impl ActionState {
             media: self.media,
             recipe: self.recipe,
             book_reading: self.book_reading.unwrap_or(false),
-            seat_use: self.seat_use.unwrap_or_default(),
+            seat_use,
             id: self.id,
             label: self.label,
             advertises,
@@ -669,10 +679,11 @@ pub fn resolve(mut source: ObjectsFile) -> Result<ObjectsFile, ContentError> {
                 return Err(invalid(&model.id, "room associations must be unique"));
             }
         }
+        let seats = state.seat.len();
         let interactions = state
             .actions
             .into_iter()
-            .map(|action| action.finish(&model.id))
+            .map(|action| action.finish(&model.id, seats))
             .collect::<Result<_, _>>()?;
         resolved.push(ObjectDef {
             seat_comfort_per_tick: state.seat_comfort_per_tick.unwrap_or(0.0) as f32,
