@@ -1,0 +1,13 @@
+{
+  "path": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\native-upstream-2f-final-freeze-20261006-231350",
+  "files": 399,
+  "manifest_sha256": "d8d7e4313675019354a477e9e75745bab52e989ae367370f76b985b8a4cbefbb",
+  "runtime_pack_sha256": "fd584e0eaecdb4044f6cf767d972381fd46cd6679a42ad379cec3a511b67d4df",
+  "delta": [
+    {
+      "path": "crates/terri-data/src/pack.rs",
+      "before": "a4156fa507838c32c159a719748d398afc8016fd951665e365b61f0435782c91",
+      "after": "36c45873ad3a1bf1c2bb5253b113ad6379bbab2c9c97326252269cba11fbf257"
+    }
+  ]
+}

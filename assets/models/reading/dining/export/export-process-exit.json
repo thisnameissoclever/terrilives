@@ -1,0 +1,24 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_independent_export_v1.py",
+    ".tmp/object-models/pose-complete-independent-renders-01/dining"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk f9fcbb returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 6.5643473,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "8ddd8a20fd0d859603b55646e035782a32b6919689e6d93953da362e4b197043"
+  },
+  "exporter_sha256": "e8c43076799bb61ee150c789eab37552265640a36cc54c441bff1b393b241df4",
+  "output": {
+    "records": 48,
+    "uniqueTextures": 29,
+    "maximumError": 4,
+    "p95": 2
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

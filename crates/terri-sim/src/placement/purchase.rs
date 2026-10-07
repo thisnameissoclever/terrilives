@@ -64,7 +64,7 @@ pub fn validate_purchase(
         return Err(CannotAfford);
     }
     let footprint = definition.footprint_at(purchase.facing);
-    let grid = plan_rectangle(world, None, footprint, (purchase.x, purchase.y))?;
+    let (grid, _) = plan_rectangle(world, None, footprint, (purchase.x, purchase.y), None)?;
     Ok(PurchasePlan {
         grid,
         price,

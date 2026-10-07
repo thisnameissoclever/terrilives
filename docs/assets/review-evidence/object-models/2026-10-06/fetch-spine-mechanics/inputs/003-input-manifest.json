@@ -1,0 +1,35 @@
+{
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_author_v1.py": "5e5072ea772e134a709c52612ee74bc65c803dc3a2392574ba439a57cab15997",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_art_launch_v1.ps1": "265f9f1d2549a7b605c12725a2fdcb1aec0330ba74cab42e9cae55376b666180",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_reading_geometry.py": "7b4f19ddda10e115d3ca22c009d0f7c110270de8b1254ef9c98942f76a2f3b92",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_coupled_contact_evaluator.py": "964fefc3e5d8032db6b6369e7a1ce0a8a2c23a0dd02fe9822397197889e85507",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_arm_frame_math.py": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\seated_pose_chain_math_v1.py": "c4f653825e2d992b49c74ba814774465277d351908a298e2ba5681165b875bf5",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\audit_sofa_binding.py": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\raw\\proof.json": "860817ff7b7c30344393496451d4c81efd3eaee28eda86333db36a07e1214b9b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\seed.blend": "9f2327cf7971658121faa049ac7c74977caecb2f3f1b2fc70df7294e87113a74",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-plan-02\\proof.json": "125dc39d0c9b92e39d53639aa4828017e72960af8055cd1a75ae49f9ce0b8a93",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\bookcase_layout.py": "b0b54e75b246c778ab61db43baf88573fded03b5e0224e6dc31b477fc88df9bb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\check_bookcase_scene.py": "43a836f6a1875eb20296d12783795b1b222c260019c70953ef80f2ee6b94fc5f"
+  },
+  "seed_scene": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\seed.blend",
+  "rig": "Place 1 SIM_01_SHARED_RIG",
+  "plan": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-plan-02\\proof.json",
+  "capture": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-capture-01\\raw\\proof.json",
+  "normalized_rest": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz",
+  "phase_contract": {
+    "stock": "Original declared book/support contact only",
+    "return": "Reverse clear corridor then explicit setdown to unchanged named support",
+    "clear": "Positive actual support gap and zero unintended contacts",
+    "release": "Explicit lift before clear corridor"
+  },
+  "jobs": {
+    "render_script": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose_complete_fetch_spine_author_v1.py"
+  },
+  "outputs": {
+    "render": "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\pose-complete-fetch-spine-author-01\\raw"
+  }
+}

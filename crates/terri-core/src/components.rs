@@ -184,105 +184,131 @@ pub struct Intent {
 /// entries: removing from the front is a memmove of at most a few
 /// elements, which is cheaper than the extra indirection, and it keeps
 /// the type as plain as `CommandQueue`.
+/// Stable identity within one person's queue. IDs are never reused after clearing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QueuedOrder {
+    pub id: u64,
+    pub intent: Intent,
+    pub title_id: Option<String>,
+}
+
 #[derive(Component, Debug, Clone, Default, PartialEq, Eq)]
-pub struct IntentQueue(Vec<Intent>);
+pub struct IntentQueue {
+    entries: Vec<QueuedOrder>,
+    next_id: u64,
+}
 
 impl IntentQueue {
-    /// A queue already holding these intents, front first. For tests and
-    /// for whoever restores a save.
     pub fn from_intents(intents: Vec<Intent>) -> Self {
-        Self(intents)
-    }
-
-    /// Adds an intent at the BACK, so it is served after everything
-    /// already queued.
-    pub fn push(&mut self, intent: Intent) {
-        self.0.push(intent);
-    }
-
-    /// Adds an intent at the FRONT, so it is served next and everything
-    /// already queued waits behind it. This is what
-    /// `SimCommand::UseObjectFirst` and `SimCommand::TalkToFirst` reach:
-    /// a plain order interrupts as soon as it can be served, and the
-    /// interrupted orders resume. While it cannot be served (its object
-    /// reserved, its partner busy) it waits at the front and the current
-    /// action carries on.
-    pub fn push_front(&mut self, intent: Intent) {
-        self.0.insert(0, intent);
-    }
-
-    /// Removes and returns the BACK intent - the one that would have been
-    /// served last. The drain uses it to make room for a front placement
-    /// on a full queue, which is the one place an accepted order is ever
-    /// dropped; see `max_queued_intents` in `content/tuning.toml`.
-    pub fn pop_back(&mut self) -> Option<Intent> {
-        self.0.pop()
-    }
-
-    /// Whether `intent` is queued anywhere, front or not.
-    ///
-    /// **The intent being served is not always the front.** A front
-    /// placement lands AHEAD of the intent the sim is carrying out, and
-    /// stays there while that front intent cannot be served yet (its
-    /// object reserved, its partner busy), so the served intent can sit
-    /// second or later. Every guard that asks "is the current commitment
-    /// one of the player's orders" has to look at the whole queue, which
-    /// is what this and [`IntentQueue::remove_first`] are for.
-    pub fn contains(&self, intent: Intent) -> bool {
-        self.0.contains(&intent)
-    }
-
-    /// Whether any queued intent names `object`, whatever it asks of it.
-    /// What a sale asks before it removes the object ([SL-rules]).
-    pub fn names(&self, object: Entity) -> bool {
-        self.0.iter().any(|queued| queued.object == object)
-    }
-
-    /// Removes the first queued copy of `intent`, wherever it sits, and
-    /// says whether there was one. What a completed directed action pops:
-    /// the order it carried out, not whatever happens to be at the front.
-    pub fn remove_first(&mut self, intent: Intent) -> bool {
-        match self.0.iter().position(|queued| *queued == intent) {
-            Some(index) => {
-                self.0.remove(index);
-                true
-            }
-            None => false,
+        let mut queue = Self::default();
+        for intent in intents {
+            queue.push(intent);
         }
+        queue
     }
 
-    /// The intent being served right now, or `None` when the agent is
-    /// back on autonomy.
-    pub fn front(&self) -> Option<Intent> {
-        self.0.first().copied()
-    }
-
-    /// Removes and returns the FRONT intent. See the type's docs.
-    pub fn pop(&mut self) -> Option<Intent> {
-        if self.0.is_empty() {
+    pub fn from_entries(entries: Vec<QueuedOrder>, next_id: u64) -> Option<Self> {
+        let mut ids = std::collections::BTreeSet::new();
+        if entries.iter().any(|e| e.id >= next_id || !ids.insert(e.id)) {
             return None;
         }
-        Some(self.0.remove(0))
+        Some(Self { entries, next_id })
     }
-
-    /// Drops every intent, returning the agent to autonomy. This is what
-    /// `SimCommand::CancelIntents` reaches.
+    pub fn entries(&self) -> &[QueuedOrder] {
+        &self.entries
+    }
+    pub fn next_id(&self) -> u64 {
+        self.next_id
+    }
+    pub fn can_allocate(&self) -> bool {
+        self.next_id < u64::MAX
+    }
+    pub fn insert_order(
+        &mut self,
+        intent: Intent,
+        title_id: Option<String>,
+        front: bool,
+    ) -> Option<u64> {
+        let next = self.next_id.checked_add(1)?;
+        let id = self.next_id;
+        let entry = QueuedOrder {
+            id,
+            intent,
+            title_id,
+        };
+        if front {
+            self.entries.insert(0, entry);
+        } else {
+            self.entries.push(entry);
+        }
+        self.next_id = next;
+        Some(id)
+    }
+    pub fn order(&self, id: u64) -> Option<&QueuedOrder> {
+        self.entries.iter().find(|e| e.id == id)
+    }
+    pub fn remove_order(&mut self, id: u64) -> Option<QueuedOrder> {
+        let index = self.entries.iter().position(|e| e.id == id)?;
+        Some(self.entries.remove(index))
+    }
+    pub fn push(&mut self, intent: Intent) {
+        self.insert_order(intent, None, false);
+    }
+    pub fn push_front(&mut self, intent: Intent) {
+        self.insert_order(intent, None, true);
+    }
+    pub fn pop_back_order(&mut self) -> Option<QueuedOrder> {
+        self.entries.pop()
+    }
+    pub fn pop_back(&mut self) -> Option<Intent> {
+        self.pop_back_order().map(|e| e.intent)
+    }
+    /// Ordinary pair helpers cannot complete a selected-title order.
+    pub fn contains(&self, intent: Intent) -> bool {
+        self.entries
+            .iter()
+            .any(|e| e.title_id.is_none() && e.intent == intent)
+    }
+    pub fn names(&self, object: Entity) -> bool {
+        self.entries.iter().any(|e| e.intent.object == object)
+    }
+    pub fn remove_first(&mut self, intent: Intent) -> bool {
+        if let Some(index) = self
+            .entries
+            .iter()
+            .position(|e| e.title_id.is_none() && e.intent == intent)
+        {
+            self.entries.remove(index);
+            true
+        } else {
+            false
+        }
+    }
+    pub fn front(&self) -> Option<Intent> {
+        self.entries.first().map(|e| e.intent)
+    }
+    pub fn pop(&mut self) -> Option<Intent> {
+        if self.entries.is_empty() {
+            None
+        } else {
+            Some(self.entries.remove(0).intent)
+        }
+    }
+    pub fn retain(&mut self, keep: impl FnMut(&QueuedOrder) -> bool) {
+        self.entries.retain(keep);
+    }
     pub fn clear(&mut self) {
-        self.0.clear();
+        self.entries.clear();
     }
-
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.entries.is_empty()
     }
-
     pub fn len(&self) -> usize {
-        self.0.len()
+        self.entries.len()
     }
-
-    /// Intents in service order. Save snapshots need the whole queue, not
-    /// only its front item, or a reload can silently discard player orders.
-    pub fn as_slice(&self) -> &[Intent] {
-        &self.0
+    /// Borrowed intent projection for consumers that do not need queue metadata.
+    pub fn intents(&self) -> impl ExactSizeIterator<Item = &Intent> {
+        self.entries.iter().map(|e| &e.intent)
     }
 }
 
@@ -853,7 +879,18 @@ pub struct Colourway(pub u32);
 /// eventually death, which is what makes index reuse reachable at all.
 ///
 /// Allocated by [`SimIdAllocator`], monotonically, never reused.
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Component,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    serde::Serialize,
+    serde::Deserialize,
+)]
 pub struct SimId(pub u32);
 
 /// The counter [`SimId`]s come from. A world resource rather than a static,
@@ -1236,7 +1273,7 @@ mod intent_queue_tests {
         );
         assert_eq!(queue.pop(), Some(intent(c, 7)));
         assert_eq!(
-            queue.as_slice(),
+            queue.intents().copied().collect::<Vec<_>>(),
             &[intent(a, 0), intent(b, 1), intent(c, 2)],
             "everything that was waiting resumes in its original order"
         );
@@ -1252,7 +1289,10 @@ mod intent_queue_tests {
             Some(intent(c, 2)),
             "pop_back takes the intent that would have been served LAST"
         );
-        assert_eq!(queue.as_slice(), &[intent(a, 0), intent(b, 1)]);
+        assert_eq!(
+            queue.intents().copied().collect::<Vec<_>>(),
+            &[intent(a, 0), intent(b, 1)]
+        );
         assert_eq!(queue.front(), Some(intent(a, 0)), "the front is untouched");
 
         let mut empty = IntentQueue::default();
@@ -1277,7 +1317,7 @@ mod intent_queue_tests {
 
         assert!(queue.remove_first(intent(a, 0)));
         assert_eq!(
-            queue.as_slice(),
+            queue.intents().copied().collect::<Vec<_>>(),
             &[intent(b, 1), intent(a, 3), intent(a, 0)],
             "the FIRST copy goes; the front and the later copy stay"
         );
@@ -1446,5 +1486,67 @@ mod identity_tests {
              {:?}",
             faint.entries()
         );
+    }
+}
+
+#[cfg(test)]
+mod order_identity_tests {
+    use super::*;
+    fn order() -> Intent {
+        Intent {
+            cleanup: None,
+            chore: None,
+            object: Entity::PLACEHOLDER,
+            interaction: 0,
+        }
+    }
+    #[test]
+    fn exact_title_orders_survive_mutators_and_never_reuse_ids() {
+        let mut q = IntentQueue::default();
+        let a = q.insert_order(order(), Some("a".into()), false).unwrap();
+        let b = q.insert_order(order(), Some("b".into()), true).unwrap();
+        assert_ne!(a, b);
+        assert!(!q.remove_first(order()));
+        assert_eq!(q.remove_order(a).unwrap().title_id.as_deref(), Some("a"));
+        assert_eq!(q.order(b).unwrap().title_id.as_deref(), Some("b"));
+        q.clear();
+        assert!(q.insert_order(order(), None, false).unwrap() > b);
+    }
+    #[test]
+    fn all_mutators_keep_remaining_metadata_and_allocator() {
+        let mut q = IntentQueue::from_intents(vec![order(), order()]);
+        let chosen = q
+            .insert_order(order(), Some("chosen".into()), true)
+            .unwrap();
+        q.push_front(order());
+        assert_eq!(q.next_id(), 4);
+        q.pop();
+        q.pop_back();
+        assert_eq!(
+            q.entries().iter().map(|e| e.id).collect::<Vec<_>>(),
+            vec![chosen, 0]
+        );
+        q.retain(|e| e.title_id.is_some());
+        assert_eq!(q.entries()[0].title_id.as_deref(), Some("chosen"));
+        assert_eq!(q.next_id(), 4);
+        q.clear();
+        assert_eq!(q.next_id(), 4);
+        assert_eq!(q.insert_order(order(), None, false), Some(4));
+        let last = q.pop_back_order().unwrap();
+        assert_eq!(last.id, 4);
+        assert!(q.is_empty());
+        assert_eq!(q.next_id(), 5);
+        let mut exhausted = IntentQueue::from_entries(vec![], u64::MAX).unwrap();
+        exhausted.push(order());
+        exhausted.push_front(order());
+        assert!(exhausted.is_empty());
+        assert_eq!(exhausted.next_id(), u64::MAX);
+    }
+    #[test]
+    fn exhausted_allocator_refuses_without_mutation() {
+        let mut q = IntentQueue::from_entries(Vec::new(), u64::MAX).unwrap();
+        let before = q.clone();
+        assert_eq!(q.insert_order(order(), None, true), None);
+        assert_eq!(q, before);
     }
 }

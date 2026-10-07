@@ -1,0 +1,24 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_independent_export_v1.py",
+    ".tmp/object-models/pose-complete-independent-renders-01/armchair"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk fb9011 returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 7.7127457,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "7633ba90d51a4a40e2b569888ba49db4acd1e5e5b1dc347f7037f2e67bb5a5e5"
+  },
+  "exporter_sha256": "e8c43076799bb61ee150c789eab37552265640a36cc54c441bff1b393b241df4",
+  "output": {
+    "records": 48,
+    "uniqueTextures": 29,
+    "maximumError": 4,
+    "p95": 2
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

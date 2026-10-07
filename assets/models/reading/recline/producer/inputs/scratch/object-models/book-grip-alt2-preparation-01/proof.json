@@ -1,0 +1,749 @@
+{
+  "state": "prepared",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_pitched_edge.py": "b8ffe25d60561c55eae975df9b6598ff86d766868040de428acfcac4f3c36d29",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_book_only.py": "551031f34b8657517c6a2e1ba1cfceda8628a7a6080b024d8728f29f954bec74",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-verify-01\\proof.json": "b16044b8ed5bcb0e824cec36c4bf7469dbe3299247513e6a699469804d1f87e7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-verify-01\\case-06.npz": "6fb4c7cdcaee98bf614276af55442fa24cdd1ebbafc7d1572314f81d70e3e805",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_construct_v2.py": "1e4f31c4b14682c1712d23c0351044c0100b6eb273dfce3e2977ba71072a5372",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-original-grip-01\\proof.json": "3207d3a3acdb2d58070c32517f24fa2083040add6f4b841db290e5ba14e5120d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-original-grip-01\\case-00.npz": "0e70a5c92070fad15056c67272e87ee0c6bc5e300baf19a306eaf8581f06b56a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\owner-review-pending\\long-sofa\\candidate-01\\long-sofa-authoring.blend": "075abd2472f09d3933e541a7024f2bf9fb3b2dd67cc5b79d8c4a976f83041b76",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_shared_sofa_tucked.py": "0d2eb7c5d6ab28e2ca85733e11be6a4deb9cdcb88089b239c6a1ffcd6c67b8fd",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bathroom\\check_toilet_scene.py": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\double_bed_sleep.py": "719d9d69dbdace0b3772dfd2f46f3c3ce5f2f701d62ebd1b7b94ef36ee759138",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_shared_sofa_coupled.py": "5c57df560d0c7f9a882ccd71665c470e511b651ae10c92799892d892b5d39651",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\measure_sofa_depth.py": "2dab649dd0b62227bc9bb5830117c8fc725f8a8f7504daf1bafc46cc318fcb96",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_witnesses.py": "5fbd021945ab84516721cbdbc60c8e15e1d43632840ce54b2459df41ef39c67a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\audit_sofa_binding.py": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\seating\\pose_profiles.py": "b26797c83012cf5f6e83f63fd1ffb579500f5be0de65a6c952b9ab337af1ce6a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_contact.py": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\kitchen\\check_stove_scene.py": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_support.py": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\bedroom\\bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_outward_torso.py": "58d113d25b8bea5486280ca37aa4bb9c613ec92a8e6866b3f339384ef159ab94",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\measure_sofa_regions.py": "2fbdc9b4fdd4321da78e69f61358a24381fe1d6e256a637c738e3d6d48409c0c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\living\\armchair_layout.py": "c5cd8cc02aba1779a1e8676cb1a6a5b808005a455b6b58cb96bd113acb1fb8c8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\seating\\neutral_pose.py": "d58755138d35d1305356aee6ad73fd982705c65a738ad7987ad6b812a2f400e7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_derived_binding_v3.py": "51fc4777f13b39f9a9763c0a1f519bf0ac4139f71f2b9781980b5db6c3a99bfa",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_derived_binding.py": "03b0d0bb3cceff9637e989c641ece4d78a5294ce863f6a9e7590c7d1f4dd0e11",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_rest_initialization.py": "4aca5e5163942e09cc9c848c8014a875d3271e45f2a02c8a3138b0384f80ccdc",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\proof.json": "050aef2b31431a15c23c0acb9060b4c9cd65a7e584e2899dfd16c46e910ea9ff",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\source-binding.npz": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\compare_original_read_grip.py": "5859e929d973bc1c13aa13a6950197f107e445361f8179ea1c0c348bd7be2f3e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\assets\\models\\sims\\sim-01\\sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\proof.json": "433ad3c33cb1eb9d5ebb1abc4dd6fb9dc8b651bae65c9e667919edac6b964823",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\derived-waist-binding.blend": "79ffb20dbeafd59278b83446d961d7384288ebca842b80a90e1110c5afe3ef9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_book_support.py": "dd54c8851972bea14b935a23a7016863ad4a99f713ccad7e2fb92b9be9cb8189",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_resting_hand_solver.py": "a4939ab506df9fab6b1cc5c0c813843dae2fcd0d8d543e683aaf287937c796a1",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-construction-02\\contract.json": "64262e7e8e06c8f34a1ed820e86b00c876c7d56334622fa7c8ad7a1c2cfe9c1a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-construction-02\\geometry.npz": "650acad9081d6472fd53cb9b868a8dd09b9f3ee3e70c918ecc4c5637609a9ef7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_verify.py": "35297efef0c1387d93f0f46dc685759e6f2fa24ef7847fee7a6fa23f96906a9f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\coherent_sofa_arm_frames_v2.py": "2ab4313400198139d78b745ac429555442a767be697de8eb5292c7f4fb246900",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_arm_frame_math.py": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_original_replay.py": "81427aa8c9c9d3b0eaa4c63dd94b1c8fed51d51c1f20da6bcdce0e16faa75239",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-pitched-edge-01\\proof.json": "dd5961a612905eb298bb36fdc69cc5d8b252d5786e804557e43d564acc899d7d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-pitched-edge-01\\geometry.npz": "e41c9a28e902a4c8035510c08d18aaa7b3eb83b7cfed9a054ae282cf9eacadf0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-better-way-review.md": "ee4f2dfd0bd931212f92d7039e8e876e1fe2270e59cbb94e033085942c55e71c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_replay_math.py": "f42a32cd7b8100c474f1a3c53892301f31e346b588e8dd4ed08956524c327f8f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_frames.py": "1841b79f265ff0b422ca150ffa5bdbd150bcdef9bced2186aace0e5003e4b4cb",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_wrists.py": "160581d91cae76afe367109cb182eb61f73968aa0e7da267cc5141d1dfa50175",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_evaluator.py": "29ff6322d252189167c4b22b9ef2e14d2069fb2dab468fe6f0e78b8477a44452",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_scene_v2.py": "050fb4d57e6889e3eb846afffc614f255e554f2a23a6458089f0dc774a8e126a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_memo.py": "3d38f080899ba8a362ec59de0c7d9f7a0f2d4512ce00f8542569dd062061c81c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coherent-arms-02\\proof.json": "9950b21e8f9dc9c1423702780a8598bc7b90355bdbc7bfe9da49dbd7d97aa4c9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-frame-controls-01\\proof.json": "10d500df7c55287ab67f48398846c71104b05d3c4b8f5fbf1785dfc24ad955a2",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_wrist_controls.py": "4201151701aff14232439fbccbb965d971d29d3d6fae232a1065592e54ad9b32",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-01\\proof.json": "a0b059a8d4032e53d23df70f78b9d659d9038f7d4f22ed889a34fa5177a7524a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-01\\retained-scene.npz": "b894cfd9803a5ac4036005dcb3f5737fcc9a8e1f58f2c065a55f537cd68e32ff",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-hand-support-01\\proof.json": "8bd428b2bd047b9e6e7bc1895b14ca9611b4e28a6ca83af94592513430c47d9d",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-hand-support-01\\resting-geometry.npz": "660de1f0b3b83b98a5d42106b8ad51913b40d3909515c21d41a78675245f779f",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-hand-frame-diagnosis-01\\proof.json": "980e0f8cdcbec2d71f3061281380db8380672b9ad0f55fb38c0f1b5104529500",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-wrist-controls-01\\proof.json": "c41dfb491ee21f05c4946c1b0112275512e0797fb28a38a7d2f6c2a54268661a",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_hand_support.py": "9fe21e797c8e76cb5ea857aedbac7d5a3df1036f838b056a6210c03cbdc912d7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_coherent_arms_v2.py": "237f8c0b6e70109cd9e93fcab28ee532ea827f317751d4fce01593dc12b55e31",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\probe_sofa_resting_clearance.py": "5ccba5c28925d72d6fc5f0433722c99612b7f3fd749b780fa09f5358c30bee51",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_resting_clearance_frames.py": "94eacda7911e82d95a994341043b56120988222563ca5efbcd08d5e8d126d2f5",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\derive_lap_support_adjustment.py": "865ca0732f008c27c01d2de8758725b3098190e9d6f03334597eb18f5ccb170c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coherent-arms-02\\geometry.npz": "bd016716cb5b8c4ece687d89eedd4e60797de1d1f6ced64e0893b343bbdb37db",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-lap-support-adjustment-01\\proof.json": "52066b18d4915003fdf2e573b1a5fd5c778818eace16c47fb92b3d4d12c81220",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-lap-support-adjustment-01\\witnesses.npz": "34bf0f44d8fa96f9cc829bc0411744e18e83fe9835ec9be328d21b1e5a66195e",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_controls.py": "1cbb69ed086cd87a7726b798280956ff66cc38f4f3f342b6ed56c4b90aecf494",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coupled-contact-controls-01\\proof.json": "0915d4e0cc7aa2d6fa76b5003d89a6d65e5cb7a5c6126429541762b680a55db9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coupled-contact-segments-01\\segments.npz": "76abefc8e14403ba48dfe736b4e1860afc3ec3587728f36279d9b22386d30fc8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coupled-contact-neutral-shoulders-01\\proof.json": "5cc9f05c0a3ca89066f283cc19613061104a481037eee6b7e1f555b719217873",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_coupled_contact_evaluator_v2.py": "f85da3c51d5a82ff8c3161190b205ffffac6fedd842c955572c8032b689d4bcf",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_coupled_contact_evaluator.py": "964fefc3e5d8032db6b6369e7a1ce0a8a2c23a0dd02fe9822397197889e85507",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver.py": "7b83f3fcf7f55885b056a9db4f034c179c3bce0f5775b7b7b50a0762e30181a3",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_controls_v2.py": "94330b872c102be9dd47da476eb0d9c090cdebcb4c1fdf31827bf2ef9d7713c9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_memo_controls.py": "bb74558e3c749cb2e7a7b7ace433586761db597060a01b060ba0d7dee3a35767",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_memo_controls_v2.py": "4cd0ba53307b694b341976adaa1eb0eb7f525728f14640299db748ae918d6238",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_scene.py": "1a8a3b2d8fd5ae348501ecb0e083b6e8524e846ad53a69facafbdab57f197ed7",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-resting-clearance-01\\proof.json": "f3bc4798b9d84219c2fe068b919fb6c453784a85c18e7f8a7acb29b30a16c27b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-resting-clearance-01\\phase-00.npz": "8aef97c664cf93416f9cd2ffbbc3d4052a4cdbeb3e8f060f9cf267746deb8f50",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-02\\proof.json": "6d04ddeff3519779a38a2bae97926bc0d274ea5b0d8eb054bcad451e58021b0c",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_alt2_domain_design.py": "4e843a1eacc3c99621898d5e6c76fc0fd2716c599322baaabc0b80acefad1eb9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-original-replay-01\\proof.json": "19937ce57f68e8aaceee0f504b7505bf6f8f7dce5e7784be7010d4ca0aec7c20",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-original-replay-01\\reopened.npz": "03b218f75845b56a3ae6c0ae7666ee0ee6ccfe5387e16cefc8c42d45897f1bb8",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book-grip-original-replay-01\\witnesses.npz": "2bd94ed514c7755a2d9e38592e261371cd286fdb9755b1683fac0039939b9a5b",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\book_grip_alt2_prepare.py": "da8359c5c94fdbc2b899be4d112398c9e75b673bddd32c367f91d58516a29d9e"
+  },
+  "scope": "One numerical static proposal; source geometry and actions untouched; actual Blender skin/contact acceptance still required",
+  "objective": "Maximize the smallest geometric margin in metres across reach, torso, lap, gaze-front and complete rigid-head/grasp separation; no collision can be traded against another score",
+  "focus": {
+    "source_part": "Reading book pages",
+    "source_point": [
+      -0.08509915322065353,
+      -0.422638364136219,
+      0.8873771876096725
+    ],
+    "meaning": "Center of the actual left page, rather than the spine gap"
+  },
+  "fixed_head_parts": [
+    "Dark pupil",
+    "Dark pupil.001",
+    "Ear",
+    "Ear.001",
+    "Eye white",
+    "Eye white.001",
+    "HAIR_01_TRIPO_CURL",
+    "Hazel iris",
+    "Hazel iris.001",
+    "Inner ear",
+    "Inner ear.001",
+    "Quiet closed smile",
+    "Sculpted head",
+    "Small eye catchlight",
+    "Small eye catchlight.001",
+    "Small rounded nose",
+    "Soft eyebrow",
+    "Soft eyebrow.001",
+    "Upper lid outline",
+    "Upper lid outline.001"
+  ],
+  "head_forward_envelope": 0.061157005693475035,
+  "optimizer": {
+    "success": true,
+    "message": "Optimization terminated successfully",
+    "iterations": 11,
+    "parameters": [
+      1.0968180390984845,
+      -0.4950898328523877,
+      0.0,
+      0.21452697403128868,
+      0.0623039629270789
+    ],
+    "constraint_calls": 79
+  },
+  "proposal": {
+    "head_pitch_degrees": 62.843044534158075,
+    "head_yaw_degrees": -28.366557902279187,
+    "page_inclination_toward_reader_degrees": 0.0,
+    "eye_to_page_distance": 0.21452697403128868,
+    "common_margin": 0.0623039629270789,
+    "margins": [
+      0.062303962908462324,
+      0.06475536369787696,
+      0.06230396292435098,
+      0.20041840192285124,
+      0.06230396292573928,
+      0.3667067642815706,
+      0.07847397523425767,
+      0.35053675197305223
+    ],
+    "reach": {
+      "L": 0.4366885304535829,
+      "R": 0.4205185181450645
+    },
+    "transformed_eye": [
+      -0.15776683823873883,
+      -0.35219116220130475,
+      1.003703758508872
+    ],
+    "gaze": [
+      -0.16944744751706214,
+      -0.31382416864043194,
+      -0.9342387027452321
+    ],
+    "reading_point": [
+      -0.19411788641189975,
+      -0.41951491147762143,
+      0.8032843565860207
+    ],
+    "page_normal": [
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "arm_constructions": [
+    {
+      "side": "L",
+      "source_swivel_branch": -0.6787517856250055,
+      "swivel": -0.1941910748655872,
+      "upper_arm_roll": 0.12948934698136727,
+      "objective": 2.0399814249811343,
+      "iterations": 5,
+      "blend_diagnostic": [
+        0.8858202913955808,
+        0.883701498850999
+      ],
+      "shoulder": [
+        -0.23000000417232513,
+        -0.05999999865889549,
+        0.9699999094009399
+      ],
+      "elbow": [
+        -0.3043077124253045,
+        -0.16970208841306533,
+        0.7182525300585612
+      ],
+      "wrist": [
+        -0.2826049258228886,
+        -0.3789674013455097,
+        0.6764195540296013
+      ],
+      "source_lengths": [
+        0.28448712977566726,
+        0.21450636360365494
+      ],
+      "full_frame_gate": "Actual shoulder/elbow/wrist surfaces remain mandatory; these scalar diagnostics are not acceptance"
+    },
+    {
+      "side": "R",
+      "source_swivel_branch": 0.8890340363818275,
+      "swivel": -0.305442637572124,
+      "upper_arm_roll": 0.20652594748005543,
+      "objective": 1.883731758218735,
+      "iterations": 6,
+      "blend_diagnostic": [
+        0.8538491010529753,
+        0.9546300564503718
+      ],
+      "shoulder": [
+        0.23000000417232513,
+        -0.05999999865889549,
+        0.9699999094009399
+      ],
+      "elbow": [
+        0.16226058871965643,
+        -0.14074181935320673,
+        0.7057555963247721
+      ],
+      "wrist": [
+        0.049413820921210105,
+        -0.32290192684134306,
+        0.6959432437109703
+      ],
+      "source_lengths": [
+        0.28448712977566726,
+        0.21450636360365494
+      ],
+      "full_frame_gate": "Actual shoulder/elbow/wrist surfaces remain mandatory; these scalar diagnostics are not acceptance"
+    }
+  ],
+  "target_frames": {
+    "root": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "hips": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0,
+        -0.05999999865889549
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.5299999713897705
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "spine": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0,
+        -0.05999999865889549
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.6999999284744263
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "head": [
+      [
+        0.8799260328374056,
+        -0.44601120619732687,
+        -0.16371981764902466,
+        0.0
+      ],
+      [
+        -0.47511069945332224,
+        -0.8260324840543761,
+        -0.3032163447519312,
+        -0.05999999865889549
+      ],
+      [
+        0.0,
+        0.34459299240662433,
+        -0.9387521828292265,
+        1.0699999332427979
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "upper_arm.L": [
+      [
+        0.9495785655628753,
+        -0.26119870515978044,
+        -0.17337898992471892,
+        -0.23000000417232513
+      ],
+      [
+        0.06201464990255689,
+        -0.3856133143859659,
+        0.9205738632656183,
+        -0.05999999865889549
+      ],
+      [
+        -0.3073065679072776,
+        -0.8849160582166555,
+        -0.3499760048426016,
+        0.9699999094009399
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "forearm.L": [
+      [
+        0.9820420626325791,
+        0.10117542468495572,
+        -0.1591826966283282,
+        -0.3043077124253045
+      ],
+      [
+        0.12930101971466132,
+        -0.9755662299556653,
+        0.1776256713659478,
+        -0.16970208841306533
+      ],
+      [
+        -0.13732081989806394,
+        -0.1950196050727194,
+        -0.9711384882508416,
+        0.7182525300585612
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "hand.L": [
+      [
+        0.8349584203805555,
+        0.44884912613601713,
+        0.3183842838137804,
+        -0.2826049258228886
+      ],
+      [
+        0.5401309073944413,
+        -0.5577345135624501,
+        -0.6302180247337755,
+        -0.3789674013455097
+      ],
+      [
+        -0.1052959556176076,
+        0.6981867032029526,
+        -0.7081358774013367,
+        0.6764195540296013
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "upper_arm.R": [
+      [
+        0.8866228128283069,
+        -0.23811049166019124,
+        0.3964685960143853,
+        0.23000000417232513
+      ],
+      [
+        -0.45390941232048526,
+        -0.2838152127561544,
+        0.8446379150305701,
+        -0.05999999865889549
+      ],
+      [
+        -0.08859361623292998,
+        -0.9288439807998433,
+        -0.3597209483862228,
+        0.9699999094009399
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "forearm.R": [
+      [
+        0.8287660992772902,
+        -0.5260761818370433,
+        -0.19072427897053285,
+        0.16226058871965643
+      ],
+      [
+        -0.4998693397344264,
+        -0.8492054720767419,
+        0.1702288415515988,
+        -0.14074181935320673
+      ],
+      [
+        -0.2515149497317242,
+        -0.045743841678268275,
+        -0.9667711023356933,
+        0.7057555963247721
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "hand.R": [
+      [
+        0.8811668789243491,
+        -0.3613539571292655,
+        -0.3048771674569115,
+        0.049413820921210105
+      ],
+      [
+        -0.46263479402802365,
+        -0.7919458481418584,
+        -0.3984732294668292,
+        -0.32290192684134306
+      ],
+      [
+        -0.0974578937835005,
+        0.4921819818115689,
+        -0.8650253122820202,
+        0.6959432437109703
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "thigh.L": [
+      [
+        1.0,
+        7.105427357601002e-15,
+        -8.74227694680485e-08,
+        -0.12399999797344208
+      ],
+      [
+        1.116817571755746e-08,
+        -0.9918064475059509,
+        0.12774893641471863,
+        -0.05999999865889549
+      ],
+      [
+        -8.67064784415561e-08,
+        -0.12774893641471863,
+        -0.9918064475059509,
+        0.5299999713897705
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "shin.L": [
+      [
+        1.0,
+        7.501804048565177e-15,
+        -7.273803954988e-15,
+        -0.12399999052286148
+      ],
+      [
+        8.36955457467637e-15,
+        0.19991233944892883,
+        0.9798139929771423,
+        -0.42696842551231384
+      ],
+      [
+        -6.25585585260378e-15,
+        -0.9798139929771423,
+        0.19991233944892883,
+        0.48273298144340515
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "foot.L": [
+      [
+        -1.0,
+        5.329070518200751e-15,
+        8.742275525719378e-08,
+        -0.12399999052286148
+      ],
+      [
+        1.4155343563970746e-15,
+        -1.0,
+        7.450580596923828e-08,
+        -0.35499998927116394
+      ],
+      [
+        8.742279788975793e-08,
+        7.450580596923828e-08,
+        1.0,
+        0.1300000101327896
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "thigh.R": [
+      [
+        1.0,
+        7.105427357601002e-15,
+        -8.74227694680485e-08,
+        0.12399999797344208
+      ],
+      [
+        1.116817571755746e-08,
+        -0.9918064475059509,
+        0.12774893641471863,
+        -0.05999999865889549
+      ],
+      [
+        -8.67064784415561e-08,
+        -0.12774893641471863,
+        -0.9918064475059509,
+        0.5299999713897705
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "shin.R": [
+      [
+        1.0,
+        7.501804048565177e-15,
+        -7.273803954988e-15,
+        0.12399999052286148
+      ],
+      [
+        8.36955457467637e-15,
+        0.19991233944892883,
+        0.9798139929771423,
+        -0.42696842551231384
+      ],
+      [
+        -6.25585585260378e-15,
+        -0.9798139929771423,
+        0.19991233944892883,
+        0.48273298144340515
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "foot.R": [
+      [
+        -1.0,
+        5.329070518200751e-15,
+        8.742275525719378e-08,
+        0.12399999797344208
+      ],
+      [
+        1.4155343563970746e-15,
+        -1.0,
+        7.450580596923828e-08,
+        -0.35499995946884155
+      ],
+      [
+        8.742279788975793e-08,
+        7.450580596923828e-08,
+        1.0,
+        0.12999998033046722
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "book": [
+      [
+        0.9999999267886602,
+        -1.030643729010771e-09,
+        5.624264229033397e-10,
+        -0.11011789094164376
+      ],
+      [
+        -5.624264256015433e-10,
+        -5.293499248949551e-10,
+        -0.9999999678167334,
+        -0.41451495769238966
+      ],
+      [
+        -1.0306436947813597e-09,
+        0.9999999849388523,
+        5.293502559026725e-10,
+        0.7942843743551183
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "grasp_transform": [
+    [
+      0.9978095426826525,
+      -0.047005653432403136,
+      0.04654659038885045,
+      -0.1703759141980209
+    ],
+    [
+      3.901305063160344e-09,
+      0.7036285622823752,
+      0.7105679744686197,
+      -0.7526762974125463
+    ],
+    [
+      -0.06615222242249014,
+      -0.7090115054678807,
+      0.7020872941328132,
+      -0.12501685287456132
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "head_transform": [
+    [
+      0.8799260328374056,
+      0.21685458998262938,
+      -0.4227342705985532,
+      0.4653369164280278
+    ],
+    [
+      -0.47511069945332224,
+      0.4016242936342127,
+      -0.7829225696247328,
+      0.801824555653281
+    ],
+    [
+      0.0,
+      0.8897595256957271,
+      0.4564296073149885,
+      0.6350058542342069
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "elapsed_seconds": 0.506083199987188,
+  "inputs_unchanged": true
+}

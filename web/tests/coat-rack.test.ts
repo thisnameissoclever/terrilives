@@ -39,10 +39,10 @@ it('preserves coat rack identity, saved placement and all four directions', () =
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.objectName(14)).toBe('Vertical Filing for Outerwear');
+    expect(sim.objectName(14)).toBe('Coat rack');
     expect(sim.interactionLabels(14)).toEqual([]);
-    expect(sim.catalogue().find(row => row.name === 'Vertical Filing for Outerwear')).toMatchObject({
-      price: 35, facings: 15, baseFacing: 0,
+    expect(sim.catalogue().find(row => row.name === 'Coat rack')).toMatchObject({
+      price: 20, facings: 15, baseFacing: 0,
     });
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {
       const index = atlas.spriteIndex('offlineCoatRack' + suffix);

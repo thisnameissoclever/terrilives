@@ -892,7 +892,9 @@ fn placement_cancel_before_edit_flushes_deferred_release_and_joined_matches_spli
             .world()
             .get::<IntentQueue>(agent_entity)
             .unwrap()
-            .as_slice()[0]
+            .intents()
+            .next()
+            .unwrap()
             .object
             .index_u32(),
         object

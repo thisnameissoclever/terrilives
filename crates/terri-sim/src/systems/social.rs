@@ -1928,8 +1928,7 @@ mod tests {
             .world()
             .get::<terri_core::IntentQueue>(a)
             .expect("the sim was directed")
-            .as_slice()
-            .iter()
+            .intents()
             .map(|intent| intent.object)
             .collect();
         assert_eq!(
@@ -1994,8 +1993,7 @@ mod tests {
             .world()
             .get::<terri_core::IntentQueue>(a)
             .expect("directed")
-            .as_slice()
-            .iter()
+            .intents()
             .map(|intent| intent.object)
             .collect();
         assert_eq!(
@@ -2021,8 +2019,7 @@ mod tests {
             .world()
             .get::<terri_core::IntentQueue>(a)
             .expect("directed")
-            .as_slice()
-            .iter()
+            .intents()
             .map(|intent| intent.object)
             .collect();
         assert_eq!(

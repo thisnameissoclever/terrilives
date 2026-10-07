@@ -1,11 +1,13 @@
 import type { PlacementPreview, SimBridge } from '../bridge.js';
 import type { OverlayPauseController } from './overlay-pause.js';
+import { furnitureLabel } from './furniture-label.js';
 
 type BuilderSource = Pick<SimBridge, 'ids' | 'kinds' | 'positions' | 'count' |
   'objectName' | 'objectFacing' | 'objectFacingMask' | 'footprintWidths' |
   'footprintDepths' | 'placementPreview' | 'placeObject' | 'lotRevision' |
   'lastPlacementResult' | 'salePreview' | 'sellObject' | 'lastSaleResult' |
-  'colourwayNames' | 'objectColourway' | 'setColourway' | 'lastColourwayResult'>;
+  'colourwayNames' | 'objectColourway' | 'setColourway' | 'lastColourwayResult'> &
+  Partial<Pick<SimBridge, 'objectDetails'>>;
 
 export interface BuilderObject { readonly id: number; readonly name: string }
 export interface BuilderHooks { changed(): void; enter(): void; exit(): void }
@@ -115,7 +117,7 @@ export class FurnitureBuilder {
     const facing = this.source.objectFacing(object);
     if (facing === null) return;
     this.selected = object;
-    this.name = this.source.objectName(object);
+    this.name = this.identity(object);
     this.mask = this.source.objectFacingMask(object);
     this.original = { x: Math.floor(x - (width - 1) / 2),
       y: Math.floor(y - (depth - 1) / 2), facing };
@@ -308,7 +310,7 @@ export class FurnitureBuilder {
     const ids = Array.from(this.source.ids());
     const kinds = Array.from(this.source.kinds());
     this.objects = ids.filter((_, row) => kinds[row] === 1)
-      .map(id => ({ id, name: this.source.objectName(id) }));
+      .map(id => ({ id, name: this.identity(id) }));
   }
 
   private query(x: number, y: number, facing: number): void {
@@ -326,6 +328,10 @@ export class FurnitureBuilder {
     this.saleRefusal = sale.reason;
     this.colourway = this.source.objectColourway(this.selected);
     this.hooks.changed();
+  }
+
+  private identity(entity: number): string {
+    return furnitureLabel(this.source, entity);
   }
 
   private clearSelection(): void {

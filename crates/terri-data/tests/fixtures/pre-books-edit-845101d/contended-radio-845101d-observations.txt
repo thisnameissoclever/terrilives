@@ -1,0 +1,1 @@
+admission_tick 1 path_deadline 66 active_tick 65 viewer 35 waiting 36 remaining 25 next 24 lease SavedDiner { person: 35, station: 16, chair: Some(18), setting: None, endpoint: (11, 3), obstructing: [] }

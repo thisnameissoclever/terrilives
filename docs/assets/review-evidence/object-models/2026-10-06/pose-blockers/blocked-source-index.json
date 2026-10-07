@@ -1,0 +1,542 @@
+{
+  "state": "rejected_or_incomplete_sources",
+  "accepted_runtime_art": false,
+  "source_files": [
+    {
+      "original": ".tmp/object-models/pose_complete_art_launch_v1.ps1",
+      "original_sha256": "265f9f1d2549a7b605c12725a2fdcb1aec0330ba74cab42e9cae55376b666180",
+      "durable": "scratch/pose_complete_art_launch_v1.ps1",
+      "durable_sha256": "265f9f1d2549a7b605c12725a2fdcb1aec0330ba74cab42e9cae55376b666180",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_clothed_lap_v1.py",
+      "original_sha256": "ce23dae1add8d2de69aa710be228982fdbade745abac6ccc36989c8828722b3f",
+      "durable": "scratch/pose_complete_clothed_lap_v1.py",
+      "durable_sha256": "ce23dae1add8d2de69aa710be228982fdbade745abac6ccc36989c8828722b3f",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_clothed_author_v1.py",
+      "original_sha256": "fe8febb7e2ae0f26ca85d321e4b4fd42a29ab0223005abf6245e3bb6cb18ad3a",
+      "durable": "scratch/pose_complete_clothed_author_v1.py",
+      "durable_sha256": "fe8febb7e2ae0f26ca85d321e4b4fd42a29ab0223005abf6245e3bb6cb18ad3a",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_supported_author_frames_v1.py",
+      "original_sha256": "430b3c58f10dcabd668e7a0fca85df7c4b59f6ee0b352e18c39da6b373517b1f",
+      "durable": "scratch/pose_complete_supported_author_frames_v1.py",
+      "durable_sha256": "430b3c58f10dcabd668e7a0fca85df7c4b59f6ee0b352e18c39da6b373517b1f",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_correct_cached_v2.py",
+      "original_sha256": "7c45ad825ba5155a7f09dd22cab1d901aeebda5ce9401cccba540f42211c74ae",
+      "durable": "scratch/pose_complete_correct_cached_v2.py",
+      "durable_sha256": "7c45ad825ba5155a7f09dd22cab1d901aeebda5ce9401cccba540f42211c74ae",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_placement_author_v1.py",
+      "original_sha256": "00cbe3c1f24c2d24dba29f9425aba5096f0a03f1f50a7fb13621ae5533ae869b",
+      "durable": "scratch/pose_complete_placement_author_v1.py",
+      "durable_sha256": "00cbe3c1f24c2d24dba29f9425aba5096f0a03f1f50a7fb13621ae5533ae869b",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_reader_support_author_v1.py",
+      "original_sha256": "33261b30ed66424bbd0ff380331c24e3b1292cda49929a0f078320cf31420111",
+      "durable": "scratch/pose_complete_reader_support_author_v1.py",
+      "durable_sha256": "33261b30ed66424bbd0ff380331c24e3b1292cda49929a0f078320cf31420111",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_reach_author_v1.py",
+      "original_sha256": "acca4be09d4b1f6d045cdcf510ad69b2f5a1e71831a706e568dde544612801dd",
+      "durable": "scratch/pose_complete_reach_author_v1.py",
+      "durable_sha256": "acca4be09d4b1f6d045cdcf510ad69b2f5a1e71831a706e568dde544612801dd",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_reach_author_v2.py",
+      "original_sha256": "abb66905bfc1282132ea4185b17670bee51373a260c84144b6c33a129ffd423f",
+      "durable": "scratch/pose_complete_reach_author_v2.py",
+      "durable_sha256": "abb66905bfc1282132ea4185b17670bee51373a260c84144b6c33a129ffd423f",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_recline_author_v1.py",
+      "original_sha256": "d87840cb843fc730ce137163bf767e4192655622cd89d92ff553b8b5dc99a35c",
+      "durable": "scratch/pose_complete_recline_author_v1.py",
+      "durable_sha256": "d87840cb843fc730ce137163bf767e4192655622cd89d92ff553b8b5dc99a35c",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_recline_author_v2.py",
+      "original_sha256": "2ffdea10d22769bae4f5cb2a64884ed29db58f8f4929356d50716827a9ac74c0",
+      "durable": "scratch/pose_complete_recline_author_v2.py",
+      "durable_sha256": "2ffdea10d22769bae4f5cb2a64884ed29db58f8f4929356d50716827a9ac74c0",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_recline_author_v3.py",
+      "original_sha256": "851b3bab48f66a1465177a859baa8f2b3cadc19a2adb18155a0bc6035e511cfd",
+      "durable": "scratch/pose_complete_recline_author_v3.py",
+      "durable_sha256": "851b3bab48f66a1465177a859baa8f2b3cadc19a2adb18155a0bc6035e511cfd",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_recline_export_v1.py",
+      "original_sha256": "b5455c2b3a8d0e85051e604bae73247ebc4daaccbb69dc494c7cdaa00b70a777",
+      "durable": "scratch/pose_complete_recline_export_v1.py",
+      "durable_sha256": "b5455c2b3a8d0e85051e604bae73247ebc4daaccbb69dc494c7cdaa00b70a777",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_supported_transfer_v1.py",
+      "original_sha256": "49b58f4f613aed4d531659b0dd159a4a2bfc48bcbb0c1514af4be98b3f8f6168",
+      "durable": "scratch/pose_complete_supported_transfer_v1.py",
+      "durable_sha256": "49b58f4f613aed4d531659b0dd159a4a2bfc48bcbb0c1514af4be98b3f8f6168",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_independent_author_v1.py",
+      "original_sha256": "fa4e4da1f34d38d60d1bc245396eecd064b5c7d8feb12d9d83f8f084c78464ba",
+      "durable": "scratch/pose_complete_independent_author_v1.py",
+      "durable_sha256": "fa4e4da1f34d38d60d1bc245396eecd064b5c7d8feb12d9d83f8f084c78464ba",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose_complete_independent_render_v1.py",
+      "original_sha256": "ba795040f3049290e04c5c45805988899e1ec3ebbb490868730ab07caacf404e",
+      "durable": "scratch/pose_complete_independent_render_v1.py",
+      "durable_sha256": "ba795040f3049290e04c5c45805988899e1ec3ebbb490868730ab07caacf404e",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/seated_pose_chain_math_v1.py",
+      "original_sha256": "c4f653825e2d992b49c74ba814774465277d351908a298e2ba5681165b875bf5",
+      "durable": "scratch/seated_pose_chain_math_v1.py",
+      "durable_sha256": "c4f653825e2d992b49c74ba814774465277d351908a298e2ba5681165b875bf5",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/sofa_arm_frame_math.py",
+      "original_sha256": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+      "durable": "scratch/sofa_arm_frame_math.py",
+      "durable_sha256": "a2c19a181dee325f4c67937eb4109de5a417266c958907386d9a1186c2267b9d",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/sofa_contact_solver_frames.py",
+      "original_sha256": "1841b79f265ff0b422ca150ffa5bdbd150bcdef9bced2186aace0e5003e4b4cb",
+      "durable": "scratch/sofa_contact_solver_frames.py",
+      "durable_sha256": "1841b79f265ff0b422ca150ffa5bdbd150bcdef9bced2186aace0e5003e4b4cb",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/book_grip_reading_geometry.py",
+      "original_sha256": "7b4f19ddda10e115d3ca22c009d0f7c110270de8b1254ef9c98942f76a2f3b92",
+      "durable": "scratch/book_grip_reading_geometry.py",
+      "durable_sha256": "7b4f19ddda10e115d3ca22c009d0f7c110270de8b1254ef9c98942f76a2f3b92",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/classify_sofa_lap_contacts.py",
+      "original_sha256": "98c4603d4e62f3fe6e66364ea99e0afb503499cba835b2e9e4405f27957d063e",
+      "durable": "scratch/classify_sofa_lap_contacts.py",
+      "durable_sha256": "98c4603d4e62f3fe6e66364ea99e0afb503499cba835b2e9e4405f27957d063e",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/continuous_support_patch.py",
+      "original_sha256": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+      "durable": "scratch/continuous_support_patch.py",
+      "durable_sha256": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/audit_sofa_binding.py",
+      "original_sha256": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+      "durable": "scratch/audit_sofa_binding.py",
+      "durable_sha256": "4ad9ffdbd6bac3f31169f1f7ae3ca57033a15513e2e6bed7c80da6e06140a13f",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/book_grip_original_replay.py",
+      "original_sha256": "81427aa8c9c9d3b0eaa4c63dd94b1c8fed51d51c1f20da6bcdce0e16faa75239",
+      "durable": "scratch/book_grip_original_replay.py",
+      "durable_sha256": "81427aa8c9c9d3b0eaa4c63dd94b1c8fed51d51c1f20da6bcdce0e16faa75239",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/sofa_rest_initialization.py",
+      "original_sha256": "4aca5e5163942e09cc9c848c8014a875d3271e45f2a02c8a3138b0384f80ccdc",
+      "durable": "scratch/sofa_rest_initialization.py",
+      "durable_sha256": "4aca5e5163942e09cc9c848c8014a875d3271e45f2a02c8a3138b0384f80ccdc",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/probe_sofa_resting_clearance.py",
+      "original_sha256": "5ccba5c28925d72d6fc5f0433722c99612b7f3fd749b780fa09f5358c30bee51",
+      "durable": "scratch/probe_sofa_resting_clearance.py",
+      "durable_sha256": "5ccba5c28925d72d6fc5f0433722c99612b7f3fd749b780fa09f5358c30bee51",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/input-manifest.json",
+      "original_sha256": "0aa1245c0a71c021203bbef970f05089be77c7c0d9a257384636c4e3ebabd289",
+      "durable": "scratch/pose-complete-clothed-author-01/input-manifest.json",
+      "durable_sha256": "0aa1245c0a71c021203bbef970f05089be77c7c0d9a257384636c4e3ebabd289",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/prepared-frames.json",
+      "original_sha256": "1bec35325aa310f1b306937da9e7d0100aff8ff83dd5e12593067f0485ba040a",
+      "durable": "scratch/pose-complete-clothed-author-01/prepared-frames.json",
+      "durable_sha256": "1bec35325aa310f1b306937da9e7d0100aff8ff83dd5e12593067f0485ba040a",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/render-process-exit.json",
+      "original_sha256": "1e6c27a1450658bf79138d4d728d44d3c7a4ac51aa14bfba81a085901404343b",
+      "durable": "scratch/pose-complete-clothed-author-01/render-process-exit.json",
+      "durable_sha256": "1e6c27a1450658bf79138d4d728d44d3c7a4ac51aa14bfba81a085901404343b",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/cached-process-exit.json",
+      "original_sha256": "8649591132c4ee72f1bed7d2dc74e76dd01bd199e0fbdb39cc05094c0ccfec15",
+      "durable": "scratch/pose-complete-clothed-author-01/cached-process-exit.json",
+      "durable_sha256": "8649591132c4ee72f1bed7d2dc74e76dd01bd199e0fbdb39cc05094c0ccfec15",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/raw/proof.json",
+      "original_sha256": "a56e14eb22c960ee523e90d71f4d2b8c38afdf468586f1d6618e02226fc5749d",
+      "durable": "scratch/pose-complete-clothed-author-01/raw/proof.json",
+      "durable_sha256": "a56e14eb22c960ee523e90d71f4d2b8c38afdf468586f1d6618e02226fc5749d",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/raw/authored-pose.json",
+      "original_sha256": "a1af43d1b5ab61aeea4b81bdbea65aa508b20d1d6ee295bb1db877d99fef907d",
+      "durable": "scratch/pose-complete-clothed-author-01/raw/authored-pose.json",
+      "durable_sha256": "a1af43d1b5ab61aeea4b81bdbea65aa508b20d1d6ee295bb1db877d99fef907d",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/cached/proof.json",
+      "original_sha256": "ed966cc26061d5db72f83cbd27d160b6a5c8f667c3a0be7abc55c7b71ad67064",
+      "durable": "scratch/pose-complete-clothed-author-01/cached/proof.json",
+      "durable_sha256": "ed966cc26061d5db72f83cbd27d160b6a5c8f667c3a0be7abc55c7b71ad67064",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/raw/authored-geometry.npz",
+      "original_sha256": "8db111c667b4a50520f47058a83d11bf2fb082d4d1e76a558347b886f6fe8009",
+      "durable": "scratch/pose-complete-clothed-author-01/raw/authored-geometry.npz.gz",
+      "durable_sha256": "cfdcfb5670ae2809dd6fc6ebd504878b959c5aff617dd4d916d7270dfd6ef09c",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-clothed-author-01/cached/witnesses.npz",
+      "original_sha256": "583c13248480f2e1e31acf9e905f2925e698f4718a9d6735113fc5574d21f7d3",
+      "durable": "scratch/pose-complete-clothed-author-01/cached/witnesses.npz.gz",
+      "durable_sha256": "8fdbd595a5bf26a5efb33a78512ce3a70a52791db9f1df27698386caf5e6e241",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/input-manifest.json",
+      "original_sha256": "232899feb3dcd693f7f54bd095401d142dcea7b0b844d3cb127a0d22017ba804",
+      "durable": "scratch/pose-complete-placement-author-01/input-manifest.json",
+      "durable_sha256": "232899feb3dcd693f7f54bd095401d142dcea7b0b844d3cb127a0d22017ba804",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/prepared-frames.json",
+      "original_sha256": "9d9b3dd91f4f31f32b6b0689e88b7009c5efe373b5edb56b40eeddd131237b1d",
+      "durable": "scratch/pose-complete-placement-author-01/prepared-frames.json",
+      "durable_sha256": "9d9b3dd91f4f31f32b6b0689e88b7009c5efe373b5edb56b40eeddd131237b1d",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/render-process-exit.json",
+      "original_sha256": "bd4b92eb6c531a573ec65241634044150254cbde213075bea96343aab4d77bb9",
+      "durable": "scratch/pose-complete-placement-author-01/render-process-exit.json",
+      "durable_sha256": "bd4b92eb6c531a573ec65241634044150254cbde213075bea96343aab4d77bb9",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/cached-process-exit.json",
+      "original_sha256": "23e5935ebfe495859cdcae7a6349d208d8fab066bc5f19d4ce2c92a6a9ed34ad",
+      "durable": "scratch/pose-complete-placement-author-01/cached-process-exit.json",
+      "durable_sha256": "23e5935ebfe495859cdcae7a6349d208d8fab066bc5f19d4ce2c92a6a9ed34ad",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/raw/proof.json",
+      "original_sha256": "5eec156da7ba8d0b5bac34d68c09bb299287a11e20cfad315818c4d8265d25ca",
+      "durable": "scratch/pose-complete-placement-author-01/raw/proof.json",
+      "durable_sha256": "5eec156da7ba8d0b5bac34d68c09bb299287a11e20cfad315818c4d8265d25ca",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/raw/authored-pose.json",
+      "original_sha256": "6ea5251bccb876a83f3958a02812357a61912f5ed1570bb87ed5f6d64997d640",
+      "durable": "scratch/pose-complete-placement-author-01/raw/authored-pose.json",
+      "durable_sha256": "6ea5251bccb876a83f3958a02812357a61912f5ed1570bb87ed5f6d64997d640",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/cached/proof.json",
+      "original_sha256": "3d469ca12e8da519107e8bbd98b448d383358e5bbeaa4a5a0c71fb03acc9349b",
+      "durable": "scratch/pose-complete-placement-author-01/cached/proof.json",
+      "durable_sha256": "3d469ca12e8da519107e8bbd98b448d383358e5bbeaa4a5a0c71fb03acc9349b",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/raw/authored-geometry.npz",
+      "original_sha256": "ac7c3c5cef8de72dd24c5107d6d42f4ec369bd205564e0a1c14c3c59c9deee39",
+      "durable": "scratch/pose-complete-placement-author-01/raw/authored-geometry.npz.gz",
+      "durable_sha256": "e5efaf0b9fc6f101e5a51a749a1a57b73e4fca2809c93d623372453667694e53",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-placement-author-01/cached/witnesses.npz",
+      "original_sha256": "b9eac4bf4e513841f7fcd1d3fd894af5631657f9ca5a8a6b205b9fb873c7584d",
+      "durable": "scratch/pose-complete-placement-author-01/cached/witnesses.npz.gz",
+      "durable_sha256": "9890df6548b78eb3169ff651ad33847236b1ae6b64d369ce19712a89d23fe21a",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/input-manifest.json",
+      "original_sha256": "f56140214ba4f06d696a855a1914e435a89cca6aea00e301f06419fab9a85f50",
+      "durable": "scratch/pose-complete-reader-placement-author-01/input-manifest.json",
+      "durable_sha256": "f56140214ba4f06d696a855a1914e435a89cca6aea00e301f06419fab9a85f50",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/prepared-frames.json",
+      "original_sha256": "657cc70ed2624b3f0e841c1e3e1c9e4e7b2e541efb9b6e888468368a82515070",
+      "durable": "scratch/pose-complete-reader-placement-author-01/prepared-frames.json",
+      "durable_sha256": "657cc70ed2624b3f0e841c1e3e1c9e4e7b2e541efb9b6e888468368a82515070",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/render-process-exit.json",
+      "original_sha256": "2fa842203ebe341570c8d6f23924574872537f970504c1540fe91ce48635dcb6",
+      "durable": "scratch/pose-complete-reader-placement-author-01/render-process-exit.json",
+      "durable_sha256": "2fa842203ebe341570c8d6f23924574872537f970504c1540fe91ce48635dcb6",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/cached-process-exit.json",
+      "original_sha256": "2904d1c0218f6bb3b2d80cba635d009be59e469f1028fb86a426c7fb3f10c56e",
+      "durable": "scratch/pose-complete-reader-placement-author-01/cached-process-exit.json",
+      "durable_sha256": "2904d1c0218f6bb3b2d80cba635d009be59e469f1028fb86a426c7fb3f10c56e",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/raw/proof.json",
+      "original_sha256": "5444eb848556eedb09dfad7c81847185bf3b4ef3f14fcac515598bda5f74e19a",
+      "durable": "scratch/pose-complete-reader-placement-author-01/raw/proof.json",
+      "durable_sha256": "5444eb848556eedb09dfad7c81847185bf3b4ef3f14fcac515598bda5f74e19a",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/raw/authored-pose.json",
+      "original_sha256": "a81927f6872bdde74b51bdba319f4cf737f753605aaee9f56fbab653368c3dcc",
+      "durable": "scratch/pose-complete-reader-placement-author-01/raw/authored-pose.json",
+      "durable_sha256": "a81927f6872bdde74b51bdba319f4cf737f753605aaee9f56fbab653368c3dcc",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/cached/proof.json",
+      "original_sha256": "3445f46ce3efe90d9f7cf00f8ae6e9bfd24d8b138687e5bfbed533c5d163460e",
+      "durable": "scratch/pose-complete-reader-placement-author-01/cached/proof.json",
+      "durable_sha256": "3445f46ce3efe90d9f7cf00f8ae6e9bfd24d8b138687e5bfbed533c5d163460e",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/raw/authored-geometry.npz",
+      "original_sha256": "acc870ae0ffd58c9654d03953d4322ea38c4eba99058fafb881a1dd46422516f",
+      "durable": "scratch/pose-complete-reader-placement-author-01/raw/authored-geometry.npz.gz",
+      "durable_sha256": "28237840d1c734431967ddf8ebfbc3ffa288abdfc29532012da6e275aeae4769",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-author-01/cached/witnesses.npz",
+      "original_sha256": "98caf2b27374f476b0ff64b8bf0e3665fcb44878292a8197260c1da15a919e03",
+      "durable": "scratch/pose-complete-reader-placement-author-01/cached/witnesses.npz.gz",
+      "durable_sha256": "2abe991ebf4388f28b041df6517a1c517b14cd2ac3850d9058a15123681bdd43",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/input-manifest.json",
+      "original_sha256": "5b34b765c3d396a00ad66927ec56f57fdc25be2de5c98395e2d0458c0da125c2",
+      "durable": "scratch/pose-complete-reader-support-author-01/input-manifest.json",
+      "durable_sha256": "5b34b765c3d396a00ad66927ec56f57fdc25be2de5c98395e2d0458c0da125c2",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/prepared-frames.json",
+      "original_sha256": "62b99f74b37e9097e60d977d309820625b82a50eb3978609e37bd17d8341bde9",
+      "durable": "scratch/pose-complete-reader-support-author-01/prepared-frames.json",
+      "durable_sha256": "62b99f74b37e9097e60d977d309820625b82a50eb3978609e37bd17d8341bde9",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/render-process-exit.json",
+      "original_sha256": "6a2230559418d36e09e2ee3eba774321bf66bfeacb5f5439ea15b1d37770fd73",
+      "durable": "scratch/pose-complete-reader-support-author-01/render-process-exit.json",
+      "durable_sha256": "6a2230559418d36e09e2ee3eba774321bf66bfeacb5f5439ea15b1d37770fd73",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/cached-process-exit.json",
+      "original_sha256": "5839296562ebd6101f692bfcd6e73668c42a24545fdbd37877acfd3caeb1c31f",
+      "durable": "scratch/pose-complete-reader-support-author-01/cached-process-exit.json",
+      "durable_sha256": "5839296562ebd6101f692bfcd6e73668c42a24545fdbd37877acfd3caeb1c31f",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/raw/proof.json",
+      "original_sha256": "f7a754a39c07a73c3e561acfce8fbd44edceeca4fe102cbbbafa7337613689bf",
+      "durable": "scratch/pose-complete-reader-support-author-01/raw/proof.json",
+      "durable_sha256": "f7a754a39c07a73c3e561acfce8fbd44edceeca4fe102cbbbafa7337613689bf",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/raw/authored-pose.json",
+      "original_sha256": "70d2192588bed7004d834bf95704c2bd200a5de2acc745ad1e37258517177db0",
+      "durable": "scratch/pose-complete-reader-support-author-01/raw/authored-pose.json",
+      "durable_sha256": "70d2192588bed7004d834bf95704c2bd200a5de2acc745ad1e37258517177db0",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/cached/proof.json",
+      "original_sha256": "9128fd44c41a150e88ab2daea8cc472f6f162321c0ea4cba892e02d61ec6675b",
+      "durable": "scratch/pose-complete-reader-support-author-01/cached/proof.json",
+      "durable_sha256": "9128fd44c41a150e88ab2daea8cc472f6f162321c0ea4cba892e02d61ec6675b",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/raw/authored-geometry.npz",
+      "original_sha256": "ac6402c1a7b3ac3db9a7986cb194a71906c935deba821b435eb74a15916764a8",
+      "durable": "scratch/pose-complete-reader-support-author-01/raw/authored-geometry.npz.gz",
+      "durable_sha256": "ccc04d32eb201482357a0ad74973e119003c5fd9de61bebf987c42991294c236",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-support-author-01/cached/witnesses.npz",
+      "original_sha256": "e78e3765f94482677842ccfddb0433a959d8b96445d969a3634be299da55d666",
+      "durable": "scratch/pose-complete-reader-support-author-01/cached/witnesses.npz.gz",
+      "durable_sha256": "48d799a9a39efc12f62973c9d2fd0e647ccf347e28597c63852b135f49af85a2",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reach-02/input-manifest.json",
+      "original_sha256": "7d45a55eee006912b7d93cd8bb680ae0b4d6ff8f8f57f553f946c77cf179b09e",
+      "durable": "scratch/pose-complete-reach-02/input-manifest.json",
+      "durable_sha256": "7d45a55eee006912b7d93cd8bb680ae0b4d6ff8f8f57f553f946c77cf179b09e",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reach-02/render-process-exit.json",
+      "original_sha256": "b0839f6d460a4c8aa87bfba30fab0e580bc9722810d7728ac2471a0cf50215f6",
+      "durable": "scratch/pose-complete-reach-02/render-process-exit.json",
+      "durable_sha256": "b0839f6d460a4c8aa87bfba30fab0e580bc9722810d7728ac2471a0cf50215f6",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reach-02/raw/proof.json",
+      "original_sha256": "7204d15d78ebdcc49a9d7d397a4eafaceffeb6eabb41b00ceaf1c256f7ee2ec3",
+      "durable": "scratch/pose-complete-reach-02/raw/proof.json",
+      "durable_sha256": "7204d15d78ebdcc49a9d7d397a4eafaceffeb6eabb41b00ceaf1c256f7ee2ec3",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reach-02/raw/geometry-witnesses.npz",
+      "original_sha256": "60427601357c1198cc49161c0e78f7426e66683adf70842f87654c34a31c64ec",
+      "durable": "scratch/pose-complete-reach-02/raw/geometry-witnesses.npz.gz",
+      "durable_sha256": "0fc4c291bf4eab71fbe1f28acc1727c282b8c9dd321bea3e31111d58e8733e26",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/seated-pose-chain-01/raw/authored-mixed-sofa.blend",
+      "original_sha256": "36d0bc72af3629913d14076bad8362fb28c8322d47ae9bb14ef4a3e13da586d0",
+      "durable": "scratch/seated-pose-chain-01/raw/authored-mixed-sofa.blend.gz",
+      "durable_sha256": "7719769e6c7160a292d737f1b1b0d08c71b24addade74b8b65279b5577966b85",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/sofa-derived-binding-03/proof.json",
+      "original_sha256": "433ad3c33cb1eb9d5ebb1abc4dd6fb9dc8b651bae65c9e667919edac6b964823",
+      "durable": "scratch/sofa-derived-binding-03/proof.json.gz",
+      "durable_sha256": "13921f835b9785e2e14e200006db18ac13e955a1edc7616c67efa06080c886c6",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/sofa-derived-binding-03/normalized-rest.npz",
+      "original_sha256": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+      "durable": "scratch/sofa-derived-binding-03/normalized-rest.npz.gz",
+      "durable_sha256": "1cb436192f3826343c31c021e67516a8f4b4c2a1516e42c34edfb8731f2f50db",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/sofa-binding-audit-01/proof.json",
+      "original_sha256": "050aef2b31431a15c23c0acb9060b4c9cd65a7e584e2899dfd16c46e910ea9ff",
+      "durable": "scratch/sofa-binding-audit-01/proof.json.gz",
+      "durable_sha256": "bb7836d0484171aa0494cfd0aa405cf3ad564a58279fc3ddd04b9233865ad923",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/sofa-binding-audit-01/source-binding.npz",
+      "original_sha256": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695",
+      "durable": "scratch/sofa-binding-audit-01/source-binding.npz.gz",
+      "durable_sha256": "c38e6a3f0794a9393547ad38618f0fdb5401fe94e281efe0a67091a8b51d6e7f",
+      "gzip_preserves_original_bytes": true
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-supported-placement-01/proposal.json",
+      "original_sha256": "0792611825691e808563b0909acd00291b66ac3771b6811d8737015aceddb165",
+      "durable": "scratch/pose-complete-supported-placement-01/proposal.json",
+      "durable_sha256": "0792611825691e808563b0909acd00291b66ac3771b6811d8737015aceddb165",
+      "gzip_preserves_original_bytes": false
+    },
+    {
+      "original": ".tmp/object-models/pose-complete-reader-placement-01/proposal.json",
+      "original_sha256": "8d940a92eb624177b736e0aee29f3d8d08c2ed7ff6c2b55611de2170d2cf50dc",
+      "durable": "scratch/pose-complete-reader-placement-01/proposal.json",
+      "durable_sha256": "8d940a92eb624177b736e0aee29f3d8d08c2ed7ff6c2b55611de2170d2cf50dc",
+      "gzip_preserves_original_bytes": false
+    }
+  ],
+  "failed_cases": {
+    "clothed_lap": "Zero distal/torso crossings, but four neighboring sleeve/cuff rows 12/50/46/58.",
+    "outward_placement": "Outward shifts -10.721/+10.750mm clear neighbors but cause eight outer body/armrest surface rows.",
+    "forward_reader": "Reader forward49.227mm clears neighbors/furniture but hip gap5.7316mm exceeds unchanged3mm support limit.",
+    "forward_support_refit": "Lower pelvis/torso5.2316mm with both full foot frames protected: hip/seat18surface crossings; rejected despite sampled gap0.5002mm.",
+    "shelf_reach": "All24slot contacts and body/furniture clearances pass; row0 trouser folds136/138; row1/2 right sleeve folds61/12. Only row3 slots18..23 passes; no complete pickup/shelve export."
+  },
+  "invocation": "Restore unchanged scratch payload to original workspace-relative paths. Run pose_complete_art_launch_v1.ps1 -ManifestPath <case>/input-manifest.json -Job render; for shared candidates then -Job cached. Original absolute dependency paths are recorded in each frozen input-manifest.json; rebase deliberately for a new checkout. Do not execute these copied scripts in this docs directory.",
+  "limits": "Hidden Blender alias, threads2, free memory>=6GiB at start, stop own retained writer below4GiB or240seconds. Preserve source hashes; no grids, actor shrinking, binding changes or relaxed geometry/fidelity limits.",
+  "accepted_recline": {
+    "manifest": ".tmp/object-models/pose-complete-recline-renders-01/export/manifest.json",
+    "terminal": ".tmp/object-models/pose-complete-recline-renders-01/export/export-process-exit.json",
+    "sha256": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a",
+    "records": 48,
+    "maximum_error": 4,
+    "p95": 1,
+    "runtime_activation": "Not authorized by this source handoff; renderer owns durable accepted asset copy and runtime review."
+  },
+  "remaining": "Full27sofa occupancy/action catalogue is not authored or exported. Lower pickup/shelve rows remain invalid. Three placement attempts failed; no fourth was launched. Fresh-context adversarial review is required before another materially similar approach.",
+  "large_json_compression": {
+    "receipts": 2,
+    "original_bytes": 57572623,
+    "compressed_bytes": 2631067,
+    "verification": "Streamed decompression SHA256 equals original source bytes for every compressed receipt"
+  }
+}

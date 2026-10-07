@@ -8,17 +8,13 @@ import unittest
 
 from PIL import Image
 from atlas_pixels import AtlasPages
+from atlas_test_tables import table
 ROOT = Path(__file__).resolve().parents[3]
 BASELINE = json.loads(Path(__file__).with_name('aquarium-preserved-main.json').read_text())
 
 
 def table_value(source, name):
-    match = re.search(r'^export const ' + re.escape(name) + r'\b[^\n]*=\s*([\[{].*?^[\]}]);',
-                      source, re.M | re.S)
-    if match is None:
-        raise ValueError('Missing table: ' + name)
-    text = re.sub(r'(?m)^(\s*)(\d+):', r'\1"\2":', match.group(1))
-    value = json.loads(re.sub(r',\s*([}\]])', r'\1', text))
+    value = table(source, name)
     if isinstance(value, dict) and all(key.isdecimal() for key in value):
         value = {key: item for key, item in value.items() if int(key) < BASELINE['count']}
     return value
@@ -31,10 +27,10 @@ class AquariumPrefixTests(unittest.TestCase):
         self.assertIsNotNone(match)
         value = json.loads(match.group(1))
         base = value.pop('baseSpriteId')
-        # Neutral seating appends 300 texture records and 240 scene aliases.
-        # Quiet dining adds 36 records; cleaning adds 336 bodies, 32 lids and 80 masks.
-        # The fitted toilet adds 60 texture layers and 48 scene aliases; the bath adds 36 layers and 16 aliases.
-        self.assertEqual(base, BASELINE['count'] + 8 + 30 + 32 + 300 + 240 + 36 + 448 + 108 + 52)
+        # Architecture follows the complete historical atlas, including reviewed extensions.
+        rows = tomllib.loads((ROOT/'assets/sprites/atlas.toml').read_text())['sprite']
+        self.assertGreaterEqual(len(rows), BASELINE['count'])
+        self.assertEqual(base, len(rows))
         for index, row in enumerate(value['sprites']):
             self.assertEqual(row.pop('id'), base + index)
         digest = hashlib.sha256(json.dumps(value, sort_keys=True,

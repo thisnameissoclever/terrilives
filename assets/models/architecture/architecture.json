@@ -41,6 +41,21 @@
       "kind": "bathroom-actions",
       "catalog": "assets/models/bathroom/actions/export/bath-05/manifest.json",
       "canonicalSha256": "6e38f03df4fa183a98e62d072e7a52466076a460231811652f4de5b7c349c496"
+    },
+    {
+      "kind": "shelf-mask",
+      "catalog": "assets/models/bookcase/export/mask-09/manifest.json",
+      "canonicalSha256": "33f125c9a236c89db58911506b74b08ab757513f47258eb0ba66a2d636bb053b"
+    },
+    {
+      "kind": "reader-subset",
+      "catalog": "assets/models/seating/reader-subset-01/export/manifest.json",
+      "canonicalSha256": "48f6ee03bf820d33349611dc4baa2f6b6eec2f0d93fa5531f0ae6100739991de"
+    },
+    {
+      "kind": "reading-actions",
+      "catalog": "assets/models/reading/catalog.json",
+      "canonicalSha256": "577637edd3e3b06e8240af077ef3d4221bec27634c03aa746543a061ee92732b"
     }
   ],
   "historicalFiles": {

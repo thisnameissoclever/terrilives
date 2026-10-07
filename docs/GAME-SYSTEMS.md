@@ -30,7 +30,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-pets] | Pets as full characters | Not started | None |
 | [S-household-events] | Random household events and messes | Partial | Meals, attributed dishes and cleanup |
 | [S-money] | Money: deep earning and spending | Partial | Wages, purchases and sale proceeds |
-| [S-catalogue] | Furniture and visual asset volume | Partial | 30 object types, reviewed replacements and recolour controls |
+| [S-catalogue] | Furniture and visual asset volume | Partial | Authored object models, reviewed replacements and recolour controls |
 | [S-household-size] | More people in the house | Partial | Six-member capacity, creation and removal by death |
 | [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | Placement, buying/selling, walls, rooms, floors and windows |
 
@@ -127,6 +127,13 @@ Pet accidents, breakages, visitors, bills, and emergencies all need one schedule
 
 **Status: Partial.** Meals and snacks leave attributed dish piles on counters and tables. Prepared portions, cleanup claims and room visits are saved and hashed. Usage-driven floor and surface grime and bin waste have scoped chores and weekly assignments. General wear and breakage remain unbuilt. See [MC-dishes].
 
+Owned books have persistent copy identities and exactly one location: household
+inventory, a shelf slot, a borrower or the lot. Borrowed copies reserve their
+home slot until return. Physical seating claims are shared across sitting,
+reading, dining and media, separately from sleeping-place ownership. Saved
+journeys retain pickup, reading and return obligations; death leaves a
+recoverable copy rather than deleting it.
+
 Messes on the floor, a litter box that fills, a food bowl that empties, a sink that breaks, and a bin that overflows all need mutable state on objects or tiles. That state must be saved and hashed like everything else.
 
 ### [F-task-willingness] A willingness gate for unpleasant tasks
@@ -205,6 +212,13 @@ Each event has a cause in the simulation where possible, a visible result in the
 
 **What exists.** Shared Funds are saved and shown in the HUD. Tim's office job pays 120 per completed shift, purchases charge the object's price, and sales refund the tuned fraction of that price. Sales shipped in PR 101. Building walls, rooms and floors does not yet charge Funds.
 
+Book purchases deduct the title's price and create one owned copy atomically.
+Short, standard and long titles cost 6, 10 and 14 Funds. Furniture prices and
+action benefits belong to resolved model definitions. A higher price needs an
+identifiable advantage, which may trade speed, footprint or another benefit for
+comfort, capacity, convenience or an explicit cosmetic premium. The catalogue
+balance pass keeps wages and global need decay fixed.
+
 **What is missing.** Costs for walls, floors and lot expansion, plus the recurring costs and income routes below. Purchase prices and sale refunds already work.
 
 Recurring costs: rent or a mortgage, utility bills that scale with the house and what runs in it, groceries, and pet food and vet fees. Consequences for not paying, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
@@ -229,15 +243,41 @@ Paid services through [P-services]: a cleaner, a repair person, a dog walker. Re
 
 **Status: Partial.**
 
-**What exists.** The starting house places the shipped object types. The fridge offers a snack and a meal whose label follows the time of day; the kitchen sink offers washing hands and cleaning dishes. Dirty counters and tables offer Clean up, and individual visible dish piles offer Do dishes. The stove and counter also serve as stations in cooking activities. Decorative furniture and reviewed modelled art remain part of the catalogue. The original plan called for about 40 interactive objects at this stage.
+**What exists.** The catalogue supplies the starting household's furniture, appliances, lighting and decoration. Objects can offer direct actions or participate as stations in a longer activity, such as cooking. The fridge offers a snack and a meal whose label follows the time of day; the kitchen sink supports handwashing and dishwashing. Dirty surfaces offer Clean up, and visible dish piles offer Do dishes. Tables offer chair-backed sitting and collection of an eligible prepared portion. The asset workflow converts authored models and fitted character poses into game sprites.
+
+**Owner direction, 2026-10-05.** Build a category -> type -> model content hierarchy with reusable action templates and explicit extensions, overrides, and removal. Compile inherited values before play. Room associations organize the store independently and never limit placement. Keep categories mostly hidden; show familiar types and distinct model names. Bunk bed is a separate physical type; a reading-specialist armchair remains an Armchair model.
+
+**Content contract.** The compiled catalogue follows that hierarchy. A category
+is a broad family, a type is a familiar physical kind, and a model is a specific
+product. Seating includes armchairs, sofas, dining chairs, office chairs and
+ottomans; reading specialization does not create another type. Bunk beds retain
+a distinct type because their stacked sleeping places and access differ from
+ordinary beds. Both reuse sleeping behavior. Office is a room association,
+not a family of shared actions. Other is an acceptable category without implicit
+behavior. Room associations may be multiple and neither grant actions nor
+restrict placement outdoors or in another room.
+
+The catalogue must support many models of each type, such as a substantial fridge range, with different prices, capacity, benefits, costs, action durations, and unique actions. Higher prices need meaningful advantages but need not improve every dimension. Specialized products and trade-offs matter. Model flavor text describes the product's quality and character; functional buying details state the actual values. Advanced side-by-side comparisons remain a follow-up using the same resolved metadata as the store.
+
+The approved first implementation also includes owned books and shared seating. Its contract is [object models, books, and seating](superpowers/plans/2026-10-05-object-models-books-seating.md). The contract records scope and acceptance; it does not establish publication.
 
 **What is missing.** Volume, in several directions. More objects per need, at several quality and price tiers, so that buying a better bed means something. Several actions per object as the normal case. Objects for every new system: pet bowls, pet beds, a litter box, a lead hook, skill objects such as an easel or a workbench, a phone, outdoor furniture.
 
-Floor-covering choices and furniture recolour controls are shipped; distinct floor art and final palettes remain open. More wall, door and window styles and more hairstyles, clothing and bodies remain. Rotation is supported for every movable or buyable object: 29 of 30 catalogue objects have four directions, while the aquarium has one. Further visual depth layers remain separate work.
+Floor-covering choices and furniture recolour controls are shipped; distinct floor art and final palettes remain open. More wall, door and window styles and more hairstyles, clothing and bodies remain. Furniture with art for all four directions can be rotated; the aquarium has a fixed direction. Additional object layers remain part of the visual pipeline work.
 
 **The real constraint.** Each new object currently passes through modelling, rendering to sprites, a primary review, an adversarial review, and integration into the sprite sheet. The catalogue grows only as fast as that pipeline runs. Making the pipeline faster per object is worth more than any single object.
 
 **Depends on.** Pipeline capacity. [S-object-facing] for rotation.
+
+### [S-owned-books] Owned books and personal reading memory
+
+**Status: Planned.** Books are purchased titles and individual physical copies, with a saved location, home shelf slot, and borrowing claim. A bookcase starts empty in a new household and shows only its shelved copies. Existing households receive five starter titles once when migrating; purchases thereafter use the Build-mode store. Household book inventory holds unshelved copies, which must be shelved before reading.
+
+Each Sim has stable genre tastes and title-specific preferences. Their bookmark and familiarity follow the title, so another physical copy cannot reset enjoyment. A normal book takes roughly three sessions. Reading fetches a copy, chooses suitable seating, preserves progress, and returns the book before another activity even when interrupted. Copy ownership and physical seat ownership survive saves and must not conflict.
+
+Rereading immediately yields 20% of fresh entertainment and satisfaction. Without further reading, enjoyment recovers to 60% after 365 simulation days and full benefit after 730. First-time unread content retains its novelty across sessions. Seat comfort does not depend on whether the book is familiar.
+
+**Depends on.** [S-catalogue] for model definitions and store metadata, [F-object-state] for physical ownership, and [S-activity-seating] for shared seats. Elapsed simulation days suffice; the calendar interface is not required.
 
 ### [S-household-size] More people in the house
 
@@ -483,6 +523,19 @@ Shared meals and relationship rewards for some simultaneous activities provide
 foundations. Choosing compatible activities in order to spend time with liked
 Sims remains planned work.
 
+TV and radio admit up to two active users per device, each with a distinct
+reachable seat or standing destination. Social benefit requires simultaneous
+use with a participant the receiving Sim likes. The physical chair supplies
+Comfort; standing media use does not acquire a chair's benefit.
+
+Published builds accepted some multiple-user TV continuations before normal
+admission supported them. Current loading preserves those source-admissible
+continuations and validates capacity and distinct destinations before ownership
+reconciliation. Tightening validation alone
+would reject an already accepted household state or lose a participant's progress.
+Keep that compatibility decision separate from strict book-copy and physical-seat
+ownership.
+
 Sims who like each other should prefer joining or starting activities they can
 share: watching the same TV, listening to the radio together, reading alongside
 each other, and other suitable activities. This is a preference, subject to each
@@ -494,8 +547,9 @@ and reachable positions. Coordinate this with [S-activity-seating].
 ### [S-activity-seating] Prefer suitable seats for stationary activities
 
 **Status: Partial; requested 2026-10-01 for the same early delivery.** Armchair
-sitting and seated reading already have poses and animations. General seat
-preferences and the remaining seat and activity combinations are planned.
+sitting and seated reading already have poses and animations. TV and radio users
+can use suitable seats, with up to two active users per device. General seat preferences
+and the remaining seat and activity combinations are planned.
 
 Sims should prefer suitable available seats when eating, reading, watching TV
 or listening to the radio or another source. A seat must be reachable and
@@ -503,6 +557,8 @@ appropriate to the activity: eating needs a usable dining place, and watching
 or listening must preserve access to the source. This is an activity-specific
 preference, not a rule to sit for every interaction. Watching fish requires
 remaining near the fish tank; it must not send the Sim to an unrelated chair.
+
+The approved shared-seating work adds ordinary sitting and owned-book reading across Armchair, Sofa, Dining chair, Office chair, and Ottoman. Physical seats are shared across actions, including dining and the existing seated TV/radio behavior. The three-cushion sofa seats three, while existing chairs and the ottoman seat one. Reclining claims the sofa. A reading-specialist armchair improves reading comfort and entertainment rates by 1.25 relative to the standard armchair, without increasing reading speed. Autonomous preference remains affected by travel, availability, personality, and seeded randomness. Reading in beds and broader communal preferences remain later extensions.
 
 Include missing sitting poses and animations in this early slice
 [S-action-animation], [A-animations]. Reuse existing sitting and seated-reading

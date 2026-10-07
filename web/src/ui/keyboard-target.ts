@@ -4,16 +4,19 @@ import {
   socialMenuEntries,
   type Menu,
 } from './object-menu.js';
+import { furnitureLabel } from './furniture-label.js';
 
 const KIND_AGENT = 0;
 
 export interface KeyboardTargetSource {
+  positions?(): Float32Array;
   readonly count: number;
   ids(): Uint32Array;
   kinds(): Uint32Array;
   simName(entityIndex: number): string;
   objectName(entityIndex: number): string;
   objectDetails?(entityIndex: number): import('./object-identity.js').ObjectDetails | undefined;
+  readingChoices?(entityIndex: number): { entries: readonly import('./object-menu.js').MenuEntry[]; notice: string } | undefined;
   /** A sim's name or an object's, for the flyout heading. */
   entityName(entityIndex: number): string;
   interactionLabels(entityIndex: number): readonly string[];
@@ -62,6 +65,7 @@ export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] 
   const ids = Array.from(source.ids().subarray(0, count));
   const kinds = Array.from(source.kinds().subarray(0, count));
   const piles = Array.from(source.dishPiles?.() ?? []);
+  const positions = source.positions ? Array.from(source.positions()) : [];
   const targets: KeyboardTarget[] = [];
   const rowCount = Math.min(count, ids.length, kinds.length);
   for (let row = 0; row < rowCount; row++) {
@@ -71,7 +75,7 @@ export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] 
       if (name) targets.push({ entity, kind: 'person', label: name });
       continue;
     }
-    const label = source.objectName(entity);
+    const label = furnitureLabel(source, entity, { ids, positions });
     const slots = new Map<number, number[]>();
     for (let i = 0; i + 2 < piles.length; i += 3) if (piles[i] === entity) {
       const ids = slots.get(piles[i + 1]) ?? [];

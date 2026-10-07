@@ -960,3 +960,16 @@ mood_max_load = 1.5
 affinity_penalty_min = 0.0003
 affinity_penalty_bonus = 0.0027
 wash_ticks_per_unit = 8
+
+# Proposed owned-book balance, awaiting owner review.
+[reading]
+pickup_ticks = 4
+shelve_ticks = 4
+session_ticks = 60
+reread_floor = 0.2
+recovery_ticks = 1051200
+# Rewards per baseline game hour of work; session_ticks only caps elapsed reading time.
+fun_per_session = 30.0
+# Resolved owned-reading action Fun divided by this value is the seat multiplier.
+action_fun_reference = 30.0
+satisfaction_per_session = 3.0

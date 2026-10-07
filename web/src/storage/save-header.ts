@@ -1,4 +1,5 @@
 const MAGIC = [84, 69, 82, 82, 73, 83, 65, 86] as const;
+export const CURRENT_SAVE_VERSION = 7;
 
 /** Reads only the wire prefix, not snapshot validity or content compatibility. */
 export function saveSchemaVersion(bytes: Uint8Array): number | null {

@@ -1,0 +1,107 @@
+Time
+Day 1, Monday
+00:00
+Funds
+306
+
+No save yet
+
+Build mode
+Exit build
+
+Household paused
+
+Furniture
+Walls
+Room
+Books
+Buy
+Floors
+Room
+Every room
+Bathroom
+Bedroom
+Dining Room
+Gym
+Hallway
+Kitchen
+Living Room
+Office
+Utility
+Show
+Everything
+Hunger
+Energy
+Hygiene
+Bladder
+Social
+Fun
+Comfort
+Buy
+Choose something to buy
+Aquarium: Stillwater Cabinet (200)
+Armchair: Chapterhouse Wingback (180)
+Armchair: Standard Lounge (140)
+Bathroom sink: Standard Pedestal (80)
+Bathtub: Soakster 9,001 (320)
+Bed: Standard Double (400)
+Bookcase: Oakline 24 (100)
+Bunk bed: Basic Oak (180)
+Coat rack: Hallkeeper (20)
+Desk: Oakline Office (150)
+Dining chair: Basic Ladderback (40)
+Dining table: Oakline Family (120)
+Dresser: Oakline Three (55)
+Exercise bike: Nowhere 250 (200)
+Floor lamp: Standard Shade (45)
+Fridge: Basic Two-Door (280)
+Kitchen counter: Standard Worktop (70)
+Kitchen sink: Standard Basin Unit (140)
+Nightstand: Oakline Two (25)
+Office chair: Standard Task (70)
+Ottoman: Low Profile (80)
+Potted plant: Broadleaf Basic (25)
+Radio: Walnut Dial (60)
+Shower: Daybreak Standard (240)
+Sofa: Company Three (300)
+Stove: Basic Four (220)
+Television: Walnut Vision (240)
+Toilet: Basic Ceramic (120)
+Trash can: Basic Pedal (15)
+Washer-dryer: Stackwell Duo (60)
+Bookcase
+Oakline 24
+›
+Colour
+As drawn
+Colour 2
+Colour 3
+Muted
+Rich
+Facing: South-east
+
+Price: 100
+
+Good for: Social, Fun
+
+Footprint: 1 x 1 tiles.
+Shelf space: 24 copies, including borrowed copies' reserved spaces.
+Collect or return: 1 person at once.
+Read a book: Readers use separate copies elsewhere. Up to 60 minutes per session. Standard reading speed. Fun +30 per reading hour; life satisfaction +0.003 points per reading hour. Requires an available shelved copy. Conditional details: Social requires liked company sharing this activity nearby.
+The chosen seat affects reading comfort and enjoyment.
+Times are game minutes. Travel, waiting and book returns add time. Personal factors and current needs affect gains and duration.
+
+Shortcuts
+
+Choose an item, then its destination tile. Use the nearby buttons to turn or buy it.
+
+Ready to buy.
+
+Options
+−
++
+Buy · 100
+Rotate counterclockwise
+Rotate clockwise
+Choose item
+Cancel

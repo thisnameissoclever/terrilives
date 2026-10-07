@@ -1,0 +1,9 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\f24d\terrilives\crates\terri-data)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.01s
+     Running tests\inherited_runtime.rs (target\debug\deps\inherited_runtime-fcab9b62bb478e57.exe)
+
+running 1 test
+test inherited_runtime_fixture_compiles_real_model_actions_and_rounding ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.09s
+

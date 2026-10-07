@@ -1,0 +1,93 @@
+{
+  "revision": "2f319c3bb14b4c798505e1b6c75fa3186f6f4822",
+  "zip_sha256": "ca00a3eb3c041c403faf4ba5912f8acac2fb388f22ca96b6fe28b6e8e474137c",
+  "actual_public_capture_count": 7,
+  "producer_exits": [
+    0,
+    0
+  ],
+  "all_captures_source_roundtrip_hash_nexttick": true,
+  "not_observed": [
+    "simultaneous-liked-seated-meal",
+    "simultaneous-liked-standing-meal"
+  ],
+  "constructed_controls": false,
+  "voice_inputs": "12 preserved890 WAVs match every SHA256 and measured tick count in retained frozen voice-duration records; authored voice definitions byte-identical",
+  "files": [
+    {
+      "path": "active-handwash.bin",
+      "bytes": 3754,
+      "sha256": "1a5b964d4def366dac3adf229b429be47217a9e6c5dbbb8cc1f7626ea380b9e9"
+    },
+    {
+      "path": "active-handwash.observation.txt",
+      "bytes": 89132,
+      "sha256": "71efbb14c4e30eb1cacf9f71ba3bea9c33e8a3bf7c55f6b2a5098233a2a4ee7a"
+    },
+    {
+      "path": "active-toilet.bin",
+      "bytes": 3750,
+      "sha256": "8e19e37b3dbdd241602eb417c887c38f9b0f282bcb92d66fd33e90dbf4a500a2"
+    },
+    {
+      "path": "active-toilet.observation.txt",
+      "bytes": 88961,
+      "sha256": "659c6c18a9171d0dccf88fdfcf6e343b58ddbf29424d0543d2d2158455099c62"
+    },
+    {
+      "path": "content-pack.postcard",
+      "bytes": 8430,
+      "sha256": "641c762eaded306f9cc707c08dff52ac0e8c674c2ea3112352207de54c699062"
+    },
+    {
+      "path": "initial.bin",
+      "bytes": 3360,
+      "sha256": "dc8b093e10865eda9dc2f7fe307f2671f26ef7bbd27327a8eb5f6e2fb153ed5d"
+    },
+    {
+      "path": "initial.observation.txt",
+      "bytes": 75345,
+      "sha256": "1c537ed12c56f4fce69f15e45d9f8bdf97cfa159e5d9490f325b0237f41c7c46"
+    },
+    {
+      "path": "pending-23-28.bin",
+      "bytes": 3385,
+      "sha256": "c39ac348ef5b28e78b540a4a1fbb2b48eb5b16a801f859132acb4e3fff335e58"
+    },
+    {
+      "path": "pending-23-28.observation.txt",
+      "bytes": 76306,
+      "sha256": "ce6894d8a2a0f604355d5ac78a992bb33f45f5c87f022304503da8b4e2a2a1f7"
+    },
+    {
+      "path": "played.bin",
+      "bytes": 3867,
+      "sha256": "1e36d6c37ddae437ca188743312e104d11a5279188f3af7ef3b4997bfb48a32f"
+    },
+    {
+      "path": "played.observation.txt",
+      "bytes": 91705,
+      "sha256": "de9425b50115e84f86b4ea8029f0c45d698450847c228521a05feed210f31c9a"
+    },
+    {
+      "path": "two-listener-radio.bin",
+      "bytes": 3583,
+      "sha256": "49d88187168f13a9d8232a37555a721ead2b39837fe0a470c0dc87d2dc51fd2b"
+    },
+    {
+      "path": "two-listener-radio.observation.txt",
+      "bytes": 81717,
+      "sha256": "7b43793be46188ba03492c85ec00dc0a5777015336b42094e23c8c63c58c0333"
+    },
+    {
+      "path": "two-viewer-tv.bin",
+      "bytes": 3665,
+      "sha256": "eab59a86bf9934d7e98a37b2c9369341aa52dde5a3d8d2f9410a66597fcfe79f"
+    },
+    {
+      "path": "two-viewer-tv.observation.txt",
+      "bytes": 84827,
+      "sha256": "c649ab4ef5dc14352236cca6d66cc600a595e3286b6f20d7ec70d6f0192d2f57"
+    }
+  ]
+}

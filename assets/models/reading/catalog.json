@@ -1,0 +1,17 @@
+{
+  "manifests": {
+    "assets/models/reading/armchair/export/manifest.json": "7633ba90d51a4a40e2b569888ba49db4acd1e5e5b1dc347f7037f2e67bb5a5e5",
+    "assets/models/reading/carryIdle/export/manifest.json": "79dd767874c3ed62303bd393062073fd801892695b5a40c35d81f8718bc7f898",
+    "assets/models/reading/carryWalk/export/manifest.json": "1cec0797cf9f4f5606df69e3a0806faaa86128036294ef326db9146de35be3a7",
+    "assets/models/reading/dining/export/manifest.json": "8ddd8a20fd0d859603b55646e035782a32b6919689e6d93953da362e4b197043",
+    "assets/models/reading/dropped/export/manifest.json": "222858656ed3096e83f8f8b4bd7aa8ca933d88ab6ca5f7d2425792c9ac7dcc53",
+    "assets/models/reading/office/export/manifest.json": "a08d79cbf0905dc5d51b9686d78f64f63280c2d7b98aa06cddcfe35fcaabe3ed",
+    "assets/models/reading/ottoman/export/manifest.json": "254828d649bea0d579f262716b0b16a21c633db85b447ae41523e36e410f7443",
+    "assets/models/reading/reading/export/manifest.json": "f19a2c40cb5d4967770dad41d9c98b4b53165feff510509e9ca0a4528904b60d",
+    "assets/models/reading/standingRead/export/manifest.json": "b269efe750a5605eafe1c7abb4cb68425bd6398f06a335997c80279f4d2126f4",
+    "assets/models/reading/recline/export/manifest.json": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a",
+    "assets/models/reading/sofa/export/manifest.json": "9e5c115063be22d46b8ccccd8104c548bd17a4fc508a9775d8d1697fe9c6d338",
+    "assets/models/reading/fetch/export/manifest.json": "6e57b5dc04c46fbfda50785c6abb39840246f8cd633b948a25ec570331312a45",
+    "assets/models/reading/shelve/export/manifest.json": "ef3be2ab0e0f7aae5b91a24d802465e37edfc8bdb2d8c96df37618b909539315"
+  }
+}

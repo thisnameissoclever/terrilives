@@ -301,30 +301,70 @@ one-tick wait instead of an unbounded hitch.
 
 Objects advertise what they satisfy; agents score the advertisements.
 
-Built in M1a. This is the shape `content/objects.toml` actually takes, and
-`crates/terri-data/src/schema.rs` is the authority on it:
+`content/objects.toml` defines categories, physical types, and purchasable models.
+`crates/terri-data/src/hierarchy.rs` resolves that single inheritance chain before
+`compile.rs` validates the complete objects. The simulation uses compiled objects
+and does not resolve inheritance during play. A small authoring example:
 
 ```toml
-[[object]]
-id   = "fridge"
-name = "Chill-o-Matic 3000"
+[[category]]
+id = "seating"
+label = "Seating"
 
-  [[object.interaction]]
-  id             = "grab_snack"
-  advertises     = { hunger = 40.0 }
-  duration_ticks = 15
-  slots          = 1
+[[object_type]]
+id = "armchair"
+label = "Armchair"
+category = "seating"
+[object_type.properties]
+rooms = { set = ["living_room", "office"] }
+
+[[model]]
+id = "reading_chair"
+object_type = "armchair"
+[model.properties]
+name = { set = "Example model" }
+# Supply the remaining required properties and actions before compilation.
 ```
 
-Three differences from the sketch this section used to carry, each a decision
-rather than a simplification. **Duration is in ticks, not a `"15min"` string:**
-a tick is a sim-minute ([D2]) so the two are the same number, and parsing a
-duration grammar buys nothing while adding a way for content to be wrong.
-**Need names are lower-case and match `NeedId::as_str`,** which is what the
-build-time check in [D9] validates against. The original `trait_mods` sketch was
-replaced by the shipped trait-definition system in `content/traits.toml`.
-**`requires` is not implemented yet** - adding that field before anything reads
-it would mean content that validates and lies.
+Omitted properties inherit. Each field permits one applicable operation: `set`,
+numeric `scale`, collection `extend` or `replace`, or removal of an optional value.
+Required values cannot be removed. Actions have stable IDs independent of labels;
+an override retains its inherited position, and a new action appends in authored
+order. Removing an inherited action is explicit. Action templates share behavior
+across unrelated types without additional category parents.
+
+Secondary-seat Comfort is an inherited model property, with the same explicit
+numeric set, scale and removal operations. It describes ordinary seated hardware
+comfort for meals and media. Owned reading supplies its own resolved Comfort
+rate; do not add secondary-seat Comfort again or derive it from a reading-only
+specialization. Shared Social depends on actual liked company, not a terminal
+reward from an activity label. Handwashing respects its configured Hygiene
+ceiling. Purchase facts expose these conditions alongside base values.
+
+Duration uses simulation ticks, each one game minute ([D2]). Scaling happens once
+at each authored layer, followed by rounding the final duration to a positive whole
+tick. Need names match `NeedId::as_str`; traits are defined in `content/traits.toml`.
+The compiler rejects unknown references, invalid operations, missing required
+properties and invalid final values, including unused action-template references.
+Legacy flat `[[object]]` files remain supported for historical fixtures.
+Hierarchical models author `description`; the compiler builds the resolved
+presentation from that text and the canonical type label. Do not author a second
+physical-type label in model presentation. Historical flat `ObjectPresentation`
+retains its published shape. Browser model facts expose resolved actions and
+usable station roles from the same compiled definitions used by the simulation.
+Raw station tags remain compatible with saved chains; buying facts include only
+roles current actions can use. Required cooking hardware is separate from
+optional dining furniture, since a preparation counter supplies the tableless
+fallback. Role eligibility is shared with execution rather than inferred from
+the model's name.
+
+Category describes a broad family, type describes a physical kind, and model
+identifies a specific product. A reading specialization belongs to an Armchair
+model. Bunk bed is a separate type because stacked sleeping places change its
+structure and access requirements. Beds and bunk beds can reuse sleeping actions.
+Room associations organize store browsing; they neither grant actions nor limit
+placement. `Other` is a valid category with no implicit behavior. Use stable model
+IDs in code and saves, never visible names or shared type labels.
 
 Agent scoring (`crates/terri-sim/src/systems/advertise.rs`) weights each
 advertised delta by the agent's current deficit on a **steeply nonlinear
@@ -341,19 +381,52 @@ increase smoothly as the lowest need rises from 40 to 70; Fun and Social retain
 baseline appeal even at full meters. Self-preservation scales low-need urgency and
 penalties for delaying survival recovery. See [VA-choice] and [VA-instinct].
 
-Two properties matter. Adding content means adding a data file rather than
-touching AI code, so a modder's new object is used correctly on day one. And
-cost is bounded by the spatial query in [A7], not by world size.
+Ordinary actions and initial placement are data-driven. Supported specialized
+behaviors have explicit inherited configuration. Media behavior grants the
+viewing/listening rules and shared seating; an activity label or model name does
+not. Cooking access uses authored physical contact data shared by route admission
+and body presentation. `Sim::new_from_lot` reads the placements in
+`content/lot.toml`. `select_action` currently scans objects for each idle agent;
+the spatial query proposed in [A7] remains future work.
 
-The first is now literally true: the fridge is a row in a TOML file, and
-nothing outside `content/` and the test fixtures names it at all - M1b's
-`Sim::new_from_lot` reads `content/lot.toml` and spawns whatever it says, so
-even the placement is content. No simulation code knows the word. **The second
-is still a design claim.** `select_action` scans **every** object every
-tick; [A7]'s uniform grid is not built, and until it is, selection is
-O(agents x objects). That is fine at M1's one lot and is exactly the thing
-[D3]'s scale target breaks, so it is tracked as work for M3 rather than as a
-property the code already has.
+An action can bind to a shared multi-step procedure through a recipe record with
+its ID and `selected_step`. The procedure supplies step order, station roles and
+item transitions. The resolved model action supplies base work, terminal benefits,
+costs and satisfaction. Compilation allocates that base work across the procedure's
+steps with deterministic rounding. Execution, scoring and purchase facts consume
+the same resolved values; inherited overrides must change actual behavior.
+
+The selected step uses the concrete appliance on which the action began. Fridge
+actions select their initial ingredient step; dish cleanup selects its later
+washing step, allowing collection elsewhere first. The model must supply that
+step's role. Repeated cleanup collection and managed communal dining are not
+supported selected-appliance stages, and invitation-only shared meals cannot be
+bound as public actions. Invalid bindings fail compilation.
+
+`action_rows` resolves current public actions and explicit nonpublic accounting
+aliases. Old saved chain keys map through reviewed aliases; an unbound procedure
+does not acquire a public command merely because it names an advertiser.
+`recipe_actions::Origin` retains the initiating model/action and the selected
+entity generation until designated use completes. Later work retains the stable
+model/action identity without depending on the appliance still existing. Start,
+replacement, interruption and cleanup paths must preserve or clear this state
+together with `ChainState`.
+
+Privacy detours and safe-alternative probes use the same selected-appliance
+eligibility as ordinary admission. Urgency follows the initiating action's
+resolved positive benefits, not the recipe's internal defaults. An ordinary
+urgent substitute may temporarily suspend a recipe. A procedural substitute
+starts a complete replacement recipe after releasing its predecessor's domestic
+commitments; it cannot run the public recipe row as an ordinary interaction.
+Owned-book return obligations still precede either kind of replacement.
+
+Bound cleanup repeats its resolved collection work as required. Washing adds
+dish-dependent work scaled by the binding's resolved base total, with one checked
+rounding for the whole load. Purchase facts distinguish base work, repeated work
+and per-load additions from travel and waiting. Internal household cleanup and
+shared-meal invitations retain their default procedure path. Using an appliance
+as a station for another action does not apply its public action's modifiers;
+per-station model modifiers require a separate contract.
 
 Reserved objects remain visible to autonomy. Their activities contribute
 waiting choices, attenuated by `contested_score_multiplier` and adjusted for
@@ -367,9 +440,78 @@ Reservation release checks current `Target` owners after preceding deferred
 commands have applied. It excludes only the departing owner's exact target;
 a replacement commitment and other owners keep the marker. Callers remove
 their own action state. This applies to completion, cancellation, changed
-orders, work departure, death and invalid-state cleanup. Admission still
-claims whole objects. This release foundation does not yet enable the double
-bed's second sleeping place; see `docs/specs/2026-10-01-bed-assignment.md`.
+orders, work departure, death and invalid-state cleanup. Sleeping places have
+separate ownership and assignment rules; see
+`docs/specs/2026-10-01-bed-assignment.md`.
+
+Seating models author stable physical seat IDs, body positions, facing and
+approaches. `seating::PhysicalClaim` reserves one place or the whole furniture
+during travel and use. Ordinary sitting, reading, dining and seated media share the
+same admission view. A full-sofa action excludes every individual seat; changing
+the action does not create additional seating capacity.
+
+Meal and media approach reservations are separate from physical seat ownership.
+A meal keeps its approach clear. People using different seats for media may
+share an approach, including the middle and end places on a sofa. Planning and
+restoration use the same symmetric conflict rule, including reservations accepted
+earlier in the same selection pass. Chair contact also checks the wall edge;
+a reachable floor tile on the other side of a wall is not a valid approach.
+
+Bookcases author `shelf_access` offsets at their base facing. The compiled
+definition rotates those positions with the furniture. Fetching, returning,
+saved journeys and lot edits share the same wall-aware contact check. A floor
+tile beside the closed back is not access to the shelves. Short shelf-transfer
+claims use the existing endpoint occupancy rules and end after pickup or
+shelving; borrowing a copy does not reserve the whole bookcase for the session.
+
+Owned reading runs through ordinary action selection and movement. `BookLibrary`
+owns copy identity and location; `ReadingJourney` owns the person's fetch,
+pickup, travel, reading and return stages. A seat order pins the furniture and
+chooses an available shelved title. A bookcase order chooses a title and suitable
+seating, with standing reading near the bookcase when no seat is available.
+Household inventory cannot supply reading until a copy is shelved.
+
+The journey reserves its copy and physical seat before travel. Pickup leaves
+the copy on the shelf until its reach finishes; shelving leaves it carried
+until that reach finishes. The return obligation survives interruption and
+replacement orders, including urgent needs. A moved shelf changes the return
+route; blocked access keeps the copy with its borrower while awaiting a route.
+Death releases the claim and leaves the copy recoverable on the lot.
+
+The render buffer projects active seated furniture, the current ordinal resolved
+from its stable seat ID, and whole-furniture ownership. A travelling reservation
+does not produce a seated body. Reading home shelf, slot and reach timing come
+directly from the canonical journey and library. These are derived columns,
+not additional saved ownership or browser timers.
+
+The bookcase artwork stores each shelf row independently. Cabinet lighting uses
+cabinet shadow blockers; each book row uses cabinet and same-row blockers. Books
+do not cast shadows onto the cabinet or other rows. Actor lighting stays separate,
+with fixed world-space shadow resolution. Exporters freeze evaluated pose meshes
+before capture, compose stock and actor coverage before filtering, and verify
+mixed inventories against independent complete renders. Pickup and shelving use
+the same authored geometry with opposite phase order.
+
+Generated coverage records retain their original numeric indices while identical
+immutable payloads share one value. Identity includes dimensions, crop, encoding
+and pixel bytes. This reduces generated-source size without changing picking or
+alpha samples; consumers must not mutate shared coverage records.
+
+Reading progress and familiarity belong to the Sim and title, independently
+of the physical copy. Fractional work survives interruption. A reading pass
+captures its novelty factor once and retains it across sessions. Entertainment
+and satisfaction use that factor; physical seat comfort does not. The shared
+effective-benefit calculation combines the authored action with reading tuning,
+so scoring, reward delivery and browser facts use the same seat multiplier.
+Earned satisfaction is retained with the journey until settlement, avoiding
+loss from repeatedly adding tiny values to the meter.
+
+Work and reward rates use a fixed reference hour. `session_ticks` limits elapsed
+reading time; it does not redefine reading speed, work units or physical comfort
+per minute. Scoring uses the expected work and elapsed time within that cap.
+Interchangeable copies share one choice per title and seat. The same helper
+selects the best available route for both action scoring and execution, with
+stable identity and coordinate tie-breaks.
 
 **The travel term is wall-aware, and that is a commitment rather than an
 implementation detail.** M0 measured a straight line, which was fine in a
@@ -384,8 +526,6 @@ against A\* length survives that swap. Balance tuned against a straight line
 would survive neither, which is why the metric is the part written down here.
 An object with **no** path is unavailable rather than free: it is skipped, and
 the agent takes the best object it can actually reach.
-
-This is roughly 200 lines of code and it is the entire personality of the game.
 
 ## [D7] Pathfinding
 
@@ -436,7 +576,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 5; the version 1 decoder and its historical optional sleep-pressure
+use version 7; the version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -453,7 +593,7 @@ bridges. Access rules apply to newly selected routes; valid saved paths retain
 their geometry across migration and subsequent re-save/load cycles.
 The one shipped household rename is
 also gated by that legacy match rather than by a name string alone. The next
-incompatible wire shape must bump the version and make an explicit migration
+incompatible published wire shape must bump the version and make an explicit migration
 decision.
 
 V2 and V3 saves store either explicit cell walls, explicit wall/door edges, or the
@@ -474,7 +614,8 @@ runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
-`terri-save-1.v3-backup.bin` or `terri-save-1.v4-backup.bin`, according to its
+`terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin`,
+`terri-save-1.v5-backup.bin` or `terri-save-1.v6-backup.bin`, according to its
 source version. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
@@ -486,7 +627,10 @@ tabs still use last-writer-wins storage; play a household in one tab. A cached
 V2 writer rejects a primary V3 header instead of overwriting its directions,
 a cached V3 writer rejects a primary V4 header instead of overwriting its
 retired indices, and a cached V4 writer rejects a primary V5 header instead of
-overwriting its colourways.
+overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
+primary V7 header. The storage writer and load-status controller share the current
+wire version; a regression test sends actual simulation saves through the storage
+worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
 close stale game tabs before continuing. The worker checks file
 headers, not full payload validity; recoverability is established by loading
@@ -511,12 +655,127 @@ new action fail before reconstruction. The same rule covers the prior
 structural digest and all four retired full-pack digests; accepting an old
 fingerprint does not grant that snapshot rows it could never have authored.
 
+The version 7 save envelope wraps an explicitly frozen version 5 layout with a stable action
+manifest, the owned-book library, physical-seat claims, reading journeys,
+deferred career departures, current order metadata, chain origins and active
+recipe-order identity. `SaveSnapshotV6` retains its historical Rust API name;
+the byte header identifies the current schema. Its `current_legacy` adapter uses
+the exact `FrozenCurrentV5` field layout, so later additions to `SaveSnapshotV5`
+cannot shift this envelope's boundary. Earlier version 6 book saves use
+`FrozenSaveSnapshotV6` and `FrozenPreAffinityV5` explicitly before conversion.
+The manifest maps saved object, social and
+advertised-chain action rows to authored IDs. Loading checks the referenced
+models' physical structure, active chain semantics, voices, trait state kinds
+and required station roles before rebuilding runtime indices. Unrelated content
+additions do not invalidate an otherwise compatible save.
+
+Every active `ChainState` has one `SavedChainOrigin`, owned by a living Agent with
+Needs. Public origins name the model, action, recipe and selected step; internal
+origins name their procedure. Selected-use state records the concrete station,
+completed use, or an explicit published-migration pending selection. Origin-only
+models remain in the action manifest even after their placed appliance is sold.
+Unknown, duplicate, missing, extra or mismatched origins reject before adoption.
+
+Published saves did not retain an initiating appliance. Migration preserves a
+validated designated-step target where available. Otherwise a known shipped
+binding can enter explicit legacy-pending selection and retain the old deferred
+station choice until that step is admitted. New starts require a concrete selected
+entity. Current loading validates this saved state; it never infers a historical
+origin merely because current origin data is missing.
+
+Version 1 through version 5 imports first validate against the applicable
+pinned published pre-books content pack. Source selection distinguishes the
+pre-skills, skills and later affinity/chore contracts. Present empty tails
+remain authoritative; skills alone cannot identify the later published layout. Only a
+validated household is converted to current content. The book migration ends legacy reading without a physical book and grants
+the starter titles once. It preserves Funds and simulation time without drawing
+from the simulation's random state. Older field repairs retain their published
+migration rules. The
+retained inputs and representative saves live in
+the `pre-books*` directories under `crates/terri-data/tests/fixtures/`.
+
+The older false `dining_table.sit_properly` action has a narrow compatibility path.
+Validate its exact known source model/action structure before removing its
+active target, queued or pending orders, matching wait/boundary claims and
+obsolete action memory. Preserve unrelated progress and grant no completion
+reward. Compatibility validation temporarily uses a cached immutable compatibility
+pack for that specific retired definition, then validates and adopts the cleaned
+current state transactionally. Cache by immutable destination-pack identity;
+do not leak a new pack per load or make arbitrary missing actions optional.
+The later published chair-backed Sit action and contextual Eat prepared food
+remain active. Do not apply the older retirement merely because an action has
+the same ID; validate the source contract first.
+
+Current loads reject historical migration markers rather than silently treating
+a malformed current envelope as an older save. All owned copies, home slots,
+borrowers and title memories are validated in the candidate world before adoption.
+Current adoption does not run historical repairs or draw new random values.
+Pending reading satisfaction is bounded by recorded work, captured novelty and
+permissible payout modifiers. A person's current condition cannot serve as proof
+of its severity throughout the earlier reading period. An accepted housemate edit
+can also change disposition and trait membership. Preserve the relevant earlier
+reward contexts with their actual work intervals instead of validating all earned
+reward against the person's latest traits. Record contexts only while reading
+advances, coalesce unchanged contexts and bound their count by the session's
+elapsed ticks; paused edits must not grow a history without work.
+Historical snapshot helper methods remain available for compatibility tests; use
+the current versioned byte API for complete household persistence.
+
+Each player order has an ID within its Sim's queue and may name a book title.
+Two orders for different titles on the same object/action remain distinct.
+Clearing or filtering a queue keeps its allocator, so a later order cannot reuse
+an ID still held by an in-progress activity. Current persistence stores the
+ordered entries and allocator separately from frozen historical intent records.
+Survivor cleanup retains complete entries rather than rebuilding them from bare
+object/action pairs.
+
+Book commands share the serialized command drain. Version 7 records their exact
+positions among ordinary commands without extending frozen `SavedCommand`
+records. A historical structural snapshot cannot preserve this new state;
+current replay tests use the complete current envelope, while historical wire tests start from the
+explicit source-era constructors.
+
+Published ordinary chore commands retain wire numbers 23 through 28; Book
+follows them at 29. Complete queue annotations include ordinary, book, cleanup
+and chore entries, retaining their IDs and order. A zero queue limit means
+unlimited. Mandatory book returns also block automatic chores and suspended
+chore resumption, including waiting for a blocked return route.
+
+Saved reading state includes the exact originating order, copy, seat, shelf
+contact, reach timing, fractional work and unsettled satisfaction. Install that
+state before spatial validation so a fetch path is checked against the shelf
+instead of the eventual seat. A deferred career departure retains the original
+scheduled shift and starts the normal full shift after the return obligation
+ends. It cannot depend on encountering the original start tick again.
+
+An owned-reading session samples its success or fumble once when reading starts.
+Save that outcome through edits, interruptions and reloads. A completed session
+or title awards one tagged practice attempt under the shared skill rules;
+interrupted reading, fetching and returning award none. Title familiarity records
+actual reading separately. General repetition changes appeal and mood, while
+title novelty can reduce book enjoyment and satisfaction. Neither mechanism may
+accidentally apply the other's penalty a second time.
+
+Physical-seat records use saved entity indices and stable seat/action IDs.
+Current saves must supply complete claims; only historical migration can derive
+them. Aggregate ownership is checked before cleanup can remove evidence of a
+conflict. A compatible old reclining action keeps its remaining time. An old
+travel route can be changed to a legal approach without changing personal state.
+A valid active meal with blocked chair contact can continue standing; a traveller
+without a free approach retains food, chain progress and queued orders for retry.
+
+Historical test constructors choose `Content::pre_books()` before creating
+objects or people. They also use that content's seed and lot definitions.
+Constructing a current household and swapping its content afterward does not
+establish historical test data. Retained published save bytes provide separate
+evidence from synthetic fixtures created by the current runtime.
+
 ## [D9] Content pipeline
 
 Content is authored in TOML and compiled to a validated binary pack at build
 time. **Built in M1a**, apart from hot reload, which is M1e.
 
-`content/needs.toml`, `content/objects.toml`, `content/lot.toml` and
+`content/needs.toml`, `content/objects.toml`, `content/books.toml`, `content/lot.toml` and
 `content/tuning.toml` are the authored sources, plus the generated
 `assets/sprites/atlas.toml`, which is an input here so that "this object names
 a sprite the atlas holds" is a build failure rather than a blank quad.
@@ -568,8 +827,9 @@ needs exist.
 
 Predicates (`requires`) are not yet a content concept, so "an object requiring
 an undefined predicate" is still a promise rather than a check. The shipped
-trait system uses disposition weights, capability levels, and condition state
-instead; a future predicate gate needs its own accepted design.
+trait system uses disposition weights, capability traits backed by skill mastery,
+and condition state instead. A capability without a matching skill retains its
+saved trait-state fallback. A future predicate gate needs its own accepted design.
 
 **Three consequences worth stating, because two of them are not obvious.**
 First, this eliminates a category of runtime bug outright: a bad need name is a
@@ -1501,7 +1761,7 @@ as a separate target.
 The copied dish projection is read before zero-copy render views, because its
 boundary allocation can grow simulation memory and detach earlier views.
 
-[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Dining claims resolve exact physical chairs, clean settings and approach endpoints before generic chain targeting. Other diners stand near the table, or a preparation counter when no table is reachable. Claims publish synchronously, with ownership-aware reservation release. Other uses remain exclusive.
+[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, tagged skill practice and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Dining claims resolve exact physical chairs, clean settings and approach endpoints before generic chain targeting. Other diners stand near the table, or a preparation counter when no table is reachable. Claims publish synchronously, with ownership-aware reservation release. Other uses remain exclusive.
 
 `SavedDomestic` is the appended optional V5 tail. It records cleanliness profiles, monotonically issued dish identities and their surfaces and responsible SimIds, canonical room-visit memory, exclusive cleanup claims, and shared-meal invite/claim/collection/completion state. Cancellation, chain replacement, washing, furniture sales and death maintain those references at their own transition. Loading validates both directions between claims and chains before adoption, then refreshes the render projection. Older bytes default the tail to absent. The exact structural bridge reconstructs the old four-step recipe and roles, validates the source, maps its terminal step 3 to 5, and preserves prior geometry migrations. Unreviewed structural destinations close the bridge.
 

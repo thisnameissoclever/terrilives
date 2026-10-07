@@ -210,6 +210,18 @@ def load_historical_extensions(config, existing_names=frozenset()):
             from offline_table_sitting import load_table_sitting
             sprites = load_table_sitting(path.parent).sprites
             assert not names.intersection(row[0] for row in sprites), 'duplicate table-sitting records'
+        elif extension.get('kind') == 'shelf-mask':
+            from offline_shelf import shelf_records
+            sprites = shelf_records(path)
+            assert not names.intersection(row[0] for row in sprites), 'duplicate shelf-mask records'
+        elif extension.get('kind') == 'reader-subset':
+            from offline_reader_subset import subset_records
+            sprites = subset_records(path)
+            assert not names.intersection(row[0] for row in sprites), 'duplicate reader-subset records'
+        elif extension.get('kind') == 'reading-actions':
+            from offline_reading import action_records
+            sprites = action_records(path)
+            assert not names.intersection(row[0] for row in sprites), 'duplicate reading action records'
         elif extension.get('kind', 'static') == 'static':
             sprites, _, _, _ = load_props(path, existing_names=names)
         elif extension['kind'] == 'neutral-seating':

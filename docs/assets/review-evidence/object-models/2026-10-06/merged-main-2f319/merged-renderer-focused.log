@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bathroom-assets.test.ts tests/toilet-assets.test.ts tests/shared-seat-sprites.test.ts tests/reading-render-bridge.test.ts tests/shelf-sprites.test.ts tests/visible-scene-layers.test.ts tests/input.test.ts tests/architecture-depth.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+
+ Test Files  8 passed (8)
+      Tests  116 passed (116)
+   Start at  15:18:56
+   Duration  7.55s (transform 3.30s, setup 0ms, import 5.95s, tests 224ms, environment 0ms)
+

@@ -211,9 +211,12 @@ table. Authored in `content/chains.toml`.
 | Term | Means |
 | --- | --- |
 | **step** | One leg of the chain: where it happens, what it is called, how long it takes. |
-| **role** / **station** | What KIND of object a step needs (`cold_storage`, `prep_surface`, `hob`, `eating_surface`) rather than which one. Objects declare the roles they can serve, so any lot with the right kinds of furniture works, and the sim walks to the nearest free one at the time it needs it. |
-| **terminal step** | The last one - and **the only one that pays**. Everything the chain advertises lands there, whole. A sim that gets halfway through cooking and wanders off has not eaten. |
-| **item kind** / `carrying` | What is in the sim's hands between steps - `ingredients` becoming `dinner` at the stove. Drawn as the badge beside the sim. |
+| **role** / **station** | The kind of object a step needs, such as `cold_storage`, `prep_surface`, `hob` or `meal_table`. Objects declare the roles they serve. Ordinary station selection chooses a reachable free provider; an action's selected-appliance step keeps the particular object the player or Sim chose. |
+| **recipe binding** | The shared chain an object action runs. The chain supplies its procedure; the resolved model action supplies base work and terminal benefits or costs. |
+| **selected step** | The step that must use the chosen appliance. A fridge is used at the ingredient step; a sink can be selected for washing after dishes are collected elsewhere. |
+| **action origin** | The model and action responsible for an ongoing chain, or its explicit internal procedure. This remains distinct from whichever station the Sim is currently visiting. |
+| **terminal step** | The last step, where the action's advertised benefits, costs and satisfaction are delivered. A Sim who stops halfway through cooking has not received the meal's payoff. |
+| **item kind** / `carrying` | A chain's carried resource, such as `ingredients` becoming `dinner` at the stove. Owned books use persistent copy identities in the book library instead of these resource kinds. |
 | **resume** | The rule for interruptions: your click (or a work shift) drops the current STEP, never the errand. When the sim is free again it goes back and finishes. Only an explicit cancel abandons a chain. |
 | `chain:` | The overlay line showing which chain a sim is on, which step, and what it is carrying: `Cook dinner - step: Cook (carrying ingredients)`. |
 
@@ -312,7 +315,36 @@ meets gets an entry, and a design paper is where you meet these.
 
 ## Naming rules this project follows
 
-For objects using the new identity fields, **type** is the plain primary identification, such as Washing machine; **model name** identifies the particular product, such as Perpetual Cycle; **description** supplies optional context and flavor text. The first slice covers the washing machine, armchair, and dining table. Menu and shop behavior is documented in [object identity](specs/2026-09-22-object-identity.md).
+For objects, **category** is a broad family such as Seating. **Type** is the plain primary identification, such as Armchair. **Model** identifies the particular product and its configuration. A **specialization** improves a particular use, such as reading; it does not create a new type. **Room associations** organize the store without restricting placement. The **description** conveys the product's character, relative quality, and useful distinctions. Prices, usable capacity, and other buying facts remain clear functional information. Click or tap the name, or activate it with Enter or Space, to open the description. See [object identity](specs/2026-09-22-object-identity.md) and the [approved implementation contract](superpowers/plans/2026-10-05-object-models-books-seating.md).
+
+For books, a **title** is the authored work and a **copy** is one owned physical
+instance. Two copies can have different locations while referring to the same
+title. A **reading session** is one period of reading, capped at one game hour;
+a **reading pass** runs from the beginning to the end of a title and can span
+several sessions. A **bookmark** records a Sim's progress through that pass.
+
+**Taste** is a Sim's lasting preference for genres and particular titles.
+**Familiarity** records how recently and extensively the Sim has read a title.
+The **novelty factor** reduces reading enjoyment and satisfaction as familiarity
+increases. A pass retains its starting novelty factor across sessions. Familiarity
+does not reduce the physical comfort provided by a chair. These values follow
+the Sim and title, so switching copies does not start a new first reading.
+
+**Reading skill practice** follows completed reading sessions, including a
+session that ends by finishing the title. It measures learned skill rather than
+liking or remembering the book. Interrupted sessions preserve their bookmarks
+and familiarity but award no completed practice attempt. A saved reading
+**outcome** records the session's success or fumble; loading or editing traits
+does not roll it again. Saved **reading reward contexts** describe the relevant
+disposition and traits during earlier work, so a later edit does not erase or
+inflate already earned satisfaction.
+
+A **physical seat** is a specific authored sitting place, such as one sofa
+cushion. A **seat claim** reserves that place while a Sim travels to it or uses it.
+Sitting, reading, dining and media use share those places. Sleeping-place
+ownership remains a separate system. A **home shelf slot** is the place reserved
+for a borrowed copy until it returns; an empty-looking borrowed slot is not free
+space for another purchase.
 
 Added the same day the glossary was, after `wears:` and `standing:`
 shipped and neither meant anything to a reader:

@@ -1,0 +1,13 @@
+{
+  "coverageLayers": 68,
+  "arraySize": [
+    320,
+    352,
+    68
+  ],
+  "jointArrayRequestedBytes": 15319040,
+  "rawAlphaBytes": 7331840,
+  "rgbaPages": 29,
+  "rgbaRequestedBytes": 486539264,
+  "jointUniqueHashes": 64
+}

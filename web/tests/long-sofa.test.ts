@@ -39,16 +39,16 @@ it('preserves sofa identity, placement, price and interaction metadata', () => {
     const sim = new SimBridge(handle, memory);
     const before = sim.saveBytes();
     const row = Array.from(sim.ids()).indexOf(11);
-    expect(sim.objectName(11)).toBe('The Sectional Compromise');
+    expect(sim.objectName(11)).toBe('Sofa');
     expect([...sim.positions().slice(row * 2, row * 2 + 2)]).toEqual([10.5, 0]);
     expect([sim.footprintWidths()[row], sim.footprintDepths()[row]]).toEqual([2, 1]);
     expect(sim.objectFacing(11)).toBe(0);
     expect(sim.objectFacingMask(11)).toBe(15);
     expect(sim.sprites()[row]).toBe(atlas.spriteIndex('offlineLongSofa'));
     expect(sim.foregroundSprites()[row]).toBe(0xffffffff);
-    expect(sim.interactionLabels(11)).toEqual(['Lie down']);
-    expect(sim.catalogue().find(item => item.name === 'The Sectional Compromise')).toMatchObject({
-      price: 280, facings: 15, baseFacing: 0,
+    expect(sim.interactionLabels(11)).toEqual(['Lie down', 'Sit', 'Read a book']);
+    expect(sim.catalogue().find(item => item.model?.id === 'long_sofa')).toMatchObject({
+      price: 300, facings: 15, baseFacing: 0,
     });
     expect(sim.saveBytes()).toEqual(before);
   } finally {
@@ -56,7 +56,7 @@ it('preserves sofa identity, placement, price and interaction metadata', () => {
   }
 });
 
-it('identifies Lie down without claiming a new body animation', () => {
+it('identifies Lie down and draws the accepted static whole-sofa recline pose', () => {
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
@@ -69,9 +69,13 @@ it('identifies Lie down without claiming a new body animation', () => {
       expect(sim.actionQueueOf(34).join(' ')).toContain('Lie down');
       expect(sim.visualActions()[row]).toBe(0);
       expect(sim.interactionTargets()[row]).toBe(0xffffffff);
+      expect(sim.seatedFurniture()[row]).toBe(11);
+      expect(sim.seatedWhole()[row]).toBe(1);
       const instances = buildInstances(sim, 1, 0, 0, 16);
       const sprite = instances[row * FLOATS_PER_INSTANCE + 3];
-      expect(atlas.SPRITES[sprite].name).toMatch(/^rigSimBlueIdle/);
+      expect(atlas.SPRITES[sprite].name).toMatch(/^ownedReading_recline_SE_0_1$/);
+      const furnitureRow = Array.from(sim.ids()).indexOf(11);
+      expect(instances[furnitureRow * FLOATS_PER_INSTANCE]).toBe(-1e6);
       observed = true;
     }
     expect(observed).toBe(true);

@@ -62,13 +62,13 @@ fn shipped_double_bed_admits_two_walkers_and_sleepers_without_changing_the_house
         );
     }
     let mut loaded = Sim::new_from_shipped_lot();
-    let walking = sim.save_snapshot_v5();
-    loaded.load_snapshot_v5(walking.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v5(), walking);
+    let walking = sim.save_snapshot_v6();
+    loaded.load_snapshot_v6(walking.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v6(), walking);
     for _ in 0..600 {
         sim.tick();
         loaded.tick();
-        assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
+        assert_eq!(loaded.save_snapshot_v6(), sim.save_snapshot_v6());
         assert_eq!(loaded.world_hash(), sim.world_hash());
         assert_eq!(sim.world().resource::<BedAssignments>(), &assignments);
         if people
@@ -96,9 +96,9 @@ fn shipped_double_bed_admits_two_walkers_and_sleepers_without_changing_the_house
                     assert_eq!(position.x, 1.0);
                 }
             }
-            let sleeping = sim.save_snapshot_v5();
-            loaded.load_snapshot_v5(sleeping.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v5(), sleeping);
+            let sleeping = sim.save_snapshot_v6();
+            loaded.load_snapshot_v6(sleeping.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v6(), sleeping);
             let actions: Vec<_> = people
                 .iter()
                 .map(|person| *sim.world().get::<Eating>(*person).unwrap())
@@ -107,7 +107,7 @@ fn shipped_double_bed_admits_two_walkers_and_sleepers_without_changing_the_house
             for elapsed in 1..=20 {
                 sim.tick();
                 loaded.tick();
-                assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
+                assert_eq!(loaded.save_snapshot_v6(), sim.save_snapshot_v6());
                 assert_eq!(loaded.world_hash(), sim.world_hash());
                 assert_eq!(sim.world().resource::<BedAssignments>(), &assignments);
                 for (ordinal, person) in people.iter().enumerate() {
@@ -162,11 +162,14 @@ fn saved_bed_position_survives_a_new_game_layout_change() {
         assignments.assigned_to(*sim.world().get::<SimId>(people[0]).unwrap()),
         Some(BedPlace { bed, ordinal: 0 })
     );
-    let saved = sim.save_snapshot_v5();
-    assert_eq!(saved.world.content_fingerprint, 0xcf78_7472_e9e8_38f5);
+    let saved = sim.save_snapshot_v6();
+    assert_eq!(
+        saved.legacy.world.content_fingerprint,
+        terri_data::content_fingerprint(terri_data::pack())
+    );
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v5(), saved);
+    loaded.load_snapshot_v6(saved.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v6(), saved);
     assert_eq!(loaded.world_hash(), sim.world_hash());
     assert_eq!(loaded.world().resource::<BedAssignments>(), &assignments);
 }

@@ -1,0 +1,82 @@
+Time
+Day 1, Monday
+01:47
+Funds
+300
+
+Saved game loaded
+
+Pause
+1x
+2x
+3x
+Build
+Options
+Reader Bill
+Reading: The Locked Laundry. Title progress: 11% of 120 baseline game minutes.
+Edit
+Mood
+Okay
+Life satisfaction
+Content
+Sim details
+Chores
+Collapse
+
+Tim
+Reader Bill
+Casey
+Edit housemate
+
+3 of 6 live here.
+
+Traits, up to 4
+Television devotee
+Loves watching television.
+Can't cook
+Ruins most meals at first, and gets better with every attempt.
+Low spirits
+Less activity satisfaction; correspondence helps; starts 6 points lower.
+Bookworm
+Likes reading; starts life satisfaction 2 points higher.
+Keen cyclist
+Loves the exercise bike.
+Avoids exercise
+Dislikes exercise.
+Fish watcher
+Likes watching the fish.
+Chatterbox
+Likes a chat; starts life satisfaction 2 points higher.
+Private person
+Dislikes small talk.
+Hates television
+Hates television.
+Avoids the couch
+Hates sofas and armchairs.
+Out of shape
+Gets less from a workout at first, and gets fitter with every attempt.
+Slow reader
+Gets less from a book at first, and reads better with every attempt.
+Isolated
+Less activity satisfaction; chat helps; starts 4 points lower.
+Cooped up
+Less activity satisfaction; exercise helps; starts 3 points lower.
+They are the
+Nobody
+partner
+parent
+child
+sibling
+of Tim
+They are the
+Nobody
+partner
+parent
+child
+sibling
+of Casey
+
+Removing a condition forgets its severity. Skills are kept.
+
+Back
+Confirm changes

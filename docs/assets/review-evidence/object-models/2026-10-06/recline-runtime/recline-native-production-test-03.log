@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/recline-production.test.ts tests/shared-seat-sprites.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  14:43:06
+   Duration  2.32s (transform 1.53s, setup 0ms, import 2.01s, tests 128ms, environment 0ms)
+

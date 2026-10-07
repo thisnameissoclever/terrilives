@@ -1,0 +1,6 @@
+tick 1 seated 1 active 0
+tick 65 seated 1 active 1
+tick 102 seated 0 active 0
+tick 103 seated 1 active 0
+tick 135 seated 1 active 1
+tick 203 seated 0 active 0

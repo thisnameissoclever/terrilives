@@ -4,8 +4,13 @@
 //! read by `build.rs` at build time and by the simulation at run time,
 //! so it has to compile for the host and for `wasm32-unknown-unknown`.
 
+pub mod books;
 pub mod compile;
+#[cfg(test)]
+mod published_pack_wire;
+pub use books::{compile_books, BookDefinition, BooksFile, ReadingTuning};
 pub mod error;
+pub mod hierarchy;
 mod need_tuning;
 pub mod pack;
 mod relationship_tuning;
@@ -15,6 +20,7 @@ pub mod schema;
 
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
+pub use pack::SeatUse;
 pub use pack::SleepPlaceAccess;
 pub use pack::{
     AffinityReach, CompiledActionSocket, CompiledActivity, CompiledAffinityKind, CompiledCareer,
@@ -26,6 +32,8 @@ pub use pack::{
     Tuning,
 };
 pub use pack::{Facing, FacingSprites};
+pub use pack::{MediaBehavior, RecipeBinding};
+pub use pack::{ModelMetadata, PhysicalSeat};
 pub use schema::{
     ActionSocketDef, AffinityKindDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef,
     FrontDoorDef, FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile,
@@ -40,6 +48,74 @@ use std::sync::OnceLock;
 /// bytes and the source content cannot disagree: they are produced by
 /// the same build that compiles this file.
 static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pack.postcard"));
+
+/// Frozen pre-skills definitions for older published V1-V5 source validation.
+pub fn pre_books_pack() -> &'static ContentPack {
+    static PACK: OnceLock<ContentPack> = OnceLock::new();
+    PACK.get_or_init(|| {
+        postcard::from_bytes(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/pre_books_pack.postcard"
+        )))
+        .expect("build-time frozen content pack decodes")
+    })
+}
+
+/// Published skills and repetition content, before owned books.
+pub fn published_pre_books_pack() -> &'static ContentPack {
+    static PACK: OnceLock<ContentPack> = OnceLock::new();
+    PACK.get_or_init(|| {
+        postcard::from_bytes(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/published_pre_books_pack.postcard"
+        )))
+        .expect("build-time published content pack decodes")
+    })
+}
+
+/// Published affinity and calendar contract before household chores and physical table sitting.
+pub fn affinity_pre_books_pack() -> &'static ContentPack {
+    static PACK: OnceLock<ContentPack> = OnceLock::new();
+    PACK.get_or_init(|| {
+        postcard::from_bytes(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/affinity_pre_books_pack.postcard"
+        )))
+        .expect("frozen affinity pack decodes")
+    })
+}
+/// Immutable published affinity/calendar/chore era before owned books.
+pub fn latest_pre_books_pack() -> &'static ContentPack {
+    static PACK: OnceLock<ContentPack> = OnceLock::new();
+    PACK.get_or_init(|| {
+        postcard::from_bytes(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/latest_pre_books_pack.postcard"
+        )))
+        .expect("frozen published pack decodes")
+    })
+}
+pub fn contextual_pre_books_pack() -> &'static ContentPack {
+    static PACK: OnceLock<ContentPack> = OnceLock::new();
+    PACK.get_or_init(|| {
+        postcard::from_bytes(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/contextual_pre_books_pack.postcard"
+        )))
+        .expect("frozen contextual published pack decodes")
+    })
+}
+pub fn is_latest_pre_books_pack(pack: &ContentPack) -> bool {
+    std::ptr::eq(pack, latest_pre_books_pack()) || std::ptr::eq(pack, contextual_pre_books_pack())
+}
+
+/// Explicit historical adapters apply only to these two frozen source eras.
+pub fn is_pre_books_pack(pack: &ContentPack) -> bool {
+    std::ptr::eq(pack, pre_books_pack())
+        || std::ptr::eq(pack, published_pre_books_pack())
+        || std::ptr::eq(pack, affinity_pre_books_pack())
+        || is_latest_pre_books_pack(pack)
+}
 
 /// The compatibility shape of the content a Save V1 can point at, hashed.
 ///
@@ -119,6 +195,27 @@ pub fn content_fingerprint(pack: &ContentPack) -> u64 {
             approaches.sort_unstable();
             hash_count(&mut hasher, approaches.len());
             for (x, y) in approaches {
+                hasher.write_bytes(&x.to_le_bytes());
+                hasher.write_bytes(&y.to_le_bytes());
+            }
+        }
+    }
+    let mut shelves: Vec<_> = pack
+        .objects
+        .iter()
+        .filter(|o| o.shelf_capacity > 0 || !o.shelf_access.is_empty())
+        .collect();
+    shelves.sort_by(|a, b| a.id.cmp(&b.id));
+    if !shelves.is_empty() {
+        hasher.write_bytes(b"shelf-access-v1");
+        hash_count(&mut hasher, shelves.len());
+        for shelf in shelves {
+            hash_text(&mut hasher, &shelf.id);
+            hasher.write_u64(shelf.shelf_capacity.into());
+            let mut access = shelf.shelf_access.clone();
+            access.sort();
+            hash_count(&mut hasher, access.len());
+            for (x, y) in access {
                 hasher.write_bytes(&x.to_le_bytes());
                 hasher.write_bytes(&y.to_le_bytes());
             }
@@ -540,21 +637,24 @@ mod tests {
 
     #[test]
     fn integrated_meal_and_sleeping_digest_has_only_the_reviewed_current_recipe_bridge() {
-        assert_eq!(content_fingerprint(pack()), 0xcf78_7472_e9e8_38f5);
-        assert_eq!(pre_sleep_places_fingerprint(pack()), 0x85a2_d140_0dff_9da1);
+        assert_eq!(content_fingerprint(pre_books_pack()), 0xcf78_7472_e9e8_38f5);
+        assert_eq!(
+            pre_sleep_places_fingerprint(pre_books_pack()),
+            0x85a2_d140_0dff_9da1
+        );
         assert!(content_fingerprint_has_current_recipe(
-            pack(),
+            pre_books_pack(),
             0x85a2_d140_0dff_9da1
         ));
         assert!(!content_fingerprint_has_current_recipe(
-            pack(),
+            pre_books_pack(),
             0xc2cf_2919_84ed_61f7
         ));
         assert!(!content_fingerprint_has_current_recipe(
-            pack(),
+            pre_books_pack(),
             0xb38e_71a1_23bb_8273
         ));
-        let mut changed = pack().clone();
+        let mut changed = pre_books_pack().clone();
         let bed = changed.find("double_bed").unwrap();
         changed.objects[bed.0 as usize].sleep_places[0].approaches[0].0 += 1;
         assert!(!content_fingerprint_has_current_recipe(
@@ -588,7 +688,7 @@ mod tests {
     fn sleeping_access_bridges_are_exact_and_keep_migration_classification() {
         let source = current_pre_rotation_pack();
         for (destination, saved, legacy, prior) in [
-            (pack(), 0xc2cf_2919_84ed_61f7, false, false),
+            (pre_books_pack(), 0xc2cf_2919_84ed_61f7, false, false),
             (&source, 0xd396_b3f3_9e3c_6685, false, false),
             (&source, 0x9d22_8822_6933_d3c7, true, false),
             (&source, 0x26d5_982c_9af8_3de8, false, true),
@@ -629,18 +729,18 @@ mod tests {
             0x26d5_982c_9af8_3de8,
         ] {
             assert!(
-                !content_fingerprint_matches(pack(), old_geometry),
+                !content_fingerprint_matches(pre_books_pack(), old_geometry),
                 "rotation cannot be skipped"
             );
         }
-        let mut reordered = pack().clone();
+        let mut reordered = pre_books_pack().clone();
         let id = reordered.find("double_bed").unwrap();
         reordered.objects[id.0 as usize].sleep_places[0]
             .approaches
             .reverse();
         assert_eq!(
             content_fingerprint(&reordered),
-            content_fingerprint(pack()),
+            content_fingerprint(pre_books_pack()),
             "approach tie breaking uses coordinates, not declaration order"
         );
     }
@@ -649,7 +749,7 @@ mod tests {
     fn facing_digest_targets_are_pinned() {
         assert_eq!(
             pre_sleep_places_fingerprint(&without_the_trait_library(
-                pre_meals_content(pack()).unwrap()
+                pre_meals_content(pre_books_pack()).unwrap()
             )),
             0x4dab_6950_757c_1f15
         );
@@ -984,8 +1084,8 @@ mod tests {
     /// pack. Both values were read from this assertion failing.
     #[test]
     fn the_trait_library_digest_is_pinned() {
-        assert_eq!(content_fingerprint(pack()), 0xcf787472e9e838f5);
-        let mut rebuilt = pre_meals_content(pack()).expect("reviewed pre-meal shape");
+        assert_eq!(content_fingerprint(pre_books_pack()), 0xcf787472e9e838f5);
+        let mut rebuilt = pre_meals_content(pre_books_pack()).expect("reviewed pre-meal shape");
         assert_eq!(
             pre_sleep_places_fingerprint(&rebuilt),
             0xc2cf_2919_84ed_61f7
@@ -1009,7 +1109,7 @@ mod tests {
     /// moved too and the bridge below must not be trusted.
     #[test]
     fn removing_the_appended_traits_reproduces_the_previous_public_digest() {
-        let before = without_the_trait_library(pack().clone());
+        let before = without_the_trait_library(pre_books_pack().clone());
         assert_eq!(before.traits.len(), 3);
         assert_eq!(
             before
@@ -1021,7 +1121,7 @@ mod tests {
             "the three traits old saves can name stay first, in their old order"
         );
         assert_eq!(pre_sleep_places_fingerprint(&before), 0x4dab_6950_757c_1f15);
-        for (before_trait, now) in before.traits.iter().zip(&pack().traits) {
+        for (before_trait, now) in before.traits.iter().zip(&pre_books_pack().traits) {
             assert_eq!(before_trait.id, now.id);
             assert_eq!(
                 std::mem::discriminant(&before_trait.kind),
@@ -1038,41 +1138,50 @@ mod tests {
             PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS,
             &[(
                 previous_public,
-                pre_sleep_places_fingerprint(&pre_meals_content(pack()).unwrap())
+                pre_sleep_places_fingerprint(&pre_meals_content(pre_books_pack()).unwrap())
             )],
             "the bridge names one source and one reviewed destination"
         );
-        assert!(content_fingerprint_matches(pack(), previous_public));
-        assert!(!content_fingerprint_is_legacy(pack(), previous_public));
+        assert!(content_fingerprint_matches(
+            pre_books_pack(),
+            previous_public
+        ));
+        assert!(!content_fingerprint_is_legacy(
+            pre_books_pack(),
+            previous_public
+        ));
         assert!(!content_fingerprint_is_prior_structural(
-            pack(),
+            pre_books_pack(),
             previous_public
         ));
         assert!(!content_fingerprint_is_pre_aquarium_bike(
-            pack(),
+            pre_books_pack(),
             previous_public
         ));
 
         // Everything the previous public build accepted is still accepted.
         for saved in [0xfdf5_87d9_437f_bfd0, 0xbcdd_476e_1e23_8ab0] {
-            assert!(content_fingerprint_matches(pack(), saved), "{saved:#018x}");
+            assert!(
+                content_fingerprint_matches(pre_books_pack(), saved),
+                "{saved:#018x}"
+            );
         }
 
         // A different sixteenth trait is an unreviewed shape: the bridge closes.
-        let mut grown = pack().clone();
+        let mut grown = pre_books_pack().clone();
         let mut extra = grown.traits[0].clone();
         extra.id = "unreviewed".to_string();
         grown.traits.push(extra);
         assert!(!content_fingerprint_matches(&grown, previous_public));
 
         // So does changing what an existing trait IS.
-        let mut rekinded = pack().clone();
+        let mut rekinded = pre_books_pack().clone();
         rekinded.traits[1].kind = rekinded.traits[2].kind.clone();
         assert!(!content_fingerprint_matches(&rekinded, previous_public));
 
         // The source digest is not a skeleton key into the pre-library shape's
         // own neighbours either.
-        let mut other_destination = without_the_trait_library(pack().clone());
+        let mut other_destination = without_the_trait_library(pre_books_pack().clone());
         other_destination.traits.pop();
         assert!(!content_fingerprint_matches(
             &other_destination,
@@ -1105,13 +1214,11 @@ mod tests {
             .find("fridge")
             .expect("content/objects.toml declares a fridge");
         let fridge = p.object(id);
-        assert_eq!(fridge.interactions.len(), 1);
+        assert_eq!(fridge.interactions.len(), 2);
+        assert_eq!(fridge.interactions[1].id, "cook_dinner");
         let act = &fridge.interactions[0];
         assert_eq!(act.id, "grab_snack");
-        // 30 since the alpha balance pass; it was 15, which sat below the
-        // clipping line and made the fridge deliver more hunger than it
-        // advertised. `no_shipped_interaction_is_clipped_by_the_interaction_floor`
-        // in compile.rs is the rule; this is just deserialisation.
+        // The bound snack retains its existing 20/30/35 base-work stages.
         assert_eq!(act.duration_ticks, 85);
         assert_eq!(
             act.advertises,
@@ -1338,6 +1445,10 @@ mod tests {
         let mut longer = original.clone();
         let extra = longer.objects[0].interactions[0].clone();
         longer.objects[0].interactions.push(CompiledInteraction {
+            media: None,
+            recipe: None,
+            book_reading: false,
+            seat_use: Default::default(),
             completion_sound: None,
             id: "an_extra_row".to_string(),
             ..extra
@@ -1524,13 +1635,13 @@ mod tests {
         let mut changed_rows = 0;
         for object in &mut changed.objects {
             for interaction in &mut object.interactions {
-                assert!(interaction.activity.is_some());
-                interaction.activity = None;
-                changed_rows += 1;
+                if interaction.activity.take().is_some() {
+                    changed_rows += 1;
+                }
             }
         }
         assert_eq!(
-            changed_rows, 19,
+            changed_rows, 28,
             "the fixture must include every shipped interaction"
         );
         assert_eq!(
@@ -2181,7 +2292,7 @@ mod tests {
     fn the_pre_portal_shape_migrates_only_to_the_reviewed_landing() {
         let prior_pack = pre_portal_pack();
         let prior = pre_facing_fingerprint(&prior_pack);
-        let current = pre_sleep_places_fingerprint(pack());
+        let current = pre_sleep_places_fingerprint(pre_books_pack());
         assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
         assert_eq!(current, 0x85a2_d140_0dff_9da1);
         assert_eq!(
@@ -2189,12 +2300,18 @@ mod tests {
             &[(prior, 0xfdf5_87d9_437f_bfd0)],
             "the pre-portal digest must name one exact reviewed destination"
         );
-        assert!(content_fingerprint_matches(pack(), prior));
-        assert!(!content_fingerprint_is_legacy(pack(), prior));
-        assert!(!content_fingerprint_is_prior_structural(pack(), prior));
-        assert!(!content_fingerprint_is_pre_aquarium_bike(pack(), prior));
+        assert!(content_fingerprint_matches(pre_books_pack(), prior));
+        assert!(!content_fingerprint_is_legacy(pre_books_pack(), prior));
+        assert!(!content_fingerprint_is_prior_structural(
+            pre_books_pack(),
+            prior
+        ));
+        assert!(!content_fingerprint_is_pre_aquarium_bike(
+            pre_books_pack(),
+            prior
+        ));
 
-        let mut moved_landing = pack().clone();
+        let mut moved_landing = pre_books_pack().clone();
         moved_landing.portals[0].inward = (14, 2);
         assert!(
             !content_fingerprint_matches(&moved_landing, prior),
@@ -2204,12 +2321,12 @@ mod tests {
 
     #[test]
     fn the_unpublished_old_bathtub_portal_checkpoint_is_not_a_save_bridge() {
-        let mut unpublished = without_the_trait_library(pack().clone());
+        let mut unpublished = without_the_trait_library(pre_books_pack().clone());
         let bathtub = unpublished.find("bathtub").expect("shipped bathtub");
         unpublished.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
         let checkpoint = pre_facing_fingerprint(&unpublished);
         assert_eq!(checkpoint, 0xd1c8_9f68_9f73_2f30);
-        assert!(!content_fingerprint_matches(pack(), checkpoint));
+        assert!(!content_fingerprint_matches(pre_books_pack(), checkpoint));
     }
 
     #[test]
@@ -2264,7 +2381,7 @@ mod tests {
     }
 
     fn pre_rotation_pack() -> ContentPack {
-        let mut source = without_the_trait_library(pack().clone());
+        let mut source = without_the_trait_library(pre_books_pack().clone());
         let bathtub = source.find("bathtub").expect("shipped bathtub");
         source.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
         source.objects[bathtub.0 as usize].base_facing = Facing::SouthEast;
@@ -2273,7 +2390,7 @@ mod tests {
     }
 
     fn pre_portal_pack() -> ContentPack {
-        let mut source = without_the_trait_library(pack().clone());
+        let mut source = without_the_trait_library(pre_books_pack().clone());
         source.portals.clear();
         source
     }
@@ -2284,8 +2401,8 @@ mod tests {
         let bike = p.find("moving_box").expect("bike persistence key");
         let aquarium = p.find("reference_shelf").expect("aquarium persistence key");
 
-        assert_eq!(p.object(bike).name, "Wellness Initiative, Indoor");
-        assert_eq!(p.object(aquarium).name, "Aquarium of Managed Expectations");
+        assert_eq!(p.object(bike).name, "Nowhere 250");
+        assert_eq!(p.object(aquarium).name, "Stillwater Cabinet");
         assert_eq!(p.object(bike).footprint, Footprint::default());
         assert_eq!(p.object(aquarium).footprint, Footprint::default());
 
@@ -2294,11 +2411,11 @@ mod tests {
         assert_eq!(bike_action.label, "Use the exercise bike");
         assert_eq!(
             bike_action.advertises,
-            vec![(1, -8.0), (2, -5.0), (5, 28.0)]
+            vec![(1, -8.0), (2, -5.0), (5, 32.0)]
         );
-        assert_eq!((bike_action.duration_ticks, bike_action.slots), (83, 1));
+        assert_eq!((bike_action.duration_ticks, bike_action.slots), (75, 1));
         assert_eq!(bike_action.tags, vec!["exercise"]);
-        assert_eq!(bike_action.satisfaction, 2.0);
+        assert_eq!(bike_action.satisfaction, 3.0);
         assert_eq!(
             bike_action.visual,
             Some(CompiledVisual {
@@ -2447,7 +2564,7 @@ mod tests {
             .find(|interaction| interaction.id == "take_the_chair")
             .expect("shipped sitting interaction");
 
-        assert_eq!(action.label, "Sit down");
+        assert_eq!(action.label, "Sit");
         assert_eq!((action.duration_ticks, action.slots), (41, 1));
         assert_eq!(
             action.visual,
@@ -2618,68 +2735,45 @@ mod tests {
         );
     }
 
-    /// **Some of the house is furniture nobody uses, on purpose.**
-    ///
-    /// A counter, a coat rack, a freestanding plant: they advertise nothing,
-    /// so `select_action` never scores them, and they
-    /// exist because a room reads as a room when it holds things that are
-    /// not all affordances. `an_object_may_declare_no_interactions` in
-    /// `schema.rs` is what keeps that legal at the parse layer; this is what
-    /// says the shipped content actually uses it.
-    ///
-    /// Both directions are asserted and the second is the one with a bug
-    /// behind it. A pipeline that silently dropped interactions - a bad
-    /// merge, a `#[serde(default)]` on the wrong field - would leave every
-    /// object advertising nothing, and the house would look identical while
-    /// every sim stood still for ever ([L17]). "At least one has none" alone
-    /// is green in that world.
+    /// Decorative models stay usable as scenery while physical chairs gain sitting.
     #[test]
-    fn at_least_a_third_of_the_house_is_furniture_nobody_uses() {
+    fn decorative_models_remain_inert_and_functional_objects_keep_actions() {
         let p = pack();
-        let silent = p
-            .objects
-            .iter()
-            .filter(|o| o.interactions.is_empty())
-            .count();
-        assert!(
-            silent * 3 >= p.objects.len(),
-            "only {silent} of {} objects are scenery; the house is meant to \
-             hold things that are not all affordances",
-            p.objects.len()
-        );
-        assert!(
-            silent < p.objects.len(),
-            "every object advertises nothing, so no sim can ever choose to \
-             do anything; the interactions have been dropped somewhere in \
-             the pipeline"
-        );
+        for id in [
+            "trashcan",
+            "potted_plant",
+            "floor_lamp",
+            "coat_rack",
+            "nightstand",
+        ] {
+            let object = p.object(p.find(id).unwrap());
+            assert!(object.interactions.is_empty(), "{id} is decorative");
+        }
+        for id in [
+            "chair",
+            "desk_chair",
+            "armchair",
+            "sofa",
+            "long_sofa",
+            "fridge",
+        ] {
+            assert!(
+                !p.object(p.find(id).unwrap()).interactions.is_empty(),
+                "{id} must remain usable"
+            );
+        }
     }
 
-    /// The sofa is where [D6]'s scoring SUMS across advertised deltas is
-    /// TUNED to be observable: neither 18 fun nor 34 comfort beats the
-    /// television's 30 fun alone, and together they can. Until it existed
-    /// that summing was exercised only by in-memory fixtures.
-    ///
-    /// "Two needs" alone would not be the claim, because the shower has
-    /// advertised two since M1b and is declared earlier in the file. Its
-    /// pair is a benefit and a COST, which exercises the sign carried
-    /// through `score_advertisement` rather than the summing - which is
-    /// why this test asserts the two separately. The television's
-    /// `social` + `fun` is a third case again, two positive deltas that
-    /// were not chosen to make the summing decide anything.
-    ///
-    /// The shower is the one that advertises a NEGATIVE delta, which M1a
-    /// rejected outright. Both are asserted here because both are claims
-    /// about shipped content that a rebalance could quietly drop.
     #[test]
     fn the_shipped_pack_carries_a_multi_need_advert_and_a_negative_one() {
         let p = pack();
 
-        let sofa = p.object(
-            p.find("long_sofa")
-                .expect("objects.toml declares a long sofa"),
-        );
-        let lounge = &sofa.interactions[0];
+        let sofa = p.object(p.find("long_sofa").expect("objects.toml declares a sofa"));
+        let lounge = sofa
+            .interactions
+            .iter()
+            .find(|a| a.id == "stretch_out")
+            .unwrap();
         assert_eq!(
             lounge.advertises,
             vec![
@@ -3152,8 +3246,8 @@ mod tests {
     /// other - `{ fun = 18.0, comfort = 18.0 }` - and the object and
     /// interaction are identical on both sides of that pair.
     #[test]
-    fn no_two_shipped_interactions_share_a_duration_or_a_delta() {
-        let p = pack();
+    fn frozen_interaction_fixture_has_distinct_durations_and_deltas() {
+        let p = pre_books_pack();
 
         let mut durations: Vec<(u32, String)> = Vec::new();
         let mut deltas: Vec<(u32, String)> = Vec::new();

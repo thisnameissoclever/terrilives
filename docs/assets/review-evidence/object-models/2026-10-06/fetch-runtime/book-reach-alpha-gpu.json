@@ -1,0 +1,13 @@
+{
+  "samples": 392,
+  "actual": {
+    "maxDifference": 0,
+    "changedDiscards": 0
+  },
+  "negative": {
+    "maxDifference": 1,
+    "changedDiscards": 205
+  },
+  "error": null,
+  "fallback": false
+}

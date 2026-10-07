@@ -1,0 +1,100 @@
+{
+  "state": "complete",
+  "passed": true,
+  "rows": [
+    {
+      "seat": 0,
+      "side": "L",
+      "centre": [
+        -0.550421184594514,
+        -0.4523385828147169,
+        0.73230311294071
+      ],
+      "bounds": [
+        [
+          -0.8328702451804291,
+          -0.6654411556342255
+        ],
+        [
+          -0.1997696159264435,
+          -0.28072839955299994
+        ]
+      ],
+      "radius": 0.08646531260901794,
+      "inside": true,
+      "meaning": "Search bounds only; physical finite exposed support comes from the full continuous scene evaluator"
+    },
+    {
+      "seat": 1,
+      "side": "L",
+      "centre": [
+        -0.5507497549057007,
+        0.12764352986314256,
+        0.7321337934400215
+      ],
+      "bounds": [
+        [
+          -0.8328702451804291,
+          -0.08544116149690106
+        ],
+        [
+          -0.1997696159264435,
+          0.2992715837576995
+        ]
+      ],
+      "radius": 0.08646531260901794,
+      "inside": true,
+      "meaning": "Search bounds only; physical finite exposed support comes from the full continuous scene evaluator"
+    },
+    {
+      "seat": 1,
+      "side": "R",
+      "centre": [
+        -0.5507349150102646,
+        -0.1276449701214423,
+        0.7321414302607052
+      ],
+      "bounds": [
+        [
+          -0.8328702451909548,
+          -0.29927164337286993
+        ],
+        [
+          -0.19976961591591788,
+          0.08544110621014882
+        ]
+      ],
+      "radius": 0.08646531261954356,
+      "inside": true,
+      "meaning": "Search bounds only; physical finite exposed support comes from the full continuous scene evaluator"
+    },
+    {
+      "seat": 2,
+      "side": "R",
+      "centre": [
+        -0.550405553520703,
+        0.4523370866404205,
+        0.7323112009978685
+      ],
+      "bounds": [
+        [
+          -0.8328702451909548,
+          0.28072833993782953
+        ],
+        [
+          -0.19976961591591788,
+          0.6654410960401064
+        ]
+      ],
+      "radius": 0.08646531261954356,
+      "inside": true,
+      "meaning": "Search bounds only; physical finite exposed support comes from the full continuous scene evaluator"
+    }
+  ],
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_placement_controls.py": "743ba8140aa52305d81de22734b935ab4b9e3fabc830bf49dde95fa54b51a371",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_placement.py": "d473bf33fe38d49b911c3ced8e162ad35a871b00a8d2b4766c854b5b0a2af007",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-contact-solver-controls-scene-02\\retained-scene.npz": "6ea27e96db1e5d63bbea3b74f0e5740c7386ac699f7782aef4a7ee81efb032c4"
+  }
+}

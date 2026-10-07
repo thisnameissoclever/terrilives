@@ -29,6 +29,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PIL import Image, ImageChops                              # noqa: E402
+from coverage_table import coverage_table
 
 import objects                                                  # noqa: E402
 import front_door                                               # noqa: E402
@@ -936,7 +937,11 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              pairs=None, interactions=None, bounds=None, surfaces=None, bed_catalog=None, bed_layers=None, bed_coverage=None,
              pair_coverage=None, pair_masks=None, dining_meals=None, pages=None, page_files=None, bed_trims=None,
              seating_profiles=None, seating_layers=None, seating_coverage=None, seating_masks=None,
-             bathroom_profiles=None, bathroom_layers=None, bathroom_coverage=None, bathroom_masks=None):
+             shelf_profiles=None, shelf_slots=None, shelf_coverage=None,
+             shared_seat_catalog=None, shared_seat_layers=None, shared_seat_preview=None,
+             joint_scene_alpha_ids=None, reading_body_catalog=None, dropped_book_sprites=None, sofa_recline_catalog=None,
+             bathroom_profiles=None, bathroom_layers=None, bathroom_coverage=None, bathroom_masks=None,
+             book_reach_catalog=None, book_reach_shelves=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -959,7 +964,8 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
     surfaces_json = json.dumps(surfaces or {}, indent=2)
     bed_catalog_json = json.dumps(bed_catalog or {}, indent=2)
     bed_layers_json = json.dumps(bed_layers or {}, indent=2)
-    bed_coverage_json = json.dumps(bed_coverage or [], indent=2)
+    coverage_values, coverage_indices = coverage_table(bed_coverage or [])
+    bed_coverage_json = json.dumps(coverage_values, separators=(',', ':'))
     pair_coverage_json = json.dumps(pair_coverage or {}, indent=2)
     pair_masks_json = json.dumps(pair_masks or [], indent=2)
     dining_meals_json = json.dumps(dining_meals or {}, indent=2)
@@ -1033,12 +1039,26 @@ export const INTERACTION_SPRITES: import('./interaction-sprites.js').Interaction
 /** Furniture support points projected from its authored surface and camera. */
 export const BED_CATALOG: import('./bed-sprites.js').BedCatalog = {bed_catalog_json};
 export const BED_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {bed_layers_json};
-export const BED_COVERAGE: readonly import('./bed-sprites.js').EncodedCoverage[] = {bed_coverage_json};
+const COVERAGE_VALUES: readonly import('./bed-sprites.js').EncodedCoverage[] = {bed_coverage_json};
+export const BED_COVERAGE: readonly import('./bed-sprites.js').EncodedCoverage[] = {json.dumps(coverage_indices, separators=(',', ':'))}.map(index => COVERAGE_VALUES[index]!);
 /** Action-specific neutral seating retains existing reading and dining profiles. */
 export const SEATING_SPRITES: import('./interaction-sprites.js').ActionInteractionCatalog = {json.dumps(seating_profiles or {}, indent=2)};
 export const SEATING_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(seating_layers or {}, indent=2)};
 export const SEATING_COVERAGE: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(seating_coverage or {}, indent=2)};
 export const SEATING_MASKS: readonly import('./bed-sprites.js').EncodedCoverage[] = {json.dumps(seating_masks or [], indent=2)};
+export const SHELF_PROFILES: import('./shelf-sprites.js').ShelfProfiles = {json.dumps(shelf_profiles or {}, indent=2)};
+export const SHELF_COVERAGE: Readonly<Record<number, import('./bed-sprites.js').EncodedCoverage>> = {json.dumps(shelf_coverage or {}, indent=2)};
+export const SHELF_SLOT_TRANSFORMS = {json.dumps(shelf_slots or {}, separators=(',', ':'))};
+export const BOOK_REACH_CATALOG: import('./book-reach-sprites.js').BookReachCatalog = {json.dumps(book_reach_catalog or {}, separators=(',', ':'))};
+export const BOOK_REACH_SHELVES: import('./book-reach-sprites.js').BookReachShelves = {json.dumps(book_reach_shelves or {}, separators=(',', ':'))};
+export const SHARED_SEAT_CATALOG: import('./shared-seat-sprites.js').SharedSeatCatalog = {json.dumps(shared_seat_catalog or {}, separators=(',', ':'))};
+export const SHARED_SEAT_LAYERS: import('./visible-scene-layers.js').SharedSceneLayers = {json.dumps(shared_seat_layers or {}, separators=(',', ':'))};
+/** Explicit partial catalogue for renderer review; normal game selection does not consume it. */
+export const SHARED_SEAT_PREVIEW_CATALOG: import('./shared-seat-sprites.js').SharedSeatCatalog = {json.dumps(shared_seat_preview or {}, separators=(',', ':'))};
+export const JOINT_SCENE_ALPHA_IDS: Readonly<Record<number, number>> = {json.dumps(joint_scene_alpha_ids or {})};
+export const READING_BODY_CATALOG: import('./reading-sprites.js').ReadingBodyCatalog = {json.dumps(reading_body_catalog or {}, separators=(',', ':'))};
+export const DROPPED_BOOK_SPRITES: readonly {{ readonly sprite: number; readonly alpha: number }}[] = {json.dumps(dropped_book_sprites or [])};
+export const SOFA_RECLINE_CATALOG: import('./shared-seat-sprites.js').ReclineCatalog = {json.dumps(sofa_recline_catalog or {}, separators=(',', ':'))};
 /** Fitted bathroom actions keep their ownership separate from older scenes. */
 export const BATHROOM_SPRITES: import('./interaction-sprites.js').ActionInteractionCatalog = {json.dumps(bathroom_profiles or {}, indent=2)};
 export const BATHROOM_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {json.dumps(bathroom_layers or {}, indent=2)};
@@ -1453,8 +1473,20 @@ def main():
     visible_layers = {**bed_layers, **seating_data['layers'], **bathroom_data['layers']}
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
+    from offline_shelf import load_shelf
+    shelf_data = load_shelf(Path(ROOT) / 'assets/models/bookcase/export/mask-09/manifest.json',
+                           sprites, anchors, densities, bed_trims)
+    from offline_reader_subset import append_subset
+    reader_subset = append_subset(Path(ROOT) / 'assets/models/seating/reader-subset-01/export/manifest.json',
+                                  sprites, anchors, densities, bed_trims, bounds, tops, bed_coverage)
+    visible_layers.update(reader_subset['layers'])
+    from offline_reading import append_actions, append_dropped
+    reading_actions = append_actions(ROOT, sprites, anchors, densities, bed_trims, bounds, tops, bed_coverage)
+    dropped_books = append_dropped(ROOT, sprites, anchors, densities, bounds, bed_coverage)
+    visible_layers.update(reading_actions['layers'])
     sync_generated_architecture(sprites, check=args.check)
-    textured = [(index, sprite) for index, sprite in enumerate(sprites) if index not in visible_layers]
+    textured = [(index, sprite) for index, sprite in enumerate(sprites)
+                if index not in visible_layers and index not in shelf_data['positions']]
     dense_sprites, texture_aliases = deduplicate_pixels([sprite for _, sprite in textured])
     packed_pages, page_count = pack_pages([(row[2], row[3]) for row in dense_sprites], 2048, PADDING)
     width, height = 2048, 2048
@@ -1463,10 +1495,17 @@ def main():
     for alias, layers in visible_layers.items():
         placed[alias] = placed[layers[0]]
         pages[alias] = pages[layers[0]]
+    for alias in reader_subset['aliases'] | reading_actions['aliases']:
+        placed[alias] = (0, 0)
+        pages[alias] = 0
     sheets = [Image.new('RGBA', (width, height)) for _ in range(page_count)]
     for index, (_, image, _, _) in enumerate(dense_sprites):
         page, x, y = packed_pages[index]
         sheets[page].paste(image, (x, y))
+    shelf_page_start = len(sheets)
+    sheets.extend(shelf_data['sheets'])
+    placed.update(shelf_data['positions'])
+    pages.update({index: shelf_page_start + page for index, page in shelf_data['pages'].items()})
     pngs = [png_bytes(sheet) for sheet in sheets]
     if args.check:
         for index, sheet in enumerate(sheets):
@@ -1508,6 +1547,12 @@ def main():
                   seating_profiles={index: {profile['action']: profile} for index, profile in seating_data['profiles'].items()},
                   seating_layers=seating_data['layers'],
                   seating_coverage=seating_data['coverage'], seating_masks=seating_data['masks'],
+                  shelf_profiles=shelf_data['profiles'], shelf_slots=shelf_data['slot_transforms'],
+                  shelf_coverage=shelf_data['coverage'], shared_seat_layers={**reader_subset['layers'], **reading_actions['layers']},
+                  shared_seat_preview=reader_subset['catalog'], shared_seat_catalog=reading_actions['catalog'],
+                  joint_scene_alpha_ids={**reader_subset['joint_ids'], **reading_actions['joint_ids']}, reading_body_catalog=reading_actions['bodies'], dropped_book_sprites=dropped_books,
+                  sofa_recline_catalog=reading_actions['recline'],
+                  book_reach_catalog=reading_actions['reaches'], book_reach_shelves=reading_actions['reach_shelves'],
                   bathroom_profiles={index: {profile['action']: profile} for index, profile in bathroom_data['profiles'].items()},
                   bathroom_layers=bathroom_data['layers'], bathroom_coverage=bathroom_data['coverage'],
                   bathroom_masks=bathroom_data['masks'])

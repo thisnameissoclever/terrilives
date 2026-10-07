@@ -1,0 +1,58 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+ ❯ tests/long-sofa.test.ts (8 tests | 1 failed) 140ms
+   × identifies Lie down without claiming a new body animation 51ms
+ ❯ tests/book-bridge.test.ts (5 tests | 1 failed) 120ms
+   × uses stable model/action identity, combines room/need filters and keeps browsing deterministic 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/book-bridge.test.ts > uses stable model/action identity, combines room/need filters and keeps browsing deterministic
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ tests/book-bridge.test.ts:55:114
+     53|     expect([bookcase.shelfCapacity, bookcase.shelfAccessPoints]).toEqu…
+     54|     expect(bookcase.actions.find(action => action.id === 'read')!.capa…
+     55|     for (const id of ['television', 'radio']) expect(models.find(model…
+       |                                                                                                                  ^
+     56|     const armchairs = sim.catalogue().filter(item => item.model?.typeI…
+     57|     expect(armchairs.length).toBeGreaterThan(1); expect(new Set(armcha…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/long-sofa.test.ts > identifies Lie down without claiming a new body animation
+AssertionError: expected 'ownedReading_recline_SE_0_1' to match /^rigSimBlueIdle/
+
+- Expected:
+/^rigSimBlueIdle/
+
++ Received:
+"ownedReading_recline_SE_0_1"
+
+ ❯ tests/long-sofa.test.ts:74:42
+     72|       const instances = buildInstances(sim, 1, 0, 0, 16);
+     73|       const sprite = instances[row * FLOATS_PER_INSTANCE + 3];
+     74|       expect(atlas.SPRITES[sprite].name).toMatch(/^rigSimBlueIdle/);
+       |                                          ^
+     75|       observed = true;
+     76|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 169 passed (171)
+      Tests  2 failed | 2180 passed (2182)
+   Start at  16:11:44
+   Duration  79.54s (transform 3.36s, setup 0ms, import 38.68s, tests 25.64s, environment 9ms)
+

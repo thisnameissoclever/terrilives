@@ -17,6 +17,11 @@ use terri_data::ContentPack;
 /// then skill id. Always `Some`, even when nobody holds any practice, so a
 /// current save is never mistaken for one written before skills existed.
 pub(crate) fn capture(world: &World, pack: &ContentPack) -> Option<SavedSkills> {
+    // Synthetic source worlds and staged historical restoration must retain
+    // the schema of the frozen pre-skills release. Current captures are Some.
+    if std::ptr::eq(pack, terri_data::pre_books_pack()) {
+        return None;
+    }
     let mut rows: Vec<(u32, String, f32)> = world
         .try_query::<(Entity, &Agent, &Skills)>()
         .map_or_else(Vec::new, |mut query| {

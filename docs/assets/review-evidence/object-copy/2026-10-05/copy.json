@@ -1,0 +1,152 @@
+[
+  {
+    "type": "Fridge",
+    "model": "Everyday",
+    "description": "Food storage for cooking, with snacks available between meals."
+  },
+  {
+    "type": "Bunk bed",
+    "model": "Stack",
+    "description": "Sleep in the lower bunk. The upper bunk is not usable yet."
+  },
+  {
+    "type": "Shower",
+    "model": "Rainfall",
+    "description": "A full wash. Takes more energy than washing at a sink."
+  },
+  {
+    "type": "Toilet",
+    "model": "Standard",
+    "description": "A basic toilet."
+  },
+  {
+    "type": "Television",
+    "model": "Home Screen",
+    "description": "Watch alone or with a housemate."
+  },
+  {
+    "type": "Ottoman",
+    "model": "Low Seat",
+    "description": "A padded seat for taking a break."
+  },
+  {
+    "type": "Bathroom sink",
+    "model": "Basin",
+    "description": "A quick hand wash when you do not need a shower."
+  },
+  {
+    "type": "Bookcase",
+    "model": "Library",
+    "description": "Pick out a book and read."
+  },
+  {
+    "type": "Stove",
+    "model": "Weeknight",
+    "description": "Used to cook meals. You also need a fridge, a place to prepare food, and somewhere to eat."
+  },
+  {
+    "type": "Kitchen counter",
+    "model": "Prep",
+    "description": "A work surface for preparing food."
+  },
+  {
+    "type": "Kitchen sink",
+    "model": "Utility",
+    "description": "Wash hands, prepare food, or clean up dirty dishes."
+  },
+  {
+    "type": "Dining table",
+    "model": "Everyday",
+    "description": "A place to eat and share prepared meals. Add dining chairs for seated meals."
+  },
+  {
+    "type": "Dining chair",
+    "model": "Table Seat",
+    "description": "Place beside a dining table for seated meals."
+  },
+  {
+    "type": "Trash can",
+    "model": "Kitchen",
+    "description": "Decorative. Trash collection is not available."
+  },
+  {
+    "type": "Sofa",
+    "model": "Long Seat",
+    "description": "Stretch out for a rest. Restores some energy, but less than sleeping in a bed."
+  },
+  {
+    "type": "Armchair",
+    "model": "Lounge",
+    "description": "A comfortable seat for one."
+  },
+  {
+    "type": "Radio",
+    "model": "Tabletop",
+    "description": "Listen alone or with a housemate."
+  },
+  {
+    "type": "Potted plant",
+    "model": "Ficus",
+    "description": "A decorative houseplant. Does not need watering."
+  },
+  {
+    "type": "Floor lamp",
+    "model": "Room Light",
+    "description": "Adds light to the room after dark."
+  },
+  {
+    "type": "Coat rack",
+    "model": "Hall Stand",
+    "description": "Decorative. Clothing storage is not available."
+  },
+  {
+    "type": "Double bed",
+    "model": "Rest",
+    "description": "A bed with two sleeping places."
+  },
+  {
+    "type": "Nightstand",
+    "model": "Bedside",
+    "description": "Decorative bedside furniture. Storage is not available."
+  },
+  {
+    "type": "Dresser",
+    "model": "Bedroom",
+    "description": "Decorative. Clothing storage is not available."
+  },
+  {
+    "type": "Exercise bike",
+    "model": "Home Cycle",
+    "description": "Exercise indoors. Uses energy and leaves you needing a wash."
+  },
+  {
+    "type": "Desk",
+    "model": "Study",
+    "description": "A place to work on correspondence."
+  },
+  {
+    "type": "Desk chair",
+    "model": "Office",
+    "description": "Decorative seating. Has no separate sitting action."
+  },
+  {
+    "type": "Reading chair",
+    "model": "Wingback",
+    "description": "Sit comfortably with a book."
+  },
+  {
+    "type": "Aquarium",
+    "model": "Stillwater",
+    "description": "Watch the fish for a quiet break."
+  },
+  {
+    "type": "Bathtub",
+    "model": "Soak",
+    "description": "A longer wash that also restores comfort."
+  },
+  {
+    "type": "Washing machine",
+    "model": "Home Wash",
+    "description": "Decorative. Clothes washing is not available."
+  }
+]

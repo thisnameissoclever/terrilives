@@ -9,6 +9,8 @@ use terri_core::{
 pub(crate) const PRIVATE_USE_TAG: &str = "bathroom_privacy";
 
 struct Participant {
+    feelings: Relationships,
+    destination: (i32, i32),
     entity: Entity,
     id: SimId,
     room: Option<u32>,
@@ -18,8 +20,7 @@ struct Participant {
     directed: bool,
     commuting: bool,
     chain: Option<terri_core::ChainState>,
-    feelings: Relationships,
-    destination: (i32, i32),
+    origin: Option<crate::recipe_actions::Origin>,
 }
 
 /// Object availability at the start of movement, after route reservations settle.
@@ -90,6 +91,10 @@ pub(crate) fn prepare(world: &mut World) {
                 rooms.at(tile(*world.get::<Position>(target.object)?))
             });
             Participant {
+                feelings: world
+                    .get::<Relationships>(entity)
+                    .cloned()
+                    .unwrap_or_default(),
                 entity,
                 id,
                 destination: world
@@ -103,10 +108,7 @@ pub(crate) fn prepare(world: &mut World) {
                 directed: crate::privacy::directed(world, entity),
                 commuting: world.get::<terri_core::Commuting>(entity).is_some(),
                 chain: world.get::<terri_core::ChainState>(entity).copied(),
-                feelings: world
-                    .get::<Relationships>(entity)
-                    .cloned()
-                    .unwrap_or_default(),
+                origin: world.get::<crate::recipe_actions::Origin>(entity).cloned(),
             }
         })
         .collect();
@@ -236,7 +238,7 @@ impl InterpersonalPhase {
                     action,
                     &person.needs,
                     social_available,
-                    seat,
+                    if action.book_reading { 0. } else { seat },
                     shared,
                 ))
             })
@@ -245,8 +247,7 @@ impl InterpersonalPhase {
                     .filter(|t| t.interaction == super::chain::CHAIN_STEP)
                     .and(person.chain)
                     .map(|c| {
-                        pack.chains[c.chain as usize]
-                            .advertises
+                        crate::recipe_actions::benefits(pack, &c, person.origin.as_ref())
                             .iter()
                             .copied()
                             .filter(|&(n, d)| crate::social_company::effective_delta(n, d, false))
@@ -309,6 +310,7 @@ impl InterpersonalPhase {
                                 agent,
                                 Some(person.id),
                                 chain,
+                                person.origin.as_ref(),
                                 item.entity,
                                 item.definition,
                                 Some(&terri_core::ObjectFacing(item.facing)),
@@ -338,7 +340,6 @@ impl InterpersonalPhase {
                                             field,
                                             objects: furniture,
                                             occupancy,
-                                            claims: &self.physical_places,
                                         },
                                         agent,
                                         item,
@@ -691,9 +692,13 @@ pub(crate) fn refresh_routes(world: &mut World) {
         .cloned();
     let occupants = crate::domestic::boundary_occupants(world);
     let chains: Vec<_> = world
-        .query::<(Entity, Option<&terri_core::ChainState>)>()
+        .query::<(
+            Entity,
+            Option<&terri_core::ChainState>,
+            Option<&crate::recipe_actions::Origin>,
+        )>()
         .iter(world)
-        .map(|(e, c)| (e, c.copied()))
+        .map(|(e, c, o)| (e, c.copied(), o.cloned()))
         .collect();
     let mut phase = world.resource_mut::<InterpersonalPhase>();
     phase.domestic = domestic;
@@ -701,10 +706,9 @@ pub(crate) fn refresh_routes(world: &mut World) {
     phase.social = social;
     phase.physical_places = physical_places;
     for person in &mut phase.participants {
-        person.chain = chains
-            .iter()
-            .find(|(e, _)| *e == person.entity)
-            .and_then(|(_, c)| *c);
+        let state = chains.iter().find(|(e, _, _)| *e == person.entity);
+        person.chain = state.and_then(|(_, c, _)| *c);
+        person.origin = state.and_then(|(_, _, o)| o.clone());
     }
 }
 

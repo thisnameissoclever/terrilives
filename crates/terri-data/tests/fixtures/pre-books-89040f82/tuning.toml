@@ -1,0 +1,954 @@
+# Autonomous variation increases as the lowest need moves from low to met.
+choice_comfort_temperature = 0.15
+choice_exploration = 0.005
+choice_comfort_exploration = 0.20
+leisure_appeal = 0.12
+survival_risk_penalty = 2.0
+choice_probability_floor = 0.000000001
+wander_pause_variance = 0.4
+self_preservation_curve = [[0, 0.02], [5, 0.10], [30, 0.75], [50, 1.0], [70, 1.4], [100, 2.0]]
+# One directional penalty at conversation start; worst unhelped need wins.
+social_unmet_need_penalty = 0.11
+social_critical_need_penalty = 0.20
+# One penalty per private-use start or room entry.
+bathroom_privacy_penalty = 0.25
+# Mild preference costs and shyness response; these never forbid an action.
+social_boundary_avoidance_cost = 0.01
+shyness_annoyance_strength = 0.25
+boundary_wander_reconsider_chance = 0.10
+shyness_wander_reconsider_strength = 0.15
+
+# Preserves the critical need band used by the mood panel.
+mood_critical_need_level = 20.0
+# Preserves the low need band, above the critical band.
+mood_low_need_level = 40.0
+# All needs above this level describe a comfortable household.
+mood_needs_met_level = 70.0
+# Four critical needs can reach the bottom of the mood scale.
+mood_critical_need_penalty = 25.0
+# A low need hurts less than half as much as a critical one.
+mood_low_need_penalty = 12.0
+# Comfortable days slowly build satisfaction beyond the neutral band.
+mood_needs_met_bonus = 20.0
+# A full condition remains comparable to one critical need.
+mood_condition_penalty = 30.0
+# Nearby relationships can shift mood without replacing basic needs.
+mood_relationship_strength = 15.0
+# Preserves the existing four-tile social environment.
+mood_relationship_radius = 4.0
+# Tiny relationships do not clutter the mood panel.
+mood_relationship_min_affinity = 0.1
+# Almost resolved conditions no longer contribute a mood penalty.
+mood_condition_min_severity = 0.05
+# Waiting is mildly frustrating even with the relevant need met.
+waiting_mood_min_penalty = 2.0
+# Waiting with an empty relevant need hurts more than a critical need alone.
+waiting_mood_max_penalty = 30.0
+# Small mood fluctuations do not rewrite a life assessment.
+satisfaction_mood_neutral_band = 15.0
+# Extreme mood alone takes about 90 game days to move 50 points.
+# Ordinary mood changes satisfaction over months or years.
+satisfaction_mood_per_tick = 0.00038580247
+
+# Six real minutes at normal speed leaves time to recover from an empty need.
+death_after_ticks = 3600
+# The final minute gives a visible chance to intervene.
+death_warning_ticks = 600
+# Sixty game days lets the closest loss fade gradually across household life.
+grief_ticks = 86400
+# A neutral acquaintance leaves a small loss.
+grief_min_score = 5.0
+# A close relationship contributes a substantial but not all-consuming loss.
+grief_max_score = 30.0
+# Ten game days keeps a neutral acquaintance's small loss from vanishing overnight.
+grief_min_ticks = 14400
+# Strong dislike is no grief, never a positive mood bonus.
+grief_hated_affinity = -0.5
+
+
+# Every knob that governs the SYSTEM lives here. Values describing a
+# specific piece of content - a fridge's hunger delta - stay in
+# objects.toml. This split is deliberate and permanent: a designer
+# tuning feel should have one file to open, not a hunt through Rust
+# constants.
+#
+# So: when you add a value somebody might want to change, it goes here
+# rather than into a `const`. Ask which side it falls on - does it
+# describe one thing, or does it govern how everything behaves? The
+# first is content, the second is tuning. Existing scattered constants
+# migrate here as they are touched; `action_threshold` below was the
+# first, and the seven need decay rates at the bottom followed, out of
+# needs.toml.
+#
+# Validated at build time like every other content file, so a missing or
+# malformed knob fails cargo build rather than surfacing later as
+# inexplicable behaviour.
+#
+# Three of these were retuned at the M1c alpha feel pass against a
+# measured behaviour trace rather than by taste: choice_temperature,
+# idle_threshold and min_interaction_ticks. The measurements, and the
+# things the pass found that a knob CANNOT fix, are in
+# docs/alpha-feel-notes.md. Every number quoted in the comments below
+# came from that trace; replace them with new measurements rather than
+# with new guesses.
+
+# Historical compatibility field. Autonomous scores no longer exclude choices.
+action_threshold = 0.05
+
+# Softmax temperature for choosing among candidates. Low approaches
+# always-pick-the-best; high approaches pick-at-random.
+#
+# SCALE-SENSITIVE. Because urgency is cubed, scores span orders of
+# magnitude, so this must be tuned against the real range rather than
+# picked as a round number.
+#
+# The number that matters is not the score range but the GAP between the
+# top two candidates, because softmax is exponential in the difference
+# rather than in the ratio. Measured over 12 000 ticks of the shipped lot
+# with one sim (docs/alpha-feel-notes.md): the gap is 0.0045 at the 10th
+# percentile, 0.032 at the median and 0.142 at the 90th. Record new
+# figures here when the content or the lot changes; the previous value
+# was tuned against a guessed gap of 0.165, which is above the 90th
+# percentile of what the game actually produces.
+#
+# What 0.06 buys at those gaps, stated for two candidates so the
+# arithmetic is checkable: a median gap goes to the better option 63% of
+# the time, a 10th-percentile gap is a 52/48 coin toss, and a
+# 90th-percentile gap is 91/9. At the previous 0.15 the same three were
+# 55%, 51% and 72% - which is to say the sim was choosing close to
+# uniformly among everything it could see. One measured six-way decision
+# at 0.15 spread from p 0.143 to p 0.191 across all six options, which
+# is a coin toss with extra steps.
+#
+# Below roughly 0.005 the choice is effectively an argmax at these
+# magnitudes; above roughly 0.5 it is effectively a coin toss.
+choice_temperature = 0.06
+
+# Baseline utility of wandering, sampled beside eligible activities and waiting.
+# This no longer creates a dead band with action_threshold. Current multi-seed
+# balance measurements are recorded in docs/autonomy-validation.md.
+idle_threshold = 0.04
+
+# Center of the sampled pause; wander_pause_variance supplies its range.
+wander_pause_ticks = 20
+
+# How many random tiles a sim will try before giving up on wandering for
+# this tick.
+#
+# A wander destination is drawn at random and then pathed to, and a tile
+# that is walled off has no path, so a roll can fail. This is what makes
+# the retry BOUNDED: a sim sealed into a room with nowhere to walk
+# re-rolls this many times, stands still for the tick, and tries again on
+# the next one. An unbounded retry would not fail - it would HANG, and a
+# hang is a far weaker signal than a red test: it burns a CI job timeout
+# instead of printing an assertion. See [L15].
+#
+# Raise it in a lot that is mostly wall, where a uniform roll lands on
+# something reachable less often. It is here rather than in a Rust `const`
+# for the reason the header gives: it governs how everything behaves
+# rather than describing one piece of content.
+wander_attempts = 8
+
+# The furthest an idle wander may travel, measured in path tiles. The
+# destination also has to be within this Manhattan distance of the sim's
+# starting tile, so a geometrically nearby tile behind a wall cannot turn a
+# quiet drift into a trip around the house. Three tiles is enough to read as
+# movement without making an idle sim look as though it has somewhere urgent
+# to be. Must be at least 1; zero would reject every non-empty path and leave
+# every contented sim standing still. The compile step also caps this at
+# 2,147,483,647 so the `2 * radius + 1` sampling diameter fits a 32-bit
+# WebAssembly `usize` and the simulation RNG's `u32` range.
+#
+# Historical pre-variety 12,000-tick trace observed 154 natural strolls: mean 2.26
+# tiles, p95 3, and max 3. Against current main, walking fell from 34.0%
+# to 29.9%, pause between strolls rose from 12.9% to 18.1%, and frozen
+# time stayed effectively zero. The overall comparison is observational,
+# not a matched pair, because drawing local offsets deliberately changes
+# the deterministic random sequence. The direct locality claim is exact:
+# every observed path stayed at or below this cap.
+wander_radius_tiles = 3
+
+# What selling an object pays back, as a fraction of its price, in [0, 1]:
+# a sale pays the price times this, rounded down ([SL-pay] in
+# docs/specs/2026-09-22-selling-furniture.md). A half keeps selling a way
+# to undo a mistake without making buying and selling pay.
+resale_fraction = 0.5
+
+# Which verb a disposition trait's sentence opens with ([TL-affinity] in
+# docs/specs/2026-09-21-trait-library-and-traits-panel.md). A score
+# multiplier at or above affinity_loves_from reads "Loves", above 1
+# "Likes", below 1 "Dislikes", and at or below affinity_hates_to "Hates".
+# The content compiler refuses a sentence with the wrong verb, so the
+# Traits panel never says more or less than the choice tables do. Exactly
+# 1 is refused: it changes no choice. 1.5 is where the library's pulls
+# start to read as more than a preference. 0.5 halves what the activity
+# offers before the soft choice, while its walk still costs in full: a strong
+# push away but not a refusal, so the sim still does it when the need is
+# pressing enough. The spawn draw reads both lines too: a worn disposition
+# at or beyond either one sets the starting value of the affinity kind its
+# tag names ([OA-values] in docs/specs/2026-10-06-object-affinities.md).
+affinity_loves_from = 1.5
+affinity_hates_to = 0.5
+
+# A new housemate ([CS-command] in docs/specs/2026-09-22-create-a-sim.md):
+# the most characters a name may have, and the most traits the newcomer may
+# wear. Four traits matches the most anyone in the shipped household wears.
+housemate_name_max_chars = 24
+housemate_max_traits = 4
+
+# How the sky lights the house ([OS-daylight] in
+# docs/specs/2026-09-22-the-outside.md). Every tile outside the house is under
+# open sky; inside, the sky reaches in through open lines and doorways, losing
+# daylight_reach_per_tile for each tile it travels, and walls stop it. At
+# noon a tile the sky cannot reach loses interior_daylight_shade of the day's
+# light; a lamp lifts what it lights as before, and night is untouched. A
+# quarter is enough to make a closed back room read as indoors without making
+# the house gloomy; a fifth a tile lets a room's light fade over the five
+# tiles in from its doorway.
+interior_daylight_shade = 0.25
+daylight_reach_per_tile = 0.2
+
+# Skill ladder [SK-model]: level 1 costs skill_level_cost practice and each
+# later level costs skill_level_growth times the one before. The ladder is
+# flat until the owner tunes it: with growth 1.0 every level costs the same,
+# so mastery rises at the pace capability traits learned at before skills.
+# Lowering skill_level_cost, skill_level_growth or a skill's levels caps
+# existing saves' practice at the new top on load.
+skill_level_cost = 0.1
+skill_level_growth = 1.0
+
+# An interaction's content duration_ticks is a CENTRE. The real duration
+# is sampled within this fraction either side, biased shorter, so
+# repeated actions are not metronomic.
+duration_variance = 0.4
+
+# Hard floor on any interaction, in ticks. At 1x speed the simulation
+# runs 10 ticks per second, so 12 ticks is 1.2 real seconds. Anything
+# shorter reads as a sim teleporting through an action.
+#
+# THE FLOOR AND THE SHORTEST CONTENT DURATIONS FIGHT EACH OTHER, and the
+# condition is arithmetic rather than a matter of taste. The sampled
+# length spans `duration_ticks * (1 - duration_variance)` upward, so the
+# floor is inert only where
+#
+#     duration_ticks >= min_interaction_ticks / (1 - duration_variance)
+#
+# which at these values is 20 ticks. Every interaction below that line
+# has part of its band clipped, and one whose whole band is below the
+# floor has a FIXED length: the variance does nothing, and the
+# interaction also delivers floor/duration_ticks times what its content
+# declares, because the refill rate is per content tick.
+#
+# That is not hypothetical. At the previous 25 the fridge (15), toilet
+# (12) and sink (8) all had their entire bands under the floor, so 31 of
+# 51 measured interactions - 61% - ran for exactly 25 ticks every single
+# time, and the fridge delivered 67 hunger instead of the 40 it
+# advertises.
+#
+# **THIS IS NOW A BUILD RULE RATHER THAN A WARNING.** `ClippedDuration` in
+# crates/terri-data/src/compile.rs fails `cargo build` for any interaction
+# whose band bottoms out below this value, so lowering the floor is safe and
+# RAISING it is what needs care: raise it past 20 and every shipped object
+# whose duration is under `new_floor / 0.6` stops compiling, which is the
+# intended outcome rather than an obstacle - it forces the content decision
+# instead of silently overriding it.
+#
+# The three offenders were fixed in content rather than here, because the
+# floor was acting as a balance lever: the sink went from 8 ticks to 21 (and
+# its hygiene delta from 22 to 32, without which raising the duration alone
+# dropped it from 6 interactions to 1), the toilet from 12 to 24 and the
+# fridge from 15 to 30.
+#
+# Measured over 12 000 ticks against the CURRENT content, after the decay
+# retune below - every object shows real spread and none is pinned:
+#
+#   fridge 18-41 (declares 30)    toilet 14-32 (declares 24)
+#   sink   13-24 (declares 21)    shower 27-53 (declares 45)
+#   sofa   31-50                  television 33-72   bed 108-218
+#
+# These replace an earlier set taken before the adjacency and decay changes,
+# which a review caught as stale. [L40]'s rule is that a re-measurement which
+# disagrees means re-deriving rather than defending, so: reproduce with
+# `cargo run -p terri-sim --example trace -- 12000`, and replace these numbers
+# rather than arguing with them.
+#
+# **ONE JUSTIFICATION HERE NO LONGER HOLDS, and it is recorded rather than
+# quietly fixed.** The sink's delta was raised to 32 on the argument that it
+# would then score within about 2% of the shower, so which one a sim picks
+# would turn on how tired it is. That was measured before the decay rates were
+# slowed. It is now **3 sink uses against 9 shower uses** in 12 000 ticks, and
+# the sink's share of all interactions fell from 11.8% before the pass to 3.2%
+# after. The sink is closer to the bookshelf's zero than to a real choice.
+#
+# Do NOT chase it with a third delta change. Two objects are now near-unused
+# for the same reason - nothing in the game makes repetition less attractive -
+# and that is what habituation is for; see
+# docs/specs/2026-07-29-satisfaction-and-traits-design.md. Raising numbers until
+# an object wins on merit it does not have is the fix that was already rejected
+# for the bookshelf in [C6].
+min_interaction_ticks = 12
+
+# How much of its score an object somebody else is using keeps.
+#
+# [C3] made a contested object visible to a sim again, so that being
+# beaten to something stopped being reported as "nothing here is worth
+# wanting". This knob decides what the sim does about it, and it does
+# exactly one thing: it sets HOW BADLY A SIM MUST WANT A CONTESTED OBJECT
+# BEFORE IT WILL STAND AND WAIT rather than stroll off. It never changes
+# what a sim DOES, because a contested object is never a candidate at any
+# value of this - only whether the sim stands still.
+#
+# A sim waits when `contested_score * this > idle_threshold`, so the raw
+# score at which waiting begins is `idle_threshold / this`. At 0.04 and
+# 0.75 that is 0.053, just above action_threshold, which is the design
+# stance in one line: ANYTHING A SIM WOULD HAVE ACTED ON, IT WILL WAIT
+# FOR. The band in which it wants a contested object and abandons it
+# anyway is only 0.04 to 0.053.
+#
+# **THIS NUMBER IS A PRIORI AND UNMEASURED**, unlike the knobs the M1c
+# feel pass tuned, and it is the only one in this file that is. No trace
+# can produce it yet: the knob has no effect below two sims and the
+# shipped page spawns one. What is behind it is arithmetic against
+# measured quantities. From docs/alpha-feel-notes.md [F3] the shipped
+# lot's decisions span scores of 0.059 to 0.276; from [F4] the best
+# AVAILABLE score is clipped from above at action_threshold, because a
+# sim acts the instant anything crosses it - but a contested object's
+# score is NOT clipped that way and keeps climbing while the sim waits.
+# So a 0.053 bar sits inside the real range rather than above it.
+#
+# **Before this knob existed the behaviour was this value pinned at 1.0**,
+# so every outbid sim waited however little it wanted the thing. The cost
+# of a value near the top is that it largely keeps the standing-still
+# problem [F4] was written about. What bounds it is content: eight objects
+# on the shipped lot means a blocked sim usually has something else above
+# action_threshold and acts instead. The freeze needs EVERY alternative to
+# be below the bar, which is why the eight-agent one-object reference
+# scenario in crates/terri-sim/src/lib.rs is its worst case.
+#
+# Replace this with a measurement rather than another guess. The trace
+# that settles it is the [O1] harness against a lot with two or more sims,
+# reporting the distribution of contested scores and the share of ticks
+# spent waiting.
+contested_score_multiplier = 0.75
+
+# HABITUATION - [S2]. Doing the same thing repeatedly makes it worth less.
+#
+# The psychological term for a diminished response to a repeated stimulus, and
+# it applies identically to the same meal, the same television, the same gym and
+# the same person. It is what the two near-unused objects were waiting for: the
+# bookshelf at 0 uses in 12 000 ticks and the sink at 3, both squeezed out by an
+# object that never got less appealing however often it was chosen.
+#
+# The multiplier applied to an interaction's benefit is
+#
+#     1 - habituation * (1 - habituation_floor)
+#
+# so a fresh interaction is worth 1.0 of its advertised delta and a fully
+# habituated one is worth `habituation_floor`.
+#
+# **It scales the BENEFIT only, never a cost.** An interaction's negative deltas
+# are left alone, and that asymmetry is deliberate rather than an oversight: a
+# fourth shower in a row is less refreshing but it does not become less tiring.
+# Scaling costs too would make a habituated shower cheaper and therefore MORE
+# attractive, which is the mechanic running backwards.
+#
+# Raised on completion rather than per tick, so a long interaction and a short
+# one habituate equally - the sim is tired of the ACTIVITY, not of the minutes.
+habituation_per_use = 0.34
+
+# How much every entry decays per tick. Must be strictly positive: at zero,
+# habituation is a one-way ratchet and after long enough the whole house is
+# equally unappealing, which is [C6] applied to everything at once and arrives
+# silently over tens of minutes.
+#
+# **THE TIMESCALE HAS TO EXCEED THE GAP BETWEEN USES, and the first value here
+# did not.** 0.0011 recovers a fully habituated interaction in 909 ticks. Over a
+# 12 000-tick trace a sim revisits even its favourite object only about every 550
+# ticks, and its television every 857 - so habituation had always decayed back to
+# roughly zero by the next decision, and the mechanic did nothing at all. The
+# repeat-use rate did fall, because that measures BACK-TO-BACK use where the gap
+# is short, which is exactly the one case a fast decay still covers.
+#
+# **AND SLOWING IT TOO FAR IS ALSO WRONG, which was measured rather than
+# reasoned.** At 0.0002 every entry saturates - equilibrium habituation is
+# roughly `per_use * uses_per_tick / decay`, which exceeds 1 for every object the
+# sim actually uses - so all of them sit at the floor together, relative ordering
+# returns to the un-habituated one, and back-to-back repeats went back up from
+# 1.1% to 3.3%. A uniform penalty is not a penalty.
+#
+# So there is a band, and 0.0011 is inside it. What it buys is specifically
+# "do not immediately do that again": habituation is high right after a use and
+# gone by the next opportunity, which is the case back-to-back repetition lives
+# in. Measured: repeats 3.2% before habituation, 1.1% after.
+#
+# Measure this against the trace's repeat rate AND its per-object counts, not by
+# taste. The two disagree at both ends of the band, which is what makes them
+# worth having.
+habituation_decay_per_tick = 0.0011
+
+# What a fully habituated interaction's benefit is multiplied by. A MULTIPLIER,
+# so 1.0 disables the effect entirely and 0 is rejected at build time - it would
+# make an interaction permanently worthless, which is a need becoming
+# unsatisfiable by a dynamic route that the static
+# `every_declared_need_can_be_satisfied_by_some_interaction` check cannot see.
+#
+# 0.45 leaves a thoroughly-repeated action worth just under half its advertised
+# value: enough to make a sim reach for something else, not enough to make it
+# refuse to eat.
+habituation_floor = 0.45
+
+# [OD-content] in docs/specs/2026-10-06-overdoing-it.md: repetition above
+# saturation is overdoing. Habituation keeps rising past 1 up to
+# `habituation_max`. Appeal and the Sim details repetition meter still read at
+# most 1 and need delivery ignores habituation, so the range above 1 only costs
+# mood. Decay brings an entry back below 1 on its own, which is what makes
+# overdoing temporary.
+#
+# The highest habituation repeated use can reach. Must be finite and above 1.
+habituation_max = 3.0
+
+# The habituation above which an activity shows an "Overdoing" moodlet. Must be
+# finite, at least 1 and below `habituation_max`.
+overdoing_threshold = 1.0
+
+# The mood an activity at `habituation_max` costs; the cost grows in a straight
+# line from nothing at `overdoing_threshold`. At 20 it cancels "Needs met" at the
+# top. Must be finite and not negative.
+overdoing_penalty = 20.0
+
+# The habituation on a food activity at which a person feels sick. Must be
+# finite, above `overdoing_threshold` and at most `habituation_max`.
+sick_threshold = 2.5
+
+# The mood "Feeling sick" costs, once per person. Must be finite and not
+# negative.
+sick_penalty = 25.0
+
+# Object affinities - [OA-values], [OA-presence] and [OA-use] in
+# docs/specs/2026-10-06-object-affinities.md.
+#
+# Starting value a disposition trait sets for its kind: this for a trait that
+# loves, its negative for one that hates. In (0, 1].
+affinity_from_trait = 0.8
+# Below this magnitude a value gives no moodlet. In [0, 1).
+affinity_presence_threshold = 0.2
+# Mood for one object of a presence kind at a value of 1.0. Finite, not negative.
+affinity_presence_points = 10.0
+# Mood each further object adds at 1.0, up to the cap. Finite, not negative.
+affinity_presence_extra_points = 3.0
+# How many further objects count.
+affinity_presence_extra_cap = 3
+# Mood each other person using a use kind costs at a value of -1.0. Finite, not negative.
+affinity_use_points = 15.0
+# How much a bothered person's feeling toward the user falls per game hour at -1.0. Finite, not negative.
+affinity_use_feeling_per_hour = 0.03
+# The word Sim details shows for a value ([OA-hud]): at or above
+# affinity_band_loves "Loves", at or below its negative "Hates"; at or above
+# affinity_band_likes "Likes", at or below its negative "Dislikes"; strictly
+# between "Indifferent". 0 < affinity_band_likes < affinity_band_loves <= 1.
+affinity_band_loves = 0.6
+affinity_band_likes = 0.2
+# Starting value a disposition trait between the verb bands sets for its kind
+# ([OA-values]): this for a trait that likes (multiplier above 1 and below
+# affinity_loves_from), its negative for one that dislikes (below 1 and above
+# affinity_hates_to). Finite, above 0 and below affinity_from_trait.
+affinity_from_mild_trait = 0.4
+
+# Seed for fixed-seed constructors and tests. Browser new games supply fresh
+# cryptographic entropy. Saves persist the complete live generator state.
+rng_seed = 20260728
+
+# Maximum waiting player orders per sim. Zero means unlimited, as requested
+# by the owner on 2026-09-30. Appending and inserting at the front preserve
+# every accepted order. Positive values remain available for finite-cap tests.
+max_queued_intents = 0
+
+# The most commands the WASM boundary will hold between two drains. A
+# command that would take the queue past this is refused, and
+# `SimHandle.enqueue_command` returns false so the shell can see that it
+# was.
+#
+# THIS IS THE BOUND ON THE QUEUE ITSELF, and it is a different failure
+# from `max_queued_intents` above rather than a second copy of it. That
+# one optionally bounds what a single sim can be told to do, and it is only ever
+# reached by an order command (`UseObject`, `TalkTo` or their front-placed
+# twins) that resolved to a live agent. Everything
+# else a player can send - every `Select`, every `SetSpeed`, every
+# command naming an index that no longer exists - reaches this staging
+# queue and never touches an intent queue at all. So without a bound
+# here, a JavaScript loop enqueueing `Select(u32::MAX)` grows memory
+# without limit while the simulation looks perfectly healthy.
+#
+# The number is a BURST budget rather than a rate. The queue drains
+# completely on every tick, and at 1x the simulation runs 10 ticks a
+# second, so a player clicking as fast as a human can never accumulates
+# more than a handful. What makes the burst larger than that is PAUSE:
+# at speed 0 the driver stops calling `tick`, nothing drains, and every
+# command issued while paused waits. 64 is therefore roughly six
+# seconds of continuous clicking at a rate no hand sustains, or a
+# comfortable number of orders issued to a paused lot before unpausing -
+# and it is still four orders of magnitude below anything that would
+# cost a browser tab memory it noticed.
+#
+# **The overflow drops the NEWEST command**, matching
+# `max_queued_intents` and for the same reason: every command already
+# accepted was accepted in an order the player chose and a replay must
+# reproduce, so evicting from the front would silently rewrite history
+# that [D8]'s command log has already recorded.
+#
+# Zero is rejected at build time: a cap of zero is not "no queueing", it
+# is a game that ignores every click, keypress and pause the player ever
+# makes while looking entirely normal doing it.
+max_queued_commands = 64
+
+# How often the shell re-reads a selected sim's needs for the need bars,
+# in real milliseconds.
+#
+# This is a DISPLAY rate, not a simulation rate, and it is the only knob
+# here that is: nothing downstream of it can change what the simulation
+# does, only how often the panel asks. It lives here anyway because it is
+# a knob somebody tuning the game will want to turn, and the standing rule
+# in this file's header is that such a knob has one home rather than being
+# a `const` buried in TypeScript nobody opens.
+#
+# The number is matched to the TICK, not to the display. The simulation
+# advances 10 times a second at 1x and the browser paints 60 or more times
+# a second, so at 100 ms the panel reads once per tick and five in six
+# frames cost nothing but a timestamp comparison. Reading every frame
+# would return the same seven numbers six times over, and each read is a
+# call across the WASM boundary that allocates a seven-float array.
+#
+# Both directions have a visible cost, which is why this is a knob rather
+# than a constant. Far below 100 spends boundary calls for numbers that
+# have not changed. Far above it makes the bars lag behind the sim's
+# behaviour, and the whole point of the panel is that a decision can be
+# read against the bars afterwards - bars a second stale describe a
+# decision that has already been made.
+#
+# Zero is legal and means "read every frame". It is not rejected at build
+# time because it does not fail quietly: it is merely wasteful, and the
+# panel still shows the truth. Contrast `max_queued_commands` above, where
+# zero is a game that silently ignores every click.
+#
+# AT SPEED 2 AND 3 THE SIMULATION OUTRUNS THIS, deliberately. Speed
+# multiplies ticks per frame and leaves the tick duration alone ([D2]), so
+# 3x runs 30 ticks a second while the panel still reads 10 times a second
+# and shows every third tick's levels. That is a display decision, not a
+# simulation one, and it is why this is measured in real milliseconds
+# rather than in ticks.
+need_bar_refresh_ms = 100
+
+# THE RELATIONSHIP TRIO - [H5]/[H9]. The same shape as the habituation
+# trio above, pointed at people instead of objects: a per-use rise, a
+# per-tick decay, and a bounded multiplier. A relationship is one number
+# per ordered pair of sims, clamped to -1..=1, where 0 is a stranger;
+# A's feeling about B is stored separately from B's about A, so
+# unrequited is a real state.
+
+# Base affinity reward for each eligible participant in a completed
+# conversation. Compatibility scales the reward; poor hygiene and unhelped
+# critical needs can block it. Calibrated with ordinary privacy incidents
+# and shared activities; see the relationship-development evidence.
+# Zero disables this completion reward.
+relationship_gain_per_talk = 0.17
+
+# How much every relationship drifts toward zero each tick - toward
+# zero, not downward: a grudge fades on the same clock a friendship
+# does. 0.000005 costs a full friendship about 0.18 of its warmth
+# over 36 000 unattended ticks (one long measured session), so
+# maintenance matters at the pace sessions are actually played. Must be
+# strictly positive, or a relationship is a one-way ratchet - the same
+# rule habituation_decay_per_tick carries.
+relationship_decay_per_tick = 0.000005
+
+# How strongly the initiator's relationship toward the target scales a
+# social advert's BENEFIT: the multiplier is 1 + relationship * scale.
+# At 0.5 a best friend's conversation is worth 1.5x its authored delta
+# and a nemesis's 0.5x - enough to make sims visibly prefer their
+# friends without ever making a stranger worthless. Must be in [0, 1]:
+# above 1, a bad enough relationship turns the advertised benefit
+# NEGATIVE, a cost nobody authored ([S2]). Applied in scoring AND
+# delivery through one function ([H8]), so a sim seeks exactly what the
+# conversation will give it.
+relationship_delta_scale = 0.5
+
+# ============================================================================
+# The satisfaction axis - M2e, [E1]/[E2] in
+# docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.
+# Life satisfaction stays within 0-100 and changes over months or years.
+# Sustained mood, completed activities, careers and neglect contribute.
+# See docs/specs/2026-10-01-life-satisfaction.md for units and pacing.
+
+# What completing a LOVED activity's satisfaction is multiplied by. At
+# 3.0, a hobby completion is worth triple a merely-pleasant one: a
+# loved read pays 0.009 points against its base 0.003, so a sim with idle time and a
+# hobby visibly out-earns one with idle time alone - which is the whole
+# claim of [S1], that idle time must be SPENT to convert. Must be at
+# least 1 (below 1 inverts the mechanic; exactly 1 disables it).
+hobby_multiplier = 3.0
+
+# The need level below which a need is NEGLECTED and bleeds
+# satisfaction. 15 is beneath every self-serve equilibrium the traces
+# have measured (the household's needs cycle in the 30-90 band when
+# objects exist to serve them), so an ordinarily functioning sim never
+# touches it - the bleed is for genuine neglect, a need with no object,
+# a sim trapped away from one, or a career eating the time a need
+# wanted. In [0, 100]; 0 disables.
+neglect_floor = 15.0
+
+# The length of a day in ticks - [E4]. One tick is one sim-minute, so
+# 1440 IS the day, read straight off the clock: `tick % day_ticks` is
+# minutes past midnight, and careers.toml writes shift times in it.
+# 2.4 real minutes at 1x. Seven days make a week, counted from
+# first_weekday below - [CAL-week] in docs/specs/2026-10-06-calendar.md.
+# There is no month or year. Must be at least 1 - a zero-tick day divides
+# by zero the first time a career asks the hour.
+day_ticks = 1440
+
+# The weekday of the first day, 0 (Monday) to 6 (Sunday) - [CAL-week].
+# 0 starts a new game on a Monday, so days 6 and 7 are the first weekend
+# and the office job's first shift is on the first morning. The weekday
+# is worked out from the tick and this number, so nothing about it is
+# saved; changing it moves every saved game to a different weekday.
+first_weekday = 0
+
+# Satisfaction lost PER NEGLECTED NEED per tick below the floor:
+# One crisis costs about 0.0144 points per game day, alongside its mood
+# effect. This exceeds the score's floating-point precision even near 100.
+# Each neglected need contributes separately. Non-negative; 0 disables.
+neglect_bleed_per_tick = 0.00001
+
+# What every need's decay rate is multiplied by while a sim is AT WORK
+# - [X2] in docs/specs/2026-08-01-alpha-acceptance-findings.md, and the
+# fix for the worst thing the alpha acceptance pass found.
+#
+# MEASURED, not chosen by taste. Over 36 000 ticks (25 game days) of
+# the shipped lot, Tim - the household's only worker - hit 0.0 on six
+# of her seven needs, and her lowest need sat at or below 5 on every
+# one of the 25 days: 27.3% of her life with hunger there, 19.2% with
+# social, 18.8% with fun. Bill and Casey, who hold no job, spent ZERO
+# ticks in crisis on anything. `decay_needs` drains every sim holding
+# `Needs`, and a sim off the lot at work can reach nothing at all, so a
+# 480-tick shift plus its commute cost her 33 hunger a day against a
+# daily budget of 89 - a deficit she came home already carrying.
+#
+# 0.5 rather than a rounder number for a reason that is checkable: it
+# returns about 15 hunger a day to a sim who was about 13 short. The
+# office is a building with a toilet and a kettle in it - you are not
+# resting there, but you are not in a void either.
+#
+# **This does not refund the career's price**, which is TIME - the
+# hobbies not done, the condition not managed, the satisfaction not
+# earned. [E4]'s antagonist is untouched and [A-14]'s measurement of it
+# still stands; what changes is that the price stops being starvation.
+#
+# The COMMUTE is deliberately excluded: walking to your own front door
+# is ordinary life, and a sim on the lot can already be served.
+#
+# In [0, 1]. Above 1 the office would drain faster than living does;
+# below 0 a shift would refill needs and work would become the best
+# place in the game to be. Exactly 1 restores the void the career
+# shipped with, which is how to measure this knob's effect again.
+#
+# A per-need table is the recorded follow-up rather than the shipped
+# shape: social arguably should be SERVED at work rather than merely
+# slowed, since colleagues are people - but that is a question about
+# what a workplace IS, and it wants the per-career treatment a second
+# job would force.
+at_work_decay_scale = 0.5
+
+# How fast needs decay while a sim is ASLEEP, as a fraction of the usual
+# rate. The same knob shape as `at_work_decay_scale` above, for a problem
+# with the same shape.
+#
+# Sleeping is the longest thing a sim does: the double bed runs 210 ticks
+# against the fridge's 15. At the full decay rate those hours cost more
+# hunger, hygiene and bladder than anything else in the game, so the sim
+# that finally goes to bed wakes up starving and filthy, having been
+# punished for doing the one thing the day was pushing it toward. That
+# reads as the game being unfair rather than as a rate being wrong.
+#
+# 0.4 rather than 0. A sleeping sim genuinely does get hungry and does
+# need the bathroom in the morning; it just does not get hungry as fast
+# as one who is up and about. Zero would make the bed a place to hide
+# from the simulation, and eight hours of nothing happening is the
+# failure mode a needs game has to avoid most.
+#
+# **What counts as asleep is `sleep_tag` below**, not "is on a bed" and
+# not "is gaining energy". A coffee machine would restore energy without
+# being sleep, and the tag is what tells them apart.
+#
+# In [0, 1], validated exactly like the knob above. Exactly 1 restores the
+# behaviour before this existed, which is how to measure it again.
+asleep_decay_scale = 0.4
+
+# The interaction tag that means SLEEPING.
+#
+# One tag, read by three separate things: the circadian drive that makes
+# a bed attractive at night, the decay scale above, and the Zzz bubble
+# the shell draws. It lives out here rather than inside `[circadian]`
+# because that table is optional, while two of those three readers still
+# need the tag when a content pack omits the curve.
+#
+# It has to name a tag some interaction in `objects.toml` actually
+# declares - the compile step checks, because a misspelling here is the
+# quietest possible failure: no sim is ever asleep, and nothing says so.
+sleep_tag = "sleep"
+
+# Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
+# need in roughly 16 sim-hours.
+#
+# These are here rather than in needs.toml because a decay rate is system
+# BALANCE, not part of a need's identity: needs.toml declares which needs
+# exist, and this table says how fast the simulation drains them. That is
+# the same split the header states, applied to the case that used to be
+# the exception.
+#
+# Every NeedId variant that needs.toml declares must appear here exactly
+# once. A missing or unknown entry fails the build.
+#
+# Changing a number here changes the simulation, and the world-hash golden
+# vectors in crates/terri-sim/src/lib.rs and web/tests/bridge.test.ts will
+# move - which is the intended signal, not a rebase artifact.
+#
+# The seven rates are deliberately all DIFFERENT, and that is load-bearing
+# rather than flavour. `decay_needs` looks a rate up by need index, and a
+# test cannot tell one slot from another if two slots hold the same value.
+# `needs_decay_at_different_rates` in crates/terri-sim/src/systems/needs.rs
+# fails if a balance pass ever makes two of them equal; see [L26] for the
+# instance where a uniform fixture hid exactly this bug one layer down.
+[decay_per_tick]
+# ALL SEVEN WERE SLOWED at the alpha pass, and hunger by more than the rest.
+#
+# The old rates drained a need in 12 to 60 real minutes at 1x, which sounds
+# leisurely and was not: the sim's whole day was eating and using the toilet,
+# because those two drained fastest and everything else never got a turn. The
+# measured share bears it out - fridge 28% and toilet 26% of all interactions
+# between them, against 8% for the shower and 0% for the bookshelf.
+#
+# Every rate is multiplied by roughly 0.75, and hunger by 0.6 so it stops
+# dominating. Hunger now takes 1 613 ticks to drain from full, which is 2.7
+# real minutes at 1x and about 27 sim-hours.
+#
+# **All seven must stay DISTINCT.** `decay_needs` looks a rate up by need
+# index, and no test can tell one slot from another if two slots hold the same
+# value; `needs_decay_at_different_rates` fails if a balance pass ever makes
+# two equal. See [L26] for the instance where a uniform fixture hid exactly
+# that bug one layer down.
+#
+# **These are the BASE rates and they are about to stop being the whole
+# story.** Three things are designed to modulate them and none is built:
+# per-sim affinities so a social butterfly and an introvert drain `social` at
+# different speeds, activity coupling so effort drains hunger faster than
+# resting does, and a small seeded jitter so two sims are never metronomic
+# together. See docs/specs/2026-07-29-needs-modulation-design.md; the shape
+# those take is why this table is a table of base rates rather than the final
+# numbers.
+hunger = 0.062
+energy = 0.051
+# **0.072, raised from 0.039, for exactly the reason `fun` was raised.** The sink
+# was used once in 12 000 ticks, and the candidate table shows why: hygiene sat at
+# level 93, so its deficit was 0.07, and a cubed 0.07 makes the sink's only
+# advertised need worth 0.0001. The shower alone delivers 840 points of hygiene
+# per run against 468 drained - one shower covers about 1 800 ticks of drain, so
+# a second hygiene object can never be needed.
+#
+# Raised here rather than by cutting the shower's 70, because "restores a lot and
+# costs energy" is the shower's whole identity and the trade it exists to offer.
+hygiene = 0.072
+bladder = 0.102
+social = 0.026
+# **0.048, raised from 0.031, and this is the fix for [C6] that two earlier
+# guesses missed.** The bookshelf was used ZERO times in every measurement ever
+# taken, and both previous explanations were wrong: it was not its delta and it
+# was not its 70-tick duration. The candidate table shows why - `fun` sat at
+# level 98, so the bookshelf's only advertised need had a deficit of 0.02, and
+# score is `delta * deficit^3`. Its score was exactly 0.0000. No delta and no
+# duration can fix a zero.
+#
+# Fun was OVER-SUPPLIED. Three objects advertise it - television 30, bookshelf
+# 26, sofa 18 - while it drained more slowly than all but two needs. Measured
+# over 12 000 ticks: about 534 points delivered against 372 drained, a 43%
+# surplus, and the two objects chosen for their OTHER needs (the television for
+# social, the sofa for comfort) were quietly keeping fun topped up as a side
+# effect.
+#
+# Raising the rate is the fix rather than stripping fun off the sofa, because the
+# sofa genuinely is a fun object and the surplus is what was wrong.
+fun = 0.048
+# **0.032, raised from 0.021, and this is [C6] again in a different object.**
+#
+# The five-room house added five comfort objects - dining table 44, long sofa
+# 52, armchair 38, reading chair 29, bathtub 47 - and the first trace over it
+# had every single one of them at ZERO uses in 12 000 ticks. Same shape as the
+# bookshelf, same reason, found the same way: the candidate table showed
+# `comfort` sitting at level 87, so a deficit of 0.13, and score is
+# `delta * deficit^3 / (distance / 0.25 + duration + 1)`. Cubed, that deficit
+# is 0.0022. The armchair's 38 comfort - the best comfort-per-tick in the
+# house - scored 0.0007 from across the lot and 0.0071 standing beside it,
+# against an `action_threshold` of 0.05. No delta and no duration fixes a
+# number an order of magnitude short at point-blank range.
+#
+# The distance matters to the diagnosis and is easy to drop: the same 0.0007
+# still appears in the candidate table AFTER this fix, from nineteen tiles
+# away, and reads as if nothing changed. What changed is the score standing
+# next to the thing.
+#
+# Comfort was over-supplied and barely drained: 298 points delivered against
+# 252 drained over 12 000 ticks, with a floor of 60.8, so it never got low
+# enough to want. At 0.021 it was also the slowest-draining need in the file,
+# 1.24 times slower than `social`'s 0.026 behind it.
+#
+# **Two changes together, and the other one matters more.** The double bed's
+# comfort delta went from 27 to 10, because eight nights' sleep was supplying
+# 216 of those 298 points - comfort was being kept topped up as a side effect
+# of an action taken for a different need entirely, which is exactly what was
+# wrong with `fun` above. This rate then went up by half so that comfort
+# genuinely presses on a sim over a day rather than drifting.
+#
+# At 0.032 it is now the second slowest, behind `social`'s 0.026, and that is
+# deliberate on both counts: comfort should be a background ache rather than
+# an alarm, and social is meant to stay under-served until sims can satisfy
+# each other.
+comfort = 0.032
+
+# ---------------------------------------------------------------------------
+# THE CIRCADIAN RHYTHM IS BUILT AND SWITCHED OFF - [ML-curve], [ML-chrono].
+# ---------------------------------------------------------------------------
+#
+# Every part of the mechanism ships: the schema, the compile-time
+# validation, the curve and its tests in `systems/circadian.rs`, the
+# per-sim chronotype offsets in personalities.toml, the `sleep` tags on
+# both beds, and the multiplier composed into selection beside the trait
+# dispositions. Uncommenting the block below is the only thing between
+# here and sims that go to bed at night.
+#
+# It is off because the CURVE is not tuned, and turning it on with an
+# untuned curve is exactly the failure this project has written down
+# twice. [ML-feel] in the spec requires a measured seven-sim-day run
+# before the shape is trusted, and the first draft proved why: at a
+# 6.4x peak-to-trough swing the household slept so much that
+# `save.rs`'s fixture could no longer get anyone to habituate to a
+# kitchen chain row in 3 000 ticks, and needed 12 000 to see one. That
+# is the drive overpowering the needs rather than weighting them.
+#
+# Softening it to 2.5x helped and did not settle it, and the honest
+# reading is that the number wants a feel run rather than another guess.
+# Widening the fixture instead is not available: `--timeout 60` bounds
+# each mutant's whole workspace test run, and that one test alone went
+# from 10 s to 39 s.
+#
+# So the mechanism lands reviewable and inert, and the tuning is a
+# separate, measured piece of work. A milestone whose payoff has not
+# been watched does not get quietly ticked.
+#
+# The circadian rhythm - [ML-curve] and [ML-tag] in
+# docs/specs/2026-08-03-muted-line-implementation.md.
+#
+# WHY this exists at all: energy says how TIRED a sim is and nothing in it
+# knows what time it is, so a bed looks identical at 14:00 and at 23:00 to
+# a sim of the same tiredness. Without a drive, sims sleep whenever energy
+# happens to bottom out, and over a few days that drifts through every
+# hour of the clock - a house full of shift workers.
+#
+# The multiplier scales the BENEFIT of a sleep-tagged interaction, so it
+# makes a bed more or less ATTRACTIVE rather than making anyone more or
+# less tired. A sim who is exhausted at noon still goes to bed; a sim who
+# is merely tired at 23:00 now does too, and that second one is the whole
+# feature.
+#
+# `sleep_drive` is (tick, multiplier), interpolated linearly and wrapping
+# from the last point back to the first. 60 ticks is a sim-hour, so 420 is
+# 07:00 and 1320 is 22:00. The compile step rejects points that are
+# unsorted, duplicated, outside the day, or negative - all four of which
+# would interpolate to something plausible-looking and wrong rather than
+# failing.
+# The tag it keys on is `sleep_tag` up beside the decay knobs, not in
+# here: this table is optional and the tag is not.
+[circadian]
+#
+# The peak-to-trough ratio is deliberately modest at 2.5x. The first
+# draft ran 1.60 down to 0.25 - a 6.4x swing - and it was measurably too
+# strong: the household spent so much of the day asleep that the save
+# fixture in `save.rs` could no longer get anyone to habituate to a
+# kitchen chain row inside 3 000 ticks, and needed 12 000 to see one.
+# That is the drive overpowering the needs rather than weighting them.
+#
+# A rhythm is a THUMB ON THE SCALE, not a schedule. A sim who is
+# exhausted at noon must still go to bed, and at 6.4x an early-morning
+# sim would refuse one no matter how tired.
+sleep_drive = [
+  [0, 1.35],     # 00:00 - the middle of the night, bed is the obvious call
+  [300, 1.25],   # 05:00 - still night
+  [420, 0.55],   # 07:00 - morning: bed has to beat everything else going
+  [1020, 0.80],  # 17:00 - early evening, becoming reasonable again
+  [1320, 1.30],  # 22:00 - bedtime
+]
+
+# ---------------------------------------------------------------- ramp ----
+# How the pull toward bed grows the LONGER a sim has been on empty.
+#
+# **This is what lets the curve above be strong.** Without it the trough
+# has to stay shallow enough that an exhausted sim still goes to bed at
+# 07:00, which caps how much the rhythm is allowed to say. The first
+# draft of this file records exactly that tension: "a sim who is
+# exhausted at noon must still go to bed, and at 6.4x an early-morning
+# sim would refuse one no matter how tired." The ramp resolves it. The
+# curve decides WHEN bed is appealing; the ramp guarantees that a sim who
+# has been unable to act on that for long enough goes anyway.
+#
+# It needs its own counter because the need system genuinely cannot
+# answer the question. Energy clamps at zero, so a sim one tick into
+# empty and a sim six hours into empty read identically.
+#
+# Energy at or below which the count runs. 12 rather than 0 because the
+# interesting state is "running on fumes", not "precisely bottomed out" -
+# a sim at 3 energy is already in trouble and waiting for exact zero
+# would make the ramp fire later than it reads.
+exhaustion_energy = 12.0
+
+# Ticks at or below that level to reach the full bonus. 240 is four
+# sim-hours: long enough that an ordinary evening dip never triggers it,
+# short enough that a sim who genuinely cannot get to bed is rescued
+# within one waking stretch rather than the next day.
+exhaustion_ramp_ticks = 240
+
+# What the drive is multiplied by at a full ramp. 2.5 against the
+# curve's 0.55 morning trough gives 1.375 - just over neutral, so a
+# desperately tired sim at 07:00 stops being talked out of bed without
+# suddenly finding it irresistible.
+#
+# Exactly 1 disables the ramp, which is how to measure its effect again.
+exhaustion_bonus = 2.5
+
+# Ordinary relationship development and privacy decisions.
+[relationships]
+proximity_per_hour = 0.062
+shared_activity_multiplier = 10.0
+friction_per_hour = 0.0075
+incompatible_below = -0.2
+contact_radius = 4.0
+privacy_respect_chance = 0.65
+shyness_respect_strength = 0.08
+privacy_decision_ticks = 30
+privacy_critical_wait_ticks = 10
+privacy_desperate_need_level = 5.0
+# Meals, cleanliness and household mess. Scores are 0..1; need levels 0..100.
+[domestic]
+own_cleanup_min = 0.01
+own_cleanup_bonus = 0.97
+visitor_cleanup_fraction = 0.35
+critical_cleanup_scale = 0.005
+ready_need_level = 45.0
+other_need_floor = 0.65
+other_need_level = 50.0
+invite_hunger_level = 40.0
+accept_hunger_level = 55.0
+friend_affinity = 0.60
+mood_penalty_min = 2.0
+mood_penalty_bonus = 8.0
+mood_units = 4.0
+mood_max_load = 1.5
+affinity_penalty_min = 0.0003
+affinity_penalty_bonus = 0.0027
+wash_ticks_per_unit = 8

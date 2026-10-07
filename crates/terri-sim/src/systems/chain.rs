@@ -53,7 +53,7 @@ pub fn advance_chains(
     scoped: Option<Res<terri_core::save::SavedTargetedCleanup>>,
     grid: Res<TileGrid>,
     content: Res<Content>,
-    idle: Query<
+    mut idle: Query<
         (
             Entity,
             &Position,
@@ -61,6 +61,8 @@ pub fn advance_chains(
             &ChainState,
             Option<&terri_core::SimId>,
             &Needs,
+            Has<Carrying>,
+            Option<&mut crate::recipe_actions::Origin>,
         ),
         (
             With<Agent>,
@@ -71,6 +73,7 @@ pub fn advance_chains(
             Without<StepWork>,
             Without<Commuting>,
             Without<AtWork>,
+            Without<crate::reading::ReadingJourney>,
         ),
     >,
     stations: Query<(
@@ -102,7 +105,7 @@ pub fn advance_chains(
         // hand the sim two walks at once. The running chain's OWN order
         // is not one: it sits at the front for as long as the chain
         // runs ([D-3]) and is exactly what the resume is carrying out.
-        .filter(|(person, _, queue, state, ..)| {
+        .filter(|(person, _, queue, state, _, _, carrying, ..)| {
             let queued_scope_waits = queue
                 .and_then(IntentQueue::front)
                 .is_some_and(|intent| intent.cleanup.is_some())
@@ -111,7 +114,21 @@ pub fn advance_chains(
                         order.person == person.index_u32() && order.queue_position.is_none()
                     })
                 });
+            let queued_read_waits = *carrying
+                && queue.and_then(IntentQueue::front).is_some_and(|intent| {
+                    stations
+                        .get(intent.object)
+                        .is_ok_and(|(_, _, object, _, _)| {
+                            content
+                                .0
+                                .object(object.0)
+                                .interactions
+                                .get(intent.interaction as usize)
+                                .is_some_and(|action| action.book_reading)
+                        })
+                });
             queued_scope_waits
+                || queued_read_waits
                 || !outranked(content.0, *queue, state.chain, |object| {
                     stations
                         .get(object)
@@ -129,10 +146,25 @@ pub fn advance_chains(
     let mut claimed: Vec<Entity> = Vec::new();
 
     for sim in resuming {
-        let Ok((_, pos, _, chain_state, sim_id, needs)) = idle.get(sim) else {
+        let Ok((_, pos, _, chain_state, sim_id, needs, _, mut origin)) = idle.get_mut(sim) else {
             continue;
         };
         let chain = &content.0.chains[chain_state.chain as usize];
+        let selected_stage = origin
+            .as_ref()
+            .is_some_and(|o| o.selected_step() == Some(chain_state.step));
+        let selected = origin.as_ref().and_then(|o| match o.1 {
+            crate::recipe_actions::SelectedUse::Station(station) => Some(station),
+            _ => None,
+        });
+        if selected.is_some_and(|station| stations.get(station).is_err()) {
+            commands
+                .entity(sim)
+                .remove::<crate::recipe_actions::ActiveRecipe>()
+                .remove::<Carrying>();
+            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
+            continue;
+        }
         // Exact dining, including standing without a table, is resolved by the
         // preceding exclusive system. Unreachable diners retain their recipe.
         if crate::dining::managed_step(content.0, chain, chain_state.step) {
@@ -153,7 +185,7 @@ pub fn advance_chains(
             // Sold stations cannot become free. Abandon the unfinished recipe.
             commands
                 .entity(sim)
-                .remove::<ChainState>()
+                .remove::<crate::recipe_actions::ActiveRecipe>()
                 .remove::<Carrying>()
                 .remove::<terri_core::Fumbled>()
                 .remove::<Blocked>()
@@ -201,6 +233,9 @@ pub fn advance_chains(
                 settle_order(world, sim, abandoned);
                 crate::domestic::abandon(world, sim);
             });
+            commands
+                .entity(sim)
+                .remove::<crate::recipe_actions::ActiveRecipe>();
             continue;
         }
         let fixed = domestic.as_ref().and_then(|state| {
@@ -218,7 +253,7 @@ pub fn advance_chains(
         if chain.id == crate::domestic::SHARED && fixed.is_none() && !awaiting_table {
             commands
                 .entity(sim)
-                .remove::<ChainState>()
+                .remove::<crate::recipe_actions::ActiveRecipe>()
                 .remove::<Carrying>();
             let abandoned = chain_state.chain;
             commands.queue(move |world: &mut World| {
@@ -241,13 +276,19 @@ pub fn advance_chains(
         in_order.sort_by_key(|(entity, ..)| entity.index());
         for (station, station_pos, object, reserved, facing) in in_order {
             let def = content.0.object(object.0);
+            if !crate::recipe_actions::station_eligible(
+                content.0,
+                chain_state,
+                origin.as_deref(),
+                station,
+                object.0,
+            ) {
+                continue;
+            }
             if fixed.is_some_and(|index| station.index_u32() != index)
                 || (!cleanup
                     && content.0.roles[step.role as usize] == "prep_surface"
-                    && def
-                        .roles
-                        .iter()
-                        .any(|role| content.0.roles[*role as usize] == "dish_sink"))
+                    && !crate::usable_recipe_role(content.0, def, step.role, cleanup))
                 || (fixed.is_none() && !def.roles.contains(&step.role))
             {
                 continue;
@@ -281,17 +322,15 @@ pub fn advance_chains(
             } else {
                 &grid
             };
-            let approach = if step
-                .visual
-                .as_ref()
-                .is_some_and(|v| v.action == terri_data::CompiledVisualAction::Cook)
-            {
-                crate::stove_front(content.0, object, station_pos, facing)
-            } else {
-                None
-            };
-            let route = if let Some(front) = approach {
-                route_grid.find_path(from, (front.x.round() as i32, front.y.round() as i32))
+            let approach = crate::stove_front(content.0, object, station_pos, facing);
+            let route = if approach.is_some() {
+                let Some(front) =
+                    crate::cooking_contact(route_grid, content.0, object, station_pos, facing)
+                else {
+                    continue;
+                };
+                let endpoint = (front.x.round() as i32, front.y.round() as i32);
+                route_grid.find_path(from, endpoint)
             } else {
                 route_grid.find_path_adjacent(from, to, footprint)
             };
@@ -331,6 +370,11 @@ pub fn advance_chains(
 
         match best {
             Some((station, steps)) => {
+                if selected_stage {
+                    if let Some(origin) = origin.as_mut() {
+                        origin.1 = crate::recipe_actions::SelectedUse::Station(station);
+                    }
+                }
                 claimed.push(station);
                 commands.entity(station).insert(Reserved);
                 if communal {
@@ -368,7 +412,7 @@ pub fn advance_chains(
                 if let Some(station) = occupied_reachable {
                     commands.entity(sim).insert(crate::waiting::effective_needs(
                         station,
-                        &chain.advertises,
+                        crate::recipe_actions::benefits(content.0, chain_state, origin.as_deref()),
                         false,
                     ));
                 }
@@ -399,6 +443,7 @@ pub fn advance_chains(
 pub fn tick_chain_steps(
     mut commands: Commands,
     content: Res<Content>,
+    mut origins: Query<&mut crate::recipe_actions::Origin>,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
     mut working: Query<
         (
@@ -501,6 +546,11 @@ pub fn tick_chain_steps(
         commands.entity(sim).remove::<Target>().remove::<StepWork>();
 
         if !terminal {
+            if let Ok(mut origin) = origins.get_mut(sim) {
+                if origin.selected_step() == Some(chain_state.step) {
+                    origin.1 = crate::recipe_actions::SelectedUse::Complete;
+                }
+            }
             chain_state.step += 1;
             commands.queue(move |world: &mut World| {
                 crate::domestic::completed(world, sim, completed_chain, completed_step, station)
@@ -513,9 +563,11 @@ pub fn tick_chain_steps(
         // the counter itself, preemption-proof - scales benefits only
         // and zeroes the satisfaction.
         let fumble = chain_state.fumble_scale;
-        for (need_index, delta) in &chain.advertises {
-            // Social is delivered per minute of seated company, never as a terminal lump sum.
-            if *delta > 0. && *need_index as usize == NeedId::Social.index() {
+        let resolved = crate::recipe_actions::action(content.0, origins.get(sim).ok());
+        for (need_index, delta) in
+            crate::recipe_actions::benefits(content.0, &chain_state, origins.get(sim).ok())
+        {
+            if *need_index as usize == NeedId::Social.index() && *delta > 0. {
                 continue;
             }
             let per_need = personality.map_or(1.0, |p| p.satisfaction[*need_index as usize]);
@@ -525,24 +577,17 @@ pub fn tick_chain_steps(
 
         // Habituation against the advertiser, under the chain's flyout
         // row: the sim tires of DINNER, not of the table.
-        let advertiser = content.0.object(chain.advertised_by);
-        let row = (chain.id == crate::domestic::SNACK)
-            .then(|| {
-                advertiser
-                    .interactions
-                    .iter()
-                    .position(|interaction| interaction.id == "grab_snack")
+        let row = crate::action_rows::rows(content.0, chain.advertised_by)
+            .into_iter()
+            .find(|row| {
+                row.recipe
+                    .is_some_and(|(index, _)| index == chain_state.chain as usize)
             })
-            .flatten()
-            .map_or_else(
-                || {
-                    advertiser.interactions.len() as u32
-                        + chain_position(content.0, chain_state.chain)
-                },
-                |row| row as u32,
-            );
+            .expect("compiled recipe retains an action or accounting alias")
+            .row;
         commands.queue({
-            let advertiser = chain.advertised_by;
+            let (advertiser, row) =
+                resolved.map_or((chain.advertised_by, row), |(model, row, _)| (model, row));
             let per_use = content.0.tuning.habituation_per_use;
             let cap = content.0.tuning.habituation_max;
             // Insert-if-absent, the tick_interactions rule: an agent
@@ -565,8 +610,8 @@ pub fn tick_chain_steps(
                 let tags = chain_tags(chain);
                 let payout =
                     super::satisfaction::hobby_payout(
-                        chain.satisfaction,
-                        &tags,
+                        resolved.map_or(chain.satisfaction, |(_, _, action)| action.satisfaction),
+                        resolved.map_or(&tags, |(_, _, action)| &action.tags),
                         hobbies,
                         content.0.tuning.hobby_multiplier,
                     ) * super::trait_effects::condition_accrual_scale(traits.as_deref(), content.0);
@@ -574,9 +619,11 @@ pub fn tick_chain_steps(
             }
         }
 
-        commands.entity(sim).remove::<ChainState>();
         commands.queue(move |world: &mut World| {
             settle_order(world, sim, completed_chain);
+            world
+                .entity_mut(sim)
+                .remove::<crate::recipe_actions::ActiveRecipe>();
             crate::domestic::completed(world, sim, completed_chain, completed_step, station)
         });
     }
@@ -597,26 +644,10 @@ pub(crate) fn ordered_chain(
     kind: terri_data::ObjectDefId,
     interaction: u32,
 ) -> Option<u32> {
-    let definition = pack.object(kind);
-    if definition
-        .interactions
-        .get(interaction as usize)
-        .is_some_and(|act| act.id == "grab_snack")
-    {
-        return pack
-            .chains
-            .iter()
-            .position(|chain| chain.id == crate::domestic::SNACK)
-            .map(|global| global as u32);
-    }
-    let local = (interaction as usize).checked_sub(definition.interactions.len())?;
-    let (global, chain) = pack
-        .chains
-        .iter()
-        .enumerate()
-        .filter(|(_, chain)| chain.advertised_by == kind)
-        .nth(local)?;
-    (!crate::domestic::hidden_chain(&chain.id)).then_some(global as u32)
+    crate::action_rows::resolve(pack, kind, interaction)
+        .filter(|row| row.public)
+        .and_then(|row| row.recipe)
+        .map(|(global, _)| global as u32)
 }
 
 /// Whether a player order outranks the chain `running`: the queue's
@@ -650,26 +681,25 @@ pub(crate) fn settle_order(world: &mut World, sim: Entity, chain: u32) {
     {
         return;
     }
-    let Some(queue) = world.get::<IntentQueue>(sim) else {
-        return;
-    };
-    let settled = queue.as_slice().iter().copied().find(|order| {
-        world
-            .get::<SmartObject>(order.object)
-            .and_then(|placed| ordered_chain(pack, placed.0, order.interaction))
-            == Some(chain)
-    });
-    if let Some(order) = settled {
+    if let Some(order) = world
+        .get::<crate::recipe_actions::RecipeOrder>(sim)
+        .copied()
+    {
         if let Some(mut queue) = world.get_mut::<IntentQueue>(sim) {
-            queue.remove_first(order);
+            queue.remove_order(order.0);
         }
+        world
+            .entity_mut(sim)
+            .remove::<crate::recipe_actions::RecipeOrder>();
     }
+    // Old unpublished recipes spent their order at start; autonomous recipes own none.
 }
 
 /// The chain's position among its advertiser's chains - the second
 /// half of [K5]'s flyout row `interactions.len() + position`.
 /// `pub(crate)` for its unit test: the row arithmetic survived a
 /// sweep unconstrained while only integration outcomes were pinned.
+#[cfg(test)]
 pub(crate) fn chain_position(pack: &terri_data::ContentPack, chain: u32) -> u32 {
     let advertiser = pack.chains[chain as usize].advertised_by;
     pack.chains[..chain as usize]
@@ -1291,7 +1321,7 @@ mod tests {
                 ..test_content::tuning()
             },
         );
-        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+        let mut pack = ContentPack {
             roles: vec!["pantry_shelf".to_string(), "eating_surface".to_string()],
             item_kinds: vec!["dinner".to_string()],
             chains: vec![weak, decoy, target],
@@ -1306,7 +1336,10 @@ mod tests {
                 description: String::new(),
             }],
             ..base.clone()
-        }));
+        };
+        assert_eq!(test_content::bind_recipe(&mut pack, 0, 0, 0), 1);
+        assert_eq!(test_content::bind_recipe(&mut pack, 0, 2, 0), 2);
+        let pack: &'static ContentPack = Box::leak(Box::new(pack));
 
         let mut sim = test_content::sim_with(12, 8, pack);
         let spawn_station = |sim: &mut Sim, id: &str, x: f32, y: f32| {
@@ -1674,15 +1707,29 @@ mod tests {
             let mut weak = a_chain();
             weak.id = "weak".to_string();
             weak.advertises = vec![(0, 1.0)];
-            let pack = Box::leak(Box::new(ContentPack {
+            let mut pack = ContentPack {
                 chains: vec![weak, pack.chains[0].clone()],
                 ..pack.clone()
-            }));
+            };
+            assert_eq!(test_content::bind_recipe(&mut pack, 0, 0, 0), 1);
+            assert_eq!(test_content::bind_recipe(&mut pack, 0, 1, 0), 2);
+            let pack = Box::leak(Box::new(pack));
             sim.world_mut().insert_resource(crate::Content(pack));
         }
+        let fridge = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, o)| o.0 == terri_data::ObjectDefId(0))
+            .unwrap()
+            .0;
         sim.world_mut()
-            .entity_mut(agent)
-            .insert(ChainState::begin(1));
+            .resource_mut::<CommandQueue>()
+            .push(terri_core::SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 2,
+            });
         for _ in 0..400 {
             sim.tick();
             if sim.world().get::<ChainState>(agent).is_none() {
@@ -1774,9 +1821,7 @@ mod tests {
         let (mut sim, agent, _, _) = chain_world();
         let mut pack = sim.world().resource::<Content>().0.clone();
         pack.objects[0].interactions.clear();
-        pack.chains[0]
-            .advertises
-            .push((NeedId::Social.index() as u8, 11.));
+        test_content::bind_recipe(&mut pack, 0, 0, 0);
         pack.tuning.idle_threshold = 0.0;
         sim.world_mut()
             .insert_resource(Content(Box::leak(Box::new(pack))));
@@ -1893,17 +1938,22 @@ mod tests {
                 .map(|(e, _)| e)
                 .expect("the fixture placed a fridge")
         };
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        let kind = sim.world().get::<SmartObject>(fridge).unwrap().0;
+        let row = test_content::bind_recipe(&mut pack, kind.0 as usize, 0, 0);
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
         let command = if first {
             terri_core::SimCommand::UseObjectFirst {
                 agent: agent.index_u32(),
                 object: fridge.index_u32(),
-                interaction: 1,
+                interaction: row,
             }
         } else {
             terri_core::SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: fridge.index_u32(),
-                interaction: 1,
+                interaction: row,
             }
         };
         sim.world_mut().resource_mut::<CommandQueue>().push(command);

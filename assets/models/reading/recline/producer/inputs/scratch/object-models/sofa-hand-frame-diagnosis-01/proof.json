@@ -1,0 +1,289 @@
+{
+  "state": "complete",
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\diagnose_sofa_hand_frames.py": "b1622c28a7a43510215e82820ced9f84d858a3b915c742a1e0b854bc30d13f41",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\continuous_support_patch.py": "7b68083d488b6361fa87b392bf1aa7d694b25f18e40a16a2be37bc29cd833966",
+    ".tmp\\object-models\\sofa-hand-support-01\\proof.json": "8bd428b2bd047b9e6e7bc1895b14ca9611b4e28a6ca83af94592513430c47d9d",
+    ".tmp\\object-models\\sofa-hand-support-01\\resting-geometry.npz": "660de1f0b3b83b98a5d42106b8ad51913b40d3909515c21d41a78675245f779f",
+    ".tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0",
+    ".tmp\\object-models\\sofa-binding-audit-01\\proof.json": "050aef2b31431a15c23c0acb9060b4c9cd65a7e584e2899dfd16c46e910ea9ff",
+    ".tmp\\object-models\\sofa-binding-audit-01\\source-binding.npz": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695"
+  },
+  "scope": "Read-only cached analysis; no Blender, binding or target changes",
+  "controls": {
+    "single_near_vertex_with_true_continuous_patch_area": 0.024691358024691357,
+    "projected_point_only_area": 0,
+    "penetrated_plane_not_counted_as_support": true
+  },
+  "frames": [
+    {
+      "seat": 0,
+      "side": "L",
+      "states": {
+        "before": {
+          "shaft_angle_degrees": 81.83308778573763,
+          "rest_relative_wrist_rotation_degrees": 76.97797256243825,
+          "half_blend_minimum_rotation_singular_value": 0.7827278056768739
+        },
+        "after": {
+          "shaft_angle_degrees": 84.40299120636566,
+          "rest_relative_wrist_rotation_degrees": 80.52607222137554,
+          "half_blend_minimum_rotation_singular_value": 0.7630854419282034
+        }
+      },
+      "intended_frame_maximum_component_error": 3.2151635364907616e-06,
+      "minimum_shaft_angle_at_same_hand_target": 28.6047535972619,
+      "minimum_angle_is_kinematic_bound_only": true
+    },
+    {
+      "seat": 0,
+      "side": "R",
+      "states": {
+        "before": {
+          "shaft_angle_degrees": 81.83308004312399,
+          "rest_relative_wrist_rotation_degrees": 76.97796535506042,
+          "half_blend_minimum_rotation_singular_value": 0.7827278448212377
+        },
+        "after": {
+          "shaft_angle_degrees": 159.19685994241578,
+          "rest_relative_wrist_rotation_degrees": 177.47535387362265,
+          "half_blend_minimum_rotation_singular_value": 0.02202991137216849
+        }
+      },
+      "intended_frame_maximum_component_error": 4.319953697651258e-06,
+      "minimum_shaft_angle_at_same_hand_target": 46.604175532631835,
+      "minimum_angle_is_kinematic_bound_only": true
+    },
+    {
+      "seat": 1,
+      "side": "L",
+      "states": {
+        "before": {
+          "shaft_angle_degrees": 81.83308004018595,
+          "rest_relative_wrist_rotation_degrees": 76.97796533240174,
+          "half_blend_minimum_rotation_singular_value": 0.7827278449443005
+        },
+        "after": {
+          "shaft_angle_degrees": 95.42882503751657,
+          "rest_relative_wrist_rotation_degrees": 92.43082402644416,
+          "half_blend_minimum_rotation_singular_value": 0.6919490022779757
+        }
+      },
+      "intended_frame_maximum_component_error": 3.4274987662230583e-06,
+      "minimum_shaft_angle_at_same_hand_target": 17.33307230692772,
+      "minimum_angle_is_kinematic_bound_only": true
+    },
+    {
+      "seat": 1,
+      "side": "R",
+      "states": {
+        "before": {
+          "shaft_angle_degrees": 81.83308004018595,
+          "rest_relative_wrist_rotation_degrees": 76.97796533240174,
+          "half_blend_minimum_rotation_singular_value": 0.7827278449443005
+        },
+        "after": {
+          "shaft_angle_degrees": 95.40045173390124,
+          "rest_relative_wrist_rotation_degrees": 92.40292486257063,
+          "half_blend_minimum_rotation_singular_value": 0.6921247512629322
+        }
+      },
+      "intended_frame_maximum_component_error": 3.3471753371761004e-06,
+      "minimum_shaft_angle_at_same_hand_target": 17.297707986697546,
+      "minimum_angle_is_kinematic_bound_only": true
+    },
+    {
+      "seat": 2,
+      "side": "L",
+      "states": {
+        "before": {
+          "shaft_angle_degrees": 81.83307920463456,
+          "rest_relative_wrist_rotation_degrees": 76.97796422610098,
+          "half_blend_minimum_rotation_singular_value": 0.7827278509527877
+        },
+        "after": {
+          "shaft_angle_degrees": 159.19681114071352,
+          "rest_relative_wrist_rotation_degrees": 177.47534649258805,
+          "half_blend_minimum_rotation_singular_value": 0.022029975768214496
+        }
+      },
+      "intended_frame_maximum_component_error": 4.814762630062086e-06,
+      "minimum_shaft_angle_at_same_hand_target": 46.60420270363692,
+      "minimum_angle_is_kinematic_bound_only": true
+    },
+    {
+      "seat": 2,
+      "side": "R",
+      "states": {
+        "before": {
+          "shaft_angle_degrees": 81.83307797899523,
+          "rest_relative_wrist_rotation_degrees": 76.97796327817542,
+          "half_blend_minimum_rotation_singular_value": 0.7827278561011151
+        },
+        "after": {
+          "shaft_angle_degrees": 84.37640260226546,
+          "rest_relative_wrist_rotation_degrees": 80.4994609481638,
+          "half_blend_minimum_rotation_singular_value": 0.7632355092153886
+        }
+      },
+      "intended_frame_maximum_component_error": 3.0734784085204025e-06,
+      "minimum_shaft_angle_at_same_hand_target": 28.56731998623541,
+      "minimum_angle_is_kinematic_bound_only": true
+    }
+  ],
+  "folds": [
+    {
+      "seat": 0,
+      "part": "Forearm with elbow and wrist sections.001",
+      "triangle_pair_count": 498,
+      "source_correspondence": "Every posed triangle uniquely covers an original evaluated polygon with preserved winding and boundaries",
+      "triangulation_identical": false,
+      "source_vertex_bounds": [
+        [
+          0.2766575217247009,
+          -0.07444432377815247,
+          0.7860379219055176
+        ],
+        [
+          0.35767829418182373,
+          0.012185612693428993,
+          0.8344494700431824
+        ]
+      ],
+      "source_control_weight_ranges": {
+        "hand.R": [
+          0.08577816933393478,
+          1.0
+        ],
+        "forearm.R": [
+          0.0,
+          0.9142218232154846
+        ],
+        "upper_arm.R": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "seat": 2,
+      "part": "Forearm with elbow and wrist sections",
+      "triangle_pair_count": 482,
+      "source_correspondence": "Every posed triangle uniquely covers an original evaluated polygon with preserved winding and boundaries",
+      "triangulation_identical": false,
+      "source_vertex_bounds": [
+        [
+          -0.35767829418182373,
+          -0.07444432377815247,
+          0.7860379219055176
+        ],
+        [
+          -0.27655139565467834,
+          0.012185612693428993,
+          0.8344494700431824
+        ]
+      ],
+      "source_control_weight_ranges": {
+        "hand.L": [
+          0.08577816933393478,
+          1.0
+        ],
+        "forearm.L": [
+          0.0,
+          0.9142218232154846
+        ],
+        "upper_arm.L": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "contacts": [
+    {
+      "seat": 0,
+      "side": "L",
+      "support": "Tailored trouser leg",
+      "sparse_vertex_area": 6.393091542267193e-10,
+      "projected_area": 0.0003729959726782098,
+      "spans": [
+        0.03232891534500776,
+        0.017071592901063637
+      ],
+      "certified_cells": 46,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    },
+    {
+      "seat": 0,
+      "side": "R",
+      "support": "Arm left",
+      "sparse_vertex_area": 0.00028467250850283676,
+      "projected_area": 0.0005299262448064668,
+      "spans": [
+        0.03469685838127362,
+        0.02236125459299043
+      ],
+      "certified_cells": 20,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    },
+    {
+      "seat": 1,
+      "side": "L",
+      "support": "Tailored trouser leg",
+      "sparse_vertex_area": 8.833101325031456e-10,
+      "projected_area": 0.0003729034044747644,
+      "spans": [
+        0.0323269495556196,
+        0.01706826100557332
+      ],
+      "certified_cells": 46,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    },
+    {
+      "seat": 1,
+      "side": "R",
+      "support": "Tailored trouser leg.001",
+      "sparse_vertex_area": 6.20765881406693e-10,
+      "projected_area": 0.000372094424997083,
+      "spans": [
+        0.032260151189448916,
+        0.017035942493992692
+      ],
+      "certified_cells": 43,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    },
+    {
+      "seat": 2,
+      "side": "L",
+      "support": "Arm right",
+      "sparse_vertex_area": 0.0002846739474176019,
+      "projected_area": 0.0005300852597436567,
+      "spans": [
+        0.0347002213385168,
+        0.022363011357500073
+      ],
+      "certified_cells": 20,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    },
+    {
+      "seat": 2,
+      "side": "R",
+      "support": "Tailored trouser leg.001",
+      "sparse_vertex_area": 3.3552541994774643e-10,
+      "projected_area": 0.0003721849744990832,
+      "spans": [
+        0.03226250884803453,
+        0.01703838391635759
+      ],
+      "certified_cells": 43,
+      "occluded_or_ambiguous_cells": 0,
+      "contract": "Continuous lower-hand/upper-support projected triangle overlap with gap in [0, maximum_gap]; ambiguous layered cells excluded conservatively"
+    }
+  ],
+  "cache_sha256": "3df34b2ea2d7aa50e9464addbb1e849a2abe64e690ce4e56c3bad7bf47882f45"
+}

@@ -1,0 +1,83 @@
+{
+  "state": "complete",
+  "rows": [
+    {
+      "seat": 0,
+      "part": "HAIR_01_TRIPO_CURL",
+      "bone": "head",
+      "vertices": 101802,
+      "maximum_rigid_transform_error": 2.4445756652627413e-07,
+      "ordered_triangles_equal": true,
+      "all_source_weights_exactly_one": true,
+      "raw_pairs": 519,
+      "witness": "fold/0/HAIR_01_TRIPO_CURL",
+      "classification": "Unchanged rigid authored source contact; not a new pose deformation"
+    },
+    {
+      "seat": 0,
+      "part": "One sewn breast pocket",
+      "bone": "spine",
+      "vertices": 152,
+      "maximum_rigid_transform_error": 1.7796105783037243e-07,
+      "ordered_triangles_equal": true,
+      "all_source_weights_exactly_one": true,
+      "raw_pairs": 0,
+      "witness": "fold/0/One sewn breast pocket",
+      "classification": "Unchanged rigid authored source contact; not a new pose deformation"
+    },
+    {
+      "seat": 1,
+      "part": "HAIR_01_TRIPO_CURL",
+      "bone": "head",
+      "vertices": 101802,
+      "maximum_rigid_transform_error": 1.9237398755611554e-07,
+      "ordered_triangles_equal": true,
+      "all_source_weights_exactly_one": true,
+      "raw_pairs": 582,
+      "witness": "fold/1/HAIR_01_TRIPO_CURL",
+      "classification": "Unchanged rigid authored source contact; not a new pose deformation"
+    },
+    {
+      "seat": 1,
+      "part": "One sewn breast pocket",
+      "bone": "spine",
+      "vertices": 152,
+      "maximum_rigid_transform_error": 1.5259242487954908e-07,
+      "ordered_triangles_equal": true,
+      "all_source_weights_exactly_one": true,
+      "raw_pairs": 4,
+      "witness": "fold/1/One sewn breast pocket",
+      "classification": "Unchanged rigid authored source contact; not a new pose deformation"
+    },
+    {
+      "seat": 2,
+      "part": "HAIR_01_TRIPO_CURL",
+      "bone": "head",
+      "vertices": 101802,
+      "maximum_rigid_transform_error": 2.4292484085972657e-07,
+      "ordered_triangles_equal": true,
+      "all_source_weights_exactly_one": true,
+      "raw_pairs": 486,
+      "witness": "fold/2/HAIR_01_TRIPO_CURL",
+      "classification": "Unchanged rigid authored source contact; not a new pose deformation"
+    },
+    {
+      "seat": 2,
+      "part": "One sewn breast pocket",
+      "bone": "spine",
+      "vertices": 152,
+      "maximum_rigid_transform_error": 1.4041670378447495e-07,
+      "ordered_triangles_equal": true,
+      "all_source_weights_exactly_one": true,
+      "raw_pairs": 3,
+      "witness": "fold/2/One sewn breast pocket",
+      "classification": "Unchanged rigid authored source contact; not a new pose deformation"
+    }
+  ],
+  "acceptance": false,
+  "source_inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-binding-audit-01\\source-binding.npz": "2d3b0d35823da3f552467a05692bf6e59eafe283f9c9b1763fe3cd1642e5a695",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-derived-binding-03\\normalized-rest.npz": "5a04da9ae4e0806936f54735c479deeae88c96300dd99c41483f99b24af627e0"
+  },
+  "scope": "Exact ordered source correspondence and known rigid bone transforms; no skin exemption"
+}

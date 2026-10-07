@@ -38,10 +38,10 @@ it('preserves ottoman identity, footprint, facings, colours and saves', () => {
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
-    expect(sim.objectName(18)).toBe('Chesterfield Regret');
-    expect(sim.interactionLabels(18)).toEqual(['Sit down']);
-    expect(sim.catalogue().find(row => row.name === 'Chesterfield Regret')).toMatchObject({
-      price: 200, facings: 15, baseFacing: 0,
+    expect(sim.objectName(18)).toBe('Ottoman');
+    expect(sim.interactionLabels(18)).toEqual(['Sit', 'Read a book']);
+    expect(sim.catalogue().find(row => row.name === 'Ottoman')).toMatchObject({
+      price: 80, facings: 15, baseFacing: 0,
     });
     for (const [facing, suffix] of ['', 'SW', 'NW', 'NE'].entries()) {
       const index = atlas.spriteIndex('offlineOttoman' + suffix);
@@ -104,7 +104,7 @@ it('identifies target-bound sitting with its fitted seated body pose', () => {
     for (let tick = 0; tick < 1200; tick++) {
       sim.tick();
       const first = sim.actionQueueOf(34)[0];
-      if (sim.activityOf(34) === 11 && first === 'Sit down: Chesterfield Regret') {
+      if (sim.activityOf(34) === 11 && first === 'Sit: Ottoman') {
         const row = Array.from(sim.ids()).indexOf(34);
         expect(sim.visualActions()[row]).toBe(8);
         expect(sim.interactionTargets()[row]).toBe(18);

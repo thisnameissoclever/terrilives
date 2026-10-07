@@ -87,6 +87,7 @@ export interface ContextModel {
   readonly actions: readonly ContextAction[];
 }
 export interface ContextTools {
+  readonly books?: { readonly active: boolean };
   readonly furniture: FurnitureBuilder;
   readonly buy: BuyTool;
   readonly walls: WallTool;
@@ -99,6 +100,7 @@ export interface ContextTools {
 /** Presentation reads capabilities; the controllers alone stage game commands. */
 export function contextModel(tools: ContextTools): ContextModel | null {
   const { furniture, buy, walls, room, floors } = tools;
+  if (tools.books?.active) return null;
   if (!furniture.active || furniture.blocked || tools.suspended?.()) return null;
   const action = (id: string, label: string, slot: ContextSlot, enabled: boolean,
     invoke: () => void, icon?: ContextIcon): ContextAction => ({ id, label, slot, enabled, invoke, icon });

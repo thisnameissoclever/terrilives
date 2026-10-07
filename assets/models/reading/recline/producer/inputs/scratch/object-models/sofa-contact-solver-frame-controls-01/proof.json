@@ -1,0 +1,75 @@
+{
+  "state": "complete",
+  "rows": [
+    {
+      "seat": 0,
+      "side": "L",
+      "rest_frame_error": 2.220446049250313e-16,
+      "rest_identity_pass": true,
+      "twist_control": [
+        0.9967662070827084,
+        1.3938430297486384e-16
+      ],
+      "scope": "Frame algebra controls only; actual evaluated geometry still required"
+    },
+    {
+      "seat": 0,
+      "side": "R",
+      "rest_frame_error": 2.220446049250313e-16,
+      "rest_identity_pass": true,
+      "twist_control": [
+        0.9967662070827085,
+        1.6636571310284296e-16
+      ],
+      "scope": "Frame algebra controls only; actual evaluated geometry still required"
+    },
+    {
+      "seat": 1,
+      "side": "L",
+      "rest_frame_error": 2.220446049250313e-16,
+      "rest_identity_pass": true,
+      "twist_control": [
+        0.9967662070827084,
+        1.3938430297486384e-16
+      ],
+      "scope": "Frame algebra controls only; actual evaluated geometry still required"
+    },
+    {
+      "seat": 1,
+      "side": "R",
+      "rest_frame_error": 2.220446049250313e-16,
+      "rest_identity_pass": true,
+      "twist_control": [
+        0.9967662070827085,
+        1.6636571310284296e-16
+      ],
+      "scope": "Frame algebra controls only; actual evaluated geometry still required"
+    },
+    {
+      "seat": 2,
+      "side": "L",
+      "rest_frame_error": 2.220446049250313e-16,
+      "rest_identity_pass": true,
+      "twist_control": [
+        0.9967662070827084,
+        1.3938430297486384e-16
+      ],
+      "scope": "Frame algebra controls only; actual evaluated geometry still required"
+    },
+    {
+      "seat": 2,
+      "side": "R",
+      "rest_frame_error": 2.220446049250313e-16,
+      "rest_identity_pass": true,
+      "twist_control": [
+        0.9967662070827085,
+        1.6636571310284296e-16
+      ],
+      "scope": "Frame algebra controls only; actual evaluated geometry still required"
+    }
+  ],
+  "inputs": {
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa-coherent-arms-02\\proof.json": "9950b21e8f9dc9c1423702780a8598bc7b90355bdbc7bfe9da49dbd7d97aa4c9",
+    "D:\\VIBES\\.worktrees\\f24d\\terrilives\\.tmp\\object-models\\sofa_contact_solver_frames.py": "1841b79f265ff0b422ca150ffa5bdbd150bcdef9bced2186aace0e5003e4b4cb"
+  }
+}

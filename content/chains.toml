@@ -1,15 +1,14 @@
 # The multi-step chains - [K1] in
 # docs/specs/2026-08-01-m2f-multi-step-working-design.md.
 #
-# A chain is a sequence of steps across station ROLES (see the roles
-# lists in objects.toml), advertised by one object. Food pays at the
-# last step's completion - a sim that gets halfway through cooking and
-# wanders off has not eaten. Steps resolve to the nearest placed object
-# wearing the role at run time, so the chain works on any lot that can
-# feed somebody, and refuses to compile on one that cannot.
+# A chain is a shared procedure across station roles (see objects.toml).
+# Public actions bind a recipe and retain their selected appliance through
+# its designated step. Other stages choose an available station by role.
+# Food arrives at the last step: halfway through cooking is not fed.
 #
-# Durations are per STEP and obey the same clipped-duration rule as
-# interactions. Tags ride per step: the hob step is what a cooking
+# These durations and benefits are internal defaults. Bound public actions
+# supply resolved total work and need benefits; compilation allocates
+# that work across the steps. Tags ride per step: the hob step is what a cooking
 # hobby loves and a cooking capability may fumble.
 
 [[chain]]
@@ -17,15 +16,11 @@ id = "cook_dinner"
 # Label plain per [L58]; the voice pass happens with Tim in M2g.
 label = "Cook dinner"
 advertised_by = "fridge"
-# 70 Hunger, delivered after eating. Comfort comes from the actual chair;
-# standing eating incurs the small contextual Comfort cost in tuning.toml.
-# These benefits were tuned for the original shorter meal. The current
-# six-stage meal costs 500 base work ticks plus travel and gathering;
-# benefit-per-time autonomy often favors the quicker snack. Habituation
-# still affects both choices. The longer cooking sequence does not add
-# a separate preference that forces Sims to choose a full meal.
-# Social is delivered during actual seated eating with liked company at the
-# same table, rather than as part of the terminal Hunger payoff.
+# Food pays at completion; chair Comfort and liked-company Social require actual use.
+# Public actions set total work for these six stages. Cooked meals give
+# more food than snacks and can supply invited hungry friends.
+# Travel and gathering add time; urgency can make a snack the better choice.
+# Repetition affects appeal, without changing the delivered need benefits.
 advertises = { hunger = 70.0, social = 11.0 }
 # Above the retired stove meal's 2.5: a cooked-and-eaten dinner is the
 # fullest meal the game can express, and the satisfaction axis should

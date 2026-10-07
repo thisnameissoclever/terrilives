@@ -39,7 +39,7 @@ it('keeps both chairs facing the table and preserves their saved placement throu
   try {
     const bridge = new SimBridge(handle, memory);
     const before = bridge.saveBytes();
-    const chairs = Array.from(bridge.ids()).filter(id => bridge.objectName(id) === 'Chair, Standard Issue');
+    const chairs = Array.from(bridge.ids()).filter(id => bridge.objectModel(id)?.id === 'chair');
     expect(chairs).toEqual([8, 9]);
     for (const [id, x, facing, suffix] of [[8, 1, 3, 'NE'], [9, 4, 1, 'SW']] as const) {
       const row = Array.from(bridge.ids()).indexOf(id);
@@ -54,7 +54,7 @@ it('keeps both chairs facing the table and preserves their saved placement throu
         });
       }
     }
-    expect(bridge.catalogue().find(item => item.name === 'Chair, Standard Issue')).toMatchObject({
+    expect(bridge.catalogue().find(item => item.model?.id === 'chair')).toMatchObject({
       price: 40, facings: 15, baseFacing: 0,
     });
     expect(bridge.saveBytes()).toEqual(before);

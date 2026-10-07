@@ -47,7 +47,7 @@ fn needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost() {
         );
     }
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
     for _ in 0..3 {
         sim.tick();
         restored.tick();
@@ -152,7 +152,8 @@ fn meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table() {
             .get::<Needs>(*person)
             .unwrap()
             .get(NeedId::Social);
-        assert_eq!(social, if seated { 30. + 11. / 90. } else { 30. });
+        // The 330-minute model action allocates 59 ticks to eating.
+        assert_eq!(social, if seated { 30. + 11. / 59. } else { 30. });
     }
     let first = people[0];
     let second = people[1];
@@ -288,7 +289,7 @@ fn completing_a_meal_pays_only_the_social_minutes_actually_shared() {
     let personality = sim.world().get::<terri_core::Personality>(first).unwrap();
     let expected = 30.
         - pack.decay_per_tick[NeedId::Social.index()] * personality.drain[NeedId::Social.index()]
-        + 11. / 90. * personality.satisfaction[NeedId::Social.index()];
+        + 11. / 59. * personality.satisfaction[NeedId::Social.index()];
     sim.tick();
     assert!(
         sim.world().get::<StepWork>(first).is_none(),
@@ -302,7 +303,12 @@ fn completing_a_meal_pays_only_the_social_minutes_actually_shared() {
 }
 
 fn ready() -> (Sim, Vec<Entity>, Entity) {
-    let mut sim = Sim::new_from_shipped_lot();
+    ready_with_content(Content(terri_data::pack()))
+}
+
+fn ready_with_content(content: Content) -> (Sim, Vec<Entity>, Entity) {
+    let seed = content.0.tuning.rng_seed;
+    let mut sim = Sim::new_household_with_content(content, seed);
     let pack = sim.world().resource::<Content>().0;
     let chain = pack
         .chains
@@ -330,6 +336,11 @@ fn ready() -> (Sim, Vec<Entity>, Entity) {
                 Carrying(dinner),
                 Needs::all_at(100.0),
             ));
+        if !std::ptr::eq(pack, terri_data::pre_books_pack()) {
+            sim.world_mut()
+                .entity_mut(*person)
+                .insert(crate::test_content::completed_dinner_origin());
+        }
     }
     let table = sim
         .world_mut()
@@ -372,9 +383,9 @@ fn simultaneous_diners_claim_two_real_chairs_and_the_third_stands() {
             assert!(setting_for(sim.world(), table, entity(sim.world(), chair).unwrap()).is_some());
         }
     }
-    let snapshot = sim.save_snapshot_v5();
+    let snapshot = sim.save_snapshot_v6();
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v5(snapshot).unwrap();
+    restored.load_snapshot_v6(snapshot).unwrap();
     assert_eq!(sim.world_hash(), restored.world_hash());
     assert!(people
         .iter()
@@ -587,10 +598,9 @@ fn tableless_shared_diners_finish_together_and_every_transition_loads() {
             .set(terri_core::NeedId::Hunger, 30.0);
     }
     for p in &people[1..] {
-        sim.world_mut().entity_mut(*p).insert(ChainState {
-            step: 1,
-            ..ChainState::begin(shared)
-        });
+        let (mut progress, origin) = crate::recipe_actions::internal(pack, shared);
+        progress.step = 1;
+        sim.world_mut().entity_mut(*p).insert((progress, origin));
     }
     sim.world_mut()
         .resource_mut::<SavedDomestic>()
@@ -615,11 +625,18 @@ fn tableless_shared_diners_finish_together_and_every_transition_loads() {
     for _ in 0..250 {
         sim.tick();
         if let Some(d) = sim.world().get_resource::<SavedDining>() {
-            assert!(d.diners.iter().all(|d| d.chair.is_none()));
+            assert!(d
+                .diners
+                .iter()
+                .filter(|diner| {
+                    entity(sim.world(), diner.person)
+                        .is_some_and(|person| terminal(sim.world(), person))
+                })
+                .all(|diner| diner.chair.is_none()));
             saw_group |= !d.tableless.is_empty();
         }
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
         assert_eq!(restored.world_hash(), sim.world_hash());
         if people.iter().all(|p| {
             sim.world()
@@ -702,7 +719,7 @@ fn paused_cancel_clears_complaints_and_round_trips_before_another_tick() {
         .iter()
         .any(|(p, _)| *p == people[0].index_u32()));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }
 
@@ -753,6 +770,7 @@ fn all_stove_facings_route_cooks_to_the_actual_front_and_project_there() {
                     step: 3,
                     ..ChainState::begin(recipe)
                 },
+                crate::test_content::completed_dinner_origin(),
             ));
         sim.world_mut().entity_mut(stove).remove::<Reserved>();
         let mut schedule = Schedule::default();
@@ -773,6 +791,7 @@ fn all_stove_facings_route_cooks_to_the_actual_front_and_project_there() {
             person,
             sim.world().get::<SimId>(person).copied(),
             *sim.world().get::<ChainState>(person).unwrap(),
+            sim.world().get::<crate::recipe_actions::Origin>(person),
             stove,
             sim.world().get::<SmartObject>(stove).unwrap().0,
             sim.world().get::<ObjectFacing>(stove),
@@ -822,6 +841,7 @@ fn privacy_routes_preserve_exact_seated_and_standing_claims_and_reload() {
                 person,
                 sim.world().get::<SimId>(person).copied(),
                 *sim.world().get::<ChainState>(person).unwrap(),
+                sim.world().get::<crate::recipe_actions::Origin>(person),
                 station,
                 sim.world().get::<SmartObject>(station).unwrap().0,
                 sim.world().get::<ObjectFacing>(station),
@@ -849,7 +869,7 @@ fn privacy_routes_preserve_exact_seated_and_standing_claims_and_reload() {
             .entity_mut(person)
             .insert(Path { steps, cursor: 0 });
         let mut replay = Sim::new_from_shipped_lot();
-        replay.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        replay.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
         assert_eq!(replay.world_hash(), sim.world_hash());
     }
 }
@@ -943,7 +963,7 @@ fn washing_a_blocking_pile_while_someone_dines_clears_annoyance_and_remains_load
         .iter()
         .all(|d| d.obstructing.is_empty()));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
 }
 
@@ -965,10 +985,11 @@ fn cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker() {
         .0;
     let cook = sim.world().get::<SimId>(people[0]).unwrap().0;
     let guest = sim.world().get::<SimId>(people[1]).unwrap().0;
-    sim.world_mut().entity_mut(people[1]).insert(ChainState {
-        step: 1,
-        ..ChainState::begin(shared)
-    });
+    let (mut progress, origin) = crate::recipe_actions::internal(pack, shared);
+    progress.step = 1;
+    sim.world_mut()
+        .entity_mut(people[1])
+        .insert((progress, origin));
     sim.world_mut()
         .resource_mut::<SavedDomestic>()
         .meals
@@ -994,7 +1015,7 @@ fn cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker() {
         .tableless
         .push((cook, 0));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
     sim.world_mut()
         .resource_mut::<terri_core::CommandQueue>()
         .push(terri_core::SimCommand::CancelIntents {
@@ -1002,7 +1023,7 @@ fn cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker() {
         });
     sim.flush_commands();
     assert!(sim.world().resource::<SavedDining>().tableless.is_empty());
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
 }
 
@@ -1105,7 +1126,8 @@ fn one_dirty_chair_setting_leaves_the_other_physical_seat_available() {
         sim.world_mut()
             .entity_mut(*p)
             .remove::<Target>()
-            .remove::<Path>();
+            .remove::<Path>()
+            .remove::<crate::seating::PhysicalClaim>();
     }
     sim.world_mut()
         .resource_mut::<SavedDomestic>()
@@ -1122,6 +1144,681 @@ fn one_dirty_chair_setting_leaves_the_other_physical_seat_available() {
     assert_eq!(diners.iter().filter(|d| d.chair.is_some()).count(), 1);
     assert!(diners.iter().all(|d| d.setting != Some(dirty)));
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
     assert_eq!(sim.world_hash(), loaded.world_hash());
+}
+
+#[test]
+fn physical_dining_role_accepts_another_model_without_a_chair_name_check() {
+    let (mut sim, _, table) = ready();
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    let chair = pack.find("chair").unwrap();
+    pack.objects[chair.0 as usize].id = "other_dining_model".into();
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    advance(sim.world_mut());
+    assert_eq!(
+        sim.world()
+            .resource::<SavedDining>()
+            .diners
+            .iter()
+            .filter(|d| d.station == table.index_u32() && d.chair.is_some())
+            .count(),
+        2
+    );
+    assert_eq!(
+        sim.world_mut()
+            .query::<&crate::seating::PhysicalClaim>()
+            .iter(sim.world())
+            .count(),
+        2
+    );
+}
+
+#[test]
+fn physical_dining_and_ordinary_sitting_cannot_share_a_chair() {
+    for meal_first in [true, false] {
+        let (mut sim, people, table) = ready();
+        let chair = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(e, _)| setting_for(sim.world(), table, *e).is_some())
+            .unwrap()
+            .0;
+        let chain = *sim.world().get::<ChainState>(people[1]).unwrap();
+        for person in &people {
+            sim.world_mut()
+                .entity_mut(*person)
+                .remove::<ChainState>()
+                .remove::<Carrying>();
+        }
+        let pack = sim.world().resource::<Content>().0;
+        let action = pack
+            .object(sim.world().get::<SmartObject>(chair).unwrap().0)
+            .interactions
+            .iter()
+            .position(|a| a.id == "sit")
+            .unwrap() as u32;
+        if meal_first {
+            sim.world_mut().entity_mut(people[1]).insert(chain);
+            advance(sim.world_mut());
+            let lease = claim(sim.world(), people[1].index_u32()).unwrap();
+            let used = entity(sim.world(), lease.chair.unwrap()).unwrap();
+            sim.world_mut()
+                .entity_mut(people[0])
+                .insert(IntentQueue::from_intents(vec![terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
+                    object: used,
+                    interaction: action,
+                }]));
+            sim.tick();
+            assert!(sim
+                .world()
+                .get::<crate::seating::PhysicalClaim>(people[0])
+                .is_none());
+        } else {
+            sim.world_mut()
+                .entity_mut(people[0])
+                .insert(IntentQueue::from_intents(vec![terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
+                    object: chair,
+                    interaction: action,
+                }]));
+            sim.tick();
+            assert_eq!(
+                sim.world()
+                    .get::<crate::seating::PhysicalClaim>(people[0])
+                    .unwrap()
+                    .furniture,
+                chair
+            );
+            for other in &people[1..] {
+                if let Some(target) = sim.world().get::<Target>(*other).copied() {
+                    crate::reservations::release_now(sim.world_mut(), *other, target);
+                }
+                sim.world_mut()
+                    .entity_mut(*other)
+                    .remove::<Target>()
+                    .remove::<Path>()
+                    .remove::<Eating>()
+                    .remove::<StepWork>()
+                    .remove::<Socialising>()
+                    .remove::<IntentQueue>()
+                    .remove::<ChainState>();
+            }
+            sim.world_mut().entity_mut(people[1]).insert(chain);
+            assert!(terminal(sim.world(), people[1]));
+            assert!(sim.world().get::<Target>(people[1]).is_none());
+            assert!(sim.world().get::<Path>(people[1]).is_none());
+            assert!(sim.world().get::<StepWork>(people[1]).is_none());
+            assert!(sim.world().get::<Socialising>(people[1]).is_none());
+            advance(sim.world_mut());
+            assert_ne!(
+                claim(sim.world(), people[1].index_u32()).unwrap().chair,
+                Some(chair.index_u32())
+            );
+        }
+    }
+}
+
+#[test]
+fn physical_frozen_meal_leases_migrate_into_current_claims() {
+    let (mut old, _, _) = ready_with_content(Content::pre_books());
+    advance(old.world_mut());
+    let seated = old
+        .world()
+        .resource::<SavedDining>()
+        .diners
+        .iter()
+        .filter(|d| d.chair.is_some())
+        .count();
+    assert_eq!(seated, 2);
+    let mut current = Sim::new_from_shipped_lot();
+    current
+        .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(old.save_snapshot_v5())))
+        .unwrap();
+    assert_eq!(current.save_snapshot_v6().seats.len(), seated);
+    for _ in 0..100 {
+        let saved = current.save_snapshot_v6();
+        assert!(current.load_snapshot_v6(saved.clone()).is_ok());
+        assert_eq!(current.save_snapshot_v6(), saved);
+        current.tick();
+    }
+}
+
+fn contact_fixture(content: Content, wall: bool) -> (Sim, Entity, Entity) {
+    let pack = content.0;
+    let mut sim = Sim::new_with_lot_and_content(10, 10, content);
+    let table = sim.spawn_object(
+        Position { x: 4., y: 5. },
+        pack.find("dining_table").unwrap(),
+    );
+    let chair = sim.spawn_object(Position { x: 4., y: 4. }, pack.find("chair").unwrap());
+    for (x, y) in [(4, 5), (5, 5), (4, 4)] {
+        sim.world_mut()
+            .resource_mut::<TileGrid>()
+            .set_blocked(x, y, true);
+    }
+    let edges = if wall {
+        vec![terri_core::layout::WallEdge {
+            axis: terri_core::layout::EdgeAxis::Vertical,
+            x: 4,
+            y: 4,
+            doorway: false,
+        }]
+    } else {
+        vec![]
+    };
+    if wall {
+        sim.world_mut()
+            .resource_mut::<TileGrid>()
+            .set_edge_blocked((3, 4), (4, 4), true);
+    }
+    sim.world_mut()
+        .insert_resource(terri_core::layout::SavedLayout::EdgeWallsV1 { edges });
+    let person = crate::household::spawn_member(
+        sim.world_mut(),
+        &pack.personalities,
+        &pack.traits,
+        crate::household::Member {
+            name: "Diner".into(),
+            personality: 0,
+            position: Position { x: 3., y: 4. },
+            needs: [100.; 7],
+            hobbies: vec![],
+            traits: &[],
+            career: None,
+            instinct: Some(50),
+        },
+    );
+    let chain = pack
+        .chains
+        .iter()
+        .position(|c| c.id == "cook_dinner")
+        .unwrap() as u32;
+    let dinner = pack.item_kinds.iter().position(|i| i == "dinner").unwrap() as u32;
+    sim.world_mut().entity_mut(person).insert((
+        ChainState {
+            step: 5,
+            ..ChainState::begin(chain)
+        },
+        Carrying(dinner),
+    ));
+    sim.world_mut().insert_resource(SavedDomestic::default());
+    assert!(setting_for(sim.world(), table, chair).is_some());
+    if !std::ptr::eq(pack, terri_data::pre_books_pack()) {
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(crate::test_content::completed_dinner_origin());
+    }
+    (sim, person, chair)
+}
+
+#[test]
+fn regression_dining_wall_contact_live_and_current_rollback() {
+    for wall in [false, true] {
+        let (mut sim, person, chair) = contact_fixture(Content(terri_data::pack()), wall);
+        sim.tick();
+        let lease = claim(sim.world(), person.index_u32()).unwrap();
+        assert_eq!(lease.chair, Some(chair.index_u32()));
+        if wall {
+            assert_ne!(
+                lease.endpoint,
+                (3, 4),
+                "a wall cannot be used as a chair approach"
+            );
+        } else {
+            assert_eq!(
+                lease.endpoint,
+                (3, 4),
+                "unblocked same-tile contact is valid"
+            );
+        }
+        let travel = sim.save_snapshot_v6();
+        sim.load_snapshot_v6(travel.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v6(), travel);
+        for _ in 0..150 {
+            if sim.world().get::<StepWork>(person).is_some() {
+                break;
+            }
+            sim.tick();
+        }
+        assert!(sim.world().get::<StepWork>(person).is_some());
+        let active = sim.save_snapshot_v6();
+        sim.load_snapshot_v6(active.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v6(), active);
+        if wall {
+            let mut invalid = active.clone();
+            invalid.legacy.dining.as_mut().unwrap().diners[0].endpoint = (3, 4);
+            invalid
+                .legacy
+                .world
+                .entities
+                .iter_mut()
+                .find(|e| e.index == person.index_u32())
+                .unwrap()
+                .position = Some(terri_core::SavedPosition { x: 3., y: 4. });
+            let hash = sim.world_hash();
+            assert!(sim.load_snapshot_v6(invalid).is_err());
+            assert_eq!(sim.save_snapshot_v6(), active);
+            assert_eq!(sim.world_hash(), hash);
+        }
+    }
+}
+
+#[test]
+fn regression_dining_wall_contact_published_meal_migration() {
+    for active in [false, true] {
+        let (mut old, person, _) = contact_fixture(Content::pre_books(), true);
+        advance(old.world_mut());
+        assert_eq!(
+            claim(old.world(), person.index_u32()).unwrap().endpoint,
+            (3, 4)
+        );
+        if active {
+            old.tick();
+            assert!(old.world().get::<StepWork>(person).is_some());
+        }
+        let saved = old.save_snapshot_v5();
+        let mut source_control = Sim::new_with_lot_and_content(10, 10, Content::pre_books());
+        source_control
+            .load_snapshot_v5(saved.clone())
+            .expect("the complete frozen source accepts its historical contact");
+        assert_eq!(source_control.save_snapshot_v5(), saved);
+
+        let expected = saved
+            .world
+            .entities
+            .iter()
+            .find(|e| e.index == person.index_u32())
+            .unwrap()
+            .clone();
+        let mut current = Sim::new_with_lot(10, 10);
+        current
+            .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(saved.clone())))
+            .unwrap();
+        let migrated = current.save_snapshot_v6();
+        let actual = migrated
+            .legacy
+            .world
+            .entities
+            .iter()
+            .find(|e| e.index == person.index_u32())
+            .unwrap();
+        assert_eq!(actual.position, expected.position);
+        assert_eq!(actual.target, expected.target);
+        assert_eq!(actual.step_work_ticks, expected.step_work_ticks);
+        assert_eq!(actual.chain, expected.chain);
+        assert_eq!(actual.carrying, expected.carrying);
+        assert_eq!(actual.needs, expected.needs);
+        assert_eq!(
+            migrated.legacy.world.rng,
+            crate::test_content::after_affinity_migration(&saved)
+        );
+        assert_eq!(migrated.legacy.world.tick, saved.world.tick);
+        assert_eq!(migrated.legacy.domestic, saved.domestic);
+        if active {
+            assert!(
+                migrated.legacy.dining.as_ref().unwrap().diners[0]
+                    .chair
+                    .is_none(),
+                "active meal continues standing at its valid table contact"
+            );
+        } else {
+            assert_ne!(
+                migrated.legacy.dining.as_ref().unwrap().diners[0].endpoint,
+                (3, 4)
+            );
+            assert_eq!(migrated.seats.len(), 1);
+        }
+        let mut expected_save = saved.clone();
+        expected_save.world.rng = crate::test_content::after_affinity_migration(&saved);
+        expected_save.skills = Some(terri_core::save::SavedSkills::default());
+        expected_save.world.content_fingerprint =
+            terri_data::content_fingerprint(terri_data::pack());
+        if active {
+            let lease = &mut expected_save.dining.as_mut().unwrap().diners[0];
+            lease.chair = None;
+            lease.setting = None;
+        } else {
+            expected_save.dining.as_mut().unwrap().diners[0].endpoint = (4, 3);
+            expected_save
+                .world
+                .entities
+                .iter_mut()
+                .find(|e| e.index == person.index_u32())
+                .unwrap()
+                .path = Some(terri_core::SavedPath {
+                steps: vec![(3, 3), (4, 3)],
+                cursor: 0,
+            });
+        }
+        let mut source_fields = migrated.legacy.clone();
+        source_fields.affinities = None;
+        assert_eq!(
+            source_fields, expected_save,
+            "every unrelated published field remains exact"
+        );
+        current.load_snapshot_v6(migrated.clone()).unwrap();
+        assert_eq!(current.save_snapshot_v6(), migrated);
+        if active {
+            let remaining = current
+                .world()
+                .get::<StepWork>(person)
+                .unwrap()
+                .remaining_ticks;
+            assert!(remaining > 1);
+            let mut replay = Sim::new_with_lot(10, 10);
+            replay.load_snapshot_v6(migrated).unwrap();
+            current.tick();
+            replay.tick();
+            assert_eq!(
+                current
+                    .world()
+                    .get::<StepWork>(person)
+                    .unwrap()
+                    .remaining_ticks,
+                remaining - 1
+            );
+            assert_eq!(current.save_snapshot_v6(), replay.save_snapshot_v6());
+        }
+    }
+}
+
+fn endpoint_person(sim: &mut Sim, name: &str, position: Position) -> Entity {
+    let pack = sim.world().resource::<Content>().0;
+    crate::household::spawn_member(
+        sim.world_mut(),
+        &pack.personalities,
+        &pack.traits,
+        crate::household::Member {
+            name: name.into(),
+            personality: 0,
+            position,
+            needs: [100.; 7],
+            hobbies: vec![],
+            traits: &[],
+            career: None,
+            instinct: Some(50),
+        },
+    )
+}
+
+fn prepare_terminal(sim: &mut Sim, person: Entity) {
+    let pack = sim.world().resource::<Content>().0;
+    let chain = pack
+        .chains
+        .iter()
+        .position(|c| c.id == "cook_dinner")
+        .unwrap() as u32;
+    let dinner = pack.item_kinds.iter().position(|i| i == "dinner").unwrap() as u32;
+    sim.world_mut().entity_mut(person).insert((
+        ChainState {
+            step: 5,
+            ..ChainState::begin(chain)
+        },
+        Carrying(dinner),
+    ));
+    if !std::ptr::eq(pack, terri_data::pre_books_pack()) {
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(crate::test_content::completed_dinner_origin());
+    }
+}
+
+#[test]
+fn endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact() {
+    for queued in [false, true] {
+        let pack = Content::pre_books().0;
+        let mut old = Sim::new_with_lot_and_content(10, 10, Content::pre_books());
+        let table = old.spawn_object(
+            Position { x: 4., y: 5. },
+            pack.find("dining_table").unwrap(),
+        );
+        let a_chair = old.spawn_object(Position { x: 4., y: 6. }, pack.find("chair").unwrap());
+        crate::apply_object_placement(
+            old.world_mut(),
+            a_chair,
+            pack.object(pack.find("chair").unwrap()),
+            Position { x: 4., y: 6. },
+            terri_core::Facing::NorthWest,
+        );
+        let b_chair = old.spawn_object(Position { x: 3., y: 5. }, pack.find("chair").unwrap());
+        crate::apply_object_placement(
+            old.world_mut(),
+            b_chair,
+            pack.object(pack.find("chair").unwrap()),
+            Position { x: 3., y: 5. },
+            terri_core::Facing::NorthEast,
+        );
+        old.spawn_object(Position { x: 4., y: 7. }, pack.find("trashcan").unwrap());
+        for (x, y) in [(4, 5), (5, 5), (4, 6), (3, 5), (4, 7)] {
+            old.world_mut()
+                .resource_mut::<TileGrid>()
+                .set_blocked(x, y, true);
+        }
+        old.world_mut()
+            .resource_mut::<TileGrid>()
+            .set_edge_blocked((5, 6), (4, 6), true);
+        old.world_mut()
+            .insert_resource(terri_core::layout::SavedLayout::EdgeWallsV1 {
+                edges: vec![terri_core::layout::WallEdge {
+                    axis: terri_core::layout::EdgeAxis::Vertical,
+                    x: 5,
+                    y: 6,
+                    doorway: false,
+                }],
+            });
+        let a = endpoint_person(&mut old, "Travelling diner", Position { x: 5., y: 7. });
+        let b = endpoint_person(&mut old, "Active diner", Position { x: 3., y: 6. });
+        for person in [a, b] {
+            prepare_terminal(&mut old, person);
+            old.world_mut().entity_mut(person).insert(Target {
+                object: table,
+                interaction: crate::systems::chain::CHAIN_STEP,
+            });
+        }
+        old.world_mut().entity_mut(a).insert(Path {
+            steps: vec![(5, 6)],
+            cursor: 0,
+        });
+        if queued {
+            old.world_mut()
+                .entity_mut(a)
+                // A social order to the busy peer remains valid after table-action retirement.
+                .insert(IntentQueue::from_intents(vec![terri_core::Intent {
+                    cleanup: None,
+                    chore: None,
+                    object: b,
+                    interaction: 0,
+                }]));
+        }
+        old.world_mut().entity_mut(b).insert(StepWork {
+            remaining_ticks: 30,
+        });
+        old.world_mut().entity_mut(table).insert(Reserved);
+        old.world_mut().insert_resource(SavedDomestic::default());
+        old.world_mut().insert_resource(SavedDining {
+            diners: vec![
+                SavedDiner {
+                    person: a.index_u32(),
+                    station: table.index_u32(),
+                    chair: Some(a_chair.index_u32()),
+                    setting: Some(2),
+                    endpoint: (5, 6),
+                    obstructing: vec![],
+                },
+                SavedDiner {
+                    person: b.index_u32(),
+                    station: table.index_u32(),
+                    chair: Some(b_chair.index_u32()),
+                    setting: Some(0),
+                    endpoint: (3, 6),
+                    obstructing: vec![],
+                },
+            ],
+            ..Default::default()
+        });
+        let saved = old.save_snapshot_v5();
+        let mut source_control = Sim::new_with_lot_and_content(10, 10, Content::pre_books());
+        source_control
+            .load_snapshot_v5(saved.clone())
+            .expect("complete historical two-diner source is valid");
+        assert_eq!(source_control.save_snapshot_v5(), saved);
+        let mut current = Sim::new_with_lot(10, 10);
+        current
+            .load_legacy_snapshot(crate::LegacySnapshot::V5(Box::new(saved.clone())))
+            .unwrap();
+        let migrated = current.save_snapshot_v6();
+        let mut expected = saved.clone();
+        expected.world.rng = crate::test_content::after_affinity_migration(&saved);
+        expected.skills = Some(terri_core::save::SavedSkills::default());
+        expected.world.content_fingerprint = terri_data::content_fingerprint(terri_data::pack());
+        let actor = expected
+            .world
+            .entities
+            .iter_mut()
+            .find(|e| e.index == a.index_u32())
+            .unwrap();
+        actor.target = None;
+        actor.path = None;
+        expected
+            .dining
+            .as_mut()
+            .unwrap()
+            .diners
+            .retain(|d| d.person != a.index_u32());
+        let mut source_fields = migrated.legacy.clone();
+        source_fields.affinities = None;
+        assert_eq!(source_fields,expected,"only A's unusable travel/seat commitment and new affinity state differ; food, progress, queue and B remain exact");
+        assert_eq!(migrated.seats.len(), 1);
+        assert_eq!(migrated.seats[0].person, b.index_u32());
+        current.load_snapshot_v6(migrated.clone()).unwrap();
+        assert_eq!(current.save_snapshot_v6(), migrated);
+        current.tick();
+        assert_eq!(
+            current.world().get::<StepWork>(b).unwrap().remaining_ticks,
+            29
+        );
+        assert!(current.world().get::<Carrying>(a).is_some());
+        assert!(terminal(current.world(), a));
+        if queued {
+            assert_eq!(current.world().get::<IntentQueue>(a).unwrap().len(), 1);
+        } else {
+            assert!(
+                current.world().get::<StepWork>(a).is_some(),
+                "deferred diner can continue at a free standing contact"
+            );
+        }
+        current
+            .load_snapshot_v6(current.save_snapshot_v6())
+            .unwrap();
+    }
+}
+
+#[test]
+fn endpoint_meal_and_media_admission_and_restore_are_symmetric() {
+    for viewer_first in [false, true] {
+        for standing in [false, true] {
+            for meal_first in [false, true] {
+                let pack = terri_data::pack();
+                let mut sim = Sim::new_with_lot(12, 12);
+                let table = sim.spawn_object(
+                    Position { x: 6., y: 5. },
+                    pack.find("dining_table").unwrap(),
+                );
+                if !standing {
+                    sim.spawn_object(Position { x: 6., y: 4. }, pack.find("chair").unwrap());
+                    sim.world_mut()
+                        .resource_mut::<TileGrid>()
+                        .set_blocked(6, 4, true);
+                }
+                sim.spawn_object(Position { x: 4., y: 4. }, pack.find("chair").unwrap());
+                let tv =
+                    sim.spawn_object(Position { x: 5., y: 7. }, pack.find("television").unwrap());
+                crate::apply_object_placement(
+                    sim.world_mut(),
+                    tv,
+                    pack.object(pack.find("television").unwrap()),
+                    Position { x: 5., y: 7. },
+                    terri_core::Facing::NorthEast,
+                );
+                for (x, y) in [(6, 5), (7, 5), (4, 4), (5, 7)] {
+                    sim.world_mut()
+                        .resource_mut::<TileGrid>()
+                        .set_blocked(x, y, true);
+                }
+                let first = endpoint_person(&mut sim, "First", Position { x: 5., y: 4. });
+                let second = endpoint_person(&mut sim, "Second", Position { x: 5., y: 4. });
+                let (viewer, diner) = if viewer_first {
+                    (first, second)
+                } else {
+                    (second, first)
+                };
+                prepare_terminal(&mut sim, diner);
+                sim.world_mut().insert_resource(SavedDomestic::default());
+                if meal_first {
+                    advance(sim.world_mut());
+                    assert_eq!(
+                        claim(sim.world(), diner.index_u32()).unwrap().endpoint,
+                        (5, 4)
+                    );
+                }
+                sim.world_mut()
+                    .entity_mut(viewer)
+                    .insert(IntentQueue::from_intents(vec![terri_core::Intent {
+                        cleanup: None,
+                        chore: None,
+                        object: tv,
+                        interaction: 0,
+                    }]));
+                sim.tick();
+                let meal = claim(sim.world(), diner.index_u32()).unwrap();
+                let media = crate::seating::claim(sim.world(), viewer.index_u32()).unwrap();
+                assert_eq!(meal.station, table.index_u32());
+                assert!(media.chair.is_some());
+                assert_ne!(meal.endpoint,media.endpoint,"meal/media contact must differ: viewer_first={viewer_first}, standing={standing}, meal_first={meal_first}");
+                let saved = sim.save_snapshot_v6();
+                sim.load_snapshot_v6(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v6(), saved);
+                if meal_first && !standing {
+                    let mut invalid = saved.clone();
+                    let at = (5, 4);
+                    invalid
+                        .legacy
+                        .dining
+                        .as_mut()
+                        .unwrap()
+                        .diners
+                        .iter_mut()
+                        .find(|d| d.person == viewer.index_u32())
+                        .unwrap()
+                        .endpoint = at;
+                    let actor = invalid
+                        .legacy
+                        .world
+                        .entities
+                        .iter_mut()
+                        .find(|e| e.index == viewer.index_u32())
+                        .unwrap();
+                    actor.position = Some(terri_core::SavedPosition { x: 5., y: 4. });
+                    actor.path = Some(terri_core::SavedPath {
+                        steps: vec![],
+                        cursor: 0,
+                    });
+                    actor.eating = None;
+                    let hash = sim.world_hash();
+                    assert!(
+                        sim.load_snapshot_v6(invalid).is_err(),
+                        "equal meal/media endpoints are refused in both person orders"
+                    );
+                    assert_eq!(sim.save_snapshot_v6(), saved);
+                    assert_eq!(sim.world_hash(), hash);
+                }
+            }
+        }
+    }
 }

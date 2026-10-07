@@ -1,7 +1,7 @@
 use super::*;
 
 fn destination() -> &'static ContentPack {
-    let mut pack = terri_data::pre_meals_content(terri_data::pack()).unwrap();
+    let mut pack = terri_data::pre_meals_content(terri_data::pre_books_pack()).unwrap();
     pack.tuning.domestic = None;
     pack.lot.wall_edges.clear();
     pack.lot.walls = terri_core::layout::LEGACY_WALL_TILES.to_vec();
@@ -20,7 +20,8 @@ fn restore_without_portals(
 /// A save from before the bathtub turned, made, as every such save was, on
 /// the lot as it stood before the yard ([OS-grow]).
 pub(super) fn old_snapshot() -> SaveSnapshotV1 {
-    let mut snapshot = Sim::new_from_pre_yard_lot().save_snapshot();
+    let mut snapshot =
+        Sim::new_from_pre_yard_lot_with_content(Content::pre_books()).save_snapshot();
     for (x, y) in terri_core::layout::LEGACY_WALL_TILES {
         snapshot.blocked_tiles[y as usize * snapshot.grid_width as usize + x as usize] = true;
     }
@@ -86,9 +87,8 @@ fn bathtub_rotation_refuses_unreviewed_sleep_access_without_mutating_the_world()
         } else {
             place.id.push_str("_changed");
         }
-        let mut live = Sim::new_from_shipped_lot();
-        live.world
-            .insert_resource(Content(Box::leak(Box::new(changed))));
+        let content = Content(Box::leak(Box::new(changed)));
+        let mut live = Sim::new_household_with_content(content, content.0.tuning.rng_seed);
         let before = live.save_snapshot_v5();
         assert_eq!(
             live.load_snapshot(source.clone()),

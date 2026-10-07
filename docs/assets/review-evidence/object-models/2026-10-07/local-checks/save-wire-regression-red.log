@@ -1,0 +1,40 @@
+
+> test
+> vitest run --maxWorkers=1 tests/save-worker.test.ts -t stores the current simulation
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+ ❯ tests/save-worker.test.ts (56 tests | 1 failed | 55 skipped) 72ms
+     × stores the current simulation save without changing its bytes 71ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/save-worker.test.ts > save worker recovery backup > stores the current simulation save without changing its bytes
+AssertionError: expected { id: 1, ok: false, …(1) } to match object { ok: true }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
+  }
+
+ ❯ tests/save-worker.test.ts:109:49
+    107|       const bytes = sim.save_bytes();
+    108|       const slot = await workerSlot(null);
+    109|       expect(await slot.request('save', bytes)).toMatchObject({ ok: tr…
+       |                                                 ^
+    110|       expect(slot.files.get(PRIMARY)).toEqual(bytes);
+    111|       expect(new Uint8Array((await slot.request('load')).bytes!)).toEq…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 55 skipped (56)
+   Start at  02:43:56
+   Duration  193ms (transform 44ms, setup 0ms, import 29ms, tests 72ms, environment 0ms)
+

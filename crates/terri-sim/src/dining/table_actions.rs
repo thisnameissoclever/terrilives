@@ -46,6 +46,13 @@ fn meal_index(world: &World, person: SimId, table: u32) -> Option<usize> {
 }
 
 pub(crate) fn take_prepared_food(world: &mut World, person: Entity, table: Entity) -> bool {
+    if world
+        .get::<crate::reading::ReadingJourney>(person)
+        .is_some()
+    {
+        crate::reading::request_return(world, person);
+        return false;
+    }
     if !role(world, table, "meal_table") {
         return false;
     }
@@ -78,7 +85,8 @@ pub(crate) fn take_prepared_food(world: &mut World, person: Entity, table: Entit
     if let Some(target) = world.get::<Target>(person).copied() {
         crate::reservations::release_now(world, person, target);
     }
-    let mut progress = ChainState::begin(chain as u32);
+    let (mut progress, origin) =
+        crate::recipe_actions::internal(world.resource::<Content>().0, chain as u32);
     progress.fumble_scale = scale;
     world
         .resource_mut::<crate::privacy::BoundaryDecisions>()
@@ -101,7 +109,8 @@ pub(crate) fn take_prepared_food(world: &mut World, person: Entity, table: Entit
         .remove::<Socialising>()
         .remove::<StepWork>()
         .remove::<terri_core::Carrying>()
-        .insert(progress);
+        .remove::<crate::recipe_actions::RecipeOrder>()
+        .insert((progress, origin));
     true
 }
 
@@ -121,11 +130,13 @@ pub(super) fn route_sitting(world: &mut World) {
         let Some(pos) = world.get::<Position>(person).copied() else {
             continue;
         };
+        let occupancy = crate::seating::occupancy(world);
         let grid = world.resource::<TileGrid>();
         let from = (pos.x.round() as i32, pos.y.round() as i32);
         let mut choices = vec![];
         for chair in &available {
-            if world.get::<Reserved>(*chair).is_some()
+            if !occupancy.seat_available(person, *chair, 0)
+                || world.get::<Reserved>(*chair).is_some()
                 || world
                     .resource::<SavedDining>()
                     .diners
@@ -136,7 +147,11 @@ pub(super) fn route_sitting(world: &mut World) {
             }
             let setting = setting_for(world, target.object, *chair).unwrap().0;
             for endpoint in chair_approaches(world, *chair) {
-                if world
+                if !occupancy.endpoint_available(crate::seating::EndpointUse {
+                    owner: person,
+                    endpoint,
+                    kind: crate::seating::UseKind::TableSeat,
+                }) || world
                     .resource::<SavedDining>()
                     .diners
                     .iter()
@@ -166,6 +181,17 @@ pub(super) fn route_sitting(world: &mut World) {
                 .resource_mut::<SavedDining>()
                 .diners
                 .sort_by_key(|d| d.person);
+            if let Some(chair_entity) = entity(world, chair) {
+                if !world
+                    .resource::<Content>()
+                    .0
+                    .object(world.get::<SmartObject>(chair_entity).unwrap().0)
+                    .seats
+                    .is_empty()
+                {
+                    crate::seating::install(world, person, chair_entity, 0, false);
+                }
+            }
             world.entity_mut(person).remove::<Eating>().insert(Path {
                 steps: path,
                 cursor: 0,
@@ -287,7 +313,8 @@ mod tests {
         for _ in 0..400 {
             sim.tick();
             let mut loaded = crate::Sim::new_from_shipped_lot();
-            loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+            loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+            assert_eq!(loaded.save_snapshot_v6(), sim.save_snapshot_v6());
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if let Some(p) = projection(sim.world(), person) {
                 assert!(chairs(sim.world(), table)
@@ -357,13 +384,14 @@ mod tests {
             });
         sim.flush_commands();
         let mut loaded = crate::Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
         let mut carrying = false;
         let mut ate = false;
         for _ in 0..600 {
             sim.tick();
             carrying |= sim.world().get::<terri_core::Carrying>(person).is_some();
-            loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+            loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+            assert_eq!(loaded.save_snapshot_v6(), sim.save_snapshot_v6());
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if carrying
                 && sim

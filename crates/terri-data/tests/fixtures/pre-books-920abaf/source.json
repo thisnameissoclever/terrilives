@@ -1,0 +1,72 @@
+{
+  "source_revision": "920abaf42f456fd1371df47f50517191bd3e5c27",
+  "archive_bytes": 206786560,
+  "inputs": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates",
+    "content",
+    "assets/sprites/atlas.toml",
+    "web/public/audio/voice",
+    "web/tests/fixtures",
+    "docs"
+  ],
+  "files": [
+    {
+      "path": "atlas.toml",
+      "sha256": "dc4fd8567ffdf3205fcb5c7206242c965890a8e8debfb896e082cee1858b4dd1"
+    },
+    {
+      "path": "careers.toml",
+      "sha256": "9403da867b0b367f52ed7b9205433d033f771bc0d30410b1d88354cbf462e1c4"
+    },
+    {
+      "path": "chains.toml",
+      "sha256": "389d3f4e2c0d8af21d5f1950c78f5b8f2e83b3e6989ec1904cec5a1a89feea66"
+    },
+    {
+      "path": "household.toml",
+      "sha256": "23e4a27dbc3faaa4d476c16ff3250bdeff1f051f4e82f715755c12fc100003c2"
+    },
+    {
+      "path": "lot.toml",
+      "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9"
+    },
+    {
+      "path": "needs.toml",
+      "sha256": "4e0046d345d8c29893aee53b9504b94e5abf0876c80139a8c30b27f8609661f0"
+    },
+    {
+      "path": "objects.toml",
+      "sha256": "c4361282560d96c1059624731df3d98087ce4fa595cd0317a6af62a815feaa3b"
+    },
+    {
+      "path": "personalities.toml",
+      "sha256": "b3b17be54e39e07620a9775efee2eb9a2d8d047f7438948f133d247547d2bcf5"
+    },
+    {
+      "path": "skills.toml",
+      "sha256": "3c3dfba810d92a20a6e47fcbabcea535fd9fee20c2eadf7bbc082a726ee146cc"
+    },
+    {
+      "path": "social.toml",
+      "sha256": "3a2471f341edddf79b57275ec356a69c12c308366a55b2a384eb2f9bdbd18f39"
+    },
+    {
+      "path": "traits.toml",
+      "sha256": "c32e5eae66a6c88ef61a016c5a4c4514cd1d86c0a071703fddc3fd9e77057bd0"
+    },
+    {
+      "path": "tuning.toml",
+      "sha256": "10f00f7d01f2facf269674e6a708b373dab1dc990781e6b0736b41b0ef69b585"
+    },
+    {
+      "path": "voice-durations.toml",
+      "sha256": "aab61bd0b3a9ac449234e27717dc039c3a139720dc1964510551d187b72bc63b"
+    },
+    {
+      "path": "voice.toml",
+      "sha256": "6c7d0c9c9813c76b80eea32bcf59aa64eb2c215f38c5b5a0bbd05147d841e3f5"
+    }
+  ]
+}

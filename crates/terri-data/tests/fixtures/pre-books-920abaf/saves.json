@@ -1,0 +1,46 @@
+{
+  "revision": "920abaf42f456fd1371df47f50517191bd3e5c27",
+  "producer_sha256": "98874196b2470e719ea493a8c6378dd15a87b220af20a4a12e62cbf80098c0f7",
+  "source_inputs_verified": 1747,
+  "command": "cargo test --manifest-path .tmp/object-models/published-920abaf-source/Cargo.toml -p terri-wasm capture_published_integration_fixtures -j 2 -- --nocapture",
+  "test_debug": 0,
+  "exit": 0,
+  "unchanged_prior_saves": 6,
+  "saves": [
+    {
+      "path": "edited.sav",
+      "bytes": 3210,
+      "sha256": "57f3b5550cb7dd4570cc39befbb727daad1bbda63d7389d5b361d6d5b3894612"
+    },
+    {
+      "path": "household-0.sav",
+      "bytes": 3197,
+      "sha256": "1a3bfb92a54c33d74fe4476a3faa23553be022160aa59990a652b502f41d55dc"
+    },
+    {
+      "path": "household-100.sav",
+      "bytes": 3428,
+      "sha256": "300e2f79aa66ebb26313d6ed40f081c7b17f783684753cbec594aaae8d82fb7e"
+    },
+    {
+      "path": "household-1000.sav",
+      "bytes": 3483,
+      "sha256": "92287e0c55184efdd3ece901d68ef2c093e68be5bb9f5f5a76a8569b1c0dfd65"
+    },
+    {
+      "path": "household-2000.sav",
+      "bytes": 3485,
+      "sha256": "438b982681af455b81b3cf5959b654e87266ce7a1f7810d9a0f6be504838e6de"
+    },
+    {
+      "path": "pending-edit.sav",
+      "bytes": 3256,
+      "sha256": "08f56da2374255ccb0807cfe85a09c05bae9ecf3862d575def86b75d2652e121"
+    },
+    {
+      "path": "repeated-snacks-bill.sav",
+      "bytes": 3461,
+      "sha256": "313e6247f65369fe49b1ad6e3d4cc98047450a02616c9e26ed5564baa2411f6c"
+    }
+  ]
+}

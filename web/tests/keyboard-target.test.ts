@@ -6,6 +6,7 @@ import {
   reportKeyboardSelection,
   type KeyboardTargetSource,
 } from '../src/ui/keyboard-target.js';
+import { surfaceMenuEntries } from '../src/ui/object-menu.js';
 
 function source(selected: number | null = 4): KeyboardTargetSource {
   return {
@@ -23,6 +24,28 @@ function source(selected: number | null = 4): KeyboardTargetSource {
 }
 
 describe('keyboard targets', () => {
+  it('preserves owned-title choices beside chores in pointer and keyboard menus', () => {
+    const readingSource: KeyboardTargetSource = {
+      ...source(),
+      interactionLabels: id => id === 2 ? ['Sit'] : [],
+      readingChoices: id => id === 2 ? { notice: 'Choose a title.', entries: [{
+        label: 'Read Test title',
+        action: { kind: 'read', object: 2, action: 'read_available', title: 'title_a' },
+      }] } : undefined,
+      choreOptions: id => id === 2 ? new Uint32Array([2, 2]) : new Uint32Array(),
+    };
+    const pointer = surfaceMenuEntries(readingSource, 2);
+    const picker = new KeyboardTargetController(readingSource, { hidden: true, textContent: '' });
+    picker.cycle(1);
+    expect(picker.activate()).toEqual({ kind: 'menu', menu: pointer });
+    expect(pointer.readingNotice).toBe('Choose a title.');
+    expect(pointer.entries.map(entry => entry.action)).toEqual([
+      { kind: 'use', object: 2, interaction: 0 },
+      { kind: 'read', object: 2, action: 'read_available', title: 'title_a' },
+      { kind: 'chore', choreKind: 2, target: 2 },
+      { kind: 'cancel' },
+    ]);
+  });
   it('includes dirty counters and each dish pile, using the same scoped menus as pointer input', () => {
     const dirty = { ...source(), dishPiles: () => new Uint32Array([7, 0, 10, 7, 0, 11, 7, 2, 12]) };
     const targets = keyboardTargets(dirty);
@@ -36,7 +59,7 @@ describe('keyboard targets', () => {
     expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ action: { kind: 'clean', dishes: [12] } }, { label: 'Nothing' }] } });
   });
   it('opens descriptions for decorative objects without inventing actions', () => {
-    const details = { modelName: 'Perpetual Cycle', description: 'Decorative washing machine.' };
+    const details = { modelName: 'Home Wash', description: 'Decorative washing machine.' };
     const described = { ...source(), objectDetails: (id: number) => id === 7 ? details : undefined };
     expect(keyboardTargets(described).map(target => target.entity)).toEqual([2, 4, 7, 9]);
     const picker = new KeyboardTargetController(described, { hidden: true, textContent: '' });

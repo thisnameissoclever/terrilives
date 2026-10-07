@@ -1,0 +1,260 @@
+# The house: five rooms around a closed loop.
+#
+# Hand-authored on purpose, and this file is the precursor to build mode
+# rather than a shortcut around it. Build mode later becomes an editor
+# that writes exactly this format, so the FORMAT is the part worth
+# getting right now; the layout is not, and is expected to be replaced by
+# whatever the editor writes.
+#
+# Coordinates are tile indices with (0, 0) at the north-west corner.
+# Placements are continuous rather than tile-snapped, because `Position`
+# is an f32 pair and an object's tile is the tile its coordinates fall
+# in - `x = 7.5` is legal and sits on tile 7.
+#
+# Interior walls separate cells instead of consuming whole floor tiles.
+# Vertical(x,y) separates (x-1,y)/(x,y); horizontal(x,y) separates
+# (x,y-1)/(x,y). A doorway is an explicit passable segment. The lot's own
+# edge is implicit and is drawn on its north and west sides; the house's
+# east and south walls are ordinary wall edges, since a yard lies beyond
+# them ([OS-walls] in docs/specs/2026-09-22-the-outside.md).
+#
+# ---------------------------------------------------------------------------
+# THE PLAN
+# ---------------------------------------------------------------------------
+#
+# Kitchen x0..7 and living x8..15 occupy y0..5. Below y=5.5, bedroom
+# x0..5, study x6..11, and bathroom x12..15 occupy y6..11. The former
+# blocked wall cells are now usable floor.
+# Doors: V(8,2), H(3,6), H(13,6), V(6,9), V(12,8).
+#
+# Five rooms, and the circulation is a **ring** rather than a tree:
+# kitchen to living, living to bathroom, bathroom to study, study to
+# bedroom, bedroom back to the kitchen. That was a deliberate choice over
+# the obvious central corridor, and it earns its keep twice.
+#
+# - **Two routes between any pair of rooms.** A* has something to choose
+#   between, and two sims heading opposite ways do not have to pass
+#   through the same tile. With one corridor every journey shares it, and
+#   contention would be an artefact of the floor plan rather than of the
+#   furniture.
+# - **No dead ends.** A tree layout has a leaf room that is only ever
+#   entered on purpose. On a ring a sim crosses every room in the course
+#   of ordinary business, which is what makes the whole house worth
+#   drawing.
+#
+# The cost is that there is no hall, so a sim walks THROUGH rooms rather
+# than past them. For a flat this size that is what a flat this size is
+# actually like.
+#
+# Originally sized for a fixed 1280 x 720 canvas. The live camera now pans and
+# zooms; the 1x extent that decides the opening view is reviewed below.
+#
+# **Do not derive that bound here.** It was derived here, in this comment,
+# and it was wrong: it reasoned about the TILE span, which is
+# `(width + height - 2)` half-tile heights of 21 px, and missed both that a
+# sprite is drawn above its anchor and that `tiles.ts` draws a boundary two
+# half-tile rows further up again at x = -1 and y = -1. The bound it gave
+# was 28, this lot is 28, and three boundary panels were being cut off the
+# top of the page.
+#
+# `cameraOrigin` in web/src/render/iso.ts owns the current framing arithmetic.
+# The exterior panels now sit on the playable boundary, half a half-tile
+# row above the first furniture anchor. The former decorative floor border
+# is not drawn. See [B1] in the house design before
+# enlarging the house or increasing wall height.
+#
+# The lot is larger than the house: the house keeps tiles (0, 0) to
+# (15, 11), and a yard four tiles deep wraps its east and south sides
+# ([OS-grow] in docs/specs/2026-09-22-the-outside.md). The view opens
+# framed on the house, so it is the house, not the lot, that has to fit.
+width = 20
+height = 16
+house = { width = 16, height = 12 }
+
+# Yard grass colour settings, applied relative to its authored appearance
+# ([OS-yard]). The historical sprite path uses the same values as absolute shifts.
+yard = { hue = 65.0, strength = 2.0, lightness = -0.22 }
+
+# Street asphalt colour settings, applied relative to its authored appearance.
+# The street is the lot's last column across the yard from the front door,
+# where commutes end ([OS-street]).
+street = { hue = 0.0, strength = 0.15, lightness = -0.22 }
+
+# What the player may lay on a floor tile, in the Floors tool's order
+# ([FL-content] in docs/specs/2026-09-22-floors.md). Architecture materials
+# map each covering to its artwork and apply colour settings relative to the
+# authored appearance in all loaded layouts, including historical saves.
+# A covering's id is its place in this list counted from 1; 0 uses the tile's
+# location. Append new coverings without reordering existing entries.
+covering = [
+  # Warmer and darker than the house's own floor: boards.
+  { name = "Boards", hue = 18.0, strength = 1.15, lightness = -0.12 },
+  # Cooler and paler: a tiled floor.
+  { name = "Tiles", hue = -25.0, strength = 0.55, lightness = 0.1 },
+  # Deep and soft: carpet.
+  { name = "Carpet", hue = -20.0, strength = 1.6, lightness = -0.18 },
+]
+
+# Where a commute ends and the worker crosses the front door - [E4]. The
+# east edge of the living room, one tile south of the coat rack. The tile
+# stays walkable while the visual portal supplies the frame and animated leaf.
+# The door stands on the house's east wall, its line (16, 2) a doorway into
+# the yard ([OS-door]).
+front_door = { x = 15, y = 2, visual = { facing = "SE", hinge = "left", entry = { x = 15, y = 3 }, frame_sprite = "frontDoorFrameSELeft", closed_sprite = "frontDoorClosedSELeft", ajar_sprite = "frontDoorAjarSELeft", open_sprite = "frontDoorOpenSELeft" } }
+
+wall_edge = [
+  { axis = "vertical", x = 8, y = 0 },
+  { axis = "vertical", x = 8, y = 1 },
+  { axis = "vertical", x = 8, y = 2, doorway = true },
+  { axis = "vertical", x = 8, y = 3 },
+  { axis = "vertical", x = 8, y = 4 },
+  { axis = "vertical", x = 8, y = 5 },
+  { axis = "horizontal", x = 0, y = 6 },
+  { axis = "horizontal", x = 1, y = 6 },
+  { axis = "horizontal", x = 2, y = 6 },
+  { axis = "horizontal", x = 3, y = 6, doorway = true },
+  { axis = "horizontal", x = 4, y = 6 },
+  { axis = "horizontal", x = 5, y = 6 },
+  { axis = "horizontal", x = 6, y = 6 },
+  { axis = "horizontal", x = 7, y = 6 },
+  { axis = "horizontal", x = 8, y = 6 },
+  { axis = "horizontal", x = 9, y = 6 },
+  { axis = "horizontal", x = 10, y = 6 },
+  { axis = "horizontal", x = 11, y = 6 },
+  { axis = "horizontal", x = 12, y = 6 },
+  { axis = "horizontal", x = 13, y = 6, doorway = true },
+  { axis = "horizontal", x = 14, y = 6 },
+  { axis = "horizontal", x = 15, y = 6 },
+  { axis = "vertical", x = 6, y = 6 },
+  { axis = "vertical", x = 6, y = 7 },
+  { axis = "vertical", x = 6, y = 8 },
+  { axis = "vertical", x = 6, y = 9, doorway = true },
+  { axis = "vertical", x = 6, y = 10 },
+  { axis = "vertical", x = 6, y = 11 },
+  { axis = "vertical", x = 12, y = 6 },
+  { axis = "vertical", x = 12, y = 7 },
+  { axis = "vertical", x = 12, y = 8, doorway = true },
+  { axis = "vertical", x = 12, y = 9 },
+  { axis = "vertical", x = 12, y = 10 },
+  { axis = "vertical", x = 12, y = 11 },
+  # The house's east wall, the front door's line a doorway, then its south
+  # wall ([OS-walls]).
+  { axis = "vertical", x = 16, y = 0 },
+  { axis = "vertical", x = 16, y = 1 },
+  { axis = "vertical", x = 16, y = 2, doorway = true },
+  { axis = "vertical", x = 16, y = 3 },
+  { axis = "vertical", x = 16, y = 4 },
+  { axis = "vertical", x = 16, y = 5 },
+  { axis = "vertical", x = 16, y = 6 },
+  { axis = "vertical", x = 16, y = 7 },
+  { axis = "vertical", x = 16, y = 8 },
+  { axis = "vertical", x = 16, y = 9 },
+  { axis = "vertical", x = 16, y = 10 },
+  { axis = "vertical", x = 16, y = 11 },
+  { axis = "horizontal", x = 0, y = 12 },
+  { axis = "horizontal", x = 1, y = 12 },
+  { axis = "horizontal", x = 2, y = 12 },
+  { axis = "horizontal", x = 3, y = 12 },
+  { axis = "horizontal", x = 4, y = 12 },
+  { axis = "horizontal", x = 5, y = 12 },
+  { axis = "horizontal", x = 6, y = 12 },
+  { axis = "horizontal", x = 7, y = 12 },
+  { axis = "horizontal", x = 8, y = 12 },
+  { axis = "horizontal", x = 9, y = 12 },
+  { axis = "horizontal", x = 10, y = 12 },
+  { axis = "horizontal", x = 11, y = 12 },
+  { axis = "horizontal", x = 12, y = 12 },
+  { axis = "horizontal", x = 13, y = 12 },
+  { axis = "horizontal", x = 14, y = 12 },
+  { axis = "horizontal", x = 15, y = 12 },
+]
+
+place = [
+  # ---- Kitchen, x 0..6, y 0..4 -----------------------------------------
+  #
+  # The working run is along the north wall, so every station is
+  # approached from the same open row at y = 1 and a sim never has to
+  # squeeze between two of them. The order along that run is the order the
+  # cooking chain will walk it - fridge, counter, stove, counter, sink -
+  # which costs nothing today and is free to have got right when
+  # docs/specs/2026-07-29-multi-step-interactions-design.md lands.
+  #
+  # **Every station on the run faces SW - into the room** ([A-11]). The
+  # atlas's plain sprites are the kit's east-facing `_SE` renders, which
+  # on a run along x had the whole kitchen working against the wrong
+  # wall. The fridge must face the room too; its doors cannot open into
+  # the adjacent counter. A second counter fills the
+  # old one-tile hole at (5, 0), so the run meets the trashcan instead
+  # of stopping at a gap that read as a missing appliance.
+  { object = "fridge", x = 0.0, y = 0.0, facing = "SW" },
+  { object = "counter", x = 1.0, y = 0.0, facing = "SW" },
+  { object = "stove", x = 2.0, y = 0.0, facing = "SW" },
+  { object = "counter", x = 3.0, y = 0.0, facing = "SW" },
+  { object = "kitchen_sink", x = 4.0, y = 0.0, facing = "SW" },
+  { object = "counter", x = 5.0, y = 0.0, facing = "SW" },
+  { object = "trashcan", x = 6.0, y = 0.0 },
+
+  # The table is three tiles from the fridge and the fridge's own label is
+  # "Eat standing up". The chairs flank it rather than tucking under it,
+  # because a footprint blocks its tiles and a chair under the table would
+  # be an overlap the build refuses.
+  { object = "dining_table", x = 2.0, y = 3.0 },
+  # Legacy chair art starts facing +Y; NE and SW face the table from its ends.
+  { object = "chair", x = 1.0, y = 3.0, facing = "NE" },
+  { object = "chair", x = 4.0, y = 3.0, facing = "SW" },
+
+  # ---- Living room, x 8..15, y 0..5 ------------------------------------
+  #
+  # Seating along the north wall and facing back across the room, with the
+  # television and the ottoman sofa on the south side of it. The armchair -
+  # one slot, best comfort per tick in the house - goes in the middle of that
+  # run rather than in a corner of the lot, so two sims arriving at once
+  # happens where the player is already looking.
+  { object = "bookshelf", x = 8.0, y = 0.0 },
+  { object = "long_sofa", x = 10.0, y = 0.0 },
+  { object = "armchair", x = 13.0, y = 0.0 },
+  { object = "potted_plant", x = 15.0, y = 0.0 },
+  { object = "coat_rack", x = 15.0, y = 1.0 },
+  { object = "floor_lamp", x = 14.0, y = 2.0 },
+  { object = "radio", x = 8.0, y = 3.0 },
+  { object = "television", x = 10.0, y = 3.0 },
+  { object = "sofa", x = 12.0, y = 3.0 },
+
+  # ---- Bedroom, x 0..5, y 6..11 ----------------------------------------
+  #
+  # Both sleeping sides need open approaches. The north side has row 7;
+  # the south side uses (1, 10), beside the one-tile dresser.
+  { object = "double_bed", x = 0.0, y = 8.0 },
+  { object = "nightstand", x = 2.0, y = 6.0, facing = "SW" },
+  { object = "dresser", x = 0.0, y = 10.0 },
+  # `moving_box` is the bike's historical Save V1 persistence key. Keep the
+  # key, position, and one-tile footprint unchanged.
+  { object = "moving_box", x = 4.0, y = 11.0 },
+
+  # ---- Study, x 6..10, y 6..11 -----------------------------------------
+  #
+  # The bunk bed lives here rather than in the bedroom, which is the joke
+  # and also the mechanism: two beds in two different rooms means "go to
+  # bed" has a choice in it, and the bunk is the faster, worse one.
+  { object = "desk", x = 6.0, y = 6.0, facing = "SW" },
+  { object = "desk_chair", x = 6.0, y = 7.0, facing = "NW" },
+  { object = "bed", x = 9.0, y = 6.0 },
+  { object = "reading_chair", x = 9.0, y = 9.0 },
+  # `reference_shelf` is the aquarium's historical Save V1 persistence key.
+  # Keep the key, position, and one-tile footprint unchanged.
+  { object = "reference_shelf", x = 6.0, y = 10.0 },
+  { object = "potted_plant", x = 10.0, y = 11.0 },
+
+  # ---- Bathroom, x 12..15, y 6..11 -------------------------------------
+  #
+  # Four hygiene options exist in the house and three of them are in this
+  # room; the fourth is the kitchen sink, deliberately at the opposite
+  # corner of the lot so that "wash" is a decision about distance as well
+  # as about how dirty you are.
+  { object = "toilet", x = 12.0, y = 6.0 },
+  { object = "shower", x = 14.0, y = 6.0 },
+  # The definition now pairs SW art with a 1x2 footprint; no second rotation.
+  { object = "bathtub", x = 14.0, y = 9.0 },
+  { object = "sink", x = 12.0, y = 10.0 },
+  { object = "laundry", x = 12.0, y = 11.0 },
+]

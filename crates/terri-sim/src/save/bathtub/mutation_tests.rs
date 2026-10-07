@@ -57,7 +57,7 @@ fn nearest_retained_tile_uses_row_stride_cardinal_steps_and_either_grid() {
 #[test]
 fn frozen_source_dimensions_reject_each_wrong_axis_independently() {
     let snapshot = crate::save::bathtub_tests::old_snapshot();
-    let mut destination = terri_data::pack().clone();
+    let mut destination = terri_data::pre_books_pack().clone();
     destination.lot.wall_edges.clear();
     destination.lot.walls = terri_core::layout::LEGACY_WALL_TILES.to_vec();
     let bathtub = destination.find("bathtub").unwrap();

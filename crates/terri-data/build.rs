@@ -5,6 +5,10 @@
 
 use std::path::PathBuf;
 use std::{env, fs};
+mod build_pre_books;
+
+#[path = "src/books.rs"]
+mod books;
 
 // The same modules the library and its tests use, included rather than
 // copied. A second validator here would drift from the one the tests
@@ -25,6 +29,8 @@ use std::{env, fs};
 mod compile;
 #[path = "src/error.rs"]
 mod error;
+#[path = "src/hierarchy.rs"]
+mod hierarchy;
 #[allow(dead_code)]
 #[path = "src/pack.rs"]
 mod pack;
@@ -270,7 +276,7 @@ fn main() {
         .map(|def| voice_clip_ticks(&voice_dir.join(format!("{}.wav", def.id))))
         .collect();
 
-    let pack = compile::compile(
+    let mut pack = compile::compile(
         needs,
         objects,
         lot,
@@ -288,7 +294,56 @@ fn main() {
     )
     .unwrap_or_else(|e| panic!("content is invalid: {e}"));
 
+    let books_path = root.join("books.toml");
+    println!("cargo:rerun-if-changed={}", books_path.display());
+    let books_src = fs::read_to_string(&books_path)
+        .unwrap_or_else(|e| panic!("cannot read {}: {e}", books_path.display()));
+    let books = toml::from_str(&books_src)
+        .unwrap_or_else(|e| panic!("{} is not valid TOML: {e}", books_path.display()));
+    pack.books =
+        books::compile_books(books).unwrap_or_else(|e| panic!("book content is invalid: {e}"));
+    assert!(
+        pack.reading.is_some(),
+        "book content requires reading tuning"
+    );
+
     let bytes = postcard::to_allocvec(&pack).expect("pack serialises");
     let out = PathBuf::from(env::var("OUT_DIR").unwrap()).join("content_pack.postcard");
     fs::write(&out, bytes).expect("write pack");
+    let frozen =
+        build_pre_books::compile(&workspace.join("crates/terri-data/tests/fixtures/pre-books"));
+    let bytes = postcard::to_allocvec(&frozen).expect("frozen pack serialises");
+    fs::write(out.with_file_name("pre_books_pack.postcard"), bytes).expect("write frozen pack");
+    let published = build_pre_books::compile(
+        &workspace.join("crates/terri-data/tests/fixtures/pre-books-920abaf"),
+    );
+    fs::write(
+        out.with_file_name("published_pre_books_pack.postcard"),
+        postcard::to_allocvec(&published).expect("published pack serialises"),
+    )
+    .expect("write published frozen pack");
+    let affinity = build_pre_books::compile(
+        &workspace.join("crates/terri-data/tests/fixtures/pre-books-f3cb7a1c"),
+    );
+    fs::write(
+        out.with_file_name("affinity_pre_books_pack.postcard"),
+        postcard::to_allocvec(&affinity).expect("affinity pack serialises"),
+    )
+    .expect("write affinity frozen pack");
+    let latest = build_pre_books::compile(
+        &workspace.join("crates/terri-data/tests/fixtures/pre-books-89040f82"),
+    );
+    fs::write(
+        out.with_file_name("latest_pre_books_pack.postcard"),
+        postcard::to_allocvec(&latest).expect("latest pack serialises"),
+    )
+    .expect("write latest frozen pack");
+    let contextual = build_pre_books::compile(
+        &workspace.join("crates/terri-data/tests/fixtures/pre-books-2f319c3b"),
+    );
+    fs::write(
+        out.with_file_name("contextual_pre_books_pack.postcard"),
+        postcard::to_allocvec(&contextual).expect("contextual pack serialises"),
+    )
+    .expect("write contextual frozen pack");
 }

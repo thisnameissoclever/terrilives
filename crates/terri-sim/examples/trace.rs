@@ -45,6 +45,10 @@ use terri_core::{
     Wander, NEED_COUNT,
 };
 use terri_sim::Sim;
+#[path = "trace/catalogue.rs"]
+mod catalogue;
+#[path = "trace/catalogue_meals.rs"]
+mod catalogue_meals;
 #[path = "trace/relationships.rs"]
 mod relationships;
 
@@ -93,6 +97,15 @@ struct Motion {
 }
 
 fn main() {
+    if std::env::args().nth(1).as_deref() == Some("meals") {
+        catalogue_meals::run(
+            std::env::args()
+                .nth(2)
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(1),
+        );
+        return;
+    }
     let ticks: u64 = std::env::args()
         .nth(1)
         .and_then(|a| a.parse().ok())
@@ -112,6 +125,12 @@ fn main() {
         .unwrap_or(pack.tuning.rng_seed);
     let override_instinct: Option<u8> = std::env::args().nth(3).and_then(|arg| arg.parse().ok());
     let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
+    if std::env::var_os("TRACE_CATALOGUE").is_some() {
+        catalogue::print_catalogue(&sim);
+    }
+    let scenario = std::env::args().nth(4).unwrap_or_else(|| "new".into());
+    catalogue::prepare(&mut sim, seed, &scenario);
+    let mut catalogue_summary = catalogue::Summary::new(&sim);
     if let Some(instinct) = override_instinct {
         assert!(instinct <= 100, "instinct must be in 0..=100");
         let entities: Vec<_> = sim
@@ -195,6 +214,7 @@ fn main() {
 
     for _ in 0..ticks {
         sim.tick();
+        let readers = catalogue_summary.observe(&mut sim);
         relationship_summary.observe(&sim);
 
         let world = sim.world();
@@ -304,7 +324,7 @@ fn main() {
                 motion[index].at_work += 1;
             } else if world.get::<terri_core::ChainState>(agent).is_some() {
                 motion[index].chaining += 1;
-            } else if world.get::<Eating>(agent).is_some() {
+            } else if world.get::<Eating>(agent).is_some() || readers.contains(&agent.index_u32()) {
                 motion[index].interacting += 1;
             } else if world.get::<Socialising>(agent).is_some() || is_partner {
                 motion[index].talking += 1;
@@ -839,7 +859,8 @@ fn main() {
             }
         }
 
-        println!("\nSUPPLY vs DRAIN over {ticks} ticks, all sims");
+        println!("\nLEGACY SUPPLY vs DRAIN estimate over {ticks} ticks, all sims");
+        println!("This estimate uses ordinary interactions and first-action profiles; it omits recipes, owned reading, clamping and work/sleep decay scales. Use observed need bands and FOOD/CRITICAL totals below for catalogue assessment.");
         println!(
             "{:<10} {:>9} {:>9} {:>8}   floors: {}",
             "need",
@@ -1092,4 +1113,5 @@ fn main() {
 
     println!("\nworld hash {:#018x}", sim.world_hash());
     relationship_summary.print(&sim);
+    catalogue_summary.print(&sim);
 }

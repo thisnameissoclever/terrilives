@@ -22,7 +22,7 @@ pub(crate) fn restore(
     // reinterpret a saved layout from whatever lot content now happens to be.
     super::meal_migration::validate_source(&snapshot.world, content)?;
     let candidate = super::restore_legacy(snapshot.world, content, active_portals)?;
-    finish_restore(candidate, snapshot.layout, content)
+    finish_restore(candidate, snapshot.layout, content, None)
 }
 
 pub(crate) fn restore_v3(
@@ -53,6 +53,15 @@ pub(crate) fn restore_v5(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
+    restore_v5_seats(snapshot, content, active_portals, None)
+}
+
+pub(crate) fn restore_v5_seats(
+    snapshot: SaveSnapshotV5,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+    seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
+) -> Result<Sim, SaveError> {
     let SaveSnapshotV5 {
         world,
         layout,
@@ -71,7 +80,7 @@ pub(crate) fn restore_v5(
         sleeping_places,
         shyness,
         boundaries,
-        dining,
+        mut dining,
         skills,
         targeted_cleanup,
         chores,
@@ -94,7 +103,28 @@ pub(crate) fn restore_v5(
         content,
         active_portals,
         dining.as_ref(),
+        seats,
     )?;
+    let cap = content.tuning.max_queued_intents as usize;
+    if cap > 0
+        && candidate
+            .world
+            .try_query::<&terri_core::IntentQueue>()
+            .is_some_and(|mut query| {
+                query
+                    .iter(&candidate.world)
+                    .any(|queue| super::exceeds_limit(queue.len(), cap))
+            })
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    if seats.is_none() && !terri_data::is_pre_books_pack(content) {
+        dining = candidate
+            .world
+            .get_resource::<terri_core::save::SavedDining>()
+            .cloned()
+            .or(dining);
+    }
     for (index, id) in object_colourways {
         // The first colourway is the art as drawn, which is how an unknown
         // id loads too, so both simply leave the object as drawn.
@@ -213,6 +243,9 @@ pub(crate) fn restore_v5(
         }
     }
     crate::media::validate_ownership(&candidate.world)?;
+    if seats.is_none() && !terri_data::is_pre_books_pack(content) {
+        crate::seating::validate(&candidate.world, candidate.world.resource::<TileGrid>())?;
+    }
     if !death_default_applied {
         candidate
             .world
@@ -236,7 +269,7 @@ pub(crate) fn restore_v4(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
-    restore_v4_with_dining(snapshot, content, active_portals, None)
+    restore_v4_with_dining(snapshot, content, active_portals, None, None)
 }
 
 fn restore_v4_with_dining(
@@ -244,6 +277,7 @@ fn restore_v4_with_dining(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
     dining: Option<&terri_core::save::SavedDining>,
+    seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
     super::meal_migration::validate_source(&snapshot.world, content)?;
     let retired = &snapshot.retired_indices;
@@ -290,22 +324,29 @@ fn restore_v4_with_dining(
     if let Some(state) = dining {
         candidate.world.insert_resource(state.clone());
     }
-    finish_restore(candidate, snapshot.layout, content)
+    finish_restore(candidate, snapshot.layout, content, seats)
 }
 
 fn finish_restore(
     mut candidate: Sim,
     layout: SavedLayout,
     content: &ContentPack,
+    seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
     let grid = candidate.world.resource_mut::<TileGrid>();
     apply_layout(grid.into_inner(), &layout, content.lot.house)?;
+    crate::media::validate_ownership(&candidate.world)?;
+    if let Some(seats) = seats {
+        crate::seating::restore_claims(&mut candidate.world, seats)?;
+    } else {
+        crate::seating::migrate(&mut candidate.world)?;
+    }
     super::validate_portal_returns(
         &candidate.save_snapshot(),
         candidate.world.resource::<TileGrid>(),
         content,
     )?;
-    if layout.has_edges() {
+    if layout.has_edges() && seats.is_none() {
         validate_edge_world(
             &candidate.save_snapshot(),
             candidate.world.resource::<TileGrid>(),
@@ -329,6 +370,7 @@ pub(super) fn validate_edge_world(
     content: &ContentPack,
     world: &bevy_ecs::world::World,
 ) -> Result<(), SaveError> {
+    crate::reading::persistence::validate(world, grid)?;
     for entity in &snapshot.entities {
         let Some(position) = entity.position else {
             continue;
@@ -355,6 +397,8 @@ pub(super) fn validate_edge_world(
         if !grid.is_walkable(tile.0, tile.1) {
             return Err(SaveError::InvalidGrid);
         }
+        let reader = crate::dining::entity(world, entity.index)
+            .is_some_and(|e| world.get::<crate::reading::ReadingJourney>(e).is_some());
         if let Some(path) = &entity.path {
             let remaining = &path.steps[path.cursor as usize..];
             let mut previous = (position.x, position.y);
@@ -381,7 +425,7 @@ pub(super) fn validate_edge_world(
                 // Furniture stays put. A person may have been redirected while
                 // this agent approached; that stale social route is checked at
                 // arrival rather than rejecting a legitimate running save.
-                if target_entity.smart_object.is_some() {
+                if target_entity.smart_object.is_some() && !reader {
                     let at = target_entity.position.ok_or(SaveError::InvalidGrid)?;
                     let footprint = restored_footprint(target_entity, world, content)?;
                     let endpoint = remaining.last().copied().unwrap_or(tile);
@@ -399,7 +443,9 @@ pub(super) fn validate_edge_world(
                 }
             }
         }
-        let contact = if let Some(talk) = entity.socialising {
+        let contact = if reader {
+            None
+        } else if let Some(talk) = entity.socialising {
             Some(talk.partner)
         } else if entity.path.is_none()
             && (entity.eating.is_some() || entity.step_work_ticks.is_some())
@@ -440,6 +486,11 @@ fn dining_contact(
             && match crate::seating::kind(world, d) {
                 Some(crate::seating::UseKind::Meal | crate::seating::UseKind::TableSeat) => true,
                 Some(crate::seating::UseKind::Media) => crate::media::valid_lease(world, d),
+                Some(
+                    crate::seating::UseKind::ShelfTransfer
+                    | crate::seating::UseKind::Standing
+                    | crate::seating::UseKind::MediaEndpoint,
+                ) => false,
                 None => false,
             }
     })

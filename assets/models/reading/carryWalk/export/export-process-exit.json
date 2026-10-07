@@ -1,0 +1,23 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_carry_aggregate_v1.py"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk bbea6f returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 1.3866991,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "1cec0797cf9f4f5606df69e3a0806faaa86128036294ef326db9146de35be3a7"
+  },
+  "exporter_sha256": "9fc39c931ec9211b6cfca3e4969b255c3fef59ee373a816e110e743a4256d023",
+  "output": {
+    "records": 96,
+    "uniqueTextures": 193,
+    "maximumError": 4,
+    "p95": 2
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

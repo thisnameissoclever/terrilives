@@ -1,0 +1,82 @@
+# Who lives here - [H2] in
+# docs/specs/2026-07-30-household-and-relationships-design.md.
+#
+# The household is CONTENT. The shell used to spawn one sim from
+# coordinates written in TypeScript, which was the same hardcoded-copy
+# mistake the lot made before M1b Task 3b; now `Sim::new_from_shipped_lot`
+# spawns exactly what this file declares, in declaration order - which is
+# what fixes each member's `SimId`: Tim is SimId 0, for as long as
+# nobody is born or dies before load finishes.
+#
+# An absent need starts at 100. The ones written here are what each sim
+# wants in the opening minute, so the first thing a player watches is
+# three people going three different ways: Tim to the kitchen, Bill to
+# his chair, Casey to whichever machine is making human noises.
+#
+# Spawn tiles are validated like placements - inside the lot, not inside
+# a wall or a footprint, and connected to the rest of the house - and
+# each sim opens in a different room, so the first frame already reads
+# as a household rather than a queue.
+
+# The first household member. Arrives hungry and under-stimulated, which points
+# her at the kitchen first and the desk soon after.
+[[sim]]
+name = "Tim"
+archetype = "the_correspondent"
+x = 9.0
+y = 2.0
+needs = { hunger = 62.0, fun = 78.0 }
+# The desk is the archetype's whole name, and reading is what a
+# correspondent does between letters ([E2]). Two hobbies rather than
+# one, because habituation forces rotation and a one-hobby life stalls
+# the moment its object is sick of her.
+hobbies = ["correspondence", "reading"]
+# Low spirits, managed at the desk: the same activity that is her
+# hobby is what lowers the severity, which makes her routine
+# self-treating in a way the trace can measure ([E3]).
+# [TL-household]: two more, both pointing the way the archetype already
+# leans. The first entry stays first; order here is cosmetic, because the
+# component sorts by pack index.
+traits = ["low_spirits", "bookworm", "out_of_shape"]
+# The one worker in the house ([E4]), and deliberately the WORST
+# choice of the three: the shift eats the hours her desk would have
+# spent managing the low spirits and earning the hobby payout, so the
+# job's real price shows up in her life score without the career
+# subtracting a thing. Bill is settled and Casey flits; neither
+# holds a job yet.
+career = "office_job"
+
+# Bill came with the armchair, or possibly the armchair came with Bill;
+# the paperwork is unclear. Spawns in the bedroom aching for comfort,
+# and the good chair is two doorways away.
+[[sim]]
+name = "Bill"
+archetype = "the_settled"
+x = 2.0
+y = 8.0
+needs = { comfort = 55.0, energy = 83.0 }
+# Bill's idea of a full life is a cooked meal in front of the
+# television, which is two hobbies if you write them down.
+hobbies = ["television", "cooking"]
+# The pull toward the set, over what its need deltas earn.
+traits = ["television_devotee", "exercise_averse", "private_person", "fish_watcher"]
+
+# Casey moved in for the company and is still looking for it. Spawns in
+# the kitchen with nobody to talk to, which at this stage of the game is
+# a permanent condition - see her archetype's note about M2d.
+[[sim]]
+name = "Casey"
+archetype = "the_flitting"
+x = 5.0
+y = 1.0
+needs = { social = 58.0, hygiene = 71.0 }
+# Casey moved in for the company; now the company pays twice - the
+# social need M2d gave her, and the satisfaction a loved chat earns.
+# One hobby on purpose: her satisfaction depends on OTHER PEOPLE being
+# free, which is the most fragile hobby in the house and exactly the
+# life the flitting archetype describes.
+hobbies = ["socialising"]
+# Casey may attempt the stove and will mostly fail at first -
+# failure is a scene, not a hidden option - and every attempt
+# teaches her ([S4]).
+traits = ["cannot_cook", "chatterbox", "keen_cyclist", "slow_reader"]

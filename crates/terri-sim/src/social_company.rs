@@ -183,7 +183,28 @@ fn participation(world: &World, person: Entity) -> Option<Participant> {
     let target = world.get::<Target>(person)?;
     let object = world.get::<SmartObject>(target.object)?;
     let position = *world.get::<Position>(person)?;
-    let activity = if let Some(eating) = world.get::<Eating>(person) {
+    let activity = if let Some(journey) = world.get::<crate::reading::ReadingJourney>(person) {
+        if journey.stage != terri_core::save_v6::ReadingStage::Read
+            || !matches!(
+                journey.outcome,
+                Some(terri_core::save_v6::ReadingOutcome::Success)
+            )
+        {
+            return None;
+        }
+        let action = crate::reading::action(world, *target)?;
+        let group = action.shared_activity.as_ref()?;
+        let preferences = crate::compatibility::preferences(
+            pack,
+            world.get::<Personality>(person),
+            world.get::<terri_core::Traits>(person),
+            world.get::<terri_core::Hobbies>(person),
+        );
+        if preferences.get(group).copied().unwrap_or(0.) < 0. {
+            return None;
+        }
+        Activity::Shared(group.clone())
+    } else if let Some(eating) = world.get::<Eating>(person) {
         if eating.object != object.0
             || eating.interaction != target.interaction
             || eating.remaining_ticks == 0
@@ -320,17 +341,13 @@ pub(crate) fn tick_meals(world: &mut World) {
                 return None;
             }
             let state = world.get::<ChainState>(p.entity)?;
-            let chain = world
-                .resource::<Content>()
-                .0
-                .chains
-                .get(state.chain as usize)?;
-            let delta = chain
-                .advertises
+            let pack = world.resource::<Content>().0;
+            let origin = world.get::<crate::recipe_actions::Origin>(p.entity);
+            let delta = crate::recipe_actions::benefits(pack, state, origin)
                 .iter()
                 .find(|(id, delta)| *id as usize == NeedId::Social.index() && *delta > 0.)?
                 .1;
-            let duration = chain.steps.get(state.step as usize)?.duration_ticks as f32;
+            let duration = crate::recipe_actions::duration(pack, state, origin) as f32;
             let personality = world
                 .get::<Personality>(p.entity)
                 .map_or(1., |p| p.satisfaction[NeedId::Social.index()]);

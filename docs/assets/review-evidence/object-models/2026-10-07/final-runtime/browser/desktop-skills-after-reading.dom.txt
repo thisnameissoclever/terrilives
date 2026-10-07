@@ -1,0 +1,67 @@
+Time
+Day 1, Monday
+03:07
+Funds
+300
+
+Saved game loaded
+
+Selected title added to the order queue.
+
+Pause
+1x
+2x
+3x
+Build
+Options
+Reader Bill
+Deciding what to do
+Edit
+Mood
+Okay
+Life satisfaction
+Content
+Sim details
+Chores
+Queue
+Collapse
+
+Tim
+Reader Bill
+Casey
+Hunger
+Energy
+Hygiene
+Bladder
+Social
+Fun
+Comfort
+Overview
+Queue
+People
+Traits
+Close
+Grimy floor
+0
+Bothered by the plants here
+-9.3
+Doing
+Deciding what to do
+Personality, habits and bed
+Skills
+Cooking
+Level 0 of 10, 0% to the next level
+
+Turning ingredients into a meal somebody will eat.
+
+Fitness
+Level 0 of 10, 0% to the next level
+
+Getting more out of a workout each time.
+
+Reading
+Level 0 of 10, 12% to the next level
+
+Getting through a book, and getting something from it.
+
+Likes and dislikes

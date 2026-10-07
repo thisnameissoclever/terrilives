@@ -1,0 +1,13 @@
+{
+  "pass": true,
+  "inputs": 336,
+  "rerendered": false,
+  "portableRebuildVerified": false,
+  "sourceManifestSHA256": "51b0c7062e28afd08f0ae75f14c18c16e72f5b29af7546350e181cd48555bf8a",
+  "sourceIndexSHA256": "32ef46ebe0887b46956526965de8103e4c74f6e995408e031612e97cb76bb5c1",
+  "copiedBytes": 429862309,
+  "largestStoredBytes": 27225597,
+  "verifiedCommand": "python assets/models/reading/recline/producer/verify_sources.py",
+  "exitCode": 0,
+  "ignoredScratchDirectoryAvoided": true
+}

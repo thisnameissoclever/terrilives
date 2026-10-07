@@ -142,7 +142,7 @@ pub(crate) fn restore(
         }
         let mut queue = world
             .get::<terri_core::IntentQueue>(person)
-            .map_or(vec![], |q| q.as_slice().to_vec());
+            .map_or(vec![], |q| q.intents().copied().collect());
         if order.queue_position as usize > queue.len() {
             return Err(crate::SaveError::InvalidValue);
         }

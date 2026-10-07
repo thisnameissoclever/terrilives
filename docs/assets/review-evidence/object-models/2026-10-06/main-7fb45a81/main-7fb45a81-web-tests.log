@@ -1,0 +1,84 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/f24d/terrilives/web
+
+ ❯ tests/bridge.test.ts (54 tests | 1 failed) 4591ms
+     × carries literal activity 16 for exact handwashing through release wasm 6ms
+ ❯ tests/bath-production.test.ts (2 tests | 1 failed) 114ms
+   × compiled bathing restores its drawn pose after Load and clears it on cancellation 69ms
+ ❯ tests/wash-hands-production.test.ts (3 tests | 2 failed) 108ms
+   × compiled hand washing at the sink faces the basin, survives Load and clears on cancellation 66ms
+   × compiled hand washing at the kitchen_sink faces the basin, survives Load and clears on cancellation 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bath-production.test.ts > compiled bathing restores its drawn pose after Load and clears it on cancellation
+AssertionError: expected +0 to be 19 // Object.is equality
+
+- Expected
++ Received
+
+- 19
++ 0
+
+ ❯ tests/bath-production.test.ts:71:39
+     69|     expect(source.useObject(agent, bathtub, 0)).toBe(true);
+     70|     for (let tick = 0; tick < 100 && source.visualActions()[1] !== 19;…
+     71|     expect(source.visualActions()[1]).toBe(19);
+       |                                       ^
+     72|     expect(source.interactionTargets()[1]).toBe(bathtub);
+     73|     const snapshot = () => Array.from(buildInstances(source, 1, 0, 0, …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > carries literal activity 16 for exact handwashing through release wasm
+AssertionError: expected [ +0, +0 ] to deeply equal [ +0, 21 ]
+
+- Expected
++ Received
+
+  [
+    0,
+-   21,
++   0,
+  ]
+
+ ❯ tests/bridge.test.ts:1605:48
+    1603|     expect(Array.from(bridge.activities())).toEqual([0, 16]);
+    1604|     // Hand washing stands toward the basin with body-action 21 on the…
+    1605|     expect(Array.from(bridge.visualActions())).toEqual([0, 21]);
+       |                                                ^
+    1606|   });
+    1607|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/wash-hands-production.test.ts > compiled hand washing at the sink faces the basin, survives Load and clears on cancellation
+ FAIL  tests/wash-hands-production.test.ts > compiled hand washing at the kitchen_sink faces the basin, survives Load and clears on cancellation
+AssertionError: expected +0 to be 21 // Object.is equality
+
+- Expected
++ Received
+
+- 21
++ 0
+
+ ❯ tests/wash-hands-production.test.ts:40:39
+     38|     expect(source.useObject(agent, sink, 0)).toBe(true);
+     39|     for (let tick = 0; tick < 100 && source.visualActions()[1] !== VIS…
+     40|     expect(source.visualActions()[1]).toBe(VISUAL_ACTION_WASH_HANDS);
+       |                                       ^
+     41|     // The body is anchored to the Sim's own tile, like standing readi…
+     42|     // no fixture-composited interaction target is published.
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  3 failed | 173 passed (176)
+      Tests  4 failed | 2190 passed (2194)
+   Start at  20:54:37
+   Duration  86.92s (transform 3.93s, setup 0ms, import 43.57s, tests 26.57s, environment 10ms)
+

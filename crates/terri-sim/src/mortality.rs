@@ -81,6 +81,7 @@ pub(crate) fn tick(world: &mut World) {
             .map_or(0, |at| previous[at].1)
             .saturating_add(1);
         if state.enabled && count >= threshold {
+            crate::books::recover_before_death(world, entity);
             state.deaths.push(DeathRecord {
                 sim_id: id,
                 name,
@@ -150,13 +151,7 @@ pub(crate) fn remove_person(world: &mut World, dead: Entity) {
                 .remove::<(Socialising, ConversationVoice)>();
         }
         if let Some(mut queue) = world.get_mut::<IntentQueue>(entity) {
-            let kept = queue
-                .as_slice()
-                .iter()
-                .copied()
-                .filter(|intent| intent.object != dead)
-                .collect();
-            *queue = IntentQueue::from_intents(kept);
+            queue.retain(|order| order.intent.object != dead);
         }
     }
     world
@@ -170,6 +165,33 @@ pub(crate) fn remove_person(world: &mut World, dead: Entity) {
 /// Reclaim reservations after an owner disappears or loses usable needs,
 /// and stop walks whose object no longer exists as an interaction target.
 pub(crate) fn cleanup(world: &mut World) {
+    let lost: Vec<_> = world
+        .query::<(Entity, &crate::recipe_actions::Origin)>()
+        .iter(world)
+        .filter(|(_, origin)| match origin.1 {
+            crate::recipe_actions::SelectedUse::Station(station) => world
+                .get::<terri_core::SmartObject>(station)
+                .is_none_or(|object| match &origin.0 {
+                    terri_core::save_v6::ChainOrigin::Action { model, .. } => {
+                        world.resource::<Content>().0.object(object.0).id != *model
+                    }
+                    _ => true,
+                }),
+            _ => false,
+        })
+        .map(|(person, _)| person)
+        .collect();
+    for person in lost {
+        if let Some(target) = world.get::<Target>(person).copied() {
+            crate::reservations::release_now(world, person, target);
+        }
+        clear_action(world, person);
+        world
+            .entity_mut(person)
+            .remove::<crate::recipe_actions::ActiveRecipe>()
+            .remove::<terri_core::Carrying>();
+        crate::domestic::abandon(world, person);
+    }
     let invalid: Vec<_> = world
         .query::<(Entity, &Target)>()
         .iter(world)
@@ -181,6 +203,11 @@ pub(crate) fn cleanup(world: &mut World) {
         .map(|(e, t)| (e, *t))
         .collect();
     for (entity, target) in invalid {
+        if world.get::<Needs>(entity).is_none() {
+            world
+                .entity_mut(entity)
+                .remove::<crate::recipe_actions::ActiveRecipe>();
+        }
         clear_action(world, entity);
         crate::reservations::release_now(world, entity, target);
     }
@@ -633,7 +660,12 @@ mod tests {
             assert!(sim.world().get::<Target>(survivor).is_none());
             assert!(sim.world().get::<Socialising>(survivor).is_none());
             assert_eq!(
-                sim.world().get::<IntentQueue>(survivor).unwrap().as_slice(),
+                sim.world()
+                    .get::<IntentQueue>(survivor)
+                    .unwrap()
+                    .intents()
+                    .copied()
+                    .collect::<Vec<_>>(),
                 &[Intent {
                     cleanup: None,
                     chore: None,

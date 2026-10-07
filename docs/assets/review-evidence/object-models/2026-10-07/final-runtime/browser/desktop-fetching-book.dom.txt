@@ -1,0 +1,40 @@
+Time
+Day 1, Monday
+01:03
+Funds
+300
+
+No save yet
+
+Selected title added to the order queue.
+
+Target: Bookcase: Oakline 24 at (8, 0).
+
+Pause
+1x
+2x
+3x
+Build
+Options
+Bill
+Picking up: The Locked Laundry. Title progress: 0% of 120 baseline game minutes.
+Edit
+Mood
+Okay
+Life satisfaction
+Content
+Sim details
+Chores
+Queue
+Collapse
+
+Tim
+Bill
+Casey
+Hunger
+Energy
+Hygiene
+Bladder
+Social
+Fun
+Comfort

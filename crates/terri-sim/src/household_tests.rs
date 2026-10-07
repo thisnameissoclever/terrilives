@@ -913,7 +913,7 @@ fn self_preservation_current_save_replays_staged_override_and_future_rng() {
             instinct: 100,
         });
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v5(live.save_snapshot_v5()).unwrap();
+    loaded.load_snapshot_v6(live.save_snapshot_v6()).unwrap();
     assert_eq!(live.world_hash(), loaded.world_hash());
     live.flush_commands();
     loaded.flush_commands();

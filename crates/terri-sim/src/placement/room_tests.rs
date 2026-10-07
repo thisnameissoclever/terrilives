@@ -757,7 +757,7 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
         ticks,
         "one tick per `Sim::tick`"
     );
-    let base = sim.save_snapshot_v3();
+    let base = sim.save_snapshot_v6();
     // One world to build each sampled room in and one to read its save back,
     // each reset by a Load.
     let mut builder = Sim::new_from_shipped_lot();
@@ -800,11 +800,11 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
                     if accepted % 3 != 0 {
                         continue;
                     }
-                    builder.load_snapshot_v3(base.clone()).unwrap();
+                    builder.load_snapshot_v6(base.clone()).unwrap();
                     stage(&mut builder, edit);
                     assert_eq!(last(&builder).unwrap().reason, None, "{edit:?}");
                     reader
-                        .load_snapshot_v3(builder.save_snapshot_v3())
+                        .load_snapshot_v6(builder.save_snapshot_v6())
                         .unwrap_or_else(|error| panic!("{edit:?} at tick {ticks}: {error:?}"));
                 }
             }

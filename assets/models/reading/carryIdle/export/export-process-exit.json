@@ -1,0 +1,24 @@
+{
+  "state": "complete",
+  "command": [
+    "python",
+    ".tmp/object-models/pose_complete_carry_export_v2.py",
+    ".tmp/object-models/pose-complete-carry-renders-02/carryIdle"
+  ],
+  "exit_code": 0,
+  "evidence": "exec_command completion chunk 0a9583 returned exit_code0; recorded after successful command",
+  "elapsed_seconds": 6.5680631,
+  "manifest": {
+    "path": "manifest.json",
+    "sha256": "79dd767874c3ed62303bd393062073fd801892695b5a40c35d81f8718bc7f898"
+  },
+  "exporter_sha256": "d4ef1d7ec2476d98b4798d64b2c0c2f1e0d8715024f3c0b11576af69e06856e0",
+  "output": {
+    "records": 48,
+    "uniqueTextures": 25,
+    "maximumError": 4,
+    "p95": 2
+  },
+  "markerConvention": "Logical canvas coordinates; subtract record.anchor for origin-relative marker",
+  "coverageEncoding": "RGBA8 PNG, RGB zero and coverage in alpha"
+}

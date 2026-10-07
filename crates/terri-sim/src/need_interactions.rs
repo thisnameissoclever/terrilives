@@ -173,26 +173,29 @@ pub(crate) fn goal_benefits(world: &World, person: Entity, target: Target) -> Ve
         return world
             .get::<ChainState>(person)
             .map_or_else(Vec::new, |state| {
-                pack.chains[state.chain as usize]
-                    .advertises
-                    .iter()
-                    .copied()
-                    .filter(|&(n, d)| {
-                        crate::social_company::effective_delta(
-                            n,
-                            d,
-                            world
-                                .resource::<crate::social_company::SocialCompany>()
-                                .active_allowed(
-                                    person,
-                                    &world
-                                        .get::<Relationships>(person)
-                                        .cloned()
-                                        .unwrap_or_default(),
-                                ),
-                        )
-                    })
-                    .collect()
+                crate::recipe_actions::benefits(
+                    pack,
+                    state,
+                    world.get::<crate::recipe_actions::Origin>(person),
+                )
+                .iter()
+                .copied()
+                .filter(|&(n, d)| {
+                    crate::social_company::effective_delta(
+                        n,
+                        d,
+                        world
+                            .resource::<crate::social_company::SocialCompany>()
+                            .active_allowed(
+                                person,
+                                &world
+                                    .get::<Relationships>(person)
+                                    .cloned()
+                                    .unwrap_or_default(),
+                            ),
+                    )
+                })
+                .collect()
             });
     };
     let destination = world
@@ -289,26 +292,39 @@ pub(crate) fn active_benefits(world: &World, person: Entity) -> Vec<(u8, f32)> {
         .get::<ChainState>(person)
         .filter(|_| world.get::<StepWork>(person).is_some())
     {
-        effects = pack.chains[state.chain as usize]
-            .advertises
-            .iter()
-            .copied()
-            .filter(|&(n, d)| crate::social_company::effective_delta(n, d, social))
-            .map(|(n, d)| {
-                (
-                    n,
-                    crate::systems::advertise::scaled_delta(
-                        d,
-                        scale(n)
-                            * if n as usize == NeedId::Social.index() {
-                                1.
-                            } else {
-                                state.fumble_scale
-                            },
-                    ),
-                )
-            })
-            .collect();
+        effects = crate::recipe_actions::benefits(
+            pack,
+            state,
+            world.get::<crate::recipe_actions::Origin>(person),
+        )
+        .iter()
+        .copied()
+        .filter(|&(n, d)| crate::social_company::effective_delta(n, d, social))
+        .map(|(n, d)| {
+            (
+                n,
+                crate::systems::advertise::scaled_delta(
+                    d,
+                    scale(n)
+                        * if n as usize == NeedId::Social.index() {
+                            1.
+                        } else {
+                            state.fumble_scale
+                        },
+                ),
+            )
+        })
+        .collect();
+    }
+    if let Some(reading) = crate::reading::active_need_benefits(world, person) {
+        effects = reading;
+        if company.active_shared_allowed(person, &feelings) {
+            effects.push((
+                NeedId::Social.index() as u8,
+                pack.tuning.need_interactions.shared_social_per_tick
+                    * scale(NeedId::Social.index() as u8),
+            ));
+        }
     }
     let seat = seat_rate(world, person);
     if seat > 0. {

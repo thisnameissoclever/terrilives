@@ -1,0 +1,15 @@
+{
+  "stop_reason": "Own writer stopped below 4 GiB free",
+  "memory_samples": [
+    {
+      "free_gib": 6.016368865966797,
+      "elapsed_seconds": 30.864376
+    }
+  ],
+  "exit_code": -1,
+  "launcher_pid": 48924,
+  "actual_handle_retained": true,
+  "elapsed_seconds": 61.2620875,
+  "launch_free_gib": 6.492652893066406,
+  "writer_pid": 29168
+}

@@ -10,16 +10,19 @@
  * primitive for the one-time recovery backup.
  */
 
-import { saveSchemaVersion } from './save-header.js';
+import { CURRENT_SAVE_VERSION, saveSchemaVersion } from './save-header.js';
 
 const SAVE_FILE = 'terri-save-1.bin';
 const V1_BACKUP_FILE = 'terri-save-1.v1-backup.bin';
 const V2_BACKUP_FILE = 'terri-save-1.v2-backup.bin';
 const V3_BACKUP_FILE = 'terri-save-1.v3-backup.bin';
 const V4_BACKUP_FILE = 'terri-save-1.v4-backup.bin';
-/** The recovery file for each older version a V5 write may replace. */
+const V5_BACKUP_FILE = 'terri-save-1.v5-backup.bin';
+const V6_BACKUP_FILE = 'terri-save-1.v6-backup.bin';
+/** The recovery file for each older version a current write may replace. */
 const HISTORICAL_BACKUP_FILES: Readonly<Record<number, string>> = {
-  1: V1_BACKUP_FILE, 2: V2_BACKUP_FILE, 3: V3_BACKUP_FILE, 4: V4_BACKUP_FILE,
+  1: V1_BACKUP_FILE, 2: V2_BACKUP_FILE, 3: V3_BACKUP_FILE, 4: V4_BACKUP_FILE, 5: V5_BACKUP_FILE,
+  6: V6_BACKUP_FILE,
 };
 
 type SaveRequest =
@@ -106,8 +109,8 @@ async function read(
 }
 
 /**
- * Guard every V5 write and preserve original historical wire bytes: the first
- * V5 write over a V1, V2, V3 or V4 slot keeps that slot's bytes in a recovery
+ * Guard every current write and preserve original historical wire bytes: the first
+ * current write over an older slot keeps that slot's bytes in a recovery
  * backup. The game never loads a backup by itself; it is kept for deliberate
  * recovery ([RC-save] in docs/specs/2026-09-22-colourways.md).
  */
@@ -115,13 +118,13 @@ async function preserveHistoricalBackup(
   root: FileSystemDirectoryHandle,
   next: ArrayBuffer,
 ): Promise<void> {
-  if (saveSchemaVersion(new Uint8Array(next)) !== 5) {
-    throw new Error('Only current V5 saves can be written. Saved data has not been changed.');
+  if (saveSchemaVersion(new Uint8Array(next)) !== CURRENT_SAVE_VERSION) {
+    throw new Error(`Only current V${CURRENT_SAVE_VERSION} saves can be written. Saved data has not been changed.`);
   }
   const previous = await read(root);
   if (previous === null) return;
   const previousVersion = saveSchemaVersion(new Uint8Array(previous));
-  if (previousVersion === 5) return;
+  if (previousVersion === CURRENT_SAVE_VERSION) return;
   const backupFile = previousVersion === null ? undefined : HISTORICAL_BACKUP_FILES[previousVersion];
   if (backupFile === undefined) {
     throw new Error('The saved file has an unreadable or unsupported version. It was not replaced.');

@@ -562,7 +562,7 @@ fn the_world_hash_sees_every_field_of_a_staged_purchase() {
     );
 }
 
-/// Review finding [F1] on PR 96 - [BM-hash]. A radio and a desk chair cost the
+/// Review finding [F1] on PR 96 - [BM-hash]. A radio and a washer-dryer cost the
 /// same, so two households that bought one or the other for the same tile end
 /// with the same Funds, the same blocked tile and the same entity index. The
 /// digest has to see which object it is.
@@ -584,14 +584,14 @@ fn the_world_hash_sees_which_object_was_bought() {
     };
     assert_eq!(
         price("radio"),
-        price("desk_chair"),
+        price("laundry"),
         "the case needs equal prices"
     );
     let radio = bought("radio");
-    let chair = bought("desk_chair");
-    assert_eq!(funds(&radio), funds(&chair));
-    assert_ne!(radio.save_snapshot_v3(), chair.save_snapshot_v3());
-    assert_ne!(radio.world_hash(), chair.world_hash());
+    let appliance = bought("laundry");
+    assert_eq!(funds(&radio), funds(&appliance));
+    assert_ne!(radio.save_snapshot_v3(), appliance.save_snapshot_v3());
+    assert_ne!(radio.world_hash(), appliance.world_hash());
 }
 
 #[test]

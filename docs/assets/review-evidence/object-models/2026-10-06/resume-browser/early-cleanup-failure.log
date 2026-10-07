@@ -1,0 +1,9 @@
+{"touch":false,"point":{"x":1027,"y":504.00000000000006,"copy":0},"state":{"copy":0,"title":"the_locked_laundry","home":10,"funds":994},"hit":"stage"}
+{"focus":"book-copy-transfer-0","panelHidden":false,"owned":"The Locked Laundry - copy 1. Dropped at (12.75, 1); home: Bookcase: Oakline 24 at (8, 0), slot 1.\n\nHousehold inventory\nBookcase: Oakline 24 at (8, 0) (0 shelved, 1/24 reserved)\nRecover copy","build":"<button id=\"build-toggle\" class=\"hud-button\" type=\"button\" aria-pressed=\"true\" aria-controls=\"builder-controls\">Exit build</button>","status":"Choose a title to buy."}
+{"touch":true,"point":{"x":222,"y":476.00000000000006,"copy":0},"state":{"copy":0,"title":"the_locked_laundry","home":10,"funds":994},"hit":"stage"}
+{"focus":"speed-0","panelHidden":true,"owned":"No household books.","build":"<button id=\"build-toggle\" class=\"hud-button\" type=\"button\" aria-pressed=\"false\" aria-controls=\"builder-controls\">Build</button>","status":"Choose a title to buy."}
+page.waitForFunction: Timeout 12000ms exceeded.
+    at D:\VIBES\.worktrees\f24d\terrilives\docs\assets\review-evidence\object-models\2026-10-06\resume-browser\recovery-browser.cjs:13:448 {
+  log: [],
+  name: 'TimeoutError'
+}

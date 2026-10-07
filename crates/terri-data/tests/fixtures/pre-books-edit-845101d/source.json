@@ -1,0 +1,47 @@
+{
+  "revision": "845101d8cae04627879a4a1ef70646005c784298",
+  "verified_raw_git_blobs": 195,
+  "archive_bytes": 9175040,
+  "producer_sha256": "02ae5b0e18071e3b06c0f38f444d63b4ee77623d6a0ec1100244a954b682fa41",
+  "inputs": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates",
+    "content",
+    "assets/sprites/atlas.toml",
+    "web/public/audio/voice",
+    "web/tests/fixtures",
+    "web/review/domestic.save"
+  ],
+  "ruling": "published-media-capture-review.md R1 with conditional batch rule",
+  "saves": [
+    {
+      "path": "active-dining-845101d.sav",
+      "bytes": 3418,
+      "sha256": "8d85f41fde8e7b2a357ecc93d09539b7c2a179c9158b8c7aa4b521b85b17ee85"
+    },
+    {
+      "path": "contended-radio-845101d.sav",
+      "bytes": 3262,
+      "sha256": "eb5e492cd59f110d958408d382cfe3a6f6795308230cd5babe95c1358cdfcbf2"
+    },
+    {
+      "path": "contended-tv-845101d.sav",
+      "bytes": 3267,
+      "sha256": "0f609f3331fe29a650ffb2e3263cc5e85cbe231d7dc15b6d1ae3624897444a05"
+    },
+    {
+      "path": "edited-845101d.sav",
+      "bytes": 3121,
+      "sha256": "9f4804d915677fe497ca536eff7def648a1c72929fd298ec4cfd81ccb518fb60"
+    },
+    {
+      "path": "pending-edit-845101d.sav",
+      "bytes": 3176,
+      "sha256": "e72d4b9867ca142f8a362483a2ac7acf5dd0cd9acf51b49c23bf86fd2200cea2"
+    }
+  ],
+  "exit": 0,
+  "target": "published-edit-845101d-target",
+  "test_threads": 2
+}

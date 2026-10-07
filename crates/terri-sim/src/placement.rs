@@ -79,6 +79,7 @@ pub struct LotEditState {
 #[derive(Debug)]
 pub struct PlacementPlan {
     grid: TileGrid,
+    reading: Option<crate::reading::placement::MovePlan>,
     entity: Entity,
     pub origin: (u32, u32),
     pub facing: Facing,
@@ -437,7 +438,8 @@ fn plan_rectangle(
     moving: Option<Entity>,
     footprint: Footprint,
     origin: (u32, u32),
-) -> Result<TileGrid, PlacementRefusal> {
+    facing: Option<Facing>,
+) -> Result<(TileGrid, Option<crate::reading::placement::MovePlan>), PlacementRefusal> {
     use PlacementRefusal::*;
     let live = world.resource::<TileGrid>();
     let CurrentLayout {
@@ -456,9 +458,10 @@ fn plan_rectangle(
                 entity.index_u32(),
                 u32::MAX,
             )
-            || entities
-                .iter(world)
-                .any(|e| e.get::<Target>().is_some_and(|t| t.object == entity))
+            || entities.iter(world).any(|e| {
+                e.get::<Target>().is_some_and(|t| t.object == entity)
+                    && !crate::reading::placement::owns_target(world, e.id(), entity)
+            })
     }) {
         return Err(InUse);
     }
@@ -488,7 +491,22 @@ fn plan_rectangle(
         grid.set_blocked(x as usize, y as usize, true);
     }
     rectangles.push(candidate);
-    prove_lot_usable(world, &grid, &rectangles)?;
+    let staged =
+        if let Some(entity) = moving.filter(|e| crate::reading::placement::affects(world, *e)) {
+            Some(crate::reading::placement::prepare(
+                world,
+                entity,
+                origin,
+                facing.ok_or(UnsupportedFacing)?,
+                &grid,
+            )?)
+        } else {
+            None
+        };
+    let proof_world = staged
+        .as_ref()
+        .map_or(world, |(candidate, _)| candidate.world());
+    prove_lot_usable(proof_world, &grid, &rectangles)?;
     // Last, the loader's own grid checks - [L-an-edit-must-pass-the-loader].
     // For what a furniture edit adds they are implied today by the proofs
     // above: a sim's tile and walk must be open floor there too, and blocking
@@ -497,11 +515,11 @@ fn plan_rectangle(
     // honoured here without a second edit, and so no edit is accepted in a
     // world that already fails the loader. The rectangle itself is not in this world yet; the
     // loader's rule for it, no wall through it, is `WallOverlap` above.
-    crate::save::candidate_grid_loads(world, &grid).map_err(|problem| match problem {
+    crate::save::candidate_grid_loads(proof_world, &grid).map_err(|problem| match problem {
         crate::save::LoadProblem::PortalReturn => BlockedLanding,
         crate::save::LoadProblem::EdgeWorld => BlockedRoute,
     })?;
-    Ok(grid)
+    Ok((grid, staged.map(|(_, plan)| plan)))
 }
 
 /// Produces a complete owned transaction; no mutation and no random draws.
@@ -517,9 +535,10 @@ pub fn validate_placement(
         return Err(UnsupportedFacing);
     }
     let footprint = definition.footprint_at(facing);
-    let grid = plan_rectangle(world, Some(entity), footprint, origin)?;
+    let (grid, reading) = plan_rectangle(world, Some(entity), footprint, origin, Some(facing))?;
     Ok(PlacementPlan {
         grid,
+        reading,
         entity,
         origin,
         facing,
@@ -548,6 +567,9 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
                 },
                 facing,
             );
+            if let Some(reading) = plan.reading {
+                reading.apply(world);
+            }
             let mut state = world.resource_mut::<LotEditState>();
             state.revision = state.revision.saturating_add(1);
             state.discontinuities.insert(plan.entity);

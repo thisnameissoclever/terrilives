@@ -32,6 +32,7 @@ pub(crate) struct Reachable {
 pub(crate) struct Access {
     perimeter: Option<Reachable>,
     places: Vec<Option<Reachable>>,
+    seats: Vec<Option<Reachable>>,
 }
 
 impl Access {
@@ -76,12 +77,43 @@ impl Access {
                     })
             })
             .collect();
-        Self { perimeter, places }
+        let seats = (0..object.seats.len())
+            .map(|ordinal| {
+                object
+                    .seat_approaches_at(ordinal, facing)?
+                    .into_iter()
+                    .filter_map(|(x, y)| {
+                        let approach = (origin.0 + x, origin.1 + y);
+                        let contact = (
+                            origin.0 + x.clamp(0, footprint.width as i32 - 1),
+                            origin.1 + y.clamp(0, footprint.depth as i32 - 1),
+                        );
+                        field
+                            .distance_to_contact(approach, contact)
+                            .map(|distance| (distance, approach))
+                    })
+                    .min()
+                    .map(|(distance, tile)| Reachable {
+                        route: Route::Exact(tile),
+                        distance,
+                    })
+            })
+            .collect();
+        Self {
+            perimeter,
+            places,
+            seats,
+        }
     }
 
     pub(crate) fn for_admission(&self, admission: Admission) -> Option<Reachable> {
         match admission {
             Admission::Exclusive => self.perimeter,
+            Admission::Seat { all: true, .. } => self.perimeter,
+            Admission::Seat {
+                ordinal,
+                all: false,
+            } => self.seats.get(ordinal as usize).copied().flatten(),
             Admission::Sleep { ordinal, .. } => {
                 self.places.get(ordinal as usize).copied().flatten()
             }

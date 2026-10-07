@@ -5,7 +5,7 @@ export interface ObjectDetails {
 }
 
 /** Native disclosure keeps the model and type readable with mouse, keyboard, or touch. */
-export function createObjectIdentity(doc: Document, type: string, text: ObjectDetails, boundary: HTMLElement): {
+export function createObjectIdentity(doc: Document, type: string, text: ObjectDetails): {
   element: HTMLElement;
   dispose: () => void;
 } {
@@ -24,34 +24,17 @@ export function createObjectIdentity(doc: Document, type: string, text: ObjectDe
   const title = doc.createElement('strong');
   title.className = 'object-type';
   title.textContent = type;
-  summary.append(model, title);
+  summary.append(title, model);
   const description = doc.createElement('p');
   description.className = 'object-description';
   description.textContent = text.description;
   details.append(summary, description);
 
-  let pinned = false;
-  let hovering = false;
-  summary.addEventListener('click', (event) => {
+  const toggle = (event: MouseEvent) => {
     event.preventDefault();
-    pinned = !pinned;
-    details.open = pinned;
-  });
-  details.addEventListener('pointerenter', (event) => {
-    if (event.pointerType === 'touch') return;
-    hovering = true;
-    details.open = true;
-  });
-  const leave = () => {
-    hovering = false;
-    if (!pinned && !details.contains(doc.activeElement)) details.open = false;
+    details.open = !details.open;
   };
-  // Keep actions stationary while the pointer moves from the description
-  // into the surrounding menu or Buy controls.
-  boundary.addEventListener('pointerleave', leave);
-  details.addEventListener('focusin', () => { details.open = true; });
-  details.addEventListener('focusout', (event) => {
-    if (!pinned && !hovering && !details.contains(event.relatedTarget as Node | null)) details.open = false;
-  });
-  return { element: details, dispose: () => boundary.removeEventListener('pointerleave', leave) };
+  // Enter and Space activate the native summary through the same click event.
+  summary.addEventListener('click', toggle);
+  return { element: details, dispose: () => summary.removeEventListener('click', toggle) };
 }

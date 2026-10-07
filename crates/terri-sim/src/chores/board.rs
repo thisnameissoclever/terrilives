@@ -37,7 +37,11 @@ pub(crate) fn readiness(world: &World, person: Entity) -> f32 {
     ((urgent - critical) / (45.0 - critical)).clamp(0.0, 1.0)
 }
 fn idle(world: &World, state: &SavedChores, person: Entity) -> bool {
-    !state.tasks.iter().any(|t| t.person == person.index_u32())
+    world
+        .get::<crate::reading::ReadingJourney>(person)
+        .is_none()
+        && world.get::<crate::reading::PendingShift>(person).is_none()
+        && !state.tasks.iter().any(|t| t.person == person.index_u32())
         && world.get::<Path>(person).is_none()
         && world.get::<Target>(person).is_none()
         && world.get::<Eating>(person).is_none()
