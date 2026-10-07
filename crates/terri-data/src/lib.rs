@@ -2386,6 +2386,29 @@ mod tests {
     }
 
     #[test]
+    fn the_shipped_sinks_carry_the_exact_standing_wash_contract() {
+        let original = pack();
+        for (name, interaction, duration) in
+            [("sink", "wash_hands", 21), ("kitchen_sink", "wash_up", 23)]
+        {
+            let id = original.find(name).unwrap();
+            let object = original.object(id);
+            let action = &object.interactions[0];
+            assert_eq!(action.id, interaction);
+            let visual = action.visual.expect("hand washing has a standing visual");
+            assert_eq!(visual.action, CompiledVisualAction::Wash);
+            assert_eq!(visual.anchor, CompiledVisualAnchor::Object);
+            assert_eq!(visual.facing, CompiledVisualFacing::TowardAnchor);
+            assert_eq!(visual.socket, None);
+            assert!(object.action_sockets.is_empty());
+            assert_eq!((action.duration_ticks, action.slots), (duration, 1));
+            let mut absent = original.clone();
+            absent.objects[id.0 as usize].interactions[0].visual = None;
+            assert_eq!(content_fingerprint(original), content_fingerprint(&absent));
+        }
+    }
+
+    #[test]
     fn the_shipped_bathtub_declares_presentation_only_basin_metadata() {
         let original = pack();
         let id = original.find("bathtub").unwrap();

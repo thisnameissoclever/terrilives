@@ -513,7 +513,7 @@ alone does not establish a convincing seated pose.
 
 ### [S-action-animation] Action animation coverage
 
-**Status: Partial.** Walking, food transport, talking, standing and seated eating, cooking, washing dishes, mopping floors, wiping counters and tables, emptying bins, sitting in the armchair and on other seats, seated reading, standing reading, watching the fish, cycling, seated television and radio use, using the toilet, taking a bath, and lower-bunk sleeping are animated. Double-bed sleeping, showering, sofa lying and ordinary standing idle are static poses. Further systems need their own motion, including walking a dog, petting a cat and repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
+**Status: Partial.** Walking, food transport, talking, standing and seated eating, cooking, washing dishes, mopping floors, wiping counters and tables, emptying bins, sitting in the armchair and on other seats, seated reading, standing reading, watching the fish, cycling, seated television and radio use, using the toilet, taking a bath, washing hands at either sink (with the prepare clip's busy hands until a dedicated clip ships), and lower-bunk sleeping are animated. Double-bed sleeping, showering, sofa lying and ordinary standing idle are static poses. Further systems need their own motion, including walking a dog, petting a cat and repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
 
 ### [S-object-facing] Object facing and layered depth
 

@@ -342,6 +342,14 @@ export const VISUAL_ACTION_SIT = 8;
 /** The append-only visual-action code for sleeping in the lower bunk. */
 export const VISUAL_ACTION_SLEEP = SLEEP_VISUAL_ACTION;
 
+/**
+ * The append-only visual-action code for standing hand washing at a sink.
+ * Codes 18 and 19 are the fixture-composited toilet and bath scenes and 20 is
+ * reserved for the shower. Hand washing is drawn with the prop-free prepare
+ * clip until a dedicated hand-washing clip ships.
+ */
+export const VISUAL_ACTION_WASH_HANDS = 21;
+
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
 export const FACING_NEGATIVE_X = 2;
@@ -593,15 +601,18 @@ export function simSprite(_id: number, simId = 0xffff_ffff): number {
   return RIGGED_SIM_VARIANTS[simShirtVariant(simId)].idle.frames[0][0];
 }
 
-const RIGGED_ACTIONS: readonly string[] = [
+/** Generic rigged clip per visual-action code; codes 18 to 20 have no generic clip. */
+const RIGGED_ACTIONS: readonly (string | undefined)[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
   'watch_fish', 'sit', 'sleep', 'prepare', 'cook_v2', 'wash', 'seated_eat',
   'mop', 'wipe_counter', 'wipe_table', 'empty_bin',
+  undefined, undefined, undefined, 'prepare',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
   1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
   10, 10, 10, 16,
+  1, 1, 1, 1, 1, 1, 1, 10,
 ];
 
 /** Sample the baked rig from simulation state, without an animation clock. */

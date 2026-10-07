@@ -312,6 +312,8 @@ sprite = "offlineBathroomSink"
   # The need-interaction ceiling prevents a sink from replacing bathing.
   [[object.interaction]]
   id = "wash_hands"
+  # Presentation-only: stand at the basin facing it with the hands busy.
+  visual = { action = "wash", anchor = "object", facing = "toward_anchor" }
   activity = "washing_hands"
   label = "Wash hands"
   sound_action = "sink_water"
@@ -447,6 +449,8 @@ roles = ["prep_surface", "dish_sink"]
   # The need-interaction ceiling prevents a sink from replacing bathing.
   [[object.interaction]]
   id = "wash_up"
+  # Presentation-only: stand at the basin facing it with the hands busy.
+  visual = { action = "wash", anchor = "object", facing = "toward_anchor" }
   activity = "washing_hands"
   label = "Wash hands"
   sound_action = "sink_water"

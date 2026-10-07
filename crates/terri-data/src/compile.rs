@@ -2112,7 +2112,7 @@ fn compile_visual(
             None
         ) | (
             VisualOwner::Object { .. },
-            CompiledVisualAction::Read | CompiledVisualAction::Sleep,
+            CompiledVisualAction::Read | CompiledVisualAction::Sleep | CompiledVisualAction::Wash,
             CompiledVisualAnchor::Object,
             CompiledVisualFacing::TowardAnchor,
             None
@@ -11279,7 +11279,7 @@ mod tests {
                     let legal = match owner {
                         VisualOwner::Social { .. } => action == "talk" && anchor == "partner",
                         VisualOwner::Object { .. } => {
-                            matches!(action, "eat" | "read" | "watch" | "sleep")
+                            matches!(action, "eat" | "read" | "watch" | "sleep" | "wash")
                                 && anchor == "object"
                         }
                         VisualOwner::ChainStep { .. } => action == "eat" && anchor == "station",
@@ -11581,6 +11581,36 @@ mod tests {
         visual.socket = None;
         assert!(matches!(
             compile_objects(full_needs(), file(wrong)),
+            Err(ContentError::InvalidVisualContract { .. })
+        ));
+    }
+
+    #[test]
+    fn wash_visual_stands_toward_an_object_without_a_socket() {
+        let wash = || {
+            let mut object = reading_object();
+            let visual = object.interaction[0].visual.as_mut().unwrap();
+            visual.action = Some("wash".to_string());
+            visual.anchor = Some("object".to_string());
+            visual.facing = Some("toward_anchor".to_string());
+            visual.socket = None;
+            object
+        };
+        let file = |object| ObjectsFile {
+            object: vec![object],
+            colourway: Vec::new(),
+            affinity: Vec::new(),
+        };
+        let pack = compile_objects(full_needs(), file(wash())).unwrap();
+        let visual = pack.objects[0].interactions[0].visual.unwrap();
+        assert_eq!(visual.action, CompiledVisualAction::Wash);
+        assert_eq!(visual.anchor, CompiledVisualAnchor::Object);
+        assert_eq!(visual.facing, CompiledVisualFacing::TowardAnchor);
+        assert_eq!(visual.socket, None);
+        let mut station = wash();
+        station.interaction[0].visual.as_mut().unwrap().anchor = Some("station".to_string());
+        assert!(matches!(
+            compile_objects(full_needs(), file(station)),
             Err(ContentError::InvalidVisualContract { .. })
         ));
     }
