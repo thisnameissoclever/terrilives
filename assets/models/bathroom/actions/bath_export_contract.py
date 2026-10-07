@@ -25,7 +25,7 @@ sys.path.insert(0, str(MODELS/'seating'))
 sys.path.insert(0, str(BASE))
 from seat_export_contract import BODY_NAMES, BONE_NAMES, inside, checked_file, digest, read_png
 from bathroom_export_contract import finite_tree, number, validate_ink_binding
-from bath_pose_geometry import validate_support_patch
+from bath_pose_geometry import basin_contains, validate_support_patch
 from bath_loop_v1 import MAX_NOD_DEGREES, STATIC_BONES, head_nod
 from shower_pose_geometry import OMITTED_GARMENT_DETAILS
 
@@ -50,12 +50,19 @@ RENDERED_BODY_COUNT = 41
 SKIN_BODIES = {'Overshirt body', 'Relaxed shirt sleeve', 'Relaxed shirt sleeve.001'}
 SKIN_MATERIAL = 'Warm ochre skin'
 TARGET_TOLERANCE = 1e-7
-NOD_TOLERANCE_DEGREES = .05
+NOD_TAIL_TOLERANCE = 1e-6
 MIN_CANVAS_MARGIN = 8
 REVIEW_CLEAR_ABOVE = .005
+REVIEW_BODIES = {'Tailored trouser leg', 'Tailored trouser leg.001'}
+REVIEW_FIXTURE = 'Bathtub continuous shell'
 CONTACT_MAX_GAP = .003
 PATCH_MAX_GAP = .01
 WITNESS_FIELDS = ('x', 'y', 'body_z', 'basin_z', 'gap')
+FLOOR_Z = .15
+RIM_Z = .57
+LATTICE_TOLERANCE = 1e-6
+FRAME_TOLERANCE = 1e-6
+WALL_PLANE_TOLERANCE = .01
 
 
 def validate_render_rows(rows, ink=False):
@@ -104,8 +111,18 @@ def angle_degrees(a, b):
     return math.degrees(math.acos(max(-1., min(1., dot/norms))))
 
 
+def nodded_tail(accepted_head, nod_degrees):
+    """The accepted head bone turned forward about the world side axis through its joint."""
+    joint = [number(v) for v in accepted_head['head']]
+    direction = [number(t)-j for t, j in zip(accepted_head['tail'], joint)]
+    radians = math.radians(-number(nod_degrees))
+    cosine, sine = math.cos(radians), math.sin(radians)
+    turned = [direction[0], cosine*direction[1]-sine*direction[2], sine*direction[1]+cosine*direction[2]]
+    return [j+d for j, d in zip(joint, turned)]
+
+
 def validate_targets(targets, accepted_targets, nod_degrees):
-    """Every static bone equals the accepted pose; the head keeps its joint and nods by the declared angle."""
+    """Every static bone equals the accepted pose; the head keeps its joint and length and nods by the declared angle."""
     if set(targets) != BONE_NAMES or set(accepted_targets) != BONE_NAMES or set(STATIC_BONES) | {'head'} != BONE_NAMES:
         raise ValueError('Bath joint targets are incomplete')
     for name in STATIC_BONES:
@@ -115,11 +132,13 @@ def validate_targets(targets, accepted_targets, nod_degrees):
     head, accepted_head = targets['head'], accepted_targets['head']
     if not same_point(head['head'], accepted_head['head']):
         raise ValueError('Bath sample moved the head joint')
-    nod = angle_degrees([number(a)-number(b) for a, b in zip(head['tail'], head['head'])],
-                        [number(a)-number(b) for a, b in zip(accepted_head['tail'], accepted_head['head'])])
-    if nod > MAX_NOD_DEGREES+NOD_TOLERANCE_DEGREES or abs(nod-number(nod_degrees)) > NOD_TOLERANCE_DEGREES:
-        raise ValueError('Bath sample head nod differs from the declared loop motion')
-    return nod
+    if not 0 <= number(nod_degrees) <= MAX_NOD_DEGREES:
+        raise ValueError('Bath sample declares a head nod outside the loop')
+    expected = nodded_tail(accepted_head, nod_degrees)
+    if len(head['tail']) != 3 or any(abs(number(a)-b) > NOD_TAIL_TOLERANCE for a, b in zip(head['tail'], expected)):
+        raise ValueError('Bath sample head tail is not the accepted head nodded forward by the declared angle')
+    return angle_degrees([number(a)-number(b) for a, b in zip(head['tail'], head['head'])],
+                         [number(a)-number(b) for a, b in zip(accepted_head['tail'], accepted_head['head'])])
 
 
 def validate_closure(closure, accepted_targets):
@@ -143,76 +162,147 @@ def witness_key(cell):
     return tuple(number(cell[field]) for field in WITNESS_FIELDS)
 
 
-def validate_patch(patch, grid):
-    """Recompute the finite patch from its witnesses, which must be cells of the complete grid."""
+def on_lattice(value, step):
+    ratio = number(value)/step
+    return abs(ratio-round(ratio)) <= LATTICE_TOLERANCE
+
+
+def dot(a, b):
+    return sum(number(x)*number(y) for x, y in zip(a, b))
+
+
+def wall_frame(plane):
+    """The accepted wall plane's inward normal and the tangent that runs up the wall."""
+    normal, point = [number(v) for v in plane['normal']], [number(v) for v in plane['point']]
+    if len(normal) != 3 or len(point) != 3 or abs(math.sqrt(dot(normal, normal))-1) > 1e-6:
+        raise ValueError('Accepted wall plane is not a unit normal with a point')
+    up = [0, -normal[2], normal[1]]
+    return normal, up, point
+
+
+def validate_hip_cell(cell, witness):
+    """A seat cell is a vertical ray pair on the basin floor profile; a witness touches the actual floor."""
+    basin_z = number(cell['basin_z'])
+    if not FLOOR_Z-1e-5 <= basin_z <= RIM_Z or not basin_contains(number(cell['x']), number(cell['y']), min(RIM_Z, max(FLOOR_Z, basin_z))):
+        raise ValueError('Bath seat cell is not on the basin floor profile')
+    if witness and abs(basin_z-FLOOR_Z) > 1e-5:
+        raise ValueError('Bath seat witness is not on the actual basin floor')
+
+
+def validate_back_cell(cell, witness, plane):
+    """A wall cell is a normal-directed ray pair in the wall tangent frame; a witness lies on the accepted plane."""
+    normal, up, point = wall_frame(plane)
+    wall, body = cell.get('wall_point', []), cell.get('body_point', [])
+    if len(wall) != 3 or len(body) != 3:
+        raise ValueError('Bath wall cell lacks its wall and body points')
+    offset = [number(w)-p for w, p in zip(wall, point)]
+    if (abs(number(cell['x'])-number(wall[0])) > FRAME_TOLERANCE or abs(number(cell['y'])-dot(offset, up)) > FRAME_TOLERANCE
+            or abs(number(cell['gap'])-dot([number(b)-number(w) for b, w in zip(body, wall)], normal)) > FRAME_TOLERANCE):
+        raise ValueError('Bath wall cell is not a normal-directed pair in the wall tangent frame')
+    if witness and abs(dot(offset, normal)) > WALL_PLANE_TOLERANCE:
+        raise ValueError('Bath wall witness is not on the accepted wall plane')
+
+
+CELL_CHECKS = dict(hip=lambda cell, witness, plane:validate_hip_cell(cell, witness),
+                   back=validate_back_cell)
+
+
+def validate_patch(patch, grid, step):
+    """Recompute the finite patch from its witnesses: every grid cell inside its bounds, on the grid lattice."""
     if patch is None:
         raise ValueError('Bath support lacks a finite patch')
     witnesses = patch.get('actual_witnesses')
     if not isinstance(witnesses, list) or type(patch.get('samples')) is not int or len(witnesses) != patch['samples']:
         raise ValueError('Bath support patch witnesses do not match its sample count')
-    cells = {witness_key(cell) for cell in grid}
-    if any(witness_key(w) not in cells for w in witnesses):
-        raise ValueError('Bath support patch witness is not a cell of the measured grid')
+    cells = {witness_key(cell):cell for cell in grid}
+    keys = [witness_key(w) for w in witnesses]
+    if any(cells.get(key) != w for key, w in zip(keys, witnesses)) or len(set(keys)) != len(keys):
+        raise ValueError('Bath support patch witness is not a distinct cell of the measured grid')
     recomputed = validate_support_patch([{field:number(w[field]) for field in WITNESS_FIELDS} for w in witnesses])
     for key in ('area', 'width', 'depth', 'min_gap', 'max_gap', 'samples', 'xy_bounds'):
         if patch.get(key) != recomputed[key]:
             raise ValueError('Bath support patch claim differs from its recomputed witnesses: '+key)
+    (x0, y0), (x1, y1) = recomputed['xy_bounds']
+    inside_bounds = {key for key in cells if x0-LATTICE_TOLERANCE <= key[0] <= x1+LATTICE_TOLERANCE
+                     and y0-LATTICE_TOLERANCE <= key[1] <= y1+LATTICE_TOLERANCE}
+    xs, ys = sorted({key[0] for key in keys}), sorted({key[1] for key in keys})
+    if (inside_bounds != set(keys)
+            or any(abs(b-a-step) > LATTICE_TOLERANCE for a, b in zip(xs, xs[1:]))
+            or any(abs(b-a-step) > LATTICE_TOLERANCE for a, b in zip(ys, ys[1:]))):
+        raise ValueError('Bath support patch omits measured cells inside its bounds or leaves the grid lattice')
     if patch.get('complete_cartesian_surface_grid') is not True or recomputed['max_gap'] > PATCH_MAX_GAP:
         raise ValueError('Bath support patch is not a complete grid within the contact interval')
     return recomputed
 
 
-def validate_certificate(record):
-    grid = record.get('complete_actual_grid')
+def validate_certificate(record, kind, plane):
+    grid, step = record.get('complete_actual_grid'), record.get('grid_step')
     if (record.get('state') != 'passed' or not isinstance(grid, list) or not grid
-            or type(record.get('actual_surface_ray_hits')) is not int or record['actual_surface_ray_hits'] != len(grid)):
+            or type(record.get('actual_surface_ray_hits')) is not int or record['actual_surface_ray_hits'] != len(grid)
+            or not 0 < number(step) <= .01):
         raise ValueError('Bath support certificate is not a passed actual-surface measurement')
+    step = number(step)
+    witnesses = {witness_key(w) for w in (record.get('finite_patch') or {}).get('actual_witnesses', [])}
+    positions = set()
     for cell in grid:
+        position = (number(cell['x']), number(cell['y']))
+        if position in positions or not on_lattice(position[0], step) or not on_lattice(position[1], step):
+            raise ValueError('Bath support grid cell is a duplicate or off the grid lattice')
+        positions.add(position)
         if abs(number(cell['body_z'])-number(cell['basin_z'])-number(cell['gap'])) > 1e-7:
             raise ValueError('Bath support grid cell is not an actual surface pair')
+        CELL_CHECKS[kind](cell, witness_key(cell) in witnesses, plane)
     gaps = [number(cell['gap']) for cell in grid]
-    if record.get('min_gap') != min(gaps) or record.get('max_gap') != max(gaps):
+    if record.get('min_gap') != min(gaps) or record.get('max_gap') != max(gaps) or min(gaps) < 0:
         raise ValueError('Bath support certificate extrema differ from its grid')
-    if not 0 <= min(gaps) <= CONTACT_MAX_GAP:
-        raise ValueError('Bath support minimum gap leaves the contact interval')
-    return validate_patch(record.get('finite_patch'), grid)
+    patch = validate_patch(record.get('finite_patch'), grid, step)
+    # Contact is decided inside the complete patch, so a stray cell elsewhere on the grid cannot supply it.
+    if not 0 <= patch['min_gap'] <= CONTACT_MAX_GAP:
+        raise ValueError('Bath support patch leaves the contact interval')
+    return patch
 
 
 def validate_reviewed_hit(hit):
     review = hit.get('review', {})
     crossings = review.get('crossings', {})
-    if (hit.get('kind') != 'chair_inside_body' or hit.get('body') not in BODY_NAMES or hit.get('fixture') not in SOLID_NAMES
+    point = hit.get('point', [])
+    if (hit.get('kind') != 'chair_inside_body' or hit.get('body') not in REVIEW_BODIES or hit.get('fixture') != REVIEW_FIXTURE
             or review.get('parity_inside') is not False
             or set(crossings) != {'+z', '-z', '+x', '-x', '+y', '-y'}
             or any(type(c) is not int or c < 0 or c % 2 for c in crossings.values())):
-        raise ValueError('Reviewed containment hit is not an even-parity open-mesh artifact')
+        raise ValueError('Reviewed containment hit is not an even-parity open trouser tube artifact on the shell')
     above = review.get('first_surface_above')
     if above is not None and not number(above) > REVIEW_CLEAR_ABOVE:
         raise ValueError('Reviewed containment hit has a surface within five millimetres above it')
-    if len(hit.get('point', [])) != 3:
-        raise ValueError('Reviewed containment hit lacks its witness point')
+    if len(point) != 3 or not FLOOR_Z-1e-5 <= number(point[2]) <= RIM_Z+1e-5:
+        raise ValueError('Reviewed containment hit is not on the shell between floor and rim')
 
 
-def validate_measurement(measurement, accepted_targets, nod_degrees):
+def validate_measurement(measurement, accepted, nod_degrees):
+    """Check one sample against the accepted source's joint targets, wall plane and reviewed hits."""
     finite_tree(measurement)
-    if measurement.get('support_state') != 'passed' or measurement.get('collisions'):
+    if (measurement.get('support_state') != 'passed' or not isinstance(measurement.get('collisions'), list)
+            or measurement['collisions']):
         raise ValueError('Bath sample lost support or gained a collision')
     support = measurement['support']
     if set(support) != {'hip', 'back'}:
         raise ValueError('Bath support needs seat and wall certificates')
     for key in ('hip', 'back'):
-        validate_certificate(support[key])
+        validate_certificate(support[key], key, accepted['plane'])
     errors = measurement['bone_length_errors']
     if set(errors) != BONE_NAMES or any(not 0 <= number(e) <= 1e-5 for e in errors.values()):
         raise ValueError('Bath sample changed anatomical lengths')
     if measurement.get('complete_body_fixture_pairs') != len(BODY_NAMES)*len(SOLID_NAMES):
         raise ValueError('Bath clearance did not test every body against every fixture solid')
-    for hit in measurement.get('reviewed_open_mesh_containment_hits', []):
+    hits = measurement.get('reviewed_open_mesh_containment_hits')
+    if not isinstance(hits, list) or hits != accepted['measurement']['reviewed_open_mesh_containment_hits']:
+        raise ValueError('Bath sample reviewed containment hits differ from the accepted static trouser tubes')
+    for hit in hits:
         validate_reviewed_hit(hit)
-    return validate_targets(measurement['joint_targets'], accepted_targets, nod_degrees)
+    return validate_targets(measurement['joint_targets'], accepted['measurement']['joint_targets'], nod_degrees)
 
 
-def validate_contacts(rows, accepted_targets, expected_frames=range(5)):
+def validate_contacts(rows, accepted, expected_frames=range(5)):
     expected, seen = set(expected_frames), set()
     for row in rows:
         frame = row['frame']
@@ -221,7 +311,7 @@ def validate_contacts(rows, accepted_targets, expected_frames=range(5)):
         seen.add(frame)
         if row.get('support_state') != 'passed':
             raise ValueError('Bath contact sample is not passed')
-        validate_measurement(row['measurement'], accepted_targets, head_nod(frame/4))
+        validate_measurement(row['measurement'], accepted, head_nod(frame/4))
     if seen != expected or len(rows) != len(expected):
         raise ValueError('Missing complete bath sample/closure contact matrix')
 
@@ -299,16 +389,15 @@ def read_loop(path, *, process_exited):
     checked_file(path.parent, proof['editable_model'])
     validate_action(proof['action'])
     validate_registration(proof, accepted)
-    accepted_targets = accepted['measurement']['joint_targets']
-    validate_measurement(accepted['measurement'], accepted_targets, 0)
-    validate_closure(proof['closure'], accepted_targets)
+    validate_measurement(accepted['measurement'], accepted, 0)
+    validate_closure(proof['closure'], accepted['measurement']['joint_targets'])
     if proof.get('palette_independent') is not True:
         raise ValueError('Bath loop must declare its single bathing appearance')
     validate_appearance(proof['bathing_appearance'], proof['rendered_body_inventory'])
     if proof['water'] != accepted['water'] or proof['plane'] != accepted['plane']:
         raise ValueError('Bath loop changed the accepted water or wall plane')
     for field in ('manual_contacts', 'contacts', 'reopened_contacts'):
-        validate_contacts(proof[field], accepted_targets)
+        validate_contacts(proof[field], accepted)
     validate_geometry(proof['geometry_checks'], proof['rendered_body_inventory'])
     rows = validate_render_rows(proof['renders'])
     checks = {row['path']:row for row in proof['raster_checks']}
