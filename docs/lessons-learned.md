@@ -11466,3 +11466,10 @@ Use a fixed world-space resolution for actor shadows when the export contract re
 A simulation save-version update reached the native save tests while the browser worker still accepted the preceding version. Filesystem tests used fabricated old headers, so they passed while the running game's Save command failed closed.
 
 Share the current version between browser write guards and load diagnostics. Preserve a recovery file for every supported older version, including the immediately preceding one. Add an integration test that sends bytes produced by the current simulation through the production storage worker. Verify an actual browser Save/Load journey and retain a previous worker fixture that refuses the newer header.
+
+
+### Verify the shipped asset importer in the deployment toolchain
+
+Focused source-art tests ran in the artist environment while the normal release checks used only Pillow. A scientific-package import leaked from the authoring code into the shipped atlas loader, and historical tests also assumed literal coverage tables and a fixed atlas prefix length.
+
+Keep authoring tools separate from shipped importers. Preserve exact floating-point coverage with the deployment's existing dependencies, and compare imported records and rendered pixels against the captured exports. Run the normal complete asset test command before delivery; update historical tests to resolve current storage formats while retaining their original prefix and pixel invariants.

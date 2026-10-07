@@ -8,7 +8,7 @@ import random
 import tempfile
 
 from PIL import Image
-from reading_joint_alpha import joint_alpha
+from joint_alpha_runtime import joint_alpha
 
 from offline_reading import (append_actions, append_sofa, sofa_actions, validate_sofa_records,
                              architecture_sofa_inputs,

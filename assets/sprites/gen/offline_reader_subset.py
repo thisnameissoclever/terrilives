@@ -5,7 +5,7 @@ import itertools
 import json
 from pathlib import Path
 from PIL import Image
-from reading_joint_alpha import load_joint
+from joint_alpha_runtime import load_joint
 
 
 def load_subset(path):

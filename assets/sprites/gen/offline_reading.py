@@ -8,7 +8,7 @@ from pathlib import Path
 import tomllib
 from PIL import Image
 from content_sprites import model_sprites
-from reading_joint_alpha import load_joint
+from joint_alpha_runtime import load_joint
 from reading_stock_import import StockTableImporter, stock_scene
 
 FACINGS = ('SE', 'NW', 'SW', 'NE')

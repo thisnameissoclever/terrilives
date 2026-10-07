@@ -9,6 +9,7 @@ import unittest
 
 from PIL import Image
 from atlas_pixels import AtlasPages
+from atlas_test_tables import table
 from offline_double_bed import load_covered_bed, scene_key
 from test_lamp_prefix import canonical_digest, preserved_table
 
@@ -48,8 +49,7 @@ class CoveredBedTests(unittest.TestCase):
     def test_generated_owner_masks_are_original_l_values_by_exact_place(self):
         source = (ROOT / 'web/src/render/atlas.ts').read_text()
         catalog = preserved_table(source, 'BED_CATALOG', 10000)
-        match = re.search(r'export const BED_COVERAGE[^\n]*= (\[.*?^\]);', source, re.M | re.S)
-        records = json.loads(match.group(1))
+        records = table(source, 'BED_COVERAGE')
         rows = tomllib.loads((ROOT / 'assets/sprites/atlas.toml').read_text())['sprite']
         names = {row['name']: index for index, row in enumerate(rows)}
         manifest = json.loads((EXPORT / 'manifest.json').read_text())

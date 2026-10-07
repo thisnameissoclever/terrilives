@@ -3,10 +3,10 @@ from pathlib import Path
 import tempfile
 import unittest
 
-import numpy as np
+import hashlib
 from PIL import Image
 
-from reading_stock import StockTableWriter
+
 from reading_stock_import import StockTableImporter, stock_scene
 
 
@@ -20,12 +20,23 @@ def manifest(high=None, low=None):
                      encoding='scene-linear-premultiplied-signed16', rows=zero, visibilitySHA='a' * 64)})
 
 
+def texture(folder, image, crop):
+    path = Path(folder) / f'{hashlib.sha256(image.tobytes()).hexdigest()}.png'
+    image.save(path)
+    return dict(path=path.name, sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                pixelsSha256=hashlib.sha256(image.tobytes()).hexdigest(),
+                width=image.width, height=image.height, rawCrop=crop,
+                trim=[crop[0]/2,crop[1]/2,image.width/2,image.height/2])
+
+
 class StockImport(unittest.TestCase):
     def test_imports_registered_coefficients_and_reuses_identical_tables(self):
         with tempfile.TemporaryDirectory() as folder:
-            value = np.zeros((4, 4, 3), np.float32)
-            value[1, 1] = [.2, -.3, .5]
-            high, low = StockTableWriter(folder).pair(value, (10, 20))
+            high_image = Image.new('RGBA', (3, 3), (128, 128, 128, 255))
+            low_image = Image.new('RGBA', (3, 3), (0, 0, 0, 255))
+            high_image.putpixel((1,1),(153,89,191,255))
+            low_image.putpixel((1,1),(153,154,255,255))
+            high, low = texture(folder,high_image,[10,20,13,23]), texture(folder,low_image,[10,20,13,23])
             data = manifest(high, low)
             sprites, anchors, densities, trims = [], {}, {}, {}
             importer = StockTableImporter(sprites, anchors, densities, trims)
@@ -59,11 +70,10 @@ class StockImport(unittest.TestCase):
 
     def test_rejects_a_validly_hashed_texture_without_filter_padding(self):
         with tempfile.TemporaryDirectory() as folder:
-            writer = StockTableWriter(folder)
             high = Image.new('RGBA', (3, 3), (128, 128, 128, 255))
             high.putpixel((0, 1), (129, 128, 128, 255))
             low = Image.new('RGBA', (3, 3), (0, 0, 0, 255))
-            data = manifest(writer.image(high, [10, 20, 13, 23]), writer.image(low, [10, 20, 13, 23]))
+            data = manifest(texture(folder, high, [10, 20, 13, 23]), texture(folder, low, [10, 20, 13, 23]))
             with self.assertRaisesRegex(ValueError, 'neutral interpolation border'):
                 StockTableImporter([], {}, {}, {}).manifest(Path(folder), data)
 

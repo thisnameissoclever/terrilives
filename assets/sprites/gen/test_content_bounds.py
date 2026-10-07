@@ -9,21 +9,69 @@ from pathlib import Path
 import re
 import tomllib
 import unittest
+import base64
+import struct
+from functools import lru_cache
 
 from PIL import Image, ImageChops
 from atlas_pixels import AtlasPages
+from atlas_test_tables import table
 
 from build import LEGACY_SIM_BODY, fill_padded_bounds, sim_body_indices
 
 ROOT = Path(__file__).resolve().parents[3]
 
 
+@lru_cache(maxsize=None)
 def shipped_table(name):
     source = (ROOT / "web/src/render/atlas.ts").read_text()
-    match = re.search(name + r"[^=]*= (\{.*?\n\});", source, re.S)
-    if match is None:
-        raise ValueError(f"atlas.ts has no {name} table")
-    return json.loads(match.group(1))
+    return table(source, name)
+
+
+def coverage_alpha(record):
+    left, top, right, bottom = record['box']
+    raw = base64.b64decode(record['values'])
+    if record.get('encoding') == 'float16':
+        values = bytes(255 if value[0] > 0 else 0 for value in struct.iter_unpack('<e', raw))
+    elif record.get('bitDepth') == 16:
+        values = bytes(255 if value[0] > 0 else 0 for value in struct.iter_unpack('<H', raw))
+    else:
+        values = bytes(255 if value else 0 for value in raw)
+    if len(values) != (right-left)*(bottom-top):
+        raise ValueError('Registered scene coverage dimensions differ')
+    result = Image.new('L', tuple(record['size']))
+    result.paste(Image.frombytes('L', (right-left, bottom-top), values), (left, top))
+    return result
+
+
+def non_target_textures():
+    textures = set()
+    for name in ('BED_LAYERS', 'SEATING_LAYERS', 'BATHROOM_LAYERS', 'SHARED_SEAT_LAYERS'):
+        textures.update(index for layers in shipped_table(name).values() for index in layers if index >= 0)
+    for profile in shipped_table('SHELF_PROFILES').values():
+        textures.add(profile['base'])
+        textures.update(index for pair in profile['rows'] for index in pair if index >= 0)
+    textures.update(index for rows in shipped_table('BOOK_REACH_SHELVES')['tables']
+                    for pair in rows for index in pair if index >= 0)
+    return textures - {int(index) for index in shipped_table('JOINT_SCENE_ALPHA_IDS')}
+
+
+def registered_scenes():
+    result = {}
+    def visit(value):
+        if isinstance(value, dict):
+            if isinstance(value.get('sprite'), int) and 'owners' in value:
+                result[value['sprite']] = value
+            for item in value.values():
+                visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+    for name in ('BED_CATALOG', 'SEATING_SPRITES', 'BATHROOM_SPRITES',
+                 'SHARED_SEAT_CATALOG', 'SHARED_SEAT_PREVIEW_CATALOG',
+                 'READING_BODY_CATALOG', 'SOFA_RECLINE_CATALOG', 'BOOK_REACH_CATALOG'):
+        visit(shipped_table(name))
+    return result
 
 
 def shipped_sim_bodies(records):
@@ -48,12 +96,13 @@ class ShippedAtlasTests(unittest.TestCase):
         records = tomllib.loads((ROOT / "assets/sprites/atlas.toml").read_text())["sprite"]
         bounds = {int(index): box for index, box in shipped_table("SPRITE_CONTENT_BOUNDS").items()}
         sim_bodies = shipped_sim_bodies(records)
+        textures = non_target_textures()
         padded, missing = [], []
         with AtlasPages(ROOT) as atlas:
             for index, row in enumerate(records):
                 crop = atlas.crop(row)
                 art = crop.getchannel("A").getbbox()
-                if art is None or art[1] == 0 or index in sim_bodies:
+                if art is None or art[1] == 0 or index in sim_bodies or index in textures:
                     continue
                 padded.append(row["name"])
                 if index not in bounds:
@@ -74,7 +123,13 @@ class ShippedAtlasTests(unittest.TestCase):
         self.assertEqual(len(seating_layers), 5 * 4 * 3 * 4)
         bathroom_layers = {int(index): layers for index, layers in shipped_table("BATHROOM_LAYERS").items()}
         self.assertEqual(len(bathroom_layers), 4 * 3 * 4 + 4 * 4)
-        visible_layers = {**bed_layers, **seating_layers, **bathroom_layers}
+        shared_layers = {int(index): layers for index, layers in shipped_table('SHARED_SEAT_LAYERS').items()}
+        visible_layers = {**bed_layers, **seating_layers, **bathroom_layers, **shared_layers}
+        joint = {int(index): coverage for index, coverage in shipped_table('JOINT_SCENE_ALPHA_IDS').items()}
+        coverages = shipped_table('BED_COVERAGE')
+        shelves = {int(index): coverage for index, coverage in shipped_table('SHELF_COVERAGE').items()}
+        scenes = registered_scenes()
+        self.assertEqual(set(joint) - set(scenes), set())
         pair_coverage = {int(index) for index in shipped_table("SPRITE_PAIR_COVERAGE")}
         pairs = {int(index): layers for index, layers in shipped_table("SPRITE_PAIRS").items()}
         trims = {int(index): offset for index, offset in shipped_table("BED_LAYER_TRIMS").items()}
@@ -100,8 +155,21 @@ class ShippedAtlasTests(unittest.TestCase):
                         alpha = ImageChops.lighter(alpha, contribution)
                     crop.putalpha(alpha)
                 art = crop.getchannel("A").getbbox()
-                if art is None or box[1] != art[1] / density:
+                # Imported joint scenes retain one neutral filtering texel around
+                # their trimmed visible layers; ordinary sprites use the art top.
+                expected_top = max(0, art[1]-1) / density if art and index in joint else (art[1] / density if art else None)
+                if art is None or box[1] != expected_top:
                     wrong.append(row["name"])
+                if index in joint or index in shelves:
+                    records_to_check = [coverages[joint[index]]] if index in joint else [shelves[index]]
+                    if index in joint:
+                        self.assertEqual(scenes[index]['alpha'], joint[index])
+                        records_to_check += [coverages[owner['coverage']] for owner in scenes[index]['owners'] if owner]
+                    for record in records_to_check:
+                        support = coverage_alpha(record).getbbox()
+                        if support and not (box[0] <= support[0]/density and box[1] <= support[1]/density
+                                            and box[2] >= support[2]/density and box[3] >= support[3]/density):
+                            wrong.append(row['name'] + ' registered coverage')
                 if not 0 <= box[0] < box[2] <= row["w"] / density:
                     wrong.append(row["name"] + " sides")
                 if not 0 <= box[1] < box[3] <= row["h"] / density:
