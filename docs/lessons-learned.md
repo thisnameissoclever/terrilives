@@ -11473,3 +11473,10 @@ Share the current version between browser write guards and load diagnostics. Pre
 Focused source-art tests ran in the artist environment while the normal release checks used only Pillow. A scientific-package import leaked from the authoring code into the shipped atlas loader, and historical tests also assumed literal coverage tables and a fixed atlas prefix length.
 
 Keep authoring tools separate from shipped importers. Preserve exact floating-point coverage with the deployment's existing dependencies, and compare imported records and rendered pixels against the captured exports. Run the normal complete asset test command before delivery; update historical tests to resolve current storage formats while retaining their original prefix and pixel invariants.
+
+
+### Keep fixture loading outside functional test deadlines
+
+A default floor-catalogue test cold-imported the complete generated atlas inside its functional assertion window. Atlas growth made that unrelated setup exceed the deadline even though the palette and carrier-finish assertions passed locally.
+
+Load the production atlas during test collection and prepare mocked module dependencies in setup hooks. Keep the functional assertion deadline intact. Validate the complete real catalogue rather than substituting smaller data merely to reduce loading time.
