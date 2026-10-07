@@ -426,6 +426,100 @@ fn two_media_orders_share_the_device_but_reserve_distinct_positions() {
     );
 }
 
+/// Every autonomous draw here is decisive: the television must be each Sim's
+/// top score with a negligible exploration tail, so the count of watchers measures the
+/// slot limit rather than one roll of the random stream. The seat at (10, 12)
+/// is outside the television's view, so both viewers stand and only the
+/// standing-place reservation keeps them apart.
+#[test]
+fn autonomous_viewers_fill_both_television_slots_and_a_third_is_refused() {
+    for (seat_x, seat_y) in [(5., 3.), (10., 12.)] {
+        let (mut sim, first, device, _) =
+            fixture_at("television", seat_x, seat_y, Facing::SouthWest);
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.tuning.choice_temperature = 0.0001;
+        pack.tuning.choice_comfort_temperature = 0.0001;
+        pack.tuning.choice_exploration = 1e-8;
+        pack.tuning.choice_comfort_exploration = 1e-8;
+        let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+        sim.world_mut().insert_resource(Content(pack));
+        let slots = pack.object(pack.find("television").unwrap()).interactions[0].slots as usize;
+        sim.world_mut().entity_mut(first).remove::<IntentQueue>();
+        let mut spawn = |name: &str, position: Position| {
+            crate::household::spawn_member(
+                sim.world_mut(),
+                &pack.personalities,
+                &pack.traits,
+                crate::household::Member {
+                    name: name.into(),
+                    personality: 0,
+                    position,
+                    needs: [100.; 7],
+                    hobbies: vec![],
+                    traits: &[],
+                    career: None,
+                    instinct: Some(50),
+                },
+            )
+        };
+        let second = spawn("Second viewer", Position { x: 0., y: 4. });
+        let third = spawn("Capacity probe", Position { x: 6., y: 3. });
+        let people = [first, second, third];
+        for person in people {
+            sim.world_mut()
+                .get_mut::<terri_core::Needs>(person)
+                .unwrap()
+                .set(terri_core::NeedId::Fun, 0.);
+        }
+        sim.tick();
+        let (watching, refused): (Vec<_>, Vec<_>) = people.into_iter().partition(|person| {
+            sim.world()
+                .get::<Target>(*person)
+                .is_some_and(|target| target.object == device)
+        });
+        assert_eq!(
+            watching.len(),
+            slots,
+            "Autonomy must admit exactly the television's {slots} slots (seat at {seat_x}, {seat_y})"
+        );
+        assert_eq!(refused.len(), 1);
+        assert!(
+            sim.world().get::<terri_core::Blocked>(refused[0]).is_some()
+                && sim.world().get::<Target>(refused[0]).is_none(),
+            "The refused Sim must wait rather than act"
+        );
+        assert_eq!(
+            sim.world()
+                .get::<crate::waiting::WaitingNeeds>(refused[0])
+                .map(|waiting| waiting.1),
+            Some(device),
+            "The refused Sim must wait for the full television, not for something else"
+        );
+        let seated = watching
+            .iter()
+            .filter(|person| crate::seating::claim(sim.world(), person.index_u32()).is_some())
+            .count();
+        assert_eq!(
+            seated,
+            usize::from(seat_x < 10.),
+            "Only the in-view seat may hold a viewer (seat at {seat_x}, {seat_y})"
+        );
+        let endpoint = |person| {
+            sim.world()
+                .get::<Path>(person)
+                .expect("an admitted viewer is walking to its viewing place")
+                .steps
+                .last()
+                .copied()
+        };
+        assert_ne!(
+            endpoint(watching[0]),
+            endpoint(watching[1]),
+            "Autonomous viewers must claim distinct positions (seat at {seat_x}, {seat_y})"
+        );
+    }
+}
+
 #[test]
 fn shared_media_refill_is_directional_and_stops_when_company_leaves() {
     for kind in ["television", "radio"] {
