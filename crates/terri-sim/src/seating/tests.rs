@@ -1759,8 +1759,21 @@ fn autonomous_sitters_take_one_seat_each_and_the_extra_sitter_waits() {
     let sofa = sim.spawn_object(Position { x: 5., y: 5. }, definition);
     let people: Vec<_> = (0..=seats)
         .map(|_| {
-            let person = sitter(&mut sim, sofa, 0);
-            sim.world_mut().entity_mut(person).remove::<IntentQueue>();
+            let person = crate::household::spawn_member(
+                sim.world_mut(),
+                &pack.personalities,
+                &pack.traits,
+                crate::household::Member {
+                    name: "Sitter".into(),
+                    personality: 0,
+                    position: Position { x: 0., y: 0. },
+                    needs: [100.; 7],
+                    hobbies: vec![],
+                    traits: &[],
+                    career: None,
+                    instinct: Some(50),
+                },
+            );
             sim.world_mut()
                 .get_mut::<terri_core::Needs>(person)
                 .unwrap()
@@ -1799,15 +1812,22 @@ fn autonomous_sitters_take_one_seat_each_and_the_extra_sitter_waits() {
     );
     assert_eq!(refused.len(), 1);
     assert!(
-        sim.world().get::<terri_core::Blocked>(refused[0]).is_some(),
+        sim.world().get::<terri_core::Blocked>(refused[0]).is_some()
+            && sim.world().get::<Target>(refused[0]).is_none(),
         "The extra sitter must wait rather than act"
     );
+    let waiting = sim
+        .world()
+        .get::<crate::waiting::WaitingNeeds>(refused[0])
+        .expect("The extra sitter must record what it waits for");
     assert_eq!(
-        sim.world()
-            .get::<crate::waiting::WaitingNeeds>(refused[0])
-            .map(|waiting| waiting.1),
-        Some(sofa),
+        waiting.1, sofa,
         "The extra sitter must wait for the full sofa"
+    );
+    assert_ne!(
+        waiting.0 & (1 << terri_core::NeedId::Comfort.index()),
+        0,
+        "The extra sitter must wait for the sofa's Comfort, which only Sit offers here"
     );
 }
 
