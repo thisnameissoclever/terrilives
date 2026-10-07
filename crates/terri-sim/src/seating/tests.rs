@@ -427,7 +427,7 @@ fn two_media_orders_share_the_device_but_reserve_distinct_positions() {
 }
 
 /// Every autonomous draw here is decisive: the television must be each Sim's
-/// top score with no exploration tail, so the count of watchers measures the
+/// top score with a negligible exploration tail, so the count of watchers measures the
 /// slot limit rather than one roll of the random stream. The seat at (10, 12)
 /// is outside the television's view, so both viewers stand and only the
 /// standing-place reservation keeps them apart.
@@ -486,7 +486,23 @@ fn autonomous_viewers_fill_both_television_slots_and_a_third_is_refused() {
         assert!(
             sim.world().get::<terri_core::Blocked>(refused[0]).is_some()
                 && sim.world().get::<Target>(refused[0]).is_none(),
-            "The refused Sim must still want the full television and wait for it"
+            "The refused Sim must wait rather than act"
+        );
+        assert_eq!(
+            sim.world()
+                .get::<crate::waiting::WaitingNeeds>(refused[0])
+                .map(|waiting| waiting.1),
+            Some(device),
+            "The refused Sim must wait for the full television, not for something else"
+        );
+        let seated = watching
+            .iter()
+            .filter(|person| crate::seating::claim(sim.world(), person.index_u32()).is_some())
+            .count();
+        assert_eq!(
+            seated,
+            usize::from(seat_x < 10.),
+            "Only the in-view seat may hold a viewer (seat at {seat_x}, {seat_y})"
         );
         let endpoint = |person| {
             sim.world()
