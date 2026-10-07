@@ -427,6 +427,57 @@ fn two_media_orders_share_the_device_but_reserve_distinct_positions() {
 }
 
 #[test]
+fn autonomous_viewers_fill_both_television_slots_and_a_third_is_refused() {
+    let (mut sim, first, device, _) = fixture();
+    sim.world_mut().entity_mut(first).remove::<IntentQueue>();
+    let pack = sim.world().resource::<Content>().0;
+    let mut spawn = |name: &str, position: Position| {
+        crate::household::spawn_member(
+            sim.world_mut(),
+            &pack.personalities,
+            &pack.traits,
+            crate::household::Member {
+                name: name.into(),
+                personality: 0,
+                position,
+                needs: [100.; 7],
+                hobbies: vec![],
+                traits: &[],
+                career: None,
+                instinct: Some(50),
+            },
+        )
+    };
+    let second = spawn("Second viewer", Position { x: 0., y: 4. });
+    let third = spawn("Capacity probe", Position { x: 6., y: 3. });
+    for person in [first, second, third] {
+        sim.world_mut()
+            .get_mut::<terri_core::Needs>(person)
+            .unwrap()
+            .set(terri_core::NeedId::Fun, 0.);
+    }
+    sim.tick();
+    let watching: Vec<_> = [first, second, third]
+        .into_iter()
+        .filter(|person| {
+            sim.world()
+                .get::<Target>(*person)
+                .is_some_and(|target| target.object == device)
+        })
+        .collect();
+    assert_eq!(
+        watching.len(),
+        2,
+        "All three want the television; autonomy must admit exactly its two slots"
+    );
+    assert_ne!(
+        sim.world().get::<Path>(watching[0]).unwrap().steps.last(),
+        sim.world().get::<Path>(watching[1]).unwrap().steps.last(),
+        "Autonomous viewers must claim distinct positions"
+    );
+}
+
+#[test]
 fn shared_media_refill_is_directional_and_stops_when_company_leaves() {
     for kind in ["television", "radio"] {
         let (mut sim, first, device, _) = fixture_at(kind, 5., 3., Facing::SouthWest);
