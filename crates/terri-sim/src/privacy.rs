@@ -502,7 +502,7 @@ pub(crate) fn substitute(
                 interaction: interaction as u32,
             };
             let media =
-                crate::seating::media_activity(pack, item.definition, next.interaction).is_some();
+                crate::seating::seated_activity(pack, item.definition, next.interaction).is_some();
             let media_plan = media
                 .then(|| {
                     crate::media::plan(

@@ -111,11 +111,40 @@ fn axis_facing(facing: u32) -> (i32, i32) {
     }
 }
 
+fn footprint_tiles(pack: &terri_data::ContentPack, item: &BoundaryFurniture) -> Vec<(i32, i32)> {
+    let footprint = pack.object(item.definition).footprint_at(item.facing);
+    let origin = (
+        item.position.x.round() as i32,
+        item.position.y.round() as i32,
+    );
+    (0..footprint.depth as i32)
+        .flat_map(|y| (0..footprint.width as i32).map(move |x| (origin.0 + x, origin.1 + y)))
+        .collect()
+}
+
+/// Approach tiles paired with the seat tile they touch. A viewing seat is
+/// entered from the tile it faces; a work seat faces its station, so it is
+/// entered from any free side that is not part of the station.
 fn approaches(
     pack: &terri_data::ContentPack,
     seat: &BoundaryFurniture,
     socket: &terri_data::CompiledPlacementSocket,
+    device: &BoundaryFurniture,
 ) -> Vec<((i32, i32), (i32, i32))> {
+    let tiles = footprint_tiles(pack, seat);
+    if crate::seating::work_station(pack, device.definition) {
+        let blocked = footprint_tiles(pack, device);
+        let mut result = vec![];
+        for &contact in &tiles {
+            for step in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                let endpoint = (contact.0 + step.0, contact.1 + step.1);
+                if !tiles.contains(&endpoint) && !blocked.contains(&endpoint) {
+                    result.push((endpoint, contact));
+                }
+            }
+        }
+        return result;
+    }
     let footprint = pack.object(seat.definition).footprint_at(seat.facing);
     let origin = (
         seat.position.x.round() as i32,
@@ -180,7 +209,7 @@ pub(crate) fn plan(
         {
             continue;
         }
-        let best = approaches(pack, seat, &socket)
+        let best = approaches(pack, seat, &socket, device)
             .into_iter()
             .filter(|(endpoint, _)| {
                 !claims
@@ -215,6 +244,11 @@ pub(crate) fn plan(
                 obstructing: vec![],
             }),
         });
+    }
+    // Work without a reachable chair falls back to the ordinary standing
+    // route at the station's perimeter, never to a viewing position.
+    if crate::seating::work_station(pack, device.definition) {
+        return None;
     }
     let mut standing = vec![];
     for dx in -7..=7 {
@@ -257,7 +291,7 @@ pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketA
         return None;
     }
     let pack = world.resource::<Content>().0;
-    let activity = crate::seating::media_activity(pack, object.0, target.interaction)?;
+    let activity = crate::seating::seated_activity(pack, object.0, target.interaction)?;
     if let Some(lease) = crate::seating::claim(world, person.index_u32())
         .filter(|d| crate::seating::kind(world, d) == Some(crate::seating::UseKind::Media))
     {
@@ -283,6 +317,10 @@ pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketA
             visual_action: crate::render_buffer::visual_action::SIT,
             activity,
         });
+    }
+    if crate::seating::work_station(pack, object.0) {
+        // Standing work keeps the ordinary standing presentation.
+        return None;
     }
     let position = world.get::<Position>(person)?;
     let device = world.get::<Position>(target.object)?;
@@ -348,7 +386,7 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
         return false;
     };
     let target = *world.get::<Target>(person).unwrap();
-    if crate::seating::media_activity(pack, device.definition, target.interaction).is_none() {
+    if crate::seating::seated_activity(pack, device.definition, target.interaction).is_none() {
         return false;
     }
     let origin = (device.position.x, device.position.y);
@@ -358,7 +396,7 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
     let front = direction(socket.facing);
     let point = (socket.x, socket.y);
     let grid = world.resource::<TileGrid>();
-    let contact = approaches(pack, &seat, &socket)
+    let contact = approaches(pack, &seat, &socket, &device)
         .into_iter()
         .find(|(end, _)| *end == lease.endpoint);
     if contact.is_none()
@@ -515,7 +553,7 @@ pub(crate) fn maintain(world: &mut World) {
         .iter(world)
         .filter(|(_, target)| {
             world.get::<SmartObject>(target.object).is_some_and(|o| {
-                crate::seating::media_activity(pack, o.0, target.interaction).is_some()
+                crate::seating::seated_activity(pack, o.0, target.interaction).is_some()
             })
         })
         .map(|(person, target)| (person, *target))
@@ -524,6 +562,14 @@ pub(crate) fn maintain(world: &mut World) {
     for (person, target) in people {
         let held = crate::seating::claim(world, person.index_u32()).cloned();
         if held.as_ref().is_some_and(|lease| valid_lease(world, lease)) {
+            continue;
+        }
+        if held.is_none()
+            && world
+                .get::<SmartObject>(target.object)
+                .is_some_and(|o| crate::seating::work_station(pack, o.0))
+        {
+            // Standing work at a station is an ordinary use with no seat to maintain.
             continue;
         }
         if held.is_none() && world.get::<Eating>(person).is_none() {

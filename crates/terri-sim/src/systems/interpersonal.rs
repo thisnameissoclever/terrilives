@@ -326,9 +326,12 @@ impl InterpersonalPhase {
                         .iter()
                         .enumerate()
                         .any(|(index, a)| {
-                            let media =
-                                crate::seating::media_activity(pack, item.definition, index as u32)
-                                    .is_some();
+                            let media = crate::seating::seated_activity(
+                                pack,
+                                item.definition,
+                                index as u32,
+                            )
+                            .is_some();
                             let plan = media
                                 .then(|| {
                                     crate::media::plan(

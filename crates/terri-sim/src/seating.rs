@@ -34,6 +34,39 @@ pub(crate) fn media_kind(
     }
 }
 
+/// Seated work at a station whose chair sits against it rather than in front
+/// of free floor: the worker approaches the chair from a free side.
+pub(crate) fn work_kind(
+    definition: &terri_data::CompiledObject,
+    action: &terri_data::CompiledInteraction,
+) -> Option<u32> {
+    match (definition.id.as_str(), action.id.as_str()) {
+        ("desk", "attend_correspondence") => Some(crate::render_buffer::activity::CORRESPONDENCE),
+        _ => None,
+    }
+}
+
+pub(crate) fn work_station(
+    pack: &terri_data::ContentPack,
+    object: terri_core::ObjectDefId,
+) -> bool {
+    pack.objects
+        .get(object.0 as usize)
+        .is_some_and(|definition| definition.id == "desk")
+}
+
+/// Every interaction that may hold a physical seat lease: media viewing in
+/// front of a device, or seated work at a station.
+pub(crate) fn seated_activity(
+    pack: &terri_data::ContentPack,
+    object: terri_core::ObjectDefId,
+    interaction: u32,
+) -> Option<u32> {
+    let definition = pack.objects.get(object.0 as usize)?;
+    let action = definition.interactions.get(interaction as usize)?;
+    media_kind(definition, action).or_else(|| work_kind(definition, action))
+}
+
 pub(crate) fn ordinary_projection(
     world: &World,
     person: Entity,
@@ -94,7 +127,7 @@ pub(crate) fn kind(world: &World, lease: &SavedDiner) -> Option<UseKind> {
         }
         if target.interaction != crate::systems::chain::CHAIN_STEP {
             let object = world.get::<SmartObject>(target.object)?;
-            return media_activity(world.resource::<Content>().0, object.0, target.interaction)
+            return seated_activity(world.resource::<Content>().0, object.0, target.interaction)
                 .map(|_| UseKind::Media);
         }
     }

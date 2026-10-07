@@ -853,6 +853,104 @@ fn every_fitted_seat_type_can_supply_a_media_place() {
 }
 
 #[test]
+fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
+    // The desk faces +x from (2, 3) and (2, 4); the chair at (3, 3) faces the
+    // desk, so its front tile is the desk itself and the worker must enter
+    // from (4, 3), (3, 2) or (3, 4).
+    let (mut sim, person, device, chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::SouthWest,
+        "desk_chair",
+    );
+    sim.tick();
+    let lease = sim
+        .world()
+        .resource::<terri_core::save::SavedDining>()
+        .diners
+        .iter()
+        .find(|d| d.person == person.index_u32())
+        .cloned()
+        .expect("desk work leases the desk chair");
+    assert_eq!(lease.chair, Some(chair.index_u32()));
+    assert_eq!(lease.station, device.index_u32());
+    assert!(
+        [(4, 3), (3, 2), (3, 4)].contains(&lease.endpoint),
+        "entered from a free side, not through the desk: {:?}",
+        lease.endpoint
+    );
+    for _ in 0..120 {
+        sim.tick();
+        if sim.world().get::<Eating>(person).is_some() {
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.activities[row],
+                crate::render_buffer::activity::CORRESPONDENCE
+            );
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::SIT
+            );
+            assert_eq!(buffer.interaction_targets[row], chair.index_u32());
+            assert_eq!(buffer.facings[row], 2, "seated facing the desk along -x");
+            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+            assert!(sim.load_snapshot_v5(sim.save_snapshot_v5()).is_ok());
+            return;
+        }
+    }
+    panic!("Worker did not sit within the bounded route");
+}
+
+#[test]
+fn desk_work_without_a_facing_chair_stands_at_the_desk_as_before() {
+    // The chair faces away from the desk, so no seat qualifies and the worker
+    // takes the ordinary perimeter route without a lease or a viewing spot.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::NorthEast,
+        "desk_chair",
+    );
+    for _ in 0..120 {
+        sim.tick();
+        assert!(
+            crate::seating::claim(sim.world(), person.index_u32()).is_none(),
+            "standing work holds no seat lease"
+        );
+        if sim.world().get::<Eating>(person).is_some() {
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.activities[row],
+                crate::render_buffer::activity::CORRESPONDENCE
+            );
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::NONE
+            );
+            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+            return;
+        }
+    }
+    panic!("Worker did not reach the desk within the bounded route");
+}
+
+#[test]
 fn autonomous_media_choice_uses_the_same_physical_seat_route() {
     let (mut sim, person, device, _) = fixture();
     sim.world_mut().entity_mut(person).remove::<IntentQueue>();
