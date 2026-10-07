@@ -122,6 +122,25 @@ fn footprint_tiles(pack: &terri_data::ContentPack, item: &BoundaryFurniture) -> 
         .collect()
 }
 
+/// A work seat must stand against its station: the tile in front of the seat
+/// is part of the station's footprint, so the worker sits at the desk rather
+/// than facing it from across the room.
+fn work_seat_touches_station(
+    pack: &terri_data::ContentPack,
+    socket: &terri_data::CompiledPlacementSocket,
+    device: &BoundaryFurniture,
+) -> bool {
+    if !crate::seating::work_station(pack, device.definition) {
+        return true;
+    }
+    let front = direction(socket.facing);
+    let ahead = (
+        socket.x.round() as i32 + front.0,
+        socket.y.round() as i32 + front.1,
+    );
+    footprint_tiles(pack, device).contains(&ahead)
+}
+
 /// Approach tiles paired with the seat tile they touch. A viewing seat is
 /// entered from the tile it faces; a work seat faces its station, so it is
 /// entered from any free side that is not part of the station.
@@ -201,6 +220,7 @@ pub(crate) fn plan(
         let seat_front = direction(socket.facing);
         if !cone(origin, front, point)
             || !cone(point, seat_front, origin)
+            || !work_seat_touches_station(pack, &socket, device)
             || !grid.segment_can_cross(point, origin)
             || !occupancy.exclusive_available(person, seat.entity)
             || claims
@@ -406,6 +426,7 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
         })
         || !cone(origin, device.facing.rotate_axis(1, 0), point)
         || !cone(point, front, origin)
+        || !work_seat_touches_station(pack, &socket, &device)
         || !grid.segment_can_cross(point, origin)
     {
         return false;

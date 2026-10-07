@@ -910,6 +910,71 @@ fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
 }
 
 #[test]
+fn desk_work_ignores_a_facing_chair_that_does_not_touch_the_desk() {
+    // A chair three tiles in front of the desk faces it inside the cone but
+    // does not stand against it, so the worker takes the ordinary route.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 6., y: 3. },
+        Facing::SouthEast,
+        Facing::SouthWest,
+        "desk_chair",
+    );
+    for _ in 0..160 {
+        sim.tick();
+        assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
+        if sim.world().get::<Eating>(person).is_some() {
+            sim.sync_render_buffer();
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == person.index_u32())
+                .unwrap();
+            assert_eq!(
+                buffer.visual_actions[row],
+                crate::render_buffer::visual_action::NONE
+            );
+            assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
+            return;
+        }
+    }
+    panic!("Worker did not reach the desk within the bounded route");
+}
+
+#[test]
+fn autonomous_desk_work_without_a_chair_still_stands_at_the_desk() {
+    // The chair faces away, so no seat qualifies; autonomy must still reach
+    // the desk by its ordinary perimeter route rather than skipping it.
+    let (mut sim, person, device, _chair) = fixture_with_device(
+        "desk",
+        Position { x: 2., y: 3. },
+        Position { x: 3., y: 3. },
+        Facing::SouthEast,
+        Facing::NorthEast,
+        "desk_chair",
+    );
+    sim.world_mut().entity_mut(person).remove::<IntentQueue>();
+    sim.world_mut()
+        .get_mut::<terri_core::Needs>(person)
+        .unwrap()
+        .set(terri_core::NeedId::Fun, 0.);
+    for _ in 0..30 {
+        sim.tick();
+        if sim
+            .world()
+            .get::<Target>(person)
+            .is_some_and(|t| t.object == device)
+        {
+            assert!(crate::seating::claim(sim.world(), person.index_u32()).is_none());
+            return;
+        }
+    }
+    panic!("Autonomy never chose the chairless desk");
+}
+
+#[test]
 fn desk_work_without_a_facing_chair_stands_at_the_desk_as_before() {
     // The chair faces away from the desk, so no seat qualifies and the worker
     // takes the ordinary perimeter route without a lease or a viewing spot.

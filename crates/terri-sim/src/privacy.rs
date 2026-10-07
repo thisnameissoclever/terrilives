@@ -502,8 +502,10 @@ pub(crate) fn substitute(
                 interaction: interaction as u32,
             };
             let media =
+                crate::seating::media_activity(pack, item.definition, next.interaction).is_some();
+            let seated =
                 crate::seating::seated_activity(pack, item.definition, next.interaction).is_some();
-            let media_plan = media
+            let media_plan = seated
                 .then(|| {
                     crate::media::plan(
                         crate::media::Planning {
@@ -585,10 +587,12 @@ pub(crate) fn substitute(
             let chosen = available
                 .into_iter()
                 .filter_map(|admission| {
-                    let route = if media {
-                        media_plan.as_ref()?.access
-                    } else {
-                        access.for_admission(admission)?
+                    // A viewing use needs its planned place; seated work
+                    // without a chair keeps the ordinary standing route.
+                    let route = match (media, media_plan.as_ref()) {
+                        (_, Some(plan)) => plan.access,
+                        (true, None) => return None,
+                        (false, None) => access.for_admission(admission)?,
                     };
                     let steps = route.route.path(safe, from)?;
                     let steps = safe.anchor_path((pos.x, pos.y), steps)?;

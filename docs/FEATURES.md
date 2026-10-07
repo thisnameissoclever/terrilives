@@ -1352,9 +1352,10 @@ four facings, and taking a bath has a fitted seated loop in the tub with an
 opaque water surface, registered to the tub's basin socket in all four
 facings. Washing hands at either sink stands the Sim at the basin facing it
 with the prepare clip's busy hands until a dedicated hand-washing clip ships.
-Working at the desk seats the Sim on a desk chair that faces the desk through
-the same physical-seat lease as television and radio viewing, entered from a
-free side of the chair; a desk without a facing chair keeps the standing use.
+Working at the desk seats the Sim on a chair placed against the desk and
+facing it (any fitted seat type) through the same physical-seat lease as
+television and radio viewing, entered from a free side of the chair; a desk
+without such a chair keeps the standing use.
 Double-bed sleeping, showering and ordinary idling remain static poses.
 Tables use adjacent chairs and fitted sitting poses. Sit needs a matching chair;
 Eat prepared food needs an available prepared portion for the selected Sim.
