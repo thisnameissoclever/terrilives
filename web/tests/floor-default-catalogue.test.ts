@@ -1,7 +1,9 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ARCHITECTURE } from '../src/render/architecture-data.js';
 import { architectureMode } from '../src/render/instances.js';
 import { BAKED_FLOORS } from '../src/render/architecture-baked-floors.js';
+// Load the production atlas during fixture collection, before timed assertions.
+import '../src/render/atlas.js';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -23,32 +25,46 @@ it('pins baked identities to the accepted source manifest and color bytes', () =
   }
 });
 
-it.each(['palette', 'pattern'])('routes a default production catalogue %s addition through a prepared carrier finish', async kind => {
-  const original = ARCHITECTURE.catalogue;
-  const catalogue = { ...original,
-    patterns: { ...original.patterns, fixture: { role: 'floor', period: [2, 3], resource: 'tiles' } },
-    palettes: { ...original.palettes, blue: { multiply: [.2, .5, 1] } },
-    finishes: { ...original.finishes, fixture: { patternKey: kind === 'palette' ? 'floor.tiles' : 'fixture',
-      paletteKey: 'blue', authoredContentLook: [0, 1, 0] } },
-    coverings: { ...original.coverings, 4: 'fixture' } };
-  vi.resetModules();
-  vi.doMock('../src/render/architecture-data.js', () => ({ ARCHITECTURE: { ...ARCHITECTURE, catalogue } }));
-  const { floorMaterial, activeFloorFinishKeys } = await import('../src/render/floor-materials.js');
-  const { prepareArchitectureFinishes } = await import('../src/render/architecture-finishes.js');
-  const { buildStaticInstances } = await import('../src/render/tiles.js');
-  const material = floorMaterial(4, 'house', 0, 0);
-  expect(material.accepted).toBe(false);
-  expect(material.sprite.name).toContain('neutral');
-  const keys = activeFloorFinishKeys([0, 0, 4], null);
-  expect(keys).toEqual(['fixture']);
-  expect(floorMaterial(1, 'house', 0, 0).accepted).toBe(true);
-  const finishes = prepareArchitectureFinishes(keys, { maxSampledTexturesPerShaderStage: 16,
-    maxTextureDimension2D: 8192, maxTextureArrayLayers: 256, maxStorageBufferBindingSize: 1e8 });
-  const rows = buildStaticInstances({ width: 1, height: 1, walls: new Uint32Array(), edges: new Uint32Array(),
-    architecture: { windows: [], catalogue: [], finishes }, floors: new Uint32Array([0, 0, 4]),
-    coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]) }, 0, 0, 2);
-  expect(rows.instances[8]).toBe(architectureMode(true, 1));
-  expect(Array.from(finishes.table.slice(4, 7))).toEqual([Math.fround(.2), .5, 1]);
+describe.each(['palette', 'pattern'])('default production catalogue %s addition', kind => {
+  let floorModule: typeof import('../src/render/floor-materials.js');
+  let finishModule: typeof import('../src/render/architecture-finishes.js');
+  let tileModule: typeof import('../src/render/tiles.js');
+
+  beforeAll(async () => {
+    const original = ARCHITECTURE.catalogue;
+    const catalogue = { ...original,
+      patterns: { ...original.patterns, fixture: { role: 'floor', period: [2, 3], resource: 'tiles' } },
+      palettes: { ...original.palettes, blue: { multiply: [.2, .5, 1] } },
+      finishes: { ...original.finishes, fixture: { patternKey: kind === 'palette' ? 'floor.tiles' : 'fixture',
+        paletteKey: 'blue', authoredContentLook: [0, 1, 0] } },
+      coverings: { ...original.coverings, 4: 'fixture' } };
+    vi.resetModules();
+    vi.doMock('../src/render/architecture-data.js', () => ({ ARCHITECTURE: { ...ARCHITECTURE, catalogue } }));
+    [floorModule, finishModule, tileModule] = await Promise.all([
+      import('../src/render/floor-materials.js'),
+      import('../src/render/architecture-finishes.js'),
+      import('../src/render/tiles.js'),
+    ]);
+  });
+
+  it('routes the addition through a prepared carrier finish', () => {
+    const { floorMaterial, activeFloorFinishKeys } = floorModule;
+    const { prepareArchitectureFinishes } = finishModule;
+    const { buildStaticInstances } = tileModule;
+    const material = floorMaterial(4, 'house', 0, 0);
+    expect(material.accepted).toBe(false);
+    expect(material.sprite.name).toContain('neutral');
+    const keys = activeFloorFinishKeys([0, 0, 4], null);
+    expect(keys).toEqual(['fixture']);
+    expect(floorMaterial(1, 'house', 0, 0).accepted).toBe(true);
+    const finishes = prepareArchitectureFinishes(keys, { maxSampledTexturesPerShaderStage: 16,
+      maxTextureDimension2D: 8192, maxTextureArrayLayers: 256, maxStorageBufferBindingSize: 1e8 });
+    const rows = buildStaticInstances({ width: 1, height: 1, walls: new Uint32Array(), edges: new Uint32Array(),
+      architecture: { windows: [], catalogue: [], finishes }, floors: new Uint32Array([0, 0, 4]),
+      coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]) }, 0, 0, 2);
+    expect(rows.instances[8]).toBe(architectureMode(true, 1));
+    expect(Array.from(finishes.table.slice(4, 7))).toEqual([Math.fround(.2), .5, 1]);
+  });
 });
 
 it('does not treat changed pattern bytes behind the same resource key as baked art', async () => {
