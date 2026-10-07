@@ -36,9 +36,23 @@ class ChangelogPublication(unittest.TestCase):
         self.assertIn("if: steps.release.outputs.current == 'true'", self.pages)
 
     def test_pages_builds_the_tested_sha_and_checks_the_changelog_artifact(self):
-        self.assertEqual(self.pages.count("ref: ${{ github.event.workflow_run.head_sha }}"), 2)
+        self.assertEqual(self.pages.count("ref: ${{ needs.decide.outputs.tested_sha }}"), 2)
         self.assertIn("test -f web/dist/changelog/index.html", self.pages)
         self.assertIn("path: web/dist", self.pages)
+
+    def test_manual_publication_requires_the_exact_main_commit_before_building(self):
+        self.assertIn("workflow_dispatch:", self.pages)
+        start = self.pages.index('if [ "$EVENT" = "workflow_dispatch" ]')
+        end = self.pages.index('fi\n', start)
+        guard = self.pages[start:end]
+        ref_check = guard.index('test "$GITHUB_REF" = "refs/heads/main"')
+        sha_check = guard.index('test "$VALIDATED_SHA" = "$GITHUB_SHA"')
+        release = guard.index('echo "site=true"')
+        self.assertLess(ref_check, release)
+        self.assertLess(sha_check, release)
+        self.assertIn('echo "tested_sha=$GITHUB_SHA"', guard)
+        self.assertIn("needs: [decide, build]", self.pages)
+        self.assertIn("TESTED_SHA: ${{ needs.decide.outputs.tested_sha }}", self.pages)
 
 
 if __name__ == "__main__":

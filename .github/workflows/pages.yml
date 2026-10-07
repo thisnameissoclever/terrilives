@@ -4,9 +4,9 @@ name: Deploy to GitHub Pages
 # including a phone that is not on the same network.
 #
 # Execution stays separate from ci.yml because this workflow ships to the
-# public internet. Its trigger is deliberately downstream of a successful CI
-# push run, however, so Pages can never publish a main revision that CI has
-# rejected. See [L-pages-must-follow-green-ci].
+# public internet. Automatic publication follows successful push CI. A maintainer
+# may also dispatch the exact main commit after its relevant checks pass locally.
+# Both paths execute the site build and reject stale release artifacts.
 #
 # KNOWN LIMIT, recorded because it contradicts TIM-TODO [T18]: GitHub
 # Pages cannot set response headers, so it cannot send COOP and COEP.
@@ -17,6 +17,12 @@ name: Deploy to GitHub Pages
 # the artifact is a static bundle; it will not get cheaper.
 
 on:
+  workflow_dispatch:
+    inputs:
+      validated_sha:
+        description: Full main commit whose relevant checks passed locally
+        required: true
+        type: string
   workflow_run:
     workflows: [CI]
     types: [completed]
@@ -42,22 +48,35 @@ jobs:
   # still skips publication. CI compares from the last tested game revision,
   # so a notes-only edit cannot hide code whose own CI never passed.
   decide:
-    # `workflow_run` fires for every conclusion, and CI also supports manual
-    # dispatch. Only a successful push to main is a releasable revision.
+    # Automatic publication requires successful push CI. Manual publication
+    # validates its locally checked commit against the workflow's main revision.
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     outputs:
       site: ${{ steps.content.outputs.site }}
+      tested_sha: ${{ steps.content.outputs.tested_sha }}
     steps:
       - name: Find whether CI tested published content
         id: content
         env:
           GH_TOKEN: ${{ github.token }}
           RUN: ${{ github.event.workflow_run.id }}
+          EVENT: ${{ github.event_name }}
+          VALIDATED_SHA: ${{ inputs.validated_sha }}
+          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -eu
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            test "$GITHUB_REF" = "refs/heads/main"
+            test "$VALIDATED_SHA" = "$GITHUB_SHA"
+            echo "tested_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "site=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "tested_sha=$TESTED_SHA" >> "$GITHUB_OUTPUT"
           tested=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN/jobs" \
             --jq '[.jobs[] | select(.name == "web" or .name == "changelog") | .conclusion] | any(. == "success")')
           if [ "$tested" = "true" ]; then
@@ -80,7 +99,7 @@ jobs:
       # happens to be newest when this runner starts.
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ needs.decide.outputs.tested_sha }}
 
       # rust-toolchain.toml is the single source for the version,
       # components and targets. See ci.yml for why it is pinned.
@@ -127,7 +146,7 @@ jobs:
           path: web/dist
 
   deploy:
-    needs: build
+    needs: [decide, build]
     concurrency:
       group: pages-deploy
       cancel-in-progress: false
@@ -142,7 +161,7 @@ jobs:
       # existing public revision alone when this artifact is stale.
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ needs.decide.outputs.tested_sha }}
           fetch-depth: 0
 
       # A tip that differs only in unpublished documentation serves the same
@@ -153,7 +172,7 @@ jobs:
       - name: Confirm the tested revision is still the main tip
         id: release
         env:
-          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          TESTED_SHA: ${{ needs.decide.outputs.tested_sha }}
         run: |
           set -eu
           current_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
