@@ -59,18 +59,19 @@ describe('native book postcard witnesses', () => {
 });
 
 it('decodes native borrower capacity separately from shelf space and collection places', () => {
-  const bytes = Uint8Array.from([1,0,1,115,8,66,111,111,107,99,97,115,101,5,83,104,101,108,102,6,83,104,101,108,102,46,8,98,111,111,107,99,97,115,101,7,115,116,111,114,97,103,101,7,83,116,111,114,97,103,101,1,11,108,105,118,105,110,103,95,114,111,111,109,1,1,24,1,60,2,4,114,101,97,100,11,82,101,97,100,32,97,32,98,111,111,107,60,0,1,0,166,155,68,59,4,0,0,240,65,0,0,0,0,166,155,68,59,0,0,128,63,1,22,65,118,97,105,108,97,98,108,101,32,115,104,101,108,118,101,100,32,98,111,111,107,8,111,114,100,105,110,97,114,121,0,7,105,110,115,112,101,99,116,7,73,110,115,112,101,99,116,1,1,1,0,0,0,0,0,0,0,0,8,111,114,100,105,110,97,114,121,1,10,109,101,97,108,95,116,97,98,108,101,1,12,112,114,101,112,95,115,117,114,102,97,99,101]);
+  const bytes = Uint8Array.from([1,0,1,115,8,66,111,111,107,99,97,115,101,5,83,104,101,108,102,6,83,104,101,108,102,46,8,98,111,111,107,99,97,115,101,7,115,116,111,114,97,103,101,7,83,116,111,114,97,103,101,1,11,108,105,118,105,110,103,95,114,111,111,109,1,1,24,1,60,2,4,114,101,97,100,11,82,101,97,100,32,97,32,98,111,111,107,60,0,1,0,166,155,68,59,4,0,0,240,65,0,0,0,0,166,155,68,59,0,0,128,63,1,22,65,118,97,105,108,97,98,108,101,32,115,104,101,108,118,101,100,32,98,111,111,107,8,111,114,100,105,110,97,114,121,0,0,7,105,110,115,112,101,99,116,7,73,110,115,112,101,99,116,1,1,1,0,0,0,0,0,0,0,0,8,111,114,100,105,110,97,114,121,1,10,109,101,97,108,95,116,97,98,108,101,1,1,12,112,114,101,112,95,115,117,114,102,97,99,101]);
   const model = decodeModelFacts(bytes)[0];
   expect(model.roles).toEqual(['prep_surface']);
   expect(model.actions[0].optionalRequirements).toEqual([]);
   expect(model.actions[1].optionalRequirements).toEqual(['meal_table']);
   expect(model.shelfCapacity).toBe(24); expect(model.shelfAccessPoints).toBe(1);
   expect(model.actions[0].capacity).toBeNull(); expect(model.actions[1].capacity).toBe(1);
+  expect(model.actions[0].seatsAddViewers).toBe(false); expect(model.actions[1].seatsAddViewers).toBe(true);
   // Fixed offsets are pinned by the independent native literal witness above.
-  expect(Array.from(bytes.slice(163,166))).toEqual([1,1,0]);
-  const noOrdinaryLimit = Uint8Array.from([...bytes.slice(0,163), 0, ...bytes.slice(165)]);
+  expect(Array.from(bytes.slice(164,167))).toEqual([1,1,0]);
+  const noOrdinaryLimit = Uint8Array.from([...bytes.slice(0,164), 0, ...bytes.slice(166)]);
   expect(() => decodeModelFacts(noOrdinaryLimit)).toThrow();
-  for (const [offset, value] of [[66,0], [67,0], [163,2], [164,0]]) {
+  for (const [offset, value] of [[66,0], [67,0], [164,2], [165,0]]) {
     const malformed = bytes.slice(); malformed[offset] = value;
     expect(() => decodeModelFacts(malformed)).toThrow();
   }
