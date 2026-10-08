@@ -10,6 +10,8 @@ export interface BookMemory { simId: number; titleId: string; progressTicks: num
 export type OptionalStationRole = 'prep_surface' | 'cold_storage' | 'hob' | 'meal_table' | 'dining_seat' | 'dish_sink' | 'eating_surface' | 'turnable_seat';
 export interface ModelAction { id: string; label: string; durationTicks: number; capacity: number | null;
   reading: boolean; benefits: readonly [number, number][]; satisfactionPoints: number; readingBenefits: readonly number[]; requirements: readonly string[]; workKind: string;
+  /** Free seats in view admit users beyond `capacity`, which counts standing users only. */
+  seatsAddViewers?: boolean;
   /** Canonical optional station-role IDs, separated from display-only condition notes. */
   optionalRequirements: readonly OptionalStationRole[];
   additionalDetails?: readonly string[] }
@@ -144,7 +146,8 @@ export function decodeModelFacts(bytes: Uint8Array): ModelFacts[] {
         benefits: r.list(() => [r.byte(), r.float()] as [number, number], 5), satisfactionPoints: r.float(), readingBenefits: r.list(() => r.float(), 4), requirements: r.list(() => r.text()), workKind: r.text() };
       const wireTail = r.list(() => r.text());
       wireTail.forEach(nonblank); unique(wireTail, value => value);
-      return { ...action, ...splitBuyingDetails(wireTail) };
+      const seatsAddViewers = r.bool();
+      return { ...action, ...splitBuyingDetails(wireTail), seatsAddViewers };
     }, 11);
     const roles = r.list(() => r.text());
     return { definition, id, typeLabel, modelName, description, typeId, categoryId, categoryLabel, rooms, width, depth, shelfCapacity, shelfAccessPoints, sessionTicks, actions, roles };
@@ -159,7 +162,7 @@ export function decodeModelFacts(bytes: Uint8Array): ModelFacts[] {
     for (const action of row.actions) { nonblank(action.id); nonblank(action.label); action.requirements.forEach(nonblank); action.optionalRequirements.forEach(nonblank); unique(action.requirements, value => value); unique(action.optionalRequirements, value => value); requireValue(!action.optionalRequirements.some(value => action.requirements.includes(value))); requireValue(action.durationTicks > 0 && (action.capacity === null ? action.reading && row.shelfCapacity > 0 : action.capacity > 0));
       requireValue(action.readingBenefits.length === (action.reading ? 4 : 0)); unique(action.benefits, entry => entry[0]);
       requireValue(action.satisfactionPoints >= 0 && action.readingBenefits.every(value => value >= 0));
-      requireValue(action.benefits.every(([need]) => need < 7)); requireValue(['ordinary', 'recipe', 'dish_cleanup'].includes(action.workKind)); }
+      requireValue(action.benefits.every(([need]) => need < 7)); requireValue(['ordinary', 'recipe', 'dish_cleanup'].includes(action.workKind)); requireValue(!action.seatsAddViewers || action.capacity !== null); }
   }
   return rows;
 }

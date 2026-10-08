@@ -1,6 +1,6 @@
 # Clearer status panel, sofa clicks and watching together
 
-Loading an older saved household keeps the status panel compact, clicking a sofa now has the selected Sim sit on it, and the whole household can watch television together.
+Loading an older saved household keeps the status panel compact, clicking a sofa now has the selected Sim sit on it, and every free seat in view of the television can hold a viewer.
 
 ## Improved
 

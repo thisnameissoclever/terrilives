@@ -27,7 +27,9 @@ it('shows actual merged handwashing and two-user media conditions without invent
       expect(model.actions[0].capacity).toBe(2);
       expect(model.actions[0].optionalRequirements).toEqual([]);
       const text = modelFactsLabel(model, names);
-      expect(text).toContain('2 users at once');
+      expect(model.actions[0].seatsAddViewers).toBe(true);
+      expect(text).toContain('2 standing at once, plus one for each free seat in view');
+      expect(text).not.toContain('users at once');
       expect(text).toContain('Social requires liked company using the same device');
       expect(text).toContain('Comfort depends on the seat actually used');
       expect(text).not.toContain('Optional seating');

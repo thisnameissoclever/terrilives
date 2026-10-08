@@ -1167,11 +1167,10 @@ fn viewers_who_lose_their_seats_stand_only_within_the_television_count() {
                 .is_some_and(|target| target.object == device)
         })
         .collect();
-    assert!(!still.is_empty(), "some viewers keep watching standing");
-    assert!(
-        still.len() <= slots,
-        "{} viewers kept watching without seats; the television allows {slots} standing",
-        still.len()
+    assert_eq!(
+        still.len(),
+        slots.min(seats),
+        "viewers keep watching standing up to the television's count, and no further"
     );
     let saved = sim.save_snapshot_v6();
     sim.load_snapshot_v6(saved)
@@ -2731,7 +2730,7 @@ fn media_users_on_distinct_sofa_seats_share_one_approach() {
 }
 
 #[test]
-fn media_destinations_are_exclusive_while_reading_seat_approaches_can_be_shared() {
+fn standing_viewing_spots_are_exclusive_while_seated_approaches_can_be_shared() {
     use super::{endpoints_conflict, EndpointUse, UseKind};
     let mut world = bevy_ecs::world::World::new();
     let first = world.spawn_empty().id();

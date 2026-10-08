@@ -551,7 +551,8 @@ and reachable positions. Coordinate this with [S-activity-seating].
 
 **Status: Partial; requested 2026-10-01 for the same early delivery.** Armchair
 sitting and seated reading already have poses and animations. TV and radio users
-can use suitable seats, with up to two active users per device. General seat preferences
+can use suitable seats; each free seat in view admits a viewer, and the device's
+own count limits standing viewers. General seat preferences
 and the remaining seat and activity combinations are planned.
 
 Sims should prefer suitable available seats when eating, reading, watching TV
