@@ -211,8 +211,22 @@ scene draws, and gives the scene the two-tile footprint depth described in
    the step ends within its sampled length, and that loads before and during
    the step resume at samples 0 and 4.
 3. The gate counts for the delivered head are in the delivery report.
-4. `prepare-fridge-gpu-reference.py` and `web/proofs/fridge-reach.js` follow
-   the bath's full-frame GPU proof.
+4. `prepare-fridge-gpu-reference.py` writes the decoded-layer shader
+   reference from export `fridge-02`, and `web/proofs/fridge-reach.js` draws
+   all 96 scenes through the real sprite renderer and compares a copied
+   readback with it. Run in the browser pane on the delivered head: every
+   scene passed with a maximum error of one colour level and a 95th
+   percentile of zero; the validation error scope and the uncaptured-error
+   list were empty.
+5. Played on the delivered head in a task-owned game served from this
+   worktree at the `127.0.0.1:5174` origin, in the saved house where the
+   first played check failed: Bill was ordered to Grab a snack, walked along
+   the counter to the tile in front of the corner fridge, and stayed drawn
+   throughout the Get snack step while the door swung open toward the
+   camera, he reached inside and the door closed.
+   `fridge-reach-arrival-played.png` shows him arriving at the door front;
+   `fridge-reach-played.png` shows four close crops through the reach. The
+   browser tab and the dev server were closed afterwards.
 
 ## Deviations from the plan
 
