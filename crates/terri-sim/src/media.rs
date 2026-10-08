@@ -665,6 +665,8 @@ pub(crate) fn valid_lease(world: &World, lease: &SavedDiner) -> bool {
 }
 
 /// Validate device capacity and exclusive destinations before adopting a save.
+/// Historical packs declare no seats, so every historical viewer counts as
+/// standing and the device's count still limits them all, as it did.
 pub(crate) fn validate_ownership(world: &World) -> Result<(), crate::SaveError> {
     let pack = world.resource::<Content>().0;
     let Some(mut people) = world.try_query_filtered::<(Entity, &Target, &Position, Option<&terri_core::Path>), With<terri_core::Agent>>() else { return Ok(()); };

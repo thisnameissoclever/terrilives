@@ -13,7 +13,7 @@ it('separates canonical optional hardware roles from opaque display notes at the
     .toEqual({ optionalRequirements: ['meal_table', 'dining_seat'], additionalDetails: ['Handwashing raises Hygiene only up to 40', 'An opaque future display note'] });
 });
 
-it('shows actual merged handwashing and two-user media conditions without inventing optional dining hardware', () => {
+it('shows actual merged handwashing and seat-dependent media capacity without inventing optional dining hardware', () => {
   const handle = SimHandle.from_lot(), source = new SimBridge(handle, memory);
   try {
     const models = source.modelFacts(), names = source.needNames();
