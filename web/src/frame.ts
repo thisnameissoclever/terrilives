@@ -604,18 +604,22 @@ export function simSprite(_id: number, simId = 0xffff_ffff): number {
   return RIGGED_SIM_VARIANTS[simShirtVariant(simId)].idle.frames[0][0];
 }
 
-/** Generic rigged clip per visual-action code; codes 18 to 20 have no generic clip. */
+/**
+ * Generic rigged clip per visual-action code; codes 18 to 20 have no generic clip.
+ * Code 22, the fridge reach, is drawn as a fixture scene; a storage station
+ * without that scene shows the standing body.
+ */
 const RIGGED_ACTIONS: readonly (string | undefined)[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
   'watch_fish', 'sit', 'sleep', 'prepare', 'cook_v2', 'wash', 'seated_eat',
   'mop', 'wipe_counter', 'wipe_table', 'empty_bin',
-  undefined, undefined, undefined, 'prepare',
+  undefined, undefined, undefined, 'prepare', 'idle',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
   1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
   10, 10, 10, 16,
-  1, 1, 1, 1, 1, 1, 1, 10,
+  1, 1, 1, 1, 1, 1, 1, 10, 1,
 ];
 
 /** Sample the baked rig from simulation state, without an animation clock. */

@@ -1352,6 +1352,13 @@ four facings, and taking a bath has a fitted seated loop in the tub with an
 opaque water surface, registered to the tub's basin socket in all four
 facings. Washing hands at either sink stands the Sim at the basin facing it
 with the prepare clip's busy hands until a dedicated hand-washing clip ships.
+Getting ingredients for a meal or a snack walks the Sim to the tile in front
+of the fridge door, where a fitted scene opens the door, reaches into the
+upper compartment and closes it. The step's own progress selects one of eight
+samples, so the sequence finishes within any sampled step length, holds while
+paused, rests closed under reduced motion and resumes halfway through after
+Load. When the door front is blocked or unreachable the Sim uses another
+side and keeps the standing pose.
 Working at the desk seats the Sim on a chair placed against the desk and
 facing it (any fitted seat type) through the same physical-seat lease as
 television and radio viewing, entered from a free side of the chair; a desk

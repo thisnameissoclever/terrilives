@@ -4,6 +4,7 @@ import { tickAnimationFrame } from './sim-animation.js';
 import { sharedSeatKey, sharedSeatPhase, reclineKey, RECLINE_ACTIVITY, RECLINE_VISUAL_ACTION, type SharedSeatCatalog, type ReclineCatalog } from './shared-seat-sprites.js';
 import { readingBodyScene, type ReadingBodyCatalog } from './reading-sprites.js';
 import { bookReachFrame, FETCH_BOOK_STAGE, SHELVE_BOOK_STAGE, type BookReachCatalog } from './book-reach-sprites.js';
+import { fetchFrame, FETCH_VISUAL_ACTION } from './fetch-animation.js';
 
 function paletteIndex(variant: ShirtVariant): number {
   return variant === 'green' ? 0 : variant === 'blue' ? 1 : 2;
@@ -45,6 +46,8 @@ export interface InteractionColumns {
   readonly readingReachTotals?: Uint32Array;
   readonly carriedBooks?: Uint32Array;
   readonly positions?: Float32Array;
+  /** Step progress in thousandths; progress-driven profiles (the fridge reach) sample from it. */
+  readonly choreProgress?: Uint32Array;
 }
 
 export interface InteractionSource {
@@ -72,6 +75,7 @@ export interface InteractionSource {
   readingReachTotals?(): Uint32Array;
   carriedBooks?(): Uint32Array;
   positions?(): Float32Array;
+  choreProgress?(): Uint32Array;
 }
 
 /** Reused row tables keep selection, suppression and sampling on one contract. */
@@ -185,6 +189,7 @@ export class InteractionSelection {
     this.columns.readingReachTotals = source.readingReachTotals?.();
     this.columns.carriedBooks = source.carriedBooks?.();
     this.columns.positions = source.positions?.();
+    this.columns.choreProgress = source.choreProgress?.();
     this.update(this.columns, tick, reducedMotion);
   }
 
@@ -390,8 +395,11 @@ export class InteractionSelection {
       const variant = this.shirtVariant(simIds?.[row]);
       const resting = actions[row] === 8 && profile.idleFrames;
       const frames = (resting || profile.facingFrames?.[columns.facings?.[row] ?? 0] || profile.frames)[variant];
-      const sample = resting ? 0 : tickAnimationFrame(tick, ids[row] % profile.halfCycleTicks,
-        frames.length, 2 * profile.halfCycleTicks / frames.length, reducedMotion);
+      const sample = resting ? 0
+        : profile.action === FETCH_VISUAL_ACTION
+          ? fetchFrame(columns.choreProgress?.[row] ?? 0, frames.length, reducedMotion)
+          : tickAnimationFrame(tick, ids[row] % profile.halfCycleTicks,
+            frames.length, 2 * profile.halfCycleTicks / frames.length, reducedMotion);
       this.bodies[row] = frames[sample];
       this.targetRows[row] = target;
       this.suppressed[target] = 1;
