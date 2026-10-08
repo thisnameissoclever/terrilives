@@ -559,7 +559,14 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
             assert!(actual.interactions.iter().all(|a| a.id == "sit"
                 || a.id == "read"
                 || expected.interactions.iter().any(|p| p.id == a.id)));
+            if actual.id == "long_sofa" {
+                assert_eq!(
+                    actual.interactions[actual.default_interaction as usize].id, "sit",
+                    "a left click on the sofa sits"
+                );
+            }
             actual.interactions = expected.interactions.clone();
+            actual.default_interaction = expected.default_interaction;
         }
         if !changed_seating {
             assert!(actual.interactions.iter().all(|a| expected
@@ -933,4 +940,100 @@ sprite = { set = "bench" }
     );
     let resolved = resolve("slots = { remove = true }").unwrap();
     assert_eq!(resolved.object[0].interaction[0].slots, 2);
+}
+
+#[test]
+fn a_type_names_the_action_a_left_click_starts() {
+    let pack = terri_data::pack();
+    let sofa = pack.object(pack.find("long_sofa").unwrap());
+    let sit = sofa
+        .interactions
+        .iter()
+        .position(|action| action.id == "sit")
+        .unwrap();
+    assert_ne!(
+        sit, 0,
+        "the sofa's first action is not Sit, so the default is doing work"
+    );
+    assert_eq!(sofa.default_interaction as usize, sit);
+    let tv = pack.object(pack.find("television").unwrap());
+    assert_eq!(
+        tv.default_interaction, 0,
+        "an unnamed default is the first action"
+    );
+
+    let source = |default: &str| {
+        toml::from_str::<terri_data::schema::ObjectsFile>(&format!(
+            r#"
+[[category]]
+id = "other"
+label = "Other"
+[[object_type]]
+id = "box"
+label = "Box"
+category = "other"
+[object_type.properties]
+default_action = {{ set = "{default}" }}
+[[object_type.action]]
+id = "kick"
+[object_type.action.properties]
+duration_ticks = {{ set = 40.0 }}
+slots = {{ set = 1.0 }}
+advertises = {{ set = {{ fun = 1.0 }} }}
+[[object_type.action]]
+id = "open"
+[object_type.action.properties]
+duration_ticks = {{ set = 40.0 }}
+slots = {{ set = 1.0 }}
+advertises = {{ set = {{ fun = 2.0 }} }}
+[[model]]
+id = "box"
+object_type = "box"
+[model.properties]
+name = {{ set = "Box" }}
+sprite = {{ set = "box" }}
+"#
+        ))
+        .unwrap()
+    };
+    let resolved = terri_data::hierarchy::resolve(source("open")).unwrap();
+    assert_eq!(resolved.object[0].default_action.as_deref(), Some("open"));
+}
+
+#[test]
+fn bookcase_reading_refuses_an_authored_count() {
+    let source = |slots: &str| {
+        toml::from_str::<terri_data::schema::ObjectsFile>(&format!(
+            r#"
+[[category]]
+id = "other"
+label = "Other"
+[[object_type]]
+id = "shelf"
+label = "Shelf"
+category = "other"
+[[object_type.action]]
+id = "read"
+[object_type.action.properties]
+book_reading = {{ set = true }}
+duration_ticks = {{ set = 40.0 }}
+advertises = {{ set = {{ fun = 1.0 }} }}
+{slots}
+[[model]]
+id = "shelf"
+object_type = "shelf"
+[model.properties]
+name = {{ set = "Shelf" }}
+sprite = {{ set = "shelf" }}
+"#
+        ))
+        .unwrap()
+    };
+    let resolved = terri_data::hierarchy::resolve(source("")).unwrap();
+    assert_eq!(resolved.object[0].interaction[0].slots, 1);
+    let refused = terri_data::hierarchy::resolve(source("slots = { set = 1.0 }"));
+    assert!(
+        matches!(&refused, Err(terri_data::ContentError::InvalidHierarchy { reason, .. }) if reason.contains("copies")),
+        "{refused:?}"
+    );
 }

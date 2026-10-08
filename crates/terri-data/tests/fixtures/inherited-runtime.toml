@@ -51,6 +51,7 @@ sprite = { set = "offlineTelevision" }
 id = "watch_tv"
 [model.action.properties]
 media = { remove = true }
+slots = { set = 1 }
 
 [[model]]
 id = "fixture_radio"

@@ -1357,14 +1357,13 @@ export class SimBridge {
    * `interaction` indexes that object's own interaction list, which is the
    * order `interactionLabels` returns and the order the flyout draws its
    * rows in: row `n` is interaction `n`. A plain click and a ctrl-click
-   * both send 0, which is the only interaction any shipped object has; a
-   * menu row sends its own index.
+   * both send the object's `defaultInteraction`; a menu row sends its own
+   * index.
    *
    * **Required rather than defaulted to 0.** A default would let a caller
    * that forgot the argument compile and silently send the first
    * interaction, which is the exact bug this parameter was added to
-   * remove - and it is invisible today, because every shipped object's
-   * first interaction is also its only one.
+   * remove; several shipped objects offer more than one interaction.
    *
    * An index the object does not have is NOT rejected here, and nor is it
    * rejected in Rust. It is a well-formed command, it is what a saved
@@ -1530,6 +1529,12 @@ export class SimBridge {
   interactionLabels(entityIndex: number): string[] {
     if (!isU32(entityIndex)) return [];
     return this.handle.interaction_labels(entityIndex);
+  }
+
+  /** The interaction a left click on `entityIndex` starts. */
+  defaultInteraction(entityIndex: number): number {
+    if (!isU32(entityIndex)) return 0;
+    return this.handle.default_interaction(entityIndex);
   }
 
   /**

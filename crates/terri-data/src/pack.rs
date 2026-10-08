@@ -467,6 +467,9 @@ pub struct CompiledObject {
     pub shelf_access: Vec<(i32, i32)>,
     pub cooking_front: Option<(i32, i32)>,
     pub seat_comfort_per_tick: f32,
+    /// The interaction a left click starts. Content names it by action id;
+    /// the first interaction when unnamed. Appended last.
+    pub default_interaction: u32,
 }
 
 /// Navigation offsets from the base-facing footprint, independent of art sockets.
@@ -1880,6 +1883,7 @@ mod tests {
                         });
                     }
                     CompiledObject {
+                        default_interaction: 0,
                         cooking_front: None,
                         shelf_capacity: 0,
                         shelf_access: vec![],
@@ -2234,6 +2238,7 @@ mod tests {
         facing_foreground_sprites: FacingSprites,
     ) -> CompiledObject {
         CompiledObject {
+            default_interaction: 0,
             cooking_front: None,
             shelf_capacity: 0,
             shelf_access: vec![],

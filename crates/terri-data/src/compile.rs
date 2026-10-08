@@ -558,6 +558,7 @@ pub fn compile(
             seats: compile_seats(object)?,
             sleep_places: object.sleep_place.clone(),
             seat_comfort_per_tick: object.seat_comfort_per_tick,
+            default_interaction: default_interaction(object, &interactions)?,
             id: object.id.clone(),
             name: object.name.clone(),
             presentation: object.presentation.clone(),
@@ -600,6 +601,7 @@ pub fn compile(
     let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
     for object in &compiled {
         check_sleep_places(object, &sleep_tag)?;
+        check_single_user_actions(object, &sleep_tag)?;
     }
 
     // **An interaction the floor is longer than does not do what it says.**
@@ -3747,6 +3749,47 @@ fn compile_seats(
         .collect()
 }
 
+/// The interaction a left click starts: the named action, or the first.
+fn default_interaction(
+    object: &crate::schema::ObjectDef,
+    interactions: &[CompiledInteraction],
+) -> Result<u32, ContentError> {
+    let Some(id) = &object.default_action else {
+        return Ok(0);
+    };
+    interactions
+        .iter()
+        .position(|action| action.id == *id)
+        .map(|at| at as u32)
+        .ok_or_else(|| ContentError::InvalidHierarchy {
+            context: format!("object.{}.default_action", object.id),
+            reason: format!("names '{id}', which is not one of this object's actions"),
+        })
+}
+
+/// Admission lets one person use an exclusive action; only media and sleeping
+/// places read a larger count, so any other count would change nothing.
+/// Applies to layered models; frozen historical content compiles unchanged.
+fn check_single_user_actions(object: &CompiledObject, sleep_tag: &str) -> Result<(), ContentError> {
+    if object.metadata.is_none() {
+        return Ok(());
+    }
+    for action in &object.interactions {
+        if action.seat_use == crate::pack::SeatUse::Exclusive
+            && action.media.is_none()
+            && !action.tags.iter().any(|tag| tag == sleep_tag)
+            && action.slots != 1
+        {
+            return Err(ContentError::InvalidHierarchy {
+                context: format!("object.{}.action.{}", object.id, action.id),
+                reason: "only television, radio and sleeping actions admit more than one person"
+                    .into(),
+            });
+        }
+    }
+    Ok(())
+}
+
 fn check_sleep_places(object: &CompiledObject, sleep_tag: &str) -> Result<(), ContentError> {
     let invalid = |reason: &str| ContentError::InvalidSleepPlaces {
         object: object.id.clone(),
@@ -4865,6 +4908,7 @@ mod tests {
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
+                    default_action: None,
                     cooking_front: None,
                     shelf_capacity: 0,
                     shelf_access: vec![],
@@ -5213,6 +5257,7 @@ mod tests {
             colourway: Vec::new(),
             affinity: Vec::new(),
             object: vec![ObjectDef {
+                default_action: None,
                 cooking_front: None,
                 shelf_capacity: 0,
                 shelf_access: vec![],
@@ -5752,6 +5797,7 @@ mod tests {
     fn rejects_duplicate_object_ids() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
             shelf_access: vec![],
@@ -5798,6 +5844,7 @@ mod tests {
     fn allows_the_same_interaction_id_on_different_objects() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
             shelf_access: vec![],
@@ -6303,6 +6350,66 @@ mod tests {
             let pack = compile_objects(full_needs(), objects).unwrap();
             assert!(pack.objects[0].interactions[0].book_reading);
             assert_eq!(pack.objects[0].interactions[0].seat_use, seat_use);
+        }
+    }
+
+    #[test]
+    fn layered_single_user_actions_must_admit_exactly_one_person() {
+        let layered = || {
+            Some(crate::pack::ModelMetadata {
+                category_id: "other".into(),
+                category_label: "Other".into(),
+                type_id: "thing".into(),
+                type_label: "Thing".into(),
+                rooms: vec!["kitchen".into()],
+            })
+        };
+        let media = |mut action: InteractionDef| {
+            action.media = Some(crate::pack::MediaBehavior::Television);
+            action
+        };
+        for (metadata, action, slots, accepted) in [
+            (layered(), snack(), 1, true),
+            (layered(), snack(), 2, false),
+            (layered(), media(snack()), 2, true),
+            (None, snack(), 2, true),
+        ] {
+            let mut action = action;
+            action.slots = slots;
+            let mut objects = one_object(action);
+            objects.object[0].metadata = metadata.clone();
+            let compiled = compile_objects(full_needs(), objects);
+            assert_eq!(
+                compiled.is_ok(),
+                accepted,
+                "layered {} with {slots}: {:?}",
+                metadata.is_some(),
+                compiled.err()
+            );
+        }
+    }
+
+    #[test]
+    fn a_default_action_must_name_one_of_the_objects_actions() {
+        for (default, expected) in [
+            (None, Some(0)),
+            (Some("second_snack"), Some(1)),
+            (Some("missing"), None),
+        ] {
+            let mut objects = one_object(snack());
+            let mut second = snack();
+            second.id = "second_snack".into();
+            second.duration_ticks += 1;
+            objects.object[0].interaction.push(second);
+            objects.object[0].default_action = default.map(str::to_string);
+            let compiled = compile_objects(full_needs(), objects);
+            assert_eq!(
+                compiled
+                    .ok()
+                    .map(|pack| pack.objects[0].default_interaction),
+                expected,
+                "{default:?}"
+            );
         }
     }
 
@@ -7955,6 +8062,7 @@ mod tests {
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
+                    default_action: None,
                     cooking_front: None,
                     shelf_capacity: 0,
                     shelf_access: vec![],
@@ -9658,6 +9766,7 @@ mod tests {
     /// `test_atlas` holds.
     fn affinity_object(id: &str, interaction: Vec<InteractionDef>) -> ObjectDef {
         ObjectDef {
+            default_action: None,
             seat_comfort_per_tick: 0.,
             cooking_front: None,
             shelf_capacity: 0,
@@ -10213,6 +10322,7 @@ mod tests {
         // A second object so there are two ObjectDefIds to sort between.
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
             shelf_access: vec![],
@@ -12201,6 +12311,7 @@ mod tests {
 
     fn reading_object() -> ObjectDef {
         ObjectDef {
+            default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
             shelf_access: vec![],
@@ -13114,6 +13225,7 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
             shelf_access: vec![],
@@ -13552,6 +13664,7 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            default_action: None,
             cooking_front: None,
             shelf_capacity: 0,
             shelf_access: vec![],

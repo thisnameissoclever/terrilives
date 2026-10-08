@@ -3470,6 +3470,24 @@ impl Sim {
         )
     }
 
+    /// The interaction a left click on the object at `index` starts: the
+    /// content's named default, or the first. Anything that is not a live
+    /// object answers the first, which the command path then validates.
+    pub fn default_interaction(&self, index: u32) -> u32 {
+        let Some(pack) = self.world.get_resource::<Content>().map(|c| c.0) else {
+            return 0;
+        };
+        self.world
+            .try_query::<(Entity, &terri_core::SmartObject)>()
+            .and_then(|mut state| {
+                state
+                    .iter(&self.world)
+                    .find(|(entity, _)| entity.index_u32() == index)
+                    .map(|(_, object)| pack.object(object.0).default_interaction)
+            })
+            .unwrap_or(0)
+    }
+
     pub fn table_action_rows(&self, index: u32) -> Vec<u32> {
         let selected = self
             .world
@@ -4483,6 +4501,7 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                default_interaction: 0,
                 cooking_front: None,
                 shelf_capacity: 0,
                 shelf_access: vec![],

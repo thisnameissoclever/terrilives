@@ -1406,6 +1406,34 @@ describe('handleLeftClick', () => {
     expect(sink.calls).toEqual(['use-first 6 9 0']);
   });
 
+  it('starts the default interaction the clicked object names', () => {
+    const rows = source([[9, KIND_OBJECT, 7, 3]]);
+    const asked: number[] = [];
+    const sink = target(6, {
+      ...rows,
+      defaultInteraction(entity: number) {
+        asked.push(entity);
+        return 2;
+      },
+    });
+    expect(handleLeftClick(sink, bodyOf([7, 3]), 0, 0, PLAIN)).toEqual({
+      kind: 'order',
+      accepted: true,
+    });
+    expect(asked).toEqual([9]);
+    expect(sink.calls).toEqual(['use-first 6 9 2']);
+  });
+
+  it('names the default interaction in a resolved left click', () => {
+    expect(resolveLeftClick({ entity: 9, isAgent: false }, 4, PLAIN, 2)).toEqual({
+      kind: 'use',
+      agent: 4,
+      object: 9,
+      interaction: 2,
+      placement: 'front',
+    });
+  });
+
   it('clears the selection when the click lands on bare floor', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
     handleLeftClick(sink, { x: -400, y: -400 }, 0, 0, PLAIN);

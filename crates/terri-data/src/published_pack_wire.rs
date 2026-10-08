@@ -640,6 +640,7 @@ impl From<PublishedCompiledInteraction> for CompiledInteraction {
 impl From<PublishedCompiledObject> for CompiledObject {
     fn from(old: PublishedCompiledObject) -> Self {
         Self {
+            default_interaction: 0,
             id: old.id,
             name: old.name,
             sprite: old.sprite,

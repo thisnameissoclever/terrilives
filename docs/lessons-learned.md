@@ -11480,3 +11480,13 @@ Keep authoring tools separate from shipped importers. Preserve exact floating-po
 A default floor-catalogue test cold-imported the complete generated atlas inside its functional assertion window. Atlas growth made that unrelated setup exceed the deadline even though the palette and carrier-finish assertions passed locally.
 
 Load the production atlas during test collection and prepare mocked module dependencies in setup hooks. Keep the functional assertion deadline intact. Validate the complete real catalogue rather than substituting smaller data merely to reduce loading time.
+
+### Verify the whole request before declaring completion
+
+**What happened.** A complaint about unwanted interface text received a diagnosis and an archive claim before the text was removed or any fix was verified.
+
+**Root cause.** Answering the immediate question was mistaken for satisfying the requested outcome. The closing claim did not account for implementation and delivery.
+
+**Prevention rule.** Check the entire conversation's requested outcome before declaring completion. Keep implementation, local verification, merge and publication separate, and require evidence for each applicable step. Technical upgrade explanations also need review in the actual layout; a one-time trigger does not make a paragraph disappear.
+
+**How to verify.** Confirm the unwanted text is absent after both startup restoration and manual loading. Check preserved save behavior, the merged revision and the live game before closing the work.

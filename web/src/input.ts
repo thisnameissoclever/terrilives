@@ -91,6 +91,8 @@ import {
  */
 export interface PickSource {
   readonly count: number;
+  /** The interaction a left click on this object starts; the first when absent. */
+  defaultInteraction?(entity: number): number;
   positions(): Float32Array;
   /** Previous displayed positions, when presentation-aware picking needs them. */
   prevPositions?(): Float32Array;
@@ -181,12 +183,11 @@ export type ClickAction =
        * Which of the object's interactions to run - `Intent::interaction`,
        * and the last field of `SimCommand::UseObject`.
        *
-       * **A left click always names 0**, which is the only interaction any
-       * shipped object has. It is carried as a field rather than left for
-       * `dispatch` to supply so that there is exactly one place in this
-       * shell that decides what a gesture's interaction is, and so that a
-       * left click and a menu row reach `useObject` through the same
-       * parameter instead of one of them going through a default.
+       * **A left click names the object's default interaction**, which the
+       * simulation reports per object: the first unless content names
+       * another. It is carried as a field rather than left for `dispatch` to
+       * supply, so a left click and a menu row reach `useObject` through the
+       * same parameter instead of one of them going through a default.
        */
       readonly interaction: number;
       /**
@@ -735,17 +736,17 @@ export function pickAt(
  * Directing does NOT change the selection, so a player can ctrl-click three
  * objects in a row and queue all three for the sim they are watching.
  *
- * **A left click always names interaction 0**, and that is a statement
- * about the gesture rather than a placeholder: a click names an OBJECT, and
- * "the first thing this object offers" is the only reading of that which
- * does not require the player to have chosen. Choosing is what the
- * right-click flyout is for, and `dispatchMenuAction` is where a row's own
- * index enters.
+ * **A left click names the object's default interaction**: a click names
+ * an OBJECT, and its default is what content says that object is for when
+ * the player has not chosen - the first interaction unless content names
+ * another. Choosing is what the right-click flyout is for, and
+ * `dispatchMenuAction` is where a row's own index enters.
  */
 export function resolveLeftClick(
   pick: Pick | null,
   selected: number | null,
   additive: boolean,
+  interaction = LEFT_CLICK_INTERACTION,
 ): ClickAction {
   if (pick === null) return { kind: 'select', entity: null };
   if (pick.bookCopy !== undefined) return { kind: 'none' };
@@ -756,18 +757,14 @@ export function resolveLeftClick(
     kind: 'use',
     agent: selected,
     object: pick.entity,
-    interaction: LEFT_CLICK_INTERACTION,
+    interaction,
     placement: additive ? 'back' : 'front',
   };
 }
 
 /**
- * The interaction a left click names: the object's first.
- *
- * A named constant rather than a literal `0`, because a bare zero at a call
- * site is indistinguishable from the hardcode `SimCommand::UseObject`
- * carried until this field existed. Naming it says the value was chosen.
- * It is not a tuning knob - it is the arithmetic identity of "the first
+ * The interaction a left click names when the object has no named default:
+ * its first. Not a tuning knob - it is the arithmetic identity of "the first
  * entry in a list" - so it does not belong in `content/tuning.toml`.
  */
 const LEFT_CLICK_INTERACTION = 0;
@@ -782,8 +779,7 @@ export interface CommandSink {
   /**
    * `interaction` is required, matching `SimBridge.useObject`. A default of
    * 0 here would let a caller omit it and silently direct the sim at the
-   * object's first verb, which is invisible while every shipped object has
-   * exactly one.
+   * object's first verb rather than the one the gesture named.
    */
   useObject(agent: number, object: number, interaction: number): boolean;
   /** The same order placed at the FRONT of the queue; `SimBridge.useObjectFirst`. */
@@ -939,7 +935,10 @@ export function handleLeftClick(
     reducedMotion,
   );
   if (pick?.bookCopy !== undefined) { onBookPicked(pick.bookCopy); return { kind: 'none' }; }
-  const action = resolveLeftClick(pick, target.selectedIndex(), additive);
+  const interaction = pick !== null && !pick.isAgent
+    ? target.defaultInteraction?.(pick.entity) ?? LEFT_CLICK_INTERACTION
+    : LEFT_CLICK_INTERACTION;
+  const action = resolveLeftClick(pick, target.selectedIndex(), additive, interaction);
   if (action.kind === 'none') return { kind: 'none' };
   if (action.kind === 'use' || action.kind === 'clean') onOrderAttempt();
   const accepted = dispatch(target, action) === true;
