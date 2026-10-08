@@ -988,6 +988,120 @@ fn every_fitted_seat_type_can_supply_a_media_place() {
     }
 }
 
+/// Watching together is the point of a sofa in front of a television, so
+/// each viewer takes one seat and sits upright; nobody claims or lies across
+/// the whole sofa while watching.
+#[test]
+fn television_viewers_sit_on_separate_sofa_seats_and_never_recline() {
+    let (mut sim, first, device, sofa) = fixture_with_device(
+        "television",
+        Position { x: 2., y: 3. },
+        Position { x: 5., y: 3. },
+        Facing::SouthEast,
+        Facing::SouthWest,
+        "long_sofa",
+    );
+    let pack = sim.world().resource::<Content>().0;
+    let second = crate::household::spawn_member(
+        sim.world_mut(),
+        &pack.personalities,
+        &pack.traits,
+        crate::household::Member {
+            name: "Second viewer".into(),
+            personality: 0,
+            position: Position { x: 0., y: 4. },
+            needs: [100.; 7],
+            hobbies: vec![],
+            traits: &[],
+            career: None,
+            instinct: Some(50),
+        },
+    );
+    sim.world_mut()
+        .entity_mut(second)
+        .insert(IntentQueue::from_intents(vec![Intent {
+            cleanup: None,
+            chore: None,
+            object: device,
+            interaction: 0,
+        }]));
+    let viewers = [first, second];
+    let mut watching = false;
+    for _ in 0..240 {
+        sim.tick();
+        if viewers
+            .iter()
+            .all(|v| sim.world().get::<Eating>(*v).is_some())
+        {
+            watching = true;
+            break;
+        }
+    }
+    assert!(
+        watching,
+        "both viewers reach their seats and start watching"
+    );
+    let mut seats = Vec::new();
+    for viewer in viewers {
+        let claim = sim
+            .world()
+            .get::<super::PhysicalClaim>(viewer)
+            .expect("each viewer holds a sofa seat");
+        assert_eq!(claim.furniture, sofa);
+        assert!(!claim.all, "a viewer never claims the whole sofa");
+        seats.push(claim.seat.clone());
+    }
+    seats.sort();
+    seats.dedup();
+    assert_eq!(seats.len(), viewers.len(), "viewers sit on different seats");
+    sim.sync_render_buffer_after_commands();
+    let render = sim.render_buffer();
+    for viewer in viewers {
+        let row = render
+            .ids
+            .iter()
+            .position(|id| *id == viewer.index_u32())
+            .unwrap();
+        assert_eq!(
+            render.activities[row],
+            crate::render_buffer::activity::WATCHING_TV
+        );
+        assert_eq!(
+            render.visual_actions[row],
+            crate::render_buffer::visual_action::SIT,
+            "a viewer is drawn sitting, not lying"
+        );
+        assert_eq!(render.seated_furniture[row], sofa.index_u32());
+        assert_eq!(render.seated_whole[row], 0);
+    }
+}
+
+#[test]
+fn a_left_click_on_the_sofa_starts_sitting_not_lying_down() {
+    let (sim, person, _, sofa) = fixture_with_device(
+        "television",
+        Position { x: 2., y: 3. },
+        Position { x: 5., y: 3. },
+        Facing::SouthEast,
+        Facing::SouthWest,
+        "long_sofa",
+    );
+    let pack = sim.world().resource::<Content>().0;
+    let actions = &pack.object(pack.find("long_sofa").unwrap()).interactions;
+    let default = sim.default_interaction(sofa.index_u32()) as usize;
+    assert_eq!(actions[default].id, "sit");
+    assert_ne!(
+        actions[0].id, "sit",
+        "the default is not merely the first action"
+    );
+    assert_eq!(
+        sim.default_interaction(person.index_u32()),
+        0,
+        "a sim is not furniture"
+    );
+    assert_eq!(sim.default_interaction(u32::MAX), 0);
+}
+
 #[test]
 fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
     // The desk faces +x from (2, 3) and (2, 4); the chair at (3, 3) faces the

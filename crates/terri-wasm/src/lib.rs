@@ -3026,6 +3026,11 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
+    /// The interaction a left click on `entity_index` starts.
+    pub fn default_interaction(&self, entity_index: u32) -> u32 {
+        self.sim.default_interaction(entity_index)
+    }
+
     /// The display name of the sim carrying `entity_index`, or the empty
     /// string when nothing live carries it or what does is not a named
     /// sim - an object, or a stress-mode filler agent. Empty rather than

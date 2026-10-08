@@ -438,6 +438,9 @@ pub struct ObjectDef {
     pub metadata: Option<crate::pack::ModelMetadata>,
     #[serde(default)]
     pub seat: Vec<SeatDef>,
+    /// The action a left click starts; the first action when absent.
+    #[serde(default)]
+    pub default_action: Option<String>,
     pub id: String,
     pub name: String,
     /// Type and flavor text, with `name` identifying the model when present.

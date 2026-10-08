@@ -1532,6 +1532,12 @@ export class SimBridge {
     return this.handle.interaction_labels(entityIndex);
   }
 
+  /** The interaction a left click on `entityIndex` starts. */
+  defaultInteraction(entityIndex: number): number {
+    if (!isU32(entityIndex)) return 0;
+    return this.handle.default_interaction(entityIndex);
+  }
+
   /**
    * What to call `entityIndex` in a flyout heading: a sim's display name
    * or an object's authored name, whichever it has.

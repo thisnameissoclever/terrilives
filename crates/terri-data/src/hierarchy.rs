@@ -197,6 +197,7 @@ pub struct ObjectProperties {
     pub action_socket: Operation<Vec<ActionSocketDef>>,
     pub sleep_place: Operation<Vec<SleepPlaceAccess>>,
     pub seat: Operation<Vec<SeatDef>>,
+    pub default_action: Operation<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -290,6 +291,7 @@ struct ObjectState {
     action_socket: Vec<ActionSocketDef>,
     sleep_place: Vec<SleepPlaceAccess>,
     seat: Vec<SeatDef>,
+    default_action: Option<String>,
     actions: Vec<ActionState>,
 }
 
@@ -344,6 +346,7 @@ impl ObjectState {
             ));
         }
         scalar!(sprite, false);
+        scalar!(default_action, true);
         scalar!(description, true);
         scalar!(base_facing, true);
         scalar!(foreground_sprite, true);
@@ -499,14 +502,28 @@ impl ActionState {
             &context,
             "duration_ticks",
         )? as u32;
-        let slots = match (seat_use.capacity(seats), self.slots) {
-            (Some(_), Some(_)) => {
+        // Seat actions admit by seat and bookcase reading by borrowed copy,
+        // so neither reads an authored count.
+        let derived = seat_use
+            .capacity(seats)
+            .map(|capacity| {
+                (
+                    capacity,
+                    "seat actions take capacity from the furniture's seats",
+                )
+            })
+            .or_else(|| {
+                (self.book_reading == Some(true) && seats == 0)
+                    .then_some((1, "bookcase reading is limited by its copies"))
+            });
+        let slots = match (derived, self.slots) {
+            (Some((_, reason)), Some(_)) => {
                 return Err(invalid(
                     &context,
-                    "seat actions take capacity from the furniture's seats; remove 'slots' here or in its template",
+                    format!("{reason}; remove 'slots' here or in its template"),
                 ))
             }
-            (Some(capacity), None) => capacity,
+            (Some((capacity, _)), None) => capacity,
             (None, slots) => integer(
                 required(slots, &context, "slots")?,
                 1.0,
@@ -728,6 +745,7 @@ pub fn resolve(mut source: ObjectsFile) -> Result<ObjectsFile, ContentError> {
                 rooms: rooms.into_iter().collect(),
             }),
             seat: state.seat,
+            default_action: state.default_action,
         });
     }
     source.object.extend(resolved);

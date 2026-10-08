@@ -2,8 +2,10 @@
 # Rooms classify store entries; they do not grant behavior or limit placement.
 # Model and action IDs preserve the published save references.
 # Each property uses exactly one operation: set, scale, remove, extend, or replace.
-# Seat actions (seat_use one or all) take capacity from the furniture's seats and
-# must not set slots; the build rejects one. Every other action sets slots.
+# Seat actions (seat_use one or all) and bookcase reading take no slots: seats or
+# borrowed copies decide. Every other action sets slots, which must be 1 except
+# for television, radio and sleeping actions.
+# A left click starts default_action when a type names one, else its first action.
 
 [[category]]
 id = "kitchen"
@@ -355,8 +357,6 @@ rooms = { set = ["living_room", "office", "bedroom"] }
 [[object_type.action]]
 id = "read"
 template = "reading"
-[object_type.action.properties]
-slots = { set = 1 }
 
 [[object_type]]
 id = "stove"
@@ -402,7 +402,7 @@ activity = { set = "sitting" }
 label = { set = "Sit" }
 advertises = { set = { comfort = 37.0 } }
 duration_ticks = { set = 62 }
-slots = { set = 2 }
+slots = { set = 1 }
 
 [[object_type.action]]
 id = "take_prepared_food"
@@ -448,6 +448,7 @@ label = "Sofa"
 category = "seating"
 [object_type.properties]
 rooms = { set = ["living_room"] }
+default_action = { set = "sit" }
 
 [[object_type.action]]
 id = "stretch_out"
