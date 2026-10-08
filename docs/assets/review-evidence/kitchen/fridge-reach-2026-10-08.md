@@ -311,9 +311,7 @@ Source review and local runtime proof do not establish public deployment.
   GitHub's 100 MiB per-file limit, after this batch moved the click masks
   into `fixture-scene-masks.ts`. The generator still writes one number per
   line; a compact encoding or a further split is needed before the next
-  art batch. The file's hash is pinned in
-  `assets/models/architecture/architecture.json`, so a format change must
-  update that pin.
+  art batch.
 - The fetch route assumes the door faces the station's (1, 0) side for
   every one-tile cold-storage station. Only one fridge model exists today;
   a second model with its door elsewhere needs a content property like the
