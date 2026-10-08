@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { buildInstances, simShirtVariant, type RenderSource } from '../src/frame.js';
-import { FLOATS_PER_INSTANCE } from '../src/render/instances.js';
+import { FLOATS_PER_INSTANCE, FOOTPRINT_PROJECTION, KIND_AGENT, OFFSET_DEPTH, OFFSET_WALL_MASK } from '../src/render/instances.js';
+import { layeredDepth, LAYER_SIM } from '../src/render/iso.js';
 import { pickSprite } from '../src/input.js';
 import { screenX, screenY, TILE_HALF_HEIGHT } from '../src/render/iso.js';
 import { BATHROOM_SPRITES, BATHROOM_LAYERS, BATHROOM_COVERAGE, BATHROOM_MASKS,
@@ -86,9 +87,9 @@ it('the padded scene draws the fridge on the empty fridge anchor', () => {
   for (const suffix of ['', 'NW', 'SW', 'NE']) {
     const empty = spriteIndex('offlineFridge' + suffix);
     for (const scene of BATHROOM_SPRITES[empty][FETCH_VISUAL_ACTION].frames.green) {
-      // The canvas grows by 30 logical pixels on the left and 20 on top.
-      expect(SPRITE_ANCHORS[scene][0] - SPRITE_ANCHORS[empty][0]).toBeCloseTo(30, 6);
-      expect(SPRITE_ANCHORS[scene][1] - SPRITE_ANCHORS[empty][1]).toBeCloseTo(20, 6);
+      // The canvas grows by 26 logical pixels on the left and 21 on top.
+      expect(SPRITE_ANCHORS[scene][0] - SPRITE_ANCHORS[empty][0]).toBeCloseTo(26, 6);
+      expect(SPRITE_ANCHORS[scene][1] - SPRITE_ANCHORS[empty][1]).toBeCloseTo(21, 6);
     }
   }
 });
@@ -140,3 +141,86 @@ it('both compiled fridge steps play the reach through the bridge, and Load resum
   }
 });
 
+
+/**
+ * The shipped house: its fridge stands in the kitchen corner at (0, 0) facing
+ * SW, with walls on two sides, so its door front is (0, 1).
+ */
+function shippedSnack(): { source: SimBridge; handle: SimHandle; fridge: number; person: number; frames: readonly number[] } {
+  const handle = SimHandle.from_lot();
+  const source = new SimBridge(handle, memory);
+  const empty = spriteIndex('offlineFridgeSW');
+  const fridgeRow = Array.from(source.sprites()).findIndex((sprite, row) => sprite === empty && source.kinds()[row] !== KIND_AGENT);
+  expect(fridgeRow).toBeGreaterThanOrEqual(0);
+  expect(Array.from(source.positions().slice(fridgeRow * 2, fridgeRow * 2 + 2))).toEqual([0, 0]);
+  const personRow = Array.from(source.simIds()).indexOf(1);
+  const fridge = source.ids()[fridgeRow], person = source.ids()[personRow];
+  expect(source.useObject(person, fridge, 0)).toBe(true);
+  const frames = BATHROOM_SPRITES[empty][FETCH_VISUAL_ACTION].frames[simShirtVariant(1)];
+  return { source, handle, fridge, person, frames };
+}
+
+/**
+ * Ticks until the fetch step has run and ended, asserting on every tick of the
+ * step that the person draws a fridge scene in place of the fixture, from the
+ * door front's depth, and that the step ends within its sampled length.
+ */
+function playFetch(source: SimBridge, fridge: number, person: number, frames: readonly number[], limit = 400): number[] {
+  const seen: number[] = [];
+  let ticks = 0, started = false;
+  for (let tick = 0; tick < limit; tick++) {
+    const ids = Array.from(source.ids());
+    const row = ids.indexOf(person), fridgeRow = ids.indexOf(fridge);
+    if (source.visualActions()[row] === FETCH_VISUAL_ACTION) {
+      started = true;
+      ticks++;
+      expect(Array.from(source.positions().slice(row * 2, row * 2 + 2))).toEqual([0, 1]);
+      const data = buildInstances(source, 1, 0, 0, 64, null, 1, false, source.clockTick());
+      const base = row * FLOATS_PER_INSTANCE;
+      const scene = data[base + 3];
+      expect(frames).toContain(scene);
+      expect(data[base]).not.toBe(-1e6);
+      expect(data[fridgeRow * FLOATS_PER_INSTANCE]).toBe(-1e6);
+      expect(data[base + OFFSET_WALL_MASK]).toBe(FOOTPRINT_PROJECTION);
+      expect(data[base + OFFSET_DEPTH]).toBeCloseTo(layeredDepth(0, 0.5, 64, LAYER_SIM), 6);
+      const sample = frames.indexOf(scene);
+      if (seen[seen.length - 1] !== sample) seen.push(sample);
+    } else if (started) {
+      break;
+    }
+    source.tick();
+  }
+  expect(started).toBe(true);
+  expect(ticks).toBeGreaterThanOrEqual(1);
+  expect(ticks).toBeLessThanOrEqual(28);
+  return seen;
+}
+
+it('the shipped kitchen fridge draws the reach on every tick and finishes the step', () => {
+  const { source, handle, fridge, person, frames } = shippedSnack();
+  try {
+    expect(playFetch(source, fridge, person, frames)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+  } finally { handle.free(); }
+});
+
+it('the shipped kitchen fridge reach survives Load before and during the step', () => {
+  for (const during of [false, true]) {
+    const { source, handle, fridge, person, frames } = shippedSnack();
+    try {
+      let saved: Uint8Array | undefined;
+      for (let tick = 0; tick < 400 && !saved; tick++) {
+        const row = Array.from(source.ids()).indexOf(person);
+        const fetching = source.visualActions()[row] === FETCH_VISUAL_ACTION;
+        if (during ? fetching && source.choreProgress()[row] >= 250 : !fetching && source.activities()[row] === 1) {
+          saved = source.saveBytes();
+        } else source.tick();
+      }
+      expect(saved).toBeDefined();
+      expect(source.loadBytes(saved!)).toBe(true);
+      const seen = playFetch(source, fridge, person, frames);
+      // A step loaded part-way resumes at its middle sample.
+      expect(seen[0]).toBe(during ? 4 : 0);
+      expect(seen[seen.length - 1]).toBe(7);
+    } finally { handle.free(); }
+  }
+});

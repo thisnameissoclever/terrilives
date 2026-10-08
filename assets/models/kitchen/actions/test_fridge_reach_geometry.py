@@ -8,8 +8,8 @@ import fridge_reach_geometry as geo
 class FridgeReachGeometryTests(unittest.TestCase):
     def test_schedule_opens_reaches_and_closes(self):
         self.assertTrue(geo.validate_schedule())
-        self.assertEqual(geo.DOOR_DEGREES, (0, 20, 55, 80, 80, 80, 45, 0))
-        self.assertEqual(geo.REACH_SAMPLES, (3, 4, 5))
+        self.assertEqual(geo.DOOR_DEGREES, (0, 20, 55, 80, 80, 80, 80, 0))
+        self.assertEqual(geo.REACH_SAMPLES, (4, 5))
         self.assertEqual(geo.LEFT_HAND[0], 'rest')
         self.assertEqual(geo.LEFT_HAND[-1], 'rest')
 
@@ -22,12 +22,29 @@ class FridgeReachGeometryTests(unittest.TestCase):
         # Opening swings the free edge forward, toward -Y, into the front tile.
         self.assertLess(geo.door_point(geo.DOOR_TIP, 80)[1], geo.door_point(geo.DOOR_TIP, 20)[1])
 
-    def test_the_standing_shoulders_stay_outside_the_door_sweep(self):
-        (x, y), facing, left = geo.stance_frame()
-        shoulder = (x+.23*left[0], y+.23*left[1])
-        self.assertGreater(math.dist(shoulder, geo.HINGE), geo.sweep_radius()+.05)
-        # The feet stand on the front tile row, in front of the case.
-        self.assertTrue(-1.5 < y < -.5)
+    def test_the_body_stays_in_the_front_tile_column_and_out_of_the_moving_door(self):
+        for index in range(geo.SAMPLES):
+            x, y = geo.stance(index)
+            self.assertLessEqual(abs(x)+geo.BODY_HALF_WIDTH, geo.TILE_HALF_WIDTH+1e-9)
+            self.assertLess(y, -.5)
+        # While the door moves, the near shoulder corner of the BACK stance is outside
+        # the door's sweep; the REACH stance is used only while the door stands open.
+        x, y = geo.STANCES['BACK']
+        corner = (x+geo.BODY_HALF_WIDTH, y+.16)
+        self.assertGreater(math.dist(corner, geo.HINGE), geo.sweep_radius())
+        for index in range(geo.SAMPLES-1):
+            if geo.DOOR_DEGREES[index] != geo.DOOR_DEGREES[index+1]:
+                self.assertNotIn('REACH', (geo.STANCE_BY_SAMPLE[index], geo.STANCE_BY_SAMPLE[index+1]))
+
+    def test_a_stance_outside_the_column_is_refused(self):
+        saved = dict(geo.STANCES)
+        try:
+            geo.STANCES['FRONT'] = (-.55, -1.03)
+            with self.assertRaises(ValueError):
+                geo.validate_schedule()
+        finally:
+            geo.STANCES.clear()
+            geo.STANCES.update(saved)
 
     def test_reach_targets_lie_in_the_cabinet(self):
         for index in geo.REACH_SAMPLES:

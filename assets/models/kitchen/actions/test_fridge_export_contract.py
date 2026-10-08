@@ -12,8 +12,8 @@ import fridge_reach_geometry as geo
 from export_fridge_reach import export, registered_anchor, scene_anchor
 
 BASE = Path(__file__).parent
-BATCH = BASE/'review/fridge/batch-01/proof.json'
-INK = BASE/'review/fridge/ink-01/proof.json'
+BATCH = BASE/'review/fridge/batch-03/proof.json'
+INK = BASE/'review/fridge/ink-03/proof.json'
 
 
 class FridgeExportContractTests(unittest.TestCase):
@@ -105,7 +105,7 @@ class FridgeExportContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             contract.validate_samples(rows)
         rows = self.forged()['samples']
-        rows[2], rows[6] = rows[6], rows[2]
+        rows[1], rows[6] = rows[6], rows[1]
         with self.assertRaises(ValueError):
             contract.validate_samples(rows)
 
@@ -115,13 +115,27 @@ class FridgeExportContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             contract.validate_sweeps(rows[:-1])
         rows = self.forged()['sweeps']
-        rows[2]['collisions'] = [dict(angle=27.5, body='Pocket top seam', solid='Refrigerator door', kind='surface')]
+        rows[1]['collisions'] = [dict(t=.5, angle=37.5, body='Pocket top seam', solid='Refrigerator door', kind='surface')]
         with self.assertRaises(ValueError):
             contract.validate_sweeps(rows)
         rows = self.forged()['sweeps']
         rows.append(copy.deepcopy(rows[0]))
         with self.assertRaises(ValueError):
             contract.validate_sweeps(rows)
+        rows = self.forged()['sweeps']
+        rows[1]['end'] = 80
+        with self.assertRaises(ValueError):
+            contract.validate_sweeps(rows)
+
+    def test_the_body_stays_in_the_front_tile_column_at_its_scheduled_stance(self):
+        rows = self.forged()['samples']
+        rows[4]['body_extent'][0] = -.62
+        with self.assertRaises(ValueError):
+            contract.validate_samples(rows)
+        rows = self.forged()['samples']
+        rows[2]['stance'] = list(geo.STANCES['REACH'])
+        with self.assertRaises(ValueError):
+            contract.validate_samples(rows)
 
     def test_the_case_must_not_move_and_the_door_only_turns(self):
         proof = self.forged()
@@ -159,7 +173,7 @@ class FridgeExportContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             contract.validate_registration(rescaled)
         repadded = self.forged()
-        repadded['padding'] = [31, 20, 30, 26]
+        repadded['padding'] = [27, 21, 26, 22]
         with self.assertRaises(ValueError):
             contract.validate_registration(repadded)
         restarted = self.forged()

@@ -41,7 +41,7 @@ import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animati
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
-import { writeFootprintProjection } from './render/footprint-depth.js';
+import { writeFootprintProjection, writeReachProjection } from './render/footprint-depth.js';
 import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
 import type { PlacementPreview } from './bridge.js';
 import {
@@ -1220,6 +1220,10 @@ export function buildInstanceBatch(
     }
     writeFootprintProjection(scratch, i, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
+    if (interactions.reachRows[i]) {
+      writeReachProjection(scratch, i, sprite, gridSize, wx, wy,
+        lerp(previous[i * 2], current[i * 2], alpha), lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha), LAYER_SIM);
+    }
     if (interactions.mealRows[i] >= 0 && SPRITE_DINING_SUPPORT[sprite]
         && interactions.mealRows[i] !== replacedRow) {
       scratch[i * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_BACKGROUND;

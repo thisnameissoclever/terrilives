@@ -10,11 +10,13 @@ receipt claims is re-derived from its recorded measurements:
   both ends and fully open on every reach sample;
 - every sample keeps all 54 body surfaces clear of all 35 fixture solids
   with no recorded collision and a recorded gap of at least six millimetres,
-  and every door sweep between samples is clear of the body;
+  stays inside the front tile's column, and every sweep between consecutive
+  samples (door turning and feet stepping together) is clear of the body;
 - the reaching palm's recorded centroid lies inside the cabinet volume;
 - every non-door fixture part keeps one geometry fingerprint across all
   samples of a facing, and the door parts move only by the hinge angle;
-- the feet, legs and root never move, and every bone keeps its length;
+- the legs and root keep their standing pose, the feet move only with the
+  scheduled stance, and every bone keeps its length;
 - the canvas is the accepted 96 by 120 canvas grown by whole logical pixels,
   with the fixture's origin moved by exactly that padding.
 
@@ -69,6 +71,8 @@ EXPORT_DENSITY = 2
 MIN_GAP = .006
 MIN_MARGIN = 8*DENSITY
 STATIC_BONES = ('root', 'thigh.L', 'shin.L', 'foot.L', 'thigh.R', 'shin.R', 'foot.R', 'book')
+# The body stays in the front tile's column.
+TILE_COLUMN = .5
 BONE_TOLERANCE = 1e-5
 STATIC_TOLERANCE = 1e-7
 HINGE_TOLERANCE = 1e-5
@@ -151,6 +155,11 @@ def validate_sample(row, index):
         body, solid = key.split('|')
         if body not in BODY_NAMES or solid not in SOLID_NAMES or number(gap) < MIN_GAP:
             raise ValueError('Fridge near pair is unknown or too close')
+    if row.get('stance') != list(geo.stance(index)):
+        raise ValueError('Fridge sample stance differs from the schedule')
+    extent = [number(v) for v in row['body_extent']]
+    if len(extent) != 4 or extent[0] < -TILE_COLUMN or extent[2] > TILE_COLUMN or extent[0] > extent[2]:
+        raise ValueError('Fridge body leaves the front tile column')
     if geo.LEFT_HAND[index] == 'reach':
         palm = row['palm']
         x, y, z = (number(v) for v in palm['centroid'])
@@ -178,20 +187,18 @@ def validate_samples(rows):
 
 
 def validate_sweeps(rows):
-    expected = set()
-    for index in range(geo.SAMPLES-1):
-        a, b = geo.DOOR_DEGREES[index], geo.DOOR_DEGREES[index+1]
-        if a != b:
-            expected |= {(a, b, index), (a, b, index+1)}
+    """One clear sweep per pair of consecutive samples, the door and feet moving together."""
     seen = set()
     for row in rows:
-        key = (row['start'], row['end'], row['pose_sample'])
-        if key not in expected or key in seen or row['collisions'] or number(row['minimum_gap']) <= 0:
+        first = row.get('first')
+        if (type(first) is not int or not 0 <= first < geo.SAMPLES-1 or first in seen
+                or row['start'] != geo.DOOR_DEGREES[first] or row['end'] != geo.DOOR_DEGREES[first+1]
+                or row['collisions'] or number(row['minimum_gap']) <= 0):
             raise ValueError('Fridge door sweep is unexpected, duplicated or collides')
-        if set(row['door_parts']) != DOOR_PARTS or not set(row['checked_body']) <= BODY_NAMES:
+        if set(row['door_parts']) != DOOR_PARTS or not set(row['checked_body']) <= BODY_NAMES or len(row['checked_body']) < 49:
             raise ValueError('Fridge door sweep inventory is incomplete')
-        seen.add(key)
-    if seen != expected:
+        seen.add(first)
+    if seen != set(range(geo.SAMPLES-1)):
         raise ValueError('Fridge door sweeps are incomplete')
 
 
@@ -287,7 +294,9 @@ def read_batch(path, *, process_exited):
     validate_inputs(proof, path)
     validate_action(proof['action'])
     validate_registration(proof)
-    if proof.get('stance') != geo.STANCE or set(proof.get('door_parts', [])) != DOOR_PARTS:
+    if (proof.get('stances') != {k: list(v) for k, v in geo.STANCES.items()}
+            or proof.get('stance_by_sample') != list(geo.STANCE_BY_SAMPLE)
+            or set(proof.get('door_parts', [])) != DOOR_PARTS):
         raise ValueError('Fridge stance or door assembly differs from the pinned geometry')
     validate_samples(proof['samples'])
     validate_sweeps(proof['sweeps'])

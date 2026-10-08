@@ -16,7 +16,7 @@ import numpy as np
 from PIL import Image
 
 root = Path(__file__).resolve().parents[4]
-source = root/'assets/models/kitchen/actions/export/fridge-01'
+source = root/'assets/models/kitchen/actions/export/fridge-02'
 manifest = json.loads((source/'manifest.json').read_text())
 references = []
 for obj in manifest['objects']:

@@ -311,3 +311,112 @@ fn all_fridge_facings_route_the_fetch_to_the_door_front_or_fall_back_beside_it()
             .set_blocked(expected.0 as usize, expected.1 as usize, false);
     }
 }
+
+/// The shipped house's fridge stands in the kitchen corner, facing SW, with
+/// walls on two sides: its door front is (0, 1).
+fn shipped_snack() -> (Sim, bevy_ecs::entity::Entity, bevy_ecs::entity::Entity) {
+    use bevy_ecs::prelude::{Entity, With};
+    use terri_core::{ObjectFacing, SmartObject};
+    let mut sim = Sim::new_from_shipped_lot();
+    let pack = sim.world().resource::<Content>().0;
+    let people: Vec<Entity> = sim
+        .world_mut()
+        .query_filtered::<Entity, With<Agent>>()
+        .iter(sim.world())
+        .collect();
+    let fridge = sim
+        .world_mut()
+        .query::<(Entity, &SmartObject)>()
+        .iter(sim.world())
+        .find(|(_, o)| pack.object(o.0).id == "fridge")
+        .unwrap()
+        .0;
+    assert_eq!(
+        *sim.world().get::<Position>(fridge).unwrap(),
+        Position { x: 0.0, y: 0.0 }
+    );
+    assert_eq!(
+        sim.world().get::<ObjectFacing>(fridge).map(|f| f.0),
+        Some(Facing::SouthWest)
+    );
+    let person = people[1];
+    sim.world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::UseObject {
+            agent: person.index_u32(),
+            object: fridge.index_u32(),
+            interaction: 0,
+        });
+    (sim, person, fridge)
+}
+
+/// Ticks until the fetch step ends, asserting on every tick of the step that
+/// the remaining work falls by one, the body stands on the door front and
+/// the reach is projected with rising progress. Returns the ticks the step ran.
+fn finish_fetch(sim: &mut Sim, person: bevy_ecs::entity::Entity, fridge: bevy_ecs::entity::Entity) -> u32 {
+    let mut previous: Option<(u32, u32)> = None;
+    let mut ticks = 0;
+    for _ in 0..400 {
+        sim.sync_render_buffer();
+        // The order becomes a chain on the first tick; stop once it moves on.
+        let state = sim.world().get::<ChainState>(person).map(|c| c.step);
+        if state.is_some_and(|step| step >= 1) {
+            break;
+        }
+        if let Some(work) = sim.world().get::<StepWork>(person).map(|w| w.remaining_ticks) {
+            let row = row_of(sim, person);
+            let buffer = sim.render_buffer();
+            assert_eq!(
+                (buffer.visual_actions[row], buffer.interaction_targets[row]),
+                (visual_action::FETCH, fridge.index_u32())
+            );
+            assert_eq!(*sim.world().get::<Position>(person).unwrap(), Position { x: 0.0, y: 1.0 });
+            let progress = buffer.chore_progress[row];
+            if let Some((last_work, last_progress)) = previous {
+                assert_eq!(work + 1, last_work, "the step must count down every tick");
+                assert!(progress >= last_progress);
+            }
+            previous = Some((work, progress));
+            ticks += 1;
+        }
+        sim.tick();
+    }
+    assert_eq!(sim.world().get::<ChainState>(person).map(|c| c.step), Some(1));
+    ticks
+}
+
+#[test]
+fn the_shipped_fridge_reach_runs_and_finishes_from_its_door_front() {
+    let (mut sim, person, fridge) = shipped_snack();
+    let ticks = finish_fetch(&mut sim, person, fridge);
+    // The arrival tick also counts the first tick of work, so a sampled
+    // length of 12 to 28 ticks is drawn for 11 to 27 frames.
+    assert!((11..=27).contains(&ticks), "{ticks}");
+}
+
+#[test]
+fn shipped_fridge_reach_survives_loads_before_and_during_the_step() {
+    for during in [false, true] {
+        let (mut sim, person, fridge) = shipped_snack();
+        for _ in 0..400 {
+            let working = sim.world().get::<StepWork>(person).map(|w| w.remaining_ticks);
+            if (!during && sim.world().get::<terri_core::Path>(person).is_some())
+                || (during && working.is_some_and(|w| w < 8))
+            {
+                break;
+            }
+            sim.tick();
+        }
+        let save = sim.save_snapshot_v6();
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded.load_snapshot_v6(save).unwrap();
+        if during {
+            loaded.sync_render_buffer();
+            let row = row_of(&loaded, person);
+            assert_eq!(loaded.render_buffer().visual_actions[row], visual_action::FETCH);
+            assert_eq!(loaded.render_buffer().chore_progress[row], 500);
+        }
+        let ticks = finish_fetch(&mut loaded, person, fridge);
+        assert!((1..=28).contains(&ticks), "{during}: {ticks}");
+    }
+}

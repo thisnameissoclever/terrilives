@@ -89,6 +89,8 @@ export class InteractionSelection {
   drawSuppressed = new Uint8Array(0);
   bedDrawRows = new Int32Array(0);
   readonly bookReachRows: boolean[] = [];
+  /** Rows drawing a fixture scene whose body stands on the front tile. */
+  reachRows = new Uint8Array(0);
   private stockSuppression = new Uint32Array(0);
   private stockPresence = new Uint32Array(0);
   private place0 = new Int32Array(0);
@@ -209,6 +211,7 @@ export class InteractionSelection {
       this.bedDrawRows = new Int32Array(count);
       this.stockSuppression = new Uint32Array(count);
       this.stockPresence = new Uint32Array(count);
+      this.reachRows = new Uint8Array(count);
     }
     this.bodies.fill(-1, 0, count);
     this.targetRows.fill(-1, 0, count);
@@ -223,6 +226,7 @@ export class InteractionSelection {
     this.bedDrawRows.fill(-1, 0, count);
     this.stockSuppression.fill(0, 0, count);
     this.stockPresence.fill(0, 0, count);
+    this.reachRows.fill(0, 0, count);
     this.bookReachRows.length = count;
     this.bookReachRows.fill(false);
     this.bedScenes.fill(undefined, 0, this.bedScenes.length);
@@ -403,6 +407,7 @@ export class InteractionSelection {
       this.bodies[row] = frames[sample];
       this.targetRows[row] = target;
       this.suppressed[target] = 1;
+      if (profile.action === FETCH_VISUAL_ACTION) this.reachRows[row] = 1;
       const mealTable = columns.mealTables?.[row];
       if (profile.action === 13 && mealTable !== undefined && mealTable !== 0xffffffff) {
         const table = this.findRow(mealTable);

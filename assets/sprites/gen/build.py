@@ -68,7 +68,7 @@ ATLAS_TS = os.path.join(ROOT, "web", "src", "render", "atlas.ts")
 
 
 # Accepted fridge open-and-reach export; see docs/assets/review-evidence/kitchen/fridge-reach-2026-10-08.md.
-FRIDGE_REACH_EXPORT = 'assets/models/kitchen/actions/export/fridge-01/manifest.json'
+FRIDGE_REACH_EXPORT = 'assets/models/kitchen/actions/export/fridge-02/manifest.json'
 
 def revisioned_atlas_name(png_sha256):
     """The immutable public pathname paired with one exact PNG payload."""
