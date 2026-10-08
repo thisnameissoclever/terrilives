@@ -33,7 +33,12 @@ def committed(revision, path):
 
 
 def table(source, name):
-    value = re.search(r'export const ' + name + r'[^=]*= (.*?);\r?\n', source, re.S).group(1)
+    value = re.search(r'(?:export )?const ' + name + r'[^=]*= (.*?);\r?\n', source, re.S).group(1)
+    # Coverage tables may be emitted as index lists into the shared COVERAGE_VALUES table.
+    mapped = re.fullmatch(r'(\[[\d,\s]*\])\.map\(index => COVERAGE_VALUES\[index\]!\)', value.strip())
+    if mapped:
+        values = table(source, 'COVERAGE_VALUES')
+        return [values[index] for index in json.loads(mapped.group(1))]
     value = re.sub(r'(?m)^\s*(\d+):', lambda m: '"' + m[1] + '":', value)
     value = re.sub(r',\s*([}\]])', r'\1', value)
     return json.loads(value)

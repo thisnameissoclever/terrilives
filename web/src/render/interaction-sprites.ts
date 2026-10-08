@@ -4,6 +4,7 @@ import { tickAnimationFrame } from './sim-animation.js';
 import { sharedSeatKey, sharedSeatPhase, reclineKey, RECLINE_ACTIVITY, RECLINE_VISUAL_ACTION, type SharedSeatCatalog, type ReclineCatalog } from './shared-seat-sprites.js';
 import { readingBodyScene, type ReadingBodyCatalog } from './reading-sprites.js';
 import { bookReachFrame, FETCH_BOOK_STAGE, SHELVE_BOOK_STAGE, type BookReachCatalog } from './book-reach-sprites.js';
+import { fetchFrame, FETCH_VISUAL_ACTION } from './fetch-animation.js';
 
 function paletteIndex(variant: ShirtVariant): number {
   return variant === 'green' ? 0 : variant === 'blue' ? 1 : 2;
@@ -16,6 +17,11 @@ export interface InteractionProfile {
   readonly frames: Readonly<Record<ShirtVariant, readonly number[]>>;
   readonly facingFrames?: Readonly<Record<number, Readonly<Record<ShirtVariant, readonly number[]>>>>;
   readonly idleFrames?: Readonly<Record<ShirtVariant, readonly number[]>>;
+  /**
+   * Feet centre of each sample in tiles relative to the fixture, for scenes
+   * whose body stands off the fixture's tile. The marker and bubble follow it.
+   */
+  readonly feet?: readonly (readonly [number, number])[];
 }
 export type InteractionCatalog = Readonly<Record<number, InteractionProfile>>;
 export type ActionInteractionCatalog = Readonly<Record<number, Readonly<Record<number, InteractionProfile>>>>;
@@ -45,6 +51,8 @@ export interface InteractionColumns {
   readonly readingReachTotals?: Uint32Array;
   readonly carriedBooks?: Uint32Array;
   readonly positions?: Float32Array;
+  /** Step progress in thousandths; progress-driven profiles (the fridge reach) sample from it. */
+  readonly choreProgress?: Uint32Array;
 }
 
 export interface InteractionSource {
@@ -72,6 +80,7 @@ export interface InteractionSource {
   readingReachTotals?(): Uint32Array;
   carriedBooks?(): Uint32Array;
   positions?(): Float32Array;
+  choreProgress?(): Uint32Array;
 }
 
 /** Reused row tables keep selection, suppression and sampling on one contract. */
@@ -85,6 +94,10 @@ export class InteractionSelection {
   drawSuppressed = new Uint8Array(0);
   bedDrawRows = new Int32Array(0);
   readonly bookReachRows: boolean[] = [];
+  /** Rows drawing a fixture scene whose body stands on the front tile. */
+  reachRows = new Uint8Array(0);
+  /** For those rows, the drawn feet in tiles relative to the fixture, as x, y pairs. */
+  reachFeet = new Float32Array(0);
   private stockSuppression = new Uint32Array(0);
   private stockPresence = new Uint32Array(0);
   private place0 = new Int32Array(0);
@@ -185,6 +198,7 @@ export class InteractionSelection {
     this.columns.readingReachTotals = source.readingReachTotals?.();
     this.columns.carriedBooks = source.carriedBooks?.();
     this.columns.positions = source.positions?.();
+    this.columns.choreProgress = source.choreProgress?.();
     this.update(this.columns, tick, reducedMotion);
   }
 
@@ -204,6 +218,8 @@ export class InteractionSelection {
       this.bedDrawRows = new Int32Array(count);
       this.stockSuppression = new Uint32Array(count);
       this.stockPresence = new Uint32Array(count);
+      this.reachRows = new Uint8Array(count);
+      this.reachFeet = new Float32Array(count * 2);
     }
     this.bodies.fill(-1, 0, count);
     this.targetRows.fill(-1, 0, count);
@@ -218,6 +234,7 @@ export class InteractionSelection {
     this.bedDrawRows.fill(-1, 0, count);
     this.stockSuppression.fill(0, 0, count);
     this.stockPresence.fill(0, 0, count);
+    this.reachRows.fill(0, 0, count);
     this.bookReachRows.length = count;
     this.bookReachRows.fill(false);
     this.bedScenes.fill(undefined, 0, this.bedScenes.length);
@@ -390,11 +407,20 @@ export class InteractionSelection {
       const variant = this.shirtVariant(simIds?.[row]);
       const resting = actions[row] === 8 && profile.idleFrames;
       const frames = (resting || profile.facingFrames?.[columns.facings?.[row] ?? 0] || profile.frames)[variant];
-      const sample = resting ? 0 : tickAnimationFrame(tick, ids[row] % profile.halfCycleTicks,
-        frames.length, 2 * profile.halfCycleTicks / frames.length, reducedMotion);
+      const sample = resting ? 0
+        : profile.action === FETCH_VISUAL_ACTION
+          ? fetchFrame(columns.choreProgress?.[row] ?? 0, frames.length, reducedMotion)
+          : tickAnimationFrame(tick, ids[row] % profile.halfCycleTicks,
+            frames.length, 2 * profile.halfCycleTicks / frames.length, reducedMotion);
       this.bodies[row] = frames[sample];
       this.targetRows[row] = target;
       this.suppressed[target] = 1;
+      if (profile.action === FETCH_VISUAL_ACTION) {
+        this.reachRows[row] = 1;
+        const feet = profile.feet?.[sample];
+        this.reachFeet[row * 2] = feet?.[0] ?? 0;
+        this.reachFeet[row * 2 + 1] = feet?.[1] ?? 0;
+      }
       const mealTable = columns.mealTables?.[row];
       if (profile.action === 13 && mealTable !== undefined && mealTable !== 0xffffffff) {
         const table = this.findRow(mealTable);

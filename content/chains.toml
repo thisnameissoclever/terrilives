@@ -31,6 +31,9 @@ satisfaction = 3.0
   role = "cold_storage"
   activity = "getting_ingredients"
   label = "Get ingredients"
+  # The fridge door opens, the Sim reaches in and the door closes, driven by
+  # the step's own progress rather than a looping clip.
+  visual = { action = "fetch", anchor = "station", facing = "toward_anchor" }
   duration_ticks = 30
   yields = "ingredients"
 
@@ -88,6 +91,7 @@ satisfaction = 0.0
   role = "cold_storage"
   activity = "getting_ingredients"
   label = "Get snack"
+  visual = { action = "fetch", anchor = "station", facing = "toward_anchor" }
   duration_ticks = 20
   yields = "ingredients"
   [[chain.step]]

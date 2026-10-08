@@ -56,6 +56,11 @@
       "kind": "reading-actions",
       "catalog": "assets/models/reading/catalog.json",
       "canonicalSha256": "577637edd3e3b06e8240af077ef3d4221bec27634c03aa746543a061ee92732b"
+    },
+    {
+      "kind": "bathroom-actions",
+      "catalog": "assets/models/kitchen/actions/export/fridge-03/manifest.json",
+      "canonicalSha256": "91d5b4cdc569fedd30cab133b5995d8f17285621213c655a5b5a61a66971ea9c"
     }
   ],
   "historicalFiles": {

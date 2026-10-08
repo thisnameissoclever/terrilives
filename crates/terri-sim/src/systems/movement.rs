@@ -232,10 +232,12 @@ pub fn follow_path(
                         }
                     }
                 }
-                commands
-                    .entity(entity)
-                    .remove::<Path>()
-                    .insert(terri_core::StepWork { remaining_ticks });
+                commands.entity(entity).remove::<Path>().insert((
+                    terri_core::StepWork { remaining_ticks },
+                    terri_core::StepWorkTotal {
+                        ticks: remaining_ticks,
+                    },
+                ));
             } else if let Ok(placed) = objects.get(target.object) {
                 // Both indices are in range by construction: `select_action`
                 // read them out of this same pack when it scored the advert,

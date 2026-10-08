@@ -53,6 +53,8 @@ def non_target_textures():
         textures.update(index for pair in profile['rows'] for index in pair if index >= 0)
     textures.update(index for rows in shipped_table('BOOK_REACH_SHELVES')['tables']
                     for pair in rows for index in pair if index >= 0)
+    # Per-pixel depth sprites are sampled by their scenes and never drawn.
+    textures.update(shipped_table('FIXTURE_SCENE_DEPTHS').values())
     return textures - {int(index) for index in shipped_table('JOINT_SCENE_ALPHA_IDS')}
 
 
@@ -122,7 +124,9 @@ class ShippedAtlasTests(unittest.TestCase):
         seating_layers = {int(index): layers for index, layers in shipped_table("SEATING_LAYERS").items()}
         self.assertEqual(len(seating_layers), 5 * 4 * 3 * 4)
         bathroom_layers = {int(index): layers for index, layers in shipped_table("BATHROOM_LAYERS").items()}
-        self.assertEqual(len(bathroom_layers), 4 * 3 * 4 + 4 * 4)
+        # Toilet: four facings, three shirts, four samples; bath: four facings, four samples;
+        # fridge reach: four facings, three shirts, eight samples.
+        self.assertEqual(len(bathroom_layers), 4 * 3 * 4 + 4 * 4 + 4 * 3 * 8)
         shared_layers = {int(index): layers for index, layers in shipped_table('SHARED_SEAT_LAYERS').items()}
         visible_layers = {**bed_layers, **seating_layers, **bathroom_layers, **shared_layers}
         joint = {int(index): coverage for index, coverage in shipped_table('JOINT_SCENE_ALPHA_IDS').items()}

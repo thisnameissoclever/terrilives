@@ -842,6 +842,28 @@ pub struct StepWork {
     pub remaining_ticks: u32,
 }
 
+/// The sampled length of the chain step whose [`StepWork`] is running.
+///
+/// Presentation only: progress-driven poses (the fridge reach) read it to
+/// place a body within its step. It is not hashed and not saved, because the
+/// length comes from the same generator draw on every replay; a loaded step
+/// rebuilds it with [`StepWorkTotal::resumed`].
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StepWorkTotal {
+    pub ticks: u32,
+}
+
+impl StepWorkTotal {
+    /// A loaded step's sampled length is not saved, so presentation assumes
+    /// half of it has passed: a body saved mid-reach keeps reaching and still
+    /// closes the door before the step ends.
+    pub fn resumed(remaining_ticks: u32) -> Self {
+        Self {
+            ticks: remaining_ticks.saturating_mul(2),
+        }
+    }
+}
+
 /// The atlas sprite this entity is drawn with, when it differs from its
 /// object definition's - [A-11]'s facing mechanism.
 ///

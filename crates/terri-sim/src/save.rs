@@ -845,7 +845,10 @@ fn restore_entity(
         target.insert(Carrying(index as u32));
     }
     if let Some(remaining_ticks) = saved.step_work_ticks {
-        target.insert(StepWork { remaining_ticks });
+        target.insert((
+            StepWork { remaining_ticks },
+            terri_core::StepWorkTotal::resumed(remaining_ticks),
+        ));
     }
 
     if let (Some(position), Some(object_name)) = (saved.position, saved.smart_object.as_deref()) {
