@@ -29,7 +29,6 @@ import { BuyToolControls } from './ui/buy-tool-controls.js';
 import { BookTool } from './ui/book-tool.js';
 import { BookToolControls } from './ui/book-tool-controls.js';
 import { BookResults, bookRefusal } from './books/results.js';
-import { showLegacyBookNotice } from './ui/book-notice.js';
 import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
 import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
@@ -340,8 +339,7 @@ async function main(): Promise<void> {
     saveStatus,
     (error) => console.error('save storage failed:', error),
   );
-  const startupRestore = await persistence.restoreAtStartup();
-  if (startupRestore === 'loaded') showLegacyBookNotice(document, sim);
+  await persistence.restoreAtStartup();
   const bookResults = new BookResults(sim);
   let lotWidth = handle.lot_width();
   let lotHeight = handle.lot_height();
@@ -988,7 +986,6 @@ async function main(): Promise<void> {
           bookResults.resetAfterLoad();
           bookControls?.resetAfterLoad();
           bookTool.resetAfterLoad();
-          showLegacyBookNotice(document, sim);
           builder.resetAfterLoad();
           // [ES-form]: a draft names a person of the replaced world, so
           // close it before the form returns to create mode.
