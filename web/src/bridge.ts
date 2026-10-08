@@ -1363,8 +1363,7 @@ export class SimBridge {
    * **Required rather than defaulted to 0.** A default would let a caller
    * that forgot the argument compile and silently send the first
    * interaction, which is the exact bug this parameter was added to
-   * remove - and it is invisible today, because every shipped object's
-   * first interaction is also its only one.
+   * remove; several shipped objects offer more than one interaction.
    *
    * An index the object does not have is NOT rejected here, and nor is it
    * rejected in Rust. It is a well-formed command, it is what a saved

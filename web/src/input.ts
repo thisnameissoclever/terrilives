@@ -779,8 +779,7 @@ export interface CommandSink {
   /**
    * `interaction` is required, matching `SimBridge.useObject`. A default of
    * 0 here would let a caller omit it and silently direct the sim at the
-   * object's first verb, which is invisible while every shipped object has
-   * exactly one.
+   * object's first verb rather than the one the gesture named.
    */
   useObject(agent: number, object: number, interaction: number): boolean;
   /** The same order placed at the FRONT of the queue; `SimBridge.useObjectFirst`. */
