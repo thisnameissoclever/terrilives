@@ -1862,6 +1862,24 @@ pub(crate) fn boundary_route(
             .find_path(start, (front.x.round() as i32, front.y.round() as i32))
             .and_then(|steps| route_grid.anchor_path((from.x, from.y), steps));
     }
+    // A detoured fetch keeps the door-front tile the planner chose, and falls
+    // back to any adjacent tile exactly as the planner does.
+    if crate::is_reach_step(step) {
+        if let Some(front) = crate::reach_contact(
+            &route_grid,
+            pack,
+            &terri_core::SmartObject(object),
+            &to,
+            facing,
+        ) {
+            if let Some(route) = route_grid
+                .find_path(start, (front.x.round() as i32, front.y.round() as i32))
+                .and_then(|steps| route_grid.anchor_path((from.x, from.y), steps))
+            {
+                return Some(route);
+            }
+        }
+    }
     route_grid
         .find_path_adjacent(
             start,

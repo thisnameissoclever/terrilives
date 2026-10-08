@@ -128,6 +128,9 @@ pub enum CompiledVisualAction {
     Wash,
     UseToilet,
     Bathe,
+    /// Opening a storage appliance, reaching inside and closing it again.
+    /// Appended last: postcard writes the variant ordinal.
+    Fetch,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -2985,6 +2988,17 @@ mod tests {
             postcard::to_allocvec(&bath).unwrap(),
             vec![11, 3, 1, 1, 0],
             "Bathe must append after UseToilet without moving the socket contract"
+        );
+        let fetch = CompiledVisual {
+            action: CompiledVisualAction::Fetch,
+            anchor: CompiledVisualAnchor::Station,
+            facing: CompiledVisualFacing::TowardAnchor,
+            socket: None,
+        };
+        assert_eq!(
+            postcard::to_allocvec(&fetch).unwrap(),
+            vec![12, 2, 0, 0],
+            "Fetch must append after Bathe without moving the station contract"
         );
     }
 }

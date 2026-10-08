@@ -750,6 +750,143 @@ fn cooking_contact(
     .then_some(front)
 }
 
+fn is_authored_fetch_visual(step: &terri_data::CompiledChainStep) -> bool {
+    step.visual.as_ref().is_some_and(|visual| {
+        matches!(
+            (
+                &visual.action,
+                &visual.anchor,
+                &visual.facing,
+                visual.socket
+            ),
+            (
+                terri_data::CompiledVisualAction::Fetch,
+                terri_data::CompiledVisualAnchor::Station,
+                terri_data::CompiledVisualFacing::TowardAnchor,
+                None,
+            )
+        )
+    })
+}
+
+/// The tile in front of a one-tile storage station's door.
+///
+/// Storage appliances are authored facing the camera in their base facing,
+/// like the stove, so their door opens toward lot +x before any turn. A
+/// station larger than one tile has no single front tile and gets none.
+fn reach_front(
+    pack: &terri_data::ContentPack,
+    object: &terri_core::SmartObject,
+    position: &terri_core::Position,
+    facing: Option<&terri_core::ObjectFacing>,
+) -> Option<terri_core::Position> {
+    let definition = pack.objects.get(object.0 .0 as usize)?;
+    let footprint = placed_footprint(pack, object.0, facing);
+    if (footprint.width, footprint.depth) != (1, 1) {
+        return None;
+    }
+    let turn = facing.map_or(definition.base_facing, |f| f.0).code();
+    let relative = terri_core::Facing::from_code((turn + 4 - definition.base_facing.code()) % 4)?;
+    let (dx, dy) = relative.rotate_axis(1, 0);
+    Some(terri_core::Position {
+        x: position.x + dx as f32,
+        y: position.y + dy as f32,
+    })
+}
+
+/// The reach front when a body can stand on it and use the station from it.
+pub(crate) fn reach_contact(
+    grid: &terri_core::TileGrid,
+    pack: &terri_data::ContentPack,
+    object: &terri_core::SmartObject,
+    position: &terri_core::Position,
+    facing: Option<&terri_core::ObjectFacing>,
+) -> Option<terri_core::Position> {
+    let front = reach_front(pack, object, position, facing)?;
+    let endpoint = (front.x.round() as i32, front.y.round() as i32);
+    (grid.is_walkable(endpoint.0, endpoint.1)
+        && grid.can_interact_with_rect(
+            endpoint,
+            (position.x.round() as i32, position.y.round() as i32),
+            placed_footprint(pack, object.0, facing),
+        ))
+    .then_some(front)
+}
+
+/// Whether a chain step's station is approached from its door front.
+pub(crate) fn is_reach_step(step: &terri_data::CompiledChainStep) -> bool {
+    is_authored_fetch_visual(step)
+}
+
+/// The fridge reach: the body on the tile in front of the exact target
+/// station's door, facing it, with the step's progress from 0 to 1000.
+///
+/// A body that is not standing on that tile (the planner fell back to another
+/// adjacent tile because the front was unreachable) keeps the standing pose,
+/// so the art never pulls a body onto a tile it did not walk to.
+fn fetch_projection(world: &World, person: Entity) -> Option<(SocketActionProjection, u32)> {
+    use terri_core::{ChainState, Eating, Path, Position, SmartObject, StepWork, Target};
+    let pack = world.resource::<Content>().0;
+    if world.get::<Path>(person).is_some() || world.get::<Eating>(person).is_some() {
+        return None;
+    }
+    let work = world.get::<StepWork>(person)?;
+    let chain = world.get::<ChainState>(person)?;
+    let recipe = pack.chains.get(chain.chain as usize)?;
+    let step = recipe.steps.get(chain.step as usize)?;
+    if !is_authored_fetch_visual(step) {
+        return None;
+    }
+    let target = world.get::<Target>(person)?;
+    let object = world.get::<SmartObject>(target.object)?;
+    if target.interaction != systems::chain::CHAIN_STEP
+        || !pack.object(object.0).roles.contains(&step.role)
+    {
+        return None;
+    }
+    let station = world.get::<Position>(target.object)?;
+    let facing = world.get::<terri_core::ObjectFacing>(target.object);
+    let front = reach_contact(
+        world.resource::<terri_core::TileGrid>(),
+        pack,
+        object,
+        station,
+        facing,
+    )?;
+    let here = world.get::<Position>(person)?;
+    if (here.x.round(), here.y.round()) != (front.x.round(), front.y.round()) {
+        return None;
+    }
+    let center = object_footprint_centre(pack, object, station, facing)?;
+    let total = world
+        .get::<terri_core::StepWorkTotal>(person)
+        .copied()
+        .filter(|total| total.ticks >= work.remaining_ticks && total.ticks > 0)
+        .unwrap_or_else(|| terri_core::StepWorkTotal::resumed(work.remaining_ticks));
+    let progress = fetch_progress(work.remaining_ticks, total.ticks);
+    Some((
+        SocketActionProjection {
+            x: front.x,
+            y: front.y,
+            facing: facing_toward(person, &front, target.object, &center),
+            target_entity: target.object.index_u32(),
+            visual_action: render_buffer::visual_action::FETCH,
+            activity: render_buffer::activity::GETTING_INGREDIENTS,
+        },
+        progress,
+    ))
+}
+
+/// Elapsed share of a step in thousandths: 0 as it starts and below 1000 on
+/// its last tick. Never decreases while `remaining` counts down.
+fn fetch_progress(remaining: u32, total: u32) -> u32 {
+    if total == 0 {
+        return 0;
+    }
+    let elapsed = u64::from(total.saturating_sub(remaining.min(total)));
+    (elapsed * 1000 / u64::from(total)) as u32
+}
+
 #[allow(clippy::too_many_arguments)]
 fn authored_eating_visual(
     content: &terri_data::ContentPack,
@@ -1391,6 +1528,7 @@ impl Sim {
         // Not hashed (the Eating class), but tests reach it through
         // `try_query`.
         world.register_component::<terri_core::StepWork>();
+        world.register_component::<terri_core::StepWorkTotal>();
         // The household's money - [E4]. From construction like the
         // SimId allocator, so a save file can restore it before any
         // shift completes.
@@ -2207,6 +2345,11 @@ impl Sim {
             } else {
                 None
             };
+            let fetch_visual = if is_agent && !socially_active && !at_work {
+                fetch_projection(&self.world, entity)
+            } else {
+                None
+            };
             let station_visual = if is_agent && !socially_active && !at_work {
                 reading::projection(&self.world, entity)
                     .or_else(|| chore_visual.map(|p| p.0))
@@ -2214,6 +2357,7 @@ impl Sim {
                     .or_else(|| media::projection(&self.world, entity))
                     .or_else(|| seating::ordinary_projection(&self.world, entity))
                     .or_else(|| cooking_projection(&self.world, entity))
+                    .or_else(|| fetch_visual.map(|(projection, _)| projection))
             } else {
                 None
             };
@@ -2411,7 +2555,14 @@ impl Sim {
                     .map_or(0, |colourway| colourway.0),
                 activity,
                 visual_action,
-                chore_progress: chore_visual.map_or(0, |p| p.1),
+                chore_progress: chore_visual.map_or_else(
+                    || {
+                        fetch_visual
+                            .filter(|(projection, _)| Some(*projection) == station_visual)
+                            .map_or(0, |(_, progress)| progress)
+                    },
+                    |p| p.1,
+                ),
                 interaction_target: station_visual
                     .or(socket_action_visual)
                     .filter(|_| socket_projected)

@@ -1832,7 +1832,8 @@ impl fmt::Display for ContentError {
                 f,
                 "'{owner}' interaction '{interaction}' declares unknown \
                  visual action '{action}'; the current vocabulary is talk, eat, read, \
-                 exercise, watch, sit, sleep, use_toilet"
+                 exercise, watch, sit, sleep, use_toilet, bathe, wash, cook, \
+                 prepare, fetch"
             ),
             ContentError::UnknownVisualAnchor {
                 owner,
@@ -1903,7 +1904,8 @@ impl fmt::Display for ContentError {
                 f,
                 "chain '{chain}' step {step} declares unknown visual action \
                  '{action}'; the current vocabulary is talk, eat, read, \
-                 exercise, watch"
+                 exercise, watch, sit, sleep, use_toilet, bathe, wash, cook, \
+                 prepare, fetch"
             ),
             ContentError::UnknownChainStepVisualAnchor {
                 chain,

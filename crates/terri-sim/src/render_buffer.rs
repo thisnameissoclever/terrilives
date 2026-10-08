@@ -314,6 +314,10 @@ pub mod visual_action {
     /// Code 20 is reserved for the shower. The web draws this with the
     /// prop-free prepare clip until a dedicated hand-washing clip ships.
     pub const WASH_HANDS: u32 = 21;
+    /// Opening the exact target fridge, reaching inside and closing it, from
+    /// the tile in front of its door. The web selects the drawn sample from
+    /// the step's progress in `chore_progress`, not from a looping clock.
+    pub const FETCH: u32 = 22;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -336,6 +340,10 @@ mod tests {
 
     mod bath_projection_tests {
         include!("render_buffer/bath_projection_tests.rs");
+    }
+
+    mod fridge_reach_projection_tests {
+        include!("render_buffer/fridge_reach_projection_tests.rs");
     }
 
     fn neutral_instincts(sim: &mut Sim) {
@@ -4423,11 +4431,17 @@ mod tests {
         let chain = &pack.chains[chain_index as usize];
         let terminal_step = chain.steps.len() as u32 - 1;
         let terminal_role = chain.steps[terminal_step as usize].role;
+        // Every shipped dinner step now authors a visual. The fridge step's
+        // reach is drawn only from the tile in front of the door, so a body
+        // standing elsewhere at the fridge must still fail closed.
         let unauthored_step = chain
             .steps
             .iter()
-            .position(|step| step.visual.is_none())
-            .expect("shipped dinner has an unauthored preparation step")
+            .position(|step| {
+                step.visual
+                    .is_some_and(|visual| visual.action == terri_data::CompiledVisualAction::Fetch)
+            })
+            .expect("shipped dinner fetches its ingredients from the fridge")
             as u32;
         let unauthored_role = chain.steps[unauthored_step as usize].role;
         let station_for = |role: u32| {
@@ -4585,7 +4599,7 @@ mod tests {
             (wrong_role, "target with wrong station role"),
             (no_smart_object, "target missing SmartObject"),
             (no_position, "target missing Position"),
-            (unauthored, "unauthored chain step"),
+            (unauthored, "fetch step away from the door front"),
         ] {
             let (action, direction, activity) = projection_of(sim.render_buffer(), entity);
             assert_eq!(

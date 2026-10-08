@@ -2317,6 +2317,7 @@ fn compile_visual_action(
         "sleep" => CompiledVisualAction::Sleep,
         "use_toilet" => CompiledVisualAction::UseToilet,
         "bathe" => CompiledVisualAction::Bathe,
+        "fetch" => CompiledVisualAction::Fetch,
         "wash" => CompiledVisualAction::Wash,
         "cook" => CompiledVisualAction::Cook,
         "prepare" => CompiledVisualAction::Prepare,
@@ -2410,7 +2411,8 @@ fn compile_visual(
             CompiledVisualAction::Eat
                 | CompiledVisualAction::Prepare
                 | CompiledVisualAction::Cook
-                | CompiledVisualAction::Wash,
+                | CompiledVisualAction::Wash
+                | CompiledVisualAction::Fetch,
             CompiledVisualAnchor::Station,
             CompiledVisualFacing::TowardAnchor,
             None
@@ -2478,6 +2480,7 @@ fn compile_visual(
             CompiledVisualAction::Prepare => "prepare",
             CompiledVisualAction::UseToilet => "use_toilet",
             CompiledVisualAction::Bathe => "bathe",
+            CompiledVisualAction::Fetch => "fetch",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -2516,6 +2519,7 @@ fn compile_visual(
                             CompiledVisualAction::Prepare => "prepare",
                             CompiledVisualAction::UseToilet => "use_toilet",
                             CompiledVisualAction::Bathe => "bathe",
+                            CompiledVisualAction::Fetch => "fetch",
                         },
                         "object_socket",
                     ),

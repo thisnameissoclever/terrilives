@@ -323,6 +323,13 @@ pub fn advance_chains(
                 &grid
             };
             let approach = crate::stove_front(content.0, object, station_pos, facing);
+            // A fetch step walks to the tile in front of the door, where the
+            // reach is drawn. Unlike the hob, a fridge stays usable when that
+            // tile is blocked or unreachable: the body then stands at any
+            // adjacent tile and keeps the standing pose.
+            let reach = (approach.is_none() && crate::is_reach_step(step))
+                .then(|| crate::reach_contact(route_grid, content.0, object, station_pos, facing))
+                .flatten();
             let route = if approach.is_some() {
                 let Some(front) =
                     crate::cooking_contact(route_grid, content.0, object, station_pos, facing)
@@ -331,6 +338,11 @@ pub fn advance_chains(
                 };
                 let endpoint = (front.x.round() as i32, front.y.round() as i32);
                 route_grid.find_path(from, endpoint)
+            } else if let Some(front) = reach {
+                let endpoint = (front.x.round() as i32, front.y.round() as i32);
+                route_grid
+                    .find_path(from, endpoint)
+                    .or_else(|| route_grid.find_path_adjacent(from, to, footprint))
             } else {
                 route_grid.find_path_adjacent(from, to, footprint)
             };
@@ -543,7 +555,11 @@ pub fn tick_chain_steps(
         if let Some(target) = target {
             crate::reservations::release(&mut commands, sim, *target);
         }
-        commands.entity(sim).remove::<Target>().remove::<StepWork>();
+        commands
+            .entity(sim)
+            .remove::<Target>()
+            .remove::<StepWork>()
+            .remove::<terri_core::StepWorkTotal>();
 
         if !terminal {
             if let Ok(mut origin) = origins.get_mut(sim) {
