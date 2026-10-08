@@ -83,6 +83,33 @@ class BathroomImportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             api.tables(export, sprites, anchors={0:[2, 4], 1:[2, 4], 2:[2, 4], 3:[2, 25]})
 
+    def test_fridge_reach_serves_eight_progress_samples_on_a_padded_canvas(self):
+        api = importlib.import_module('offline_bathroom')
+        layers = {name:Image.new('RGBA', (8, 8)) for name in ('body', 'furniture', 'ink')}
+        layers['body'].putpixel((2, 2), (40, 20, 10, 255))
+        layers['furniture'].putpixel((5, 5), (80, 60, 40, 255))
+        layers['ink'].putpixel((2, 1), (32, 32, 32, 255))
+        masks = {role:image.getchannel('A') for role, image in layers.items()}
+        masks['bodyInk'] = masks['ink'].copy()
+        scenes = [dict(facing=f, variant=v, frame=i, layers={r:r for r in layers}, coverage={r:r for r in masks})
+                  for f, v, i in itertools.product(('SE', 'NW', 'SW', 'NE'), ('green', 'blue', 'red'), range(8))]
+        empty = [48.0000114440918, 116.0004369020462]
+        left, top = api.KINDS['fridge']['padding'][:2]
+        obj = dict(kind='fridge', content='fridge', canvas=[156, 166], anchor=[empty[0]+left, empty[1]+top], scenes=scenes)
+        export = api.BathroomExport(dict(objects=[obj], action=22, samples=8, playback='progress'), layers, masks, 'fridge')
+        empties = [('offlineFridge'+suffix, Image.new('RGBA', (1, 1)), 1, 1) for suffix in ('', 'NW', 'SW', 'NE')]
+        records = api.records(export)
+        self.assertEqual(sum(row[0].startswith('kitchenFridgeReach_') for row in records), 96)
+        tables = api.tables(export, empties+records, anchors={index:empty for index in range(4)})
+        for profile in tables['profiles'].values():
+            self.assertEqual(profile['action'], 22)
+            self.assertTrue(all(len(frames) == 8 for frames in profile['frames'].values()))
+        # The unpadded anchor, or one moved by a pixel, does not register on the empty fridge.
+        for wrong in ([e for e in empty], [empty[0]+left+1, empty[1]+top]):
+            obj['anchor'] = wrong
+            with self.assertRaises(ValueError):
+                api.tables(export, empties+records, anchors={index:empty for index in range(4)})
+
     def test_missing_exact_empty_facing_rejects(self):
         api, export = self.fixture()
         with self.assertRaises(ValueError):

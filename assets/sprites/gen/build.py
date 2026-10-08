@@ -67,6 +67,9 @@ ATLAS_TOML = os.path.join(ROOT, "assets", "sprites", "atlas.toml")
 ATLAS_TS = os.path.join(ROOT, "web", "src", "render", "atlas.ts")
 
 
+# Accepted fridge open-and-reach export; see docs/assets/review-evidence/kitchen/fridge-reach-2026-10-08.md.
+FRIDGE_REACH_EXPORT = 'assets/models/kitchen/actions/export/fridge-01/manifest.json'
+
 def revisioned_atlas_name(png_sha256):
     """The immutable public pathname paired with one exact PNG payload."""
     return f"atlas-{png_sha256}.png"
@@ -1484,6 +1487,25 @@ def main():
     reading_actions = append_actions(ROOT, sprites, anchors, densities, bed_trims, bounds, tops, bed_coverage)
     dropped_books = append_dropped(ROOT, sprites, anchors, densities, bounds, bed_coverage)
     visible_layers.update(reading_actions['layers'])
+    # The fridge reach is the newest reviewed extension, so its records follow every
+    # published record. It shares the fixture-scene tables; its canvas is the fridge's
+    # grown by whole logical pixels, so the importer checks the anchor against the
+    # padded empty anchor.
+    fridge = load_bathroom(Path(ROOT) / FRIDGE_REACH_EXPORT)
+    fridge_rows = bathroom_records(fridge)
+    assert not {row[0] for row in sprites}.intersection(row[0] for row in fridge_rows), 'duplicate fridge records'
+    sprites.extend(fridge_rows)
+    fridge_data = bathroom_tables(fridge, sprites, anchors)
+    anchors.update(fridge_data['anchors'])
+    tops.update(fridge_data['tops'])
+    bounds.update(fridge_data['bounds'])
+    densities.update(fridge_data['density'])
+    bathroom_data = dict(bathroom_data, profiles={**bathroom_data['profiles'], **fridge_data['profiles']},
+                         layers={**bathroom_data['layers'], **fridge_data['layers']},
+                         coverage={**bathroom_data['coverage'], **{index:[m+len(bathroom_data['masks']) for m in masks]
+                                                                  for index, masks in fridge_data['coverage'].items()}},
+                         masks=bathroom_data['masks']+fridge_data['masks'])
+    visible_layers.update(fridge_data['layers'])
     sync_generated_architecture(sprites, check=args.check)
     textured = [(index, sprite) for index, sprite in enumerate(sprites)
                 if index not in visible_layers and index not in shelf_data['positions']]
