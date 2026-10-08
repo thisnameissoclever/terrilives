@@ -5,7 +5,6 @@ import { SimBridge } from '../src/bridge.js';
 import { BookResults } from '../src/books/results.js';
 import { BuyTool } from '../src/ui/buy-tool.js';
 import { menuEntries } from '../src/ui/object-menu.js';
-import { showLegacyBookNotice } from '../src/ui/book-notice.js';
 let memory: WebAssembly.Memory;
 beforeAll(async () => { memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory; });
 function fundTestHousehold(sim: SimBridge): void {
@@ -81,15 +80,17 @@ it('uses stable model/action identity, combines room/need filters and keeps brow
     sim.flushCommands(); results.drain(); expect(results.submit(() => sim.buyBook(title, null), result => expect(result.refusal).toBeNull())).toBe(true); sim.flushCommands(); results.drain();
   } finally { handle.free(); }
 });
-it('consumes migration notices only on confirmed legacy imports, including startup', () => {
+it('imports legacy books without adding upgrade prose to the status panel', () => {
   const handle = SimHandle.from_lot(); const sim = new SimBridge(handle, memory);
-  const node = { hidden: true, textContent: '' }; const doc = { querySelector: () => node } as unknown as Document;
   try {
-    showLegacyBookNotice(doc, sim); expect(node.hidden).toBe(true);
+    const html = readFileSync('index.html', 'utf8');
+    expect(html).not.toContain('id="book-import-notice"');
+    expect(sim.takeLegacyBookImportNotice()).toBe(false);
     const old = Uint8Array.from(Buffer.from(readFileSync('../crates/terri-wasm/tests/fixtures/pre-voice-157.hex', 'utf8').replace(/\s/g, ''), 'hex'));
-    expect(sim.loadBytes(old)).toBe(true); showLegacyBookNotice(doc, sim); expect(node.hidden).toBe(false); expect(node.textContent).toContain('Five starter titles');
-    expect(sim.bookCopies()).toHaveLength(5); showLegacyBookNotice(doc, sim); expect(node.hidden).toBe(true);
-    const current = sim.saveBytes(); expect(sim.loadBytes(current)).toBe(true); showLegacyBookNotice(doc, sim); expect(node.hidden).toBe(true);
+    expect(sim.loadBytes(old)).toBe(true); expect(sim.takeLegacyBookImportNotice()).toBe(true);
+    expect(sim.bookCopies()).toHaveLength(5); expect(sim.takeLegacyBookImportNotice()).toBe(false);
+    const current = sim.saveBytes(); expect(sim.loadBytes(current)).toBe(true); expect(sim.takeLegacyBookImportNotice()).toBe(false);
+    expect(sim.bookCopies()).toHaveLength(5);
     expect(sim.loadBytes(old.slice(0, -1))).toBe(false); expect(sim.takeLegacyBookImportNotice()).toBe(false);
   } finally { handle.free(); }
 });
