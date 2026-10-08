@@ -252,10 +252,21 @@ bubble at the sample's feet.
 4. `prepare-fridge-gpu-reference.py` writes the decoded-layer shader
    reference from export `fridge-03` for `web/proofs/fridge-reach.js`, which
    draws all 96 scenes through the real sprite renderer and compares a
-   copied readback with it. It has not been run on this export.
+   copied readback with it. Run in the browser pane on export `fridge-03`:
+   all 96 scenes passed with a maximum error of one colour level and a 95th
+   percentile of zero, with empty validation and uncaptured-error lists.
 5. The played checks of the two earlier deliveries failed as described
-   above (`fridge-reach-played.png`, `fridge-reach-arrival-played.png`);
-   this export has not yet been played.
+   above. Export `fridge-03` was played in the shipped house at the
+   `127.0.0.1:5174` origin: Bill and then Casey fetched from the corner
+   fridge. Enlarged five times against the owner's four failure points,
+   the reach frame shows the Sim drawn whole with no straight cut on its
+   left, the fridge's left side drawn whole, the selection marker under the
+   Sim's feet on the front tile, and the activity bubble whole above the
+   Sim's head; the open door covers the legs only where it stands in front
+   of them. `fridge-reach-played.png` is that frame enlarged;
+   `fridge-reach-arrival-played.png` shows Bill at the door front with his
+   marker under his feet after the fetch. The browser tab and dev server
+   were closed afterwards.
 
 ## Deviations from the plan
 
