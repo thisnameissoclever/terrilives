@@ -394,8 +394,17 @@ impl InterpersonalPhase {
                             .any(|&(n, d)| Some(n) == relevant && d > 0.)
                                 && (!a.tags.iter().any(|tag| tag == PRIVATE_USE_TAG)
                                     || !self.start_blocked(agent, item.entity))
-                                && occupancy
-                                    .admissions(
+                                && match plan.as_ref().and_then(|p| p.seat) {
+                                    Some(_) if media => occupancy.viewer_admissions(
+                                        agent,
+                                        Target {
+                                            object: item.entity,
+                                            interaction: index as u32,
+                                        },
+                                        a.slots,
+                                        true,
+                                    ),
+                                    _ => occupancy.admissions(
                                         pack,
                                         definition,
                                         agent,
@@ -405,21 +414,20 @@ impl InterpersonalPhase {
                                             interaction: index as u32,
                                         },
                                         assignments,
-                                    )
-                                    .into_iter()
-                                    .any(|admission| {
-                                        // A viewing use needs its planned place; seated
-                                        // work without a chair keeps the standing route.
-                                        match (media, plan.as_ref()) {
-                                            (_, Some(plan)) => plan
-                                                .access
-                                                .route
-                                                .path(&safe, tile(position))
-                                                .is_some(),
-                                            (true, None) => false,
-                                            (false, None) => reachable(admission),
+                                    ),
+                                }
+                                .into_iter()
+                                .any(|admission| {
+                                    // A viewing use needs its planned place; seated
+                                    // work without a chair keeps the standing route.
+                                    match (media, plan.as_ref()) {
+                                        (_, Some(plan)) => {
+                                            plan.access.route.path(&safe, tile(position)).is_some()
                                         }
-                                    })
+                                        (true, None) => false,
+                                        (false, None) => reachable(admission),
+                                    }
+                                })
                         })
                 })
             });

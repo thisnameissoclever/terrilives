@@ -1,6 +1,10 @@
-# Clearer status panel, sofa clicks and the fridge
+# Clearer status panel, sofa clicks, watching together and the fridge
 
-Loading an older saved household keeps the status panel compact, clicking a sofa now has the selected Sim sit on it, and housemates open the fridge when they fetch food.
+Loading an older saved household keeps the status panel compact, clicking a sofa now has the selected Sim sit on it, every free seat in view of the television can hold a viewer, and housemates open the fridge when they fetch food.
+
+## Improved
+
+- Every free seat in view of the television or radio lets another Sim join in, so a full sofa can watch together. When the seats are taken, Sims can still stand and watch as before.
 
 ## Fixed
 

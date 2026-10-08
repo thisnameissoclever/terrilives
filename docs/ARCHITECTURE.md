@@ -459,6 +459,9 @@ the seats, because admission never reads it and an edited number would
 otherwise change nothing. Bookcase reading follows the same rule, because
 borrowed copies limit it. Every other layered action admits one person unless
 it is television, radio or sleeping, so the build requires `slots = 1` there.
+For television and radio, `slots` counts standing viewers only: each free seat
+in view admits a further viewer, and a viewer who loses a seat stands only
+within that count.
 
 A type or model may name `default_action`, the action a left click starts;
 otherwise a left click starts the first action. The sofa names Sit, keeping

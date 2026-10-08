@@ -161,6 +161,17 @@ pub(crate) struct EndpointUse {
     pub kind: UseKind,
 }
 
+/// A seated user's approach may be shared with other seated users, so
+/// different sofa seats can share one approach tile; a standing viewer's spot
+/// is exclusive.
+pub(crate) fn media_endpoint_kind(place: &SavedDiner) -> UseKind {
+    if place.chair.is_some() {
+        UseKind::Media
+    } else {
+        UseKind::MediaEndpoint
+    }
+}
+
 pub(crate) fn endpoints_conflict(a: EndpointUse, b: EndpointUse, historical: bool) -> bool {
     a.owner != b.owner
         && a.endpoint == b.endpoint
@@ -180,7 +191,7 @@ pub(crate) fn endpoint_use(world: &World, lease: &SavedDiner) -> Option<Endpoint
         owner: crate::dining::entity(world, lease.person)?,
         endpoint: lease.endpoint,
         kind: match kind(world, lease)? {
-            UseKind::Media => UseKind::MediaEndpoint,
+            UseKind::Media => media_endpoint_kind(lease),
             kind => kind,
         },
     })
@@ -461,7 +472,7 @@ pub(crate) fn occupancy(world: &mut World) -> crate::beds::Occupancy {
                     result.claim_endpoint(EndpointUse {
                         owner,
                         endpoint: place.endpoint,
-                        kind: UseKind::MediaEndpoint,
+                        kind: media_endpoint_kind(&place),
                     });
                 }
             }

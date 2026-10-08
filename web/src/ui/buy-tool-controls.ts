@@ -45,7 +45,9 @@ export function modelFactsLabel(model: ModelFacts, needNames: readonly string[])
     lines.push(`Collect or return: ${model.shelfAccessPoints} ${model.shelfAccessPoints === 1 ? 'person' : 'people'} at once.`);
   }
   for (const action of model.actions) {
-    const capacity = action.capacity === null ? 'Readers use separate copies elsewhere' : `${action.capacity} ${action.capacity === 1 ? 'user' : 'users'} at once`;
+    const capacity = action.capacity === null ? 'Readers use separate copies elsewhere'
+      : action.seatsAddViewers ? `${action.capacity} standing at once, plus one for each free seat in view`
+      : `${action.capacity} ${action.capacity === 1 ? 'user' : 'users'} at once`;
     const seating = action.optionalRequirements.filter(requirement => requirement === 'meal_table' || requirement === 'dining_seat');
     const conditional = action.additionalDetails ?? [];
     const details = conditional.length ? ` Conditional details: ${conditional.join('; ')}.` : '';

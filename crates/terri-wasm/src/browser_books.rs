@@ -13,6 +13,9 @@ pub(super) type ModelActionRow = (
     Vec<String>,
     String,
     Vec<String>,
+    // Appended: free seats in view admit viewers beyond `capacity`, which
+    // then counts standing viewers only.
+    bool,
 );
 pub(super) type ModelFactRow = (
     u32,
@@ -120,6 +123,7 @@ impl SimHandle {
                                 .model_action_work_kind(&object.id, &action.id)
                                 .to_string(),
                             optional_requirements,
+                            action.media.is_some(),
                         )
                     })
                     .collect();
@@ -143,6 +147,7 @@ impl SimHandle {
                         }
                         .to_string(),
                         optional_requirements,
+                        false,
                     ));
                 }
                 (
@@ -579,6 +584,7 @@ mod tests {
                     vec!["Available shelved book".into()],
                     "ordinary".into(),
                     vec![],
+                    false,
                 ),
                 (
                     "inspect".into(),
@@ -592,6 +598,7 @@ mod tests {
                     vec![],
                     "ordinary".into(),
                     vec!["meal_table".into()],
+                    true,
                 ),
             ],
             vec!["prep_surface".into()],
@@ -606,10 +613,10 @@ mod tests {
                 11, 82, 101, 97, 100, 32, 97, 32, 98, 111, 111, 107, 60, 0, 1, 0, 166, 155, 68, 59,
                 4, 0, 0, 240, 65, 0, 0, 0, 0, 166, 155, 68, 59, 0, 0, 128, 63, 1, 22, 65, 118, 97,
                 105, 108, 97, 98, 108, 101, 32, 115, 104, 101, 108, 118, 101, 100, 32, 98, 111,
-                111, 107, 8, 111, 114, 100, 105, 110, 97, 114, 121, 0, 7, 105, 110, 115, 112, 101,
-                99, 116, 7, 73, 110, 115, 112, 101, 99, 116, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8,
-                111, 114, 100, 105, 110, 97, 114, 121, 1, 10, 109, 101, 97, 108, 95, 116, 97, 98,
-                108, 101, 1, 12, 112, 114, 101, 112, 95, 115, 117, 114, 102, 97, 99, 101,
+                111, 107, 8, 111, 114, 100, 105, 110, 97, 114, 121, 0, 0, 7, 105, 110, 115, 112,
+                101, 99, 116, 7, 73, 110, 115, 112, 101, 99, 116, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+                8, 111, 114, 100, 105, 110, 97, 114, 121, 1, 10, 109, 101, 97, 108, 95, 116, 97,
+                98, 108, 101, 1, 1, 12, 112, 114, 101, 112, 95, 115, 117, 114, 102, 97, 99, 101,
             ]
         );
         let handle = SimHandle::from_lot();
@@ -618,7 +625,10 @@ mod tests {
         assert_eq!((shelf.11, shelf.12), (24, 1));
         assert_eq!(shelf.14.iter().find(|a| a.0 == "read").unwrap().3, None);
         for id in ["television", "radio"] {
-            assert_eq!(facts.iter().find(|r| r.1 == id).unwrap().14[0].3, Some(2));
+            let action = &facts.iter().find(|r| r.1 == id).unwrap().14[0];
+            assert_eq!(action.3, Some(2));
+            assert!(action.11, "free seats in view admit more {id} users");
         }
+        assert!(!shelf.14.iter().find(|a| a.0 == "read").unwrap().11);
     }
 }
