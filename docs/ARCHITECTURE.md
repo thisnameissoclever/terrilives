@@ -456,7 +456,13 @@ person per seat for `seat_use = "one"`, one person for the whole furniture for
 layer may `remove` one inherited from a template. The resolver fills it from the
 seats, and the build rejects an authored value or any value that disagrees with
 the seats, because admission never reads it and an edited number would
-otherwise change nothing.
+otherwise change nothing. Bookcase reading follows the same rule, because
+borrowed copies limit it. Every other layered action admits one person unless
+it is television, radio or sleeping, so the build requires `slots = 1` there.
+
+A type or model may name `default_action`, the action a left click starts;
+otherwise a left click starts the first action. The sofa names Sit, keeping
+the action order, and so every saved action position, unchanged.
 
 Meal and media approach reservations are separate from physical seat ownership.
 A meal keeps its approach clear. People using different seats for media may
@@ -812,8 +818,10 @@ nonsense**, with the message naming the offending id:
 - a duplicate object or interaction id
 - a zero `duration_ticks` (an interaction that finishes before it starts) or
   zero `slots`
-- a `slots` value on a layered seat action, or one that disagrees with the
-  furniture's seats
+- a `slots` value on a layered seat action or bookcase reading action, one
+  that disagrees with the furniture's seats, or a count other than one on any
+  other layered action except television, radio and sleeping
+- a `default_action` that names none of the object's actions
 - an incomplete or unknown interaction or chain-step `visual` contract, or a
   known action and anchor in a combination the owning social, object, or chain
   step cannot legally resolve

@@ -206,6 +206,7 @@ pub fn object_sized(
     footprint: Footprint,
 ) -> CompiledObject {
     CompiledObject {
+        default_interaction: 0,
         cooking_front: None,
         shelf_capacity: 0,
         shelf_access: vec![],
