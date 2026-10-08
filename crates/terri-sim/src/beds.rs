@@ -436,19 +436,7 @@ impl Occupancy {
                 .collect();
         }
         if crate::seating::media_kind(object, interaction).is_some() {
-            let occupants: Vec<_> = self
-                .targets
-                .iter()
-                .filter(|(owner, known, _)| *owner != agent && known.object == target.object)
-                .collect();
-            return (!self.orphaned_markers.contains(&target.object)
-                && occupants
-                    .iter()
-                    .all(|(_, known, _)| known.interaction == target.interaction)
-                && occupants.len() < interaction.slots as usize)
-                .then_some(Admission::Exclusive)
-                .into_iter()
-                .collect();
+            return self.viewer_admissions(agent, target, interaction.slots, false);
         }
         if admission == ActionAdmission::Exclusive {
             return self
@@ -510,6 +498,35 @@ impl Occupancy {
                 preference,
             })
             .collect()
+    }
+
+    /// Seats limit seated viewers; the device's count limits only viewers
+    /// without a seat. A viewer planned onto a free seat is admitted however
+    /// many others stand.
+    pub(crate) fn viewer_admissions(
+        &self,
+        agent: Entity,
+        target: Target,
+        standing_limit: u8,
+        seated: bool,
+    ) -> Vec<Admission> {
+        let occupants: Vec<_> = self
+            .targets
+            .iter()
+            .filter(|(owner, known, _)| *owner != agent && known.object == target.object)
+            .collect();
+        let standing = occupants
+            .iter()
+            .filter(|(owner, _, _)| !self.seats.iter().any(|(seated, ..)| seated == owner))
+            .count();
+        (!self.orphaned_markers.contains(&target.object)
+            && occupants
+                .iter()
+                .all(|(_, known, _)| known.interaction == target.interaction)
+            && (seated || standing < usize::from(standing_limit)))
+        .then_some(Admission::Exclusive)
+        .into_iter()
+        .collect()
     }
 
     pub(crate) fn release(&mut self, agent: Entity) {

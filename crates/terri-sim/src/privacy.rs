@@ -682,14 +682,17 @@ pub(crate) fn substitute(
             {
                 continue;
             }
-            let available = occupancy.admissions(
-                pack,
-                definition,
-                actor,
-                person,
-                next,
-                world.resource::<crate::beds::BedAssignments>(),
-            );
+            let available = match media_plan.as_ref().and_then(|plan| plan.seat) {
+                Some(_) if media => occupancy.viewer_admissions(actor, next, a.slots, true),
+                _ => occupancy.admissions(
+                    pack,
+                    definition,
+                    actor,
+                    person,
+                    next,
+                    world.resource::<crate::beds::BedAssignments>(),
+                ),
+            };
             // Compare actual travel risk before assignment, as ordinary autonomy does.
             // Retain the held place among equally safe options and keep one candidate per interaction.
             let chosen = available

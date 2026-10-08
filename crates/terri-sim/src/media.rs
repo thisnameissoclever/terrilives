@@ -396,7 +396,7 @@ pub(crate) fn plan(
                     if !occupancy.endpoint_available(crate::seating::EndpointUse {
                         owner: person,
                         endpoint,
-                        kind: crate::seating::UseKind::MediaEndpoint,
+                        kind: crate::seating::UseKind::Media,
                     }) {
                         return None;
                     }
@@ -680,6 +680,26 @@ pub(crate) fn validate_ownership(world: &World) -> Result<(), crate::SaveError> 
             Some((person, *target, definition, endpoint))
         })
         .collect();
+    let historical = terri_data::is_pre_books_pack(pack);
+    // Loading checks this before and after seat claims are reinstalled, so a
+    // saved viewing record whose tile reaches its chair also marks a seated
+    // viewer. A record whose tile does not reach its chair counts as standing,
+    // which keeps a corrupted shared tile a conflict.
+    let seated = |owner: Entity| {
+        world.get::<crate::seating::PhysicalClaim>(owner).is_some()
+            || crate::seating::claim(world, owner.index_u32())
+                .is_some_and(|d| lease_reaches_its_seat(world, d))
+    };
+    // Seated viewers may share an approach; a standing viewer's spot is exclusive.
+    let viewer_use = |owner: Entity, endpoint: (i32, i32)| crate::seating::EndpointUse {
+        owner,
+        endpoint,
+        kind: if seated(owner) {
+            crate::seating::UseKind::Media
+        } else {
+            crate::seating::UseKind::MediaEndpoint
+        },
+    };
     for (person, target, definition, endpoint) in &viewers {
         let occupants: Vec<_> = viewers
             .iter()
@@ -687,25 +707,73 @@ pub(crate) fn validate_ownership(world: &World) -> Result<(), crate::SaveError> 
             .collect();
         let slots =
             pack.object(*definition).interactions[target.interaction as usize].slots as usize;
-        if occupants.len() > slots
+        // Seats limit seated viewers; the device's count limits the rest.
+        let standing = occupants
+            .iter()
+            .filter(|(viewer, _, _, _)| !seated(*viewer))
+            .count();
+        if standing > slots
             || occupants
                 .iter()
                 .any(|(_, t, _, _)| t.interaction != target.interaction)
-            || viewers
-                .iter()
-                .any(|(other, _, _, p)| other != person && p == endpoint)
+            || viewers.iter().any(|(other, _, _, p)| {
+                crate::seating::endpoints_conflict(
+                    viewer_use(*person, *endpoint),
+                    viewer_use(*other, *p),
+                    historical,
+                )
+            })
             || world
                 .get_resource::<terri_core::save::SavedDining>()
                 .is_some_and(|s| {
-                    s.diners
-                        .iter()
-                        .any(|d| d.person != person.index_u32() && d.endpoint == *endpoint)
+                    s.diners.iter().any(|d| {
+                        d.person != person.index_u32()
+                            && crate::seating::endpoint_use(world, d).is_none_or(|other| {
+                                crate::seating::endpoints_conflict(
+                                    viewer_use(*person, *endpoint),
+                                    other,
+                                    historical,
+                                )
+                            })
+                            && d.endpoint == *endpoint
+                    })
                 })
         {
             return Err(crate::SaveError::InvalidValue);
         }
     }
     Ok(())
+}
+
+/// Whether a viewing record's tile is a legal approach to one of its chair's
+/// seats. Geometry only, so it holds before seat claims are reinstalled.
+fn lease_reaches_its_seat(world: &World, lease: &SavedDiner) -> bool {
+    let Some(chair) = lease.chair.and_then(|id| crate::dining::entity(world, id)) else {
+        return false;
+    };
+    let (Some(position), Some(object)) = (
+        world.get::<Position>(chair),
+        world.get::<SmartObject>(chair),
+    ) else {
+        return false;
+    };
+    let pack = world.resource::<Content>().0;
+    let definition = pack.object(object.0);
+    let facing = world
+        .get::<terri_core::ObjectFacing>(chair)
+        .map_or(definition.base_facing, |f| f.0);
+    let origin = (position.x.round() as i32, position.y.round() as i32);
+    let grid = world.resource::<TileGrid>();
+    (0..definition.seats.len()).any(|ordinal| {
+        crate::seating::legal_contact(
+            grid,
+            definition,
+            facing,
+            origin,
+            Some(ordinal as u16),
+            lease.endpoint,
+        )
+    })
 }
 
 fn wire_facing(x: f32, y: f32) -> u32 {
@@ -766,6 +834,24 @@ pub(crate) fn valid_standing_contact(
     grid.is_walkable(endpoint.0, endpoint.1)
         && cone(origin, facing.rotate_axis(1, 0), point)
         && grid.segment_can_cross(point, origin)
+}
+
+/// Viewers of `device` other than `except` who hold no seat.
+fn standing_viewers(world: &mut World, device: Entity, except: Entity) -> usize {
+    let viewers: Vec<_> = world
+        .query_filtered::<(Entity, &Target), With<terri_core::Agent>>()
+        .iter(world)
+        .filter(|(viewer, target)| *viewer != except && target.object == device)
+        .map(|(viewer, _)| viewer)
+        .collect();
+    viewers
+        .into_iter()
+        .filter(|viewer| {
+            world
+                .get::<crate::seating::PhysicalClaim>(*viewer)
+                .is_none()
+        })
+        .count()
 }
 
 fn cancel(world: &mut World, person: Entity, target: Target) {
@@ -852,6 +938,7 @@ pub(crate) fn maintain(world: &mut World) {
         let Some(device) = furniture.iter().find(|d| d.entity == target.object) else {
             continue;
         };
+        let standing_others = standing_viewers(world, target.object, person);
         let occupancy = crate::seating::occupancy(world);
         let grid = world.resource::<TileGrid>();
         let from = (position.x.round() as i32, position.y.round() as i32);
@@ -874,6 +961,17 @@ pub(crate) fn maintain(world: &mut World) {
             cancel(world, person, target);
             continue;
         };
+        // A viewer whose seat is gone may stand only within the device's count.
+        let standing_limit =
+            crate::seating::media_activity(pack, device.definition, target.interaction).map(|_| {
+                pack.object(device.definition).interactions[target.interaction as usize].slots
+            });
+        if next.seat.is_none()
+            && standing_limit.is_some_and(|limit| standing_others >= usize::from(limit))
+        {
+            cancel(world, person, target);
+            continue;
+        }
         if held.is_none() && next.lease.is_none() {
             let Route::Exact(endpoint) = next.access.route else {
                 unreachable!("media endpoint")

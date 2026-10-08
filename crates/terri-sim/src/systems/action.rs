@@ -148,7 +148,7 @@ impl BedState<'_, '_> {
                                 target.interaction,
                             )
                         })
-                        .map(|_| crate::seating::UseKind::MediaEndpoint)
+                        .map(|_| crate::seating::media_endpoint_kind(&place))
                 };
                 if let Some(kind) = kind {
                     result.claim_endpoint(crate::seating::EndpointUse {
@@ -692,7 +692,7 @@ pub fn serve_intents(
                 occupancy.claim_endpoint(crate::seating::EndpointUse {
                     owner,
                     endpoint: place.endpoint,
-                    kind: crate::seating::UseKind::MediaEndpoint,
+                    kind: crate::seating::media_endpoint_kind(place),
                 });
             }
         }
@@ -1127,17 +1127,23 @@ pub fn serve_intents(
             queue.pop();
             continue;
         }
-        let available = occupancy.admissions(
-            content.0,
-            definition,
-            agent,
-            beds.identities.get(agent).ok().copied(),
-            Target {
-                object: intent.object,
-                interaction: intent.interaction,
-            },
-            &beds.assignments,
-        );
+        let target_use = Target {
+            object: intent.object,
+            interaction: intent.interaction,
+        };
+        let available = match media_plan.as_ref().and_then(|plan| plan.seat) {
+            Some(_) if media_requested => {
+                occupancy.viewer_admissions(agent, target_use, advert.slots, true)
+            }
+            _ => occupancy.admissions(
+                content.0,
+                definition,
+                agent,
+                beds.identities.get(agent).ok().copied(),
+                target_use,
+                &beds.assignments,
+            ),
+        };
         let chosen = available.into_iter().find_map(|admission| {
             media_plan
                 .as_ref()
@@ -1254,7 +1260,7 @@ pub fn serve_intents(
             occupancy.claim_endpoint(crate::seating::EndpointUse {
                 owner: agent,
                 endpoint: physical_place.endpoint,
-                kind: crate::seating::UseKind::MediaEndpoint,
+                kind: crate::seating::media_endpoint_kind(&physical_place),
             });
             if let Some(lease) = &plan.lease {
                 let chair = furniture
@@ -1516,7 +1522,7 @@ pub fn select_action(
                 occupancy.claim_endpoint(crate::seating::EndpointUse {
                     owner,
                     endpoint: place.endpoint,
-                    kind: crate::seating::UseKind::MediaEndpoint,
+                    kind: crate::seating::media_endpoint_kind(place),
                 });
             }
         }
@@ -1626,20 +1632,26 @@ pub fn select_action(
                 }
                 let sleep =
                     !content.0.sleep_tag.is_empty() && advert.tags.contains(&content.0.sleep_tag);
-                let available = occupancy.admissions(
-                    content.0,
-                    definition,
-                    agent,
-                    beds.identities.get(agent).ok().copied(),
-                    Target {
-                        object,
-                        interaction: index as u32,
-                    },
-                    &beds.assignments,
-                );
                 let media_requested =
                     crate::seating::media_activity(content.0, placed.0, index as u32).is_some();
                 let media_plan = viewing.get(&(index as u32)).cloned();
+                let target_use = Target {
+                    object,
+                    interaction: index as u32,
+                };
+                let available = match media_plan.as_ref().and_then(|plan| plan.seat) {
+                    Some(_) if media_requested => {
+                        occupancy.viewer_admissions(agent, target_use, advert.slots, true)
+                    }
+                    _ => occupancy.admissions(
+                        content.0,
+                        definition,
+                        agent,
+                        beds.identities.get(agent).ok().copied(),
+                        target_use,
+                        &beds.assignments,
+                    ),
+                };
                 let reachable: Vec<_> = available
                     .into_iter()
                     .filter_map(|admission| {
@@ -2241,7 +2253,7 @@ pub fn select_action(
             occupancy.claim_endpoint(crate::seating::EndpointUse {
                 owner: agent,
                 endpoint: physical_place.endpoint,
-                kind: crate::seating::UseKind::MediaEndpoint,
+                kind: crate::seating::media_endpoint_kind(&physical_place),
             });
             if let Some(lease) = &plan.lease {
                 let chair = furniture

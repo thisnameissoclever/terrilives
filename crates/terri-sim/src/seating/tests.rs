@@ -440,13 +440,14 @@ fn two_media_orders_share_the_device_but_reserve_distinct_positions() {
 }
 
 /// Every autonomous draw here is decisive: the television must be each Sim's
-/// top score with a negligible exploration tail, so the count of watchers measures the
-/// slot limit rather than one roll of the random stream. The seat at (10, 12)
-/// is outside the television's view, so both viewers stand and only the
-/// standing-place reservation keeps them apart.
+/// top score with a negligible exploration tail, so the count of watchers
+/// measures admission rather than one roll of the random stream. Each seat in
+/// view admits one viewer and the television's count admits that many more
+/// standing. The seat at (10, 12) is outside the television's view, so every
+/// viewer stands and only the standing-place reservation keeps them apart.
 #[test]
-fn autonomous_viewers_fill_both_television_slots_and_a_third_is_refused() {
-    for (seat_x, seat_y) in [(5., 3.), (10., 12.)] {
+fn autonomous_viewers_fill_each_seat_in_view_and_the_standing_allowance() {
+    for (seat_x, seat_y, seats_in_view) in [(5., 3., 1), (10., 12., 0)] {
         let (mut sim, first, device, _) =
             fixture_at("television", seat_x, seat_y, Facing::SouthWest);
         let mut pack = sim.world().resource::<Content>().0.clone();
@@ -475,25 +476,28 @@ fn autonomous_viewers_fill_both_television_slots_and_a_third_is_refused() {
                 },
             )
         };
-        let second = spawn("Second viewer", Position { x: 0., y: 4. });
-        let third = spawn("Capacity probe", Position { x: 6., y: 3. });
-        let people = [first, second, third];
-        for person in people {
+        let capacity = slots + seats_in_view;
+        let mut people = vec![first];
+        for at in [(0., 4.), (6., 3.), (0., 5.)].into_iter().take(capacity) {
+            people.push(spawn("Viewer", Position { x: at.0, y: at.1 }));
+        }
+        assert_eq!(people.len(), capacity + 1, "one Sim more than can watch");
+        for &person in &people {
             sim.world_mut()
                 .get_mut::<terri_core::Needs>(person)
                 .unwrap()
                 .set(terri_core::NeedId::Fun, 0.);
         }
         sim.tick();
-        let (watching, refused): (Vec<_>, Vec<_>) = people.into_iter().partition(|person| {
+        let (watching, refused): (Vec<_>, Vec<_>) = people.iter().copied().partition(|person| {
             sim.world()
                 .get::<Target>(*person)
                 .is_some_and(|target| target.object == device)
         });
         assert_eq!(
             watching.len(),
-            slots,
-            "Autonomy must admit exactly the television's {slots} slots (seat at {seat_x}, {seat_y})"
+            capacity,
+            "Autonomy must admit one viewer per seat in view plus {slots} standing (seat at {seat_x}, {seat_y})"
         );
         assert_eq!(refused.len(), 1);
         assert!(
@@ -513,8 +517,7 @@ fn autonomous_viewers_fill_both_television_slots_and_a_third_is_refused() {
             .filter(|person| crate::seating::claim(sim.world(), person.index_u32()).is_some())
             .count();
         assert_eq!(
-            seated,
-            usize::from(seat_x < 10.),
+            seated, seats_in_view,
             "Only the in-view seat may hold a viewer (seat at {seat_x}, {seat_y})"
         );
         let endpoint = |person| {
@@ -525,9 +528,12 @@ fn autonomous_viewers_fill_both_television_slots_and_a_third_is_refused() {
                 .last()
                 .copied()
         };
-        assert_ne!(
-            endpoint(watching[0]),
-            endpoint(watching[1]),
+        let mut endpoints: Vec<_> = watching.iter().map(|&person| endpoint(person)).collect();
+        endpoints.sort();
+        endpoints.dedup();
+        assert_eq!(
+            endpoints.len(),
+            watching.len(),
             "Autonomous viewers must claim distinct positions (seat at {seat_x}, {seat_y})"
         );
     }
@@ -989,10 +995,11 @@ fn every_fitted_seat_type_can_supply_a_media_place() {
 }
 
 /// Watching together is the point of a sofa in front of a television, so
-/// each viewer takes one seat and sits upright; nobody claims or lies across
-/// the whole sofa while watching.
+/// each viewer takes one seat and sits upright, and the sofa fills even past
+/// the television's standing count; nobody claims or lies across the whole
+/// sofa while watching.
 #[test]
-fn television_viewers_sit_on_separate_sofa_seats_and_never_recline() {
+fn television_viewers_fill_every_sofa_seat_and_never_recline() {
     let (mut sim, first, device, sofa) = fixture_with_device(
         "television",
         Position { x: 2., y: 3. },
@@ -1002,30 +1009,40 @@ fn television_viewers_sit_on_separate_sofa_seats_and_never_recline() {
         "long_sofa",
     );
     let pack = sim.world().resource::<Content>().0;
-    let second = crate::household::spawn_member(
-        sim.world_mut(),
-        &pack.personalities,
-        &pack.traits,
-        crate::household::Member {
-            name: "Second viewer".into(),
-            personality: 0,
-            position: Position { x: 0., y: 4. },
-            needs: [100.; 7],
-            hobbies: vec![],
-            traits: &[],
-            career: None,
-            instinct: Some(50),
-        },
+    let seats = pack.object(pack.find("long_sofa").unwrap()).seats.len();
+    let slots = pack.object(pack.find("television").unwrap()).interactions[0].slots as usize;
+    assert!(
+        seats > slots,
+        "the sofa seats more than the television admits standing"
     );
-    sim.world_mut()
-        .entity_mut(second)
-        .insert(IntentQueue::from_intents(vec![Intent {
-            cleanup: None,
-            chore: None,
-            object: device,
-            interaction: 0,
-        }]));
-    let viewers = [first, second];
+    let mut viewers = vec![first];
+    for at in [(0., 4.), (0., 5.), (1., 5.)].into_iter().take(seats - 1) {
+        let viewer = crate::household::spawn_member(
+            sim.world_mut(),
+            &pack.personalities,
+            &pack.traits,
+            crate::household::Member {
+                name: "Viewer".into(),
+                personality: 0,
+                position: Position { x: at.0, y: at.1 },
+                needs: [100.; 7],
+                hobbies: vec![],
+                traits: &[],
+                career: None,
+                instinct: Some(50),
+            },
+        );
+        sim.world_mut()
+            .entity_mut(viewer)
+            .insert(IntentQueue::from_intents(vec![Intent {
+                cleanup: None,
+                chore: None,
+                object: device,
+                interaction: 0,
+            }]));
+        viewers.push(viewer);
+    }
+    assert_eq!(viewers.len(), seats);
     let mut watching = false;
     for _ in 0..240 {
         sim.tick();
@@ -1039,10 +1056,10 @@ fn television_viewers_sit_on_separate_sofa_seats_and_never_recline() {
     }
     assert!(
         watching,
-        "both viewers reach their seats and start watching"
+        "every viewer reaches a sofa seat and starts watching"
     );
     let mut seats = Vec::new();
-    for viewer in viewers {
+    for &viewer in &viewers {
         let claim = sim
             .world()
             .get::<super::PhysicalClaim>(viewer)
@@ -1056,7 +1073,7 @@ fn television_viewers_sit_on_separate_sofa_seats_and_never_recline() {
     assert_eq!(seats.len(), viewers.len(), "viewers sit on different seats");
     sim.sync_render_buffer_after_commands();
     let render = sim.render_buffer();
-    for viewer in viewers {
+    for &viewer in &viewers {
         let row = render
             .ids
             .iter()
@@ -1074,6 +1091,91 @@ fn television_viewers_sit_on_separate_sofa_seats_and_never_recline() {
         assert_eq!(render.seated_furniture[row], sofa.index_u32());
         assert_eq!(render.seated_whole[row], 0);
     }
+    let saved = sim.save_snapshot_v6();
+    sim.load_snapshot_v6(saved.clone())
+        .expect("seated viewers beyond the standing count load");
+    assert_eq!(sim.save_snapshot_v6(), saved);
+}
+
+/// Seats admit viewers beyond the television's standing count, so when those
+/// seats vanish the standing count still holds: viewers who cannot stand
+/// within it stop watching rather than crowd in.
+#[test]
+fn viewers_who_lose_their_seats_stand_only_within_the_television_count() {
+    let (mut sim, first, device, sofa) = fixture_with_device(
+        "television",
+        Position { x: 2., y: 3. },
+        Position { x: 5., y: 3. },
+        Facing::SouthEast,
+        Facing::SouthWest,
+        "long_sofa",
+    );
+    let pack = sim.world().resource::<Content>().0;
+    let seats = pack.object(pack.find("long_sofa").unwrap()).seats.len();
+    let slots = pack.object(pack.find("television").unwrap()).interactions[0].slots as usize;
+    let mut viewers = vec![first];
+    for at in [(0., 4.), (0., 5.), (1., 5.)].into_iter().take(seats - 1) {
+        let viewer = crate::household::spawn_member(
+            sim.world_mut(),
+            &pack.personalities,
+            &pack.traits,
+            crate::household::Member {
+                name: "Viewer".into(),
+                personality: 0,
+                position: Position { x: at.0, y: at.1 },
+                needs: [100.; 7],
+                hobbies: vec![],
+                traits: &[],
+                career: None,
+                instinct: Some(50),
+            },
+        );
+        sim.world_mut()
+            .entity_mut(viewer)
+            .insert(IntentQueue::from_intents(vec![Intent {
+                cleanup: None,
+                chore: None,
+                object: device,
+                interaction: 0,
+            }]));
+        viewers.push(viewer);
+    }
+    for _ in 0..240 {
+        sim.tick();
+        if viewers
+            .iter()
+            .all(|v| sim.world().get::<Eating>(*v).is_some())
+        {
+            break;
+        }
+    }
+    assert!(
+        viewers
+            .iter()
+            .all(|v| sim.world().get::<super::PhysicalClaim>(*v).is_some()),
+        "every viewer starts seated"
+    );
+    sim.world_mut().despawn(sofa);
+    for _ in 0..3 {
+        sim.tick();
+    }
+    let still: Vec<_> = viewers
+        .iter()
+        .filter(|v| {
+            sim.world()
+                .get::<Target>(**v)
+                .is_some_and(|target| target.object == device)
+        })
+        .collect();
+    assert!(!still.is_empty(), "some viewers keep watching standing");
+    assert!(
+        still.len() <= slots,
+        "{} viewers kept watching without seats; the television allows {slots} standing",
+        still.len()
+    );
+    let saved = sim.save_snapshot_v6();
+    sim.load_snapshot_v6(saved)
+        .expect("the remaining standing viewers load");
 }
 
 #[test]
@@ -2568,7 +2670,7 @@ fn regression_stale_seat_release_preserves_a_reused_person_generation() {
 }
 
 #[test]
-fn media_users_keep_distinct_destinations_when_sofa_seats_share_one_approach() {
+fn media_users_on_distinct_sofa_seats_share_one_approach() {
     let (mut sim, first, tv, sofa) = fixture_with_device(
         "television",
         Position { x: 2., y: 3. },
@@ -2601,17 +2703,28 @@ fn media_users_keep_distinct_destinations_when_sofa_seats_share_one_approach() {
         .unwrap()
         .clone();
     assert_eq!(viewer_place.chair, Some(sofa.index_u32()));
-    let places = super::physical_places(sim.world_mut());
-    let listener_place = places
-        .iter()
-        .find(|p| p.person == listener.index_u32())
-        .unwrap();
-    assert_ne!(viewer_place.endpoint, listener_place.endpoint);
     assert_eq!(sim.world().get::<Target>(listener).unwrap().object, radio);
-    assert!(
-        super::claim(sim.world(), listener.index_u32()).is_none(),
-        "a conflicting sofa approach uses a distinct standing endpoint"
+    let listener_place = super::claim(sim.world(), listener.index_u32())
+        .expect("the remaining sofa seat is open to a listener")
+        .clone();
+    assert_eq!(listener_place.chair, Some(sofa.index_u32()));
+    assert_eq!(
+        viewer_place.endpoint, listener_place.endpoint,
+        "this layout reaches the two seats from one approach"
     );
+    let mut seats: Vec<_> = [first, viewer, listener]
+        .iter()
+        .map(|person| {
+            sim.world()
+                .get::<super::PhysicalClaim>(*person)
+                .expect("each user holds a sofa seat")
+                .seat
+                .clone()
+        })
+        .collect();
+    seats.sort();
+    seats.dedup();
+    assert_eq!(seats.len(), 3, "sharing an approach never shares a seat");
     let saved = sim.save_snapshot_v6();
     sim.load_snapshot_v6(saved.clone()).unwrap();
     assert_eq!(sim.save_snapshot_v6(), saved);

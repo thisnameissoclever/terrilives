@@ -523,8 +523,11 @@ Shared meals and relationship rewards for some simultaneous activities provide
 foundations. Choosing compatible activities in order to spend time with liked
 Sims remains planned work.
 
-TV and radio admit up to two active users per device, each with a distinct
-reachable seat or standing destination. Social benefit requires simultaneous
+TV and radio admit one viewer for each free seat in view of the device, plus
+up to the device's own count of standing viewers. Each viewer holds a distinct
+seat or standing spot; viewers on different seats may share an approach tile.
+A viewer whose seat becomes unusable keeps watching standing only within that
+count, and otherwise stops. Social benefit requires simultaneous
 use with a participant the receiving Sim likes. The physical chair supplies
 Comfort; standing media use does not acquire a chair's benefit.
 

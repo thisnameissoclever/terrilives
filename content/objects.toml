@@ -4,7 +4,8 @@
 # Each property uses exactly one operation: set, scale, remove, extend, or replace.
 # Seat actions (seat_use one or all) and bookcase reading take no slots: seats or
 # borrowed copies decide. Every other action sets slots, which must be 1 except
-# for television, radio and sleeping actions.
+# for television, radio and sleeping actions. Television and radio slots count
+# standing viewers; each free seat in view admits one more.
 # A left click starts default_action when any layer names one, else the first action.
 
 [[category]]

@@ -932,3 +932,51 @@ fn assigned_beds_move_freely_but_active_places_block_edits_and_sale_clears_assig
         .iter()
         .all(|row| row.bed != bed_index));
 }
+
+/// The device's count limits standing viewers only: seated viewers do not use
+/// it up, and a newcomer planned onto a free seat is admitted when it is full.
+#[test]
+fn viewer_admission_counts_only_standing_viewers() {
+    let mut world = World::new();
+    let device = world.spawn_empty().id();
+    let sofa = world.spawn_empty().id();
+    let [first, second, seated, newcomer] = [(); 4].map(|_| world.spawn_empty().id());
+    let watch = Target {
+        object: device,
+        interaction: 0,
+    };
+    let other_use = Target {
+        object: device,
+        interaction: 1,
+    };
+    let occupancy = |targets: Vec<(Entity, Target)>, seats: &[Entity]| {
+        let mut view = Occupancy::new(
+            targets
+                .into_iter()
+                .map(|(owner, target)| (owner, target, None)),
+            std::iter::empty(),
+        );
+        for (ordinal, owner) in seats.iter().enumerate() {
+            view.physical_seat_claim(*owner, sofa, ordinal as u16, false);
+        }
+        view
+    };
+    let full = occupancy(vec![(first, watch), (second, watch)], &[]);
+    assert!(full.viewer_admissions(newcomer, watch, 2, false).is_empty());
+    assert_eq!(
+        full.viewer_admissions(newcomer, watch, 2, true),
+        vec![Admission::Exclusive],
+        "a free seat admits a viewer while the standing count is full"
+    );
+    let one_seated = occupancy(vec![(first, watch), (seated, watch)], &[seated]);
+    assert_eq!(
+        one_seated.viewer_admissions(newcomer, watch, 2, false),
+        vec![Admission::Exclusive],
+        "a seated viewer does not use up the standing count"
+    );
+    let mixed = occupancy(vec![(first, other_use)], &[]);
+    assert!(
+        mixed.viewer_admissions(newcomer, watch, 2, true).is_empty(),
+        "a device in use for another action admits no viewer, seated or not"
+    );
+}
