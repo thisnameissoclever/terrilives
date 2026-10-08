@@ -53,6 +53,8 @@ def non_target_textures():
         textures.update(index for pair in profile['rows'] for index in pair if index >= 0)
     textures.update(index for rows in shipped_table('BOOK_REACH_SHELVES')['tables']
                     for pair in rows for index in pair if index >= 0)
+    # Per-pixel depth sprites are sampled by their scenes and never drawn.
+    textures.update(shipped_table('FIXTURE_SCENE_DEPTHS').values())
     return textures - {int(index) for index in shipped_table('JOINT_SCENE_ALPHA_IDS')}
 
 

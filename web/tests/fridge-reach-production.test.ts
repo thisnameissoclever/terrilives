@@ -3,12 +3,13 @@ import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { buildInstances, simShirtVariant, type RenderSource } from '../src/frame.js';
-import { FLOATS_PER_INSTANCE, FOOTPRINT_PROJECTION, KIND_AGENT, OFFSET_DEPTH, OFFSET_WALL_MASK } from '../src/render/instances.js';
-import { layeredDepth, LAYER_SIM } from '../src/render/iso.js';
+import { FLOATS_PER_INSTANCE, SURFACE_DEPTH_PROJECTION, KIND_AGENT, OFFSET_DEPTH, OFFSET_WALL_MASK,
+  OFFSET_FOOTPRINT_SPAN } from '../src/render/instances.js';
+import { layeredDepth, LAYER_SIM, LAYER_FOREGROUND } from '../src/render/iso.js';
 import { pickSprite } from '../src/input.js';
 import { screenX, screenY, TILE_HALF_HEIGHT } from '../src/render/iso.js';
-import { BATHROOM_SPRITES, BATHROOM_LAYERS, BATHROOM_COVERAGE, BATHROOM_MASKS,
-  SPRITE_ANCHORS, spriteIndex } from '../src/render/atlas.js';
+import { BATHROOM_SPRITES, BATHROOM_LAYERS, BATHROOM_COVERAGE, BATHROOM_MASKS, FIXTURE_SCENE_DEPTHS,
+  SPRITE_ANCHORS, SPRITES, spriteIndex } from '../src/render/atlas.js';
 import { sampleBedCoverage } from '../src/render/bed-sprites.js';
 import { fetchFrame, FETCH_VISUAL_ACTION } from '../src/render/fetch-animation.js';
 
@@ -88,6 +89,9 @@ it('the padded scene draws the fridge on the empty fridge anchor', () => {
     const empty = spriteIndex('offlineFridge' + suffix);
     for (const scene of BATHROOM_SPRITES[empty][FETCH_VISUAL_ACTION].frames.green) {
       // The canvas grows by 26 logical pixels on the left and 21 on top.
+      expect(FIXTURE_SCENE_DEPTHS[scene]).toBeDefined();
+      expect([SPRITES[FIXTURE_SCENE_DEPTHS[scene]].w, SPRITES[FIXTURE_SCENE_DEPTHS[scene]].h])
+        .toEqual([SPRITES[scene].w, SPRITES[scene].h]);
       expect(SPRITE_ANCHORS[scene][0] - SPRITE_ANCHORS[empty][0]).toBeCloseTo(26, 6);
       expect(SPRITE_ANCHORS[scene][1] - SPRITE_ANCHORS[empty][1]).toBeCloseTo(21, 6);
     }
@@ -165,6 +169,46 @@ function shippedSnack(): { source: SimBridge; handle: SimHandle; fridge: number;
  * step that the person draws a fridge scene in place of the fixture, from the
  * door front's depth, and that the step ends within its sampled length.
  */
+/** Logical screen offset of a tile point from the fridge's own screen point. */
+function tileScreen(x: number, y: number): [number, number] {
+  return [screenX(x, y, 0) - screenX(0, 0, 0), screenY(x, y, 0) - screenY(0, 0, 0)];
+}
+
+/**
+ * The selection ring sits under the drawn feet and the activity bubble over
+ * the drawn body: both follow the sample's feet offset, and the body's own
+ * coverage reaches down to the ring and up toward the bubble in that column.
+ */
+function checkMarkerAndBubble(source: SimBridge, person: number, scene: number, sample: number): void {
+  const empty = spriteIndex('offlineFridgeSW');
+  const feet = BATHROOM_SPRITES[empty][FETCH_VISUAL_ACTION].feet![sample];
+  const data = buildInstances(source, 1, 0, 0, 64, person, 1, false, source.clockTick());
+  const ring = spriteIndex('selectionRing'), bubble = spriteIndex('activityIngredients');
+  const rows = Array.from({ length: data.length / FLOATS_PER_INSTANCE }, (_, i) => i);
+  const ringRow = rows.find(i => data[i * FLOATS_PER_INSTANCE + 3] === ring)!;
+  const bubbleRow = rows.find(i => data[i * FLOATS_PER_INSTANCE + 3] === bubble)!;
+  expect(ringRow).toBeDefined();
+  expect(bubbleRow).toBeDefined();
+  const [fx, fy] = tileScreen(feet[0], feet[1]);
+  const fridgeX = screenX(0, 0, 0), fridgeY = screenY(0, 0, 0);
+  expect(data[ringRow * FLOATS_PER_INSTANCE]).toBeCloseTo(fridgeX + fx, 4);
+  expect(data[ringRow * FLOATS_PER_INSTANCE + 1]).toBeCloseTo(fridgeY + fy, 4);
+  expect(data[bubbleRow * FLOATS_PER_INSTANCE]).toBeCloseTo(fridgeX + fx, 4);
+  expect(data[bubbleRow * FLOATS_PER_INSTANCE + OFFSET_DEPTH])
+    .toBeLessThan(layeredDepth(feet[0], feet[1], 64, LAYER_FOREGROUND) + 1e-9);
+  // In scene pixels (density two), the feet stand on the body's lowest
+  // covered rows near the ring's column, and the bubble's column crosses the body.
+  const [anchorX, anchorY] = SPRITE_ANCHORS[scene];
+  const mask = BATHROOM_MASKS[BATHROOM_COVERAGE[scene][0]];
+  const column = Math.round((anchorX + fx) * 2), feetRow = (anchorY - TILE_HALF_HEIGHT + fy) * 2;
+  let lowest = -1;
+  for (let x = column - 12; x <= column + 12; x++)
+    for (let y = mask.box[1]; y < mask.box[3]; y++)
+      if (sampleBedCoverage(mask, x, y) > .5) lowest = Math.max(lowest, y);
+  expect(lowest).toBeGreaterThan(0);
+  expect(Math.abs(lowest - feetRow)).toBeLessThan(24);
+}
+
 function playFetch(source: SimBridge, fridge: number, person: number, frames: readonly number[], limit = 400): number[] {
   const seen: number[] = [];
   let ticks = 0, started = false;
@@ -181,9 +225,12 @@ function playFetch(source: SimBridge, fridge: number, person: number, frames: re
       expect(frames).toContain(scene);
       expect(data[base]).not.toBe(-1e6);
       expect(data[fridgeRow * FLOATS_PER_INSTANCE]).toBe(-1e6);
-      expect(data[base + OFFSET_WALL_MASK]).toBe(FOOTPRINT_PROJECTION);
-      expect(data[base + OFFSET_DEPTH]).toBeCloseTo(layeredDepth(0, 0.5, 64, LAYER_SIM), 6);
+      // Per-pixel depth from the scene's own depth sprite, measured from the fridge.
+      expect(data[base + OFFSET_WALL_MASK]).toBe(SURFACE_DEPTH_PROJECTION);
+      expect(data[base + OFFSET_FOOTPRINT_SPAN]).toBe(FIXTURE_SCENE_DEPTHS[scene]);
+      expect(data[base + OFFSET_DEPTH]).toBeCloseTo(layeredDepth(0, 0, 64, LAYER_SIM), 6);
       const sample = frames.indexOf(scene);
+      checkMarkerAndBubble(source, person, scene, sample);
       if (seen[seen.length - 1] !== sample) seen.push(sample);
     } else if (started) {
       break;

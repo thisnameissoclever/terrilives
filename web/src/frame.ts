@@ -34,14 +34,14 @@ import {
   writeColourway,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, SPRITE_DINING_SUPPORT, BED_CATALOG, SEATING_SPRITES, BATHROOM_SPRITES, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, SPRITE_DINING_SUPPORT, BED_CATALOG, SEATING_SPRITES, BATHROOM_SPRITES, FIXTURE_SCENE_DEPTHS, spriteIndex } from './render/atlas.js';
 import { DINING_BACKGROUND, DINING_FOREGROUND } from './render/dining-support.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
-import { writeFootprintProjection, writeReachProjection } from './render/footprint-depth.js';
+import { writeFootprintProjection, writeSceneDepth } from './render/footprint-depth.js';
 import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
 import type { PlacementPreview } from './bridge.js';
 import {
@@ -1220,10 +1220,8 @@ export function buildInstanceBatch(
     }
     writeFootprintProjection(scratch, i, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
-    if (interactions.reachRows[i]) {
-      writeReachProjection(scratch, i, sprite, gridSize, wx, wy,
-        lerp(previous[i * 2], current[i * 2], alpha), lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha), LAYER_SIM);
-    }
+    const sceneDepth = interactions.reachRows[i] ? FIXTURE_SCENE_DEPTHS[sprite] : undefined;
+    if (sceneDepth !== undefined) writeSceneDepth(scratch, i, sceneDepth, gridSize);
     if (interactions.mealRows[i] >= 0 && SPRITE_DINING_SUPPORT[sprite]
         && interactions.mealRows[i] !== replacedRow) {
       scratch[i * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_BACKGROUND;
@@ -1335,6 +1333,11 @@ export function buildInstanceBatch(
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
+    // A body drawn off its fixture's tile keeps its bubble over its own feet
+    // and in front of its own depth; the lift still measures from the scene.
+    const reach = interactions.reachRows[i] === 1;
+    const bx = reach ? wx + interactions.reachFeet[i * 2] : wx;
+    const by = reach ? wy + interactions.reachFeet[i * 2 + 1] : wy;
     const bodyFacing =
       kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
         ? walkingFacing(
@@ -1365,19 +1368,19 @@ export function buildInstanceBatch(
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
+      screenX(bx, by, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
       // The lift scales with the camera: the sim's sprite is drawn
       // `scale` times taller, so an unscaled lift would sink the bubble
       // into a zoomed head and orbit it high over a zoomed-out one.
       screenY(wx, wy, originY, scale) + (bedOwner
         ? bedOwner.marker[1] - 24
         : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
-      layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
+      layeredDepth(bx, by, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
     // The indicator must stay ahead of every column of its occupied owner,
     // not merely the owner's center. Its screen X remains that same center.
-    writeFootprintProjection(scratch, slot - 1, footprintWidths?.[positionRow] ?? 0,
+    if (!reach) writeFootprintProjection(scratch, slot - 1, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
     if (bedOwner) scratch[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += bedOwner.marker[0];
   }
@@ -1464,8 +1467,12 @@ export function buildInstanceBatch(
   const ringRow = replacedRow === null ? findSelectedRow(source, selected) : null;
   if (ringRow !== null) {
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
-    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
-    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
+    // A body drawn off its fixture's tile is ringed under its drawn feet.
+    const reach = interactions.reachRows[ringRow] === 1;
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha)
+      + (reach ? interactions.reachFeet[ringRow * 2] : 0);
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha)
+      + (reach ? interactions.reachFeet[ringRow * 2 + 1] : 0);
     const bedOwner = interactions.bedScenes[ringRow]?.owners[interactions.bedPlaces[ringRow]];
     writeInstance(
       scratch,

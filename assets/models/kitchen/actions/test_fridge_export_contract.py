@@ -12,8 +12,8 @@ import fridge_reach_geometry as geo
 from export_fridge_reach import export, registered_anchor, scene_anchor
 
 BASE = Path(__file__).parent
-BATCH = BASE/'review/fridge/batch-03/proof.json'
-INK = BASE/'review/fridge/ink-03/proof.json'
+BATCH = BASE/'review/fridge/batch-04/proof.json'
+INK = BASE/'review/fridge/ink-04/proof.json'
 
 
 class FridgeExportContractTests(unittest.TestCase):
@@ -234,3 +234,40 @@ class FridgeExportContractTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class FridgeSceneDepthTests(unittest.TestCase):
+    """The exported per-pixel depth keeps the drawn body in front of the shipped corner's walls."""
+
+    def test_no_body_pixel_lies_behind_a_wall_face_and_no_fixture_pixel_reads_farther_than_empty(self):
+        import numpy as np
+        export = BASE/'export/fridge-03'
+        manifest = json.loads((export/'manifest.json').read_text())
+        obj = manifest['objects'][0]
+        anchor_x = obj['anchor'][0]
+        face = geo.WALL_FACE
+        checked = 0
+        for row in obj['scenes']:
+            if row['variant'] != 'green':
+                continue
+            depth = np.asarray(Image.open(export/row['depth']['path']), dtype=np.int64)
+            body = np.asarray(Image.open(export/row['coverage']['body']['path']))
+            furniture = np.asarray(Image.open(export/row['coverage']['furniture']['path']))
+            encoded = depth[:, :, 0]*256+depth[:, :, 1]
+            nearness = encoded/65535*4-2
+            columns = ((np.arange(depth.shape[1])+.5)/2-anchor_x)/32
+            # Every covered pixel has a surface depth.
+            self.assertFalse(((body > 0) & (depth[:, :, 3] == 0)).any())
+            self.assertFalse(((furniture > 0) & (depth[:, :, 3] == 0)).any())
+            visible_body = (body > 127) & (body >= furniture)
+            x = (nearness+columns[None, :])/2
+            y = (nearness-columns[None, :])/2
+            if row['facing'] == 'SW':
+                # The shipped placement: walls behind the fridge and along the
+                # front tile's handle side, their faces 0.43 from the tile edges' centres.
+                self.assertTrue((x[visible_body] >= -face-1e-3).all(), row['frame'])
+                self.assertTrue((y[visible_body] >= -face-1e-3).all(), row['frame'])
+            fixture = (furniture > body) & (depth[:, :, 3] > 0)
+            self.assertTrue((nearness[fixture] >= -1e-4).all())
+            checked += int(visible_body.sum())
+        self.assertGreater(checked, 1000)

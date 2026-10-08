@@ -64,7 +64,7 @@ KINDS = {
                    size=(192, 240), source_size=(768, 960), canvas=[96, 120], variants=PALETTES,
                    source_key='bathroom/owner-review-pending/toilet/candidate-03/toilet-authoring.blend',
                    contract=_LoopContract(toilet_contract, read_toilet_ink), palette_independent=False,
-                   samples=4, half_cycle_ticks=8, padding=(0, 0, 0, 0),
+                   samples=4, half_cycle_ticks=8, padding=(0, 0, 0, 0), depth=False, feet=None,
                    dependencies={'bathroom/actions/bathroom_export_contract.py', 'bathroom/actions/export_toilet_loop.py',
                                  'bathroom/actions/contact_surface.py', 'seating/seat_export_contract.py',
                                  'bedroom/double_bed_linear.py', 'bedroom/double_bed_layers.py',
@@ -72,7 +72,8 @@ KINDS = {
     'bathtub': dict(action=BATHE_ACTION, prefix='bathroomBath', empty='offlineBathtub', content='bathtub',
                     size=(320, 352), source_size=(1280, 1408), canvas=[160, 176], variants=('green',),
                     source_key=TUB_SOURCE, contract=_LoopContract(bath_contract, bath_contract.read_ink),
-                    palette_independent=True, samples=4, half_cycle_ticks=8, padding=(0, 0, 0, 0),
+                    palette_independent=True, samples=4, half_cycle_ticks=8, padding=(0, 0, 0, 0), depth=False,
+                    feet=None,
                     dependencies={'bathroom/actions/bath_export_contract.py', 'bathroom/actions/export_bath_loop.py',
                                   'bathroom/actions/bathroom_export_contract.py', 'bathroom/actions/export_toilet_loop.py',
                                   'bathroom/actions/contact_surface.py', 'seating/seat_export_contract.py',
@@ -84,7 +85,7 @@ KINDS = {
                    source_size=tuple(fridge_contract.canvas()), canvas=[v//8 for v in fridge_contract.canvas()],
                    variants=PALETTES, source_key=fridge_contract.SOURCE, contract=_FridgeContract(),
                    palette_independent=False, samples=fridge_contract.geo.SAMPLES, half_cycle_ticks=None,
-                   padding=tuple(fridge_contract.geo.PADDING),
+                   padding=tuple(fridge_contract.geo.PADDING), depth=True, feet=fridge_contract.feet,
                    dependencies={'kitchen/actions/fridge_export_contract.py', 'kitchen/actions/export_fridge_reach.py',
                                  'kitchen/actions/fridge_reach_geometry.py',
                                  'bathroom/actions/bathroom_export_contract.py', 'bathroom/actions/export_toilet_loop.py',
@@ -111,6 +112,7 @@ class BathroomExport:
     layers: dict
     masks: dict
     kind: str = 'toilet'
+    depths: dict = None
 
 
 def load_bathroom(manifest_path):
@@ -145,7 +147,7 @@ def load_bathroom(manifest_path):
     variants = spec['variants']
     expected = set(itertools.product(FACINGS, variants, range(spec['samples'])))
     scenes, paths = {}, {}
-    layers, masks = {}, {}
+    layers, masks, depths = {}, {}, {}
     size = spec['size']
     size_key = f'{size[0]}x{size[1]}-'
     for scene in obj['scenes']:
@@ -166,6 +168,20 @@ def load_bathroom(manifest_path):
                 inventory.setdefault(image_key, image)
                 decoded[role] = image_key
             scene[field] = decoded
+        if spec['depth']:
+            # Per-pixel game-space X+Y of the nearest surface, one per facing and sample.
+            ref = scene.get('depth')
+            if not isinstance(ref, dict):
+                raise ValueError('Fixture scene is missing its per-pixel depth')
+            previous = paths.setdefault(ref['path'], ref)
+            if previous != ref:
+                raise ValueError('Conflicting fixture depth reference')
+            image = read_png(path.parent, ref, size, 'RGBA')
+            depth_key = size_key+ref['pixels_sha256']
+            depths.setdefault(depth_key, image)
+            scene['depth'] = depth_key
+        elif 'depth' in scene:
+            raise ValueError('Only the fridge reach carries per-pixel depth')
         retained = read_png(path.parent, scene['reconstruction'], size)
         actual = reconstruct([layers[scene['layers'][role]] for role in ('furniture', 'body', 'ink')])
         if retained.tobytes() != actual.tobytes():
@@ -187,7 +203,12 @@ def load_bathroom(manifest_path):
                 {role:masks[key] for role, key in scene['coverage'].items()})
             if measured != scene['comparison']:
                 raise ValueError('Bathroom comparison receipt differs from actual original renders')
-    return BathroomExport(manifest, layers, masks, kind)
+    if spec['depth']:
+        for facing, frame in itertools.product(FACINGS, range(spec['samples'])):
+            rows = {scenes[facing, variant, frame]['depth'] for variant in variants}
+            if len(rows) != 1:
+                raise ValueError('Shirt palettes must share one scene depth')
+    return BathroomExport(manifest, layers, masks, kind, depths if spec['depth'] else None)
 
 
 def scene_name(row, kind='toilet'):
@@ -197,6 +218,8 @@ def scene_name(row, kind='toilet'):
 def records(export):
     result = [('bathroomLayer_'+key, image, image.width, image.height)
               for key, image in sorted(export.layers.items())]
+    result += [('bathroomDepth_'+key, image, image.width, image.height)
+               for key, image in sorted((export.depths or {}).items())]
     for obj in export.manifest['objects']:
         for row in obj['scenes']:
             image = export.layers[row['layers']['furniture']]
@@ -222,7 +245,7 @@ def tables(export, sprites, anchors=None):
     indices = {row[0]:index for index, row in enumerate(sprites)}
     if len(indices) != len(sprites):
         raise ValueError('Duplicate sprite name while importing bathroom scenes')
-    result = {key:{} for key in ('anchors', 'tops', 'bounds', 'density', 'profiles', 'layers', 'coverage')}
+    result = {key:{} for key in ('anchors', 'tops', 'bounds', 'density', 'profiles', 'layers', 'coverage', 'depths')}
     result['masks'] = []
     mask_ids = {}
     for key, mask in sorted(export.masks.items()):
@@ -242,6 +265,11 @@ def tables(export, sprites, anchors=None):
             layers = [indices['bathroomLayer_'+refs[role]] for role in ('furniture', 'body', 'ink')]
             result['layers'][index] = [layers[0], layers[1], -1, layers[2]]
             result['coverage'][index] = [mask_ids[row['coverage'][role]] for role in ('body', 'furniture', 'ink', 'bodyInk')]
+            if export.depths:
+                depth = indices['bathroomDepth_'+row['depth']]
+                result['depths'][index] = depth
+                result['anchors'][depth] = obj['anchor']
+                result['density'][depth] = 2
             alpha = Image.new('L', export.layers[refs['body']].size)
             for role in ('body', 'furniture', 'ink'):
                 alpha = ImageChops.lighter(alpha, export.layers[refs[role]].getchannel('A'))
@@ -269,4 +297,6 @@ def tables(export, sprites, anchors=None):
             half_cycle = export.manifest.get('halfCycleTicks', spec['samples']//2)
             result['profiles'][indices[name]] = dict(action=spec['action'], halfCycleTicks=half_cycle,
                                                     frames=frames[facing])
+            if spec['feet'] is not None:
+                result['profiles'][indices[name]]['feet'] = spec['feet'](facing)
     return result

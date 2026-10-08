@@ -17,6 +17,11 @@ export interface InteractionProfile {
   readonly frames: Readonly<Record<ShirtVariant, readonly number[]>>;
   readonly facingFrames?: Readonly<Record<number, Readonly<Record<ShirtVariant, readonly number[]>>>>;
   readonly idleFrames?: Readonly<Record<ShirtVariant, readonly number[]>>;
+  /**
+   * Feet centre of each sample in tiles relative to the fixture, for scenes
+   * whose body stands off the fixture's tile. The marker and bubble follow it.
+   */
+  readonly feet?: readonly (readonly [number, number])[];
 }
 export type InteractionCatalog = Readonly<Record<number, InteractionProfile>>;
 export type ActionInteractionCatalog = Readonly<Record<number, Readonly<Record<number, InteractionProfile>>>>;
@@ -91,6 +96,8 @@ export class InteractionSelection {
   readonly bookReachRows: boolean[] = [];
   /** Rows drawing a fixture scene whose body stands on the front tile. */
   reachRows = new Uint8Array(0);
+  /** For those rows, the drawn feet in tiles relative to the fixture, as x, y pairs. */
+  reachFeet = new Float32Array(0);
   private stockSuppression = new Uint32Array(0);
   private stockPresence = new Uint32Array(0);
   private place0 = new Int32Array(0);
@@ -212,6 +219,7 @@ export class InteractionSelection {
       this.stockSuppression = new Uint32Array(count);
       this.stockPresence = new Uint32Array(count);
       this.reachRows = new Uint8Array(count);
+      this.reachFeet = new Float32Array(count * 2);
     }
     this.bodies.fill(-1, 0, count);
     this.targetRows.fill(-1, 0, count);
@@ -407,7 +415,12 @@ export class InteractionSelection {
       this.bodies[row] = frames[sample];
       this.targetRows[row] = target;
       this.suppressed[target] = 1;
-      if (profile.action === FETCH_VISUAL_ACTION) this.reachRows[row] = 1;
+      if (profile.action === FETCH_VISUAL_ACTION) {
+        this.reachRows[row] = 1;
+        const feet = profile.feet?.[sample];
+        this.reachFeet[row * 2] = feet?.[0] ?? 0;
+        this.reachFeet[row * 2 + 1] = feet?.[1] ?? 0;
+      }
       const mealTable = columns.mealTables?.[row];
       if (profile.action === 13 && mealTable !== undefined && mealTable !== 0xffffffff) {
         const table = this.findRow(mealTable);

@@ -89,9 +89,50 @@ def export_size():
     return (width*EXPORT_DENSITY//DENSITY, height*EXPORT_DENSITY//DENSITY)
 
 
+FACING_DEGREES = dict(SE=90, NW=270, SW=0, NE=180)
+
+
+def feet(facing):
+    """Each sample's feet centre in game tiles relative to the fixture's tile, for one facing.
+
+    The renders turn the scene by the facing about the fixture; game x is
+    Blender X and game y is Blender -Y. Rounded to a millimetre."""
+    turn = math.radians(FACING_DEGREES[facing])
+    c, s = math.cos(turn), math.sin(turn)
+    result = []
+    for index in range(geo.SAMPLES):
+        x, y = geo.stance(index)
+        result.append([round(c*x-s*y, 3), round(-(s*x+c*y), 3)])
+    return result
+
+
+def validate_depths(rows, path):
+    """One per-pixel depth array per facing and sample at export size, registered to its pixels."""
+    import numpy as np
+    expected = set(itertools.product(FACINGS, range(geo.SAMPLES)))
+    seen = {}
+    width, height = export_size()
+    for row in rows:
+        key = (row['facing'], row['frame'])
+        if key not in expected or key in seen or not SHA.fullmatch(row['sha256']):
+            raise ValueError('Duplicate, unexpected or unhashed fridge depth')
+        if row['size'] != [width, height] or max(number(v) for v in row['ray_registration_error']) > .01:
+            raise ValueError('Fridge depth is not registered to the export pixels')
+        data = np.load(checked_file(path.parent, row))
+        if data.shape != (height, width, 4) or not np.isfinite(data).all():
+            raise ValueError('Fridge depth array has the wrong shape')
+        if int((data[:, :, 3] > 0).sum()) < row['surface_pixels']:
+            raise ValueError('Fridge depth surface count disagrees with its array')
+        seen[key] = data
+    if set(seen) != expected:
+        raise ValueError('Fridge depth matrix is incomplete')
+    return seen
+
+
 def validate_action(action):
     expected = dict(name='fridge_reach_v1', samples=geo.SAMPLES, door_degrees=list(geo.DOOR_DEGREES),
                     reach_samples=list(geo.REACH_SAMPLES), left_hand=list(geo.LEFT_HAND),
+                    right_hand=list(geo.RIGHT_HAND),
                     lean_degrees=list(geo.LEAN_DEGREES), twist_degrees=list(geo.TWIST_DEGREES), playback='progress')
     if action != expected:
         raise ValueError('Fridge reach schedule differs from the pinned geometry module')
@@ -158,8 +199,13 @@ def validate_sample(row, index):
     if row.get('stance') != list(geo.stance(index)):
         raise ValueError('Fridge sample stance differs from the schedule')
     extent = [number(v) for v in row['body_extent']]
-    if len(extent) != 4 or extent[0] < -TILE_COLUMN or extent[2] > TILE_COLUMN or extent[0] > extent[2]:
-        raise ValueError('Fridge body leaves the front tile column')
+    # The handle side keeps clear of a wall face; on the hinge side the open
+    # door itself needs the tile, so the body only has to stay on it.
+    if (len(extent) != 4 or extent[0] < -(geo.WALL_FACE-geo.WALL_CLEARANCE) or extent[2] > TILE_COLUMN
+            or extent[0] > extent[2]):
+        raise ValueError('Fridge body leaves the front tile or reaches a wall')
+    if row.get('right_hand') != geo.RIGHT_HAND[index]:
+        raise ValueError('Fridge sample right hand differs from the schedule')
     if geo.LEFT_HAND[index] == 'reach':
         palm = row['palm']
         x, y, z = (number(v) for v in palm['centroid'])
@@ -195,7 +241,7 @@ def validate_sweeps(rows):
                 or row['start'] != geo.DOOR_DEGREES[first] or row['end'] != geo.DOOR_DEGREES[first+1]
                 or row['collisions'] or number(row['minimum_gap']) <= 0):
             raise ValueError('Fridge door sweep is unexpected, duplicated or collides')
-        if set(row['door_parts']) != DOOR_PARTS or not set(row['checked_body']) <= BODY_NAMES or len(row['checked_body']) < 49:
+        if set(row['door_parts']) != DOOR_PARTS or not set(row['checked_body']) <= BODY_NAMES or len(row['checked_body']) < len(BODY_NAMES)-10:
             raise ValueError('Fridge door sweep inventory is incomplete')
         seen.add(first)
     if seen != set(range(geo.SAMPLES-1)):
@@ -303,6 +349,7 @@ def read_batch(path, *, process_exited):
     validate_fixture(proof['fixture_checks'], proof['margins'])
     validate_geometry_palettes(proof['geometry_palette_checks'])
     validate_palettes(proof['palettes'])
+    validate_depths(proof.get('depths', []), path)
     size = tuple(canvas())
     for row in render_rows(proof).values():
         read_png(path.parent, row, size, 'RGBA')

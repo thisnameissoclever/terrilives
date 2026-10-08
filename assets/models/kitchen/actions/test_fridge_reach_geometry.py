@@ -8,7 +8,7 @@ import fridge_reach_geometry as geo
 class FridgeReachGeometryTests(unittest.TestCase):
     def test_schedule_opens_reaches_and_closes(self):
         self.assertTrue(geo.validate_schedule())
-        self.assertEqual(geo.DOOR_DEGREES, (0, 20, 55, 80, 80, 80, 80, 0))
+        self.assertEqual(geo.DOOR_DEGREES, (0, 20, 55, 90, 90, 90, 90, 0))
         self.assertEqual(geo.REACH_SAMPLES, (4, 5))
         self.assertEqual(geo.LEFT_HAND[0], 'rest')
         self.assertEqual(geo.LEFT_HAND[-1], 'rest')
@@ -25,7 +25,8 @@ class FridgeReachGeometryTests(unittest.TestCase):
     def test_the_body_stays_in_the_front_tile_column_and_out_of_the_moving_door(self):
         for index in range(geo.SAMPLES):
             x, y = geo.stance(index)
-            self.assertLessEqual(abs(x)+geo.BODY_HALF_WIDTH, geo.TILE_HALF_WIDTH+1e-9)
+            # Clear of a wall face on either side edge of the front tile.
+            self.assertLessEqual(abs(x)+geo.BODY_HALF_WIDTH, geo.WALL_FACE-geo.WALL_CLEARANCE+1e-9)
             self.assertLess(y, -.5)
         # While the door moves, the near shoulder corner of the BACK stance is outside
         # the door's sweep; the REACH stance is used only while the door stands open.

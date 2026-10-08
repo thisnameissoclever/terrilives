@@ -13,7 +13,10 @@ BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
 import fridge_reach_geometry as geo
 from fridge_export_contract import (MODELS, FACINGS, PALETTES, OWNERS, FETCH_ACTION, SOURCE, canvas, export_size,
-                                    read_batch, read_ink, render_rows, reference_rows, case_preservation)
+                                    read_batch, read_ink, render_rows, reference_rows, case_preservation,
+                                    validate_depths)
+import numpy as np
+from PIL import Image
 from bathroom_export_contract import encode_raw_scene
 from export_toilet_loop import ENCODING, TILE_DROP
 from seat_export_contract import read_png, digest, check_palettes
@@ -32,6 +35,25 @@ def scene_anchor(origin_pixels):
 def registered_anchor():
     """The empty fixture's anchor moved by the canvas padding."""
     return [EMPTY_ANCHOR[0]+geo.PADDING[0], EMPTY_ANCHOR[1]+geo.PADDING[1]]
+
+
+def scene_depth(data, raw):
+    """The scene's depth sprite: the producer's per-pixel depth, with every pixel the
+    furniture layer owns reading no farther than the fixture's anchor.
+
+    The producer clamps fixture surfaces where its centre ray hits the fixture.
+    A silhouette pixel the export filter gives to the furniture can still have
+    its centre ray pass the edge onto the body behind; it takes the same clamp,
+    so the fixture is never drawn farther than the empty fridge draws it."""
+    size = export_size()
+    body = np.asarray(raw['sim'].getchannel('A').resize(size, Image.Resampling.BOX), dtype=np.int64)
+    furniture = np.asarray(raw['furniture'].getchannel('A').resize(size, Image.Resampling.BOX), dtype=np.int64)
+    pixels = np.round(data*255).astype(np.int64)
+    encoded = pixels[:, :, 0]*256+pixels[:, :, 1]
+    anchor = round(2/4*65535)
+    owned = (furniture > body) & (pixels[:, :, 3] > 0) & (encoded < anchor)
+    pixels[owned, 0], pixels[owned, 1] = anchor//256, anchor % 256
+    return Image.fromarray(pixels.astype(np.uint8), 'RGBA')
 
 
 def export(source_path, ink_path, output, *, process_exited):
@@ -83,6 +105,7 @@ def export(source_path, ink_path, output, *, process_exited):
 
     rows = render_rows(source)
     references = reference_rows(source)
+    depths = validate_depths(source['depths'], source_path)
     size = tuple(canvas())
     for facing in FACINGS:
         empty = read_png(source_path.parent, references[facing, None, 'empty'], size)
@@ -97,12 +120,14 @@ def export(source_path, ink_path, output, *, process_exited):
                 raise ValueError(f'Fridge {facing}/{frame}: the case changed outside the door and body: {kept}')
             manifest['case_preservation'].append(dict(facing=facing, frame=frame, **kept))
             body_ink = read_png(ink_path.parent, ink_rows[facing, 'green', frame, 'body_ink'], size)
+            depth = scene_depth(depths[facing, frame], raw_palettes[0])
             for variant, raw in zip(PALETTES, raw_palettes):
                 try:
                     layers, coverage, comparison, reconstruction = encode_raw_scene(raw, body_ink, export_size())
                 except ValueError as failure:
                     raise ValueError(f'Fridge {facing}/{variant}/{frame}: {failure}') from failure
                 obj['scenes'].append(dict(facing=facing, variant=variant, frame=frame, comparison=comparison,
+                                          depth=write_image(depth, 'depth'),
                                           layers={r: write_image(i, 'layers') for r, i in layers.items()},
                                           coverage={r: write_image(i, 'coverage') for r, i in coverage.items()},
                                           reconstruction=write_image(reconstruction, 'reconstruction')))

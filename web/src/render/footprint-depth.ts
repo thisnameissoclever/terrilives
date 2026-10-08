@@ -1,5 +1,5 @@
 import {
-  FLOATS_PER_INSTANCE, FOOTPRINT_PROJECTION, OFFSET_DEPTH, OFFSET_WALL_MASK,
+  FLOATS_PER_INSTANCE, FOOTPRINT_PROJECTION, SURFACE_DEPTH_PROJECTION, OFFSET_WALL_MASK,
   OFFSET_WALL_DEPTH_STEP, OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X,
 } from './instances.js';
 import { layeredDepth, LAYER_PROP } from './iso.js';
@@ -20,27 +20,19 @@ export function writeFootprintProjection(out: Float32Array, slot: number,
 }
 
 /**
- * Depth for a fixture scene whose body stands on the tile in front of the
- * fixture (the fridge reach). The scene is drawn at the fixture's position,
- * but a single depth there would put the body behind any wall beside the
- * front tile. The two tiles are treated as one two-tile footprint: depth is
- * taken at their midpoint and varies by screen column along their shared
- * axis, so the fixture's columns keep the fixture tile's depth and the
- * body's columns take the front tile's, as a Sim standing there would.
- * Rows whose tiles are not orthogonal neighbours are left unchanged.
+ * Per-pixel depth for a fixture scene whose body stands off the fixture's tile
+ * (the fridge reach). The scene is drawn at the fixture's position, and its
+ * companion depth sprite carries each pixel's game-space X+Y relative to that
+ * position, as the door depth sprites do: the body and the open door take
+ * their physical depth, and the fixture never reads farther than it does
+ * when empty. A pixel is therefore hidden only by something physically
+ * nearer, such as a wall in front of it, never by a wall behind it.
  */
-export function writeReachProjection(out: Float32Array, slot: number, sprite: number, gridSize: number,
-  fixtureX: number, fixtureY: number, bodyX: number, bodyY: number, layer: number): void {
-  const dx = Math.round(bodyX - fixtureX), dy = Math.round(bodyY - fixtureY);
-  if (Math.abs(dx) + Math.abs(dy) !== 1) return;
+export function writeSceneDepth(out: Float32Array, slot: number, depthSprite: number, gridSize: number): void {
   const base = slot * FLOATS_PER_INSTANCE;
-  out[base + OFFSET_DEPTH] = layeredDepth(fixtureX + dx / 2, fixtureY + dy / 2, gridSize, layer);
-  out[base + OFFSET_WALL_MASK] = FOOTPRINT_PROJECTION;
+  out[base + OFFSET_WALL_MASK] = SURFACE_DEPTH_PROJECTION;
   out[base + OFFSET_WALL_DEPTH_STEP] =
     layeredDepth(0, 0, gridSize, LAYER_PROP) - layeredDepth(1, 0, gridSize, LAYER_PROP);
-  // A run along x is two tiles wide; a run along y is two tiles deep.
-  out[base + OFFSET_FOOTPRINT_SPAN] = dx !== 0 ? 0.5 : -0.5;
-  // The shader measures columns from the projection anchor; move it from the
-  // fixture to the midpoint, half a tile step along screen x.
-  out[base + OFFSET_PROJECTION_ANCHOR_X] = spriteDrawOffsetX(sprite) - (dx - dy) * 16;
+  out[base + OFFSET_FOOTPRINT_SPAN] = depthSprite;
+  out[base + OFFSET_PROJECTION_ANCHOR_X] = 0;
 }
