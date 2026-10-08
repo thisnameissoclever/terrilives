@@ -1357,8 +1357,8 @@ export class SimBridge {
    * `interaction` indexes that object's own interaction list, which is the
    * order `interactionLabels` returns and the order the flyout draws its
    * rows in: row `n` is interaction `n`. A plain click and a ctrl-click
-   * both send 0, which is the only interaction any shipped object has; a
-   * menu row sends its own index.
+   * both send the object's `defaultInteraction`; a menu row sends its own
+   * index.
    *
    * **Required rather than defaulted to 0.** A default would let a caller
    * that forgot the argument compile and silently send the first

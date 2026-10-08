@@ -348,7 +348,8 @@ lands ahead of the last.
 was raised to 10 on 2026-09-14 at the owner's request, once queueing every
 kind of order made a plan of five or more chats something a player asks for;
 the tuning comment carries the time-budget arithmetic. Ctrl and Cmd both
-append, per [I4]'s macOS note. A plain click still names interaction 0.
+append, per [I4]'s macOS note. A plain click names the object's default
+interaction: the first unless content names another.
 
 **Pinned by:** `a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards`,
 `a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it`,

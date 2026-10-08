@@ -183,12 +183,11 @@ export type ClickAction =
        * Which of the object's interactions to run - `Intent::interaction`,
        * and the last field of `SimCommand::UseObject`.
        *
-       * **A left click always names 0**, which is the only interaction any
-       * shipped object has. It is carried as a field rather than left for
-       * `dispatch` to supply so that there is exactly one place in this
-       * shell that decides what a gesture's interaction is, and so that a
-       * left click and a menu row reach `useObject` through the same
-       * parameter instead of one of them going through a default.
+       * **A left click names the object's default interaction**, which the
+       * simulation reports per object: the first unless content names
+       * another. It is carried as a field rather than left for `dispatch` to
+       * supply, so a left click and a menu row reach `useObject` through the
+       * same parameter instead of one of them going through a default.
        */
       readonly interaction: number;
       /**

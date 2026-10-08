@@ -1,6 +1,6 @@
 # Clearer status panel and sofa clicks
 
-Loading an older saved household keeps the status panel compact, and clicking a sofa now sits on it.
+Loading an older saved household keeps the status panel compact, and clicking a sofa now has the selected Sim sit on it.
 
 ## Fixed
 
