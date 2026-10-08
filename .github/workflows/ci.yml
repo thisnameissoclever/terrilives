@@ -149,12 +149,16 @@ jobs:
       # differs from what is committed. See [ML-ci].
       - name: Sprite atlas is reproducible
         run: |
-          python3 -m pip install --quiet --disable-pip-version-check Pillow
+          python3 -m pip install --quiet --disable-pip-version-check Pillow numpy
           python3 -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/sims/sim-01 -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/furniture -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/bathroom -p 'test_*.py'
+          # The action folders are not packages, so the parent discovery
+          # above never reaches them; run their contract suites directly.
+          python3 -B -m unittest discover -s assets/models/kitchen/actions -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/bathroom/actions -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/office -p 'test_*.py'
           python3 assets/sprites/gen/build.py --check

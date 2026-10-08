@@ -304,3 +304,24 @@ bubble at the sample's feet.
   unrelated scene checks pulled in by shared imports.
 
 Source review and local runtime proof do not establish public deployment.
+
+## Known limits for the next batch
+
+- `web/src/render/atlas.ts` is 100,038,988 bytes, about 4.6 MiB under
+  GitHub's 100 MiB per-file limit, after this batch moved the click masks
+  into `fixture-scene-masks.ts`. The generator still writes one number per
+  line; a compact encoding or a further split is needed before the next
+  art batch. The file's hash is pinned in
+  `assets/models/architecture/architecture.json`, so a format change must
+  update that pin.
+- The fetch route assumes the door faces the station's (1, 0) side for
+  every one-tile cold-storage station. Only one fridge model exists today;
+  a second model with its door elsewhere needs a content property like the
+  stove's `cooking_front`.
+- Walking to the door front can change routes compared with earlier builds
+  wherever another tile beside a fridge was closer. In the shipped corner
+  the front is the only open tile beside the fridge.
+- Click picking ranks a fetching Sim at the fridge's depth, not the nearer
+  depth the body is drawn at, so a click on a thin overlap with another
+  Sim in front is decided by row order.
+
