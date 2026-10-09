@@ -156,6 +156,9 @@ export function validateAtlasPageCount(count: number, deviceLimit: number): void
   }
 }
 
+/** Sprite pages downloading at once, counting the one being decoded. */
+const ATLAS_PREFETCH_PAGES = 4;
+
 /**
  * Decodes the content-addressed atlas PNG into a GPU texture.
  *
@@ -166,26 +169,54 @@ export function validateAtlasPageCount(count: number, deviceLimit: number): void
  * getting that pair wrong darkens every antialiased edge in the game by
  * an amount too small to notice and too consistent to explain.
  */
-export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
+export async function loadAtlasTexture(
+  device: GPUDevice,
+  onPage?: (done: number, total: number) => void,
+): Promise<GPUTexture> {
   validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
   validateAtlasPageCount(ATLAS_PAGE_FILES.length+1, device.limits.maxTextureArrayLayers);
+  const total = ATLAS_PAGE_FILES.length;
+  // Downloads run a few pages ahead of decoding. One page at a time left the
+  // network idle during every decode and upload, and a phone pays a round
+  // trip per page on top of that. Only compressed bytes wait in `pending`;
+  // decoded pages stay one at a time, because each is tens of megabytes.
+  const pending = new Map<number, Promise<Blob>>();
+  const download = async (page: number): Promise<Blob> => {
+    const url = atlasTextureUrl(import.meta.env.BASE_URL, page);
+    let response: Response;
+    try {
+      response = await fetch(url);
+    } catch (cause) {
+      throw new Error(
+        `could not reach the sprite atlas at ${url} - check the server and device connection`,
+        { cause },
+      );
+    }
+    if (!response.ok) {
+      throw new Error(`the sprite atlas at ${url} returned ${response.status}`);
+    }
+    return response.blob();
+  };
+  const take = (page: number): Promise<Blob> => {
+    for (let ahead = page; ahead < Math.min(page + ATLAS_PREFETCH_PAGES, total); ahead++) {
+      if (pending.has(ahead)) continue;
+      const blob = download(ahead);
+      // A later page can fail while an earlier one is still decoding, or
+      // after an earlier failure has already ended the load. Its error is
+      // reported when that page is taken, or not at all; never as an
+      // unhandled rejection.
+      blob.catch(() => {});
+      pending.set(ahead, blob);
+    }
+    const blob = pending.get(page)!;
+    pending.delete(page);
+    return blob;
+  };
   let texture: GPUTexture | undefined;
   try {
-    for (let page = 0; page < ATLAS_PAGE_FILES.length; page++) {
-      const url = atlasTextureUrl(import.meta.env.BASE_URL, page);
-      let response: Response;
-      try {
-        response = await fetch(url);
-      } catch (cause) {
-        throw new Error(
-          `could not reach the sprite atlas at ${url} - check the server and device connection`,
-          { cause },
-        );
-      }
-      if (!response.ok) {
-        throw new Error(`the sprite atlas at ${url} returned ${response.status}`);
-      }
-      const bitmap = await createImageBitmap(await response.blob(), {
+    onPage?.(0, total);
+    for (let page = 0; page < total; page++) {
+      const bitmap = await createImageBitmap(await take(page), {
         premultiplyAlpha: 'none',
         colorSpaceConversion: 'none',
       });
@@ -216,6 +247,7 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
       } finally {
         bitmap.close();
       }
+      onPage?.(page + 1, total);
     }
     await uploadGrimePage(device,texture!);
     return texture!;
@@ -331,13 +363,17 @@ export class SpriteRenderer {
    * finished by the time this resolves, so no frame can ever sample an
    * empty texture.
    */
-  static async create(gpu: GpuContext, architecture?: ArchitectureAtlas): Promise<SpriteRenderer> {
+  static async create(
+    gpu: GpuContext,
+    architecture?: ArchitectureAtlas,
+    onPage?: (done: number, total: number) => void,
+  ): Promise<SpriteRenderer> {
     if (architecture) {
       validateArchitectureAtlas(architecture);
       validateArchitectureDevice(architecture, gpu.device.limits, SPRITES.length);
       validateAtlasDimensions(architecture.width, architecture.height, gpu.device.limits.maxTextureDimension2D);
     }
-    const texture = await loadAtlasTexture(gpu.device);
+    const texture = await loadAtlasTexture(gpu.device, onPage);
     const textures = [texture], buffers: GPUBuffer[] = [];
     try { return new SpriteRenderer(gpu, texture, architecture, textures, buffers); }
     catch (error) {
