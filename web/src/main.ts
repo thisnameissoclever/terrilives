@@ -376,8 +376,10 @@ async function main(): Promise<void> {
   loading.step('Loading furniture and people');
   let renderer: SpriteRenderer;
   try {
-    // The last page is followed by the renderer's own setup, which is long
-    // enough on a phone that "42 of 42" sitting still reads as a hang.
+    // The files are the sprite pages plus the click-area data, which loads
+    // alongside them. The last file is followed by the renderer's own setup,
+    // which is long enough on a phone that "43 of 43" sitting still reads as
+    // a hang.
     renderer = await SpriteRenderer.create(gpu, architectureAtlas, {
       files: (done, total) => {
         if (done < total) loading.files(done, total);

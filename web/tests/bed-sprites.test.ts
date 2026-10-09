@@ -60,12 +60,13 @@ describe('covered double-bed scenes and owner coverage', () => {
   });
 
   it('samples gray values, zero background and fractional edges using texel centers', () => {
-    const record = { size: [2, 2] as const, box: [0, 0, 2, 2] as const, values: 'AP8AAA==' };
-    expect(sampleBedCoverage(record, 0, 0)).toBe(0);
-    expect(sampleBedCoverage(record, 1, 0)).toBe(1);
-    expect(sampleBedCoverage(record, 0.5, 0)).toBe(0.5);
-    expect(sampleBedCoverage(record, -20, 0)).toBe(0);
-    expect(sampleBedCoverage(record, 20, 0)).toBe(1);
+    const payload = Uint8Array.of(9, 9, 9, 0, 255, 0, 0);
+    const record = { size: [2, 2] as const, box: [0, 0, 2, 2] as const, offset: 3 };
+    expect(sampleBedCoverage(record, 0, 0, payload)).toBe(0);
+    expect(sampleBedCoverage(record, 1, 0, payload)).toBe(1);
+    expect(sampleBedCoverage(record, 0.5, 0, payload)).toBe(0.5);
+    expect(sampleBedCoverage(record, -20, 0, payload)).toBe(0);
+    expect(sampleBedCoverage(record, 20, 0, payload)).toBe(1);
   });
 
   it('filters the actual additive scene alpha before clamping its output', () => {

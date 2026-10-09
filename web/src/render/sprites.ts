@@ -2,6 +2,7 @@
 import { packPresentationLayers } from './visible-scene-layers.js';
 import { countResponseBytes, type LoadProgress } from '../load-progress.js';
 import { uploadJointAlpha } from './joint-alpha.js';
+import { loadCoveragePayload } from './coverage-payload.js';
 import { packShelfLayers } from './shelf-sprites.js';
 import { packBookReachShelves } from './book-reach-sprites.js';
 import { packDiningSupport } from './dining-support.js';
@@ -363,6 +364,10 @@ export class SpriteRenderer {
    * because decoding a PNG is. Everything the first `draw` needs is
    * finished by the time this resolves, so no frame can ever sample an
    * empty texture.
+   *
+   * The coverage file downloads alongside the pages and counts as one more
+   * file. The renderer uploads scene alpha from it, and picking and dining
+   * support sample it, so it has to arrive first; once loaded it stays.
    */
   static async create(
     gpu: GpuContext,
@@ -374,7 +379,18 @@ export class SpriteRenderer {
       validateArchitectureDevice(architecture, gpu.device.limits, SPRITES.length);
       validateAtlasDimensions(architecture.width, architecture.height, gpu.device.limits.maxTextureDimension2D);
     }
-    const texture = await loadAtlasTexture(gpu.device, progress);
+    const total = ATLAS_PAGE_FILES.length + 1;
+    let pagesDone = 0, coverageDone = 0;
+    const report = (): void => progress?.files?.(pagesDone + coverageDone, total);
+    const coverage = loadCoveragePayload(import.meta.env.BASE_URL, { bytes: progress?.bytes })
+      .then(() => { coverageDone = 1; report(); });
+    // Reported below, or after an atlas failure not at all; never unhandled.
+    coverage.catch(() => {});
+    const texture = await loadAtlasTexture(gpu.device, progress && {
+      bytes: progress.bytes,
+      files: (done) => { pagesDone = done; report(); },
+    });
+    try { await coverage; } catch (error) { texture.destroy(); throw error; }
     const textures = [texture], buffers: GPUBuffer[] = [];
     try { return new SpriteRenderer(gpu, texture, architecture, textures, buffers); }
     catch (error) {

@@ -1,10 +1,17 @@
+import { coveragePayload } from './coverage-payload.js';
+
 /** Stable authored sleep-presentation wire code, independent of gameplay sleep tags. */
 export const SLEEP_VISUAL_ACTION = 9;
 
+/**
+ * One coverage image: its full size, the box that holds every nonzero
+ * value, and where that box's row-major values start in the coverage payload.
+ */
 export interface EncodedCoverage {
   readonly size: readonly [number, number];
   readonly box: readonly [number, number, number, number];
-  readonly values: string;
+  /** Byte offset into the decompressed coverage file; see coverage-payload.ts. */
+  readonly offset: number;
   /** Scene alpha retains additive sums above 255 until after interpolation. */
   readonly bitDepth?: 16;
   readonly encoding?: 'float16';
@@ -29,6 +36,7 @@ export function bedSceneKey(mask: number, palette0: number, palette1: number): n
 }
 
 const decoded = new WeakMap<EncodedCoverage, Uint8Array | Uint16Array | Float32Array>();
+const littleEndian = new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
 
 function halfFloat(value: number): number {
   const sign = value & 0x8000 ? -1 : 1;
@@ -36,20 +44,41 @@ function halfFloat(value: number): number {
   return sign * (exponent === 0 ? fraction * 2 ** -24 : (1 + fraction / 1024) * 2 ** (exponent - 15));
 }
 
-/** Sample the original grayscale fill, with the atlas sampler's texel-center convention. */
-export function sampleBedCoverage(record: EncodedCoverage, x: number, y: number): number {
+/**
+ * The record's stored bytes, as a view into `payload` rather than a copy.
+ * The values are little-endian; 16-bit records start on an even offset.
+ */
+export function coverageBytes(record: EncodedCoverage,
+  payload: Uint8Array<ArrayBuffer> = coveragePayload()): Uint8Array<ArrayBuffer> {
+  const stride = record.bitDepth === 16 || record.encoding === 'float16' ? 2 : 1;
+  const [left, top, right, bottom] = record.box;
+  const length = (right - left) * (bottom - top) * stride;
+  if (!Number.isInteger(record.offset) || record.offset < 0 || record.offset + length > payload.byteLength
+      || !(right >= left && bottom >= top)) {
+    throw new Error('bed coverage box reaches outside the coverage data');
+  }
+  return payload.subarray(record.offset, record.offset + length);
+}
+
+function decode(record: EncodedCoverage, payload?: Uint8Array<ArrayBuffer>): Uint8Array | Uint16Array | Float32Array {
+  const raw = coverageBytes(record, payload);
+  if (record.bitDepth !== 16 && record.encoding !== 'float16') return raw;
+  const absolute = raw.byteOffset;
+  const values = littleEndian && absolute % 2 === 0
+    ? new Uint16Array(raw.buffer, absolute, raw.byteLength / 2)
+    : Uint16Array.from({ length: raw.length / 2 }, (_, index) => raw[index * 2] | raw[index * 2 + 1] << 8);
+  return record.encoding === 'float16' ? Float32Array.from(values, halfFloat) : values;
+}
+
+/**
+ * Sample the original grayscale fill, with the atlas sampler's texel-center convention.
+ * `payload` defaults to the loaded coverage file; tests pass their own.
+ */
+export function sampleBedCoverage(record: EncodedCoverage, x: number, y: number,
+  payload?: Uint8Array<ArrayBuffer>): number {
   let values = decoded.get(record);
   if (!values) {
-    const bytes = atob(record.values);
-    const raw = Uint8Array.from(bytes, (value) => value.charCodeAt(0));
-    const stride = record.bitDepth === 16 || record.encoding === 'float16' ? 2 : 1;
-    const [left, top, right, bottom] = record.box;
-    if (raw.length !== (right - left) * (bottom - top) * stride) {
-      throw new Error('bed coverage length differs from its registered box');
-    }
-    values = stride === 1 ? raw : Uint16Array.from(
-      { length: raw.length / 2 }, (_, index) => raw[index * 2] | raw[index * 2 + 1] << 8);
-    if (record.encoding === 'float16') values = Float32Array.from(values, halfFloat);
+    values = decode(record, payload);
     decoded.set(record, values);
   }
   const [left, top, right, bottom] = record.box;
