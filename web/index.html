@@ -83,13 +83,18 @@
         font-size: 20px;
         font-weight: 700;
       }
-      #startup-loading-step,
-      #startup-loading-count {
+      #startup-loading-step {
         font-size: 15px;
+      }
+      #startup-loading-count,
+      #startup-loading-bytes {
+        font-size: 14px;
         color: var(--hud-muted);
+        font-variant-numeric: tabular-nums;
       }
       #startup-loading-count[hidden],
-      #startup-loading-progress[hidden] {
+      #startup-loading-progress[hidden],
+      #startup-loading-bytes[hidden] {
         display: none;
       }
       #startup-loading-progress {
@@ -1010,9 +1015,10 @@
     <div id="startup-loading">
       <div class="startup-spinner" aria-hidden="true"></div>
       <p id="startup-loading-title">Loading Natural Causes</p>
-      <p id="startup-loading-step" role="status" aria-live="polite">Loading the game</p>
+      <p id="startup-loading-step" role="status" aria-live="polite">Step 1 of 10: Downloading the game</p>
       <p id="startup-loading-count" hidden></p>
-      <progress id="startup-loading-progress" aria-label="Loading progress" hidden></progress>
+      <progress id="startup-loading-progress" aria-label="Files loaded" hidden></progress>
+      <p id="startup-loading-bytes" hidden></p>
     </div>
     <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
          Outside #hud for #object-menu's reason: it is fixed to the window's

@@ -2,7 +2,8 @@ import { buildGrimeInstances } from './render/grime-decals.js';
 import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
-import { startupLoading } from './ui/startup-loading.js';
+import { afterPaint, startupLoading } from './ui/startup-loading.js';
+import { countResponseBytes } from './load-progress.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
 // crosses into JavaScript through the zero-copy bridge, and the renderer
 // draws every entity in one instanced call at display refresh rate,
@@ -295,7 +296,14 @@ async function main(): Promise<void> {
   // WebAssembly.Memory backing every view the bridge hands out. It is
   // passed in rather than imported: `--target web` has no importable
   // `memory`, see bridge.ts and [L10].
-  const wasm = await init();
+  //
+  // The module is fetched here rather than by init() so the loading screen
+  // can count it arriving. Compiling still overlaps the download: init()
+  // streams the response, and the step changes once the last byte is in.
+  loading.step('Downloading the simulation');
+  const wasm = await init({ module_or_path: fetch(new URL('./wasm/terri_wasm_bg.wasm', import.meta.url))
+    .then(response => countResponseBytes(response, count => loading.bytes(count),
+      () => loading.step('Starting the simulation'))) });
 
   // The lot, its walls and all eight authored objects come out of
   // content/lot.toml through the compiled pack. Nothing here names a
@@ -344,31 +352,44 @@ async function main(): Promise<void> {
   // the hardest kind of glitch to reproduce.
   //
   // The saved floors' finishes load with it. Before, the first renderer
-  // had none, the floor scene stayed hidden, and a second renderer
-  // downloaded and decoded every sprite page again to add them - doubling
-  // the blank wait on a phone. If they fail here, the game starts without
-  // them and the floor scene's own Load and Retry path takes over.
-  loading.step('Loading the house');
+  // had none, so a save with boards, tiles or carpet laid kept the floor
+  // scene hidden while a second renderer downloaded and decoded every sprite
+  // page again to add them. A new game needs no finishes and never paid
+  // that. If they fail here, the game starts without them and the floor
+  // scene's own Load and Retry path takes over.
+  loading.step('Loading walls and floors');
+  const startupProgress = {
+    files: (done: number, total: number) => loading.files(done, total),
+    bytes: (count: number) => loading.bytes(count),
+  };
   const startupFinishKeys = canonicalFloorFinishKeys(activeFloorFinishKeys(sim.floorTiles(), null));
   let residentFinishKeys: readonly string[] = startupFinishKeys;
   let architectureAtlas: Awaited<ReturnType<typeof loadArchitectureAtlas>>;
   try {
-    architectureAtlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys: startupFinishKeys });
+    architectureAtlas = await loadArchitectureAtlas(gpu.device.limits,
+      { finishKeys: startupFinishKeys, progress: startupProgress });
   } catch (error) {
     console.warn('Floor finishes could not load at startup', error);
     residentFinishKeys = [];
-    architectureAtlas = await loadArchitectureAtlas(gpu.device.limits);
+    architectureAtlas = await loadArchitectureAtlas(gpu.device.limits, { progress: startupProgress });
   }
-  loading.step('Loading art');
+  loading.step('Loading furniture and people');
   let renderer: SpriteRenderer;
   try {
     // The last page is followed by the renderer's own setup, which is long
     // enough on a phone that "42 of 42" sitting still reads as a hang.
-    renderer = await SpriteRenderer.create(gpu, architectureAtlas, (done, total) => {
-      if (done < total) loading.progress(done, total);
-      else loading.step('Preparing graphics');
+    renderer = await SpriteRenderer.create(gpu, architectureAtlas, {
+      files: (done, total) => {
+        if (done < total) loading.files(done, total);
+        else loading.step('Preparing graphics');
+      },
+      bytes: startupProgress.bytes,
     });
   } finally { closeArchitectureAtlas(architectureAtlas); }
+  // Everything from here to the first frame is synchronous, so the step is
+  // only drawn if startup yields to the browser before starting it.
+  loading.step('Setting up the game');
+  await afterPaint();
 
   const bookResults = new BookResults(sim);
   let lotWidth = handle.lot_width();
@@ -1490,7 +1511,7 @@ async function main(): Promise<void> {
       // At startup the cover stays up while floors load, and gives way to
       // the floor status card when they fail, so Retry can be reached.
       if (error) loading.finish();
-      else if (blocked) loading.step('Loading floor materials');
+      else if (blocked) loading.note('Loading floor materials');
       presentFloorSceneStatus(blocked, error);
     },
   });
@@ -2108,6 +2129,7 @@ async function main(): Promise<void> {
     requestAnimationFrame(loop);
   }
 
+  loading.step('Drawing the house');
   requestAnimationFrame(loop);
 }
 

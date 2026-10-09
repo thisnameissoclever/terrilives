@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import { packPresentationLayers } from './visible-scene-layers.js';
+import { countResponseBytes, type LoadProgress } from '../load-progress.js';
 import { uploadJointAlpha } from './joint-alpha.js';
 import { packShelfLayers } from './shelf-sprites.js';
 import { packBookReachShelves } from './book-reach-sprites.js';
@@ -171,7 +172,7 @@ const ATLAS_PREFETCH_PAGES = 4;
  */
 export async function loadAtlasTexture(
   device: GPUDevice,
-  onPage?: (done: number, total: number) => void,
+  progress?: LoadProgress,
 ): Promise<GPUTexture> {
   validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
   validateAtlasPageCount(ATLAS_PAGE_FILES.length+1, device.limits.maxTextureArrayLayers);
@@ -195,7 +196,7 @@ export async function loadAtlasTexture(
     if (!response.ok) {
       throw new Error(`the sprite atlas at ${url} returned ${response.status}`);
     }
-    return response.blob();
+    return countResponseBytes(response, progress?.bytes).blob();
   };
   const take = (page: number): Promise<Blob> => {
     for (let ahead = page; ahead < Math.min(page + ATLAS_PREFETCH_PAGES, total); ahead++) {
@@ -214,7 +215,7 @@ export async function loadAtlasTexture(
   };
   let texture: GPUTexture | undefined;
   try {
-    onPage?.(0, total);
+    progress?.files?.(0, total);
     for (let page = 0; page < total; page++) {
       const bitmap = await createImageBitmap(await take(page), {
         premultiplyAlpha: 'none',
@@ -247,7 +248,7 @@ export async function loadAtlasTexture(
       } finally {
         bitmap.close();
       }
-      onPage?.(page + 1, total);
+      progress?.files?.(page + 1, total);
     }
     await uploadGrimePage(device,texture!);
     return texture!;
@@ -366,14 +367,14 @@ export class SpriteRenderer {
   static async create(
     gpu: GpuContext,
     architecture?: ArchitectureAtlas,
-    onPage?: (done: number, total: number) => void,
+    progress?: LoadProgress,
   ): Promise<SpriteRenderer> {
     if (architecture) {
       validateArchitectureAtlas(architecture);
       validateArchitectureDevice(architecture, gpu.device.limits, SPRITES.length);
       validateAtlasDimensions(architecture.width, architecture.height, gpu.device.limits.maxTextureDimension2D);
     }
-    const texture = await loadAtlasTexture(gpu.device, onPage);
+    const texture = await loadAtlasTexture(gpu.device, progress);
     const textures = [texture], buffers: GPUBuffer[] = [];
     try { return new SpriteRenderer(gpu, texture, architecture, textures, buffers); }
     catch (error) {
