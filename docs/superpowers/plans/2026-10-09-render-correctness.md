@@ -18,8 +18,8 @@ itself describes as "a 2.5D footprint proxy, not an inferred per-pixel 3D
 model". Any sprite that reaches outside its tile (a Sim leaning into a
 fridge, an open door, a body on a two-tile sofa) then sorts wrongly
 against walls and neighbours, and each new animation has received its own
-depth patch: dining foreground and background masks, the bunk foreground
-layer, the reach projection. Separately, a Sim drawn in a fixture scene has
+depth patch or extra draw layer: dining foreground and background masks,
+the footprint projection, the bunk foreground draw pass. Separately, a Sim drawn in a fixture scene has
 taken its position from the fixture's row, so the marker and bubble landed
 on the fixture.
 
@@ -36,9 +36,10 @@ exporter and `docs/assets/review-evidence/kitchen/fridge-reach-2026-10-08.md`).
    occupied toilet, bath, seating, bunk and dining scenes), encoded exactly
    like the door and fridge depth sprites, and import it with each sprite.
 2. Draw every pre-rendered sprite through the per-pixel depth branch.
-   Remove the per-feature depth modes one at a time (footprint projection,
-   reach projection, dining foreground and background, bunk foreground
-   layer), each removal proven by the gate in Task 3 on the shipped house.
+   Remove the per-feature depth modes and layers one at a time (footprint
+   projection, dining foreground and background masks, the bunk foreground
+   draw pass in `web/src/frame.ts`), each removal proven by the gate
+   in Task 3 on the shipped house.
 3. Keep published sprites byte-preserved: the depth sprites are appended
    records; check with `docs/assets/review-evidence/bathroom/verify-sprite-preservation.py origin/main`.
 
@@ -69,9 +70,10 @@ Sim at the fridge's depth (known limit from PR 235).
 - Check the size of `web/src/render/atlas.ts` with
   `wc -c web/src/render/atlas.ts`; if it is within about 5 MiB of 104,857,600
   bytes (GitHub's per-file limit), shrink it before adding art. Observed
-  2026-10-09: 100,038,988 bytes. The generator writes one number per line;
-  a compact encoding or a further split (as PR 235 did for the click
-  masks) is needed.
+  2026-10-09: 100,038,988 bytes, of which about 82 MB is the
+  `COVERAGE_VALUES` click-coverage data on a single base64 line. Moving that
+  data out of the TypeScript source, for example into a binary asset or a
+  further split as PR 235 did for the click masks, is the effective fix.
 - The fetch route assumes the fridge door faces the station's (1, 0) side;
   a second fridge model needs a content property like the stove's
   `cooking_front`.

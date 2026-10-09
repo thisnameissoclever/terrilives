@@ -309,9 +309,9 @@ Source review and local runtime proof do not establish public deployment.
 
 - `web/src/render/atlas.ts` is 100,038,988 bytes, about 4.6 MiB under
   GitHub's 100 MiB per-file limit, after this batch moved the click masks
-  into `fixture-scene-masks.ts`. The generator still writes one number per
-  line; a compact encoding or a further split is needed before the next
-  art batch.
+  into `fixture-scene-masks.ts`. About 82 MB of it is the
+  `COVERAGE_VALUES` click-coverage data on one base64 line; moving that
+  data out of the TypeScript source is needed before the next art batch.
 - The fetch route assumes the door faces the station's (1, 0) side for
   every one-tile cold-storage station. Only one fridge model exists today;
   a second model with its door elsewhere needs a content property like the
