@@ -353,9 +353,15 @@ async function main(): Promise<void> {
   // simulation runs outside the GPU, so the household can still be saved
   // before the card explains what happened. A deliberate destroy() is not
   // news to anyone, so only the other reasons reach the player.
+  //
+  // The `?stress=` harness keeps running instead: the headless sandbox loses
+  // its device after the first present (docs/headless-sandbox.md), and its
+  // behavioural checks drive the simulation and HUD, which still work.
+  const harnessRun = new URLSearchParams(location.search).has('stress');
   void gpu.device.lost.then(async (info) => {
     if (info.reason === 'destroyed') return;
     console.error('Graphics device lost:', info.reason, info.message);
+    if (harnessRun) return;
     let saved = false;
     try { saved = await persistence.save(); } catch { saved = false; }
     loading.finish();
