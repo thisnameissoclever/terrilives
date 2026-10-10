@@ -73,9 +73,11 @@ import { AffinitiesPanel, createAffinitiesPanelSurface } from './ui/affinities-p
 import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
+  describeGraphicsLost,
   describeStartupFailure,
   renderStartupFailure,
 } from './ui/startup-failure.js';
+import { showDesktopSiteNotice } from './ui/desktop-site-notice.js';
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
@@ -263,6 +265,8 @@ declare global {
 const loading = startupLoading(document);
 
 async function main(): Promise<void> {
+  // First, so a phone in desktop mode is told before the long load, not after.
+  showDesktopSiteNotice(window, document);
   // Audio is wired FIRST, ahead of every await below. Two reasons, both
   // learned the hard way. A phone takes seconds to fetch the WASM, bring up
   // WebGPU and decode the atlas, and a gesture made during that wait is the
@@ -345,6 +349,18 @@ async function main(): Promise<void> {
 
   loading.step('Starting graphics');
   const gpu = await initDevice(canvas);
+  // A lost device used to freeze the picture with no word of why. The
+  // simulation runs outside the GPU, so the household can still be saved
+  // before the card explains what happened. A deliberate destroy() is not
+  // news to anyone, so only the other reasons reach the player.
+  void gpu.device.lost.then(async (info) => {
+    if (info.reason === 'destroyed') return;
+    console.error('Graphics device lost:', info.reason, info.message);
+    let saved = false;
+    try { saved = await persistence.save(); } catch { saved = false; }
+    loading.finish();
+    renderStartupFailure(describeGraphicsLost(info.message, saved), document.body);
+  });
   // Awaited: the atlas is a PNG and decoding it is asynchronous, so the
   // renderer is only usable once its texture is on the GPU. Constructing
   // it synchronously and uploading later would let the first frames

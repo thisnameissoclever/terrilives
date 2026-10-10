@@ -11,6 +11,19 @@ export interface GpuContext {
   format: GPUTextureFormat;
 }
 
+/**
+ * `navigator.gpu` exists but the browser would not hand this page an
+ * adapter. Its own type because the advice differs from a missing WebGPU:
+ * the usual cause is the browser blocking graphics for the site after a
+ * driver crash or reset, which a browser restart clears.
+ */
+export class NoGpuAdapterError extends Error {
+  constructor() {
+    super('No WebGPU adapter found.');
+    this.name = 'NoGpuAdapterError';
+  }
+}
+
 export async function initDevice(
   canvas: HTMLCanvasElement,
 ): Promise<GpuContext> {
@@ -19,7 +32,7 @@ export async function initDevice(
   }
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) {
-    throw new Error('No WebGPU adapter found.');
+    throw new NoGpuAdapterError();
   }
   const device = await adapter.requestDevice();
   const context = canvas.getContext('webgpu');
