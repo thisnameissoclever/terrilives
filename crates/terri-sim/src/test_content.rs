@@ -15,6 +15,18 @@ use crate::{portals::ActivePortals, Content, Sim};
 use terri_core::{Footprint, NeedId, SimRng, SmartObject};
 use terri_data::{CompiledInteraction, CompiledObject, ContentPack, Tuning};
 
+/// Historical envelopes omit owned books. Their fixtures must start with that same state.
+pub(crate) fn without_owned_books(mut sim: Sim) -> Sim {
+    let seed = sim
+        .world()
+        .resource::<crate::books::BookLibrary>()
+        .state()
+        .taste_seed;
+    sim.world_mut()
+        .insert_resource(crate::books::BookLibrary::new(seed));
+    sim
+}
+
 /// Explicit bindings for small manually assembled procedure fixtures. Public
 /// inheritance acceptance uses the separately compiled TOML fixture instead.
 pub(crate) fn bind_recipe(

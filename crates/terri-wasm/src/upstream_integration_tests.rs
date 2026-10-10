@@ -192,6 +192,7 @@ fn upstream_pending_edit_and_book_commands_keep_wire_and_stream_order() {
         .world_mut()
         .insert_resource(terri_core::Funds(100));
     let title = handle.sim.book_titles()[0].id.clone();
+    let next = handle.sim.save_snapshot_v6().books.next_copy_id;
     assert!(handle.buy_book(title, None));
     let edit = SimCommand::EditHousemate {
         sim: 0,
@@ -206,7 +207,7 @@ fn upstream_pending_edit_and_book_commands_keep_wire_and_stream_order() {
         "published edit command keeps its wire identity"
     );
     assert!(handle.enqueue_command(&bytes));
-    assert!(handle.transfer_book(0.0, None));
+    assert!(handle.transfer_book(f64::from(next), None));
     let snapshot = handle.sim.save_snapshot_v6();
     assert!(snapshot.command_order[0].is_some());
     assert!(snapshot.command_order[1].is_none());
@@ -216,7 +217,7 @@ fn upstream_pending_edit_and_book_commands_keep_wire_and_stream_order() {
     assert_eq!(handle.save_bytes(), bytes);
     handle.flush_commands();
     let saved = handle.sim.save_snapshot_v6();
-    assert_eq!(saved.books.copies.len(), 1);
+    assert_eq!(saved.books.copies.len(), 4);
     assert_eq!(
         saved
             .legacy

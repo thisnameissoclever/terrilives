@@ -14,6 +14,9 @@ pub mod rng;
 pub mod save;
 pub mod save_v6;
 pub use save_v6::SaveSnapshotV6;
+pub mod save_v7;
+pub mod save_v8;
+pub use save_v8::SaveSnapshotV8;
 mod save_before_voice;
 pub mod windows;
 

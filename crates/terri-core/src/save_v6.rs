@@ -263,6 +263,7 @@ pub struct FrozenSaveSnapshotV6 {
     pub reading: Vec<SavedReadingJourney>,
     pub pending_shifts: Vec<SavedPendingShift>,
     /// None consumes the next frozen ordinary command; Some runs a V6 book command.
+    #[serde(with = "crate::save_v7::historical_book_commands")]
     pub command_order: Vec<Option<crate::command::BookCommand>>,
     pub chain_origins: Vec<SavedChainOrigin>,
 }
@@ -292,7 +293,7 @@ struct FrozenCurrentV5 {
     chores: Option<crate::chores::SavedChores>,
     grime: Option<crate::grime::SavedGrime>,
 }
-mod current_legacy {
+pub(crate) mod current_legacy {
     use super::*;
     pub fn serialize<S: serde::Serializer>(
         value: &SaveSnapshotV5,

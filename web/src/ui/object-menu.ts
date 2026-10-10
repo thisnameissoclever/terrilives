@@ -6,6 +6,9 @@
  */
 
 import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
+import type { PurchaseQuote, SaleQuote, QuoteResult, ReadingChoice } from '../books/commerce-codec.js';
+import { actionPage, layoutObjectActions, maximumActionSize, chooseActionPlacement, type ActionRegion } from './object-menu-layout.js';
+import { formatFunds } from './game-hud.js';
 
 /**
  * What a row does when picked.
@@ -17,6 +20,10 @@ import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
  * a sim the player had since changed, or on one that had despawned.
  */
 export type MenuAction =
+  | { readonly kind: 'build'; readonly object: number }
+  | { readonly kind: 'buy-book'; readonly quote: PurchaseQuote | null }
+  | { readonly kind: 'sell-book'; readonly quote: SaleQuote | null }
+  | { readonly kind: 'recover-book'; readonly copy: number }
   | {readonly kind:'chore';readonly choreKind:number;readonly target:number}
   | { readonly kind: 'clean'; readonly surface: number; readonly dishes: readonly number[] | null }
   | { readonly kind: 'read'; readonly object: number; readonly action: string; readonly title: string }
@@ -46,7 +53,9 @@ export type MenuAction =
 
 /** One row. */
 export interface MenuEntry {
-  readonly titleChoice?: boolean;
+  readonly enabled?: boolean;
+  readonly price?: number;
+  readonly secondary?: string;
   readonly label: string;
   readonly action: MenuAction;
   /**
@@ -74,7 +83,7 @@ export interface MenuEntry {
  * line.
  */
 export interface Menu {
-  readonly readingNotice?: string;
+  readonly object?: number;
   readonly title: string;
   readonly details?: ObjectDetails;
   readonly entries: readonly MenuEntry[];
@@ -122,19 +131,24 @@ export function menuEntries(
   labels: readonly string[],
   object: number,
   details?: ObjectDetails,
-  books?: { entries: readonly MenuEntry[]; notice: string },
 ): Menu {
   const entries: MenuEntry[] = labels.map((label, interaction) => ({
     label,
     action: { kind: 'use', object, interaction },
   }));
-  if (books) entries.push(...books.entries);
   entries.push(NOTHING);
-  return { title, entries, ...(details ? { details } : {}), ...(books ? { readingNotice: books.notice } : {}) };
+  return { title, entries, ...(details ? { details } : {}) };
 }
 
 export interface SurfaceMenuSource {
-  readingChoices?(entity: number): { entries: readonly MenuEntry[]; notice: string } | undefined;
+  selectedIndex?(): number | null;
+  objectModel?(entity: number): { shelfCapacity: number; actions: readonly { id: string; reading: boolean }[] } | undefined;
+  automaticReadingChoice?(person: number, object: number, action: string): ReadingChoice | null;
+  bookPurchaseQuote?(): QuoteResult<PurchaseQuote>;
+  bookPurchasePrice?(): number | null;
+  bookSaleQuote?(shelf: number): QuoteResult<SaleQuote>;
+  pendingBookCommands?(): number;
+  funds?(): number;
   tableActions?(entity:number):Uint32Array;
   choreOptions?(entity:number):Uint32Array;
   entityName(entity: number): string;
@@ -145,20 +159,39 @@ export interface SurfaceMenuSource {
 
 /** Pointer and keyboard target selection use the same dirty-surface actions. */
 export function surfaceMenuEntries(source: SurfaceMenuSource, entity: number): Menu {
-  if (source.dishPiles?.().some((value, i) => i % 3 === 0 && value === entity)) return {
-    title: source.entityName(entity), details: source.objectDetails?.(entity),
-    entries: [{ label: 'Clean up', action: { kind: 'clean', surface: entity, dishes: null } }, NOTHING],
-  };
-    let menu=menuEntries(source.entityName(entity), source.interactionLabels(entity), entity, source.objectDetails?.(entity), source.readingChoices?.(entity));
-    const table=source.tableActions?.(entity);
-    if(table?.length===2) {
-      menu={...menu,entries:[...(table[0]?[{label:'Sit',action:{kind:'use' as const,object:entity,interaction:0}}]:[]),
-        ...(table[1]?[{label:'Eat prepared food',action:{kind:'use' as const,object:entity,interaction:1}}]:[]),NOTHING]};
+  const person = source.selectedIndex ? source.selectedIndex() : 0;
+  const model = source.objectModel?.(entity);
+  let menu = menuEntries(source.entityName(entity), source.interactionLabels(entity), entity, source.objectDetails?.(entity));
+  if (source.dishPiles?.().some((value, i) => i % 3 === 0 && value === entity)) {
+    return { ...menu, object: entity, entries: [{ label: 'Clean up', enabled: person !== null, action: { kind: 'clean', surface: entity, dishes: null } },
+      { label: 'Enter build mode', enabled: true, action: { kind: 'build', object: entity } }, ...(person === null ? [] : [NOTHING])] };
+  }
+  const table = source.tableActions?.(entity);
+  if (table?.length === 2) menu = { ...menu, entries: [
+    ...(table[0] ? [{ label: 'Sit', action: { kind: 'use' as const, object: entity, interaction: 0 } }] : []),
+    ...(table[1] ? [{ label: 'Eat prepared food', action: { kind: 'use' as const, object: entity, interaction: 1 } }] : []), NOTHING] };
+  const entries: MenuEntry[] = menu.entries.filter(entry => entry.action.kind !== 'cancel').map(entry => {
+    const action = entry.action.kind === 'use' ? model?.actions[entry.action.interaction] : undefined;
+    if (action?.reading) {
+      const choice = person === null ? null : source.automaticReadingChoice?.(person, entity, action.id) ?? null;
+      return { ...entry, label: 'Read book', enabled: person !== null && choice !== null,
+        ...(choice?.title ? { secondary: `${choice.title} \u00b7 ${Math.floor(choice.progress)}%` } : {}) };
     }
-  const options=source.choreOptions?.(entity);
-  const entries=menu.entries.slice(0,-1);
-  if(options)for(let i=0;i+1<options.length;i+=2)entries.push(choreEntry(options[i],options[i+1]));
-  entries.push(NOTHING);return {...menu,entries};
+    return { ...entry, enabled: person !== null };
+  });
+  const chores = source.choreOptions?.(entity);
+  if (chores) for (let i = 0; i + 1 < chores.length; i += 2) entries.push({ ...choreEntry(chores[i], chores[i + 1]), enabled: person !== null });
+  if (model && model.shelfCapacity > 0) {
+    const buy = source.bookPurchaseQuote?.().quote ?? null;
+    const sell = source.bookSaleQuote?.(entity).quote ?? null;
+    const pending = (source.pendingBookCommands?.() ?? 0) > 0;
+    const price = buy?.price ?? source.bookPurchasePrice?.();
+    entries.push({ label: 'Buy book', enabled: buy !== null && !pending && buy.price <= (source.funds?.() ?? Infinity), ...(price != null ? { price } : {}), action: { kind: 'buy-book', quote: buy } },
+      { label: 'Sell book', enabled: sell !== null && !pending, ...(sell ? { price: sell.price } : {}), action: { kind: 'sell-book', quote: sell } });
+  }
+  entries.push({ label: 'Enter build mode', enabled: true, action: { kind: 'build', object: entity } });
+  if (person !== null) entries.push(NOTHING);
+  return { ...menu, object: entity, entries };
 }
 
   export const CHORE_LABELS=['Do dishes','Clean floor','Wipe surface','Empty bin','Wipe counter surfaces','Wipe table surfaces'] as const;
@@ -167,8 +200,8 @@ export function choreEntry(choreKind:number,target:number):MenuEntry {
 }
 export function floorMenuEntries(kind:number,target:number):Menu{return {title:'Floor',entries:[choreEntry(kind,target),NOTHING]};}
 
-export function dishMenuEntries(surface: number, dishes: readonly number[]): Menu {
-  return { title: 'Dishes', entries: [{ label: 'Do dishes', action: { kind: 'clean', surface, dishes } }, NOTHING] };
+export function dishMenuEntries(surface: number, dishes: readonly number[], hasPerson = true): Menu {
+  return { title: 'Dishes', entries: [{ label: 'Do dishes', enabled: hasPerson, action: { kind: 'clean', surface, dishes } }, ...(hasPerson ? [NOTHING] : [])] };
 }
 
 /**
@@ -269,6 +302,7 @@ export class ObjectMenu {
   constructor(
     private readonly surface: MenuSurface,
     private readonly onAction: (action: MenuAction, additive: boolean) => void,
+    private readonly canActivate: (action: MenuAction) => boolean = () => true,
   ) {}
 
   /** Whether rows are on screen. */
@@ -287,9 +321,9 @@ export class ObjectMenu {
    * click on a second object has to do.
    */
   open(menu: Menu, clientX: number, clientY: number): void {
-    this.entries = menu.entries;
+    this.entries = menu.entries.map(entry => this.canActivate(entry.action) ? entry : { ...entry, enabled: false, secondary: undefined });
     this.showing = true;
-    this.surface.show(menu, clientX, clientY, (index, additive) =>
+    this.surface.show({ ...menu, entries: this.entries }, clientX, clientY, (index, additive) =>
       this.activate(index, additive),
     );
   }
@@ -357,6 +391,7 @@ export class ObjectMenu {
    */
   private activate(index: number, additive: boolean): void {
     const entry = this.entries[index];
+    if (entry?.enabled === false) return;
     this.close();
     if (entry === undefined) return;
     this.onAction(entry.action, additive);
@@ -396,107 +431,137 @@ export function queueModifierHeld(event: {
  * its final position is calculated so `offsetWidth` and `offsetHeight` are
  * real layout measurements rather than guessed menu dimensions.
  */
-export function createMenuSurface(
-  doc: Document,
-  root: HTMLElement,
-): MenuSurface {
+export interface MenuSurfaceOptions {
+  anchor?(menu: Menu): { x: number; y: number } | null;
+  revision?(): string;
+  keepouts?(): readonly ActionRegion[];
+  dismiss?(): void;
+}
+
+export function createMenuSurface(doc: Document, root: HTMLElement, options: MenuSurfaceOptions = {}): MenuSurface {
   let returnFocus: HTMLElement | null = null;
   let disposeIdentity: (() => void) | undefined;
-  let disposePlacement: (() => void) | undefined;
+  let cleanup: (() => void) | undefined;
   return {
     show(menu, clientX, clientY, onPick) {
+      cleanup?.(); disposeIdentity?.();
       returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
-      disposeIdentity?.();
-      disposePlacement?.();
-      disposeIdentity = undefined;
-      root.replaceChildren();
-      // Identity stays outside the action rows. Initial focus still goes to
-      // the first action; Shift+Tab reaches an available description.
-      if (menu.details) {
-        const identity = createObjectIdentity(doc, menu.title, menu.details);
-        disposeIdentity = identity.dispose;
-        root.appendChild(identity.element);
-      } else if (menu.title !== '') {
-        const title = doc.createElement('p');
-        title.className = 'menu-title';
-        title.textContent = menu.title;
-        root.appendChild(title);
-      }
-      for (const [index, entry] of menu.entries.entries()) {
-        if (entry.divider === true && root.childElementCount > 0) {
-          const rule = doc.createElement('div');
-          rule.className = 'menu-divider';
-          root.appendChild(rule);
-        }
-        const button = doc.createElement('button');
-        button.type = 'button';
-        button.className = 'menu-entry';
-        button.textContent = entry.label;
-        // A keyboard activation of the button arrives as a click too,
-        // carrying the same modifier state, so Enter with Ctrl held
-        // queues as well.
-        button.addEventListener('click', (event) =>
-          onPick(index, queueModifierHeld(event)),
-        );
-        if (entry.titleChoice) {
-          let choices = root.querySelector<HTMLDetailsElement>('.reading-choices');
-          if (!choices) { choices = doc.createElement('details'); choices.className = 'reading-choices';
-            const summary = doc.createElement('summary'); summary.textContent = 'Choose a title'; choices.append(summary); root.append(choices); }
-          choices.append(button);
-        } else root.appendChild(button);
-      }
-      if (menu.readingNotice) { const note = doc.createElement('p'); note.className = 'reading-notice'; note.textContent = menu.readingNotice; root.append(note); }
-      root.style.left = `${clientX}px`;
-      root.style.top = `${clientY}px`;
-      root.style.width = '';
+      root.replaceChildren(); root.classList.add('object-menu-radial');
+      root.setAttribute('aria-label', menu.title ? `${menu.title} actions` : 'Actions');
       root.hidden = false;
-      // Reserve the expanded dimensions before placement. Opening near an
-      // edge must keep the description and its actions inside the viewport.
-      const disclosure = root.querySelector('details');
-      if (disclosure) disclosure.open = true;
-      const expandedWidth = root.offsetWidth;
-      const expandedHeight = root.offsetHeight;
-      if (disclosure) {
-        disclosure.open = false;
-        root.style.width = `${expandedWidth}px`;
+      const identity = doc.createElement('div'); identity.className = 'radial-identity';
+      if (menu.details) {
+        const presentation = createObjectIdentity(doc, menu.title, menu.details);
+        disposeIdentity = presentation.dispose; identity.append(presentation.element);
+      } else if (menu.title) {
+        const name = doc.createElement('strong'); name.textContent = menu.title; identity.append(name);
       }
+      root.append(identity);
+      const close = doc.createElement('button'); close.type = 'button'; close.className = 'radial-close';
+      close.textContent = '\u00d7'; close.setAttribute('aria-label', 'Close menu');
+      close.addEventListener('click', () => options.dismiss?.()); root.append(close);
+      let page = 0, capacity = 6, buttons: HTMLButtonElement[] = [];
+      let revision = '', frame = 0, disposed = false;
+      let measurementKey = '', measuredEntries: {width:number;height:number}[] = [], navigation = {width:44,height:44};
+      const make = (label: string, activate: (event: MouseEvent) => void, entry?: MenuEntry): HTMLButtonElement => {
+        const button = doc.createElement('button'); button.type = 'button'; button.className = 'menu-entry';
+        button.disabled = entry?.enabled === false;
+        const text = doc.createElement('span'); text.textContent = label; button.append(text);
+        if (entry?.price !== undefined) {
+          const price = doc.createElement('small'); price.className = 'action-price'; price.textContent = `$${formatFunds(entry.price)}`;
+          button.append(price);
+        }
+        if (entry?.secondary) { const secondary = doc.createElement('small'); secondary.className = 'menu-secondary'; secondary.textContent = entry.secondary; button.append(secondary); }
+        button.addEventListener('click', event => { event.stopPropagation(); activate(event); });
+        root.append(button); return button;
+      };
+      const render = () => {
+        buttons.forEach(button => button.remove()); buttons = [];
+        const current = actionPage(menu.entries.length, capacity, page); page = current.page;
+        current.indices.forEach(index => { const entry = menu.entries[index]; const button=make(entry.label,
+          event => onPick(index, queueModifierHeld(event)), entry); button.dataset.menuIndex=String(index); buttons.push(button); });
+        const turn = (delta: number) => {
+          page += delta; render(); place();
+          buttons.find(button => !button.disabled)?.focus();
+        };
+        if (current.back) buttons.push(make('Back', () => turn(-1)));
+        if (current.more) buttons.push(make('More actions', () => turn(1)));
+      };
       const place = () => {
         const view = doc.defaultView;
-        if (!view) return;
-        const position = clampMenuPosition(
-          clientX,
-          clientY,
-          expandedWidth,
-          expandedHeight,
-          view.innerWidth,
-          view.innerHeight,
-        );
-        root.style.left = `${position.x}px`;
-        root.style.top = `${position.y}px`;
+        if (!view || root.hidden || disposed) return;
+        const anchor = menu.object !== undefined && options.anchor ? options.anchor(menu) : { x: clientX, y: clientY };
+        if (!anchor) { options.dismiss?.(); return; }
+        const maximumWidth = Math.max(44,Math.min(136,view.innerWidth-16));
+        buttons.forEach(button => { button.style.maxWidth = `${maximumWidth}px`; });
+        const nextMeasurement = `${maximumWidth}:${view.getComputedStyle(root).fontSize}`;
+        if (measurementKey !== nextMeasurement) {
+          measurementKey = nextMeasurement;
+          const probes = [...menu.entries.map(entry => make(entry.label, () => {}, entry)), make('More actions', () => {}), make('Back', () => {})];
+          probes.forEach(button => { button.style.visibility = 'hidden'; button.style.maxWidth = `${maximumWidth}px`; });
+          measuredEntries = probes.slice(0,menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
+          navigation = maximumActionSize(probes.slice(menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight})));
+          probes.forEach(button=>button.remove());
+        }
+        identity.style.maxHeight = ''; identity.style.overflowY = '';
+        const viewport = {width:view.innerWidth,height:view.innerHeight};
+        const placement = chooseActionPlacement(anchor,measuredEntries,navigation,viewport,identity.offsetHeight,options.keepouts?.() ?? []);
+        if (!placement) { options.dismiss?.(); return; }
+        let focusAfterPlace: HTMLButtonElement | null = null;
+        if (placement.capacity !== capacity) {
+          const focused=doc.activeElement as HTMLButtonElement, hadFocus=buttons.includes(focused);
+          const index=focused?.dataset?.menuIndex;
+          capacity=placement.capacity; page=0;
+          if (index !== undefined) for (let candidate=0;candidate<=menu.entries.length;candidate++) {
+            const part=actionPage(menu.entries.length,capacity,candidate);
+            if (part.indices.includes(Number(index))) {page=candidate;break;}
+            if (!part.more) break;
+          }
+          render(); buttons.forEach(button=>{button.style.maxWidth=`${maximumWidth}px`;});
+          if (hadFocus) focusAfterPlace=buttons.find(button=>!button.disabled && button.dataset.menuIndex===index) ?? buttons.find(button=>!button.disabled) ?? close;
+        }
+        identity.style.maxHeight = `${placement.identityHeight}px`; identity.style.overflowY='auto';
+        const region=placement.region, sizes=buttons.map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
+        const layout=layoutObjectActions(anchor,sizes,viewport,region.top,placement.scroll ? region.top+44 : region.bottom,identity.offsetHeight,region.left,region.right);
+        root.dataset.compact=String(layout.compact);
+        root.style.left=placement.scroll ? `${region.left}px` : '0px'; root.style.top=placement.scroll ? `${region.top}px` : '0px';
+        root.style.width=placement.scroll ? `${region.right-region.left}px` : '0px'; root.style.height=placement.scroll ? `${region.bottom-region.top}px` : '0px';
+        root.style.overflowY=placement.scroll ? 'auto' : ''; root.style.pointerEvents=placement.scroll ? 'auto' : 'none';
+        buttons.forEach((button,index)=>{button.style.position=placement.scroll ? 'absolute' : 'fixed';button.style.left=`${layout.positions[index].x-(placement.scroll?region.left:0)}px`;button.style.top=`${layout.positions[index].y-(placement.scroll?region.top:0)}px`;});
+        identity.style.position=placement.scroll ? 'absolute' : 'fixed';identity.style.left=`${layout.identity.x-(placement.scroll?region.left:0)}px`;identity.style.top=`${layout.identity.y-(placement.scroll?region.top:0)}px`;
+        close.style.left=`${layout.close.x}px`;close.style.top=`${layout.close.y}px`;
+        focusAfterPlace?.focus({preventScroll:!placement.scroll});
       };
-      place();
-      const reclamp = () => {
-        const view = doc.defaultView;
-        if (!view || root.hidden) return;
-        const position = clampMenuPosition(clientX, clientY, root.offsetWidth,
-          root.offsetHeight, view.innerWidth, view.innerHeight);
-        root.style.left = `${position.x}px`; root.style.top = `${position.y}px`;
+      const toggle = () => place(); root.addEventListener('toggle', toggle, true);
+      const observer = new ResizeObserver(() => place());
+      for (const id of ['hud','time-controls','build-toggle','options-toggle','build-camera','sim-dock','builder-controls']) {
+        const element=doc.getElementById(id);if(element) observer.observe(element);
+      }
+      observer.observe(identity);
+      const navigate = (event: KeyboardEvent) => {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+        const usable = buttons.filter(button => !button.disabled), index = usable.indexOf(doc.activeElement as HTMLButtonElement);
+        if (index < 0 || !usable.length) return;
+        event.preventDefault(); const delta = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
+        usable[(index + delta + usable.length) % usable.length].focus();
       };
-      // Native toggle does not bubble; capture both the description and title chooser.
-      root.addEventListener('toggle', reclamp, true);
-      disposePlacement = () => root.removeEventListener('toggle', reclamp, true);
-      root.querySelector<HTMLButtonElement>('.menu-entry')?.focus();
+      root.addEventListener('keydown', navigate);
+      const follow = () => {
+        if (disposed || root.hidden) return;
+        const next = options.revision?.() ?? '';
+        if (next !== revision) { revision = next; place(); }
+        frame = requestAnimationFrame(follow);
+      };
+      frame = requestAnimationFrame(follow);
+      cleanup = () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); root.removeEventListener('toggle', toggle, true); root.removeEventListener('keydown', navigate); };
+      render(); place();
+      if (!root.hidden) (buttons.find(button => !button.disabled) ?? close).focus();
     },
     hide() {
-      disposeIdentity?.();
-      disposeIdentity = undefined;
-      disposePlacement?.();
-      disposePlacement = undefined;
+      cleanup?.(); cleanup = undefined; disposeIdentity?.(); disposeIdentity = undefined;
       const restore = root.contains(doc.activeElement);
-      root.hidden = true;
-      root.replaceChildren();
-      if (restore) returnFocus?.focus();
-      returnFocus = null;
+      root.hidden = true; root.replaceChildren();
+      if (restore) returnFocus?.focus(); returnFocus = null;
     },
   };
 }

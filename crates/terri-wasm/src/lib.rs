@@ -8,6 +8,8 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+#[cfg(test)]
+mod book_commerce_tests;
 mod save_before_voice;
 
 #[cfg(test)]
@@ -2224,6 +2226,18 @@ impl SimHandle {
             return false;
         }
 
+        // Typed and raw new commerce commands share saveable ingress rules.
+        if let SimCommand::Book(book) = &command {
+            if matches!(
+                book,
+                terri_core::command::BookCommand::AutoPurchase { .. }
+                    | terri_core::command::BookCommand::Sell { .. }
+                    | terri_core::command::BookCommand::Recover { .. }
+            ) && self.sim.validate_book_commerce(book).is_err()
+            {
+                return false;
+            }
+        }
         // Raw bytes cannot be trimmed after the fact, so the untrimmed name
         // is held to the byte limit here; see `housemate_fields_within_bounds`.
         let within_bounds = match &command {
@@ -2503,7 +2517,15 @@ impl SimHandle {
             };
         }
         if version == 7 {
-            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV6>(payload) {
+            return match postcard::take_from_bytes::<terri_core::save_v7::FrozenSaveSnapshotV7>(
+                payload,
+            ) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v7(snapshot.into_current()).is_ok(),
+                _ => false,
+            };
+        }
+        if version == 8 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV8>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v6(snapshot).is_ok(),
                 _ => false,
             };
@@ -4244,8 +4266,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            7,
-            "the public writer must emit the schema-7 envelope"
+            8,
+            "the public writer must emit the schema-8 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();

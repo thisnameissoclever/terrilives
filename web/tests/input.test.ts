@@ -33,7 +33,7 @@ import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
 
-it('routes actual canvas events to editing while preserving pan and suppressing ordinary menus and orders', () => {
+it('routes editing clicks and pan while allowing object menus', () => {
   vi.useFakeTimers();
   const listeners = new Map<string, (event: any) => void>();
   const documentListeners = new Map<string, (event: any) => void>();
@@ -60,7 +60,7 @@ it('routes actual canvas events to editing while preserving pan and suppressing 
   listeners.get('contextmenu')!(event);
   listeners.get('pointerdown')!(event);
   vi.advanceTimersByTime(1000);
-  expect(menu.open).not.toHaveBeenCalled();
+  expect(menu.open).toHaveBeenCalledTimes(1);
   listeners.get('pointermove')!({ ...event, clientX: 220 });
   expect(panBy).toHaveBeenCalled();
   listeners.get('pointerup')!(event);
@@ -1620,17 +1620,19 @@ describe('resolveRightClick', () => {
     const sink = target(6);
 
     expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual({
-      title: 'Thing 9',
+      title: 'Thing 9', object: 9,
       entries: [
-        { label: 'Eat standing up', action: { kind: 'use', object: 9, interaction: 0 } },
+        { label: 'Eat standing up', enabled: true, action: { kind: 'use', object: 9, interaction: 0 } },
+        { label: 'Enter build mode', enabled: true, action: { kind: 'build', object: 9 } },
         NOTHING,
       ],
     });
     expect(resolveRightClick(sink, bodyOf([2, 5]), 0, 0)).toEqual({
-      title: 'Thing 10',
+      title: 'Thing 10', object: 10,
       entries: [
-        { label: 'Sink into it', action: { kind: 'use', object: 10, interaction: 0 } },
-        { label: 'Nap on it', action: { kind: 'use', object: 10, interaction: 1 } },
+        { label: 'Sink into it', enabled: true, action: { kind: 'use', object: 10, interaction: 0 } },
+        { label: 'Nap on it', enabled: true, action: { kind: 'use', object: 10, interaction: 1 } },
+        { label: 'Enter build mode', enabled: true, action: { kind: 'build', object: 10 } },
         NOTHING,
       ],
     });
@@ -1705,8 +1707,8 @@ describe('resolveRightClick', () => {
    * The same click WITH a selection is asserted beside it, so "returns
    * null" cannot be satisfied by a resolution that never opens anything.
    */
-  it('opens no menu at all when nothing is selected', () => {
-    expect(resolveRightClick(target(null), bodyOf([7, 3]), 0, 0)).toBeNull();
+  it('offers Build without a selected Sim', () => {
+    expect(resolveRightClick(target(null), bodyOf([7, 3]), 0, 0)?.entries).toMatchObject([{ enabled: false }, { label: 'Enter build mode', enabled: true }]);
     expect(
       resolveRightClick(target(6), bodyOf([7, 3]), 0, 0),
       'the same click must produce rows once a sim is selected, or this test is green on a resolution that never opens anything',
@@ -1754,6 +1756,7 @@ describe('handleRightClick', () => {
     ).toEqual(['open 310,47']);
     expect(menu.opened?.entries.map((entry) => entry.label)).toEqual([
       'Eat standing up',
+      'Enter build mode',
       NOTHING.label,
     ]);
     // And the flyout says what it is about. Before this, a right click on
@@ -1785,7 +1788,7 @@ describe('handleRightClick', () => {
     const menu = recordingMenu();
     const event = rightClick();
 
-    handleRightClick(target(null), menu, event, bodyOf([7, 3]), 0, 0);
+    handleRightClick(target(null), menu, event, null, 0, 0);
 
     expect(event.prevented).toHaveBeenCalled();
     expect(menu.opened).toBeNull();
@@ -1799,7 +1802,7 @@ describe('handleRightClick', () => {
    */
   it('closes an open flyout when the click resolves to no menu', () => {
     const menu = recordingMenu();
-    handleRightClick(target(null), menu, rightClick(), bodyOf([7, 3]), 0, 0);
+    handleRightClick(target(null), menu, rightClick(), null, 0, 0);
     expect(menu.calls).toEqual(['close']);
   });
 });

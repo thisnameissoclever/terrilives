@@ -11490,3 +11490,21 @@ Load the production atlas during test collection and prepare mocked module depen
 **Prevention rule.** Check the entire conversation's requested outcome before declaring completion. Keep implementation, local verification, merge and publication separate, and require evidence for each applicable step. Technical upgrade explanations also need review in the actual layout; a one-time trigger does not make a paragraph disappear.
 
 **How to verify.** Confirm the unwanted text is absent after both startup restoration and manual loading. Check preserved save behavior, the merged revision and the live game before closing the work.
+
+### Preserve UTF-8 when editing source through a native subprocess
+
+**What happened.** A shell-driven source edit wrote a single-byte middle dot into a UTF-8 TypeScript file. A menu-label test exposed the replacement character, and the patch reader rejected the invalid source encoding.
+
+**Root cause.** The file writer inherited the Windows locale encoding rather than specifying UTF-8.
+
+**Prevention rule.** Use the patch tool for Unicode-bearing source. When a native editing script is necessary, set its input/output and file encoding explicitly to UTF-8; do not rely on locale defaults.
+
+**How to verify.** Strictly decode the saved file as UTF-8 and assert the rendered label's exact characters. Review the diff for unrelated byte changes before continuing.
+
+
+## Isolate historical save fixtures from newly granted household content
+
+1. What happened: adding starter books caused historical save tests to compare a library against a format that never stored it. A meal fixture also replaced a reader's target without removing its reading journey.
+2. Root cause: fixtures inherited the production constructor's changing initial content while relying on a bookless starting state.
+3. Prevention: explicitly construct bookless worlds for historical envelopes and synthetic activity tests. Keep production starter grants covered by separate current-save round trips. Do not weaken state hashes or save validators to accommodate incompatible fixtures.
+4. Verification: run historical persistence and synthetic meal tests alongside constructor, commerce and current-save tests.

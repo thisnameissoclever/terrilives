@@ -3,7 +3,8 @@
 use bevy_ecs::prelude::Resource;
 use std::collections::BTreeSet;
 use terri_core::books::{
-    BookCopy, BookCopyId, BookLocation, BookShelfId, SavedBookLibrary, ShelfSlot, TitleMemory,
+    BookCopy, BookCopyId, BookLocation, BookPurchaseQuote, BookSaleQuote, BookShelfId,
+    SavedBookLibrary, ShelfSlot, TitleMemory,
 };
 use terri_core::{Funds, SimId};
 use terri_data::{BookDefinition, ReadingTuning};
@@ -47,6 +48,9 @@ pub enum BookError {
     AlreadyBorrowing(SimId),
     NotBorrower,
     NotReadable,
+    NoShelfSpace,
+    NoSaleCopy,
+    StaleQuote,
     InvalidState(&'static str),
 }
 
@@ -56,6 +60,30 @@ impl std::fmt::Display for BookError {
     }
 }
 impl std::error::Error for BookError {}
+
+impl BookError {
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::UnknownTitle(_) => "unknown_title",
+            Self::UnknownCopy(_) => "unknown_copy",
+            Self::UnknownShelf(_) => "unknown_shelf",
+            Self::UnknownSim(_) => "unknown_person",
+            Self::ShelfFull(_) => "shelf_full",
+            Self::InsufficientFunds => "insufficient_funds",
+            Self::CopyIdsExhausted => "copy_ids_exhausted",
+            Self::Borrowed(_) => "borrowed",
+            Self::AlreadyBorrowing(_) => "already_borrowing",
+            Self::NotBorrower => "not_borrower",
+            Self::NotReadable => "not_readable",
+            Self::NoShelfSpace => "no_shelf_space",
+            Self::NoSaleCopy => "no_sale_copy",
+            Self::StaleQuote => "stale_quote",
+            Self::InvalidState(_) => "invalid_state",
+        }
+    }
+}
+
+mod commerce;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ReadingWork {
@@ -338,10 +366,7 @@ impl BookLibrary {
             .ok_or(BookError::CopyIdsExhausted)?;
         let mut ids = Vec::with_capacity(5);
         for title in MIGRATION_STARTER_TITLES {
-            let home = world
-                .shelves
-                .iter()
-                .find_map(|shelf| self.free_slot(shelf.id, shelf.slots, None));
+            let home = self.automatic_home(BookCopyId(self.saved.next_copy_id), world);
             ids.push(self.add_copy(title, home));
         }
         self.saved.migration_granted = true;

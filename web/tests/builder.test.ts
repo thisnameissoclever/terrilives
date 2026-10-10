@@ -16,6 +16,18 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
+it('opens Build on the exact object without committing a previous move preview', () => {
+  const { handle, source, builder } = fixture();
+  try {
+    builder.enter(); builder.select(15); builder.moveTo(7, 0);
+    const before = source.saveBytes(), revision = source.lotRevision();
+    builder.selectForBuild(22);
+    expect(builder.selected).toBe(22); expect(builder.pending).toBe(false);
+    source.flushCommands(); builder.afterCommands();
+    expect(source.saveBytes()).toEqual(before); expect(source.lotRevision()).toBe(revision);
+  } finally { handle.free(); }
+});
+
 it('commits a valid move before selecting another object without advancing time', () => {
   const { handle, source, builder } = fixture();
   builder.enter(); builder.select(15); builder.moveTo(7, 0);

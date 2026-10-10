@@ -292,7 +292,7 @@ mod tests {
 
     #[test]
     fn selling_last_surface_removes_its_duty_and_buying_first_surface_adds_one() {
-        let mut sim = crate::Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         super::super::ensure(sim.world_mut());
         let key = ChoreKey {
             kind: ChoreKind::CounterSurfaces,
@@ -375,14 +375,15 @@ mod tests {
                 .assignments
                 .contains(prior));
         }
-        let mut loaded = crate::Sim::new_from_shipped_lot();
+        let mut loaded =
+            crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
     }
 
     #[test]
     fn partitioning_a_room_moves_surface_members_to_the_new_duty() {
-        let mut sim = crate::Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         super::super::ensure(sim.world_mut());
         let old = ChoreKey {
             kind: ChoreKind::CounterSurfaces,
@@ -418,7 +419,8 @@ mod tests {
                 .sum::<usize>(),
             3
         );
-        let mut loaded = crate::Sim::new_from_shipped_lot();
+        let mut loaded =
+            crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
     }
@@ -454,7 +456,7 @@ mod tests {
 
     #[test]
     fn group_visits_every_counter_and_reloads_between_each_stage() {
-        let mut sim = crate::Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         super::super::ensure(sim.world_mut());
         let key = *super::super::keys(sim.world())
             .iter()
@@ -492,7 +494,8 @@ mod tests {
         for _ in 0..1600 {
             sim.tick();
             let saved = sim.save_snapshot_v5();
-            let mut loaded = crate::Sim::new_from_shipped_lot();
+            let mut loaded =
+                crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
             loaded
                 .load_snapshot_v5(saved)
                 .expect("group work saves between surfaces");
@@ -510,7 +513,7 @@ mod tests {
 
     #[test]
     fn moving_all_counters_removes_old_group_adds_new_group_and_releases_suspended_work() {
-        let mut sim = crate::Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         super::super::ensure(sim.world_mut());
         let key = *super::super::keys(sim.world())
             .iter()
@@ -565,7 +568,8 @@ mod tests {
                     facing: terri_core::Facing::SouthWest,
                 });
             sim.flush_commands();
-            let mut loaded = crate::Sim::new_from_shipped_lot();
+            let mut loaded =
+                crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
             loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }

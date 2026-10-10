@@ -1258,6 +1258,17 @@ impl Sim {
         Ok(())
     }
 
+    pub fn load_snapshot_v7(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV6,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::v6::restore_historical_v7(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
     /// Decode the immutable unpublished owned-book envelope under its original contract.
     pub fn load_frozen_owned_snapshot(
         &mut self,
@@ -1871,6 +1882,18 @@ impl Sim {
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+        if pack.reading.is_some()
+            && books::MIGRATION_STARTER_TITLES[..3]
+                .iter()
+                .all(|id| pack.books.iter().any(|title| title.id == *id))
+        {
+            let mut library = sim.world.resource::<books::BookLibrary>().clone();
+            books::with_book_world(&sim.world, |context| {
+                library.grant_new_household_starters(context)
+            })
+            .expect("fresh current household has a valid starter catalogue");
+            sim.world.insert_resource(library);
+        }
         sim
     }
 
@@ -4023,6 +4046,21 @@ impl Sim {
                     Book(command) => {
                         use terri_core::command::BookCommand;
                         match command {
+                            BookCommand::AutoPurchase { quote } => vec![
+                                64,
+                                id_digest(&quote.title),
+                                u64::from(quote.price),
+                                quote.home.shelf.0,
+                                u64::from(quote.home.slot),
+                                u64::from(quote.next_copy_id),
+                            ],
+                            BookCommand::Sell { quote } => vec![
+                                65,
+                                u64::from(quote.copy.0),
+                                quote.shelf.0,
+                                u64::from(quote.price),
+                            ],
+                            BookCommand::Recover { copy } => vec![66, u64::from(*copy)],
                             BookCommand::Purchase { title, shelf } => {
                                 vec![22, id_digest(title), shelf.map_or(u64::MAX, u64::from)]
                             }

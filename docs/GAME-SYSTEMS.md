@@ -271,7 +271,9 @@ Floor-covering choices and furniture recolour controls are shipped; distinct flo
 
 ### [S-owned-books] Owned books and personal reading memory
 
-**Status: Planned.** Books are purchased titles and individual physical copies, with a saved location, home shelf slot, and borrowing claim. A bookcase starts empty in a new household and shows only its shelved copies. Existing households receive five starter titles once when migrating; purchases thereafter use the Build-mode store. Household book inventory holds unshelved copies, which must be shelved before reading.
+**Status: Implemented.** Books are individual physical copies with saved locations, reserved home slots and borrowing claims. New households receive three distinct titles. Older bookless households still receive five starter titles once during conversion. Buy book and Sell book appear on bookcases and their selected Build controls. Purchases choose a title automatically and use a random free slot on a bookcase with the fewest reserved books. Unshelved inventory fills available bookcases automatically; overflow remains in inventory until space is available. A borrowed copy keeps its home reservation.
+
+Reading prefers an unfinished title, then an unread title, then the completed title read longest ago. Equal last-read times prefer the lower repeat penalty. Only reachable, unborrowed copies compete, including copies on other bookcases. Choices retain their normal weighting within the preferred group. The preview shows a title and progress only when that group has one title; otherwise it shows Read book.
 
 Each Sim has stable genre tastes and title-specific preferences. Their bookmark and familiarity follow the title, so another physical copy cannot reset enjoyment. A normal book takes roughly three sessions. Reading fetches a copy, chooses suitable seating, preserves progress, and returns the book before another activity even when interrupted. Copy ownership and physical seat ownership survive saves and must not conflict.
 

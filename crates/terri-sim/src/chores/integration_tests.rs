@@ -3,7 +3,7 @@ use crate::Sim;
 use terri_core::{Agent, CommandQueue, Needs, Position, SimCommand, SimId, SmartObject, TileGrid};
 
 fn daily_fixture() -> (Sim, Entity, ChoreKey, u32) {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     ensure(sim.world_mut());
     let person = crate::edit::living_entity(sim.world(), 0).unwrap();
     // Keep unrelated mood outside the willingness clamp so each chore cause
@@ -258,7 +258,7 @@ fn personality_edit_preserves_profile_and_active_chore_but_changes_cleanliness()
     );
     assert!(sim.world().get::<ChoreWork>(person).is_some());
     assert!(sim.world().get::<Agent>(person).is_some());
-    let mut restored = Sim::new_from_shipped_lot();
+    let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }

@@ -663,7 +663,7 @@ fn a_bought_object_is_drawn_after_the_drain() {
 #[test]
 fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
     for ticks in [180, 620] {
-        let mut sim = Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         for _ in 0..ticks {
             sim.tick();
         }
@@ -681,11 +681,13 @@ fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
                     continue;
                 }
                 accepted += 1;
-                let mut buyer = Sim::new_from_shipped_lot();
+                let mut buyer =
+                    crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
                 buyer.load_snapshot_v3(base.clone()).unwrap();
                 stage(&mut buyer, purchase);
                 assert_eq!(last(&buyer).unwrap().reason, None, "({x}, {y})");
-                let mut reader = Sim::new_from_shipped_lot();
+                let mut reader =
+                    crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
                 reader
                     .load_snapshot_v3(buyer.save_snapshot_v3())
                     .unwrap_or_else(|error| {

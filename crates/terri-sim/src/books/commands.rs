@@ -20,22 +20,6 @@ pub struct BookFeedback {
     pub sequence: u64,
     pub results: Vec<BookCommandResult>,
 }
-fn code(error: &BookError) -> &'static str {
-    match error {
-        BookError::UnknownTitle(_) => "unknown_title",
-        BookError::UnknownCopy(_) => "unknown_copy",
-        BookError::UnknownShelf(_) => "unknown_shelf",
-        BookError::UnknownSim(_) => "unknown_person",
-        BookError::InsufficientFunds => "insufficient_funds",
-        BookError::CopyIdsExhausted => "copy_ids_exhausted",
-        BookError::Borrowed(_) => "borrowed",
-        BookError::ShelfFull(_) => "shelf_full",
-        BookError::AlreadyBorrowing(_) => "already_borrowing",
-        BookError::NotBorrower => "not_borrower",
-        BookError::NotReadable => "not_readable",
-        BookError::InvalidState(_) => "invalid_state",
-    }
-}
 fn entity(world: &World, raw: u32) -> Option<Entity> {
     let index = bevy_ecs::entity::EntityIndex::from_raw_u32(raw)?;
     world
@@ -55,7 +39,17 @@ pub(crate) fn commit(world: &mut World, command: BookCommand) {
         operation => {
             let mut library = world.resource::<BookLibrary>().clone();
             let mut funds = *world.resource::<Funds>();
+            let resale_fraction = world.resource::<Content>().0.tuning.resale_fraction;
             let result = with_book_world(world, |context| match operation {
+                BookCommand::AutoPurchase { ref quote } => library
+                    .purchase_quoted(quote, &mut funds, context)
+                    .map(|id| (Some(id.0), None)),
+                BookCommand::Sell { ref quote } => library
+                    .sell_quoted(quote, &mut funds, context, resale_fraction)
+                    .map(|id| (Some(id.0), None)),
+                BookCommand::Recover { copy } => library
+                    .recover_automatically(BookCopyId(copy), context)
+                    .map(|id| (Some(id.0), None)),
                 BookCommand::Purchase { ref title, shelf } => library
                     .purchase(
                         title,
@@ -74,7 +68,7 @@ pub(crate) fn commit(world: &mut World, command: BookCommand) {
                 }
                 _ => unreachable!(),
             })
-            .map_err(|e| code(&e));
+            .map_err(|e| e.code());
             if result.is_ok() {
                 world.insert_resource(library);
                 world.insert_resource(funds);
@@ -180,6 +174,46 @@ fn selected_order(
     Ok(id)
 }
 impl Sim {
+    pub fn can_recover_book(&self, copy: u32) -> bool {
+        let mut library = self.world.resource::<BookLibrary>().clone();
+        with_book_world(&self.world, |world| {
+            library.recover_automatically(BookCopyId(copy), world)
+        })
+        .is_ok()
+    }
+    pub fn automatic_book_price(&self) -> Result<u32, BookError> {
+        with_book_world(&self.world, |context| {
+            self.world
+                .resource::<BookLibrary>()
+                .purchase_selection(*self.world.resource::<Funds>(), context)
+                .map(|(_, price)| price)
+        })
+    }
+    pub fn validate_book_commerce(&self, command: &BookCommand) -> Result<(), BookError> {
+        let fraction = self.world.resource::<Content>().0.tuning.resale_fraction;
+        with_book_world(&self.world, |context| {
+            self.world
+                .resource::<BookLibrary>()
+                .validate_commerce_command(command, context, fraction)
+        })
+    }
+    pub fn book_purchase_quote(&self) -> Result<BookPurchaseQuote, BookError> {
+        with_book_world(&self.world, |context| {
+            self.world
+                .resource::<BookLibrary>()
+                .quote_purchase(*self.world.resource::<Funds>(), context)
+        })
+    }
+    pub fn book_sale_quote(&self, shelf: u32) -> Result<BookSaleQuote, BookError> {
+        let fraction = self.world.resource::<Content>().0.tuning.resale_fraction;
+        with_book_world(&self.world, |context| {
+            self.world.resource::<BookLibrary>().quote_sale(
+                BookShelfId(u64::from(shelf)),
+                context,
+                fraction,
+            )
+        })
+    }
     pub fn book_titles(&self) -> &[terri_data::BookDefinition] {
         &self.world.resource::<Content>().0.books
     }
@@ -336,6 +370,27 @@ impl Sim {
         self.world
             .get_resource_mut::<LegacyBookImportNotice>()
             .is_some_and(|mut n| std::mem::take(&mut n.0))
+    }
+}
+
+/// Automatic placement follows the serialized command drain, never save adoption.
+pub(crate) fn shelve_arrivals(world: &mut World) {
+    let Some(library) = world.get_resource::<BookLibrary>() else {
+        return;
+    };
+    if !library
+        .state()
+        .copies
+        .iter()
+        .any(|copy| copy.location == BookLocation::Inventory && copy.borrower.is_none())
+    {
+        return;
+    }
+    let mut candidate = library.clone();
+    let placed = with_book_world(world, |context| candidate.shelve_inventory(context))
+        .expect("live book inventory and shelf identities are valid");
+    if !placed.is_empty() {
+        world.insert_resource(candidate);
     }
 }
 

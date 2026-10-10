@@ -1837,7 +1837,7 @@ const REPLAY_TICKS: u64 = 300;
 
 #[test]
 fn an_accepted_edit_saves_loads_and_replays_identically() {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let content = sim.world().resource::<crate::Content>().0;
     let flitting = content
         .personalities
@@ -1877,7 +1877,7 @@ fn an_accepted_edit_saves_loads_and_replays_identically() {
         Some(flitting)
     );
 
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     let loaded_entity = person(&loaded, 0);
     assert_eq!(

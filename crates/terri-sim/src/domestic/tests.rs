@@ -141,7 +141,7 @@ fn runtime_snack_mapping_is_shared_by_model_facts_and_ignores_unrelated_actions(
 }
 
 fn household() -> (Sim, Vec<Entity>, Entity, Entity, Entity) {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let pack = sim.world().resource::<Content>().0;
     let mut people: Vec<_> = sim
         .world_mut()

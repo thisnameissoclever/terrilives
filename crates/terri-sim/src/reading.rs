@@ -886,6 +886,52 @@ impl crate::Sim {
 }
 
 impl crate::Sim {
+    /// One automatic choice, shared with native admission; browsing makes no random draw.
+    pub fn automatic_reading_choice(
+        &mut self,
+        person: u32,
+        object: u32,
+        action_id: &str,
+    ) -> Option<(String, String, f32)> {
+        let person = crate::dining::entity(&self.world, person)
+            .filter(|entity| self.world.get::<Agent>(*entity).is_some())?;
+        let object = crate::dining::entity(&self.world, object)?;
+        let definition = self.world.get::<SmartObject>(object)?.0;
+        let pack = self.world.resource::<Content>().0;
+        let row = pack
+            .object(definition)
+            .interactions
+            .iter()
+            .position(|action| action.id == action_id && action.book_reading)?;
+        let choices = plans(
+            &mut self.world,
+            person,
+            Target {
+                object,
+                interaction: row as u32,
+            },
+            None,
+        );
+        let occupancy = crate::seating::occupancy(&mut self.world);
+        best_plan(&choices, person, &occupancy, &Default::default())?;
+        let Some(chosen) = planning::preview_plan(&choices, person, &occupancy) else {
+            return Some((String::new(), String::new(), 0.0));
+        };
+        let title = pack.books.iter().find(|title| title.id == chosen.title)?;
+        let id = *self.world.get::<SimId>(person)?;
+        let progress = self
+            .world
+            .resource::<BookLibrary>()
+            .memory(id, &title.id)
+            .map_or(0.0, |memory| {
+                memory.progress_ticks as f32 + memory.progress_fraction
+            });
+        Some((
+            title.id.clone(),
+            title.title.clone(),
+            (progress / title.reading_minutes as f32 * 100.0).min(100.0),
+        ))
+    }
     /// Reachable, shelved titles in this action context. No RNG or gameplay writes.
     pub fn reading_available_titles(
         &mut self,

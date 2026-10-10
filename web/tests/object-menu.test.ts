@@ -372,3 +372,15 @@ describe('ObjectMenu', () => {
     expect(onAction).toHaveBeenCalledTimes(2);
   });
 });
+
+it('disables actor rows through the mode gate while keeping Build selectable', () => {
+  const surface = recordingSurface(), onAction = vi.fn();
+  const menu = new ObjectMenu(surface, onAction, action => action.kind === 'build');
+  menu.open({ title: 'Chair', entries: [
+    {label: 'Sit', action: {kind: 'use', object: 9, interaction: 0}},
+    {label: 'Enter build mode', action: {kind: 'build', object: 9}},
+  ] }, 0, 0);
+  expect(surface.shown?.entries[0].enabled).toBe(false);
+  surface.pick(0); expect(onAction).not.toHaveBeenCalled(); expect(menu.isShowing()).toBe(true);
+  surface.pick(1); expect(onAction).toHaveBeenCalledWith({kind: 'build', object: 9}, false);
+});

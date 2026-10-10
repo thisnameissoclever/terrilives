@@ -561,9 +561,10 @@ fn project_outward(
 mod tests {
     #[test]
     fn prior_openness_advances_only_on_ticks_and_resets_on_load() {
-        let mut sim = crate::Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         sim.sync_render_buffer();
-        let mut restored = crate::Sim::new_from_shipped_lot();
+        let mut restored =
+            crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         let mut transitions = 0;
         for _ in 0..300 {
             let before = sim.portal_buffer().openness.clone();

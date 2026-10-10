@@ -13,7 +13,7 @@ it('keeps actual performers, settled outcomes and full day identities in history
 import {surfaceMenuEntries} from '../src/ui/object-menu.js';
 it.each([[0,0],[1,0],[0,1],[1,1]])('offers only available table actions, preserving interaction identities (%s,%s)',(sit,eat)=>{
   const menu=surfaceMenuEntries({entityName:()=> 'Table',interactionLabels:()=>['Sit'],tableActions:()=>new Uint32Array([sit,eat])},7);
-  expect(menu.entries.map(e=>e.label)).toEqual([...(sit?['Sit']:[]),...(eat?['Eat prepared food']:[]),'Nothing']);
+  expect(menu.entries.map(e=>e.label)).toEqual([...(sit?['Sit']:[]),...(eat?['Eat prepared food']:[]),'Enter build mode','Nothing']);
   expect(menu.entries.filter(e=>e.action.kind==='use').map(e=>e.action)).toEqual([
     ...(sit?[{kind:'use',object:7,interaction:0}]:[]),...(eat?[{kind:'use',object:7,interaction:1}]:[])]);
 });

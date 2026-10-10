@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct Plan {
+    pub priority: (u8, u64, f32),
     pub copy: BookCopyId,
     pub shelf: Entity,
     pub title: String,
@@ -134,13 +135,10 @@ pub(crate) fn plans(
     let instinct = world.get::<SelfPreservation>(person).map_or(50, |s| s.0);
     let mut result: Vec<Plan> = vec![];
     for copy in copies {
-        let BookLocation::Shelf(home) = copy.location else {
+        let BookLocation::Shelf(_) = copy.location else {
             continue;
         };
-        if copy.borrower.is_some()
-            || title.is_some_and(|t| t != copy.title_id)
-            || (!pinned && home.shelf.0 != u64::from(origin.object.index_u32()))
-        {
+        if copy.borrower.is_some() || title.is_some_and(|t| t != copy.title_id) {
             continue;
         }
         let Some(shelf) = shelf(world, copy.id) else {
@@ -185,7 +183,19 @@ pub(crate) fn plans(
                             && y < at.y.round() as i32 + fp.depth as i32)
                 })
             {
-                destinations.push((origin, None, standing));
+                let reading = def
+                    .interactions
+                    .iter()
+                    .position(|action| action.book_reading)
+                    .expect("a live shelf has a reading action");
+                destinations.push((
+                    Target {
+                        object: shelf,
+                        interaction: reading as u32,
+                    },
+                    None,
+                    standing,
+                ));
             }
         }
         let interest = with_book_world(world, |context| {
@@ -260,6 +270,12 @@ pub(crate) fn plans(
                 .sum::<f32>()
                 - risk;
             let plan = Plan {
+                priority: with_book_world(world, |context| {
+                    world
+                        .resource::<BookLibrary>()
+                        .reading_priority(id, &copy.title_id, context)
+                })
+                .expect("live title memory is valid"),
                 copy: copy.id,
                 shelf,
                 transfer_contact: fetched,
@@ -327,6 +343,7 @@ pub(crate) fn prepare(world: &mut World) {
     targets.sort_by_key(|t| (t.object.index_u32(), t.interaction));
     let mut options = Options::default();
     for person in people {
+        let mut shelf_offer = false;
         let directed = world
             .get::<IntentQueue>(person)
             .and_then(|q| q.front())
@@ -343,6 +360,15 @@ pub(crate) fn prepare(world: &mut World) {
             continue;
         }
         for target in &targets {
+            let is_shelf = world
+                .resource::<Content>()
+                .0
+                .object(world.get::<SmartObject>(target.object).unwrap().0)
+                .seats
+                .is_empty();
+            if directed.is_none() && is_shelf && shelf_offer {
+                continue;
+            }
             if directed
                 .is_some_and(|i| i.object != target.object || i.interaction != target.interaction)
             {
@@ -350,6 +376,9 @@ pub(crate) fn prepare(world: &mut World) {
             }
             let choices = plans(world, person, *target, None);
             if !choices.is_empty() {
+                if is_shelf {
+                    shelf_offer = true;
+                }
                 options
                     .0
                     .insert((person, target.object, target.interaction), choices);
@@ -401,12 +430,7 @@ fn representatives<'a>(
     let mut indices = std::collections::BTreeMap::new();
     let mut result: Vec<&Plan> = Vec::new();
     for plan in available {
-        let key = (
-            plan.title.as_str(),
-            plan.target.object,
-            plan.target.interaction,
-            plan.seat,
-        );
+        let key = (plan.title.as_str(), plan.seat);
         if let Some(&index) = indices.get(&key) {
             if preference(plan, result[index]).is_gt() {
                 result[index] = plan;
@@ -416,7 +440,20 @@ fn representatives<'a>(
             result.push(plan);
         }
     }
+    if let Some(priority) = result
+        .iter()
+        .map(|plan| plan.priority)
+        .min_by(priority_order)
+    {
+        result.retain(|plan| priority_order(&plan.priority, &priority).is_eq());
+    }
     result
+}
+
+fn priority_order(a: &(u8, u64, f32), b: &(u8, u64, f32)) -> std::cmp::Ordering {
+    a.0.cmp(&b.0)
+        .then_with(|| a.1.cmp(&b.1))
+        .then_with(|| a.2.total_cmp(&b.2))
 }
 
 pub(crate) fn best_plan<'a>(
@@ -428,6 +465,19 @@ pub(crate) fn best_plan<'a>(
     representatives(choices, person, None, occupancy, used)
         .into_iter()
         .max_by(|a, b| preference(a, b))
+}
+
+pub(crate) fn preview_plan<'a>(
+    choices: &'a [Plan],
+    person: Entity,
+    occupancy: &crate::beds::Occupancy,
+) -> Option<&'a Plan> {
+    let available = representatives(choices, person, None, occupancy, &Default::default());
+    let best = available.iter().max_by(|a, b| preference(a, b))?;
+    available
+        .iter()
+        .all(|plan| plan.title == best.title)
+        .then_some(*best)
 }
 
 pub(crate) fn choose_plan(

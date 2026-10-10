@@ -26,8 +26,7 @@ import { FloorToolControls } from './ui/floor-tool-controls.js';
 import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
-import { BookTool } from './ui/book-tool.js';
-import { BookToolControls } from './ui/book-tool-controls.js';
+import { BookCommerce } from './ui/book-commerce.js';
 import { BookResults, bookRefusal } from './books/results.js';
 import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
 import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
@@ -78,7 +77,8 @@ import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { type KeepOut } from './ui/placement-actions.js';
-import { BuildContextActions, createContextSurface } from './ui/placement-actions.js';
+import { BuildContextActions, createContextSurface, ghostAnchorTop, ghostAnchorX } from './ui/placement-actions.js';
+import { canvasToClient } from './input.js';
 import { createCompactBuildLayout } from './ui/build-layout.js';
 import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
@@ -936,7 +936,7 @@ async function main(): Promise<void> {
   let loadingGame = false;
   loadButton.addEventListener('click', () => {
     optionsMenu.close();
-    overlayPause.suspend('load-game');
+    menu.close(); overlayPause.suspend('load-game');
     loadGameDialog.showModal();
   });
   loadGameDialog.addEventListener('close', () => {
@@ -984,8 +984,7 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           bookResults.resetAfterLoad();
-          bookControls?.resetAfterLoad();
-          bookTool.resetAfterLoad();
+          bookCommerce.resetAfterLoad();
           builder.resetAfterLoad();
           // [ES-form]: a draft names a person of the replaced world, so
           // close it before the form returns to create mode.
@@ -1069,7 +1068,7 @@ async function main(): Promise<void> {
     housemateForm.beginEdit(target, members);
     housemateView?.setHousehold(members);
     housemateOpener = editHousemateButton;
-    overlayPause.suspend('housemate');
+    menu.close(); overlayPause.suspend('housemate');
     housemateDialog.showModal();
   });
   newHousemateButton.addEventListener('click', () => {
@@ -1079,7 +1078,7 @@ async function main(): Promise<void> {
     // [FM-choose]: the household as it stands right now, since it changes
     // between one opening of this dialog and the next.
     housemateView?.setHousehold(householdMembers(sim));
-    overlayPause.suspend('housemate');
+    menu.close(); overlayPause.suspend('housemate');
     housemateDialog.showModal();
   });
   housemateDialog.addEventListener('close', () => {
@@ -1091,7 +1090,7 @@ async function main(): Promise<void> {
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
     optionsMenu.close();
-    overlayPause.suspend('new-game');
+    menu.close(); overlayPause.suspend('new-game');
     newGameDialog.showModal();
   });
   newGameDialog.addEventListener('close', () => {
@@ -1153,6 +1152,7 @@ async function main(): Promise<void> {
   helpButton.addEventListener('click', () => {
     optionsMenu.close();
     helpReturnTarget = optionsToggle;
+    menu.close();
     if (helpPanel.open()) overlayPause.suspend('help');
     helpButton.setAttribute('aria-expanded', String(helpRoot.open));
   });
@@ -1354,29 +1354,49 @@ async function main(): Promise<void> {
   // off, because every object on it offers exactly one.
   // Queue mode or the modifier held on the row: either appends, the same
   // rule the canvas click follows.
-  const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action, additive) => {
-    if (builder.active) return;
-    const selected = sim.selectedIndex();
-    const accepted = action.kind === 'read'
-      ? selected !== null && bookResults.submit(
-        () => sim.readBook(selected, action.object, action.action, action.title, !(queueMode.isActive() || additive)),
-        result => {
-          commandStatus.textContent = result.refusal ? bookRefusal(result.refusal) : 'Selected title added to the order queue.';
-          commandStatus.setAttribute('data-kind', result.refusal ? 'error' : 'info');
-          actionQueue.invalidate(); bookTool.invalidate();
-        })
-      : dispatchMenuAction(
-      sim,
-      action,
-      queueMode.isActive() || additive ? 'back' : 'front',
-      () => clearCommandFeedback(commandStatus),
-    );
-    if (!accepted) {
-      commandStatus.textContent = 'That order could not be added';
-      commandStatus.setAttribute('data-kind', 'error');
+  const menu: ObjectMenu = new ObjectMenu(createMenuSurface(document, menuRoot, {
+    anchor(model) {
+      if (model.object === undefined) return null;
+      const row = Array.from(sim.ids()).indexOf(model.object);
+      if (row < 0) return null;
+      const positions = sim.positions(), x = positions[row * 2], y = positions[row * 2 + 1];
+      const sprite = sim.sprites()[row];
+      const object = sim.objectModel(model.object);
+      if (!object) return null;
+      const footprint = { x, y, width: object.width, depth: object.depth };
+      const height = spriteFramingHeight(sprite);
+      return canvasToClient(ghostAnchorX(footprint, camera, spriteDrawOffsetX(sprite)),
+        ghostAnchorTop(footprint, camera, height) + height * camera.scale / 2,
+        stage.getBoundingClientRect(), stage.width, stage.height);
+    },
+    revision: () => [camera.originX, camera.originY, camera.scale, stage.width, stage.height, sim.clockTick()].join(','),
+    keepouts: () => ['hud', 'time-controls', 'build-toggle', 'options-toggle', 'build-camera', 'sim-dock', 'builder-controls']
+      .map(id => document.getElementById(id)?.getBoundingClientRect())
+      .filter((rect): rect is DOMRect => !!rect && rect.width > 0 && rect.height > 0),
+    dismiss: () => menu.close(),
+  }), (action, additive) => {
+    if (action.kind === 'build') {
+      if (overlayPause.suspendedExcept('builder') || builder.pending) return;
+      for (const tool of buildTools) tool.exit();
+      builder.selectForBuild(action.object); builderControls?.render(); toolSwitch?.render();
+      bookCommerce.render(builder.selected); placementActions?.invalidate(); cameraDirty = true;
+      return;
     }
+    if (overlayPause.suspendedExcept('builder')) return;
+    if (action.kind === 'buy-book') { if (action.quote) bookCommerce.purchaseBook(action.quote); return; }
+    if (action.kind === 'sell-book') { if (action.quote) bookCommerce.sellBook(action.quote); return; }
+    if (action.kind === 'recover-book') { bookCommerce.recoverBook(action.copy); return; }
+    if (builder.active) return;
+    const accepted = dispatchMenuAction(sim, action, queueMode.isActive() || additive ? 'back' : 'front',
+      () => clearCommandFeedback(commandStatus));
+    if (!accepted) { commandStatus.textContent = 'That order could not be added'; commandStatus.setAttribute('data-kind', 'error'); }
     audio.emit({ type: accepted ? 'command.staged' : 'command.rejected' });
+  }, action => {
+    if (overlayPause.suspendedExcept('builder')) return false;
+    if (action.kind === 'build') return !builder.pending && !buildTools.some(tool => Boolean(tool.pending));
+    return ['buy-book', 'sell-book', 'recover-book'].includes(action.kind) || !builder.active;
   });
+  optionsToggle.addEventListener('click', () => menu.close());
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
   if (!keyboardStatus) throw new Error('missing #keyboard-target');
   const keyboardTargets = new KeyboardTargetController(sim, keyboardStatus);
@@ -1388,7 +1408,7 @@ async function main(): Promise<void> {
   const choresHeader=document.createElement('header');choresHeader.className='chores-header';choresHeader.append(choresTitle,choresClose);
   choresDialog.append(choresHeader,choresBoard.element());document.body.append(choresDialog);
   choresClose.addEventListener('click',()=>choresDialog.close());
-  document.querySelector('#chores-toggle')!.addEventListener('click',()=>{optionsMenu.close();overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
+  document.querySelector('#chores-toggle')!.addEventListener('click',()=>{optionsMenu.close();menu.close(); overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
   choresDialog.addEventListener('close',()=>overlayPause.resume('chores'));
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
@@ -1424,9 +1444,11 @@ async function main(): Promise<void> {
       placementActions?.invalidate();
     },
   });
-  let bookControls: BookToolControls | undefined;
-  const bookTool = new BookTool(sim, bookResults, () => {
-    bookControls?.render(); toolSwitch?.render(); placementActions?.invalidate();
+
+  const bookCommerce = new BookCommerce(sim, bookResults, document, (text, error) => {
+    commandStatus.textContent = text;
+    commandStatus.setAttribute('data-kind', error ? 'error' : 'info');
+    actionQueue.invalidate(); placementActions?.invalidate();
   });
   // [RT-shell]. A whole room in one edit, beside the one-line Walls tool.
   let roomControls: RoomToolControls | undefined;
@@ -1454,7 +1476,7 @@ async function main(): Promise<void> {
   });
   const presentFloorSceneStatus = createFloorSceneStatus(document, stage, () => floorResources.retry());
   const floorScene = new FloorScenePresentation({
-    suspend: () => overlayPause.suspend('floor-materials'),
+    suspend: () => { menu.close(); overlayPause.suspend('floor-materials'); },
     resume: () => overlayPause.resume('floor-materials'),
     status: presentFloorSceneStatus,
   });
@@ -1493,7 +1515,7 @@ async function main(): Promise<void> {
     syncFloorScene();
   };
   syncFloorResources();
-  const buildTools = [wallTool, roomTool, buyTool, bookTool, floorTool] as const;
+  const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
   // [PA-show]: Context actions surround the active selection. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
   // window.
@@ -1541,7 +1563,6 @@ async function main(): Promise<void> {
       wallTool.exit();
       roomTool.exit();
       buyTool.exit();
-      bookTool.exit();
       floorTool.exit();
       compactHud.endEditing();
       syncBuildOptionsHost();
@@ -1559,7 +1580,7 @@ async function main(): Promise<void> {
     focused?.focus();
   }
   const placementButtons = new BuildContextActions(
-    { furniture: builder, books: bookTool, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
+    { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
       suspended: () => optionsMenu.isOpen(),
       focusCatalogue: () => document.querySelector<HTMLSelectElement>('#buy-object')?.focus() },
     createContextSurface(document, placementRoot, stage,
@@ -1593,7 +1614,6 @@ async function main(): Promise<void> {
   windowControls.setCompact(compactBuildQuery.matches);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames());
   buyControls.setCompact(compactBuildQuery.matches);
-  bookControls = new BookToolControls(document, bookTool);
   roomControls = new RoomToolControls(document, roomTool);
   roomControls.setCompact(compactBuildQuery.matches);
   floorControls = new FloorToolControls(document, floorTool, (canvas, covering) =>
@@ -1619,7 +1639,6 @@ async function main(): Promise<void> {
     { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
     { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
     { tool: buyTool, button: 'build-tool-buy', panel: 'buy-tool' },
-    { tool: bookTool, button: 'build-tool-books', panel: 'book-tool' },
     { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
   ], {
     leaveFurniture() {
@@ -1761,7 +1780,6 @@ async function main(): Promise<void> {
       active: () => builder.active,
       click(pick, tile, world) {
         if (pick?.bookCopy !== undefined) { openBookCopy(pick.bookCopy); return; }
-        if (bookTool.active) return;
         if (wallTool.active) {
           if (world) wallTool.choosePoint(world[0], world[1]);
           return;
@@ -1785,12 +1803,9 @@ async function main(): Promise<void> {
     openBookCopy,
   );
   function openBookCopy(copy: number): void {
-    builder.enter();
-    if (!toolSwitch?.select('build-tool-books')) return;
-    builderControls?.render();
-    toolSwitch.render();
-    bookControls?.focusCopy(copy);
-    cameraDirty = true;
+    const rect = stage.getBoundingClientRect();
+    menu.open({ title: 'Book', entries: [{ label: 'Recover book', enabled: sim.canRecoverBook(copy) && sim.pendingBookCommands() === 0, action: { kind: 'recover-book', copy } }] },
+      rect.left + rect.width / 2, rect.top + rect.height / 2);
   }
   document.addEventListener('keydown', (event) => {
     if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
@@ -1834,7 +1849,6 @@ async function main(): Promise<void> {
     builder.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
     buyTool.setBlocked(overlayPause.suspendedExcept('builder'));
-    bookTool.setBlocked(overlayPause.suspendedExcept('builder'));
     bookResults.drain();
     roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
     floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
@@ -1930,7 +1944,7 @@ async function main(): Promise<void> {
     bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     if (nowMs - lastBookRefreshMs >= sim.needBarRefreshMs()) {
-      lastBookRefreshMs = nowMs; bookTool.afterCommands(sim.clockTick());
+      lastBookRefreshMs = nowMs; bookCommerce.render(builder.active ? builder.selected : null, overlayPause.suspendedExcept('builder'));
     }
     syncPersistenceButtons();
     debugPanel?.update(nowMs);

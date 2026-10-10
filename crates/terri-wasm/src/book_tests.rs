@@ -10,9 +10,20 @@ fn book_boundary_commands_query_and_pending_round_trip() {
     let title = handle.sim.book_titles()[0].id.clone();
     let price = handle.sim.book_titles()[0].price;
     let funds = handle.sim.save_snapshot_v6().legacy.world.funds;
+    let original = handle.sim.book_copies().to_vec();
+    assert_eq!(original.len(), 3);
+    assert_eq!(
+        original
+            .iter()
+            .map(|copy| &copy.title_id)
+            .collect::<std::collections::BTreeSet<_>>()
+            .len(),
+        3
+    );
+    let next = handle.sim.save_snapshot_v6().books.next_copy_id;
     assert!(handle.buy_book(title.clone(), None));
     assert!(handle.enqueue_command(&postcard::to_allocvec(&SimCommand::Select(None)).unwrap()));
-    assert!(handle.transfer_book(0.0, None));
+    assert!(handle.transfer_book(f64::from(next), None));
     let bytes = handle.save_bytes();
     let hash = handle.world_hash();
     for _ in 0..10 {
@@ -25,14 +36,30 @@ fn book_boundary_commands_query_and_pending_round_trip() {
     assert!(handle.load_bytes(&bytes));
     handle.sim.flush_commands();
     let copies: Vec<BookCopy> = postcard::from_bytes(&handle.book_copies()).unwrap();
-    assert_eq!(copies.len(), 1);
+    assert_eq!(copies.len(), 4);
+    assert_eq!(&copies[..3], original.as_slice());
+    assert_eq!(copies[3].id.0, next);
+    assert_eq!(copies[3].title_id, title);
+    assert!(matches!(
+        copies[3].location,
+        terri_core::books::BookLocation::Shelf(_)
+    ));
     assert_eq!(
         handle.sim.save_snapshot_v6().legacy.world.funds,
         funds - i64::from(price)
     );
     assert_eq!(
         handle.take_book_results(),
-        vec!["1", "0", "", "", "2", "0", "", ""]
+        vec![
+            "1".to_string(),
+            next.to_string(),
+            "".into(),
+            "".into(),
+            "2".into(),
+            next.to_string(),
+            "".into(),
+            "".into()
+        ]
     );
     assert!(handle.take_book_results().is_empty());
     assert!(handle.buy_book("unknown_title".into(), None));
@@ -296,6 +323,7 @@ fn book_boundary_shelf_masks_cover_slot_31_and_32_without_truncating_capacity() 
         .world_mut()
         .insert_resource(Content(Box::leak(Box::new(pack))));
     assert!(handle.spawn_object(4.0, 4.0, "bookshelf"));
+    assert!(handle.spawn_object(8.0, 8.0, "bookshelf"));
     handle
         .sim
         .world_mut()
@@ -307,35 +335,35 @@ fn book_boundary_shelf_masks_cover_slot_31_and_32_without_truncating_capacity() 
     handle.sim.flush_commands();
     handle.sim.sync_render_buffer_after_commands();
     let r = handle.sim.render_buffer();
-    assert_eq!(r.shelf_book_offsets, vec![0]);
-    assert_eq!(r.shelf_book_counts, vec![2]);
-    assert_eq!(r.shelf_book_masks, vec![u32::MAX, 1]);
-    assert_eq!(handle.shelf_book_mask_count(), 2);
+    assert_eq!(r.shelf_book_offsets, vec![0, 2]);
+    assert_eq!(r.shelf_book_counts, vec![2, 2]);
+    assert_eq!(r.shelf_book_masks, vec![u32::MAX, 1, 0, 0]);
+    assert_eq!(handle.shelf_book_mask_count(), 4);
     assert_eq!(handle.shelf_book_masks_ptr(), r.shelf_book_masks.as_ptr());
     assert_eq!(
         handle.shelf_book_offsets_ptr(),
         r.shelf_book_offsets.as_ptr()
     );
     assert_eq!(handle.shelf_book_counts_ptr(), r.shelf_book_counts.as_ptr());
-    assert!(handle.transfer_book(31.0, None));
+    assert!(handle.transfer_book(31.0, Some(1.0)));
     handle.sim.flush_commands();
     handle.sim.sync_render_buffer_after_commands();
     assert_eq!(
         handle.sim.render_buffer().shelf_book_masks,
-        vec![0x7fff_ffff, 1]
+        vec![0x7fff_ffff, 1, 1, 0]
     );
-    assert!(handle.transfer_book(32.0, None));
+    assert!(handle.transfer_book(32.0, Some(1.0)));
     handle.sim.flush_commands();
     handle.sim.sync_render_buffer_after_commands();
     assert_eq!(
         handle.sim.render_buffer().shelf_book_masks,
-        vec![0x7fff_ffff, 0]
+        vec![0x7fff_ffff, 0, 3, 0]
     );
     let bytes = handle.save_bytes();
     assert!(handle.load_bytes(&bytes));
     assert_eq!(
         handle.sim.render_buffer().shelf_book_masks,
-        vec![0x7fff_ffff, 0]
+        vec![0x7fff_ffff, 0, 3, 0]
     );
     assert_eq!(handle.sim.book_copies().len(), 33);
 }

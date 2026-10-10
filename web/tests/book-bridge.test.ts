@@ -4,7 +4,7 @@ import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { BookResults } from '../src/books/results.js';
 import { BuyTool } from '../src/ui/buy-tool.js';
-import { menuEntries } from '../src/ui/object-menu.js';
+import { surfaceMenuEntries } from '../src/ui/object-menu.js';
 let memory: WebAssembly.Memory;
 beforeAll(async () => { memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory; });
 function fundTestHousehold(sim: SimBridge): void {
@@ -22,25 +22,27 @@ function fundTestHousehold(sim: SimBridge): void {
 it('decodes the rebuilt runtime and handles a paused purchase, transfer and full destinations atomically', () => {
   const handle = SimHandle.from_lot(); const sim = new SimBridge(handle, memory);
   try {
+    expect(sim.bookCopies()).toHaveLength(3);
+    expect(new Set(sim.bookCopies().map(copy => copy.titleId)).size).toBe(3);
     fundTestHousehold(sim);
     const title = sim.bookCatalogue()[0], shelf = sim.bookShelves()[0];
     const funds = sim.funds();
     expect(sim.buyBook(title.id, shelf.entity)).toBe(true); expect(sim.funds()).toBe(funds);
     sim.flushCommands(); const purchase = sim.takeBookResults()[0];
     expect(purchase.refusal).toBeNull(); expect(sim.funds()).toBe(funds - title.price);
-    expect(sim.bookCopies()).toHaveLength(1); expect(sim.takeBookResults()).toEqual([]);
+    expect(sim.bookCopies()).toHaveLength(4); expect(sim.takeBookResults()).toEqual([]);
     expect(sim.transferBook(purchase.copy!, null)).toBe(true); sim.flushCommands(); expect(sim.takeBookResults()[0].refusal).toBeNull();
-    for (let n = 0; n < shelf.capacity; n++) { expect(sim.buyBook(title.id, shelf.entity)).toBe(true); sim.flushCommands(); expect(sim.takeBookResults()[0].refusal).toBeNull(); }
+    for (let n = 4; n < shelf.capacity; n++) { expect(sim.buyBook(title.id, shelf.entity)).toBe(true); sim.flushCommands(); expect(sim.takeBookResults()[0].refusal).toBeNull(); }
     expect(sim.buyBook(title.id, shelf.entity)).toBe(true); sim.flushCommands();
     const fallback = sim.takeBookResults()[0]; expect(sim.bookCopies().find(copy => copy.id === fallback.copy)?.location.kind).toBe('inventory');
     const before = sim.saveBytes(); const beforeFunds = sim.funds();
-    expect(sim.transferBook(purchase.copy!, shelf.entity)).toBe(true); sim.flushCommands(); expect(sim.takeBookResults()[0].refusal).toBe('shelf_full');
+    expect(sim.transferBook(fallback.copy!, shelf.entity)).toBe(true); sim.flushCommands(); expect(sim.takeBookResults()[0].refusal).toBe('shelf_full');
     expect(sim.saveBytes()).toEqual(before); expect(sim.funds()).toBe(beforeFunds);
     expect(sim.buyBook(title.id, 0xfffffffe)).toBe(true); sim.flushCommands(); expect(sim.takeBookResults()[0].refusal).toBe('unknown_shelf'); expect(sim.funds()).toBe(beforeFunds);
     for (const value of [-1, .5, 0xffffffff, 0x100000000, NaN, Infinity]) {
       expect(sim.buyBook(title.id, value)).toBe(false); expect(sim.transferBook(value, null)).toBe(false); expect(sim.readBook(value, shelf.entity, 'read', title.id, true)).toBe(false);
     }
-    expect(sim.bookState().copies).toHaveLength(shelf.capacity + 2);
+    expect(sim.bookState().copies).toHaveLength(shelf.capacity + 1);
   } finally { handle.free(); }
 });
 it('uses stable model/action identity, combines room/need filters and keeps browsing deterministic', () => {
@@ -68,11 +70,12 @@ it('uses stable model/action identity, combines room/need filters and keeps brow
     const person = Array.from(sim.ids()).find(id => sim.simName(id))!; sim.select(person); sim.flushCommands();
     const shelf = sim.bookShelves()[0].entity, title = sim.bookCatalogue()[0].id; sim.buyBook(title, shelf); sim.flushCommands(); sim.takeBookResults();
     const saved = sim.saveBytes(), hash = sim.worldHash();
-    for (let n = 0; n < 5; n++) { sim.modelFacts(); sim.bookState(); sim.bookInterest(person, title); sim.readingProgress(person, title); sim.readingChoices(shelf); }
+    for (let n = 0; n < 5; n++) { sim.modelFacts(); sim.bookState(); sim.bookInterest(person, title); sim.readingProgress(person, title); sim.automaticReadingChoice(person, shelf, 'read'); }
     expect(sim.saveBytes()).toEqual(saved); expect(sim.worldHash()).toBe(hash);
-    const menu = menuEntries(sim.objectName(shelf), sim.interactionLabels(shelf), shelf, sim.objectDetails(shelf), sim.readingChoices(shelf));
+    const menu = surfaceMenuEntries(sim, shelf);
     expect(menu.entries[0].action).toEqual({ kind: 'use', object: shelf, interaction: 0 });
-    expect(menu.entries.find(entry => entry.titleChoice)?.action).toEqual({ kind: 'read', object: shelf, action: 'read', title });
+    expect(menu.entries[0].label).toBe('Read book');
+    expect(menu.entries.filter(entry => entry.action.kind === 'read')).toHaveLength(0);
     sim.readBook(person, shelf, 'read', title, false); sim.readBook(person, shelf, 'read', title, false); sim.flushCommands(); sim.takeBookResults();
     expect(sim.actionQueueOf(person).filter(label => label.includes(sim.bookCatalogue()[0].title))).toHaveLength(2);
     const results = new BookResults(sim); const savedPending = (() => { sim.buyBook(title, null); return sim.saveBytes(); })();
