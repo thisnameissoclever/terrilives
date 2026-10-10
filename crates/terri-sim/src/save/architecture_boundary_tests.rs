@@ -174,7 +174,7 @@ fn window_save_all_models_axes_and_pending_commands_restore_before_any_drain() {
     };
     for id in 1..=9 {
         for axis in [EdgeAxis::Vertical, EdgeAxis::Horizontal] {
-            let mut source = Sim::new_from_shipped_lot();
+            let mut source = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
             for _ in 0..13 {
                 source.tick();
             }
@@ -214,7 +214,8 @@ fn window_save_all_models_axes_and_pending_commands_restore_before_any_drain() {
             source.sync_render_buffer();
             let saved = source.save_snapshot_v5();
             let hash = source.world_hash();
-            let mut restored = Sim::new_from_shipped_lot();
+            let mut restored =
+                crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
             restored.load_snapshot_v5(saved.clone()).unwrap();
             assert_eq!(restored.save_snapshot_v5(), saved, "model {id}, {axis:?}");
             assert_eq!(restored.world_hash(), hash);
@@ -265,7 +266,7 @@ fn window_save_preserves_insertion_order_but_hash_ignores_order_and_observes_mod
         layout::{EdgeAxis, WallLine},
         windows::{WindowModel, WindowPlacement},
     };
-    let mut source = Sim::new_from_shipped_lot();
+    let mut source = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let a = WindowPlacement {
         line: WallLine {
             axis: EdgeAxis::Vertical,
@@ -294,7 +295,7 @@ fn window_save_preserves_insertion_order_but_hash_ignores_order_and_observes_mod
     }
     let saved = source.save_snapshot_v5();
     let original_hash = source.world_hash();
-    let mut restored = Sim::new_from_shipped_lot();
+    let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     restored.load_snapshot_v5(saved.clone()).unwrap();
     assert_eq!(restored.save_snapshot_v5(), saved);
     assert_eq!(

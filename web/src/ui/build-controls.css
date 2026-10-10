@@ -14,13 +14,10 @@ body[data-building='true'] #builder-controls { box-sizing: border-box; width: 30
 #builder-controls select { min-width: 0; max-width: 100%; min-height: 44px;
   color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
   border-radius: 4px; font: inherit; font-size: 14px; }
-#book-tool { display: grid; gap: 8px; min-width: 0; }
-#book-tool select, #buy-room-filter { width: 100%; }
-#book-tool p, #buy-facts, .reading-notice { overflow-wrap: anywhere; }
-.book-copy { border-top: 1px solid var(--hud-edge); padding: 8px 0; display: grid; gap: 6px; }
-.reading-choices > summary { cursor: pointer; min-height: 44px; align-content: center; }
-.reading-choices .menu-entry { display: block; width: 100%; }
-#object-menu { max-height: calc(100dvh - 16px); overflow-y: auto; }
+#buy-room-filter { width: 100%; }
+#buy-facts { overflow-wrap: anywhere; }
+[data-context-action] { flex-direction: column; }
+.action-price { display: block; font-size: 11px; color: var(--hud-muted); font-weight: normal; }
 body[data-building='true'] #build-toggle { display: none; }
 .build-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; }
 #builder-controls #builder-exit { flex: none; min-height: 36px; font-size: 12px; }

@@ -3,12 +3,13 @@ import {
   dishMenuEntries,
   socialMenuEntries,
   type Menu,
+  type SurfaceMenuSource,
 } from './object-menu.js';
 import { furnitureLabel } from './furniture-label.js';
 
 const KIND_AGENT = 0;
 
-export interface KeyboardTargetSource {
+export interface KeyboardTargetSource extends SurfaceMenuSource {
   positions?(): Float32Array;
   readonly count: number;
   ids(): Uint32Array;
@@ -16,7 +17,6 @@ export interface KeyboardTargetSource {
   simName(entityIndex: number): string;
   objectName(entityIndex: number): string;
   objectDetails?(entityIndex: number): import('./object-identity.js').ObjectDetails | undefined;
-  readingChoices?(entityIndex: number): { entries: readonly import('./object-menu.js').MenuEntry[]; notice: string } | undefined;
   /** A sim's name or an object's, for the flyout heading. */
   entityName(entityIndex: number): string;
   interactionLabels(entityIndex: number): readonly string[];
@@ -137,7 +137,7 @@ export class KeyboardTargetController {
         ),
       };
     }
-    if (this.source.selectedIndex() === null) {
+    if (target.kind === 'dishes' && this.source.selectedIndex() === null) {
       return { kind: 'unavailable', message: 'Select a person before choosing an object' };
     }
     return {

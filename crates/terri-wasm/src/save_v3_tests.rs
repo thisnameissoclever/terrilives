@@ -719,7 +719,7 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
         postcard::take_from_bytes::<terri_core::SaveSnapshotV6>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &7u16.to_le_bytes());
+    assert_eq!(&bytes[8..10], &8u16.to_le_bytes());
     assert_eq!(decoded.legacy.object_facings, vec![(0, 0)]);
     assert_eq!(
         decoded.legacy.world.queued_commands,
@@ -1854,7 +1854,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
 
     let current_bytes = |snapshot: &terri_core::SaveSnapshotV6| {
         let mut bytes = SAVE_MAGIC.to_vec();
-        bytes.extend_from_slice(&7u16.to_le_bytes());
+        bytes.extend_from_slice(&8u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(snapshot).unwrap());
         bytes
     };

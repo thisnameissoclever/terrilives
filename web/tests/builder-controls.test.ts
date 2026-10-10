@@ -159,7 +159,8 @@ it('sells the chosen furniture for part of its price and clears the choice', () 
   expect(reason).toBeNull();
   expect(payout).toBeGreaterThan(0);
   expect([!action('sell')?.enabled, action('sell')?.label])
-    .toEqual([false, `Sell for ${payout.toLocaleString('en-US')}`]);
+    .toEqual([false, 'Sell']);
+  expect(action('sell')?.price).toBe(payout);
   const name = furnitureLabel(source, 15);
   const funds = source.funds();
   action('sell')?.invoke();

@@ -55,7 +55,7 @@ describe('context actions use the active controller', () => {
     try {
       f.furniture.select(7);
       const actions = contextModel(f.tools)!.actions;
-      expect(actions.find(a => a.id === 'sell')!.label).toBe(`Sell for ${f.furniture.saleValue}`);
+      expect(actions.find(a => a.id === 'sell')).toMatchObject({label: 'Sell', price: f.furniture.saleValue});
       const first = f.furniture.preview!.facing;
       actions.find(a => a.id === 'left')!.invoke();
       expect(f.furniture.preview!.facing).toBe((first + 3) % 4);
@@ -87,7 +87,7 @@ describe('context actions use the active controller', () => {
       expect(item).toBeDefined(); f.buy.choose(item.definition);
       let model = contextModel(f.tools)!;
       expect(model.tool).toBe('buy');
-      expect(model.actions.find(a => a.id === 'confirm')!.label).toBe(`Buy · ${item.price.toLocaleString('en-US')}`);
+      expect(model.actions.find(a => a.id === 'confirm')).toMatchObject({label: 'Buy', price: item.price});
       expect(model.actions.find(a => a.id === 'confirm')!.enabled).toBe(false);
       const first = f.buy.preview!.facing;
       model.actions.find(a => a.id === 'left')!.invoke();

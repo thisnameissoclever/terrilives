@@ -351,7 +351,7 @@ mod tests {
 
     #[test]
     fn waiting_save_and_hash_preserve_person_item_and_need_bits() {
-        let mut sim = Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         let people: Vec<_> = sim
             .world_mut()
             .query_filtered::<Entity, With<Agent>>()

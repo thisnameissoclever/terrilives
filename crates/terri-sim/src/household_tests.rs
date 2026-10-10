@@ -65,13 +65,13 @@ fn chronotype_starters_and_newcomers_receive_authored_offsets() {
 
 #[test]
 fn chronotype_current_save_preserves_exact_offset_and_continuation() {
-    let mut live = Sim::new_from_shipped_lot();
+    let mut live = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let person = entity(&live, live.save_snapshot_v5().self_preservation[0].0);
     live.world_mut()
         .get_mut::<terri_core::Personality>(person)
         .unwrap()
         .chronotype_offset_ticks = -731;
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(live.save_snapshot_v5()).unwrap();
     assert_eq!(
         loaded
@@ -292,13 +292,13 @@ fn a_housemate_arrives_by_the_door_when_the_exit_is_shut() {
 /// plays on as the unsaved one does.
 #[test]
 fn a_housemate_saves_loads_and_plays_on() {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let moved_in = move_in(&mut sim, "Ann", 2, &[3]);
     let ann = entity(&sim, moved_in.sim.unwrap());
     for _ in 0..40 {
         sim.tick();
     }
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world().get::<SimName>(ann).unwrap().0, "Ann");
     assert_eq!(household_size(loaded.world()), 4);
@@ -317,7 +317,7 @@ fn a_staged_move_in_is_saved_and_replayed() {
     let stage = |sim: &mut Sim, command: SimCommand| {
         sim.world_mut().resource_mut::<CommandQueue>().push(command);
     };
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     stage(
         &mut sim,
         SimCommand::AddHousemate {
@@ -326,7 +326,7 @@ fn a_staged_move_in_is_saved_and_replayed() {
             traits: vec![0, 4],
         },
     );
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     sim.flush_commands();
@@ -345,7 +345,7 @@ fn a_staged_move_in_is_saved_and_replayed() {
             HousemateRefusal::UnknownTrait,
         ),
     ] {
-        let fresh = Sim::new_from_shipped_lot();
+        let fresh = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         let mut saved = fresh.save_snapshot_v5();
         let personality = personality.unwrap_or(
             fresh.world().resource::<Content>().0.personalities[0]
@@ -360,7 +360,7 @@ fn a_staged_move_in_is_saved_and_replayed() {
                 personality: Some(personality.to_string()),
                 traits,
             });
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         restored.load_snapshot_v5(saved).expect("loads");
         restored.flush_commands();
         let result = restored

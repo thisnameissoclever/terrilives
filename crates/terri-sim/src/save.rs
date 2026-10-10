@@ -2957,7 +2957,7 @@ mod tests {
             authored_sprite, expected_sprite,
             "the kitchen uses SW while dynamically spawned fridges default to SE"
         );
-        let mut source = Sim::new_from_shipped_lot();
+        let mut source = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         let dynamic = source.spawn_object(Position { x: 4.25, y: 2.5 }, fridge);
         let mut fridge_entities = Vec::new();
         {
@@ -2987,7 +2987,7 @@ mod tests {
         // both fridges' art from it. A V1 record carries no wall edges, so
         // the world hash, which sees walls since [WT-hash], is compared on the
         // V3 round trip the game now writes, beside the V1 record check.
-        let mut historical = Sim::new_from_shipped_lot();
+        let mut historical = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         historical
             .load_snapshot(source.save_snapshot())
             .expect("old fridge art saves load");
@@ -2995,7 +2995,7 @@ mod tests {
             historical.save_snapshot(),
             after_legacy_load_draws(before.clone())
         );
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         restored
             .load_snapshot_v5(source.save_snapshot_v5())
             .expect("current fridge art saves load");
@@ -4808,7 +4808,7 @@ mod tests {
     #[test]
     fn a_queued_edit_survives_save_and_load_by_authored_ids() {
         use terri_core::layout::Relation;
-        let mut sim = Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         sim.world_mut()
             .resource_mut::<CommandQueue>()
             .push(SimCommand::EditHousemate {
@@ -4830,7 +4830,7 @@ mod tests {
                 ties: vec![(1, Some(Relation::Sibling))],
             }
         );
-        let mut loaded = Sim::new_from_shipped_lot();
+        let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         loaded.load_snapshot_v5(snapshot).unwrap();
         assert_eq!(loaded.world().resource::<CommandQueue>().len(), 1);
         assert_eq!(loaded.world_hash(), sim.world_hash());

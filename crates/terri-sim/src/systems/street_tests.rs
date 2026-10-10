@@ -118,12 +118,12 @@ fn a_worker_mid_step_on_the_door_at_shift_start_still_goes_to_the_street() {
 /// home, and plays on as the unsaved game does.
 #[test]
 fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let tim = worker(&mut sim);
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
     });
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     for _ in 0..600 {
         sim.tick();
@@ -140,7 +140,7 @@ fn a_worker_saved_at_work_on_the_street_loads_and_plays_on() {
 /// test tell which one it made.
 fn saved_at_work_on_the_exit(shut: bool) -> terri_core::SaveSnapshotV5 {
     use terri_core::layout::{EdgeAxis, SavedLayout};
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let tim = worker(&mut sim);
     walk(&mut sim, tim, |sim| {
         sim.world().get::<AtWork>(tim).is_some()
@@ -168,12 +168,14 @@ fn saved_at_work_on_the_exit(shut: bool) -> terri_core::SaveSnapshotV5 {
 #[test]
 fn a_worker_saved_at_work_on_a_shut_in_exit_is_refused() {
     assert_eq!(
-        Sim::new_from_shipped_lot().load_snapshot_v5(saved_at_work_on_the_exit(false)),
+        crate::test_content::without_owned_books(Sim::new_from_shipped_lot())
+            .load_snapshot_v5(saved_at_work_on_the_exit(false)),
         Ok(()),
         "the straight line and a path are both clear"
     );
     assert_eq!(
-        Sim::new_from_shipped_lot().load_snapshot_v5(saved_at_work_on_the_exit(true)),
+        crate::test_content::without_owned_books(Sim::new_from_shipped_lot())
+            .load_snapshot_v5(saved_at_work_on_the_exit(true)),
         Err(crate::SaveError::InvalidGrid)
     );
 }
@@ -188,7 +190,10 @@ fn a_worker_saved_at_work_on_a_shut_in_exit_is_refused() {
 #[test]
 fn a_saved_worker_is_judged_on_the_exit_within_a_hundredth_on_each_axis() {
     let saved = saved_at_work_on_the_exit(true);
-    let index = worker(&mut Sim::new_from_shipped_lot()).index_u32();
+    let index = worker(&mut crate::test_content::without_owned_books(
+        Sim::new_from_shipped_lot(),
+    ))
+    .index_u32();
     for (case, x, y, expected) in [
         ("x inside", 18.995, 2.0, Err(crate::SaveError::InvalidGrid)),
         ("y inside", 19.0, 2.005, Err(crate::SaveError::InvalidGrid)),
@@ -208,7 +213,8 @@ fn a_saved_worker_is_judged_on_the_exit_within_a_hundredth_on_each_axis() {
         position.x = x;
         position.y = y;
         assert_eq!(
-            Sim::new_from_shipped_lot().load_snapshot_v5(moved),
+            crate::test_content::without_owned_books(Sim::new_from_shipped_lot())
+                .load_snapshot_v5(moved),
             expected,
             "{case}"
         );

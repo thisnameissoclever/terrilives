@@ -17,6 +17,23 @@ pub struct ShelfSlot {
     pub slot: u16,
 }
 
+/// A native preview that a purchase must match before charging.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BookPurchaseQuote {
+    pub title: String,
+    pub price: u32,
+    pub home: ShelfSlot,
+    pub next_copy_id: u32,
+}
+
+/// A shelf-local sale preview; title memory belongs to the household.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BookSaleQuote {
+    pub copy: BookCopyId,
+    pub shelf: BookShelfId,
+    pub price: u32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum BookLocation {
     Inventory,

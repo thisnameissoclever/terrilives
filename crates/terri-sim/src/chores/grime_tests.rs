@@ -251,7 +251,7 @@ fn grime_mood_scales_with_opacity_even_without_dirty_floors() {
 
 #[test]
 fn actual_last_walking_step_rolls_once_and_standing_does_not() {
-    let mut sim = crate::Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
     ensure(sim.world_mut());
     let person = actor(&mut sim);
     let (to, _, width) = open_square(&sim);
@@ -336,7 +336,7 @@ fn actual_last_walking_step_rolls_once_and_standing_does_not() {
         100
     );
     let saved = sim.save_snapshot_v5();
-    let mut loaded = crate::Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(saved).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     let mut loaded_movement = bevy_ecs::schedule::Schedule::default();
@@ -364,7 +364,7 @@ fn actual_last_walking_step_rolls_once_and_standing_does_not() {
 
 #[test]
 fn completed_station_use_dirties_only_adjacent_counters_and_preserves_waste() {
-    let mut sim = crate::Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
     ensure(sim.world_mut());
     let person = actor(&mut sim);
     let sink = sim
@@ -388,7 +388,7 @@ fn completed_station_use_dirties_only_adjacent_counters_and_preserves_waste() {
     assert_eq!(state.unbinned, 0);
     let hash = sim.world_hash();
     let saved = sim.save_snapshot_v5();
-    let mut loaded = crate::Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(saved).unwrap();
     assert_eq!(loaded.world_hash(), hash);
     grime::used(sim.world_mut(), person, sink);
@@ -644,7 +644,7 @@ fn actual_cooking_completion_adds_one_roll_per_stove_neighbor() {
 
 #[test]
 fn nine_tiles_fade_together_over_twenty_four_work_ticks() {
-    let mut sim = crate::Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
     ensure(sim.world_mut());
     let person = sim
         .world_mut()
@@ -676,7 +676,8 @@ fn nine_tiles_fade_together_over_twenty_four_work_ticks() {
         work::advance(sim.world_mut(), &mut state);
         sim.world_mut().insert_resource(state);
         let snapshot = sim.save_snapshot_v5();
-        let mut loaded = crate::Sim::new_from_shipped_lot();
+        let mut loaded =
+            crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         loaded.load_snapshot_v5(snapshot.clone()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if snapshot
@@ -700,7 +701,8 @@ fn nine_tiles_fade_together_over_twenty_four_work_ticks() {
         .iter()
         .all(|cell| (490..=510).contains(&value(&state.floors, *cell))));
     sim.world_mut().insert_resource(state.clone());
-    let mut cancelled = crate::Sim::new_from_shipped_lot();
+    let mut cancelled =
+        crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
     cancelled.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     let before = cancelled.world().resource::<SavedChores>().floors.clone();
     work::cancel(cancelled.world_mut(), person);
@@ -716,7 +718,8 @@ fn nine_tiles_fade_together_over_twenty_four_work_ticks() {
         work::advance(sim.world_mut(), &mut state);
         sim.world_mut().insert_resource(state);
         let snapshot = sim.save_snapshot_v5();
-        let mut loaded = crate::Sim::new_from_shipped_lot();
+        let mut loaded =
+            crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         loaded.load_snapshot_v5(snapshot.clone()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if snapshot

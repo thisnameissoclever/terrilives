@@ -1,6 +1,7 @@
 use super::*;
 use crate::Sim;
 use terri_core::command::BookCommand;
+mod priority;
 
 #[test]
 fn reading_render_projection_tracks_active_seat_and_canonical_reach() {
@@ -273,17 +274,21 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
     }
 }
 #[test]
-fn reading_journey_no_owned_or_inventory_copy_cannot_start() {
+fn reading_journey_waits_for_ownership_and_auto_shelved_arrivals() {
     let (mut sim, p, _, seat, title) = fixture("armchair");
     read(&mut sim, p, seat, &title, false);
     sim.tick();
     assert!(stage(&sim, p).is_none());
     purchase(&mut sim, None, &title);
+    assert!(matches!(
+        sim.book_copies()[0].location,
+        BookLocation::Shelf(_)
+    ));
     for _ in 0..10 {
         sim.tick();
     }
-    assert!(stage(&sim, p).is_none());
-    assert!(sim.world().get::<Blocked>(p).is_some());
+    assert!(stage(&sim, p).is_some());
+    assert!(sim.world().get::<Blocked>(p).is_none());
 }
 #[test]
 fn reading_journey_cancel_before_pickup_releases_and_after_pickup_returns() {

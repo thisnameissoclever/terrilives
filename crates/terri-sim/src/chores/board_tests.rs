@@ -3,7 +3,7 @@ use crate::Sim;
 use terri_core::{Relationships, SimClock, SimId, SmartObject};
 
 fn fixture() -> (Sim, SavedChores, ChoreKey) {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     ensure(sim.world_mut());
     let counter = sim
         .world_mut()
@@ -165,7 +165,7 @@ fn daily_choices_are_saved_once_and_do_not_reroll_after_personality_edits_or_loa
     assert_eq!(state.rng, rng);
     sim.world_mut().insert_resource(state);
     let before = sim.world_hash();
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), before);
 }
@@ -285,7 +285,7 @@ fn weekly_assignments_persist_and_new_weeks_use_the_saved_chore_stream() {
     assert!(state.assignments.iter().all(|a| a.week == 1));
     assert_ne!(state.rng, stream);
     sim.world_mut().insert_resource(state);
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
 }

@@ -1,10 +1,10 @@
 use super::*;
 
 #[test]
-fn current_bytes_are_strict_v6() {
+fn current_bytes_are_strict_v8() {
     let source = SimHandle::from_lot();
     let bytes = source.save_bytes();
-    assert_eq!(&bytes[8..10], &[7, 0]);
+    assert_eq!(&bytes[8..10], &[8, 0]);
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&bytes));
     assert_eq!(restored.save_bytes(), bytes);
@@ -29,7 +29,7 @@ fn authentic_v5_households_migrate_once_without_charges_or_rng_draws() {
     ] {
         let old = decode_v5(&bytes[SAVE_HEADER_BYTES..]).unwrap();
         let mut handle = SimHandle::from_lot();
-        assert!(handle.sim.save_snapshot_v6().books.copies.is_empty());
+        assert_eq!(handle.sim.book_copies().len(), 3);
         assert!(
             handle.load_bytes(bytes),
             "fixture at tick {}",
@@ -87,7 +87,7 @@ fn invalid_v6_books_and_mapping_leave_the_complete_live_world_untouched() {
     cases.push(bad);
     for candidate in cases {
         let mut bytes = SAVE_MAGIC.to_vec();
-        bytes.extend_from_slice(&7u16.to_le_bytes());
+        bytes.extend_from_slice(&8u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(&candidate).unwrap());
         assert!(!handle.load_bytes(&bytes));
         assert_eq!(handle.save_bytes(), before);
@@ -239,7 +239,7 @@ fn current_v6_rejects_two_readers_on_one_physical_chair() {
     second.eating = None;
     second.position = first.position;
     let mut corrupted = SAVE_MAGIC.to_vec();
-    corrupted.extend_from_slice(&7u16.to_le_bytes());
+    corrupted.extend_from_slice(&8u16.to_le_bytes());
     corrupted.extend(postcard::to_allocvec(&bad).unwrap());
     assert!(!loaded.load_bytes(&corrupted));
     assert_eq!(loaded.save_bytes(), before);

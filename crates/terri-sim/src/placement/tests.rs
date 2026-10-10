@@ -985,7 +985,7 @@ fn placement_reseeds_only_edited_furniture_preserving_fractional_walking_sample(
 
 #[test]
 fn placement_save_reload_keeps_rotated_rectangles_sockets_foregrounds_and_pending_commands() {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     for name in ["desk", "bathtub", "reading_chair"] {
         let definition = sim.world().resource::<Content>().0.find(name).unwrap();
         let entity = sim

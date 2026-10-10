@@ -86,7 +86,7 @@ fn rng(sim: &Sim) -> SimRng {
 
 #[test]
 fn a_current_save_round_trips_affinity_rows_exactly() {
-    let mut live = Sim::new_from_shipped_lot();
+    let mut live = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let pack = pack();
     let casey = person(&live, "Casey");
     // Kinds order is plants, aquarium, television, radio; the aquarium
@@ -130,7 +130,7 @@ fn a_current_save_round_trips_affinity_rows_exactly() {
         Some(SavedAffinities { rows: expected })
     );
 
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(snapshot.clone()).unwrap();
     assert_eq!(held(&loaded), held(&live));
     assert_eq!(

@@ -216,6 +216,7 @@ pub fn drain_commands(world: &mut World) {
         }
     }
     flush_ordinary(world);
+    crate::books::shelve_arrivals(world);
     crate::targeted_cleanup::prune(world);
     crate::chores::prune(world);
 }

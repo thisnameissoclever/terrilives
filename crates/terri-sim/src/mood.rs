@@ -1405,6 +1405,7 @@ mod tests {
         use terri_core::{Career, ChainState, CommandQueue, Satisfaction, SimClock, SimCommand};
 
         let (mut sim, tim) = shipped_tim();
+        sim = crate::test_content::without_owned_books(sim);
         let pack = sim.world().resource::<Content>().0;
         let tuning = pack.tuning;
         let decay = tuning.habituation_decay_per_tick;

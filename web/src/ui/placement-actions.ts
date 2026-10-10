@@ -74,6 +74,7 @@ export type ContextIcon = 'wall' | 'doorway' | 'window' | 'left' | 'right' | 're
 export interface ContextAction {
   readonly id: string;
   readonly label: string;
+  readonly price?: number;
   readonly slot: ContextSlot;
   readonly enabled: boolean;
   readonly icon?: ContextIcon;
@@ -103,7 +104,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   if (tools.books?.active) return null;
   if (!furniture.active || furniture.blocked || tools.suspended?.()) return null;
   const action = (id: string, label: string, slot: ContextSlot, enabled: boolean,
-    invoke: () => void, icon?: ContextIcon): ContextAction => ({ id, label, slot, enabled, invoke, icon });
+    invoke: () => void, icon?: ContextIcon, price?: number): ContextAction => ({ id, label, slot, enabled, invoke, icon, price });
   if (walls.active) {
     const windows = walls.windows;
     const line = windows?.active ? windows.line : walls.line;
@@ -154,12 +155,12 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   const rotate = (direction: -1 | 1) => buying ? buy.rotate(direction) : furniture.rotate(direction);
   return { tool: buying ? 'buy' : 'furniture', x: ghost.x + (ghost.width - 1) / 2,
     y: ghost.y + (ghost.depth - 1) / 2, ghost, actions: [
-      action('confirm', buying ? `Buy · ${formatFunds(buy.chosen?.price ?? 0)}` : 'Confirm', 'top',
-        buying ? buy.canBuy : furniture.canConfirm, () => { if (buying) buy.buy(); else furniture.confirm(); }, 'confirm'),
+      action('confirm', buying ? 'Buy' : 'Confirm', 'top',
+        buying ? buy.canBuy : furniture.canConfirm, () => { if (buying) buy.buy(); else furniture.confirm(); }, 'confirm', buying ? buy.chosen?.price : undefined),
       action('left', 'Rotate counterclockwise', 'left', canRotate, () => rotate(-1), 'left'),
       action('right', 'Rotate clockwise', 'right', canRotate, () => rotate(1), 'right'),
-      action(buying ? 'choose' : 'sell', buying ? 'Choose item' : furniture.saleValue === null ? 'Sell' : `Sell for ${formatFunds(furniture.saleValue)}`,
-        'bottom', buying ? ready : furniture.canSell, () => { if (buying) tools.focusCatalogue(); else furniture.sell(); }),
+      action(buying ? 'choose' : 'sell', buying ? 'Choose item' : 'Sell',
+        'bottom', buying ? ready : furniture.canSell, () => { if (buying) tools.focusCatalogue(); else furniture.sell(); }, undefined, buying ? undefined : furniture.saleValue ?? undefined),
       action('cancel', 'Cancel', 'bottom', ready, () => { if (buying) buy.cancel(); else furniture.cancel(); }, 'clear'),
     ] };
 }
@@ -315,9 +316,12 @@ export function createContextSurface(doc: Document, root: HTMLElement, canvas: H
       for (const action of next) {
         const button = buttons.get(action.id)!;
         button.disabled = !action.enabled;
-        button.setAttribute('aria-label', action.label);
+        button.setAttribute('aria-label', action.price === undefined ? action.label : `${action.label}, $${formatFunds(action.price)}`);
         const label = button.querySelector('span')!;
         if (label.textContent !== action.label) label.textContent = action.label;
+        let price = button.querySelector('small');
+        if (action.price === undefined) price?.remove();
+        else { if (!price) { price = doc.createElement('small'); price.className = 'action-price'; button.append(price); } price.textContent = `$${formatFunds(action.price)}`; }
       }
     },
     place(x, top, bottom, width, height) {

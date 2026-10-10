@@ -53,8 +53,8 @@ describe('targeted dish input', () => {
     };
     try {
       const point={x:70+30*scale,y:40-24*scale};
-      expect(resolveRightClick(source,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Nothing']);
-      expect(resolveRightClick(overlapped,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Nothing']);
+      expect(resolveRightClick(source,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Enter build mode','Nothing']);
+      expect(resolveRightClick(overlapped,point,70,40,scale)!.entries.map(e=>e.label)).toEqual(['Clean up','Enter build mode','Nothing']);
       expect(pickSprite(overlapped,70+16*scale,40-5*scale,70,40,scale)).toEqual({entity:2,isAgent:true});
     } finally {setBodyCoverage(body,new Uint8Array(alpha.length).fill(255));}
   });
@@ -77,7 +77,7 @@ describe('targeted dish input', () => {
     const p = point(2);
     gesture.begin(3, p.x, p.y);
     fire!();
-    expect(open.mock.results[0].value.entries[0]).toEqual({ label: 'Do dishes', action: { kind: 'clean', surface: 50, dishes: [8, 9] } });
+    expect(open.mock.results[0].value.entries[0]).toEqual({ label: 'Do dishes', enabled: true, action: { kind: 'clean', surface: 50, dishes: [8, 9] } });
   });
   it('leaves transparent pixels inside a dish bounding box available to the furniture', () => {
     const { source } = fixture();
@@ -115,11 +115,11 @@ describe('targeted dish input', () => {
   it('offers only Clean up on exposed dirty table wood and restores its usual action once clean', () => {
     const { source, point } = fixture();
     const dirty = resolveRightClick(source, point(1), 0, 0)!;
-    expect(dirty.entries.map(e => e.label)).toEqual(['Clean up', 'Nothing']);
+    expect(dirty.entries.map(e => e.label)).toEqual(['Clean up', 'Enter build mode', 'Nothing']);
     dispatchMenuAction(source, dirty.entries[0].action, 'back');
     expect(source.cleanDishes).toHaveBeenCalledWith(2, 50, null);
     const clean = { ...source, dishPiles: () => new Uint32Array(), dirtyDishes: () => new Uint32Array([0]), dirtySettings: () => new Uint32Array([0]) };
-    expect(resolveRightClick(clean, point(1), 0, 0)!.entries.map(e => e.label)).toEqual(['Sit', 'Nothing']);
+    expect(resolveRightClick(clean, point(1), 0, 0)!.entries.map(e => e.label)).toEqual(['Sit', 'Enter build mode', 'Nothing']);
     handleLeftClick(source, point(1), 0, 0, false);
     expect(source.useObjectFirst).toHaveBeenCalledWith(2, 50, 0);
   });
@@ -128,7 +128,7 @@ describe('targeted dish input', () => {
     const nobody = { ...source, selectedIndex: () => null };
     handleLeftClick(nobody, point(2), 0, 0, false);
     expect(source.cleanDishesFirst).not.toHaveBeenCalled();
-    expect(resolveRightClick(nobody, point(2), 0, 0)).toBeNull();
+    expect(resolveRightClick(nobody, point(2), 0, 0)?.entries).toMatchObject([{label: 'Do dishes', enabled: false}]);
   });
   it('picks a nearer Sim over dishes behind that Sim', () => {
     const { source, point } = fixture();

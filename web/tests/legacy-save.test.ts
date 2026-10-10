@@ -18,7 +18,7 @@ it('loads the captured historical save through release WASM and preserves contin
     expect(loaded.load_bytes(bytes.slice(0, -1))).toBe(false);
     expect(loaded.save_bytes()).toEqual(before);
     const current = loaded.save_bytes();
-    expect([...current.slice(8, 10)]).toEqual([7, 0]);
+    expect([...current.slice(8, 10)]).toEqual([8, 0]);
     expect(resumed.load_bytes(current)).toBe(true);
     for (let tick = 0; tick < 300; tick += 1) { loaded.tick(); resumed.tick(); }
     expect(loaded.sim_tick()).toBe(457n);

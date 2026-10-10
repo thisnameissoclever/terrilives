@@ -11,8 +11,11 @@ pub(crate) use lifecycle::{prepare_shelf_sale, recover_before_death};
 mod tests;
 
 mod commands;
-pub(crate) use commands::{commit, taste_multiplier};
+pub(crate) use commands::{commit, shelve_arrivals, taste_multiplier};
 pub use commands::{BookCommandResult, BookFeedback, LegacyBookImportNotice};
 
 #[cfg(test)]
 mod command_tests;
+
+#[cfg(test)]
+mod commerce_tests;
