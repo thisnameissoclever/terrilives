@@ -48,7 +48,7 @@ fn close(actual: f32, expected: f32) {
 }
 
 #[test]
-fn new_household_is_empty_and_migration_grants_five_distinct_titles_once() {
+fn empty_library_and_migration_grants_five_distinct_titles_once() {
     let mut library = BookLibrary::new(43);
     assert!(library.state().copies.is_empty());
     assert!(!library.state().migration_granted);
@@ -87,10 +87,9 @@ fn migration_fills_shelves_before_inventory_and_rejects_partial_grants_atomicall
         slots: 2,
     }];
     library.grant_migration_starters(&context).unwrap();
-    assert_eq!(
-        library.shelf_slots(BookShelfId(8), 2),
-        vec![Some(BookCopyId(0)), Some(BookCopyId(1))]
-    );
+    let mut occupied = library.shelf_slots(BookShelfId(8), 2);
+    occupied.sort();
+    assert_eq!(occupied, vec![Some(BookCopyId(0)), Some(BookCopyId(1))]);
     assert_eq!(
         library
             .state()

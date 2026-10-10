@@ -121,8 +121,8 @@ fn a_grown_house_keeps_the_walls_it_was_saved_with() {
 /// no outside wall is added twice.
 #[test]
 fn a_house_saved_in_its_yard_loads_as_saved() {
-    let saved = Sim::new_from_shipped_lot();
-    let mut loaded = Sim::new_from_shipped_lot();
+    let saved = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(saved.save_snapshot_v5()).unwrap();
     assert_eq!(size(&loaded), (20, 16));
     assert_eq!(edges(&loaded), edges(&saved));

@@ -920,6 +920,31 @@
       .object-type { display: block; font-size: 15px; line-height: 1.4; }
       .object-description { margin: 8px 0 2px; font-size: 13px; line-height: 1.5; max-width: 28ch; }
       #object-menu { max-height: calc(100dvh - 16px); overflow-y: auto; }
+      #object-menu.object-menu-radial {
+        inset: 0; width: 0; height: 0; min-width: 0; max-width: none;
+        padding: 0; border: 0; background: transparent; box-shadow: none;
+        overflow: visible; pointer-events: none;
+      }
+      #object-menu.object-menu-radial .menu-entry {
+        position: fixed; width: max-content; min-width: 60px; min-height: 44px;
+        padding: 8px 12px; border: 1px solid var(--hud-edge); border-radius: 4px;
+        background: var(--hud-bg); color: var(--hud-text); pointer-events: auto;
+        font: inherit; line-height: 1.25; text-align: center; white-space: normal;
+      }
+      .action-price, .menu-secondary { display: block; color: var(--hud-muted); font-size: .8em; margin-top: 3px; }
+      .book-commerce { margin-top: 10px; }
+      .book-commerce-actions { display: flex; gap: 6px; }
+      .book-commerce-actions button { flex: 1; min-height: 44px; }
+      .radial-identity { position: fixed; width: 88px; text-align: center; pointer-events: auto; }
+      .radial-identity .object-identity { padding: 0; }
+      .radial-identity summary { display: flex; flex-direction: column; }
+      .radial-identity .object-type { order: -1; }
+      .radial-identity .object-model { justify-content: center; }
+      .radial-identity .object-description-arrow { display: none; }
+      .radial-identity .object-description { max-height: 100px; overflow-y: auto; background: var(--hud-bg); padding: 6px; }
+      .radial-close { position: fixed; width: 44px; height: 44px; pointer-events: auto; border: 0; background: transparent; color: var(--hud-muted); font: inherit; }
+      #object-menu.object-menu-radial .menu-entry:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+      #object-menu.object-menu-radial .menu-entry:disabled { opacity: .5; cursor: default; }
       #buy-identity .object-identity { padding: 6px 0; }
       #buy-identity .object-description { max-width: none; margin: 8px 0 2px; }
       /* Drawn above the one row that is not about the object under the
@@ -1221,7 +1246,6 @@
           <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true" aria-controls="furniture-tool">Furniture</button>
           <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false" aria-controls="wall-tool">Walls</button>
           <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false" aria-controls="room-tool">Room</button>
-          <button id="build-tool-books" class="hud-button" type="button" aria-pressed="false" aria-controls="book-tool">Books</button>
           <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false" aria-controls="buy-tool">Buy</button>
           <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false" aria-controls="floor-tool">Floors</button>
         </div>
@@ -1293,14 +1317,6 @@
             <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>
 
           </div>
-        </div>
-        <div id="book-tool" class="builder-tool" hidden>
-          <label for="book-title">Title</label><select id="book-title"></select>
-          <p id="book-facts"></p><div id="book-description"></div>
-          <label for="book-destination">Purchase destination</label><select id="book-destination"></select>
-          <button id="book-buy" class="hud-button" type="button">Buy one copy</button>
-          <p id="book-status" role="status"></p>
-          <details><summary>Household books</summary><div id="book-owned"></div></details>
         </div>
         <div id="buy-tool" class="builder-tool" hidden>
           <div class="builder-choices">

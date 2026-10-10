@@ -856,9 +856,10 @@ export type InputTarget = CommandSink & PickSource;
  * with nothing to offer.
  */
 export interface InteractionSource {
+  canRecoverBook?(copy: number): boolean;
+  pendingBookCommands?(): number;
   choreOptions?(entity:number):Uint32Array;
   floorChoreAt?(x:number,y:number):Uint32Array;
-  readingChoices?(entity: number): { entries: readonly import('./ui/object-menu.js').MenuEntry[]; notice: string } | undefined;
   interactionLabels(entity: number): readonly string[];
   /**
    * What to call the thing under the pointer, for the flyout's heading.
@@ -1041,7 +1042,6 @@ export function resolveRightClick(
   scale = 1,
   reducedMotion = false,
 ): Menu | null {
-  if (target.selectedIndex() === null) return null;
   const pick =
     point === null
       ? null
@@ -1055,11 +1055,13 @@ export function resolveRightClick(
           reducedMotion,
         );
   if (pick === null) {
+    if (target.selectedIndex() === null) return null;
     if(point&&target.floorChoreAt){const [x,y]=screenToWorld(point.x,point.y,originX,originY,scale);const floor=target.floorChoreAt(Math.round(x),Math.round(y));if(floor.length===2)return floorMenuEntries(floor[0],floor[1]);}
     return NOTHING_MENU;
   }
-  if (pick.bookCopy !== undefined) return NOTHING_MENU;
+  if (pick.bookCopy !== undefined) return { title: 'Book', entries: [{ label: 'Recover book', enabled: (target.canRecoverBook?.(pick.bookCopy) ?? false) && (target.pendingBookCommands?.() ?? 0) === 0, action: { kind: 'recover-book', copy: pick.bookCopy } }] };
   if (pick.isAgent) {
+    if (target.selectedIndex() === null) return null;
     // The selected sim itself: nothing to do but close. A DIFFERENT
     // sim: the social vocabulary - "walk over and chat" - which is the
     // [A-11] talk command's front door. The comparison is by entity
@@ -1072,7 +1074,7 @@ export function resolveRightClick(
       pick.entity,
     );
   }
-  if (pick.cleanup) return dishMenuEntries(pick.cleanup.surface, pick.cleanup.dishes);
+  if (pick.cleanup) return dishMenuEntries(pick.cleanup.surface, pick.cleanup.dishes, target.selectedIndex() !== null);
   return surfaceMenuEntries(target, pick.entity);
 }
 
@@ -1156,6 +1158,7 @@ export function dispatchMenuAction(
   placement: OrderPlacement = 'front',
   onOrderAttempt: () => void = () => {},
 ): boolean {
+  if (action.kind === 'build' || action.kind === 'buy-book' || action.kind === 'sell-book' || action.kind === 'recover-book') return false;
   const agent = sink.selectedIndex();
   if (agent === null) return false;
   if (action.kind !== 'cancel') onOrderAttempt();
@@ -1544,7 +1547,6 @@ export function attachPointerInput(
   });
 
   canvas.addEventListener('contextmenu', (event) => {
-    if (editing?.active()) { event.preventDefault(); return; }
     canvas.focus();
     handleRightClick(
       target,

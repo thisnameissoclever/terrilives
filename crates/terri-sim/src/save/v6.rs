@@ -79,10 +79,49 @@ pub(crate) fn restore_frozen_owned(
     portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
     let snapshot = snapshot.into_current();
-    if super::table_retirement::needed(&snapshot, content) {
-        return super::table_retirement::restore(snapshot, content, portals, false);
+    let candidate = if super::table_retirement::needed(&snapshot, content) {
+        super::table_retirement::restore(snapshot, content, portals, false)?
+    } else {
+        restore_inner(snapshot, content, portals, false)?
+    };
+    validate_historical_journeys(candidate)
+}
+
+pub(crate) fn restore_historical_v7(
+    snapshot: SaveSnapshotV6,
+    content: &'static ContentPack,
+    portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    if snapshot.command_order.iter().flatten().any(|command| {
+        !matches!(
+            command,
+            terri_core::command::BookCommand::Purchase { .. }
+                | terri_core::command::BookCommand::Transfer { .. }
+                | terri_core::command::BookCommand::Read { .. }
+        )
+    }) {
+        return Err(SaveError::InvalidValue);
     }
-    restore_inner(snapshot, content, portals, false)
+    validate_historical_journeys(restore(snapshot, content, portals)?)
+}
+
+fn validate_historical_journeys(candidate: Sim) -> Result<Sim, SaveError> {
+    if let Some(mut journeys) = candidate
+        .world()
+        .try_query::<&crate::reading::ReadingJourney>()
+    {
+        let pack = candidate.world().resource::<crate::Content>().0;
+        for journey in journeys.iter(candidate.world()) {
+            let object = candidate
+                .world()
+                .get::<terri_core::SmartObject>(journey.origin.object)
+                .ok_or(SaveError::InvalidValue)?;
+            if pack.object(object.0).seats.is_empty() && journey.origin.object != journey.shelf {
+                return Err(SaveError::InvalidValue);
+            }
+        }
+    }
+    Ok(candidate)
 }
 
 pub(crate) fn restore_migrated(
@@ -250,7 +289,12 @@ pub(super) fn restore_inner(
     let mut ordinary = ordinary.into_iter();
     for row in snapshot.command_order {
         let command = match row {
-            Some(book) => terri_core::SimCommand::Book(book),
+            Some(book) => {
+                candidate
+                    .validate_book_commerce(&book)
+                    .map_err(|_| SaveError::InvalidValue)?;
+                terri_core::SimCommand::Book(book)
+            }
             None => ordinary.next().ok_or(SaveError::InvalidValue)?,
         };
         candidate

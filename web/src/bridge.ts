@@ -1,6 +1,7 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodePurchaseQuote, decodeSaleQuote, decodeAutomaticRead } from './books/commerce-codec.js';
 import { decodeBookCatalogue, decodeBookCopies, decodeBookMemory, decodeBookResults,
   decodeBookShelves, decodeModelFacts, shelfEntity, type ModelFacts, type BookTitle } from './books/codec.js';
 import { decodeWindowCatalogue, decodeWindowPreview, type WindowDefinition,
@@ -398,6 +399,8 @@ function pushVarint(out: number[], value: number): void {
  * See ARCHITECTURE.md [D11] and risk [R1].
  */
 export class SimBridge {
+  canRecoverBook(copy: number): boolean { return this.handle.canRecoverBook(copy); }
+  bookPurchasePrice(): number | null { return this.handle.automaticBookPrice() ?? null; }
   private modelsCache: ModelFacts[] | null = null;
   private titlesCache: BookTitle[] | null = null;
 
@@ -438,6 +441,15 @@ export class SimBridge {
     return isBookIndex(agent) && isBookIndex(object) && action.trim() !== '' && title.trim() !== '' && this.handle.readBook(agent, object, action, title, front);
   }
   pendingBookCommands(): number { return this.handle.pendingBookCommands(); }
+  bookPurchaseQuote() { return decodePurchaseQuote(this.handle.bookPurchaseQuote()); }
+  bookSaleQuote(shelf: number) { return decodeSaleQuote(this.handle.bookSaleQuote(shelf)); }
+  buyAutomaticBook(quote: Uint8Array): boolean { return this.handle.buyAutomaticBook(quote); }
+  sellBook(quote: Uint8Array): boolean { return this.handle.sellBook(quote); }
+  recoverBook(copy: number): boolean { return isBookIndex(copy) && this.handle.recoverBook(copy); }
+  automaticReadingChoice(person: number, object: number, action: string) {
+    return isBookIndex(person) && isBookIndex(object)
+      ? decodeAutomaticRead(this.handle.automaticReadingChoice(person, object, action)) : null;
+  }
   takeBookResults() { return decodeBookResults(this.handle.takeBookResults()); }
   takeLegacyBookImportNotice(): boolean { return this.handle.takeLegacyBookImportNotice(); }
   bookInterest(agent: number, title: string, object?: number, action?: string): number | null {
@@ -452,21 +464,6 @@ export class SimBridge {
   }
   readingProgress(agent: number, title: string) { return isBookIndex(agent) ? decodeBookMemory(this.handle.readingProgress(agent, title)) : null; }
   readingStatusOf(agent: number): string | null { return isBookIndex(agent) ? this.handle.readingStatusOf(agent) || null : null; }
-  readingChoices(object: number): { entries: import('./ui/object-menu.js').MenuEntry[]; notice: string } | undefined {
-    const actions = this.objectModel(object)?.actions.filter(action => action.reading) ?? [];
-    if (actions.length === 0) return undefined;
-    const person = this.selectedIndex();
-    if (person === null) return { entries: [], notice: 'Select a person to choose a title.' };
-    const entries = actions.flatMap(action => this.readingAvailableTitles(person, object, action.id).map(id => {
-      const title = this.bookCatalogue().find(title => title.id === id);
-      if (!title) throw new Error('Unknown readable title.');
-      const interest = this.bookInterest(person, id, object, action.id);
-      return { label: `${action.label}: ${title.title} (current interest: ${interest === null ? 'unavailable' : `${Math.round(interest * 100)}%`})`,
-        titleChoice: true, action: { kind: 'read' as const, object, action: action.id, title: id } };
-    }));
-    return { entries, notice: entries.length ? 'Automatic Read chooses an available title. Each visit reads part of a book.'
-      : 'No available shelved books can be read here. Put an unborrowed copy on an accessible bookcase.' };
-  }
   constructor(
     private readonly handle: SimHandle,
     private readonly memory: WebAssembly.Memory,

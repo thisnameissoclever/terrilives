@@ -146,7 +146,7 @@ fn an_object_in_use_takes_a_colourway() {
 /// as V4 loads with every object as drawn.
 #[test]
 fn a_v5_save_keeps_colourways_and_a_v4_save_loads_as_drawn() {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let stove = placed(&sim, "stove")[0];
     let sofa = placed(&sim, "sofa")[0];
     recolour(&mut sim, stove, 4);
@@ -161,7 +161,7 @@ fn a_v5_save_keeps_colourways_and_a_v4_save_loads_as_drawn() {
     expected.sort();
     assert_eq!(saved.object_colourways, expected);
 
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(saved).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     assert_eq!(
@@ -180,7 +180,7 @@ fn a_v5_save_keeps_colourways_and_a_v4_save_loads_as_drawn() {
     }
     assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
 
-    let mut older = Sim::new_from_shipped_lot();
+    let mut older = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     older.load_snapshot_v4(sim.save_snapshot_v4()).unwrap();
     // No query means the component was never used in that world at all.
     let world = older.world();
@@ -196,7 +196,7 @@ fn a_v5_save_keeps_colourways_and_a_v4_save_loads_as_drawn() {
 /// first colourway, loads as drawn.
 #[test]
 fn a_v5_save_with_bad_colourways_is_refused() {
-    let mut sim = Sim::new_from_shipped_lot();
+    let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let stove = placed(&sim, "stove")[0].index_u32();
     let sofa = placed(&sim, "sofa")[0].index_u32();
     let person = a_sim(&sim).index_u32();
@@ -214,7 +214,7 @@ fn a_v5_save_with_bad_colourways_is_refused() {
     ] {
         let mut bad = good.clone();
         bad.object_colourways = colourways.clone();
-        let mut target = Sim::new_from_shipped_lot();
+        let mut target = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         let before = target.world_hash();
         assert!(target.load_snapshot_v5(bad).is_err(), "{colourways:?}");
         assert_eq!(target.world_hash(), before);
@@ -222,7 +222,7 @@ fn a_v5_save_with_bad_colourways_is_refused() {
     for as_drawn in ["tartan", "as_drawn"] {
         let mut retired = good.clone();
         retired.object_colourways = vec![entry(low, as_drawn)];
-        let mut target = Sim::new_from_shipped_lot();
+        let mut target = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         target.load_snapshot_v5(retired).unwrap();
         let world = target.world();
         let recoloured = world
@@ -230,7 +230,7 @@ fn a_v5_save_with_bad_colourways_is_refused() {
             .map_or(0, |mut query| query.iter(world).count());
         assert_eq!(recoloured, 0, "{as_drawn} loads as drawn");
     }
-    let mut target = Sim::new_from_shipped_lot();
+    let mut target = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     target.load_snapshot_v5(good).unwrap();
     assert_eq!(target.world_hash(), sim.world_hash());
 }
@@ -240,10 +240,10 @@ fn a_v5_save_with_bad_colourways_is_refused() {
 /// colourway restores as one the drain refuses.
 #[test]
 fn a_staged_colourway_is_saved_and_replayed() {
-    let mut playing = Sim::new_from_shipped_lot();
+    let mut playing = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let sofa = placed(&playing, "sofa")[0];
     stage(&mut playing, sofa.index_u32(), 3);
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());
     playing.flush_commands();
@@ -252,7 +252,7 @@ fn a_staged_colourway_is_saved_and_replayed() {
     assert_eq!(colourway_of(&loaded, sofa), Some(3));
 
     stage(&mut playing, sofa.index_u32(), 99);
-    let mut unknown = Sim::new_from_shipped_lot();
+    let mut unknown = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     unknown
         .load_snapshot_v5(playing.save_snapshot_v5())
         .unwrap();
@@ -269,8 +269,8 @@ fn a_staged_colourway_is_saved_and_replayed() {
 /// hashes as the world that wrote it.
 #[test]
 fn recolouring_in_any_order_hashes_alike() {
-    let mut down = Sim::new_from_shipped_lot();
-    let mut up = Sim::new_from_shipped_lot();
+    let mut down = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
+    let mut up = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let mut objects: Vec<Entity> = ["sofa", "stove", "chair", "armchair"]
         .iter()
         .map(|id| placed(&down, id)[0])
@@ -283,7 +283,7 @@ fn recolouring_in_any_order_hashes_alike() {
         recolour(&mut up, object, 1 + colourway as u32);
     }
     assert_eq!(down.world_hash(), up.world_hash());
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(down.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), down.world_hash());
 }
@@ -292,10 +292,10 @@ fn recolouring_in_any_order_hashes_alike() {
 /// save and after the Load that restores it as `u32::MAX`.
 #[test]
 fn a_staged_unknown_colourway_hashes_alike_across_a_load() {
-    let mut playing = Sim::new_from_shipped_lot();
+    let mut playing = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let sofa = placed(&playing, "sofa")[0];
     stage(&mut playing, sofa.index_u32(), 99);
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());
 }
@@ -305,17 +305,17 @@ fn a_staged_unknown_colourway_hashes_alike_across_a_load() {
 /// table, the first that names nothing, hashes alike across a Load.
 #[test]
 fn a_staged_colourway_is_hashed_by_what_it_names() {
-    let mut first = Sim::new_from_shipped_lot();
-    let mut second = Sim::new_from_shipped_lot();
+    let mut first = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
+    let mut second = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let sofa = placed(&first, "sofa")[0].index_u32();
     stage(&mut first, sofa, 1);
     stage(&mut second, sofa, 2);
     assert_ne!(first.world_hash(), second.world_hash());
 
-    let mut playing = Sim::new_from_shipped_lot();
+    let mut playing = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let past = terri_data::pack().colourways.len() as u32;
     stage(&mut playing, sofa, past);
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());
 }

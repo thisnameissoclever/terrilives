@@ -25,7 +25,7 @@ fn actual_pre_voice_save_loads_all_people_and_resaves_with_replay_preserved() {
     assert_eq!(people.len(), 3);
     assert!(people.iter().all(|e| e.conversation_voice.is_none()));
     let current = handle.save_bytes();
-    assert_eq!(&current[8..10], &[7, 0]);
+    assert_eq!(&current[8..10], &[8, 0]);
     let mut resumed = SimHandle::from_lot();
     assert!(resumed.load_bytes(&current));
     assert_eq!(resumed.sim.save_snapshot_v5(), restored);

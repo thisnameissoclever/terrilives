@@ -174,14 +174,13 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
             return Err(bad());
         }
         let origin = pack.object(world.get::<SmartObject>(j.origin.object).ok_or_else(bad)?.0);
-        if origin.seats.is_empty() {
-            if j.origin.object != j.shelf {
-                return Err(bad());
-            }
-        } else if j
-            .seat
-            .as_ref()
-            .is_none_or(|(seat, _)| *seat != j.origin.object)
+        if !is_read(world, j.origin) {
+            return Err(bad());
+        }
+        if !origin.seats.is_empty()
+            && j.seat
+                .as_ref()
+                .is_none_or(|(seat, _)| *seat != j.origin.object)
         {
             return Err(bad());
         }

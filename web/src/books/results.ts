@@ -8,6 +8,8 @@ const REFUSALS: Readonly<Record<string, string>> = {
   already_borrowing: 'This person must return their current book first.', not_readable: 'No available shelved copy can be read here.',
   unknown_object: 'That object is no longer available.', not_owned_reading_action: 'This object cannot offer owned reading.',
   queue_full: 'The order queue is full.', invalid_state: 'The book command was refused. Check its current location.',
+  no_shelf_space: 'There is no room for another book.', no_sale_copy: 'No available book can be sold here.',
+  stale_quote: 'The book selection changed. Try again.',
 };
 export function bookRefusal(reason: string): string { return REFUSALS[reason] ?? `Book command refused (${reason}).`; }
 

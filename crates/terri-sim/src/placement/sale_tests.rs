@@ -270,13 +270,13 @@ fn buy_a_chair(sim: &mut Sim) -> Option<u32> {
 /// hash alike before, after and forty ticks on.
 #[test]
 fn after_two_sales_a_save_and_a_load_the_next_purchase_matches_continuous_play() {
-    let mut playing = Sim::new_from_shipped_lot();
+    let mut playing = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let sold = two_sellable(&playing);
     for object in sold {
         sell(&mut playing, object);
         assert_eq!(last(&playing).unwrap().reason, None);
     }
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());
     assert_eq!(

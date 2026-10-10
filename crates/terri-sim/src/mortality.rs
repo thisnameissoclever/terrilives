@@ -568,7 +568,7 @@ mod tests {
 
     #[test]
     fn count_setting_and_records_are_saved_and_hashed() {
-        let mut sim = Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         sim.world_mut()
             .resource_mut::<terri_core::save::SavedMortality>()
             .enabled = false;
@@ -585,7 +585,7 @@ mod tests {
         let before = sim.world_hash();
         super::tick(sim.world_mut());
         assert_ne!(before, sim.world_hash());
-        let mut loaded = Sim::new_from_shipped_lot();
+        let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
         assert_eq!(sim.world_hash(), loaded.world_hash());
         assert_eq!(loaded.deprivation_ticks(person.index_u32()), 1);
@@ -738,7 +738,7 @@ mod tests {
 
     #[test]
     fn death_round_trip_keeps_identity_family_grief_and_render_removal() {
-        let mut sim = Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         let mut pack = terri_data::pack().clone();
         pack.tuning.death_after_ticks = 1;
         let pack = Box::leak(Box::new(pack));
@@ -776,7 +776,7 @@ mod tests {
             .entities
             .iter()
             .all(|e| e.index != dead.index_u32()));
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         restored.world_mut().insert_resource(Content(pack));
         restored.load_snapshot_v5(saved.clone()).unwrap();
         assert_eq!(restored.save_snapshot_v5(), saved);

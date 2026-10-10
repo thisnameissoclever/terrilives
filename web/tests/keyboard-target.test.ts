@@ -24,27 +24,19 @@ function source(selected: number | null = 4): KeyboardTargetSource {
 }
 
 describe('keyboard targets', () => {
-  it('preserves owned-title choices beside chores in pointer and keyboard menus', () => {
+  it('shares automatic reading and Build actions between pointer and keyboard menus', () => {
     const readingSource: KeyboardTargetSource = {
-      ...source(),
-      interactionLabels: id => id === 2 ? ['Sit'] : [],
-      readingChoices: id => id === 2 ? { notice: 'Choose a title.', entries: [{
-        label: 'Read Test title',
-        action: { kind: 'read', object: 2, action: 'read_available', title: 'title_a' },
-      }] } : undefined,
+      ...source(), interactionLabels: id => id === 2 ? ['Read'] : [],
+      objectModel: () => ({ shelfCapacity: 0, actions: [{ id: 'read', reading: true }] }),
+      automaticReadingChoice: () => ({ titleId: 'one', title: 'An unfinished book', progress: 42 }),
       choreOptions: id => id === 2 ? new Uint32Array([2, 2]) : new Uint32Array(),
     };
     const pointer = surfaceMenuEntries(readingSource, 2);
     const picker = new KeyboardTargetController(readingSource, { hidden: true, textContent: '' });
     picker.cycle(1);
     expect(picker.activate()).toEqual({ kind: 'menu', menu: pointer });
-    expect(pointer.readingNotice).toBe('Choose a title.');
-    expect(pointer.entries.map(entry => entry.action)).toEqual([
-      { kind: 'use', object: 2, interaction: 0 },
-      { kind: 'read', object: 2, action: 'read_available', title: 'title_a' },
-      { kind: 'chore', choreKind: 2, target: 2 },
-      { kind: 'cancel' },
-    ]);
+    expect(pointer.entries[0]).toMatchObject({ label: 'Read book', secondary: 'An unfinished book · 42%' });
+    expect(pointer.entries.map(entry => entry.action.kind)).toEqual(['use', 'chore', 'build', 'cancel']);
   });
   it('includes dirty counters and each dish pile, using the same scoped menus as pointer input', () => {
     const dirty = { ...source(), dishPiles: () => new Uint32Array([7, 0, 10, 7, 0, 11, 7, 2, 12]) };
@@ -52,7 +44,7 @@ describe('keyboard targets', () => {
     expect(targets.filter(t => t.entity === 7).map(t => t.kind)).toEqual(['object', 'dishes', 'dishes']);
     const picker = new KeyboardTargetController(dirty, { hidden: true, textContent: '' });
     picker.cycle(1); picker.cycle(1); picker.cycle(1);
-    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Clean up', action: { kind: 'clean', surface: 7, dishes: null } }, { label: 'Nothing' }] } });
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Clean up', action: { kind: 'clean', surface: 7, dishes: null } }, { label: 'Enter build mode' }, { label: 'Nothing' }] } });
     picker.cycle(1);
     expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { entries: [{ label: 'Do dishes', action: { kind: 'clean', surface: 7, dishes: [10, 11] } }, { label: 'Nothing' }] } });
     picker.cycle(1);
@@ -67,7 +59,7 @@ describe('keyboard targets', () => {
     picker.cycle(1);
     picker.cycle(1);
     expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { title: 'Rug', details,
-      entries: [{ action: { kind: 'cancel' } }] } });
+      entries: [{ action: { kind: 'build', object: 7 } }, { action: { kind: 'cancel' } }] } });
   });
   it('includes named people and actionable objects only', () => {
     expect(keyboardTargets(source())).toEqual([

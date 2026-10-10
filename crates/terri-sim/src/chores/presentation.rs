@@ -234,7 +234,7 @@ mod tests {
     }
     #[test]
     fn active_floor_work_has_a_mop_and_saved_progress_but_suspension_hides_it() {
-        let mut sim = crate::Sim::new_from_shipped_lot();
+        let mut sim = crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         super::super::ensure(sim.world_mut());
         let person = sim
             .world_mut()
@@ -274,7 +274,8 @@ mod tests {
             .unwrap();
         assert_eq!(buffer.visual_actions[row], 14);
         let hash = sim.world_hash();
-        let mut loaded = crate::Sim::new_from_shipped_lot();
+        let mut loaded =
+            crate::test_content::without_owned_books(crate::Sim::new_from_shipped_lot());
         loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
         assert_eq!(loaded.world_hash(), hash);
         assert_eq!(projection(loaded.world(), person).unwrap().1, progress);

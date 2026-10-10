@@ -14,7 +14,10 @@ fn fixture() -> (Sim, Entity, Entity, String, String) {
     let action = pack.object(shelf).interactions[0].id.clone();
     let title = pack.books[0].id.clone();
     let seed = pack.tuning.rng_seed;
-    let mut sim = Sim::new_household_with_content(Content(Box::leak(Box::new(pack))), seed);
+    let mut sim = crate::test_content::without_owned_books(Sim::new_household_with_content(
+        Content(Box::leak(Box::new(pack))),
+        seed,
+    ));
     let person = sim
         .world_mut()
         .query_filtered::<Entity, With<Agent>>()
@@ -175,7 +178,6 @@ fn book_command_reserved_home_full_fallback_transfer_and_death_recovery() {
             shelf: None,
         },
     );
-    sim.flush_commands();
     issue(
         &mut sim,
         BookCommand::Transfer {
@@ -341,7 +343,10 @@ fn book_command_pending_interleaving_and_query_purity() {
     sim.flush_commands();
     restored.flush_commands();
     assert_eq!(sim.save_snapshot_v6(), restored.save_snapshot_v6());
-    assert_eq!(sim.book_copies()[0].location, BookLocation::Inventory);
+    assert!(matches!(
+        sim.book_copies()[0].location,
+        BookLocation::Shelf(_)
+    ));
     assert!(sim.world().get::<IntentQueue>(person).unwrap().is_empty());
     let results = sim.take_book_results();
     assert_eq!(
@@ -457,7 +462,6 @@ fn book_command_full_transfer_keeps_source_and_later_transfer_preserves_copy_id(
             shelf: None,
         },
     );
-    sim.flush_commands();
     issue(
         &mut sim,
         BookCommand::Transfer {

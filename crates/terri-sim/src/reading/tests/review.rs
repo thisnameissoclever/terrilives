@@ -228,7 +228,7 @@ fn fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order() {
     }
 }
 #[test]
-fn fix1_same_tick_reserved_near_contact_uses_far_copy_and_shelf_requests_stay_local() {
+fn fix1_reserved_near_contact_uses_far_copy_and_shelf_requests_can_fetch_elsewhere() {
     let (mut sim, blocker, far, seat, title) = fixture("armchair");
     sim.world_mut()
         .entity_mut(far)
@@ -276,7 +276,9 @@ fn fix1_same_tick_reserved_near_contact_uses_far_copy_and_shelf_requests_stay_lo
     purchase(&mut local, Some(far), &title);
     read(&mut local, p, far, &title, false);
     local.tick();
-    assert_eq!(local.world().get::<ReadingJourney>(p).unwrap().shelf, far);
+    let journey = local.world().get::<ReadingJourney>(p).unwrap();
+    assert_eq!(journey.shelf, near);
+    assert_eq!(journey.origin.object, far);
 }
 #[test]
 fn fix1_equal_routes_use_stable_copy_ids_and_reserved_copy_falls_back() {

@@ -38,6 +38,77 @@ pub(super) type ModelFactRow = (
 
 #[wasm_bindgen]
 impl SimHandle {
+    #[wasm_bindgen(js_name = canRecoverBook)]
+    pub fn can_recover_book(&self, copy: f64) -> bool {
+        placement_u32(copy).is_some_and(|copy| self.sim.can_recover_book(copy))
+    }
+    #[wasm_bindgen(js_name = automaticBookPrice)]
+    pub fn automatic_book_price(&self) -> Option<u32> {
+        self.sim.automatic_book_price().ok()
+    }
+    #[wasm_bindgen(js_name = automaticReadingChoice)]
+    pub fn automatic_reading_choice(&mut self, person: f64, object: f64, action: &str) -> Vec<u8> {
+        let choice = placement_u32(person)
+            .zip(placement_u32(object))
+            .and_then(|(person, object)| self.sim.automatic_reading_choice(person, object, action));
+        postcard::to_allocvec(&(1u8, choice)).expect("reading choice serializes")
+    }
+    #[wasm_bindgen(js_name = bookPurchaseQuote)]
+    pub fn book_purchase_quote(&self) -> Vec<u8> {
+        let quote = self
+            .sim
+            .book_purchase_quote()
+            .map_err(|error| error.code().to_string());
+        postcard::to_allocvec(&(1u8, quote)).expect("purchase quote serializes")
+    }
+    #[wasm_bindgen(js_name = bookSaleQuote)]
+    pub fn book_sale_quote(&self, shelf: f64) -> Vec<u8> {
+        let quote = placement_u32(shelf)
+            .ok_or("unknown_shelf".to_string())
+            .and_then(|shelf| {
+                self.sim
+                    .book_sale_quote(shelf)
+                    .map_err(|error| error.code().to_string())
+            });
+        postcard::to_allocvec(&(1u8, quote)).expect("sale quote serializes")
+    }
+    #[wasm_bindgen(js_name = buyAutomaticBook)]
+    pub fn buy_automatic_book(&mut self, bytes: &[u8]) -> bool {
+        if bytes.len() > 2048 {
+            return false;
+        }
+        match postcard::take_from_bytes::<(u8, Result<terri_core::books::BookPurchaseQuote, String>)>(
+            bytes,
+        ) {
+            Ok(((1, Ok(quote)), [])) => {
+                let command = terri_core::command::BookCommand::AutoPurchase { quote };
+                self.sim.validate_book_commerce(&command).is_ok() && self.enqueue_book(command)
+            }
+            _ => false,
+        }
+    }
+    #[wasm_bindgen(js_name = sellBook)]
+    pub fn sell_book(&mut self, bytes: &[u8]) -> bool {
+        if bytes.len() > 2048 {
+            return false;
+        }
+        match postcard::take_from_bytes::<(u8, Result<terri_core::books::BookSaleQuote, String>)>(
+            bytes,
+        ) {
+            Ok(((1, Ok(quote)), [])) => {
+                let command = terri_core::command::BookCommand::Sell { quote };
+                self.sim.validate_book_commerce(&command).is_ok() && self.enqueue_book(command)
+            }
+            _ => false,
+        }
+    }
+    #[wasm_bindgen(js_name = recoverBook)]
+    pub fn recover_book(&mut self, copy: f64) -> bool {
+        placement_u32(copy).is_some_and(|copy| {
+            let command = terri_core::command::BookCommand::Recover { copy };
+            self.sim.validate_book_commerce(&command).is_ok() && self.enqueue_book(command)
+        })
+    }
     #[wasm_bindgen(js_name = readingStatusOf)]
     pub fn reading_status_of(&self, entity: f64) -> String {
         placement_u32(entity)

@@ -312,6 +312,15 @@ pub enum BookCommand {
         title: String,
         front: bool,
     },
+    AutoPurchase {
+        quote: crate::books::BookPurchaseQuote,
+    },
+    Sell {
+        quote: crate::books::BookSaleQuote,
+    },
+    Recover {
+        copy: u32,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands

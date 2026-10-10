@@ -103,7 +103,7 @@ fn cooking_mastery(sim: &Sim, who: Entity) -> f32 {
 
 #[test]
 fn a_current_save_round_trips_practice_rows_exactly() {
-    let mut live = Sim::new_from_shipped_lot();
+    let mut live = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     let pack = pack();
     let casey = person(&live, "Casey");
     let bill = person(&live, "Bill");
@@ -130,7 +130,7 @@ fn a_current_save_round_trips_practice_rows_exactly() {
     }
     assert_eq!(snapshot.skills, Some(SavedSkills { rows: expected }));
 
-    let mut loaded = Sim::new_from_shipped_lot();
+    let mut loaded = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
     loaded.load_snapshot_v5(snapshot.clone()).unwrap();
     assert_eq!(held(&loaded), held(&live));
     assert_eq!(loaded.world_hash(), live.world_hash());

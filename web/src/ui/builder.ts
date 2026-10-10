@@ -106,6 +106,14 @@ export class FurnitureBuilder {
     this.selectNow(object);
   }
 
+  /** Opening from object actions discards a preview without committing it. */
+  selectForBuild(object: number): void {
+    if (this.pending || this.blocked) return;
+    this.enter();
+    this.cancel();
+    this.select(object);
+  }
+
   private selectNow(object: number): void {
     // Copy scalar geometry before any allocating label or placement export.
     const row = Array.from(this.source.ids()).indexOf(object);
