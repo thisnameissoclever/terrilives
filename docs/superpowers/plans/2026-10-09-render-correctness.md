@@ -70,10 +70,11 @@ Sim at the fridge's depth (known limit from PR 235).
 - Check the size of `web/src/render/atlas.ts` with
   `wc -c web/src/render/atlas.ts`; if it is within about 5 MiB of 104,857,600
   bytes (GitHub's per-file limit), shrink it before adding art. Observed
-  2026-10-09: 100,038,988 bytes, of which about 82 MB is the
-  `COVERAGE_VALUES` click-coverage data on a single base64 line. Moving that
-  data out of the TypeScript source, for example into a binary asset or a
-  further split as PR 235 did for the click masks, is the effective fix.
+  2026-10-09: 100,038,988 bytes, of which about 82 MB was the
+  `COVERAGE_VALUES` click-coverage data on a single base64 line. Later the
+  same day every coverage table's bytes moved into the content-addressed
+  `web/public/coverage-<sha256>.bin` (see `docs/atlas-pages.md`), leaving
+  atlas.ts at 11,352,906 bytes.
 - The fetch route assumes the fridge door faces the station's (1, 0) side;
   a second fridge model needs a content property like the stove's
   `cooking_front`.

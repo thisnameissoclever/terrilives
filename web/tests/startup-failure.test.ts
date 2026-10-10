@@ -12,7 +12,9 @@
  */
 import { describe, expect, it } from 'vitest';
 
+import { NoGpuAdapterError } from '../src/render/device';
 import {
+  describeGraphicsLost,
   describeStartupFailure,
   renderStartupFailure,
 } from '../src/ui/startup-failure';
@@ -106,6 +108,29 @@ describe('describeStartupFailure', () => {
     });
     expect(notice.title).toBe('The game failed to start');
     expect(notice.detail).toBe('atlas decode failed');
+  });
+
+  it('explains a refused graphics device and how to clear it', () => {
+    const notice = describeStartupFailure(new NoGpuAdapterError(), {
+      webgpu: true,
+      secure: true,
+    });
+    expect(notice.title).toBe('The browser did not provide a graphics device');
+    expect(notice.detail).toBe('No WebGPU adapter found.');
+    const hints = notice.hints.join(' ');
+    expect(hints).toContain('chrome://restart');
+    expect(hints).toContain('chrome://gpu');
+  });
+
+  it('says whether the household was saved when graphics stop mid-game', () => {
+    const saved = describeGraphicsLost('GPU reset', true);
+    expect(saved.title).toBe('The graphics device stopped working');
+    expect(saved.detail).toBe('GPU reset');
+    expect(saved.hints[0]).toBe('Your household was saved just now.');
+    expect(saved.hints.join(' ')).toContain('Reload the page');
+    const unsaved = describeGraphicsLost('', false);
+    expect(unsaved.detail).toBe('The graphics device was lost.');
+    expect(unsaved.hints[0]).toContain('could not be saved');
   });
 
   it('stringifies a non-Error throw instead of printing undefined', () => {

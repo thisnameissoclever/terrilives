@@ -10,10 +10,15 @@ export class FloorFinishResources<T> {
     publish(value: T): void;
     dispose(value: T): void;
     state(ready: boolean, error: string | null): void;
-  }) {}
+  }, resident?: readonly string[]) {
+    // Startup loads the saved floors' finishes with the first renderer, so
+    // the first request for them is already satisfied rather than a second
+    // full download and decode of every sprite page.
+    if (resident) this.current = floorFinishSet(resident);
+  }
 
   request(keys: readonly string[]): void {
-    const desired = JSON.stringify([...new Set(keys)].sort());
+    const desired = floorFinishSet(keys);
     if (desired === this.desired) return;
     this.desired = desired;
     this.version++;
@@ -54,4 +59,13 @@ export class FloorFinishResources<T> {
       if (version !== this.version) void this.run();
     }
   }
+}
+
+/** The canonical order the renderer is prepared in: unique keys, sorted. */
+export function canonicalFloorFinishKeys(keys: readonly string[]): string[] {
+  return [...new Set(keys)].sort();
+}
+
+function floorFinishSet(keys: readonly string[]): string {
+  return JSON.stringify(canonicalFloorFinishKeys(keys));
 }

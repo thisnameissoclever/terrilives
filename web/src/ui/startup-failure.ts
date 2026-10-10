@@ -77,6 +77,23 @@ export function describeStartupFailure(
     };
   }
 
+  if (isNoAdapter(error)) {
+    return {
+      title: 'The browser did not provide a graphics device',
+      detail,
+      hints: [
+        'WebGPU is turned on, but the browser would not let this page use ' +
+          'the graphics card. This usually happens after a graphics driver ' +
+          'crash or reset: the browser then blocks graphics for the site ' +
+          'until it restarts.',
+        'Restart the browser completely. In Chrome, open chrome://restart.',
+        'If that does not help, open chrome://gpu and check that WebGPU ' +
+          'says "Hardware accelerated", and that "Use graphics acceleration ' +
+          'when available" is on in the browser\'s System settings.',
+      ],
+    };
+  }
+
   return {
     title: 'The game failed to start',
     detail,
@@ -84,6 +101,34 @@ export function describeStartupFailure(
       'WebGPU is present, so this is not the usual browser-support ' +
         'problem. The message above is the real error; the console has ' +
         'the full stack.',
+    ],
+  };
+}
+
+/**
+ * Matched by name as well as by class: the error crosses a module boundary
+ * and a bundler can duplicate a class, which would make `instanceof` lie.
+ */
+function isNoAdapter(error: unknown): boolean {
+  return error instanceof Error && error.name === 'NoGpuAdapterError';
+}
+
+/**
+ * What the card says when the graphics device is lost mid-game, after a
+ * driver reset, the computer waking from sleep, or the graphics card
+ * running out of memory. The simulation lives outside the GPU, so the
+ * household can still be saved; `saved` says whether that worked.
+ */
+export function describeGraphicsLost(message: string, saved: boolean): StartupFailureNotice {
+  return {
+    title: 'The graphics device stopped working',
+    detail: message || 'The graphics device was lost.',
+    hints: [
+      saved
+        ? 'Your household was saved just now.'
+        : 'The household could not be saved. Progress since the last save may be lost.',
+      'Reload the page to keep playing. If this keeps happening, restart the ' +
+        'browser. In Chrome, open chrome://restart.',
     ],
   };
 }

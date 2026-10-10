@@ -1,15 +1,19 @@
-import type { EncodedCoverage } from './bed-sprites.js';
+import { coverageBytes, type EncodedCoverage } from './bed-sprites.js';
 
-/** Pack original half-float coverage without assigning one texture layer per pose. */
+/**
+ * Pack original half-float coverage without assigning one texture layer per pose.
+ * `payload` defaults to the loaded coverage file; tests pass their own.
+ */
 export function uploadJointAlpha(device: GPUDevice, ids: Readonly<Record<number, number>>,
-  coverage: readonly EncodedCoverage[]): { texture: GPUTexture; layers: Readonly<Record<number, number>>;
+  coverage: readonly EncodedCoverage[], payload?: Uint8Array<ArrayBuffer>): { texture: GPUTexture; layers: Readonly<Record<number, number>>;
     registration: Float32Array<ArrayBuffer> } {
   const unique = new Map<string, number>(), records: EncodedCoverage[] = [];
   const layers: Record<number, number> = {};
   for (const [sprite, id] of Object.entries(ids)) {
     if (coverage[id]?.encoding !== 'float16') throw new Error('Joint scene alpha requires half-float coverage');
     const record = coverage[id];
-    const key = `${record.size[0]}:${record.size[1]}:${record.values}`;
+    // The generator stores identical bytes once, so equal offsets mean equal values.
+    const key = `${record.size[0]}:${record.size[1]}:${record.offset}`;
     if (!unique.has(key)) { unique.set(key, records.length); records.push(record); }
     layers[Number(sprite)] = unique.get(key)!;
   }
@@ -32,7 +36,7 @@ export function uploadJointAlpha(device: GPUDevice, ids: Readonly<Record<number,
     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
   try {
     for (let id = 0; id < records.length; id++) {
-      const record = records[id], raw = Uint8Array.from(atob(record.values), value => value.charCodeAt(0));
+      const record = records[id], raw = coverageBytes(record, payload);
       if (record.box.join(',') !== [0, 0, ...record.size].join(',') || raw.length !== record.size[0] * record.size[1] * 2) {
         throw new Error('Joint scene alpha dimensions differ from its full scene');
       }
