@@ -96,6 +96,25 @@ describe('startup loading cover', () => {
     expect(f.loaded.textContent).toBe('');
   });
 
+  it('holds the page out of reach under the cover and releases it when the cover lifts', () => {
+    const cover = element();
+    const canvas = { tagName: 'CANVAS', inert: false };
+    const hud = { tagName: 'DIV', inert: false };
+    const guide = { tagName: 'DIALOG', inert: false };
+    const script = { tagName: 'SCRIPT', inert: false };
+    const alreadyInert = { tagName: 'DIV', inert: true };
+    const scheduled: (() => void)[] = [];
+    const loading = startupLoading({
+      getElementById: (id: string) => (id === 'startup-loading' ? cover : null),
+      body: { children: [cover, canvas, hud, guide, script, alreadyInert] },
+    } as never, fn => scheduled.push(fn));
+    expect([canvas.inert, hud.inert, guide.inert, script.inert]).toEqual([true, true, false, false]);
+    loading.finish();
+    expect([canvas.inert, hud.inert]).toEqual([false, false]);
+    // Something else made it inert first; the cover leaves it that way.
+    expect(alreadyInert.inert).toBe(true);
+  });
+
   it('does nothing, and never throws, when the markup is missing', () => {
     const loading = startupLoading({ getElementById: () => null } as never, () => {
       throw new Error('nothing to schedule');

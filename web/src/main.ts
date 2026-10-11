@@ -3,7 +3,7 @@ import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
-import { countResponseBytes } from './load-progress.js';
+import { countAlongside } from './load-progress.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
 // crosses into JavaScript through the zero-copy bridge, and the renderer
 // draws every entity in one instanced call at display refresh rate,
@@ -75,6 +75,7 @@ import {
   describeGraphicsLost,
   describeStartupFailure,
   renderStartupFailure,
+  type GraphicsLostSave,
 } from './ui/startup-failure.js';
 import { showDesktopSiteNotice } from './ui/desktop-site-notice.js';
 import { buildTimeControls } from './ui/time-controls.js';
@@ -285,6 +286,15 @@ async function main(): Promise<void> {
     // Session preferences still work in memory when browser storage is denied.
   }
   const audio = new AudioController(undefined, preferences ?? undefined);
+  // Read by handlers registered before their natural home further down, so
+  // they are declared here: reading a later `let` from an early callback
+  // throws instead of returning false.
+  //
+  // `graphicsLost` stops the game for good once the GPU device is gone (see
+  // the device.lost handler); `startingNewGame` keeps any save from writing
+  // the old household back while a new game reloads the page.
+  let graphicsLost = false;
+  let startingNewGame = false;
   void audio.setBackgrounded(document.visibilityState === 'hidden');
   armAudioUnlock(document, audio);
   // Registered here rather than with the save-on-hide handler below, and for
@@ -293,7 +303,7 @@ async function main(): Promise<void> {
   // them too. A tab that loads hidden and is shown during the load would
   // otherwise stay marked backgrounded, and refuse every gesture, for good.
   document.addEventListener('visibilitychange', () => {
-    void audio.setBackgrounded(document.visibilityState === 'hidden');
+    void audio.setBackgrounded(document.visibilityState === 'hidden' || graphicsLost);
   });
 
   // init() resolves to the instance exports, whose `memory` is the
@@ -302,11 +312,12 @@ async function main(): Promise<void> {
   // `memory`, see bridge.ts and [L10].
   //
   // The module is fetched here rather than by init() so the loading screen
-  // can count it arriving. Compiling still overlaps the download: init()
-  // streams the response, and the step changes once the last byte is in.
+  // can count it arriving. init() still gets the original response, so
+  // compiling overlaps the download and the browser can cache the compiled
+  // code; a clone is counted alongside, and the step changes once it ends.
   loading.step('Downloading the simulation');
   const wasm = await init({ module_or_path: fetch(new URL('./wasm/terri_wasm_bg.wasm', import.meta.url))
-    .then(response => countResponseBytes(response, count => loading.bytes(count),
+    .then(response => countAlongside(response, count => loading.bytes(count),
       () => loading.step('Starting the simulation'))) });
 
   // The lot, its walls and all eight authored objects come out of
@@ -358,14 +369,24 @@ async function main(): Promise<void> {
   // its device after the first present (docs/headless-sandbox.md), and its
   // behavioural checks drive the simulation and HUD, which still work.
   const harnessRun = new URLSearchParams(location.search).has('stress');
+  //
+  // The game stops for good first: the frame loop ends, so the simulation,
+  // its autosave and its sounds stop behind the card instead of the household
+  // living on unseen and overwriting the save the card reports.
   void gpu.device.lost.then(async (info) => {
     if (info.reason === 'destroyed') return;
     console.error('Graphics device lost:', info.reason, info.message);
     if (harnessRun) return;
-    let saved = false;
-    try { saved = await persistence.save(); } catch { saved = false; }
+    graphicsLost = true;
+    void audio.setBackgrounded(true);
+    let save: GraphicsLostSave = 'failed';
+    if (startingNewGame) save = 'failed';
+    else if (persistence.isSavingPaused()) save = 'paused';
+    else {
+      try { save = await persistence.save() ? 'saved' : 'failed'; } catch { save = 'failed'; }
+    }
     loading.finish();
-    renderStartupFailure(describeGraphicsLost(info.message, saved), document.body);
+    renderStartupFailure(describeGraphicsLost(info.message, save), document.body);
   });
   // Awaited: the atlas is a PNG and decoding it is asynchronous, so the
   // renderer is only usable once its texture is on the GPU. Constructing
@@ -377,8 +398,9 @@ async function main(): Promise<void> {
   // had none, so a save with boards, tiles or carpet laid kept the floor
   // scene hidden while a second renderer downloaded and decoded every sprite
   // page again to add them. A new game needs no finishes and never paid
-  // that. If they fail here, the game starts without them and the floor
-  // scene's own Load and Retry path takes over.
+  // that. If loading them fails here, the game loads without them and the
+  // floor scene's own load and Retry path takes over, with the cover showing
+  // that wait as "Loading floor materials".
   loading.step('Loading walls and floors');
   const startupProgress = {
     files: (done: number, total: number) => loading.files(done, total),
@@ -959,7 +981,6 @@ async function main(): Promise<void> {
     newGameButton,
     helpButton,
   ] as const;
-  let startingNewGame = false;
   let persistenceControlKey = '';
   const syncPersistenceButtons = (): void => {
     const state = persistence.controlState();
@@ -1564,9 +1585,13 @@ async function main(): Promise<void> {
   const syncFloorScene = () => floorScene.update(activeFloorFinishKeys(sim.floorTiles(), null),
     lot.architecture.finishes?.keys ?? [], floorResourceError);
   const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; finishes: ActiveFinishes | undefined }>({
+    // Reports to the startup cover, which ignores it once lifted: on the
+    // startup fallback path this load is what the cover is waiting for.
     prepare: async finishKeys => {
-      const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys });
-      try { return { renderer: await SpriteRenderer.create(gpu, atlas), finishes: atlas.finishes }; }
+      const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys, progress: startupProgress });
+      try {
+        return { renderer: await SpriteRenderer.create(gpu, atlas, startupProgress), finishes: atlas.finishes };
+      }
       finally { closeArchitectureAtlas(atlas); }
     },
     publish: next => {
@@ -2163,11 +2188,21 @@ async function main(): Promise<void> {
   }
 
   function loop(nowMs: number): void {
-    frame(nowMs);
+    if (graphicsLost) return;
+    try {
+      frame(nowMs);
+    } catch (error) {
+      // A throw here already ended the loop before the cover existed; the
+      // cover must not then hide the frozen game for good.
+      loading.finish();
+      throw error;
+    }
     requestAnimationFrame(loop);
   }
 
-  loading.step('Drawing the house');
+  // A startup that fell back to loading floor materials separately is still
+  // waiting on them, and the cover already says so.
+  if (floorScene.visible) loading.step('Drawing the house');
   requestAnimationFrame(loop);
 }
 
@@ -2182,6 +2217,9 @@ async function main(): Promise<void> {
 void main().catch((error: unknown) => {
   console.error('Natural Causes failed to start:', error);
   loading.finish();
+  // A lost graphics device may already have put its own card up, which says
+  // more about what happened than a generic startup failure would.
+  if (document.querySelector('[data-role="startup-failure"]')) return;
   renderStartupFailure(
     describeStartupFailure(error, {
       webgpu: 'gpu' in navigator && navigator.gpu !== undefined,

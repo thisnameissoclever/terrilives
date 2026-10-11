@@ -123,14 +123,18 @@ describe('describeStartupFailure', () => {
   });
 
   it('says whether the household was saved when graphics stop mid-game', () => {
-    const saved = describeGraphicsLost('GPU reset', true);
+    const saved = describeGraphicsLost('GPU reset', 'saved');
     expect(saved.title).toBe('The graphics device stopped working');
     expect(saved.detail).toBe('GPU reset');
     expect(saved.hints[0]).toBe('Your household was saved just now.');
     expect(saved.hints.join(' ')).toContain('Reload the page');
-    const unsaved = describeGraphicsLost('', false);
+    const unsaved = describeGraphicsLost('', 'failed');
     expect(unsaved.detail).toBe('The graphics device was lost.');
     expect(unsaved.hints[0]).toContain('could not be saved');
+    // Saving held back on purpose is not a failure, and says so.
+    const paused = describeGraphicsLost('GPU reset', 'paused');
+    expect(paused.hints[0]).toContain('Saving is paused');
+    expect(paused.hints[0]).not.toContain('could not');
   });
 
   it('stringifies a non-Error throw instead of printing undefined', () => {

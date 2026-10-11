@@ -6,7 +6,7 @@ Opening the game now shows what it is loading, step by step, instead of a blank 
 
 - While the game starts, a loading screen names and numbers each step, for example "Step 7 of 10: Loading furniture and people". Downloads also show how many files are done and how much data has loaded, so a slow connection still shows progress. The screen disappears once the house has been drawn.
 - On a phone with the browser's Desktop site setting on, a notice explains that everything is drawn small and how to switch back to the phone layout. Close hides it for good.
-- If the graphics card stops working during a game, the game saves the household and says so, instead of freezing.
+- If the graphics card stops working during a game, the game stops, saves the household and says so, instead of freezing with no explanation.
 
 ## Improved
 

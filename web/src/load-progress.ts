@@ -39,3 +39,46 @@ export function countResponseBytes(
     headers: response.headers,
   });
 }
+
+/**
+ * Counts `response`'s body from a clone and returns the original untouched.
+ *
+ * For the WASM module: `WebAssembly.instantiateStreaming` caches compiled
+ * code against the original response's URL and HTTP cache entry, and a
+ * Response rebuilt around a counting stream has neither, so every visit
+ * would compile the module from scratch. The clone is read alongside; `onEnd`
+ * fires once it has been read to the end, or failed, or cannot be read.
+ */
+export function countAlongside(
+  response: Response,
+  onBytes: (count: number) => void,
+  onEnd?: () => void,
+): Response {
+  let copy: Response;
+  try {
+    copy = response.clone();
+  } catch {
+    onEnd?.();
+    return response;
+  }
+  const body = copy.body;
+  if (!body) {
+    onEnd?.();
+    return response;
+  }
+  void (async () => {
+    const reader = body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        onBytes(value.byteLength);
+      }
+    } catch {
+      // The original reports its own failure; the count just stops.
+    } finally {
+      onEnd?.();
+    }
+  })();
+  return response;
+}

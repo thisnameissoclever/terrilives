@@ -4,26 +4,33 @@ import {
 } from '../src/ui/desktop-site-notice.js';
 
 const phone = { coarse: true, screenWidth: 412, screenHeight: 915 };
+// Portrait desktop mode lays the page out 980 wide, as tall as the screen allows.
+const desktopPortrait = { ...phone, layoutWidth: 980, layoutHeight: 2176 };
 
 describe('desktop mode on a phone', () => {
   it('is recognised when a touch phone is laid out at the desktop width', () => {
-    expect(looksLikeDesktopSiteOnPhone({ ...phone, layoutWidth: 980 })).toBe(true);
+    expect(looksLikeDesktopSiteOnPhone(desktopPortrait)).toBe(true);
   });
 
   it('is not flagged at the phone width, on a mouse, on a tablet or with no screen size', () => {
-    expect(looksLikeDesktopSiteOnPhone({ ...phone, layoutWidth: 412 })).toBe(false);
-    expect(looksLikeDesktopSiteOnPhone({ ...phone, coarse: false, layoutWidth: 980 })).toBe(false);
-    expect(looksLikeDesktopSiteOnPhone({ coarse: true, screenWidth: 820, screenHeight: 1180, layoutWidth: 1280 })).toBe(false);
-    expect(looksLikeDesktopSiteOnPhone({ coarse: true, screenWidth: 0, screenHeight: 0, layoutWidth: 980 })).toBe(false);
+    expect(looksLikeDesktopSiteOnPhone({ ...phone, layoutWidth: 412, layoutHeight: 915 })).toBe(false);
+    expect(looksLikeDesktopSiteOnPhone({ ...desktopPortrait, coarse: false })).toBe(false);
+    expect(looksLikeDesktopSiteOnPhone({ coarse: true, screenWidth: 820, screenHeight: 1180, layoutWidth: 1280, layoutHeight: 1842 })).toBe(false);
+    expect(looksLikeDesktopSiteOnPhone({ coarse: true, screenWidth: 0, screenHeight: 0, layoutWidth: 980, layoutHeight: 2176 })).toBe(false);
   });
 
   it('leaves a sideways phone alone, where the desktop width is barely wider than the screen', () => {
-    expect(looksLikeDesktopSiteOnPhone({ coarse: true, screenWidth: 915, screenHeight: 412, layoutWidth: 980 })).toBe(false);
+    expect(looksLikeDesktopSiteOnPhone({ coarse: true, screenWidth: 915, screenHeight: 412, layoutWidth: 980, layoutHeight: 441 })).toBe(false);
+  });
+
+  it('leaves a sideways iPhone alone, though iOS reports its screen upright', () => {
+    // iPhone 14 in landscape at the phone layout: 844 x 390 page, 390 x 844 screen.
+    expect(looksLikeDesktopSiteOnPhone({ coarse: true, screenWidth: 390, screenHeight: 844, layoutWidth: 844, layoutHeight: 390 })).toBe(false);
   });
 
   it('scales the notice up by as much as the page was shrunk, never down', () => {
-    expect(noticeScale({ ...phone, layoutWidth: 980 })).toBeCloseTo(980 / 412);
-    expect(noticeScale({ ...phone, layoutWidth: 300 })).toBe(1);
+    expect(noticeScale(desktopPortrait)).toBeCloseTo(980 / 412);
+    expect(noticeScale({ ...phone, layoutWidth: 300, layoutHeight: 800 })).toBe(1);
   });
 });
 
@@ -45,7 +52,7 @@ function fakeDocument() {
 
 function fakeWindow(layoutWidth: number, stored: Record<string, string> = {}) {
   return {
-    innerWidth: layoutWidth, screen: { width: 412, height: 915 },
+    innerWidth: layoutWidth, innerHeight: layoutWidth * 915 / 412, screen: { width: 412, height: 915 },
     matchMedia: () => ({ matches: true }),
     localStorage: {
       getItem: (key: string) => stored[key] ?? null,

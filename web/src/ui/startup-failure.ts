@@ -117,16 +117,21 @@ function isNoAdapter(error: unknown): boolean {
  * What the card says when the graphics device is lost mid-game, after a
  * driver reset, the computer waking from sleep, or the graphics card
  * running out of memory. The simulation lives outside the GPU, so the
- * household can still be saved; `saved` says whether that worked.
+ * household can still be saved; `save` says whether that worked, or was
+ * skipped because saving is paused to protect an existing save.
  */
-export function describeGraphicsLost(message: string, saved: boolean): StartupFailureNotice {
+export type GraphicsLostSave = 'saved' | 'paused' | 'failed';
+
+export function describeGraphicsLost(message: string, save: GraphicsLostSave): StartupFailureNotice {
   return {
     title: 'The graphics device stopped working',
     detail: message || 'The graphics device was lost.',
     hints: [
-      saved
+      save === 'saved'
         ? 'Your household was saved just now.'
-        : 'The household could not be saved. Progress since the last save may be lost.',
+        : save === 'paused'
+          ? 'Saving is paused to protect your saved game, so nothing new was saved.'
+          : 'The household could not be saved. Progress since the last save may be lost.',
       'Reload the page to keep playing. If this keeps happening, restart the ' +
         'browser. In Chrome, open chrome://restart.',
     ],

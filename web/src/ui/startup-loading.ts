@@ -72,11 +72,31 @@ interface ProgressElement extends LoadingElement {
 /** How long the fade in index.html's `#startup-loading` transition lasts. */
 export const STARTUP_FADE_MS = 250;
 
+/** The part of a page element the cover needs to hold it out of reach. */
+interface HeldElement {
+  inert: boolean;
+  readonly tagName: string;
+}
+
 export function startupLoading(
-  document: Pick<Document, 'getElementById'>,
+  document: Pick<Document, 'getElementById'> & { readonly body?: { readonly children: ArrayLike<unknown> } | null },
   schedule: (fn: () => void, ms: number) => unknown = setTimeout,
 ): StartupLoading {
   const root = document.getElementById('startup-loading') as LoadingElement | null;
+  // The cover hides the HUD from pointers but not from Tab or a screen
+  // reader, which could reach controls that do nothing yet. Everything else
+  // on the page is held inert until the cover lifts. Dialogs are left alone:
+  // the first-run guide opens as a modal above the cover and is worth reading
+  // during the wait. Anything added later, such as the desktop-mode notice,
+  // stays usable.
+  const held: HeldElement[] = [];
+  if (root && document.body) {
+    for (const child of Array.from(document.body.children) as HeldElement[]) {
+      if ((child as unknown) === root || child.tagName === 'DIALOG' || child.tagName === 'SCRIPT' || child.inert) continue;
+      child.inert = true;
+      held.push(child);
+    }
+  }
   const stepText = document.getElementById('startup-loading-step') as LoadingElement | null;
   const countText = document.getElementById('startup-loading-count') as LoadingElement | null;
   const bar = document.getElementById('startup-loading-progress') as ProgressElement | null;
@@ -111,6 +131,7 @@ export function startupLoading(
     finish() {
       if (finished || !root) return;
       finished = true;
+      for (const child of held) child.inert = false;
       // The fade is CSS; reduced motion turns the transition off there, and
       // the element goes either way once the fade would have finished.
       root.dataset.done = 'true';

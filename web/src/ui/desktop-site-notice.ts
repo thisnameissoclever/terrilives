@@ -16,8 +16,9 @@ export interface ScreenFacts {
   /** `screen.width` and `screen.height`, in CSS pixels at normal zoom. */
   readonly screenWidth: number;
   readonly screenHeight: number;
-  /** `window.innerWidth`: the width the page is actually laid out at. */
+  /** `window.innerWidth` and `innerHeight`: the size the page is laid out at. */
   readonly layoutWidth: number;
+  readonly layoutHeight: number;
 }
 
 /** The layout is this much wider than the screen before the notice shows. */
@@ -27,18 +28,31 @@ export const PHONE_SHORT_SIDE = 600;
 
 export const DESKTOP_SITE_DISMISSED_KEY = 'natural-causes.desktop-site-notice-dismissed';
 
+/**
+ * The screen's width in the page's current orientation. Android swaps
+ * `screen.width` and `screen.height` when the phone turns; iOS always reports
+ * them upright, so a sideways iPhone would otherwise look like a page laid out
+ * twice as wide as its screen.
+ */
+export function screenAcross(facts: ScreenFacts): number {
+  const landscape = facts.layoutWidth > facts.layoutHeight;
+  return landscape
+    ? Math.max(facts.screenWidth, facts.screenHeight)
+    : Math.min(facts.screenWidth, facts.screenHeight);
+}
+
 /** A touch phone laid out far wider than its screen: desktop mode. */
 export function looksLikeDesktopSiteOnPhone(facts: ScreenFacts): boolean {
   const shortSide = Math.min(facts.screenWidth, facts.screenHeight);
   return facts.coarse
     && shortSide > 0
     && shortSide <= PHONE_SHORT_SIDE
-    && facts.layoutWidth >= facts.screenWidth * DESKTOP_LAYOUT_RATIO;
+    && facts.layoutWidth >= screenAcross(facts) * DESKTOP_LAYOUT_RATIO;
 }
 
 /** How much larger to draw the notice so it reads at its normal size. */
 export function noticeScale(facts: ScreenFacts): number {
-  return Math.max(1, facts.layoutWidth / Math.max(1, facts.screenWidth));
+  return Math.max(1, facts.layoutWidth / Math.max(1, screenAcross(facts)));
 }
 
 export const DESKTOP_SITE_TEXT =
@@ -47,6 +61,7 @@ export const DESKTOP_SITE_TEXT =
 
 interface NoticeWindow {
   readonly innerWidth: number;
+  readonly innerHeight: number;
   readonly screen: { readonly width: number; readonly height: number };
   matchMedia(query: string): { readonly matches: boolean };
   readonly localStorage?: Storage;
@@ -67,6 +82,7 @@ export function showDesktopSiteNotice(view: NoticeWindow, document: Document): b
     screenWidth: view.screen.width,
     screenHeight: view.screen.height,
     layoutWidth: view.innerWidth,
+    layoutHeight: view.innerHeight,
   };
   if (!looksLikeDesktopSiteOnPhone(facts) || dismissed(view)) return false;
   const scale = noticeScale(facts);
