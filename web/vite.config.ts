@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineConfig, searchForWorkspaceRoot } from 'vite';
@@ -42,6 +43,9 @@ export default defineConfig(({ mode }) => ({
   // is the kind of difference that only shows up after deploying.
   base: './',
   plugins: [changelogPlugin()],
+  // The browser downloads the coverage file before anything samples it; Node
+  // tests read the same committed file from disk instead.
+  test: { setupFiles: ['./tests/setup/coverage-payload.ts'] },
   server: {
     // The isolated GPU proof reads only this candidate evidence directory.
     // Trial textures do not enter public/ or the production atlas.

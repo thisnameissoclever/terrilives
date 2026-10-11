@@ -475,7 +475,7 @@ describe('sampleSimAudioAfterTick', () => {
     // neither the simulation nor the GPU, so it must not fall with them.
     const armed = MAIN.indexOf('armAudioUnlock(document, audio)');
     expect(armed).toBeGreaterThan(0);
-    for (const step of ['await init()', 'await initDevice(', 'SpriteRenderer.create(']) {
+    for (const step of ['await init(', 'await initDevice(', 'SpriteRenderer.create(']) {
       const index = MAIN.indexOf(step);
       expect({ step, armedFirst: armed < index }).toEqual({
         step,
@@ -489,7 +489,7 @@ describe('sampleSimAudioAfterTick', () => {
     // search while the listener itself sat back down below them.
     const registered = MAIN.indexOf("addEventListener('visibilitychange'");
     expect(registered).toBeGreaterThan(0);
-    expect(registered).toBeLessThan(MAIN.indexOf('await init()'));
+    expect(registered).toBeLessThan(MAIN.indexOf('await init('));
   });
 
   it('uses the aligned stable-id column without a rebuild or identity query', () => {

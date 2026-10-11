@@ -62,3 +62,35 @@ may expire before an asynchronous 2D snapshot reads it.
 The dated [covered-bunk release evidence](assets/review-evidence/bedroom/covered-bunk-release-2026-10-05.md)
 records the inspected source, preservation results, device measurements and
 runtime proof boundaries.
+
+## Coverage file
+
+Coverage records say which pixels of a scene belong to each body, bed, chair
+or fixture. Picking and dining support sample them, and the renderer uploads
+the half-float scene alpha among them. Their bytes do not live in the
+TypeScript catalogues. The generator writes every coverage table's bytes to
+one gzip-compressed file, `web/public/coverage-<sha256>.bin`, named by the
+SHA-256 of the compressed bytes like the atlas pages. It removes obsolete
+`coverage-*.bin` files on a normal run and reports them in `--check`.
+
+Each record in `BED_COVERAGE`, `SPRITE_PAIR_MASKS`, `SEATING_MASKS`,
+`SHELF_COVERAGE` and `BATHROOM_MASKS` keeps its size, its nonzero box, its
+optional `bitDepth` or `encoding`, and an `offset` into the decompressed
+bytes. Values are row-major within the box, little-endian for 16-bit and
+half-float records, and every record starts on a four-byte boundary.
+Identical byte runs are stored once, so equal offsets mean equal values.
+`web/src/render/coverage-file.ts` names the file and its decompressed length.
+
+The generator compresses the file itself because GitHub Pages does not
+compress binary files, and the raw bytes are about 70 MB of mostly zeros.
+Different zlib builds can compress the same bytes differently, so `--check`
+and a normal run compare decompressed bytes and keep a committed file that
+still holds the current payload.
+
+The browser downloads the file with the atlas pages during "Loading furniture
+and people", where it counts as one more file. `coverage-payload.ts` unpacks
+it once and keeps it for the session; `SpriteRenderer.create` waits for it,
+and nothing samples coverage before a renderer exists. Node tests read the
+same committed file through `web/tests/setup/coverage-payload.ts`, and the
+Python tests restore each record's base64 `values` through
+`atlas_test_tables.table`.

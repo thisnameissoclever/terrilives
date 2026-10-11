@@ -53,6 +53,72 @@
         height: 100vh;
         touch-action: none;
       }
+      /* The startup cover ([startup-loading.ts]). Styled here rather than in
+         a module so it paints with the HTML, before any script has arrived:
+         on a phone the bundle, the WASM and the sprite pages take long
+         enough that a bare canvas reads as a broken page. It sits above the
+         HUD, which does nothing useful until startup finishes. */
+      #startup-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 16px;
+        background: #0d0d10;
+        text-align: center;
+        transition: opacity 250ms ease-out;
+      }
+      #startup-loading[data-done='true'] {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #startup-loading p {
+        margin: 0;
+      }
+      #startup-loading-title {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      #startup-loading-step {
+        font-size: 15px;
+      }
+      #startup-loading-count,
+      #startup-loading-bytes {
+        font-size: 14px;
+        color: var(--hud-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      #startup-loading-count[hidden],
+      #startup-loading-progress[hidden],
+      #startup-loading-bytes[hidden] {
+        display: none;
+      }
+      #startup-loading-progress {
+        width: min(240px, 70vw);
+        height: 8px;
+        accent-color: var(--need-fill);
+      }
+      .startup-spinner {
+        width: 40px;
+        height: 40px;
+        box-sizing: border-box;
+        border: 4px solid var(--hud-edge);
+        border-top-color: var(--need-fill);
+        border-radius: 50%;
+        animation: startup-spin 0.9s linear infinite;
+      }
+      @keyframes startup-spin {
+        to { transform: rotate(360deg); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #startup-loading { transition: none; }
+        /* A still ring; the step text and progress bar carry the news. */
+        .startup-spinner { animation: none; }
+      }
       #stage:focus-visible {
         outline: 3px solid var(--need-fill);
         outline-offset: -5px;
@@ -971,6 +1037,14 @@
       tabindex="0"
       aria-label="Isometric household. Use Help for controls and accessible status."
     ></canvas>
+    <div id="startup-loading">
+      <div class="startup-spinner" aria-hidden="true"></div>
+      <p id="startup-loading-title">Loading Natural Causes</p>
+      <p id="startup-loading-step" role="status" aria-live="polite">Step 1 of 10: Downloading the game</p>
+      <p id="startup-loading-count" hidden></p>
+      <progress id="startup-loading-progress" aria-label="Files loaded" hidden></progress>
+      <p id="startup-loading-bytes" hidden></p>
+    </div>
     <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
          Outside #hud for #object-menu's reason: it is fixed to the window's
          top right, not part of the sidebar's column. Before the sidebar, so

@@ -15,13 +15,13 @@ it('packs hundreds of distinct poses within one array layer and preserves every 
       writes.push({ origin: destination.origin, bytes: bytes.slice() });
     } },
   } as unknown as GPUDevice;
+  const payload = new Uint8Array(300 * 32);
   const coverage: EncodedCoverage[] = Array.from({ length: 300 }, (_, id) => {
-    const values = new Uint16Array(16).fill(id + 1);
-    return { size: [4, 4], box: [0, 0, 4, 4], encoding: 'float16',
-      values: btoa(String.fromCharCode(...new Uint8Array(values.buffer))) };
+    payload.set(new Uint8Array(new Uint16Array(16).fill(id + 1).buffer), id * 32);
+    return { size: [4, 4], box: [0, 0, 4, 4], encoding: 'float16', offset: id * 32 };
   });
   coverage.push(coverage[0]);
-  const result = uploadJointAlpha(device, Object.fromEntries(coverage.map((_, id) => [id, id])), coverage);
+  const result = uploadJointAlpha(device, Object.fromEntries(coverage.map((_, id) => [id, id])), coverage, payload);
   expect(size[2]).toBe(1);
   expect(writes).toHaveLength(300);
   expect(result.layers[300]).toBe(result.layers[0]);

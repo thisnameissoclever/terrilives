@@ -68,4 +68,20 @@ describe('active floor resource replacement', () => {
     expect(f.pending).toHaveLength(1);
     expect(f.states.at(-1)).toEqual([true, null]);
   });
+  it('treats the finishes loaded with the first renderer as already resident', async () => {
+    const states: [boolean, string | null][] = [];
+    const prepared: (readonly string[])[] = [];
+    const manager = new FloorFinishResources<string>({
+      prepare: keys => { prepared.push(keys); return Promise.resolve('unused'); },
+      publish: () => {}, dispose: () => {},
+      state: (ready, error) => { states.push([ready, error]); },
+    }, ['boards', 'blue', 'boards']);
+    manager.request(['blue', 'boards']);
+    await flush();
+    expect(prepared).toEqual([]);
+    expect(states).toEqual([[true, null]]);
+    manager.request(['blue', 'boards', 'carpet']);
+    await flush();
+    expect(prepared).toEqual([['blue', 'boards', 'carpet']]);
+  });
 });

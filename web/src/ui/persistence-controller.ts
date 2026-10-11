@@ -226,6 +226,11 @@ export class PersistenceController {
     return this.savedGameAvailable;
   }
 
+  /** Saving is held back on purpose to protect a save this build cannot write over. */
+  isSavingPaused(): boolean {
+    return this.savingPaused;
+  }
+
   /** Player controls derived from one exclusive persistence operation. */
   controlState(): PersistenceControlState {
     const busy = this.activeOperation !== null;

@@ -19,7 +19,7 @@ const cameraCode = section('  function applyCamera(): void {', '  // Flagged rat
   .replace('(): void', '()');
 const drawCode = section('    if (floorScene.visible) {', '    // Inside the sample below');
 const publishCode = section('    publish: next => {', '    dispose: next =>').replace('    publish: next => {', '').replace(/\},\s*$/, '');
-const stateCode = section('    state: (ready, error) => {', '  });\n  syncFloorResources =').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
+const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);\n  syncFloorResources =').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
 const applyMainCamera = new Function('ctx', `with(ctx) { ${cameraCode}; applyCamera(); }`);
 const drawMainFrame = new Function('ctx', `with(ctx) { ${drawCode} }`);
 const publishMainRenderer = new Function('ctx', 'next', `with(ctx) { ${publishCode} }`);

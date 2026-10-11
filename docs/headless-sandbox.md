@@ -109,6 +109,14 @@ Instance reference no longer exists." - the same message the page logs
 once as a warning at startup. That error on an app page in a sandbox
 means the present path, not the app.
 
+The page may also report the device as lost with that message
+("Graphics device lost: unknown ..." in the console). Outside the
+`?stress=` harness, the game answers a lost device by saving and covering
+the page with "The graphics device stopped working", which is correct for
+players and in the way for sandbox checks. Load the page with `?stress=0`
+for any check that needs the HUD or the simulation after the first frame;
+the harness logs the loss and keeps running.
+
 Dawn itself is fine. The control that establishes it: render to an
 ordinary offscreen texture (`RENDER_ATTACHMENT | COPY_SRC`), clear to
 red, `copyTextureToBuffer`, `mapAsync` - returns exactly

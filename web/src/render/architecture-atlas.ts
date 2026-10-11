@@ -1,3 +1,4 @@
+import { countResponseBytes, type LoadProgress } from '../load-progress.js';
 import { SPRITES, type AtlasSprite } from './atlas.js';
 import { ARCHITECTURE } from './architecture-data.js';
 import { BYTES_PER_SPRITE } from './sprite-table-layout.js';
@@ -88,6 +89,8 @@ export interface ArchitectureLoadOptions {
   readonly catalogue?: FinishCatalogue;
   readonly patternResources?: Readonly<Record<string, PatternResource>>;
   readonly baseUrl?: string;
+  /** Startup's loading screen; counts every file this load fetches. */
+  readonly progress?: LoadProgress;
 }
 
 /** Reject stale generated offsets before loading textures or uploading tables. */
@@ -111,25 +114,33 @@ export async function loadArchitectureAtlas(limits: GPUDevice['limits'],
   const finishes = prepareArchitectureFinishes(options.finishKeys ?? [], limits, options.catalogue, resources);
   const base = options.baseUrl ?? import.meta.env.BASE_URL;
   const bitmaps: ImageBitmap[] = [];
+  const progress = options.progress;
+  const fileCount = 2 + (finishes.keys.length ? 2 + finishes.resources.length : 0);
+  let filesDone = 0;
+  progress?.files?.(filesDone, fileCount);
   const fetchResource = async (file: string): Promise<Response> => {
     const response = await fetch(new URL(file, new URL(base, location.href)));
     if (!response.ok) throw new Error(`Architecture resource ${file} returned ${response.status}`);
-    return response;
+    return countResponseBytes(response, progress?.bytes);
+  };
+  const fetched = <T>(value: T): T => {
+    progress?.files?.(++filesDone, fileCount);
+    return value;
   };
   const bitmap = async (file: string): Promise<ImageBitmap> => {
-    const image = await createImageBitmap(await (await fetchResource(file)).blob(),
+    const image = await createImageBitmap(fetched(await (await fetchResource(file)).blob()),
       { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
     bitmaps.push(image);
     return image;
   };
   try {
     const color = await bitmap(ARCHITECTURE.resources.color);
-    const depth = new Uint16Array(await (await fetchResource(ARCHITECTURE.resources.depth)).arrayBuffer());
+    const depth = new Uint16Array(fetched(await (await fetchResource(ARCHITECTURE.resources.depth)).arrayBuffer()));
     let carrier: ImageBitmap | undefined, roles: Uint8Array<ArrayBuffer> | undefined;
     const patterns: ImageBitmap[] = [];
     if (finishes.keys.length) {
       carrier = await bitmap(ARCHITECTURE.resources.carrier);
-      roles = new Uint8Array(await (await fetchResource(ARCHITECTURE.resources.roles)).arrayBuffer());
+      roles = new Uint8Array(fetched(await (await fetchResource(ARCHITECTURE.resources.roles)).arrayBuffer()));
       for (const key of finishes.resources) {
         const image = await bitmap(resources[key].url);
         if (image.width !== resources[key].width || image.height !== resources[key].height) {
