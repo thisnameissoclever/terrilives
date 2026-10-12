@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { ARCHITECTURE } from '../src/render/architecture-data.js';
 import { architectureSprite, architectureJunction, architectureFloor } from '../src/render/architecture.js';
 import { buildArchitectureWallGeometry } from '../src/render/architecture-geometry.js';
@@ -200,8 +201,8 @@ describe('finish catalogue and registered source coordinates', () => {
   });
 
   it('reconstructs common source coordinates from actual signed depth texels across all split owners', () => {
-    const bytes = readFileSync(`public/${ARCHITECTURE.resources.depth}`);
-    const roles = readFileSync(`public/${ARCHITECTURE.resources.roles}`);
+    const bytes = gunzipSync(readFileSync(`public/${ARCHITECTURE.resources.depth}`));
+    const roles = gunzipSync(readFileSync(`public/${ARCHITECTURE.resources.roles}`));
     const half = (bits: number): number => (bits & 0x8000 ? -1 : 1)
       * (bits & 0x7c00 ? 1 + (bits & 1023) / 1024 : (bits & 1023) / 1024)
       * 2 ** ((bits & 0x7c00 ? (bits >> 10) & 31 : 1) - 15);

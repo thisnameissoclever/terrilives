@@ -3,6 +3,7 @@ import { initDevice } from '../src/render/device.ts';
 import { SpriteRenderer } from '../src/render/sprites.ts';
 import { loadArchitectureAtlas, closeArchitectureAtlas } from '../src/render/architecture-atlas.ts';
 import { ARCHITECTURE } from '../src/render/architecture-data.ts';
+import { unpackedBytes } from '../src/render/gzip-file.ts';
 import { architecturePieces, architectureSprite, architectureFloor } from '../src/render/architecture.ts';
 import { buildArchitectureWallGeometry } from '../src/render/architecture-geometry.ts';
 import { buildStaticInstances } from '../src/render/tiles.ts';
@@ -52,7 +53,8 @@ export async function createArchitectureDepthProof() {
     assert(pixels.length === atlas.width * atlas.height * 4 && await sha256(pixels) === reference.rgbaSha256,
       'Proof lossless decoded RGBA hash');
     const depth = atlas.depth;
-    const roles = new Uint8Array(await (await fetch(`/${ARCHITECTURE.resources.roles}`)).arrayBuffer());
+    const roles = await unpackedBytes(new Uint8Array(await (await fetch(`/${ARCHITECTURE.resources.roles}`)).arrayBuffer()),
+      atlas.width * atlas.height, 'Proof role file');
     gpu.device.pushErrorScope('validation');
     renderer = await SpriteRenderer.create(gpu, atlas);
     closeArchitectureAtlas(atlas); atlas = undefined;

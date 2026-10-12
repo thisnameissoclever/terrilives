@@ -35,7 +35,8 @@ class AquariumPrefixTests(unittest.TestCase):
             self.assertEqual(row.pop('id'), base + index)
         digest = hashlib.sha256(json.dumps(value, sort_keys=True,
             separators=(',', ':'), allow_nan=False).encode()).hexdigest()
-        self.assertEqual(digest, '2a345967d080a65c42319e4eb2eaa96d92df7957ea0c2f376012b663355d1d5d')
+        # Depth and role files ship as .gz since 2026-10-12; only their names changed.
+        self.assertEqual(digest, '2c76b1dd414f57a69ecd72582454588fdbc28f20b54c2eb98f01e7d1688ba245')
 
     def test_preserves_every_released_record_and_decoded_pixel(self):
         rows = tomllib.loads((ROOT/'assets/sprites/atlas.toml').read_text())['sprite']

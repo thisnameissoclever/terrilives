@@ -1,4 +1,5 @@
 import { countResponseBytes, type LoadProgress } from '../load-progress.js';
+import { unpackedBytes } from './gzip-file.js';
 import { SPRITES, type AtlasSprite } from './atlas.js';
 import { ARCHITECTURE } from './architecture-data.js';
 import { BYTES_PER_SPRITE } from './sprite-table-layout.js';
@@ -127,6 +128,10 @@ export async function loadArchitectureAtlas(limits: GPUDevice['limits'],
     progress?.files?.(++filesDone, fileCount);
     return value;
   };
+  // Depth and role files are published gzip-compressed; see gzip-file.ts.
+  const packed = async (file: string, length: number): Promise<Uint8Array<ArrayBuffer>> =>
+    unpackedBytes(fetched(new Uint8Array(await (await fetchResource(file)).arrayBuffer())), length,
+      `Architecture resource ${file}`);
   const bitmap = async (file: string): Promise<ImageBitmap> => {
     const image = await createImageBitmap(fetched(await (await fetchResource(file)).blob()),
       { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
@@ -135,12 +140,13 @@ export async function loadArchitectureAtlas(limits: GPUDevice['limits'],
   };
   try {
     const color = await bitmap(ARCHITECTURE.resources.color);
-    const depth = new Uint16Array(fetched(await (await fetchResource(ARCHITECTURE.resources.depth)).arrayBuffer()));
+    const texels = ARCHITECTURE.width * ARCHITECTURE.height;
+    const depth = new Uint16Array((await packed(ARCHITECTURE.resources.depth, texels * 2)).buffer);
     let carrier: ImageBitmap | undefined, roles: Uint8Array<ArrayBuffer> | undefined;
     const patterns: ImageBitmap[] = [];
     if (finishes.keys.length) {
       carrier = await bitmap(ARCHITECTURE.resources.carrier);
-      roles = new Uint8Array(fetched(await (await fetchResource(ARCHITECTURE.resources.roles)).arrayBuffer()));
+      roles = await packed(ARCHITECTURE.resources.roles, texels);
       for (const key of finishes.resources) {
         const image = await bitmap(resources[key].url);
         if (image.width !== resources[key].width || image.height !== resources[key].height) {

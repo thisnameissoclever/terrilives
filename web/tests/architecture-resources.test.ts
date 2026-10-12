@@ -3,7 +3,7 @@ import { ARCHITECTURE } from '../src/render/architecture-data.js';
 import { closeArchitectureAtlas, loadArchitectureAtlas, validateArchitectureDevice, type ArchitectureAtlas } from '../src/render/architecture-atlas.js';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { gunzipSync } from 'node:zlib';
+import { gunzipSync, gzipSync } from 'node:zlib';
 
 const limits = { maxTextureDimension2D: 8192, maxTextureArrayLayers: 256,
   maxSampledTexturesPerShaderStage: 16, maxStorageBuffersPerShaderStage: 8, maxStorageBufferBindingSize: 128 * 1024 * 1024 } as GPUDevice['limits'];
@@ -34,7 +34,7 @@ it('closes each decoded image when a later resource fails', async () => {
   const close = vi.fn(); vi.stubGlobal('location', { href: 'http://proof.invalid/' });
   vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 2048, height: 3037, close })));
   vi.stubGlobal('fetch', vi.fn(async (url: URL) => {
-    if (url.pathname.endsWith('.r16f')) throw new Error('Depth fetch failed');
+    if (url.pathname.endsWith('.r16f.gz')) throw new Error('Depth fetch failed');
     return new Response(new Uint8Array(1));
   }));
   await expect(loadArchitectureAtlas(limits, { baseUrl: '/' })).rejects.toThrow('Depth fetch failed');
@@ -47,13 +47,53 @@ it('loads accepted color and depth only for default walls, then explicitly relea
   vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 2048, height: 3037, close })));
   vi.stubGlobal('fetch', vi.fn(async (url: URL) => {
     fetched.push(url.pathname);
-    return new Response(url.pathname.endsWith('.r16f') ? new Uint8Array(2048 * 3037 * 2) : new Uint8Array(1));
+    return new Response(url.pathname.endsWith('.r16f.gz') ? new Uint8Array(2048 * 3037 * 2) : new Uint8Array(1));
   }));
   const atlas = await loadArchitectureAtlas(limits, { baseUrl: '/' });
   expect(fetched).toEqual([`/${ARCHITECTURE.resources.color}`, `/${ARCHITECTURE.resources.depth}`]);
   expect(atlas.finishes?.resources).toEqual([]); expect(atlas.carrier).toBeUndefined();
   expect(atlas.registration?.length).toBe(472 * 4); expect(close).not.toHaveBeenCalled();
   closeArchitectureAtlas(atlas); expect(close).toHaveBeenCalledOnce();
+});
+
+it('unpacks the published gzip depth and role files and rejects ones of the wrong size', async () => {
+  const texels = ARCHITECTURE.width * ARCHITECTURE.height;
+  const depth = new Uint16Array(texels); depth[0] = 0x3c00; depth[texels - 1] = 0xbc00;
+  const roles = new Uint8Array(texels); roles[1] = 2;
+  let roleBytes: Uint8Array = gzipSync(roles);
+  const counted: number[] = [];
+  vi.stubGlobal('location', { href: 'http://proof.invalid/' });
+  const finishKeys = [Object.keys(ARCHITECTURE.catalogue.finishes)[0]];
+  const catalogue = ARCHITECTURE.catalogue as unknown as { finishes: Record<string, { patternKey: string }>;
+    patterns: Record<string, { resource: string }> };
+  const pattern = (ARCHITECTURE.patterns as Record<string, { width: number; height: number }>)[
+    catalogue.patterns[catalogue.finishes[finishKeys[0]].patternKey].resource];
+  // A two-byte body stands for a pattern image, one byte for the atlas images.
+  vi.stubGlobal('createImageBitmap', vi.fn(async (blob: Blob) => (blob.size === 2
+    ? { width: pattern.width, height: pattern.height, close: vi.fn() } : { width: 2048, height: 3037, close: vi.fn() })));
+  vi.stubGlobal('fetch', vi.fn(async (url: URL) => new Response(new Uint8Array(
+    url.pathname.endsWith('.r16f.gz') ? gzipSync(depth) : url.pathname.endsWith('.r8.gz') ? roleBytes
+      : new Uint8Array(url.pathname.includes('-pattern-') ? 2 : 1)))));
+  const atlas = await loadArchitectureAtlas(limits, { baseUrl: '/', finishKeys,
+    progress: { bytes: count => counted.push(count) } });
+  expect(atlas.depth[0]).toBe(0x3c00); expect(atlas.depth[texels - 1]).toBe(0xbc00);
+  expect(atlas.depth.length).toBe(texels); expect(atlas.roles?.[1]).toBe(2);
+  // The count is what arrived over the network, not the unpacked size.
+  expect(counted.reduce((sum, n) => sum + n, 0)).toBeLessThan(texels);
+  roleBytes = gzipSync(roles.subarray(1));
+  await expect(loadArchitectureAtlas(limits, { baseUrl: '/', finishKeys })).rejects.toThrow(/unpacks to/);
+  roleBytes = roles.subarray(1);
+  await expect(loadArchitectureAtlas(limits, { baseUrl: '/', finishKeys })).rejects.toThrow(/were expected/);
+});
+
+it('publishes depth and roles gzip-compressed, named by the hash of their unpacked bytes', () => {
+  for (const key of ['depth', 'roles'] as const) {
+    const file = ARCHITECTURE.resources[key];
+    expect(file).toBe(`architecture-${ARCHITECTURE.hashes[key]}.${key === 'depth' ? 'r16f' : 'r8'}.gz`);
+    const unpacked = gunzipSync(readFileSync(`public/${file}`));
+    expect(createHash('sha256').update(unpacked).digest('hex')).toBe(ARCHITECTURE.hashes[key]);
+    expect(unpacked.length).toBe(ARCHITECTURE.width * ARCHITECTURE.height * (key === 'depth' ? 2 : 1));
+  }
 });
 
 it('keeps browser fixture pattern bytes identical to the accepted portable export', () => {

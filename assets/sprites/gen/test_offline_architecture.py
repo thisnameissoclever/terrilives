@@ -1,10 +1,15 @@
 import copy
+import gzip
+import hashlib
 import json
+from pathlib import Path
+import tempfile
 import unittest
 from PIL import Image
-from offline_architecture import (SOURCE,load_reviewed_architecture,validate_manifest,
+from coverage_payload import compress
+from offline_architecture import (SOURCE,PUBLIC,load_reviewed_architecture,validate_manifest,
                                   validate_pixels,generated_files,ArchitectureExport,
-                                  load_historical_extensions)
+                                  load_historical_extensions,is_current,obsolete_files)
 
 
 class ArchitectureImport(unittest.TestCase):
@@ -122,6 +127,51 @@ class ArchitectureImport(unittest.TestCase):
         ts=next(value.decode() for path,value in files.items() if path.suffix=='.ts')
         self.assertIn(f'"baseSpriteId": {count}',ts)
         self.assertIn(f'"id": {count+len(self.data["sprites"])-1}',ts)
+
+
+    def test_depth_and_roles_ship_compressed_under_their_unpacked_hash(self):
+        batch=load_reviewed_architecture()
+        config=json.loads((SOURCE/'architecture.json').read_text())
+        files=generated_files(batch,config['historicalCount']+len(load_historical_extensions(config)))
+        for key,extension in (('depth','r16f.gz'),('roles','r8.gz')):
+            with self.subTest(key=key):
+                raw=(self.directory/self.data['resources'][key]).read_bytes()
+                path=PUBLIC/f"architecture-{self.data['hashes'][key]}.{extension}"
+                self.assertEqual(gzip.decompress(files[path]),raw)
+                self.assertEqual(hashlib.sha256(raw).hexdigest(),self.data['hashes'][key])
+                self.assertLess(len(files[path]),len(raw)//10)
+        for key in ('color','carrier'):
+            self.assertIn(PUBLIC/f"architecture-{self.data['hashes'][key]}.png",files)
+
+    def test_compressed_files_compare_unpacked_and_others_compare_exactly(self):
+        raw=b'depth'*1000
+        other_zlib=gzip.compress(raw,compresslevel=1,mtime=0)
+        self.assertNotEqual(other_zlib,compress(raw))
+        with tempfile.TemporaryDirectory() as directory:
+            packed=Path(directory)/('architecture-'+'0'*64+'.r16f.gz')
+            self.assertFalse(is_current(packed,compress(raw)))
+            packed.write_bytes(other_zlib)
+            self.assertTrue(is_current(packed,compress(raw)))
+            self.assertFalse(is_current(packed,compress(raw+b'!')))
+            packed.write_bytes(raw)
+            self.assertFalse(is_current(packed,compress(raw)))
+            image=Path(directory)/('architecture-'+'1'*64+'.png')
+            image.write_bytes(b'png')
+            self.assertTrue(is_current(image,b'png'))
+            self.assertFalse(is_current(image,b'png!'))
+
+    def test_only_unnamed_generator_owned_files_are_obsolete(self):
+        with tempfile.TemporaryDirectory() as directory:
+            public=Path(directory)
+            names=['architecture-'+'a'*64+'.png','architecture-'+'b'*64+'.r16f',
+                   'architecture-'+'c'*64+'.r8','architecture-'+'d'*64+'.r16f.gz',
+                   'architecture-'+'e'*64+'.r8.gz','architecture-pattern-'+'f'*64+'.png',
+                   'architecture-notes.png','atlas-'+'0'*64+'.png','coverage-'+'1'*64+'.bin']
+            for name in names: (public/name).write_bytes(b'x')
+            keep={public/names[0],public/names[3],public/names[5]}
+            self.assertEqual([path.name for path in obsolete_files(public,keep)],
+                             sorted([names[1],names[2],names[4]]))
+            self.assertEqual(obsolete_files(public/'missing',set()),[])
 
 
 if __name__=='__main__': unittest.main()

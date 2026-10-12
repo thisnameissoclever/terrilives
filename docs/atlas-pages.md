@@ -94,3 +94,28 @@ and nothing samples coverage before a renderer exists. Node tests read the
 same committed file through `web/tests/setup/coverage-payload.ts`, and the
 Python tests restore each record's base64 `values` through
 `atlas_test_tables.table`.
+
+## Wall and floor depth and role files
+
+The architecture export ships two texture-sized binaries beside its PNGs: the
+half-float depth file and the one-byte material-role file. Both are mostly
+zeros and GitHub Pages does not compress binary files, so
+`offline_architecture.py` publishes them gzip-compressed as
+`architecture-<sha256>.r16f.gz` and `architecture-<sha256>.r8.gz`. The depth
+file goes from about 12.4 MB to 0.27 MB, and the role file from about 6.2 MB
+to 0.09 MB. Startup always loads the depth file. The role file loads only for
+a floor finish that is not baked into the color texture; every covering in
+the current catalogue is baked, so players do not download it today.
+
+Unlike the coverage file, these names hold the SHA-256 of the unpacked bytes,
+which the reviewed manifest already records as `ARCHITECTURE.hashes`, so a
+different zlib build never renames them. `--check` and a normal run compare
+unpacked bytes and keep a committed file that still holds them. A normal run
+removes generator-owned `architecture-*` files the export no longer names, and
+`--check` reports them.
+
+`architecture-atlas.ts` unpacks both with `gzip-file.ts` into buffers of the
+exact texture size, and accepts uncompressed bytes from a server that already
+decoded them. The loading screen counts the bytes the page receives: the
+compressed size on GitHub Pages, the unpacked size under Vite's own servers,
+which label `.gz` files as gzip-encoded.
