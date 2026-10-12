@@ -17,6 +17,7 @@
  */
 import { COVERAGE_BYTE_LENGTH, COVERAGE_FILE_NAME } from './coverage-file.js';
 import { countResponseBytes, type LoadProgress } from '../load-progress.js';
+import { gunzipExact, isGzip } from './gzip-file.js';
 
 let payload: Uint8Array<ArrayBuffer> | undefined;
 let lazySource: (() => Uint8Array<ArrayBuffer>) | undefined;
@@ -25,11 +26,6 @@ let pending: Promise<void> | undefined;
 /** The content-addressed public URL of the coverage file. */
 export function coverageUrl(baseUrl: string): string {
   return `${baseUrl}${COVERAGE_FILE_NAME}`;
-}
-
-/** Whether `bytes` start with the gzip signature. */
-export function isGzip(bytes: Uint8Array): boolean {
-  return bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b;
 }
 
 /** Makes `bytes` the coverage payload, after checking its length. */
@@ -57,30 +53,6 @@ export function coveragePayload(): Uint8Array<ArrayBuffer> {
   return payload;
 }
 
-/**
- * Decompresses straight into one buffer of the expected size. Collecting the
- * chunks first would briefly hold the seventy-odd megabytes twice.
- */
-export async function gunzip(bytes: Uint8Array<ArrayBuffer>, length: number): Promise<Uint8Array<ArrayBuffer>> {
-  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
-  const out = new Uint8Array(length);
-  let at = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (at + value.byteLength > length) {
-      await reader.cancel();
-      throw new Error(`the click-area data unpacks to more than the ${length} bytes coverage-file.ts expects`);
-    }
-    out.set(value, at);
-    at += value.byteLength;
-  }
-  if (at !== length) {
-    throw new Error(`the click-area data unpacks to ${at} bytes but coverage-file.ts expects ${length}`);
-  }
-  return out;
-}
-
 async function download(url: string, progress?: LoadProgress): Promise<void> {
   let response: Response;
   try {
@@ -103,7 +75,7 @@ async function download(url: string, progress?: LoadProgress): Promise<void> {
   }
   let bytes: Uint8Array<ArrayBuffer>;
   try {
-    bytes = await gunzip(body, COVERAGE_BYTE_LENGTH);
+    bytes = await gunzipExact(body, COVERAGE_BYTE_LENGTH, 'the click-area data');
   } catch (cause) {
     throw new Error(`the click-area data at ${url} is damaged and could not be unpacked`, { cause });
   }

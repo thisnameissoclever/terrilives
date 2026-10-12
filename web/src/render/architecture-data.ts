@@ -8,8 +8,8 @@ export const ARCHITECTURE = {
   "resources": {
     "color": "architecture-2599e89005fabbe3a83b16794e9ced181215829c765bf2195721245d666e4e5c.png",
     "carrier": "architecture-c3652fb09fa8789244b03c088705e1cfa623d50fe4035a21965d6a04710a6966.png",
-    "depth": "architecture-19b7bdacf59abb549d92546679f67755418a9ecb9c43eb7e56fd39753ea6616d.r16f",
-    "roles": "architecture-f0491b56478b6dacaa14d3c70e016e77b9372fdefac4cec817e661cd89cd45e6.r8"
+    "depth": "architecture-19b7bdacf59abb549d92546679f67755418a9ecb9c43eb7e56fd39753ea6616d.r16f.gz",
+    "roles": "architecture-f0491b56478b6dacaa14d3c70e016e77b9372fdefac4cec817e661cd89cd45e6.r8.gz"
   },
   "hashes": {
     "color": "2599e89005fabbe3a83b16794e9ced181215829c765bf2195721245d666e4e5c",

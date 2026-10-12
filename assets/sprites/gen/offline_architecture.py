@@ -1,11 +1,14 @@
 """Import reviewed architecture as a separate logical suffix with paired textures."""
 from dataclasses import dataclass
+import gzip
 import hashlib
 import json
 import math
 from pathlib import Path
+import re
 import struct
 import sys
+import zlib
 from PIL import Image, ImageChops
 
 ROOT=Path(__file__).resolve().parents[3]
@@ -14,6 +17,16 @@ sys.path.insert(0,str(SOURCE))
 from windows import MODELS, DIRECTIONS
 from check_scene import validate_window_geometry
 from materials import validate_catalogue, resource_budget
+from coverage_payload import compress
+
+PUBLIC=ROOT/'web/public'
+# Depth and role files are mostly zeros, and GitHub Pages does not compress
+# binary files, so they ship gzip-compressed: about 18.7 MB becomes 0.4 MB.
+# Their names keep the SHA-256 of the uncompressed bytes, which the manifest
+# records, so a different zlib build never renames them.
+COMPRESSED_EXTENSIONS={'depth':'r16f.gz','roles':'r8.gz'}
+# Every public file this module writes. Anything else matching is obsolete.
+OWNED_FILE=re.compile(r'^architecture-(?:pattern-)?[0-9a-f]{64}\.(?:png|r16f|r8|r16f\.gz|r8\.gz)$')
 
 
 def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -150,7 +163,7 @@ def load_reviewed_architecture(catalog_path=None, *, require_review=True):
 
 def generated_files(batch,historical_count):
     data=batch.manifest
-    resources={key:f"architecture-{sha}.{ 'png' if key in ('color','carrier') else 'r16f' if key=='depth' else 'r8'}" for key,sha in data['hashes'].items()}
+    resources={key:f"architecture-{sha}.{COMPRESSED_EXTENSIONS.get(key,'png')}" for key,sha in data['hashes'].items()}
     patterns={key:{**value,'url':f"architecture-pattern-{value['sha256']}.png"} for key,value in data['patternResources'].items() if value['shipped']}
     validate_catalogue(data['catalogue'],patterns,require_shipped=True)
     descriptor={'schema':1,'baseSpriteId':historical_count,'width':data['width'],'height':data['height'],
@@ -180,9 +193,35 @@ def generated_files(batch,historical_count):
     baked_text+='// Independent baked-pixel identities; never derive these from the live catalogue.\n'
     baked_text+='export const BAKED_FLOORS = '+json.dumps(receipt,indent=2)+' as const;\n'
     result[ROOT/'web/src/render/architecture-baked-floors.ts']=baked_text.encode()
-    for key,name in resources.items(): result[ROOT/'web/public'/name]=(batch.directory/data['resources'][key]).read_bytes()
-    for key,resource in patterns.items(): result[ROOT/'web/public'/resource['url']]=(batch.directory/resource['file']).read_bytes()
+    for key,name in resources.items():
+        raw=(batch.directory/data['resources'][key]).read_bytes()
+        result[PUBLIC/name]=compress(raw) if key in COMPRESSED_EXTENSIONS else raw
+    for key,resource in patterns.items(): result[PUBLIC/resource['url']]=(batch.directory/resource['file']).read_bytes()
     return result
+
+
+def unpacked(data):
+    """The bytes inside a gzip file, or None if it is not one."""
+    try:
+        return gzip.decompress(data)
+    except (OSError, EOFError, zlib.error):
+        return None
+
+
+def is_current(path,want):
+    """Whether `path` already holds `want`. Compressed files compare unpacked,
+    because another zlib build may compress the same bytes differently."""
+    if not path.is_file(): return False
+    have=path.read_bytes()
+    if path.suffix=='.gz': return unpacked(have)==gzip.decompress(want)
+    return have==want
+
+
+def obsolete_files(public,keep):
+    """Generator-owned architecture files that the current export no longer names."""
+    if not public.is_dir(): return []
+    return sorted(path for path in public.iterdir()
+                  if OWNED_FILE.fullmatch(path.name) and path not in keep)
 
 
 def load_historical_extensions(config, existing_names=frozenset()):
@@ -258,9 +297,15 @@ def sync_generated_architecture(historical_sprites, *, check):
         {sprite[0] for sprite in historical_sprites[:config['historicalCount']]})
     validate_historical_sprites(historical_sprites, config, extensions)
     batch=load_reviewed_architecture()
-    for path,want in generated_files(batch,len(historical_sprites)).items():
+    files=generated_files(batch,len(historical_sprites))
+    for path,want in files.items():
+        current=is_current(path,want)
         if check:
-            assert path.is_file() and path.read_bytes()==want, f'generated architecture stale: {path}'
-        else:
+            assert current, f'generated architecture stale: {path}'
+        elif not current:
             path.write_bytes(want)
+    for path in obsolete_files(PUBLIC,set(files)):
+        if check:
+            raise AssertionError(f'obsolete generated architecture file: {path}')
+        path.unlink()
     print(f"architecture is {'up to date' if check else 'generated'}: {len(batch.manifest['sprites'])} logical records after {len(historical_sprites)} historical records")
