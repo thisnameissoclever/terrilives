@@ -9,6 +9,7 @@ import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
 import type { PurchaseQuote, SaleQuote, QuoteResult, ReadingChoice } from '../books/commerce-codec.js';
 import { actionPage, layoutObjectActions, maximumActionSize, chooseActionPlacement, type ActionRegion } from './object-menu-layout.js';
 import { formatFunds } from './game-hud.js';
+import { preventMenuSelection } from './menu-selection.js';
 
 /**
  * What a row does when picked.
@@ -439,6 +440,7 @@ export interface MenuSurfaceOptions {
 }
 
 export function createMenuSurface(doc: Document, root: HTMLElement, options: MenuSurfaceOptions = {}): MenuSurface {
+  preventMenuSelection(root);
   let returnFocus: HTMLElement | null = null;
   let disposeIdentity: (() => void) | undefined;
   let cleanup: (() => void) | undefined;

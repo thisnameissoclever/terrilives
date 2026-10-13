@@ -6,6 +6,7 @@ import type { CompactBuildLayout } from './build-layout.js';
 import type { BuyTool } from './buy-tool.js';
 import type { FloorTool } from './floor-tool.js';
 import { formatFunds } from './game-hud.js';
+import { preventMenuSelection } from './menu-selection.js';
 import type { RoomTool } from './room-tool.js';
 import { DOORWAY, OPEN, WALL, WINDOW, type WallTool } from './wall-tool.js';
 
@@ -254,6 +255,7 @@ const ICON_PATHS: Record<ContextIcon, string> = {
 export function createContextSurface(doc: Document, root: HTMLElement, canvas: HTMLCanvasElement,
   bounds: () => ContextBounds, invalidate: () => void, layout?: CompactBuildLayout,
   shiftAnchor?: (dx: number, dy: number) => void): ContextSurface {
+  preventMenuSelection(root);
   const groups = new Map<ContextSlot, HTMLElement>();
   for (const slot of ['top', 'left', 'right', 'bottom'] as const) {
     const group = doc.createElement('div'); group.className = `context-${slot}`;

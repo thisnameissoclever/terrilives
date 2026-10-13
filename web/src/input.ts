@@ -1290,7 +1290,7 @@ export class LongPressGesture {
   private timer: unknown = null;
 
   constructor(
-    private readonly fire: (clientX: number, clientY: number) => void,
+    private readonly fire: (clientX: number, clientY: number, pointerId: number) => void,
     private readonly scheduler: LongPressScheduler = BROWSER_LONG_PRESS_SCHEDULER,
     private readonly delayMs = LONG_PRESS_MS,
     private readonly movementLimitPx = DRAG_THRESHOLD_PX,
@@ -1305,9 +1305,10 @@ export class LongPressGesture {
       if (this.pointerId === null) return;
       const x = this.startX;
       const y = this.startY;
+      const pointerId = this.pointerId;
       this.pointerId = null;
       this.timer = null;
-      this.fire(x, y);
+      this.fire(x, y, pointerId);
     });
   }
 
@@ -1383,9 +1384,12 @@ export function attachPointerInput(
   let pinchStartDistance = 0;
   let pinchStartScale = 1;
   let suppressNextClick = false;
-  const longPress = new LongPressGesture((clientX, clientY) => {
+  let menuOpeningPointer: number | null = null;
+  let lastReleasedPointer: number | null = null;
+  const longPress = new LongPressGesture((clientX, clientY, pointerId) => {
     if (editing?.active()) return;
     suppressNextClick = true;
+    menuOpeningPointer = pointerId;
     canvas.focus();
     handleRightClick(
       target,
@@ -1561,6 +1565,24 @@ export function attachPointerInput(
   });
 
   const doc = canvas.ownerDocument;
+  // A mobile browser can deliver the held finger's compatibility click to a
+  // menu button that appeared under it, despite capturing pointerup on canvas.
+  // Consume that gesture before any menu or canvas action receives the click.
+  doc.addEventListener('pointerdown', () => {
+    if (pointers.size === 0) menuOpeningPointer = null;
+  }, true);
+  doc.addEventListener('pointerup', event => {
+    lastReleasedPointer = event.pointerId;
+  }, true);
+  doc.addEventListener('click', event => {
+    if (menuOpeningPointer === null || event.detail === 0) return;
+    const pointerId = 'pointerId' in event ? (event as PointerEvent).pointerId : lastReleasedPointer;
+    if (pointerId !== menuOpeningPointer) return;
+    menuOpeningPointer = null;
+    suppressNextClick = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }, true);
   doc.addEventListener('pointerdown', (event) => {
     // `instanceof Node` rather than a cast: `event.target` is an
     // `EventTarget`, and a pointer-down on something that is not a node -

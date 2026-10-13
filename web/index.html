@@ -53,6 +53,13 @@
         height: 100vh;
         touch-action: none;
       }
+      /* The held finger can move over a menu as it opens. Keep browser text
+         selection and touch callouts off these game surfaces, not form fields. */
+      #stage, #object-menu, #placement-actions {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
       /* The startup cover ([startup-loading.ts]). Styled here rather than in
          a module so it paints with the HTML, before any script has arrived:
          on a phone the bundle, the WASM and the sprite pages take long
