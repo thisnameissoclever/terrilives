@@ -1,0 +1,471 @@
+
+*** crates/terri-sim/src/save/social.rs:276:5: replace hash with ()
+
+*** mutation diff:
+--- crates/terri-sim/src/save/social.rs
++++ replace hash with ()
+@@ -268,51 +268,17 @@
+             return Err(SaveError::InvalidValue);
+         }
+     }
+     candidate.world.insert_resource(state);
+     Ok(())
+ }
+
+ pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
+-    let saved = capture(world);
+-    if saved.rendezvous.is_empty() && saved.topics.is_empty() && saved.communal.is_empty() {
+-        return;
+-    }
+-    hash.write_bytes(b"social-episodes-v1");
+-    hash.write_u64(saved.rendezvous.len() as u64);
+-    for (r, i) in saved.rendezvous {
+-        hash.write_u64(r.into());
+-        hash.write_u64(i.into());
+-    }
+-    hash.write_u64(saved.topics.len() as u64);
+-    for t in saved.topics {
+-        hash.write_u64(t.initiator.into());
+-        hash.write_u64(t.code.into());
+-        hash.write_u64(t.tag.len() as u64);
+-        hash.write_bytes(t.tag.as_bytes());
+-        hash.write_f32(t.initiator_preference);
+-        hash.write_f32(t.listener_preference);
+-    }
+-    hash.write_u64(saved.communal.len() as u64);
+-    for c in saved.communal {
+-        hash.write_u64(c.owner.into());
+-        hash.write_u64(c.target.object.into());
+-        hash.write_u64(c.target.interaction.into());
+-        hash.write_u64(c.extensions.into());
+-        hash.write_u64(c.remaining.into());
+-        hash.write_u64(u64::from(c.completed_novelty.is_some()));
+-        if let Some(novelty) = c.completed_novelty {
+-            hash.write_f32(novelty);
+-        }
+-        hash.write_u64(c.participants.len() as u64);
+-        for p in c.participants {
+-            hash.write_u64(p.into());
+-        }
+-    }
++    () /* ~ changed by cargo-mutants ~ */
+ }
+
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+
+     fn populated() -> Sim {
+         let mut sim = Sim::new_from_shipped_lot();
+
+
+*** C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe test --no-run --verbose --package=terri-sim@0.1.0 --lib
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.107
+       Fresh quote v1.0.47
+       Fresh serde_core v1.0.229
+       Fresh equivalent v1.0.2
+       Fresh syn v3.0.3
+       Fresh syn v2.0.119
+       Fresh hashbrown v0.17.1
+       Fresh winnow v1.0.4
+       Fresh toml_parser v1.1.3+spec-1.1.0
+       Fresh serde_derive v1.0.229
+       Fresh serde v1.0.229
+       Fresh toml_datetime v0.7.5+spec-1.1.0
+       Fresh unicode-segmentation v1.13.3
+       Fresh winnow v0.7.15
+       Fresh convert_case v0.10.0
+       Fresh toml_edit v0.23.10+spec-1.0.0
+       Fresh thiserror-impl v2.0.19
+       Fresh hashbrown v0.16.1
+       Fresh spin v0.10.1
+       Fresh unicode-xid v0.2.6
+       Fresh foldhash v0.2.0
+       Fresh bevy_platform v0.18.1
+       Fresh derive_more-impl v2.1.1
+       Fresh thiserror v2.0.19
+       Fresh bevy_macro_utils v0.18.1
+       Fresh crossbeam-utils v0.8.22
+       Fresh cfg-if v1.0.4
+       Fresh thread_local v1.1.10
+       Fresh derive_more v2.1.1
+       Fresh typeid v1.0.3
+       Fresh futures-core v0.3.33
+       Fresh disqualified v1.0.0
+       Fresh futures-io v0.3.33
+       Fresh pin-project-lite v0.2.17
+       Fresh version_check v0.9.5
+       Fresh fastrand v2.5.0
+       Fresh parking v2.2.1
+       Fresh futures-lite v2.6.1
+       Fresh bevy_utils v0.18.1
+       Fresh erased-serde v0.4.10
+       Fresh concurrent-queue v2.5.0
+       Fresh bevy_reflect_derive v0.18.1
+       Fresh variadics_please v1.1.0
+       Fresh assert_type_match v0.1.1
+       Fresh smallvec v1.15.2
+       Fresh slab v0.4.12
+       Fresh bevy_ptr v0.18.1
+       Fresh downcast-rs v2.0.2
+       Fresh async-task v4.7.1
+       Fresh async-executor v1.14.0
+       Fresh crossbeam-queue v0.3.13
+       Fresh atomic-waker v1.1.2
+       Fresh slotmap v1.1.1
+       Fresh bevy_tasks v0.18.1
+       Fresh bevy_ecs_macros v0.18.1
+       Fresh bitflags v2.13.1
+       Fresh bumpalo v3.20.3
+       Fresh log v0.4.33
+       Fresh nonmax v0.5.5
+       Fresh fixedbitset v0.5.7
+       Fresh cobs v0.3.0
+       Fresh indexmap v2.14.0
+       Fresh serde_spanned v1.1.1
+       Fresh toml_datetime v1.1.1+spec-1.1.0
+       Fresh toml_writer v1.1.2+spec-1.1.0
+       Fresh toml v1.1.3+spec-1.1.0
+       Fresh bevy_reflect v0.18.1
+       Fresh postcard v1.1.3
+       Fresh bevy_ecs v0.18.1
+       Fresh terri-core v0.1.0 (C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\crates\terri-core)
+       Fresh terri-data v0.1.0 (C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\crates\terri-data)
+       Dirty terri-sim v0.1.0 (C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\crates\terri-sim): the file `crates\terri-sim\src\save\social.rs` has changed (13436402659.155813000s, 34s after last build at 13436402625.371094100s)
+   Compiling terri-sim v0.1.0 (C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\crates\terri-sim)
+     Running `C:\Users\myema\.rustup\toolchains\1.94.1-x86_64-pc-windows-msvc\bin\rustc.exe --crate-name terri_sim --edition=2021 crates\terri-sim\src\lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C embed-bitcode=no --test --check-cfg cfg(docsrs,test) --check-cfg "cfg(feature, values())" -C metadata=3c8ef5f5ff4d8c77 -C extra-filename=-cbdb48b70b0740b7 --out-dir C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\deps -C incremental=C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\incremental -C strip=debuginfo -L dependency=C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\deps --extern bevy_ecs=C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\deps\libbevy_ecs-ac458dbeb344937b.rlib --extern terri_core=C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\deps\libterri_core-1e24b0ae916b712a.rlib --extern terri_data=C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\deps\libterri_data-8ebe1e560f1b9f96.rlib`
+warning: unused variable: `world`
+   --> crates\terri-sim\src\save\social.rs:275:20
+    |
+275 | pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
+    |                    ^^^^^ help: if this is intentional, prefix it with an underscore: `_world`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `hash`
+   --> crates\terri-sim\src\save\social.rs:275:35
+    |
+275 | pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
+    |                                   ^^^^ help: if this is intentional, prefix it with an underscore: `_hash`
+
+warning: `terri-sim` (lib test) generated 2 warnings (run `cargo fix --lib -p terri-sim --tests` to apply 2 suggestions)
+    Finished `test` profile [unoptimized] target(s) in 9.60s
+  Executable `C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\deps\terri_sim-cbdb48b70b0740b7.exe`
+
+*** result: Success
+
+*** C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe test --verbose --package=terri-sim@0.1.0 --lib save::social::tests -- --test-threads=2
+       Fresh unicode-ident v1.0.24
+       Fresh proc-macro2 v1.0.107
+       Fresh quote v1.0.47
+       Fresh serde_core v1.0.229
+       Fresh equivalent v1.0.2
+       Fresh syn v3.0.3
+       Fresh syn v2.0.119
+       Fresh winnow v1.0.4
+       Fresh hashbrown v0.17.1
+       Fresh toml_parser v1.1.3+spec-1.1.0
+       Fresh serde_derive v1.0.229
+       Fresh serde v1.0.229
+       Fresh winnow v0.7.15
+       Fresh unicode-segmentation v1.13.3
+       Fresh toml_datetime v0.7.5+spec-1.1.0
+       Fresh toml_edit v0.23.10+spec-1.0.0
+       Fresh convert_case v0.10.0
+       Fresh thiserror-impl v2.0.19
+       Fresh hashbrown v0.16.1
+       Fresh spin v0.10.1
+       Fresh foldhash v0.2.0
+       Fresh unicode-xid v0.2.6
+       Fresh bevy_platform v0.18.1
+       Fresh derive_more-impl v2.1.1
+       Fresh thiserror v2.0.19
+       Fresh crossbeam-utils v0.8.22
+       Fresh bevy_macro_utils v0.18.1
+       Fresh cfg-if v1.0.4
+       Fresh thread_local v1.1.10
+       Fresh typeid v1.0.3
+       Fresh derive_more v2.1.1
+       Fresh futures-io v0.3.33
+       Fresh version_check v0.9.5
+       Fresh disqualified v1.0.0
+       Fresh parking v2.2.1
+       Fresh futures-core v0.3.33
+       Fresh fastrand v2.5.0
+       Fresh pin-project-lite v0.2.17
+       Fresh futures-lite v2.6.1
+       Fresh bevy_utils v0.18.1
+       Fresh erased-serde v0.4.10
+       Fresh bevy_reflect_derive v0.18.1
+       Fresh concurrent-queue v2.5.0
+       Fresh variadics_please v1.1.0
+       Fresh assert_type_match v0.1.1
+       Fresh slab v0.4.12
+       Fresh async-task v4.7.1
+       Fresh bevy_ptr v0.18.1
+       Fresh smallvec v1.15.2
+       Fresh downcast-rs v2.0.2
+       Fresh async-executor v1.14.0
+       Fresh crossbeam-queue v0.3.13
+       Fresh atomic-waker v1.1.2
+       Fresh slotmap v1.1.1
+       Fresh bevy_tasks v0.18.1
+       Fresh bevy_ecs_macros v0.18.1
+       Fresh bumpalo v3.20.3
+       Fresh log v0.4.33
+       Fresh bitflags v2.13.1
+       Fresh fixedbitset v0.5.7
+       Fresh nonmax v0.5.5
+       Fresh cobs v0.3.0
+       Fresh indexmap v2.14.0
+       Fresh serde_spanned v1.1.1
+       Fresh toml_datetime v1.1.1+spec-1.1.0
+       Fresh toml_writer v1.1.2+spec-1.1.0
+       Fresh toml v1.1.3+spec-1.1.0
+       Fresh bevy_reflect v0.18.1
+       Fresh postcard v1.1.3
+       Fresh bevy_ecs v0.18.1
+       Fresh terri-core v0.1.0 (C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\crates\terri-core)
+       Fresh terri-data v0.1.0 (C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\crates\terri-data)
+       Fresh terri-sim v0.1.0 (C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\crates\terri-sim)
+warning: unused variable: `world`
+   --> crates\terri-sim\src\save\social.rs:275:20
+    |
+275 | pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
+    |                    ^^^^^ help: if this is intentional, prefix it with an underscore: `_world`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `hash`
+   --> crates\terri-sim\src\save\social.rs:275:35
+    |
+275 | pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
+    |                                   ^^^^ help: if this is intentional, prefix it with an underscore: `_hash`
+
+warning: `terri-sim` (lib test) generated 2 warnings (run `cargo fix --lib -p terri-sim --tests` to apply 2 suggestions)
+    Finished `test` profile [unoptimized] target(s) in 0.11s
+     Running `C:\Users\myema\AppData\Local\Temp\cargo-mutants-terrilives-gs6CZ6.tmp\target\debug\deps\terri_sim-cbdb48b70b0740b7.exe save::social::tests --test-threads=2`
+
+running 41 tests
+test save::social::tests::current_social_records_round_trip_without_drawing_rng ... ok
+test save::social::tests::active_conversation_can_have_an_inbound_waiter_without_a_claim_cycle ... ok
+test save::social::tests::empty_social_state_preserves_the_legacy_digest ... ok
+test save::social::tests::hash_communal_count ... FAILED
+test save::social::tests::hash_communal_extensions ... FAILED
+test save::social::tests::hash_communal_owner ... FAILED
+test save::social::tests::hash_communal_remaining ... FAILED
+test save::social::tests::hash_communal_target_interaction ... FAILED
+test save::social::tests::hash_communal_target_object ... FAILED
+test save::social::tests::hash_completed_novelty_presence ... FAILED
+test save::social::tests::hash_completed_novelty_value ... FAILED
+test save::social::tests::hash_participant_count ... FAILED
+test save::social::tests::hash_participant_identity ... FAILED
+test save::social::tests::hash_rendezvous_count ... FAILED
+test save::social::tests::hash_rendezvous_initiator ... FAILED
+test save::social::tests::hash_rendezvous_recipient ... FAILED
+test save::social::tests::hash_stream_matches_independent_vector ... FAILED
+test save::social::tests::hash_topic_code ... FAILED
+test save::social::tests::hash_topic_count ... FAILED
+test save::social::tests::hash_topic_initiator ... FAILED
+test save::social::tests::hash_topic_initiator_preference ... FAILED
+test save::social::tests::hash_topic_listener_preference ... FAILED
+test save::social::tests::duplicate_participant_is_rejected ... ok
+test save::social::tests::hash_topic_tag_bytes ... FAILED
+test save::social::tests::hash_topic_tag_length ... FAILED
+test save::social::tests::invalid_communal_owner_is_rejected ... ok
+test save::social::tests::invalid_communal_extensions_are_rejected ... ok
+test save::social::tests::invalid_communal_target_interaction_is_rejected ... ok
+test save::social::tests::invalid_communal_target_object_is_rejected ... ok
+test save::social::tests::invalid_participant_identity_is_rejected ... ok
+test save::social::tests::invalid_rendezvous_initiator_is_rejected ... ok
+test save::social::tests::invalid_rendezvous_recipient_is_rejected ... ok
+test save::social::tests::invalid_topic_code_is_rejected ... ok
+test save::social::tests::invalid_topic_initiator_is_rejected ... ok
+test save::social::tests::invalid_topic_initiator_preference_is_rejected ... ok
+test save::social::tests::invalid_social_records_leave_live_world_unchanged ... ok
+test save::social::tests::invalid_topic_listener_preference_is_rejected ... ok
+test save::social::tests::invalid_topic_tag_is_rejected ... ok
+test save::social::tests::ordinary_communal_remaining_is_rejected ... ok
+test save::social::tests::ordinary_completed_novelty_is_rejected ... ok
+test save::social::tests::owner_as_participant_is_rejected ... ok
+
+failures:
+
+---- save::social::tests::hash_communal_count stdout ----
+
+thread 'save::social::tests::hash_communal_count' (160036) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- save::social::tests::hash_communal_extensions stdout ----
+
+thread 'save::social::tests::hash_communal_extensions' (15756) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_communal_owner stdout ----
+
+thread 'save::social::tests::hash_communal_owner' (219280) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_communal_remaining stdout ----
+
+thread 'save::social::tests::hash_communal_remaining' (100052) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_communal_target_interaction stdout ----
+
+thread 'save::social::tests::hash_communal_target_interaction' (166676) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_communal_target_object stdout ----
+
+thread 'save::social::tests::hash_communal_target_object' (154268) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_completed_novelty_presence stdout ----
+
+thread 'save::social::tests::hash_completed_novelty_presence' (130460) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_completed_novelty_value stdout ----
+
+thread 'save::social::tests::hash_completed_novelty_value' (23808) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_participant_count stdout ----
+
+thread 'save::social::tests::hash_participant_count' (217216) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_participant_identity stdout ----
+
+thread 'save::social::tests::hash_participant_identity' (65356) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_rendezvous_count stdout ----
+
+thread 'save::social::tests::hash_rendezvous_count' (181552) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_rendezvous_initiator stdout ----
+
+thread 'save::social::tests::hash_rendezvous_initiator' (212864) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_rendezvous_recipient stdout ----
+
+thread 'save::social::tests::hash_rendezvous_recipient' (218564) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_stream_matches_independent_vector stdout ----
+
+thread 'save::social::tests::hash_stream_matches_independent_vector' (131876) panicked at crates\terri-sim\src\save\social.rs:546:9:
+assertion `left == right` failed
+  left: 14695981039346656037
+ right: 15234262397110723410
+
+---- save::social::tests::hash_topic_code stdout ----
+
+thread 'save::social::tests::hash_topic_code' (143820) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_topic_count stdout ----
+
+thread 'save::social::tests::hash_topic_count' (6580) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_topic_initiator stdout ----
+
+thread 'save::social::tests::hash_topic_initiator' (167856) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_topic_initiator_preference stdout ----
+
+thread 'save::social::tests::hash_topic_initiator_preference' (182816) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_topic_listener_preference stdout ----
+
+thread 'save::social::tests::hash_topic_listener_preference' (170620) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_topic_tag_bytes stdout ----
+
+thread 'save::social::tests::hash_topic_tag_bytes' (4212) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+---- save::social::tests::hash_topic_tag_length stdout ----
+
+thread 'save::social::tests::hash_topic_tag_length' (35888) panicked at crates\terri-sim\src\save\social.rs:534:9:
+assertion `left != right` failed: the changed social field was omitted
+  left: 14695981039346656037
+ right: 14695981039346656037
+
+
+failures:
+    save::social::tests::hash_communal_count
+    save::social::tests::hash_communal_extensions
+    save::social::tests::hash_communal_owner
+    save::social::tests::hash_communal_remaining
+    save::social::tests::hash_communal_target_interaction
+    save::social::tests::hash_communal_target_object
+    save::social::tests::hash_completed_novelty_presence
+    save::social::tests::hash_completed_novelty_value
+    save::social::tests::hash_participant_count
+    save::social::tests::hash_participant_identity
+    save::social::tests::hash_rendezvous_count
+    save::social::tests::hash_rendezvous_initiator
+    save::social::tests::hash_rendezvous_recipient
+    save::social::tests::hash_stream_matches_independent_vector
+    save::social::tests::hash_topic_code
+    save::social::tests::hash_topic_count
+    save::social::tests::hash_topic_initiator
+    save::social::tests::hash_topic_initiator_preference
+    save::social::tests::hash_topic_listener_preference
+    save::social::tests::hash_topic_tag_bytes
+    save::social::tests::hash_topic_tag_length
+
+test result: FAILED. 20 passed; 21 failed; 0 ignored; 0 measured; 1316 filtered out; finished in 0.10s
+
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+*** result: Failure(101)

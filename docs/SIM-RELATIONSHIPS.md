@@ -22,7 +22,7 @@ relationship classification and do not replace affinity.
 | Action preferences and trait dispositions | Change which activities a Sim chooses; the resulting reservations can inconvenience somebody else | Implemented |
 | Shyness (1 to 100) | Higher values increase respect for private bathroom use and annoyance when boundaries are violated; shyness does not determine compatibility | Implemented |
 | Authored interests | Shared interests help; opposing interests cause directional friction; unrelated interests and shared dislikes remain neutral | Implemented |
-| Social need | Makes an available person more attractive as a conversation partner; busy partners remain unavailable | Implemented |
+| Social need | Makes company more attractive as loneliness grows; Sims may approach and wait for a busy partner | Implemented |
 | Positive and negative affinity | Nearby liked Sims comfort the subject; disliked Sims contribute unease | Implemented |
 | Grief | Loss of a liked Sim creates a stronger, longer mood effect than loss of a weak acquaintance | Implemented |
 | Sustained mood | Contributes to life satisfaction alongside activity rewards, conditions and neglect | Implemented |
@@ -36,9 +36,9 @@ and its creator, not to an omniscient account of why it was left.
 
 ## Domestic support and friction
 
-Social refill requires simultaneous participation with somebody the receiving
-Sim likes. Affinity must be strictly above zero in that direction; the other
-Sim need not return the feeling. Watching TV or listening to the radio counts
+Social refill requires simultaneous participation with another Sim. Each
+receiver gets a positive benefit even from disliked company. Directional
+affinity scales the benefit, and family adds an independent bonus. Watching TV or listening to the radio counts
 only while another Sim actively uses the same device.
 Travelling toward it, standing nearby or using another device does not count.
 Device capacity and each chair or standing destination remain exclusive to
@@ -55,23 +55,24 @@ by personality. Food quality affects the food rewards rather than the value of
 the company. Rewards stop when eligible participation stops
 and do not multiply with the number of other diners.
 
-Chat Social also requires positive affinity toward the partner. Neutral chats
-can still establish friendship; critical loneliness alone does not block that
-completion reward or cause an inconvenience penalty. Actual Social delivery and
-friendship development are separate effects. A lonely Sim can autonomously seek
-a first friendship: selection estimates the chats needed to become positively
-inclined, then values the subsequent chat that could actually refill Social.
-Unavailable relationship rewards contribute no such future value.
+Chats restore Social at every affinity level. The multiplier is
+`max(0.25, 1 + affinity * relationship_delta_scale)`, plus 0.1 for family.
+Personality satisfaction then scales the positive reward. Selection values
+that same immediate benefit, so low Social encourages contact even with a
+disliked relative or housemate. A group uses its strongest eligible affinity multiplier and adds the family
+bonus once if any eligible participant is family. Additional participants do
+not multiply Social delivery.
+
 Privacy routing and emergency checks use conditional benefits too: solo media
 and meal preparation cannot claim to relieve critical loneliness. A media
-alternative requires a valid proposed destination and active liked company
+alternative requires a valid proposed destination and active company
 using the same device.
 Waiting frustration counts Social only when the requested activity could
 provide that company; an empty promise does not increase the need penalty.
 Passive proximity retains its affinity effect without directly refilling Social.
 Simultaneous reading, exercise and aquarium watching on different objects also
 provide 0.12 Social per game minute when both Sims accept the activity, share
-a room within four tiles, and the receiver likes the other participant.
+a room within four tiles, with the same affinity and family scaling.
 Failed actions, travel and interruptions do not count.
 The [needs interaction reference](NEEDS-INTERACTIONS.md) covers every reward,
 cost, condition and justification.
@@ -83,7 +84,7 @@ Friends collect real portions and eat together, sitting at usable chairs or stan
 affects food quality for everyone; each eater leaves their own used dish.
 Committed diners gather before their shared eating countdown begins. A busy
 friend's player orders keep priority, and critical needs release the waiting
-group. Occupied, missing, inaccessible or dirty seats make diners stand instead of waiting indefinitely. Late arrivals never restart a meal already underway. Cooking for friends
+group. Occupied, missing, inaccessible or dirty seats make diners stand instead of waiting indefinitely. A late arrival can extend an existing participant's activity at most twice per uninterrupted activity. Cooking for friends
 currently provides food and company; it does not invent a gratitude bonus.
 
 Preparation also leaves dishes on the counter. Visible dishes lower mood,
@@ -110,6 +111,29 @@ Collection transfers visibility from furniture to a plate held by the cleaner.
 Taking another activity puts the dishes back and restores the nuisance until
 cleanup resumes. The claim remains exclusive while interrupted, so two Sims
 cannot claim the same cleanup. Cancellation releases that claim.
+
+## Conversation topics and waiting
+
+The initiator chooses a topic from their enjoyed activities using seeded
+weighted randomness. Enjoyment of socializing favors shared interests.
+Each participant sees the same topic but their own approval and background
+color. A disliked topic produces a small listener-to-initiator penalty in
+place of that listener's ordinary positive conversation completion gain.
+
+Incoming conversation claims belong to one initiator. A busy recipient
+finishes their current activity while the initiator approaches and waits.
+Once idle, the recipient remains available for that initiator. Urgent physical
+needs, work, cancellation and invalid paths release the hold.
+
+Shared activity timers extend only when another Sim actually joins. Each Sim
+can receive at most two extensions during an activity. A valid approaching
+joiner can keep an eligible incumbent in place until arrival; a third arrival
+cannot prolong a Sim who has used both extensions. Reading retains earned
+work and progress rather than restarting the book.
+
+The [conversation topics specification](specs/2026-10-13-conversation-topics.md)
+and versioned saves preserve topic decisions, waiting claims and extension
+counts across reloads.
 
 ## Privacy and relationship development
 

@@ -61,6 +61,11 @@
       "kind": "bathroom-actions",
       "catalog": "assets/models/kitchen/actions/export/fridge-03/manifest.json",
       "canonicalSha256": "91d5b4cdc569fedd30cab133b5995d8f17285621213c655a5b5a61a66971ea9c"
+    },
+    {
+      "kind": "conversation-icons",
+      "catalog": "assets/sprites/conversation-icons.json",
+      "canonicalSha256": "537d048dfb4b64b98bdd1a5a9288582c391a2e582befc36dc2743dc9c905405d"
     }
   ],
   "historicalFiles": {

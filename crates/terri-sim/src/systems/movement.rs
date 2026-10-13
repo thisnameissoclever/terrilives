@@ -97,7 +97,7 @@ fn draw_voice_pair(clip_count: usize, rng: &mut SimRng) -> Option<ConversationVo
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn follow_path(
     mut commands: Commands,
-    content: Res<Content>,
+    (content, talks): (Res<Content>, Query<&Socialising>),
     grid: Res<TileGrid>,
     mut rng: ResMut<SimRng>,
     mut interpersonal: ResMut<super::interpersonal::InterpersonalPhase>,
@@ -130,7 +130,16 @@ pub fn follow_path(
         Without<Path>,
     >,
     sims: Query<(), With<Agent>>,
-    partners: Query<(&Position, Option<&Reserved>, Option<&Target>), (With<Agent>, Without<Path>)>,
+    partners: Query<
+        (
+            &Position,
+            Option<&Reserved>,
+            Option<&Target>,
+            Has<terri_core::ChainState>,
+            Has<crate::reading::ReadingJourney>,
+        ),
+        (With<Agent>, Without<Path>),
+    >,
 ) {
     let furniture: Vec<_> = furniture
         .iter()
@@ -322,12 +331,29 @@ pub fn follow_path(
                     );
                 }
             } else if sims.get(target.object).is_ok() {
+                // An incoming claim waits without taking the running conversation.
+                let busy =
+                    partners
+                        .get(target.object)
+                        .is_ok_and(|(_, _, target, chain, reading)| {
+                            target.is_some() || chain || reading
+                        })
+                        || talks.iter().any(|talk| talk.partner == target.object)
+                        || talks.get(target.object).is_ok();
+                let owns_incoming = beds.owns_incoming(entity, target.object);
+                if owns_incoming && (busy || partners.get(target.object).is_err()) {
+                    commands
+                        .entity(entity)
+                        .remove::<Path>()
+                        .insert(terri_core::Blocked);
+                    continue;
+                }
                 // A reserved partner can be redirected while this route is
                 // in flight. Edge worlds must recheck contact before drawing
                 // voices or duration. Without<Path> also keeps this position
                 // query disjoint from the walkers' mutable positions.
                 let valid_contact = partners.get(target.object).is_ok_and(
-                    |(partner_position, reserved, partner_target)| {
+                    |(partner_position, reserved, partner_target, _, _)| {
                         reserved.is_some()
                             && partner_target.is_none()
                             && grid.can_interact_with_rect(
@@ -340,7 +366,7 @@ pub fn follow_path(
                             )
                     },
                 );
-                if grid.blocked_edges().next().is_some() && !valid_contact {
+                if (owns_incoming || grid.blocked_edges().next().is_some()) && !valid_contact {
                     commands.entity(entity).remove::<Path>().remove::<Target>();
                     commands.entity(target.object).remove::<Reserved>();
                     continue;
@@ -379,6 +405,10 @@ pub fn follow_path(
                         &mut rng,
                     ),
                 };
+                let partner = target.object;
+                commands.queue(move |world: &mut World| {
+                    crate::social_episode::started(world, entity, partner)
+                });
                 let mut talker = commands.entity(entity);
                 talker.remove::<Path>().insert(Socialising {
                     interaction: target.interaction,

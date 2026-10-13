@@ -1,0 +1,12 @@
+
+> test
+> vitest run --maxWorkers=1 tests/atlas.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/7515/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  15:31:57
+   Duration  6.63s (transform 3.20s, setup 38ms, import 3.81s, tests 2.61s, environment 0ms)

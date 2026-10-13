@@ -1,0 +1,1449 @@
+{
+  "outcomes": [
+    {
+      "scenario": "Baseline",
+      "summary": "Success",
+      "log_path": "log/baseline.log",
+      "diff_path": null,
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 68.4846332,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.8180927,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:5: replace benefit -> f32 with 0.0",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 5
+            },
+            "end": {
+              "line": 30,
+              "column": 73
+            }
+          },
+          "replacement": "0.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.7358048,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.82229,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:5: replace benefit -> f32 with 1.0",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 5
+            },
+            "end": {
+              "line": 30,
+              "column": 73
+            }
+          },
+          "replacement": "1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_5_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.1025113,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.7189681,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:5: replace benefit -> f32 with -1.0",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 5
+            },
+            "end": {
+              "line": 30,
+              "column": 73
+            }
+          },
+          "replacement": "-1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_5_002.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_5_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.6373149,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.6648787999999999,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:42: replace + with - in benefit",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 42
+            },
+            "end": {
+              "line": 30,
+              "column": 43
+            }
+          },
+          "replacement": "-",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_42.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_42.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.042481,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.7674501,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:42: replace + with * in benefit",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 42
+            },
+            "end": {
+              "line": 30,
+              "column": 43
+            }
+          },
+          "replacement": "*",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_42_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_42_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.5876719999999995,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.7666343,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:9: replace + with - in benefit",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 9
+            },
+            "end": {
+              "line": 30,
+              "column": 10
+            }
+          },
+          "replacement": "-",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_9.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.8685933,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 2.0211468,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:9: replace + with * in benefit",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 9
+            },
+            "end": {
+              "line": 30,
+              "column": 10
+            }
+          },
+          "replacement": "*",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_9_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_9_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.7816518,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.7689719,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:20: replace * with + in benefit",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 20
+            },
+            "end": {
+              "line": 30,
+              "column": 21
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_20.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_20.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.7877507999999995,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 2.2302363,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:30:20: replace * with / in benefit",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "benefit",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 28,
+                "column": 1
+              },
+              "end": {
+                "line": 31,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 30,
+              "column": 20
+            },
+            "end": {
+              "line": 30,
+              "column": 21
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_30_col_20_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_30_col_20_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.0825283,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.867202,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:5: replace topic_weight -> f32 with 0.0",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 5
+            },
+            "end": {
+              "line": 289,
+              "column": 74
+            }
+          },
+          "replacement": "0.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.4298034,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.6657332,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:5: replace topic_weight -> f32 with 1.0",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 5
+            },
+            "end": {
+              "line": 289,
+              "column": 74
+            }
+          },
+          "replacement": "1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_5_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.0801134,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.8172257,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:5: replace topic_weight -> f32 with -1.0",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 5
+            },
+            "end": {
+              "line": 289,
+              "column": 74
+            }
+          },
+          "replacement": "-1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_5_002.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_5_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.3418151,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.8160196,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:18: replace * with + in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 18
+            },
+            "end": {
+              "line": 289,
+              "column": 19
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_18.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_18.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.7138822000000005,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.8178204999999998,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:18: replace * with / in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 18
+            },
+            "end": {
+              "line": 289,
+              "column": 19
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_18_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_18_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.7390172,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.8667598,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:24: replace + with - in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 24
+            },
+            "end": {
+              "line": 289,
+              "column": 25
+            }
+          },
+          "replacement": "-",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_24.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_24.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.2188705,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 2.0227959,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:24: replace + with * in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 24
+            },
+            "end": {
+              "line": 289,
+              "column": 25
+            }
+          },
+          "replacement": "*",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_24_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_24_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.5460023,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.6668041,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:57: replace * with + in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 57
+            },
+            "end": {
+              "line": 289,
+              "column": 58
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_57.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_57.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.9281115,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.7137871,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:57: replace * with / in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 57
+            },
+            "end": {
+              "line": 289,
+              "column": 58
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_57_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_57_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.1796617,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.6643327,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:29: replace * with + in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 29
+            },
+            "end": {
+              "line": 289,
+              "column": 30
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_29.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_29.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.9282120000000003,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 2.1339934,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/social_episode.rs:289:29: replace * with / in topic_weight",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/social_episode.rs",
+          "function": {
+            "function_name": "topic_weight",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 288,
+                "column": 1
+              },
+              "end": {
+                "line": 290,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 289,
+              "column": 29
+            },
+            "end": {
+              "line": 289,
+              "column": 30
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__social_episode.rs_line_289_col_29_001.log",
+      "diff_path": "diff/crates__terri-sim__src__social_episode.rs_line_289_col_29_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.1713428,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 1.7659289999999999,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "social_episode::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_mutants": 20,
+  "missed": 0,
+  "caught": 20,
+  "timeout": 0,
+  "unviable": 0,
+  "success": 0,
+  "start_time": "2026-10-13T21:51:36.0637608Z",
+  "end_time": "2026-10-13T21:58:42.7276042Z",
+  "cargo_mutants_version": "27.1.0"
+}

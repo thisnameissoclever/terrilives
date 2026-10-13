@@ -66,6 +66,9 @@ import {
   OFFSET_EMISSIVE,
   OFFSET_SCREEN_Y,
   OFFSET_SPRITE,
+  OFFSET_TINT_R,
+  OFFSET_TINT_G,
+  OFFSET_TINT_B,
 } from '../src/render/instances.js';
 
 // The two mechanisms this file guards are [D2] - the simulation advances
@@ -2008,6 +2011,35 @@ describe('activity indicator bubbles', () => {
   // bubbles float above the sim, nudged nearer so the pair cannot tie
   // on depth ([V12]).
   const src = new FakeEntities();
+
+  it('shows the same topic with each participant\'s reaction and readable tint', () => {
+    const talking = Object.assign(new FakeEntities(), {
+      conversationTopics: () => new Uint32Array([8, 8, 8]),
+      conversationPreferences: () => new Float32Array([1, -1, 0]),
+    });
+    talking.set([
+      [1, 1, 1, 1, KIND_AGENT, 3, 4],
+      [2, 2, 2, 2, KIND_AGENT, 3, 4],
+      [3, 3, 3, 3, KIND_AGENT, 3, 4],
+    ]);
+    const built = buildInstances(talking, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(instanceCount(talking, null)).toBe(6);
+    expect(built.length).toBeGreaterThanOrEqual(6 * FLOATS_PER_INSTANCE);
+    for (const [row, reaction] of [[0, 'Like'], [1, 'Dislike'], [2, 'Like']] as const) {
+      const base = (row + 3) * FLOATS_PER_INSTANCE;
+      expect(built[base + OFFSET_SPRITE]).toBe(spriteIndex(`conversationReading${reaction}`));
+      for (const offset of [OFFSET_TINT_R, OFFSET_TINT_G, OFFSET_TINT_B]) {
+        expect(built[base + offset]).toBeGreaterThanOrEqual(0.76 - 0.00001);
+        expect(built[base + offset]).toBeLessThanOrEqual(1);
+      }
+    }
+    expect(built[3 * FLOATS_PER_INSTANCE + OFFSET_TINT_G]).toBeCloseTo(0.985);
+    expect(built[3 * FLOATS_PER_INSTANCE + OFFSET_TINT_R]).toBeCloseTo(0.82);
+    expect(built[4 * FLOATS_PER_INSTANCE + OFFSET_TINT_R]).toBeCloseTo(0.99);
+    expect(built[4 * FLOATS_PER_INSTANCE + OFFSET_TINT_G]).toBeCloseTo(0.78);
+    expect(Array.from(built.slice(5 * FLOATS_PER_INSTANCE + OFFSET_TINT_R,
+      5 * FLOATS_PER_INSTANCE + OFFSET_TINT_B + 1))).toEqual([1, 1, 1]);
+  });
 
   it('floats a bubble over the activity, and none over walkers or idlers', () => {
     src.set([

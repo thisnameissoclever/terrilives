@@ -525,6 +525,20 @@ pub(crate) fn active_need_benefits(world: &World, person: Entity) -> Option<Vec<
     let target = *world.get::<Target>(person)?;
     let action = action(world, target)?;
     let benefits = effective_benefits(world.resource::<Content>().0, action)?;
+    if world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal
+        .get(&person)
+        .is_some_and(|e| e.completed_novelty.is_some())
+    {
+        let scale = world
+            .get::<Personality>(person)
+            .map_or(1., |p| p.satisfaction[NeedId::Comfort.index()]);
+        return Some(vec![(
+            NeedId::Comfort.index() as u8,
+            benefits.comfort_for_ticks(1) * scale,
+        )]);
+    }
     let library = world.resource::<BookLibrary>();
     let title = &library.copy(journey.copy)?.title_id;
     let id = *world.get::<SimId>(person)?;
@@ -578,6 +592,30 @@ fn read_tick(world: &mut World, person: Entity) {
     };
     let pack = world.resource::<Content>().0;
     let tuning = pack.reading.as_ref().unwrap();
+    if world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal
+        .get(&person)
+        .is_some_and(|e| e.completed_novelty.is_some())
+    {
+        let scale = world
+            .get::<Personality>(person)
+            .map_or(1., |p| p.satisfaction[NeedId::Comfort.index()]);
+        let comfort = effective_benefits(pack, &act).unwrap().comfort_for_ticks(1) * scale;
+        if let Some(mut needs) = world.get_mut::<Needs>(person) {
+            needs.fill(NeedId::Comfort, comfort);
+        }
+        let done = {
+            let mut episodes = world.resource_mut::<crate::social_episode::SocialEpisodes>();
+            let episode = episodes.communal.get_mut(&person).unwrap();
+            episode.remaining = episode.remaining.saturating_sub(1);
+            episode.remaining == 0
+        };
+        if done {
+            finish_session(world, person, target, &act, pack);
+        }
+        return;
+    }
     let id = *world.get::<SimId>(person).unwrap();
     let mut library = world.resource::<BookLibrary>().clone();
     let copy = library.copy(j.copy).unwrap();
@@ -637,32 +675,107 @@ fn read_tick(world: &mut World, person: Entity) {
         .unwrap()
         .earned_satisfaction += payout;
     let done = {
-        let mut live = world.get_mut::<ReadingJourney>(person).unwrap();
-        live.elapsed += 1;
-        live.work += work.consumed_work;
-        live.elapsed >= tuning.session_ticks || work.completed
+        let elapsed = {
+            let mut live = world.get_mut::<ReadingJourney>(person).unwrap();
+            live.elapsed += 1;
+            live.work += work.consumed_work;
+            live.elapsed
+        };
+        let extended = if let Some(episode) = world
+            .resource_mut::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .get_mut(&person)
+        {
+            if episode.remaining > 0 {
+                episode.remaining -= 1;
+                episode.remaining > 0
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+        if work.completed && extended {
+            world
+                .resource_mut::<crate::social_episode::SocialEpisodes>()
+                .communal
+                .get_mut(&person)
+                .unwrap()
+                .completed_novelty = Some(work.novelty);
+        }
+        !extended && (elapsed >= tuning.session_ticks || work.completed)
     };
     if done {
-        let mut skills = world.get::<Skills>(person).cloned().unwrap_or_default();
-        crate::skills::practise(&mut skills, pack, &act.tags);
-        let model = world.get::<SmartObject>(target.object).unwrap().0;
-        let mut repetition = world
-            .get::<Habituation>(person)
-            .cloned()
-            .unwrap_or_default();
-        repetition.bump(
-            model,
-            target.interaction,
-            pack.tuning.habituation_per_use,
-            pack.tuning.habituation_max,
-        );
-        world.entity_mut(person).insert((skills, repetition));
-        if let Some(mut traits) = world.get_mut::<Traits>(person) {
-            crate::systems::trait_effects::learn_and_manage(&mut traits, pack, &act.tags);
-        }
-        request_return(world, person);
+        finish_session(world, person, target, &act, pack);
     }
 }
+fn finish_session(
+    world: &mut World,
+    person: Entity,
+    target: Target,
+    act: &terri_data::CompiledInteraction,
+    pack: &terri_data::ContentPack,
+) {
+    if let Some(episode) = world
+        .resource_mut::<crate::social_episode::SocialEpisodes>()
+        .communal
+        .get_mut(&person)
+    {
+        episode.remaining = 0;
+    }
+    let mut skills = world.get::<Skills>(person).cloned().unwrap_or_default();
+    crate::skills::practise(&mut skills, pack, &act.tags);
+    let model = world.get::<SmartObject>(target.object).unwrap().0;
+    let mut repetition = world
+        .get::<Habituation>(person)
+        .cloned()
+        .unwrap_or_default();
+    repetition.bump(
+        model,
+        target.interaction,
+        pack.tuning.habituation_per_use,
+        pack.tuning.habituation_max,
+    );
+    world.entity_mut(person).insert((skills, repetition));
+    if let Some(mut traits) = world.get_mut::<Traits>(person) {
+        crate::systems::trait_effects::learn_and_manage(&mut traits, pack, &act.tags);
+    }
+    request_return(world, person);
+}
+
+/// End a completed or expired held session when its admitted company cancels
+/// or fails. Paused command maintenance uses the same completion path.
+pub(crate) fn finish_abandoned_company(world: &mut World, person: Entity) {
+    let Some(episode) = world
+        .resource::<crate::social_episode::SocialEpisodes>()
+        .communal
+        .get(&person)
+    else {
+        return;
+    };
+    if episode.extensions != 0 || episode.remaining == 0 {
+        return;
+    }
+    let Some(journey) = world.get::<ReadingJourney>(person) else {
+        return;
+    };
+    let pack = world.resource::<Content>().0;
+    if journey.stage != ReadingStage::Read
+        || (journey.elapsed < pack.reading.as_ref().unwrap().session_ticks
+            && episode.completed_novelty.is_none())
+        || crate::social_company::has_inbound(world, person)
+    {
+        return;
+    }
+    let Some(target) = world.get::<Target>(person).copied() else {
+        return;
+    };
+    let Some(action) = action(world, target).cloned() else {
+        return;
+    };
+    finish_session(world, person, target, &action, pack);
+}
+
 /// A queued Read yields only to the food already in this person's hands.
 pub(crate) fn food_before_read(world: &World, person: Entity) -> bool {
     world.get::<Carrying>(person).is_some()

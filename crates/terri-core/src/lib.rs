@@ -17,6 +17,8 @@ pub use save_v6::SaveSnapshotV6;
 pub mod save_v7;
 pub mod save_v8;
 pub use save_v8::SaveSnapshotV8;
+pub mod save_v9;
+pub use save_v9::SaveSnapshotV9;
 mod save_before_voice;
 pub mod windows;
 

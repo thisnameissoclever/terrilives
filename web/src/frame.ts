@@ -1,4 +1,5 @@
 import {cleaningFrame} from './render/cleaning-animation.js';
+import {conversationBubble, conversationTint} from './render/conversation-bubbles.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 import { shelfPresence } from './render/shelf-sprites.js';
 import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
@@ -920,6 +921,8 @@ export interface RenderSource {
    * [A-11] indicator column. Read every frame like every other view.
    */
   activities(): Uint32Array;
+  conversationTopics?(): Uint32Array;
+  conversationPreferences?(): Float32Array;
   /**
    * Presentation pose: 0 none, 1 talk, 2 eat, 3 seated read,
    * 4 standing read, 5 walk, 6 exercise, 7 watch fish, 8 sit, 9 sleep.
@@ -1106,6 +1109,8 @@ export function buildInstanceBatch(
   const kinds = source.kinds();
   const sprites = source.sprites();
   const activities = source.activities();
+  const conversationTopics = source.conversationTopics?.();
+  const conversationPreferences = source.conversationPreferences?.();
   const visualActions = source.visualActions();
   const simIds = source.simIds?.();
   const facings = source.facings();
@@ -1328,7 +1333,9 @@ export function buildInstanceBatch(
   // the owner's "if you can't see what they're doing, they may as well
   // not be doing anything", as quads.
   for (let i = 0; i < count; i++) {
-    const sprite = kinds[i] === KIND_AGENT ? INDICATOR_SPRITES[activities[i]] ?? null : null;
+    const preference = conversationPreferences?.[i] ?? 0;
+    const conversation = conversationBubble(activities[i], conversationTopics?.[i] ?? 0, preference);
+    const sprite = kinds[i] === KIND_AGENT ? conversation ?? INDICATOR_SPRITES[activities[i]] ?? null : null;
     if (sprite === null) continue;
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
@@ -1377,6 +1384,9 @@ export function buildInstanceBatch(
         : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
       layeredDepth(bx, by, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
+      conversation === null ? 1 : conversationTint(preference, 0),
+      conversation === null ? 1 : conversationTint(preference, 1),
+      conversation === null ? 1 : conversationTint(preference, 2),
     );
     // The indicator must stay ahead of every column of its occupied owner,
     // not merely the owner's center. Its screen X remains that same center.

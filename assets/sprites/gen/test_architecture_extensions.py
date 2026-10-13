@@ -72,6 +72,9 @@ class ArchitectureExtensions(unittest.TestCase):
 
     def test_rejects_duplicate_and_escaping_extension_catalogs(self):
         config = json.loads((offline_architecture.SOURCE / 'architecture.json').read_text())
+        # Duplicate identity and path boundaries need one real catalogue, not
+        # every historical model import before the repeated entry is reached.
+        config['historicalExtensions'] = [config['historicalExtensions'][0]]
         duplicate = copy.deepcopy(config)
         duplicate['historicalExtensions'] *= 2
         with self.assertRaisesRegex(AssertionError, 'duplicate architecture extension catalog'):

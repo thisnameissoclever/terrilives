@@ -337,7 +337,7 @@ Secondary-seat Comfort is an inherited model property, with the same explicit
 numeric set, scale and removal operations. It describes ordinary seated hardware
 comfort for meals and media. Owned reading supplies its own resolved Comfort
 rate; do not add secondary-seat Comfort again or derive it from a reading-only
-specialization. Shared Social depends on actual liked company, not a terminal
+specialization. Shared Social depends on actual company with affinity and family scaling, not a terminal
 reward from an activity label. Handwashing respects its configured Hygiene
 ceiling. Purchase facts expose these conditions alongside base values.
 
@@ -593,7 +593,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 8; the version 1 decoder and its historical optional sleep-pressure
+use version 9; the version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -632,7 +632,8 @@ runtime directions and retain their historical authored-direction restoration.
 Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
 `terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin`,
-`terri-save-1.v5-backup.bin`, `terri-save-1.v6-backup.bin` or `terri-save-1.v7-backup.bin`, according to its
+`terri-save-1.v5-backup.bin`, `terri-save-1.v6-backup.bin`,
+`terri-save-1.v7-backup.bin` or `terri-save-1.v8-backup.bin`, according to its
 source version. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
@@ -645,7 +646,8 @@ V2 writer rejects a primary V3 header instead of overwriting its directions,
 a cached V3 writer rejects a primary V4 header instead of overwriting its
 retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
-primary V7 header. A cached V7 writer rejects a primary V8 header. The storage writer and load-status controller share the current
+primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
+V8 writer rejects a primary V9 header. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -672,11 +674,17 @@ new action fail before reconstruction. The same rule covers the prior
 structural digest and all four retired full-pack digests; accepting an old
 fingerprint does not grant that snapshot rows it could never have authored.
 
-The version 8 save envelope wraps an explicitly frozen version 5 layout with a stable action
+The version 9 save envelope wraps the frozen version 8 layout and adds
+conversation topics, incoming conversation claims and communal activity
+extensions. Validation checks participant identities and active activity
+ownership before restoring those records. Version 8 and earlier readers
+retain their historical layouts and initialize the new social state empty.
+
+The frozen version 8 envelope wraps an explicitly frozen version 5 layout with a stable action
 manifest, the owned-book library, physical-seat claims, reading journeys,
 deferred career departures, current order metadata, chain origins and active
 recipe-order identity. `SaveSnapshotV6` retains its historical Rust API name;
-the byte header identifies the current schema. New commerce commands append AutoPurchase, Sell and Recover after the three original book command tags. V6 and V7 decode their frozen three-variant command vocabulary and reject newer tags. V8 accepts household-wide book fetching while older envelopes retain their original shelf-origin validation. Commerce quotes include the exact price and copy or reserved slot identities; native execution rechecks the quote before changing ownership or Funds. Preview choice and slot allocation derive from saved taste seed and copy identity without consuming simulation randomness. Its `current_legacy` adapter uses
+its payload remains part of the version 9 envelope. Commerce commands append AutoPurchase, Sell and Recover after the three original book command tags. V6 and V7 decode their frozen three-variant command vocabulary and reject newer tags. V8 accepts household-wide book fetching while older envelopes retain their original shelf-origin validation. Commerce quotes include the exact price and copy or reserved slot identities; native execution rechecks the quote before changing ownership or Funds. Preview choice and slot allocation derive from saved taste seed and copy identity without consuming simulation randomness. Its `current_legacy` adapter uses
 the exact `FrozenCurrentV5` field layout, so later additions to `SaveSnapshotV5`
 cannot shift this envelope's boundary. Earlier version 6 book saves use
 `FrozenSaveSnapshotV6` and `FrozenPreAffinityV5` explicitly before conversion.

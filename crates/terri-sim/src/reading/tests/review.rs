@@ -52,10 +52,10 @@ fn complete_title(cap: u32, duration: u32) -> Totals {
                 assert_eq!(memory.pass_novelty, Some(1.0));
             }
             if totals.sessions == 2 && elapsed == 3 {
-                let saved = sim.save_snapshot_v6();
+                let saved = sim.save_snapshot_v9();
                 let hash = sim.world_hash();
-                sim.load_snapshot_v6(saved.clone()).unwrap();
-                assert_eq!(sim.save_snapshot_v6(), saved);
+                sim.load_snapshot_v9(saved.clone()).unwrap();
+                assert_eq!(sim.save_snapshot_v9(), saved);
                 assert_eq!(sim.world_hash(), hash);
             }
         }
@@ -153,19 +153,19 @@ fn fix1_mid_session_reward_bound_allows_prior_healthy_condition_and_refuses_infl
             .get_mut::<Traits>(p)
             .unwrap()
             .set_state(condition, 1.0);
-        let saved = sim.save_snapshot_v6();
+        let saved = sim.save_snapshot_v9();
         let hash = sim.world_hash();
         let rng = sim.world().resource::<SimRng>().clone();
-        sim.load_snapshot_v6(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        sim.load_snapshot_v9(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v9(), saved);
         for inflated in [earned * 1.05, 1_000_000.0] {
             let mut bad = saved.clone();
-            bad.reading[0].earned_satisfaction = inflated;
+            bad.legacy.reading[0].earned_satisfaction = inflated;
             assert!(
-                sim.load_snapshot_v6(bad).is_err(),
+                sim.load_snapshot_v9(bad).is_err(),
                 "accepted fabricated {inflated} after genuine {earned}"
             );
-            assert_eq!(sim.save_snapshot_v6(), saved);
+            assert_eq!(sim.save_snapshot_v9(), saved);
             assert_eq!(sim.world_hash(), hash);
             assert_eq!(*sim.world().resource::<SimRng>(), rng);
         }
@@ -222,9 +222,9 @@ fn fix1_requested_title_uses_nearest_copy_regardless_of_allocation_order() {
             near,
             "older allocation must not discard the near route"
         );
-        let saved = sim.save_snapshot_v6();
-        sim.load_snapshot_v6(saved.clone()).unwrap();
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        let saved = sim.save_snapshot_v9();
+        sim.load_snapshot_v9(saved.clone()).unwrap();
+        assert_eq!(sim.save_snapshot_v9(), saved);
     }
 }
 #[test]

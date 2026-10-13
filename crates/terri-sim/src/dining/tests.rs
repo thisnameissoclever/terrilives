@@ -109,7 +109,7 @@ fn critical_comfort_relationship_help_recognizes_actual_meal_seating() {
 }
 
 #[test]
-fn meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table() {
+fn meal_social_scales_affinity_for_simultaneous_seated_diners_at_the_same_table() {
     let (mut sim, people, _) = ready();
     advance(sim.world_mut());
     let places = sim.world().resource::<SavedDining>().diners.clone();
@@ -153,7 +153,7 @@ fn meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table() {
             .unwrap()
             .get(NeedId::Social);
         // The 330-minute model action allocates 59 ticks to eating.
-        assert_eq!(social, if seated { 30. + 11. / 59. } else { 30. });
+        assert_eq!(social, if seated { 30. + 11. / 59. * 1.25 } else { 30. });
     }
     let first = people[0];
     let second = people[1];
@@ -168,12 +168,13 @@ fn meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table() {
         .get(NeedId::Social);
     crate::social_company::tick_meals(sim.world_mut());
     assert!(sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) > before_a);
-    assert_eq!(
+    assert!(
         sim.world()
             .get::<Needs>(second)
             .unwrap()
-            .get(NeedId::Social),
-        before_b
+            .get(NeedId::Social)
+            > before_b,
+        "Neutral company still supplies positive Social"
     );
     let chair = entity(
         sim.world(),
@@ -289,7 +290,7 @@ fn completing_a_meal_pays_only_the_social_minutes_actually_shared() {
     let personality = sim.world().get::<terri_core::Personality>(first).unwrap();
     let expected = 30.
         - pack.decay_per_tick[NeedId::Social.index()] * personality.drain[NeedId::Social.index()]
-        + 11. / 59. * personality.satisfaction[NeedId::Social.index()];
+        + 11. / 59. * personality.satisfaction[NeedId::Social.index()] * 1.25;
     sim.tick();
     assert!(
         sim.world().get::<StepWork>(first).is_none(),
@@ -636,7 +637,7 @@ fn tableless_shared_diners_finish_together_and_every_transition_loads() {
             saw_group |= !d.tableless.is_empty();
         }
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+        restored.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
         assert_eq!(restored.world_hash(), sim.world_hash());
         if people.iter().all(|p| {
             sim.world()

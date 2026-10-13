@@ -4,6 +4,219 @@ use terri_core::command::BookCommand;
 mod priority;
 
 #[test]
+fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
+    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.reading.as_mut().unwrap().session_ticks = 20;
+    pack.books
+        .iter_mut()
+        .find(|b| b.id == title)
+        .unwrap()
+        .reading_minutes = 30;
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    purchase(&mut sim, Some(shelf), &title);
+    purchase(&mut sim, Some(shelf), &title);
+    let other_seat = sim.spawn_object(
+        Position { x: 12., y: 5. },
+        pack.find("reading_chair").unwrap(),
+    );
+    let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    let other = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            id,
+            Position { x: 3., y: 4. },
+            Needs::all_at(80.),
+            Personality::neutral(),
+            IntentQueue::default(),
+            Relationships::default(),
+            Satisfaction::from_value(0.),
+        ))
+        .id();
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Personality::neutral());
+    read(&mut sim, person, seat, &title, false);
+    until(&mut sim, person, ReadingStage::Read);
+    for _ in 0..10 {
+        sim.tick();
+    }
+    read(&mut sim, other, other_seat, &title, false);
+    let mut saw_completed_hold = false;
+    let mut saw_overlap = false;
+    let mut held_values = None;
+    let mut held_comfort: Option<f32> = None;
+    let mut held_fun: Option<f32> = None;
+    for _ in 0..180 {
+        sim.tick();
+        let marker = sim
+            .world()
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .get(&person)
+            .and_then(|e| e.completed_novelty);
+        if marker.is_some() && stage(&sim, person) == Some(ReadingStage::Read) {
+            saw_completed_hold = true;
+            let journey = sim.world().get::<ReadingJourney>(person).unwrap();
+            let values = (journey.elapsed, journey.work, journey.earned_satisfaction);
+            if let Some(previous) = held_values {
+                assert_eq!(
+                    values, previous,
+                    "company does not repeat book work or rewards"
+                );
+            }
+            held_values = Some(values);
+            let comfort = sim
+                .world()
+                .get::<Needs>(person)
+                .unwrap()
+                .get(NeedId::Comfort);
+            let fun = sim.world().get::<Needs>(person).unwrap().get(NeedId::Fun);
+            if let Some(previous) = held_comfort {
+                let target = *sim.world().get::<Target>(person).unwrap();
+                let rate = effective_benefits(pack, action(sim.world(), target).unwrap())
+                    .unwrap()
+                    .comfort_for_ticks(1);
+                assert!(
+                    rate > 0. && (comfort - previous - rate).abs() < 0.00001,
+                    "held reading still receives chair Comfort"
+                );
+            } else {
+                sim.world_mut()
+                    .get_mut::<Needs>(person)
+                    .unwrap()
+                    .set(NeedId::Comfort, 30.);
+            }
+            held_comfort = Some(
+                sim.world()
+                    .get::<Needs>(person)
+                    .unwrap()
+                    .get(NeedId::Comfort),
+            );
+            if let Some(previous) = held_fun {
+                assert_eq!(fun, previous, "completed book work supplies no further Fun");
+            }
+            held_fun = Some(fun);
+            let snapshot = sim.save_snapshot_v9();
+            let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
+            loaded.load_snapshot_v9(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v9(), snapshot);
+            assert_eq!(loaded.world_hash(), sim.world_hash());
+        }
+        if stage(&sim, person) == Some(ReadingStage::Read)
+            && stage(&sim, other) == Some(ReadingStage::Read)
+        {
+            saw_overlap = true;
+            assert!(
+                sim.world()
+                    .resource::<crate::social_episode::SocialEpisodes>()
+                    .communal[&person]
+                    .extensions
+                    <= 2
+            );
+        }
+        if saw_completed_hold && stage(&sim, person) == Some(ReadingStage::Return) {
+            let snapshot = sim.save_snapshot_v9();
+            let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
+            loaded.load_snapshot_v9(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v9(), snapshot);
+            break;
+        }
+    }
+    assert!(
+        saw_completed_hold,
+        "reader finishes the book while waiting for admitted company"
+    );
+    assert!(
+        saw_overlap,
+        "the incumbent remains for actual newcomer participation"
+    );
+    assert_eq!(
+        sim.reading_progress(person.index_u32(), &title)
+            .unwrap()
+            .completed_passes,
+        1
+    );
+}
+
+#[test]
+fn paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_valid_save() {
+    let (mut sim, person, shelf, seat, title) = fixture("reading_chair");
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    pack.reading.as_mut().unwrap().session_ticks = 20;
+    pack.books
+        .iter_mut()
+        .find(|b| b.id == title)
+        .unwrap()
+        .reading_minutes = 30;
+    let pack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+    purchase(&mut sim, Some(shelf), &title);
+    purchase(&mut sim, Some(shelf), &title);
+    let other_seat = sim.spawn_object(
+        Position { x: 12., y: 5. },
+        pack.find("reading_chair").unwrap(),
+    );
+    let id = sim.world_mut().resource_mut::<SimIdAllocator>().issue();
+    let other = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            id,
+            Position { x: 3., y: 4. },
+            Needs::all_at(80.),
+            Personality::neutral(),
+            IntentQueue::default(),
+            Relationships::default(),
+            Satisfaction::from_value(0.),
+        ))
+        .id();
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(Personality::neutral());
+    read(&mut sim, person, seat, &title, false);
+    until(&mut sim, person, ReadingStage::Read);
+    for _ in 0..10 {
+        sim.tick();
+    }
+    read(&mut sim, other, other_seat, &title, false);
+    let mut held = false;
+    for _ in 0..80 {
+        sim.tick();
+        held = sim
+            .world()
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .get(&person)
+            .is_some_and(|e| e.completed_novelty.is_some() && e.extensions == 0 && e.remaining > 0);
+        if held {
+            break;
+        }
+    }
+    assert!(held);
+    issue(
+        &mut sim,
+        SimCommand::CancelIntents {
+            agent: other.index_u32(),
+        },
+    );
+    sim.flush_commands();
+    assert_ne!(stage(&sim, person), Some(ReadingStage::Read));
+    let saved = sim.save_snapshot_v9();
+    let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
+    loaded.load_snapshot_v9(saved.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v9(), saved);
+    assert_eq!(
+        sim.reading_progress(person.index_u32(), &title)
+            .unwrap()
+            .completed_passes,
+        1
+    );
+}
+
+#[test]
 fn reading_render_projection_tracks_active_seat_and_canonical_reach() {
     let (mut sim, person, shelf, seat, title) = fixture("armchair");
     purchase(&mut sim, Some(shelf), &title);
@@ -252,25 +465,25 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
         ReadingStage::Shelve,
     ] {
         until(&mut sim, p, stage);
-        let saved = sim.save_snapshot_v6();
+        let saved = sim.save_snapshot_v9();
         let hash = sim.world_hash();
-        sim.load_snapshot_v6(saved.clone())
+        sim.load_snapshot_v9(saved.clone())
             .unwrap_or_else(|e| panic!("{stage:?}: {e:?}"));
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        assert_eq!(sim.save_snapshot_v9(), saved);
         assert_eq!(sim.world_hash(), hash);
         let mut bad = saved.clone();
-        bad.reading[0].copy = BookCopyId(999);
-        assert!(sim.load_snapshot_v6(bad).is_err());
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        bad.legacy.reading[0].copy = BookCopyId(999);
+        assert!(sim.load_snapshot_v9(bad).is_err());
+        assert_eq!(sim.save_snapshot_v9(), saved);
         assert_eq!(sim.world_hash(), hash);
         let mut unearned = saved.clone();
-        unearned.reading[0].earned_satisfaction = 10.0;
-        assert!(sim.load_snapshot_v6(unearned).is_err());
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        unearned.legacy.reading[0].earned_satisfaction = 10.0;
+        assert!(sim.load_snapshot_v9(unearned).is_err());
+        assert_eq!(sim.save_snapshot_v9(), saved);
         let mut bad = saved.clone();
-        bad.reading.clear();
-        assert!(sim.load_snapshot_v6(bad).is_err());
-        assert_eq!(sim.save_snapshot_v6(), saved);
+        bad.legacy.reading.clear();
+        assert!(sim.load_snapshot_v9(bad).is_err());
+        assert_eq!(sim.save_snapshot_v9(), saved);
     }
 }
 #[test]
@@ -1857,7 +2070,7 @@ fn contextual_reading_relief_matches_delivery_and_never_double_pays_comfort() {
 }
 
 #[test]
-fn owned_reading_company_requires_actual_read_stage_and_directional_liking() {
+fn owned_reading_company_requires_actual_read_stage_and_scales_directional_affinity() {
     let (mut sim, first, shelf, seat, title) = fixture("reading_chair");
     purchase(&mut sim, Some(shelf), &title);
     purchase(&mut sim, Some(shelf), &title);
@@ -1884,14 +2097,12 @@ fn owned_reading_company_requires_actual_read_stage_and_directional_liking() {
     until(&mut sim, second, ReadingStage::Read);
     assert_eq!(stage(&sim, first), Some(ReadingStage::Read));
     let first_id = *sim.world().get::<SimId>(first).unwrap();
-    sim.world_mut()
-        .get_mut::<Relationships>(first)
-        .unwrap()
-        .bump(id, 0.5);
-    sim.world_mut()
-        .get_mut::<Relationships>(second)
-        .unwrap()
-        .bump(first_id, -0.5);
+    let mut likes = Relationships::default();
+    likes.bump(id, 0.5);
+    let mut dislikes = Relationships::default();
+    dislikes.bump(first_id, -0.5);
+    sim.world_mut().entity_mut(first).insert(likes);
+    sim.world_mut().entity_mut(second).insert(dislikes);
     for person in [first, second] {
         sim.world_mut()
             .get_mut::<Needs>(person)
@@ -1899,19 +2110,22 @@ fn owned_reading_company_requires_actual_read_stage_and_directional_liking() {
             .set(NeedId::Social, 30.);
     }
     crate::social_company::refresh(sim.world_mut());
-    let expected = pack.tuning.need_interactions.shared_social_per_tick;
+    let expected = pack.tuning.need_interactions.shared_social_per_tick * 1.25;
     crate::need_interactions::tick(sim.world_mut());
     assert!(
         (sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) - 30. - expected).abs()
             < 0.00001
     );
-    assert_eq!(
-        sim.world()
+    assert!(
+        (sim.world()
             .get::<Needs>(second)
             .unwrap()
-            .get(NeedId::Social),
-        30.
+            .get(NeedId::Social)
+            - 30.09)
+            .abs()
+            < 0.00001
     );
+
     assert!(request_return(sim.world_mut(), second));
     crate::social_company::refresh(sim.world_mut());
     let before = sim.world().get::<Needs>(first).unwrap().get(NeedId::Social);

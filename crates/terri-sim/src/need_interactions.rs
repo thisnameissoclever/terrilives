@@ -341,6 +341,11 @@ pub(crate) fn active_benefits(world: &World, person: Entity) -> Vec<(u8, f32)> {
             seat * scale(NeedId::Comfort.index() as u8),
         ));
     }
+    for (need, delta) in &mut effects {
+        if *need as usize == NeedId::Social.index() && *delta > 0. {
+            *delta *= company.active_scale(person, &feelings);
+        }
+    }
     effects
 }
 
@@ -396,7 +401,11 @@ pub(crate) fn tick(world: &mut World) {
                 } else {
                     comfort
                 },
-                social * personality.map_or(1., |p| p.satisfaction[NeedId::Social.index()]),
+                social
+                    * personality.map_or(1., |p| p.satisfaction[NeedId::Social.index()])
+                    * world
+                        .resource::<crate::social_company::SocialCompany>()
+                        .active_scale(person, &feelings),
             )
         })
         .collect();

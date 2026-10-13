@@ -1,0 +1,7 @@
+
+PASS: cargo tree -p terri-core --target x86_64-unknown-linux-gnu contains no web dependencies
+PASS: cargo tree -p terri-data --target x86_64-unknown-linux-gnu contains no web dependencies
+PASS: cargo tree -p terri-sim --target x86_64-unknown-linux-gnu contains no web dependencies
+PASS: cargo tree -p terri-core --target wasm32-unknown-unknown contains no web dependencies
+PASS: cargo tree -p terri-data --target wasm32-unknown-unknown contains no web dependencies
+PASS: cargo tree -p terri-sim --target wasm32-unknown-unknown contains no web dependencies

@@ -259,7 +259,13 @@ pub fn tick_interactions(
             // bite in full: a ruined meal is exactly as tiring to cook
             // as a good one ([E3]).
             let fumble = fumbled.map_or(1.0, |f| f.delta_scale);
-            let delta = super::advertise::scaled_delta(*delta, satisfaction * fumble);
+            let company_scale = if *need_index as usize == NeedId::Social.index() {
+                company.active_scale(entity, &feelings.get(entity).cloned().unwrap_or_default())
+            } else {
+                1.
+            };
+            let delta =
+                super::advertise::scaled_delta(*delta, satisfaction * fumble * company_scale);
             let delta = crate::need_interactions::cap_delta(
                 content.0,
                 act,

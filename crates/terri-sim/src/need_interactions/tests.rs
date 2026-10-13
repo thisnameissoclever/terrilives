@@ -174,7 +174,7 @@ fn differing_or_failed_activities_do_not_supply_shared_social() {
 }
 
 #[test]
-fn shared_social_requires_actual_matching_activity_and_directional_liking() {
+fn shared_social_requires_actual_matching_activity_and_scales_directional_affinity() {
     for (a, b) in [
         ("bookshelf", "reading_chair"),
         ("moving_box", "moving_box"),
@@ -183,14 +183,17 @@ fn shared_social_requires_actual_matching_activity_and_directional_liking() {
         let (mut sim, first, second) = shared_fixture(a, b);
         contextual_minute(&mut sim);
         assert!(
-            (sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) - 30.12).abs() < 0.00001
+            (sim.world().get::<Needs>(first).unwrap().get(NeedId::Social) - 30.15).abs() < 0.00001
         );
-        assert_eq!(
-            sim.world()
+        assert!(
+            (sim.world()
                 .get::<Needs>(second)
                 .unwrap()
-                .get(NeedId::Social),
-            30.
+                .get(NeedId::Social)
+                - 30.09)
+                .abs()
+                < 0.00001,
+            "Disliked company still supplies smaller positive Social"
         );
         sim.world_mut().entity_mut(second).insert(Path {
             steps: vec![(5, 3)],

@@ -1,0 +1,12 @@
+
+> test
+> vitest run --maxWorkers=1 tests/conversation-bubbles.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/7515/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  13:39:56
+   Duration  10.75s (transform 8.06s, setup 259ms, import 10.00s, tests 9ms, environment 0ms)

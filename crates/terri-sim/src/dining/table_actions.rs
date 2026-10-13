@@ -384,14 +384,14 @@ mod tests {
             });
         sim.flush_commands();
         let mut loaded = crate::Sim::new_from_shipped_lot();
-        loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+        loaded.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
         let mut carrying = false;
         let mut ate = false;
         for _ in 0..600 {
             sim.tick();
             carrying |= sim.world().get::<terri_core::Carrying>(person).is_some();
-            loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
-            assert_eq!(loaded.save_snapshot_v6(), sim.save_snapshot_v6());
+            loaded.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
+            assert_eq!(loaded.save_snapshot_v9(), sim.save_snapshot_v9());
             assert_eq!(loaded.world_hash(), sim.world_hash());
             if carrying
                 && sim
