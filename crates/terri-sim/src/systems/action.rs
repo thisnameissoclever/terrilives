@@ -9,7 +9,7 @@ use terri_core::{
 
 #[cfg(test)]
 use super::advertise::score_advertisement;
-use super::advertise::{benefit_scale, relationship_scale, scaled_delta};
+use super::advertise::{benefit_scale, scaled_delta};
 
 #[cfg(test)]
 thread_local! {
@@ -75,6 +75,8 @@ use crate::Content;
 pub struct BedState<'w, 's> {
     pub(super) assignments: Res<'w, crate::beds::BedAssignments>,
     content: Res<'w, Content>,
+    episodes: Res<'w, crate::social_episode::SocialEpisodes>,
+    family: Option<Res<'w, terri_core::layout::FamilyTies>>,
     seat_claims: Query<'w, 's, (Entity, &'static crate::seating::PhysicalClaim)>,
     definitions: Query<'w, 's, &'static SmartObject>,
     recipe_orders: Query<'w, 's, &'static crate::recipe_actions::RecipeOrder>,
@@ -96,6 +98,9 @@ pub struct BedState<'w, 's> {
 }
 
 impl BedState<'_, '_> {
+    pub(super) fn owns_incoming(&self, owner: Entity, recipient: Entity) -> bool {
+        self.episodes.rendezvous.get(&recipient) == Some(&owner)
+    }
     pub(super) fn occupancy(&self) -> crate::beds::Occupancy {
         let mut result = crate::beds::Occupancy::new(
             self.targets.iter().map(|(owner, target, place, agent)| {
@@ -659,6 +664,8 @@ pub fn serve_intents(
             // through Has<Path>.
             Has<terri_core::AtWork>,
             Has<crate::reading::ReadingJourney>,
+            Has<terri_core::ChainState>,
+            Has<terri_core::Commuting>,
         ),
         With<Agent>,
     >,
@@ -823,7 +830,13 @@ pub fn serve_intents(
         // after this removal wins; the pair is what stops a marker set on
         // an earlier tick outliving the condition that set it, on every
         // path through this loop that does not wait.
-        commands.entity(agent).remove::<Blocked>();
+        let arrived_waiter = target.is_some_and(|t| beds.owns_incoming(agent, t.object))
+            && positions.get(agent).is_ok_and(|(_, path)| path.is_none());
+        if arrived_waiter {
+            commands.entity(agent).insert(Blocked);
+        } else {
+            commands.entity(agent).remove::<Blocked>();
+        }
 
         if let Some(id) = intent.chore {
             commands.queue(move |world: &mut World| crate::chores::activate(world, agent, id));
@@ -878,6 +891,8 @@ pub fn serve_intents(
                 has_talking,
                 at_work,
                 reading,
+                chain,
+                commuting,
             )) = people.get(intent.object)
             else {
                 queue.pop();
@@ -895,8 +910,12 @@ pub fn serve_intents(
             // intent stays at the front and retries, select_action skips
             // the non-empty queue, and the sim stands rather than
             // strolls. `Blocked` says why out loud.
-            let busy = has_target || has_path || has_eating || has_talking || at_work || reading;
-            if (reserved_p && !held_here) || claimed.contains(&intent.object) || busy {
+            let unavailable = (has_path && !(reading || chain)) || at_work || commuting;
+            let _ = (reserved_p, has_target, has_eating, has_talking);
+            if (beds.episodes.rendezvous.contains_key(&intent.object) && !held_here)
+                || claimed.contains(&intent.object)
+                || unavailable
+            {
                 commands.entity(agent).insert(Blocked);
                 continue;
             }
@@ -936,6 +955,13 @@ pub fn serve_intents(
                 crate::beds::Admission::Exclusive,
             );
             commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
+            commands.queue(move |world: &mut World| {
+                crate::social_episode::cancel_incoming(world, agent);
+                world
+                    .resource_mut::<crate::social_episode::SocialEpisodes>()
+                    .rendezvous
+                    .insert(intent.object, agent);
+            });
             commands
                 .entity(intent.object)
                 .remove::<terri_core::Wander>()
@@ -1221,6 +1247,8 @@ pub fn serve_intents(
         // reserve a sim already walking away - the deferred-Target
         // blindness again.
         claimed.push(agent);
+        commands
+            .queue(move |world: &mut World| crate::social_episode::cancel_incoming(world, agent));
         commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
         commands
             .entity(intent.object)
@@ -1318,7 +1346,7 @@ pub fn select_action(
     grid: Res<TileGrid>,
     content: Res<Content>,
     social_company: Res<crate::social_company::SocialCompany>,
-    relationship_context: Res<crate::relationship_dynamics::RelationshipContext>,
+    _relationship_context: Res<crate::relationship_dynamics::RelationshipContext>,
     positions: Query<(&Position, Option<&Path>), With<Agent>>,
     interpersonal: Option<Res<super::interpersonal::InterpersonalPhase>>,
     clock: Res<SimClock>,
@@ -1357,15 +1385,7 @@ pub fn select_action(
     >,
     people: Query<
         (Entity, &Position, &SimId, Has<Reserved>, &Needs),
-        (
-            With<Agent>,
-            Without<Target>,
-            Without<Eating>,
-            Without<Socialising>,
-            Without<crate::reading::ReadingJourney>,
-            Without<Path>,
-            Without<terri_core::AtWork>,
-        ),
+        (With<Agent>, Without<Path>, Without<terri_core::AtWork>),
     >,
     objects: Query<(
         Entity,
@@ -1540,6 +1560,9 @@ pub fn select_action(
         instinct,
     ) in idle
     {
+        if beds.episodes.rendezvous.contains_key(&agent) {
+            continue;
+        }
         if claimed.contains(&agent) {
             commands
                 .entity(agent)
@@ -1738,7 +1761,28 @@ pub fn select_action(
                             continue;
                         }
                         let satisfaction = personality.satisfaction[*need_index as usize];
-                        let delta = scaled_delta(*delta, scale * satisfaction);
+                        let company_scale = if *need_index as usize == NeedId::Social.index() {
+                            let endpoint = media_plan
+                                .as_ref()
+                                .map(|p| p.physical_place(agent, object).endpoint)
+                                .or_else(|| {
+                                    access
+                                        .nearest(false)
+                                        .and_then(|r| r.route.path(&grid, from))
+                                        .and_then(|steps| steps.last().copied())
+                                })
+                                .unwrap_or(from);
+                            social_company.proposed_scale(
+                                agent,
+                                object,
+                                index as u32,
+                                &relationships,
+                                endpoint,
+                            )
+                        } else {
+                            1.
+                        };
+                        let delta = scaled_delta(*delta, scale * satisfaction * company_scale);
                         let delta = crate::need_interactions::cap_delta(
                             content.0,
                             advert,
@@ -1905,12 +1949,14 @@ pub fn select_action(
             }
         }
 
-        for (other, other_pos, other_id, reserved, other_needs) in &company {
+        for (other, other_pos, other_id, reserved, _other_needs) in &company {
             let other = *other;
             if other == agent {
                 continue;
             }
-            let contested = *reserved || claimed.contains(&other);
+            let contested =
+                beds.episodes.rendezvous.contains_key(&other) || claimed.contains(&other);
+            let _ = reserved;
             let to = (other_pos.x.round() as i32, other_pos.y.round() as i32);
             let Some(distance) = distances
                 .and_then(|field| field.distance_to_adjacent(to, terri_core::Footprint::SINGLE))
@@ -1919,9 +1965,15 @@ pub fn select_action(
             };
             let distance = distance as f32;
 
-            let relationship = relationship_scale(
+            let family = beds.identities.get(agent).ok().is_some_and(|id| {
+                beds.family
+                    .as_ref()
+                    .is_some_and(|f| f.relation(id.0, other_id.0).is_some())
+            });
+            let relationship = crate::social_episode::benefit(
                 relationships.feeling(*other_id),
                 content.0.tuning.relationship_delta_scale,
+                family,
             );
             for (index, advert) in content.0.social.iter().enumerate() {
                 let scale = relationship
@@ -1932,52 +1984,20 @@ pub fn select_action(
                     );
                 let mut score = 0.0;
                 for (need_index, delta) in &advert.advertises {
-                    if *delta > 0.
-                        && *need_index as usize == NeedId::Social.index()
-                        && relationships.feeling(*other_id) <= 0.
-                    {
-                        let compatibility = relationship_context
-                            .0
-                            .get(&agent)
-                            .zip(relationship_context.0.get(&other))
-                            .map_or(0., |(a, b)| crate::compatibility::between(a, b));
-                        let gain = if crate::relationship_dynamics::conversation_positive_allowed(
-                            &needs,
-                            other_needs,
-                            &advert.advertises,
-                            &content.0.tuning,
-                        ) {
-                            content.0.tuning.relationship_gain_per_talk
-                                * crate::relationship_dynamics::positive_scale(compatibility)
-                        } else {
-                            0.
-                        };
-                        let preference = super::trait_effects::disposition_multiplier(
+                    let satisfaction = personality.satisfaction[*need_index as usize];
+                    let need_scale = if *need_index as usize == NeedId::Social.index() {
+                        scale
+                    } else {
+                        super::advertise::relationship_scale(
+                            relationships.feeling(*other_id),
+                            content.0.tuning.relationship_delta_scale,
+                        ) * super::trait_effects::disposition_multiplier(
                             traits.as_ref(),
                             content.0,
                             &advert.tags,
-                        );
-                        let benefit =
-                            *delta * preference * personality.satisfaction[*need_index as usize];
-                        let mut future = crate::social_company::friendship_score(
-                            needs.deficit(NeedId::Social),
-                            benefit,
-                            advert.duration_ticks,
-                            distance,
-                            relationships.feeling(*other_id),
-                            gain,
-                        );
-                        if needs.get(NeedId::Social) <= content.0.tuning.mood_low_need_level {
-                            future *= super::autonomy::preservation_multiplier(
-                                &content.0.tuning,
-                                instinct,
-                            );
-                        }
-                        score += future;
-                        continue;
-                    }
-                    let satisfaction = personality.satisfaction[*need_index as usize];
-                    let delta = scaled_delta(*delta, scale * satisfaction);
+                        )
+                    };
+                    let delta = scaled_delta(*delta, need_scale * satisfaction);
                     let id = NeedId::ALL[*need_index as usize];
                     score += super::autonomy::need_score(
                         &needs,
@@ -2231,6 +2251,14 @@ pub fn select_action(
             },
             admission,
         );
+        if people.get(object).is_ok() {
+            commands.queue(move |world: &mut World| {
+                world
+                    .resource_mut::<crate::social_episode::SocialEpisodes>()
+                    .rendezvous
+                    .insert(object, agent);
+            });
+        }
         commands
             .entity(object)
             .remove::<terri_core::Wander>()

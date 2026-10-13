@@ -136,11 +136,78 @@ pub(crate) fn restore_migrated(
 }
 
 pub(super) fn restore_inner(
-    mut snapshot: SaveSnapshotV6,
+    snapshot: SaveSnapshotV6,
     content: &'static ContentPack,
     portals: Option<ActivePortals>,
     migration: bool,
 ) -> Result<Sim, SaveError> {
+    restore_inner_social(snapshot, content, portals, migration, None)
+}
+
+pub(crate) fn restore_with_social(
+    snapshot: SaveSnapshotV6,
+    social: terri_core::save_v9::SavedSocialEpisodes,
+    content: &'static ContentPack,
+    portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    if snapshot.legacy.affinities.is_none() {
+        return Err(SaveError::InvalidValue);
+    }
+    restore_inner_social(snapshot, content, portals, false, Some(social))
+}
+
+fn restore_inner_social(
+    mut snapshot: SaveSnapshotV6,
+    content: &'static ContentPack,
+    portals: Option<ActivePortals>,
+    migration: bool,
+    social: Option<terri_core::save_v9::SavedSocialEpisodes>,
+) -> Result<Sim, SaveError> {
+    let saved_people = snapshot
+        .legacy
+        .world
+        .entities
+        .iter()
+        .filter_map(|e| e.sim_id.filter(|_| e.agent).map(|id| (e.index, id)))
+        .collect();
+    let mut social_targets: std::collections::BTreeMap<_, _> = snapshot
+        .legacy
+        .world
+        .entities
+        .iter()
+        .filter_map(|entity| entity.target.map(|target| (entity.index, target)))
+        .collect();
+    if social.is_some() {
+        for reading in &snapshot.reading {
+            let model = snapshot
+                .legacy
+                .world
+                .entities
+                .iter()
+                .find(|entity| entity.index == reading.origin)
+                .and_then(|entity| entity.smart_object.as_deref())
+                .ok_or(SaveError::InvalidEntityReference)?;
+            let interaction = snapshot
+                .actions
+                .objects
+                .iter()
+                .find(|object| object.model == model)
+                .and_then(|object| {
+                    object
+                        .interactions
+                        .iter()
+                        .position(|action| action == &reading.action)
+                })
+                .ok_or(SaveError::InvalidContentReference)? as u32;
+            social_targets.insert(
+                reading.owner,
+                terri_core::SavedTarget {
+                    object: reading.origin,
+                    interaction,
+                },
+            );
+        }
+    }
     // These markers exist only to migrate historical envelopes. Current
     // capture always includes sleep ownership and has already applied them.
     if (!migration && snapshot.legacy.skills.is_none())
@@ -307,6 +374,9 @@ pub(super) fn restore_inner(
         &snapshot.reading,
         &snapshot.pending_shifts,
     )?;
+    if let Some(social) = social {
+        super::social::restore_into(&mut candidate, social, saved_people, social_targets)?;
+    }
     crate::reading::persistence::validate(
         &candidate.world,
         candidate.world.resource::<terri_core::TileGrid>(),

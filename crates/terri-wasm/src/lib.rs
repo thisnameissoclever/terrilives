@@ -2000,6 +2000,14 @@ impl SimHandle {
         self.sim.render_buffer().activities.as_ptr()
     }
 
+    pub fn conversation_topics_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().conversation_topics.as_ptr()
+    }
+
+    pub fn conversation_preferences_ptr(&self) -> *const f32 {
+        self.sim.render_buffer().conversation_preferences.as_ptr()
+    }
+
     /// Presentation body-action code per row. Object and social actions remain
     /// content-authored; walking is derived from the live path. Re-read after
     /// every sync or memory growth, like every other zero-copy render pointer.
@@ -2484,7 +2492,7 @@ impl SimHandle {
     /// interpret a shape it does not understand.
     pub fn save_bytes(&self) -> Vec<u8> {
         let payload =
-            postcard::to_allocvec(&self.sim.save_snapshot_v6()).expect("SaveSnapshotV6 serialises");
+            postcard::to_allocvec(&self.sim.save_snapshot_v9()).expect("SaveSnapshotV9 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2508,6 +2516,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 9 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV9>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v9(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 6 {
             return match postcard::take_from_bytes::<terri_core::save_v6::FrozenSaveSnapshotV6>(
                 payload,
@@ -4256,6 +4270,20 @@ mod boundary_tests {
     }
 
     #[test]
+    fn schema8_envelope_remains_readable_after_social_persistence() {
+        let source = SimHandle::from_lot();
+        let mut bytes = SAVE_MAGIC.to_vec();
+        bytes.extend_from_slice(&8u16.to_le_bytes());
+        bytes.extend(postcard::to_allocvec(&source.sim.save_snapshot_v6()).unwrap());
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(
+            restored.sim.save_snapshot_v6(),
+            source.sim.save_snapshot_v6()
+        );
+    }
+
+    #[test]
     fn save_bytes_round_trip_and_continue_the_running_sim() {
         let mut uninterrupted = SimHandle::from_lot();
         for _ in 0..173 {
@@ -4266,8 +4294,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            8,
-            "the public writer must emit the schema-8 envelope"
+            9,
+            "the public writer must emit the schema-9 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -10230,3 +10258,65 @@ mod upstream_integration_tests;
 
 #[cfg(test)]
 mod table_retirement_tests;
+
+#[cfg(test)]
+mod social_boundary_regressions {
+    use super::*;
+    #[test]
+    fn historical_seated_reader_resaves_current_state() {
+        let mut source = SimHandle::new(64, 64);
+        assert!(source.load_bytes(include_bytes!(
+            "../../../web/tests/fixtures/owned-reading-seated.sav"
+        )));
+        for _ in 0..120 {
+            source.tick();
+            let b = source.sim.render_buffer();
+            if b.ids
+                .iter()
+                .position(|id| *id == 1)
+                .is_some_and(|row| b.activities[row] == 8)
+            {
+                break;
+            }
+        }
+        let saved = source.sim.save_snapshot_v9();
+        let mut restored = terri_sim::Sim::new_with_lot(64, 64);
+        let row = source
+            .sim
+            .render_buffer()
+            .ids
+            .iter()
+            .position(|id| *id == 1)
+            .unwrap();
+        assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
+        assert_eq!(restored.load_snapshot_v9(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v9(), saved);
+        for _ in 0..20 {
+            source.tick();
+            restored.tick();
+            assert_eq!(restored.world_hash(), source.sim.world_hash());
+        }
+    }
+    #[test]
+    fn front_talk_waits_for_healthy_recipient_bed_order() {
+        let mut source = SimHandle::new(16, 16);
+        assert!(source.spawn_object(2., 8., "bed"));
+        assert!(source.spawn_object(11., 8., "radio"));
+        source.spawn_agent(8., 8., 80.);
+        source.spawn_agent(8., 11., 80.);
+        assert!(source.enqueue_command(
+            &postcard::to_allocvec(&SimCommand::UseObject {
+                agent: 2,
+                object: 1,
+                interaction: 0
+            })
+            .unwrap()
+        ));
+        assert!(source.enqueue_command(&[5, 2, 0, 0]));
+        assert!(source.enqueue_command(&[6, 3, 2, 0]));
+        for _ in 0..20 {
+            source.tick();
+        }
+        assert_eq!(source.queued_orders_of(3), 1);
+    }
+}

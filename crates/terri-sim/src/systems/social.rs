@@ -11,7 +11,7 @@ use terri_core::{
     IntentQueue, NeedId, Needs, Personality, Relationships, Reserved, SimId, Socialising, Target,
 };
 
-use super::advertise::{relationship_scale, scaled_delta};
+use super::advertise::scaled_delta;
 use crate::relationship_effects::{RelationshipCause, RelationshipDiagnostics, RelationshipEffect};
 use crate::Content;
 
@@ -48,7 +48,11 @@ use crate::Content;
 #[allow(clippy::too_many_arguments)]
 pub fn tick_social(
     mut commands: Commands,
-    content: Res<Content>,
+    (content, episodes, family): (
+        Res<Content>,
+        Res<crate::social_episode::SocialEpisodes>,
+        Option<Res<terri_core::layout::FamilyTies>>,
+    ),
     clock: Res<terri_core::SimClock>,
     mut diagnostics: ResMut<RelationshipDiagnostics>,
     context: Res<crate::relationship_dynamics::RelationshipContext>,
@@ -137,13 +141,26 @@ pub fn tick_social(
             let feeling = other_sim_id(&sim_ids, other)
                 .and_then(|id| relationships.get(me).ok().map(|r| r.feeling(id)))
                 .unwrap_or(0.0);
-            let scale = relationship_scale(feeling, tuning.relationship_delta_scale);
+            let related = sim_ids
+                .get(me)
+                .ok()
+                .zip(sim_ids.get(other).ok())
+                .is_some_and(|(a, b)| {
+                    family
+                        .as_ref()
+                        .is_some_and(|f| f.relation(a.0, b.0).is_some())
+                });
+            let scale =
+                crate::social_episode::benefit(feeling, tuning.relationship_delta_scale, related);
 
             for (need_index, delta) in &act.advertises {
-                if *delta > 0. && *need_index as usize == NeedId::Social.index() && feeling <= 0. {
-                    continue;
-                }
-                let delta = scaled_delta(*delta, scale * satisfaction_of(*need_index as usize));
+                let need_scale = if *need_index as usize == NeedId::Social.index() {
+                    scale
+                } else {
+                    super::advertise::relationship_scale(feeling, tuning.relationship_delta_scale)
+                };
+                let delta =
+                    scaled_delta(*delta, need_scale * satisfaction_of(*need_index as usize));
                 let id = NeedId::ALL[*need_index as usize];
                 my_needs.fill(id, delta / duration);
             }
@@ -209,7 +226,17 @@ pub fn tick_social(
                         &tuning,
                     )
                 });
-            let gain = if allowed {
+            let dislike = if me == partner {
+                episodes
+                    .topics
+                    .get(&initiator)
+                    .map_or(0., |t| t.listener_preference.min(0.))
+            } else {
+                0.
+            };
+            let gain = if dislike < 0. {
+                0.02 * dislike
+            } else if allowed {
                 tuning.relationship_gain_per_talk
                     * crate::relationship_dynamics::positive_scale(score)
             } else {
@@ -360,7 +387,7 @@ mod tests {
     }
 
     #[test]
-    fn neutral_lonely_chat_builds_friendship_before_it_refills_social() {
+    fn neutral_lonely_chat_builds_friendship_while_refilling_social() {
         let pack = chat_pack();
         let (mut sim, first, second) = household_of_two(pack);
         for person in [first, second] {
@@ -386,7 +413,7 @@ mod tests {
         start(&mut sim, 1);
         sim.tick();
         for (me, other) in [(first, second), (second, first)] {
-            assert!(sim.world().get::<Needs>(me).unwrap().get(NeedId::Social) < 10.);
+            assert!(sim.world().get::<Needs>(me).unwrap().get(NeedId::Social) > 10.);
             assert!(
                 sim.world()
                     .get::<Relationships>(me)
@@ -557,8 +584,8 @@ mod tests {
             "completion must release the partner"
         );
         assert!(
-            social_of(&sim, lonely) < 20.0,
-            "the first neutral conversation builds friendship before refilling Social; got {}",
+            social_of(&sim, lonely) > 20.0,
+            "neutral company builds friendship and refills Social; got {}",
             social_of(&sim, lonely)
         );
         // 70 splits the two worlds cleanly: with delivery the partner
@@ -831,8 +858,8 @@ mod tests {
         let leak = 40.0 * test_content::decay_per_tick(NeedId::Social);
         let stranger = run(0.0, 1.0);
         assert!(
-            (stranger - (20.0 - leak)).abs() < 0.01,
-            "a stranger's talk must not refill Social; got {stranger}"
+            (stranger - (20.0 + 30.0 - leak)).abs() < 0.01,
+            "neutral company must refill Social; got {stranger}"
         );
         // Halving satisfaction must HALVE the fill - `scale / satisfaction`
         // would double it instead, and at satisfaction 1.0 that mutant is
@@ -844,10 +871,10 @@ mod tests {
             (half_hearted - (20.0 + 18.75 - leak)).abs() < 0.01,
             "half the satisfaction must be half the fill; got {half_hearted}"
         );
-        // A full friendship delivers 45; a neutral one delivers zero.
+        // A full friendship delivers 45; a neutral one delivers 30.
         let warm = run(1.0, 1.0);
         assert!(
-            (warm - stranger - 45.0).abs() < 0.1,
+            (warm - stranger - 15.0).abs() < 0.1,
             "a full-warmth initiator must receive exactly \
              relationship_scale(1.0, 0.5) = 1.5x the authored fill: \
              stranger ended at {stranger}, warm at {warm}"
@@ -1765,21 +1792,22 @@ mod tests {
         talk(&mut sim, a, b);
         sim.tick();
         assert!(
-            sim.world().get::<Target>(a).is_none_or(|t| t.object != b),
-            "the order must not be served while the partner eats"
+            sim.world().get::<Target>(a).is_some_and(|t| t.object == b),
+            "the initiator approaches while the recipient eats"
         );
         assert!(
             !queue_is_empty(&sim, a),
             "and must not be dropped either - waiting means the intent stays at the front"
         );
         assert!(
-            sim.world().get::<terri_core::Blocked>(a).is_some(),
-            "the waiting sim says why it is standing still"
+            sim.world().get::<Path>(a).is_some()
+                || sim.world().get::<terri_core::Blocked>(a).is_some(),
+            "the initiator is approaching or waiting at contact"
         );
 
         for _ in 0..60 {
             sim.tick();
-            if sim.world().get::<Target>(a).map(|t| t.object) == Some(b) {
+            if sim.world().get::<Socialising>(a).is_some() {
                 return;
             }
         }
@@ -2162,12 +2190,12 @@ mod tests {
         talk(&mut sim, c, b);
         sim.tick();
         assert!(
-            sim.world().get::<Target>(c).is_none_or(|t| t.object != b),
-            "the latecomer must not grab a partner mid-sentence"
+            sim.world().get::<Target>(c).is_some_and(|t| t.object == b),
+            "the latecomer approaches the busy recipient"
         );
         assert!(
-            sim.world().get::<terri_core::Blocked>(c).is_some(),
-            "and says why it is standing still"
+            sim.world().get::<Socialising>(c).is_none(),
+            "and waits for the running conversation to finish"
         );
         assert!(
             sim.world().get::<Socialising>(a).is_some(),
@@ -2177,7 +2205,7 @@ mod tests {
         let mut turn_came = false;
         for _ in 0..SESSION {
             sim.tick();
-            if sim.world().get::<Target>(c).map(|t| t.object) == Some(b) {
+            if sim.world().get::<Socialising>(c).is_some() {
                 turn_came = true;
                 break;
             }

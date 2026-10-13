@@ -1,0 +1,119 @@
+{
+  "outcomes": [
+    {
+      "scenario": "Baseline",
+      "summary": "Success",
+      "log_path": "log/baseline.log",
+      "diff_path": null,
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 82.7722137,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.3091203,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "save::social::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/save/social.rs:276:5: replace hash with ()",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/save/social.rs",
+          "function": {
+            "function_name": "hash",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 275,
+                "column": 1
+              },
+              "end": {
+                "line": 311,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 276,
+              "column": 5
+            },
+            "end": {
+              "line": 310,
+              "column": 6
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__save__social.rs_line_276_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__save__social.rs_line_276_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 9.6453785,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.3077327,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-sim@0.1.0",
+            "--lib",
+            "save::social::tests",
+            "--",
+            "--test-threads=2"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_mutants": 1,
+  "missed": 0,
+  "caught": 1,
+  "timeout": 0,
+  "unviable": 0,
+  "success": 0,
+  "start_time": "2026-10-13T21:58:44.6596585Z",
+  "end_time": "2026-10-13T22:04:38.7320603Z",
+  "cargo_mutants_version": "27.1.0"
+}

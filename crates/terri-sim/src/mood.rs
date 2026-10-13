@@ -1542,14 +1542,14 @@ mod tests {
         // snacks net about 0.25 each because decay runs during each chain.
         // The chains' lengths come from the world generator, so the exact
         // snack that crosses the sick line moves with the draws taken
-        // before it. Empty bookcases now exclude reading choices, moving the
-        // shared draws and sampled snack lengths; the threshold itself is
+        // before it. Conversation topics consume seeded draws, moving the
+        // sampled snack lengths; the threshold itself is
         // checked against actual repetition after every completion above.
         assert_eq!(
             first_overdoing, 4,
             "three snacks in a row are not overdoing; the fourth is"
         );
-        assert_eq!(first_sick, 10, "the tenth snack in a row makes Tim sick");
+        assert_eq!(first_sick, 11, "the eleventh snack in a row makes Tim sick");
         assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
         assert!(
             refills.iter().all(|refill| *refill == refills[0]),

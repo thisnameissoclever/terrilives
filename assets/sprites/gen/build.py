@@ -1540,6 +1540,11 @@ def main():
                                                                   for index, masks in fridge_data['coverage'].items()}},
                          masks=bathroom_data['masks']+fridge_data['masks'], depths=fridge_data['depths'])
     visible_layers.update(fridge_data['layers'])
+    # Conversation composites append after every published sprite record.
+    import conversation_icons
+    for sprite in conversation_icons.render_icons():
+        densities[len(sprites)] = 2
+        sprites.append(sprite)
     sync_generated_architecture(sprites, check=args.check)
     textured = [(index, sprite) for index, sprite in enumerate(sprites)
                 if index not in visible_layers and index not in shelf_data['positions']]

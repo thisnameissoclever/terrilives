@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "sprites": [
+    {
+      "name": "conversationEatLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "c0ccb48179b4672d7ccf5aedc72274c9592fa2bdce6eb7f08386003367405d23"
+    },
+    {
+      "name": "conversationEatDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "f3c179a610f4879569ead0b2f6dc55776e093c94402d21f21b5887431a0629e4"
+    },
+    {
+      "name": "conversationTalkLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "42bae8aac15efa5682f5f1888b05f7977da9ea8c8e8ae86a1c22032c664bd8d4"
+    },
+    {
+      "name": "conversationTalkDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "6f3ff6dadeaf65d1d0fb7a418c4a3de6e0daaeb9134e13ecbc41c86e3d5c45f4"
+    },
+    {
+      "name": "conversationSleepLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "fbae27f99a7626750681b1f58c3ea7695de32c6c4ae6e2af4925a01cdd937e24"
+    },
+    {
+      "name": "conversationSleepDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "aaa03d11ef4297b1644dc91f45c5393972707153100e6476dfbaaef62eff55f0"
+    },
+    {
+      "name": "conversationUseLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "c729793dcbc5ed1389286f8753f1a93b6249342a9fae2e96b2eeb986d6787e75"
+    },
+    {
+      "name": "conversationUseDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "cb97ed24cbd14f60c585251d06e8e474a8bf741d9aca2a6d898dedc37cb2e694"
+    },
+    {
+      "name": "conversationReadingLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "ea83816731aecaa2004edc5c002af52d58bfcc34ff3ea4f4306b89e657636331"
+    },
+    {
+      "name": "conversationReadingDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "77d74c2fcb43cfaf99c54b59b9efeb58251f5540b4d8d3318bc24ed16b70cc6d"
+    },
+    {
+      "name": "conversationExerciseLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "f91e347d488e6b6b9705746699b8bcb49031842b787b6dfea1e41b731f7bbff2"
+    },
+    {
+      "name": "conversationExerciseDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "d619ea89caf94005cd3c6012ba553c3d60425c13d28b89606fa917d52b1eb6d6"
+    },
+    {
+      "name": "conversationWatchFishLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "961d81742ffdbb08901d929eb6d5bb9a6419baa93f6359cf1f87ab249095aa5f"
+    },
+    {
+      "name": "conversationWatchFishDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "2f5cd46578cf491878bc3b08c547c588223d780b4e4d2f037b2094fffdd569b8"
+    },
+    {
+      "name": "conversationSittingLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "2cad6fb6d980456d2d973df95c147b96c82c6af9ce75be91a90455870cedc393"
+    },
+    {
+      "name": "conversationSittingDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "fe25d795324b12904a3b8c3d1ce4485db160caf1585ab04ec0d92e59493c34da"
+    },
+    {
+      "name": "conversationShowerLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "674ed8ff32f90e4317c4d3abf5725a40ffe594a7e6379a02cefceb15012010b9"
+    },
+    {
+      "name": "conversationShowerDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "2b16fde1414399891ff46bbd42f7d1c9d6114496c9bbeae70c8a06f719db1494"
+    },
+    {
+      "name": "conversationToiletLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "6993e2d2e349301697a38af209b064d1c2442eda4aac4fbda4e2342508907a8d"
+    },
+    {
+      "name": "conversationToiletDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "6f29241515a73180da40b9a51694edac1eb4211d13d5eaaa2e12b85e32bbeff3"
+    },
+    {
+      "name": "conversationTVLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "c6ebf3d24a4e57e0eb9efe8f91a14eec73c7c55949c9de2e67a2e36c67dd2b01"
+    },
+    {
+      "name": "conversationTVDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "902a6b1f41fac09ff186163f196536a9d329b047a84f812e6b7c583027f4bda2"
+    },
+    {
+      "name": "conversationLyingDownLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "8636985152805c57922e4ad7260e407e1d142125e737f264a01e5515e51e5217"
+    },
+    {
+      "name": "conversationLyingDownDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "5ea9794193220b65f45eb915285735224c757098b8246253ef961b66acefc032"
+    },
+    {
+      "name": "conversationWashHandsLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "d9bae131b049fa6c0479058ca6910becb15183db8743816513d09e1b969f2dcc"
+    },
+    {
+      "name": "conversationWashHandsDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "5e67a9bc663513f07542023dbe3c940f904d20b84945cfc9459ffb4d01db31f7"
+    },
+    {
+      "name": "conversationWashDishesLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "22a1df44adf61a37d0fd11b747b48da104ca0114856c6bb73144c66bde5f8e7c"
+    },
+    {
+      "name": "conversationWashDishesDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "e0d20b7f80d225834d70882dbfef989fe39031918200e6fe914a5d5fff98e68a"
+    },
+    {
+      "name": "conversationRadioLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "49788bfe055ff9dc592e76ecb1dc066f95978bd214f48dfa609066ae916ac3e1"
+    },
+    {
+      "name": "conversationRadioDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "969f2d153c33e556666a04d0dadaaec316b9cfd78e9f9a400c5cc1acd7af7f43"
+    },
+    {
+      "name": "conversationCorrespondenceLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "5459d25c7091be5d32b0519fcc16381a2c4da18bde1b3e98930e5c97141d7abe"
+    },
+    {
+      "name": "conversationCorrespondenceDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "ccce8bb35ec5aad6fc57f90ab651bf8dd3ee80d5b942474ef76484eef7e25dcd"
+    },
+    {
+      "name": "conversationBathLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "23fa4fe50612c8b3a830836e5e7b60c302799a08e9f486154a3da6279d66278e"
+    },
+    {
+      "name": "conversationBathDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "dddf03a25f5cee1b02fea93e7c064ddee4082e28336ec8d1347a53a8b8a553a5"
+    },
+    {
+      "name": "conversationIngredientsLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "65773ce8f464033e41783bf5d4c3ebd9c70f4114f7c0c50fe8f2d4be40ae62d7"
+    },
+    {
+      "name": "conversationIngredientsDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "e8d2f5e4de454d14215c52f2f7c3c625e27f3fd83935f5bd8deb7648f19607ef"
+    },
+    {
+      "name": "conversationPrepareFoodLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "41c75d268fa8dd82cd44bc6ad8958e0827a6143b2b07c77ae7966a15837cc89a"
+    },
+    {
+      "name": "conversationPrepareFoodDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "17a004dc3dd6048fad1f703b53c58fabb23c3257065c26fba46b2960cde4258f"
+    },
+    {
+      "name": "conversationCookingLike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "02aed4e075085ef70fff36be86f2c1b85511a844d68aa11f78acecc7d7445546"
+    },
+    {
+      "name": "conversationCookingDislike",
+      "width": 84,
+      "height": 84,
+      "rgbaSha256": "8204b282db6625a2012b2fad72f976704ea942beded6e0345fabfa9f7a20e80c"
+    }
+  ]
+}

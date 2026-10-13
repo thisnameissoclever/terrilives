@@ -117,6 +117,7 @@ fn clear_action(world: &mut World, entity: Entity) {
 }
 
 pub(crate) fn remove_person(world: &mut World, dead: Entity) {
+    crate::social_episode::forget_person(world, dead);
     if let Some(person) = world.get::<SimId>(dead).copied() {
         world
             .resource_mut::<crate::beds::BedAssignments>()

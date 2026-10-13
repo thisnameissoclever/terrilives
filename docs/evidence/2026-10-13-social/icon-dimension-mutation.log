@@ -1,0 +1,16 @@
+F
+======================================================================
+FAIL: test_reviewed_extension_is_registered_and_rejects_pixel_changes (test_conversation_icons.ConversationIconTests.test_reviewed_extension_is_registered_and_rejects_pixel_changes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\7515\terrilives\assets\sprites\gen\test_conversation_icons.py", line 56, in test_reviewed_extension_is_registered_and_rejects_pixel_changes
+    with self.assertRaisesRegex(ValueError, 'dimensions changed'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.096s
+
+FAILED (failures=1)
+Unchanged source SHA-256: a86f298e049b2d5def6579fa000366d4f933c97d96363bc34399c15a7d61bd6f
+Mutation rejected: dimensions

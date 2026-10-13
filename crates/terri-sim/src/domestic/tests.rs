@@ -893,10 +893,10 @@ fn snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips() {
                     }
                 }
             }
-            let snapshot = sim.save_snapshot_v6();
+            let snapshot = sim.save_snapshot_v9();
             let mut restored = Sim::new_from_shipped_lot();
             restored
-                .load_snapshot_v6(snapshot)
+                .load_snapshot_v9(snapshot)
                 .expect("every in-flight domestic save loads");
             assert_eq!(
                 sim.world_hash(),
@@ -1080,11 +1080,11 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
                 "pickup transfers dishes rather than losing or duplicating them"
             );
         }
-        let saved = sim.save_snapshot_v6();
+        let saved = sim.save_snapshot_v9();
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.world_mut().insert_resource(Content(pack));
         loaded
-            .load_snapshot_v6(saved)
+            .load_snapshot_v9(saved)
             .expect("cleanup saves load, including washing completion");
         assert_eq!(loaded.world_hash(), sim.world_hash());
         assert_eq!(
@@ -1214,7 +1214,7 @@ fn interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes() {
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    loaded.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
     assert_eq!(loaded.world_hash(), sim.world_hash());
     assert_eq!(
         loaded.render_buffer().carried_dishes,
@@ -1251,7 +1251,7 @@ fn selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_me
     assert_eq!(state.dishes[0].units, 3);
     assert!(sim.world().get::<ChainState>(people[0]).is_none());
     let mut restored = Sim::new_from_shipped_lot();
-    restored.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    restored.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
@@ -1369,7 +1369,7 @@ fn a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions() {
         loaded
             .world_mut()
             .insert_resource(*sim.world().resource::<Content>());
-        loaded.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+        loaded.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
         assert_eq!(loaded.world_hash(), sim.world_hash());
         if sim.world().resource::<SavedDomestic>().meals.is_empty() {
             break;
@@ -2199,7 +2199,7 @@ fn privacy_substitution_suspends_collected_cleanup_and_replays() {
     assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
     assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
     let mut replay = Sim::new_from_shipped_lot();
-    replay.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+    replay.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
     for _ in 0..40 {
         sim.tick();
         replay.tick();

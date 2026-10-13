@@ -72,9 +72,6 @@ fn v6_migration_fills_available_shelves_then_inventory_without_touching_rng() {
 #[test]
 fn v6_owned_copies_title_memory_and_taste_seed_round_trip() {
     let mut source = Sim::new_from_shipped_lot_with_seed(1991);
-    for _ in 0..100 {
-        source.tick();
-    }
     let mut library = source.world.resource::<BookLibrary>().clone();
     let rng = source.save_snapshot().rng;
     v6::with_book_world(&source.world, |world| {

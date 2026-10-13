@@ -64,7 +64,12 @@ pub(super) fn reward_upper(world: &World, person: Entity, journey: &ReadingJourn
     let novelty = if journey.work == 0.0 {
         1.0
     } else {
-        library.memory(id, title)?.pass_novelty?
+        world
+            .resource::<crate::social_episode::SocialEpisodes>()
+            .communal
+            .get(&person)
+            .and_then(|e| e.completed_novelty)
+            .or(library.memory(id, title)?.pass_novelty)?
     };
     let hobby = crate::systems::satisfaction::hobby_payout(
         1.0,

@@ -96,6 +96,10 @@ pub struct RenderBuffer {
     /// column is how the shell learns them without a query per frame.
     /// Objects are always 0 - activity is a fact about agents.
     pub activities: Vec<u32>,
+    /// Topic activity icon, or zero outside a conversation.
+    pub conversation_topics: Vec<u32>,
+    /// Each participant's own topic preference, from -1 to 1.
+    pub conversation_preferences: Vec<f32>,
     /// Body-action presentation for each row. See [`visual_action`] for the
     /// stable codes handed to the shell.
     ///
@@ -5279,6 +5283,8 @@ mod tests {
             assert_eq!(buf.foreground_sprites.len(), expected_count);
             assert_eq!(buf.colourways.len(), expected_count);
             assert_eq!(buf.activities.len(), expected_count);
+            assert_eq!(buf.conversation_topics.len(), expected_count);
+            assert_eq!(buf.conversation_preferences.len(), expected_count);
             assert_eq!(buf.visual_actions.len(), expected_count);
             assert_eq!(buf.interaction_targets.len(), expected_count);
             assert_eq!(buf.sleeping_beds.len(), expected_count);

@@ -142,7 +142,7 @@ fn secondary_seats_supply_their_own_rate_without_fun_or_reclining_energy() {
 }
 
 #[test]
-fn nuisance_crossing_zero_stops_social_that_minute_but_keeps_chair_comfort() {
+fn nuisance_crossing_zero_keeps_scaled_company_relief_and_chair_comfort() {
     use terri_core::{Affinities, NeedId, Needs, Personality, Relationships, SimId};
     let (mut sim, first, device, _) = fixture_at("television", 5., 3., Facing::SouthWest);
     let mut pack = sim.world().resource::<Content>().0.clone();
@@ -214,9 +214,8 @@ fn nuisance_crossing_zero_stops_social_that_minute_but_keeps_chair_comfort() {
     );
     let needs = sim.world().get::<Needs>(first).unwrap();
     assert!(
-        (needs.get(NeedId::Social) - (30. - pack.decay_per_tick[NeedId::Social.index()])).abs()
-            < 0.00001,
-        "Social uses the current feeling after nuisance"
+        needs.get(NeedId::Social) > 30. - pack.decay_per_tick[NeedId::Social.index()],
+        "Actual company still relieves Social after nuisance crosses zero"
     );
     assert!(
         (needs.get(NeedId::Comfort)
@@ -264,7 +263,7 @@ fn solo_media_does_not_refill_social() {
 }
 
 #[test]
-fn waiting_for_media_without_liked_company_does_not_claim_social_relief() {
+fn waiting_for_media_with_actual_neutral_company_claims_social_relief() {
     let (mut sim, person, television, _) = fixture_at("television", 10., 12., Facing::SouthWest);
     let pack = sim.world().resource::<Content>().0;
     for (id, x) in [(101, 3.), (102, 4.)] {
@@ -296,7 +295,7 @@ fn waiting_for_media_without_liked_company_does_not_claim_social_relief() {
         .world()
         .get::<crate::waiting::WaitingNeeds>(person)
         .expect("The queued request really waits for a slot");
-    assert_eq!(waiting.0 & (1 << terri_core::NeedId::Social.index()), 0);
+    assert_ne!(waiting.0 & (1 << terri_core::NeedId::Social.index()), 0);
     assert_ne!(waiting.0 & (1 << terri_core::NeedId::Fun.index()), 0);
 }
 
@@ -612,12 +611,14 @@ fn shared_media_refill_is_directional_and_stops_when_company_leaves() {
         sim.tick();
         assert!(social(&sim, first) > before.0);
         assert!(
-            social(&sim, second) < before.1,
-            "Disliked company cannot refill Social"
+            social(&sim, second) > before.1,
+            "Disliked company still refills Social"
         );
-        let saved = sim.save_snapshot_v5();
+        assert!(social(&sim, first) - before.0 > social(&sim, second) - before.1);
+        let legacy_saved = sim.save_snapshot_v5();
+        let saved = sim.save_snapshot_v9();
         let mut replay = Sim::new_with_lot(16, 16);
-        replay.load_snapshot_v5(saved.clone()).unwrap();
+        replay.load_snapshot_v9(saved.clone()).unwrap();
         for _ in 0..3 {
             sim.tick();
             replay.tick();
@@ -676,7 +677,7 @@ fn shared_media_refill_is_directional_and_stops_when_company_leaves() {
             .remove::<terri_core::Agent>();
         sim.tick();
         assert!(social(&sim, first) < before);
-        let mut invalid = saved;
+        let mut invalid = legacy_saved;
         let endpoint = invalid
             .dining
             .as_ref()
@@ -1503,13 +1504,13 @@ fn media_seat_restores_during_travel_and_active_use() {
     for tick in 0..120 {
         sim.tick();
         if tick == 0 || sim.world().get::<Eating>(person).is_some() {
-            let snapshot = sim.save_snapshot_v5();
+            let snapshot = sim.save_snapshot_v9();
             let hash = sim.world_hash();
             assert!(
-                sim.load_snapshot_v5(snapshot.clone()).is_ok(),
+                sim.load_snapshot_v9(snapshot.clone()).is_ok(),
                 "Exact media claims must restore at tick {tick}"
             );
-            assert_eq!(sim.save_snapshot_v5(), snapshot);
+            assert_eq!(sim.save_snapshot_v9(), snapshot);
             assert_eq!(sim.world_hash(), hash);
             if tick > 0 {
                 active = true;

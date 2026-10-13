@@ -44,6 +44,7 @@ mod meal_migration;
 pub(super) mod self_preservation;
 pub(super) mod skills;
 pub(super) mod sleeping_places;
+pub(crate) mod social;
 mod table_retirement;
 #[cfg(test)]
 mod v3_tests;

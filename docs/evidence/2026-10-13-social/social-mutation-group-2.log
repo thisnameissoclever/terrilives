@@ -1,0 +1,50 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\7515\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 35s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 17 tests
+test social_episode::tests::actual_newcomer_arrivals_extend_each_participant_at_most_twice ... ok
+test social_episode::tests::death_tick_prunes_topic_owners_and_communal_peer_references_before_save ... ok
+test social_episode::tests::dislike_still_delivers_and_family_adds_an_independent_bonus ... ok
+test social_episode::tests::liked_stranger_company_keeps_the_independent_disliked_family_bonus ... ok
+test social_episode::tests::lonely_disliked_company_and_family_are_scored_as_the_benefit_delivered ... ok
+test social_episode::tests::busy_recipient_finishes_while_initiator_approaches_then_waits_beside_them ... ok
+test social_episode::tests::recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders ... FAILED
+test social_episode::tests::same_tick_arrivals_use_original_durations_and_cancelled_approaches_release_holds ... ok
+test social_episode::tests::newcomer_waits_for_running_conversation_without_stealing_the_partner ... FAILED
+test social_episode::tests::shared_activity_selection_values_company_at_the_future_endpoint ... ok
+test social_episode::tests::social_capacity_increases_shared_interest_weight_without_admitting_dislike ... ok
+test social_episode::tests::topic_sampler_uses_social_capacity_across_fixed_seeds_and_excludes_own_dislikes ... ok
+test social_episode::tests::topics_replay_and_listener_dislike_is_directional_once_at_completion ... ok
+test social_episode::tests::same_tick_conversation_redirect_chooses_the_new_listeners_preference ... ok
+test social_episode::tests::urgent_waiting_recipient_releases_only_the_served_talk_order ... ok
+test social_episode::tests::waiting_claim_round_trips_mid_approach_and_cancellation_releases_it ... ok
+test social_episode::tests::waiting_talker_follows_cooking_stations_and_waits_for_the_entire_recipe ... FAILED
+
+failures:
+
+---- social_episode::tests::recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders stdout ----
+
+thread 'social_episode::tests::recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders' (158964) panicked at crates\terri-sim\src\social_episode\tests.rs:248:5:
+assertion failed: sim.world().get::<Target>(a).is_none_or(|t| t.object != b)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- social_episode::tests::newcomer_waits_for_running_conversation_without_stealing_the_partner stdout ----
+
+thread 'social_episode::tests::newcomer_waits_for_running_conversation_without_stealing_the_partner' (159056) panicked at crates\terri-sim\src\social_episode\tests.rs:204:45:
+called `Option::unwrap()` on a `None` value
+
+---- social_episode::tests::waiting_talker_follows_cooking_stations_and_waits_for_the_entire_recipe stdout ----
+
+thread 'social_episode::tests::waiting_talker_follows_cooking_stations_and_waits_for_the_entire_recipe' (93092) panicked at crates\terri-sim\src\social_episode\tests.rs:777:13:
+a recipe transition is still busy
+
+
+failures:
+    social_episode::tests::newcomer_waits_for_running_conversation_without_stealing_the_partner
+    social_episode::tests::recipient_player_talk_preempts_inbound_waiter_and_preserves_unrelated_orders
+    social_episode::tests::waiting_talker_follows_cooking_stations_and_waits_for_the_entire_recipe
+
+test result: FAILED. 14 passed; 3 failed; 0 ignored; 0 measured; 1303 filtered out; finished in 0.29s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

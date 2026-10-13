@@ -52,5 +52,13 @@ and shares occupied footprint depth so near furniture cannot cut it in half.
 The renderer and its instance counter use the same activity mapping and draw
 bubbles only for agents. Reduced motion and pause preserve meaningful icons.
 
+Conversations use a larger 42-pixel circular bubble with the same linen and
+ink palette. Speech sits at top left, the chosen activity at top right and a
+smaller thumb below. Each participant's preference supplies their own thumb
+direction and muted green or red tint. Neutral remains the existing linen
+white. The compound art still occupies one renderer instance; ordinary
+activity bubbles keep their existing size and appearance. Topic choice and
+preference come from simulation columns, not from visual inference.
+
 Review evidence and validation are recorded in
 `docs/assets/review-evidence/activity-bubbles/README.md`.

@@ -125,6 +125,25 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
     for (person, j) in &rows {
         let id = *world.get::<SimId>(*person).ok_or_else(bad)?;
         let tuning = pack.reading.as_ref().ok_or_else(bad)?;
+        let historical_extension = world
+            .get_resource::<crate::social_episode::SocialEpisodes>()
+            .and_then(|episodes| episodes.communal.get(person))
+            .is_some_and(|episode| {
+                episode.target.object == j.origin.object
+                    && episode.target.interaction == j.origin.interaction
+                    && episode.extensions <= 2
+            });
+        let continuation = historical_extension
+            && world
+                .get_resource::<crate::social_episode::SocialEpisodes>()
+                .and_then(|episodes| episodes.communal.get(person))
+                .is_some_and(|episode| {
+                    ((1..=2).contains(&episode.extensions)
+                        || (episode.extensions == 0
+                            && crate::social_company::has_inbound(world, *person)))
+                        && episode.remaining > 0
+                        && episode.remaining <= tuning.session_ticks
+                });
         let copy = world
             .resource::<BookLibrary>()
             .copy(j.copy)
@@ -143,7 +162,7 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
             || j.earned_satisfaction < 0.0
             || !j.work.is_finite()
             || j.work < 0.0
-            || j.elapsed > tuning.session_ticks
+            || (j.elapsed > tuning.session_ticks && !historical_extension)
             || (j.elapsed == 0) != (j.work == 0.0)
         {
             return Err(bad());
@@ -209,16 +228,39 @@ pub(crate) fn validate(world: &World, grid: &TileGrid) -> Result<(), SaveError> 
         if j.work > length + 0.001 {
             return Err(bad());
         }
+        let completed = world
+            .get_resource::<crate::social_episode::SocialEpisodes>()
+            .and_then(|episodes| episodes.communal.get(person))
+            .and_then(|episode| episode.completed_novelty);
+        if let Some(novelty) = completed {
+            if !historical_extension
+                || !novelty.is_finite()
+                || !(0.0..=1.0).contains(&novelty)
+                || j.work <= 0.0
+                || world
+                    .resource::<BookLibrary>()
+                    .memory(id, &copy.title_id)
+                    .is_none_or(|memory| {
+                        memory.completed_passes == 0
+                            || memory.progress_ticks != 0
+                            || memory.progress_fraction != 0.0
+                            || memory.pass_novelty.is_some()
+                    })
+            {
+                return Err(bad());
+            }
+        }
         if j.stage == ReadingStage::Read {
             if accrual::reward_upper(world, *person, j)
                 .is_none_or(|maximum| f64::from(j.earned_satisfaction) > maximum)
             {
                 return Err(bad());
             }
-            if j.elapsed >= tuning.session_ticks {
+            if j.elapsed >= tuning.session_ticks && !continuation {
                 return Err(bad());
             }
-            if j.work > 0.0
+            if completed.is_none()
+                && j.work > 0.0
                 && world
                     .resource::<BookLibrary>()
                     .memory(id, &copy.title_id)
