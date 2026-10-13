@@ -217,13 +217,15 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
             .map_err(|_| UnsupportedLayout)?;
             let mut seen = std::collections::BTreeSet::new();
             for &edge in layout.edges() {
-                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                if !edge.physical_in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((edge.axis, edge.x, edge.y))
                 {
                     return Err(UnsupportedLayout);
                 }
-                let [a, b] = edge.cells();
-                grid.set_edge_blocked(a, b, !edge.doorway);
+                if edge.in_bounds(grid.width() as u32, grid.height() as u32) {
+                    let [a, b] = edge.cells();
+                    grid.set_edge_blocked(a, b, !edge.doorway);
+                }
             }
             // [WN-rules]: a window stops a person exactly as a wall does. A
             // line that is somehow both keeps the wall's barrier, which the

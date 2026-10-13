@@ -62,7 +62,8 @@ describe('the sky wired into the page', () => {
     expect(MAIN_TS).toContain('daylightReachPerTile, lot.windows)');
     expect(MAIN_TS.match(/lot.windows = sim.windowLines\(\);/g)).toHaveLength(2);
     expect(MAIN_TS).toMatch(/if \(loaded\) \{[\s\S]*?lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
-    expect(MAIN_TS).toMatch(/if \(builder.afterCommands\(\)\) \{[\s\S]*?lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
+    expect(MAIN_TS).toMatch(/if \(builder.afterCommands\(\)\) \{\s*refreshBuildArchitecture\(\);/);
+    expect(MAIN_TS).toMatch(/function refreshBuildArchitecture\(\): void \{[^}]*lot.windows = sim.windowLines\(\);[^}]*lightingDirty = true;/);
   });
 
   it('rebuilds the sky with the lamp field whenever the lot changes', () => {

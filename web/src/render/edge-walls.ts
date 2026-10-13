@@ -69,7 +69,6 @@ export function buildEdgeWallGeometry(
   horizontalHinged: ArrayLike<number> = [],
 ): EdgeWallPanel[] {
   const inHouse = (x: number, y: number): boolean => x < house[0] && y < house[1];
-  // Edges never lie on the lot's own edge, so `x - 1` and `y - 1` are tiles.
   const cutAway = (axis: number, x: number, y: number): boolean => (axis === 0
     ? inHouse(x - 1, y) : inHouse(x, y - 1)) && !inHouse(x, y);
   const hingedAt = new Set<string>();
@@ -113,7 +112,8 @@ export function buildEdgeWallGeometry(
   for (let x = 0; x < Math.min(width, house[0]); x++) addSegment(1, x, 0, false);
   for (let i = 0; i + 3 < edges.length; i += 4) {
     if (!shortWalls && !showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
-    addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1, shortWalls);
+    const rearPerimeter = edges[i] === 0 ? edges[i + 1] === 0 : edges[i + 2] === 0;
+    addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1, shortWalls && !rearPerimeter);
   }
   for (let i = 0; i + 2 < windows.length; i += 3) {
     const [axis, x, y] = [windows[i], windows[i + 1], windows[i + 2]];

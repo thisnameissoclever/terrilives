@@ -65,7 +65,7 @@ export class BuilderControls {
     this.panel.hidden = !builder.active;
     this.toggle.textContent = builder.active ? 'Exit build' : 'Build';
     this.toggle.setAttribute('aria-pressed', String(builder.active));
-    this.toggle.disabled = builder.pending;
+    this.toggle.disabled = !builder.canExit;
     if (this.listed !== builder.objects) {
       this.listed = builder.objects;
       this.selector.replaceChildren();
@@ -82,7 +82,7 @@ export class BuilderControls {
     this.selector.disabled = builder.pending || builder.blocked;
     this.name.textContent = 'Build mode';
     const exit = this.document.querySelector<HTMLButtonElement>('#builder-exit');
-    if (exit) exit.disabled = builder.pending;
+    if (exit) exit.disabled = !builder.canExit;
     this.facing.textContent = builder.preview ? `Facing: ${FACING_NAMES[builder.preview.facing]}` : '';
     this.colour.value = String(builder.shownColourway ?? 0);
     // Not disabled while a change is on its way: disabling the focused list

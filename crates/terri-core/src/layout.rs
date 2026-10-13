@@ -130,6 +130,19 @@ pub struct WallEdge {
 }
 
 impl WallEdge {
+    /// A physical wall can stand on the plot perimeter; a doorway needs two tiles.
+    /// Grid edge writes still require `in_bounds`, including for solid walls.
+    pub fn physical_in_bounds(self, width: u32, height: u32) -> bool {
+        if self.doorway {
+            return self.in_bounds(width, height);
+        }
+        match self.axis {
+            EdgeAxis::Vertical => width > 0 && self.x <= width && self.y < height,
+            EdgeAxis::Horizontal => height > 0 && self.y <= height && self.x < width,
+        }
+    }
+
+    /// A boundary connecting two tiles within the movement grid.
     pub fn in_bounds(self, width: u32, height: u32) -> bool {
         match self.axis {
             EdgeAxis::Vertical => self.x > 0 && self.x < width && self.y < height,

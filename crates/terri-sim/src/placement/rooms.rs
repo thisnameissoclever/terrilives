@@ -40,11 +40,11 @@ pub struct RoomPlan {
     grid: TileGrid,
 }
 
-/// The interior lines on the edge of the rectangle of tiles from `top_left`
+/// The physical lines on the edge of the rectangle of tiles from `top_left`
 /// to `bottom_right`, both included, in [RT-apply]'s order: the top side, then
 /// the bottom side, left to right; then the left side, then the right side,
-/// top to bottom. Lines on the lot's own edge are the outside wall and are
-/// left out. Both corners must already be inside the lot.
+/// top to bottom. Plot-perimeter lines are solid walls; only interior lines
+/// can be doorways. Both corners must already be inside the lot.
 pub fn outline(
     width: u32,
     height: u32,
@@ -71,7 +71,7 @@ pub fn outline(
         .chain(across(bottom + 1))
         .chain(down(left))
         .chain(down(right + 1))
-        .filter(|line| record(*line, false).in_bounds(width, height))
+        .filter(|line| record(*line, false).physical_in_bounds(width, height))
         .collect()
 }
 
@@ -111,7 +111,10 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
         (edit.x0.min(edit.x1), edit.y0.min(edit.y1)),
         (edit.x0.max(edit.x1), edit.y0.max(edit.y1)),
     );
-    if edit.doorway.is_some_and(|door| !lines.contains(&door)) {
+    if edit
+        .doorway
+        .is_some_and(|door| !lines.contains(&door) || !record(door, true).in_bounds(width, height))
+    {
         return Err(InvalidInput);
     }
 
@@ -134,7 +137,9 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     let front = crate::portals::front_door_lines(world);
     for line in lines {
         let doorway = edit.doorway == Some(line);
-        let [a, b] = record(line, doorway).cells();
+        let edge = record(line, doorway);
+        let interior = edge.in_bounds(width, height);
+        let [a, b] = edge.cells();
         // [OS-door] first: a line the front door stands on can never be a
         // window today, but the guard must not depend on that staying true.
         if !doorway && line.axis == EdgeAxis::Vertical && front.contains(&(line.x, line.y)) {
@@ -175,9 +180,11 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
             }
             None => {
                 next.push(record(line, doorway));
-                grid.set_edge_blocked(a, b, !doorway);
-                if !doorway {
-                    walls.push([a, b]);
+                if interior {
+                    grid.set_edge_blocked(a, b, !doorway);
+                    if !doorway {
+                        walls.push([a, b]);
+                    }
                 }
                 changed = true;
             }

@@ -91,7 +91,10 @@ export function buildArchitectureWallGeometry(lot: ArchitectureWalls): EdgeWallP
   for (let i = 0; i + 3 < lot.edges.length; i += 4) {
     const axis = lot.edges[i];
     if (axis !== 0 && axis !== 1) throw new Error('Invalid wall axis');
-    segment(axis, lot.edges[i + 1], lot.edges[i + 2], lot.edges[i + 3] === 1, lot.cutaway);
+    const x = lot.edges[i + 1];
+    const y = lot.edges[i + 2];
+    const rearPerimeter = axis === 0 ? x === 0 : y === 0;
+    segment(axis, x, y, lot.edges[i + 3] === 1, lot.cutaway && !rearPerimeter);
   }
   for (const vertex of vertices.values()) {
     const heights = vertex.arms.map(entry => entry?.height ?? 0) as [number, number, number, number];

@@ -567,12 +567,12 @@ fn apply_layout(
             .map_err(|_| SaveError::InvalidGrid)?;
             let mut seen = BTreeSet::new();
             for &edge in layout.edges() {
-                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                if !edge.physical_in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((edge.axis, edge.x, edge.y))
                 {
                     return Err(SaveError::InvalidGrid);
                 }
-                if !edge.doorway {
+                if !edge.doorway && edge.in_bounds(grid.width() as u32, grid.height() as u32) {
                     let [from, to] = edge.cells();
                     grid.set_edge_blocked(from, to, true);
                 }
@@ -819,7 +819,7 @@ mod tests {
         let mut live = Sim::new_from_shipped_lot();
         let before = live.save_snapshot_v2();
         for edges in [
-            vec![edge(0, false)],
+            vec![edge(0, true)],
             vec![edge(2, false), edge(2, true)],
             vec![edge(u32::MAX, false)],
         ] {

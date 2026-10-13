@@ -11508,3 +11508,13 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: fixtures inherited the production constructor's changing initial content while relying on a bookless starting state.
 3. Prevention: explicitly construct bookless worlds for historical envelopes and synthetic activity tests. Keep production starter grants covered by separate current-save round trips. Do not weaken state hashes or save validators to accommodate incompatible fixtures.
 4. Verification: run historical persistence and synthetic meal tests alongside constructor, commerce and current-save tests.
+
+## [L-build-draft-boundary] Build previews need one persistence boundary
+
+**What happened.** Individual build tools applied edits immediately, so a player could not cancel an accidental wall replacement or discard a batch on exit. Room construction also omitted outer plot edges under the old assumption that the plot perimeter was already a house wall.
+
+**Root cause.** Tool-level preview acceptance had been treated as final acceptance. The persistence layer read the working world directly. Separately, yard expansion changed the physical boundary without revisiting the room outline's interior-only rule.
+
+**Prevention.** Keep one last-confirmed baseline for the whole build session, and route every save path through it. Make cancellation replace the draft transactionally, clear all receipts, and refresh render state. Keep physical wall bounds separate from movement-grid edge bounds. Selection handoff may apply a preview to the draft but must not advance the baseline; this supersedes the permanent-commit interpretation of [L-builder-selection-handoff].
+
+**How to verify.** Queue and apply mixed edits, save while dirty, confirm one batch, then cancel or exit another. Check funds, objects, walls, and queued commands against the baseline. Build rooms against each outer edge and reload the resulting walls. Verify a failed rollback leaves the editor paused and retains its baseline.

@@ -310,8 +310,15 @@ fn placement_invalid_saved_edges_refuse_without_panicking() {
     let (mut sim, object) = edge_fixture(vec![]);
     let f = facing(&sim, object);
     for edges in [
-        vec![vertical(0, 1)],
-        vec![vertical(7, 1)],
+        vec![terri_core::layout::WallEdge {
+            doorway: true,
+            ..vertical(0, 1)
+        }],
+        vec![terri_core::layout::WallEdge {
+            doorway: true,
+            ..vertical(7, 1)
+        }],
+        vec![vertical(8, 1)],
         vec![vertical(1, 7)],
         vec![vertical(2, 2), vertical(2, 2)],
         vec![

@@ -52,7 +52,7 @@ function clickTile(room: RoomTool, x: number, y: number) {
 }
 
 describe('roomOutline', () => {
-  it('lists the interior lines of the outline, top and bottom, then left and right', () => {
+  it('lists every physical outline line, top and bottom, then left and right', () => {
     expect(roomOutline(7, 5, [2, 1], [3, 2])).toEqual([
       { axis: 1, x: 2, y: 1 }, { axis: 1, x: 3, y: 1 },
       { axis: 1, x: 2, y: 3 }, { axis: 1, x: 3, y: 3 },
@@ -61,9 +61,12 @@ describe('roomOutline', () => {
     ]);
     // Either corner order gives the same outline.
     expect(roomOutline(7, 5, [3, 2], [2, 1])).toEqual(roomOutline(7, 5, [2, 1], [3, 2]));
-    // The lot's own edge is the outside wall and is left out.
-    expect(roomOutline(7, 5, [0, 0], [0, 0])).toEqual([{ axis: 1, x: 0, y: 1 }, { axis: 0, x: 1, y: 0 }]);
-    expect(roomOutline(7, 5, [0, 0], [6, 4])).toEqual([]);
+    // A plot corner still has four physical sides.
+    expect(roomOutline(7, 5, [0, 0], [0, 0])).toEqual([
+      { axis: 1, x: 0, y: 0 }, { axis: 1, x: 0, y: 1 },
+      { axis: 0, x: 0, y: 0 }, { axis: 0, x: 1, y: 0 },
+    ]);
+    expect(roomOutline(7, 5, [0, 0], [6, 4])).toHaveLength(24);
   });
 });
 
@@ -451,4 +454,22 @@ describe('the Room tool in the page', () => {
     }
     expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(2);
   });
+});
+
+
+it('cycles room doorways only through interior edges at every plot corner', () => {
+  for (const [x, y] of [[0, 0], [6, 0], [0, 4], [6, 4]]) {
+    const { room } = tool();
+    room.enter();
+    clickTile(room, x, y);
+    clickTile(room, x, y);
+    const doors: EdgeLine[] = [];
+    for (let step = 0; step < 3; step++) {
+      room.cycleDoorway();
+      if (room.doorway) doors.push(room.doorway);
+    }
+    expect(doors).toHaveLength(2);
+    expect(room.doorway).toBeNull();
+    expect(doors.every(line => line.axis === 0 ? line.x > 0 && line.x < 7 : line.y > 0 && line.y < 5)).toBe(true);
+  }
 });

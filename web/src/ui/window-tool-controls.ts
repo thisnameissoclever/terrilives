@@ -90,7 +90,7 @@ export class WindowToolControls {
     this.wallActions.hidden = this.tool.active;
     this.choices.closest('.builder-tool')?.classList.toggle('window-editing', this.tool.active);
     this.status.textContent = this.tool.status;
-    this.fit.textContent = this.tool.owner ? 'Replace window' : 'Fit window';
+    this.fit.textContent = this.tool.owner ? 'Replace window' : 'Place Window';
     this.fit.disabled = !this.tool.canApply(); this.remove.disabled = !this.tool.canRemove();
     this.remove.hidden = this.tool.owner === null; this.back.disabled = this.tool.pending !== null;
     for (const { button, model } of this.buttons) {

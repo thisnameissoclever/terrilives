@@ -175,7 +175,7 @@ fn a_room_outline_leaves_a_window_alone_unless_its_doorway_lands_there() {
 }
 
 #[test]
-fn the_outline_leaves_out_the_lot_edge_and_runs_top_bottom_left_right() {
+fn the_outline_includes_the_lot_perimeter_and_runs_top_bottom_left_right() {
     // A 2 by 2 room in the middle has eight lines.
     assert_eq!(
         outline(7, 7, (2, 2), (3, 3)),
@@ -190,23 +190,32 @@ fn the_outline_leaves_out_the_lot_edge_and_runs_top_bottom_left_right() {
             line(Vertical, 4, 3),
         ]
     );
-    // In the top-left corner only the bottom and right sides are interior.
+    // A corner room keeps both perimeter sides.
     assert_eq!(
         outline(7, 7, (0, 0), (1, 1)),
         [
+            line(Horizontal, 0, 0),
+            line(Horizontal, 1, 0),
             line(Horizontal, 0, 2),
             line(Horizontal, 1, 2),
+            line(Vertical, 0, 0),
+            line(Vertical, 0, 1),
             line(Vertical, 2, 0),
             line(Vertical, 2, 1),
         ]
     );
-    // In the bottom-right corner only the top and left sides are.
+    // The far corner includes the south and east sides.
     assert_eq!(
         outline(7, 7, (6, 6), (6, 6)),
-        [line(Horizontal, 6, 6), line(Vertical, 6, 6)]
+        [
+            line(Horizontal, 6, 6),
+            line(Horizontal, 6, 7),
+            line(Vertical, 6, 6),
+            line(Vertical, 7, 6)
+        ]
     );
-    // The whole lot has no interior outline at all.
-    assert!(outline(7, 7, (0, 0), (6, 6)).is_empty());
+    // A whole-lot room has four complete sides.
+    assert_eq!(outline(7, 7, (0, 0), (6, 6)).len(), 28);
 }
 
 #[test]
@@ -777,7 +786,9 @@ fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
                     continue;
                 }
                 let corner = (x + w - 1, y + h - 1);
-                let first = outline(width, height, (x, y), corner).first().copied();
+                let first = outline(width, height, (x, y), corner)
+                    .into_iter()
+                    .find(|line| record(*line, true).in_bounds(width, height));
                 for doorway in [None, first] {
                     let edit = room(x, y, corner.0, corner.1, doorway);
                     let grid = finished(&sim, edit);
@@ -826,6 +837,9 @@ fn finished(sim: &Sim, edit: RoomEdit) -> TileGrid {
         (edit.x0.min(edit.x1), edit.y0.min(edit.y1)),
         (edit.x0.max(edit.x1), edit.y0.max(edit.y1)),
     ) {
+        if !record(line, false).in_bounds(width, height) {
+            continue;
+        }
         let doorway = edit.doorway == Some(line);
         let [a, b] = wall(line.axis, line.x, line.y, doorway).cells();
         match recorded
@@ -967,4 +981,39 @@ fn a_room_never_walls_the_front_doors_line() {
         Some(PlacementRefusal::BlockedRoute)
     );
     assert!(room(16, 0, 18, 1, None).unwrap().changed);
+}
+
+#[test]
+fn rooms_on_each_plot_perimeter_keep_solid_walls_and_reload() {
+    for (x, y, boundary) in [
+        (3, 0, line(Horizontal, 3, 0)),
+        (0, 3, line(Vertical, 0, 3)),
+        (3, 6, line(Horizontal, 3, 7)),
+        (6, 5, line(Vertical, 7, 5)),
+    ] {
+        let (mut sim, _) = house(vec![]);
+        built(&mut sim, room(x, y, x, y, None));
+        let expected = edges(&sim);
+        assert_eq!(expected.len(), 4);
+        assert!(expected.contains(&wall(boundary.axis, boundary.x, boundary.y, false)));
+        assert_eq!(
+            sim.world().resource::<TileGrid>().blocked_edges().count(),
+            3
+        );
+        // A second edit proves the reconstructed placement layout accepts perimeter walls.
+        assert!(
+            !validate_room(sim.world(), room(x, y, x, y, None))
+                .unwrap()
+                .changed
+        );
+        let saved = sim.save_snapshot_v6();
+        let (mut reader, _) = house(vec![]);
+        reader.load_snapshot_v6(saved).unwrap();
+        assert_eq!(edges(&reader), expected);
+        refused(
+            &mut sim,
+            room(x, y, x, y, Some(boundary)),
+            PlacementRefusal::InvalidInput,
+        );
+    }
 }

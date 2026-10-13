@@ -87,7 +87,7 @@ pub fn validate_window_layout(
     use PlacementRefusal::*;
     let mut seen = BTreeSet::new();
     for edge in layout.edges() {
-        if !edge.in_bounds(width, height) {
+        if !edge.physical_in_bounds(width, height) {
             return Err(OutOfBounds);
         }
         if !seen.insert((edge.axis, edge.x, edge.y)) {

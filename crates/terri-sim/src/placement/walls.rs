@@ -187,7 +187,16 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     // A rear window can be restored to shell, but never opened as a wall edit.
     let rear_restore =
         owner.is_some() && super::windows::is_rear(requested_line) && edit.state == WallState::Wall;
-    if !rear_restore && !line.in_bounds(live.width() as u32, live.height() as u32) {
+    let (width, height) = (live.width() as u32, live.height() as u32);
+    let house = world.resource::<Content>().0.lot.house;
+    let rear_shell = |segment| {
+        super::windows::is_rear(segment)
+            && super::windows::window_line_in_bounds(segment, width, height, house)
+    };
+    let perimeter_edit = matches!(edit.state, WallState::Open | WallState::Wall)
+        && line.physical_in_bounds(width, height)
+        && !rear_shell(requested_line);
+    if !rear_restore && !line.in_bounds(width, height) && !perimeter_edit {
         return Err(OutOfBounds);
     }
     // [OS-door]: a barrier on the front door's line would shut the door.
@@ -238,7 +247,7 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
             }
             (Some(index), state) => next[index].doorway = state == WallState::Doorway,
             (None, WallState::Open | WallState::Window) => {}
-            (None, _) if !super::windows::is_rear(segment) => next.push(super::windows::record(
+            (None, _) if !rear_shell(segment) => next.push(super::windows::record(
                 segment,
                 edit.state == WallState::Doorway,
             )),
@@ -261,10 +270,11 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     let mut grid = live.clone();
     let mut barriers = Vec::new();
     for segment in affected {
-        if super::windows::is_rear(segment) {
+        let edge = super::windows::record(segment, false);
+        if !edge.in_bounds(width, height) {
             continue;
         }
-        let [a, b] = super::windows::record(segment, false).cells();
+        let [a, b] = edge.cells();
         let blocked = candidate.state_of(segment).blocks_movement();
         grid.set_edge_blocked(a, b, blocked);
         if blocked {

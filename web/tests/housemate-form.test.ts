@@ -732,7 +732,7 @@ describe('HousemateFormView', () => {
   it('wires the Edit button, its focus return and the Load path in main.ts', () => {
     expect(MAIN_TS).toContain('editTargetOf(sim, selected, members)');
     expect(MAIN_TS).toContain('housemateForm.beginEdit(target, members)');
-    expect(MAIN_TS).toContain('editHousemateButton.disabled = housemateForm.pending || sim.selectedIndex() === null;');
+    expect(MAIN_TS).toContain('editHousemateButton.disabled = buildSession.active || housemateForm.pending || sim.selectedIndex() === null;');
     expect(MAIN_TS).toContain('restorePersistenceFocus(document, housemateDialog, housemateOpener');
     const loaded = MAIN_TS.slice(MAIN_TS.indexOf('if (loaded) {'));
     const loadBranch = loaded.slice(0, loaded.indexOf('housemateForm.resetAfterLoad();'));

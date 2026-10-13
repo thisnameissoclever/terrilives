@@ -7,6 +7,7 @@ dialog menu > * { min-width: 0; }
 #sim-sheet-header nav { min-width: 0; }
 .builder-row { flex-wrap: wrap; }
 .builder-row:empty { display: none; }
+.builder-tool [hidden] { display: none !important; }
 body[data-building='true'] #hud { width: 304px; }
 body[data-building='true'] #builder-desktop { overflow: visible; max-height: none; }
 body[data-building='true'] #builder-controls { box-sizing: border-box; width: 304px; padding: 12px; min-width: 0; max-height: calc(100dvh - 160px); overflow-y: auto; scrollbar-gutter: stable; }
@@ -131,3 +132,5 @@ body[data-build-rows='true'] #builder-dock .builder-tool { min-height: 44px; }
 }
 
 #buy-facts { white-space: pre-line; }
+
+#build-batch-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: var(--hud-bg); padding: 8px 0; }

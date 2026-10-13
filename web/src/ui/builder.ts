@@ -10,7 +10,11 @@ type BuilderSource = Pick<SimBridge, 'ids' | 'kinds' | 'positions' | 'count' |
   Partial<Pick<SimBridge, 'objectDetails'>>;
 
 export interface BuilderObject { readonly id: number; readonly name: string }
-export interface BuilderHooks { changed(): void; enter(): void; exit(): void }
+export interface BuilderHooks {
+  changed(): void; enter(): void; exit(): void;
+  beforeEnter?(): boolean;
+  beforeExit?(): boolean;
+}
 export const FACING_NAMES = ['South-east', 'South-west', 'North-west', 'North-east'] as const;
 const EDIT_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
   '[', ']', 'r', 'R', 'Enter', 'Escape', 'Delete', 'Backspace']);
@@ -55,6 +59,12 @@ export class FurnitureBuilder {
   }
 
   get canRotate(): boolean { return (this.mask & (this.mask - 1)) !== 0; }
+  get canExit(): boolean { return !this.pending || this.hooks.beforeExit !== undefined; }
+  get hasPlacementChange(): boolean {
+    return this.preview !== null && this.original !== null &&
+      (this.preview.x !== this.original.x || this.preview.y !== this.original.y ||
+        this.preview.facing !== this.original.facing);
+  }
   get canConfirm(): boolean {
     return this.active && !this.blocked && !this.pending && this.preview?.valid === true;
   }
@@ -69,6 +79,7 @@ export class FurnitureBuilder {
 
   enter(): void {
     if (this.active) return;
+    if (this.hooks.beforeEnter && !this.hooks.beforeEnter()) return;
     this.active = true;
     this.pause.suspend('builder');
     this.refreshObjects();
@@ -77,7 +88,10 @@ export class FurnitureBuilder {
   }
 
   exit(): void {
-    if (!this.active || this.pending) return;
+    if (!this.active) return;
+    if (this.hooks.beforeExit) {
+      if (!this.hooks.beforeExit()) return;
+    } else if (this.pending) return;
     this.clearSelection();
     this.active = false;
     this.pause.resume('builder');

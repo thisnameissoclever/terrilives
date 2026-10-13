@@ -195,7 +195,7 @@ fn asking_for_the_state_a_line_already_has_writes_nothing() {
 }
 
 #[test]
-fn a_legacy_house_and_the_outside_wall_are_refused() {
+fn a_legacy_house_rear_shell_and_outside_apertures_are_refused() {
     let (mut sim, _) = house(vec![]);
     sim.world_mut()
         .insert_resource(SavedLayout::LegacyCells { walls: vec![] });
@@ -214,10 +214,10 @@ fn a_legacy_house_and_the_outside_wall_are_refused() {
     let (mut sim, _) = house(vec![]);
     for request in [
         edit(Vertical, 0, 2, Wall),
-        edit(Vertical, 7, 2, Wall),
+        edit(Vertical, 7, 2, Doorway),
         edit(Vertical, 3, 7, Wall),
         edit(Horizontal, 2, 0, Wall),
-        edit(Horizontal, 2, 7, Wall),
+        edit(Horizontal, 2, 7, Doorway),
         edit(Horizontal, 7, 2, Wall),
         edit(Vertical, u32::MAX, 2, Doorway),
     ] {
@@ -1089,4 +1089,65 @@ fn the_front_doors_line_is_kept_without_the_doors_art() {
         );
     }
     assert_eq!(headless.world_hash(), shipped.world_hash());
+}
+
+#[test]
+fn confirmed_room_perimeter_walls_can_be_removed_saved_and_rebuilt_without_outdoor_apertures() {
+    for (x, y, axis, wall_x, wall_y) in [
+        (18, 0, Horizontal, 18, 0),
+        (0, 14, Vertical, 0, 14),
+        (19, 14, Vertical, 20, 14),
+        (18, 15, Horizontal, 18, 16),
+    ] {
+        let mut sim = Sim::new_from_shipped_lot();
+        let room = super::super::rooms::RoomEdit {
+            x0: x,
+            y0: y,
+            x1: x,
+            y1: y,
+            doorway: None,
+        };
+        assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
+        super::super::rooms::commit(sim.world_mut(), room);
+        let boundary = line(axis, wall_x, wall_y, false);
+        assert!(edges(&sim).contains(&boundary));
+        for state in [Doorway, Window] {
+            refused(
+                &mut sim,
+                edit(axis, wall_x, wall_y, state),
+                PlacementRefusal::OutOfBounds,
+            );
+        }
+        applied(&mut sim, edit(axis, wall_x, wall_y, Open));
+        assert!(!edges(&sim).contains(&boundary));
+        let mut reader = Sim::new_from_shipped_lot();
+        reader.load_snapshot_v6(sim.save_snapshot_v6()).unwrap();
+        assert!(!edges(&reader).contains(&boundary));
+        applied(&mut reader, edit(axis, wall_x, wall_y, Wall));
+        assert!(edges(&reader).contains(&boundary));
+        sim.load_snapshot_v6(reader.save_snapshot_v6()).unwrap();
+        assert!(edges(&sim).contains(&boundary));
+    }
+}
+
+#[test]
+fn explicit_room_records_do_not_make_the_original_rear_shell_removable() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let room = super::super::rooms::RoomEdit {
+        x0: 9,
+        y0: 0,
+        x1: 9,
+        y1: 0,
+        doorway: None,
+    };
+    assert!(super::super::rooms::validate_room(sim.world(), room).is_ok());
+    super::super::rooms::commit(sim.world_mut(), room);
+    assert!(edges(&sim).contains(&line(Horizontal, 9, 0, false)));
+    for state in [Open, Wall, Doorway, Window] {
+        refused(
+            &mut sim,
+            edit(Horizontal, 9, 0, state),
+            PlacementRefusal::OutOfBounds,
+        );
+    }
 }
