@@ -2,7 +2,7 @@ export type ShortcutTool = 'furniture' | 'walls' | 'room' | 'buy' | 'floors';
 interface ShortcutRow { readonly label: string; readonly keys: readonly string[]; readonly alternatives?: boolean }
 interface ShortcutGroup { readonly label: string; readonly rows: readonly ShortcutRow[] }
 const MOVE: ShortcutRow = { label: 'Move selection', keys: ['↑', '↓', '←', '→'], alternatives: true };
-const CANCEL: ShortcutRow = { label: 'Cancel selection', keys: ['Esc'] };
+const CANCEL: ShortcutRow = { label: 'Cancel pending changes', keys: ['Esc'] };
 const ROTATE: ShortcutRow = { label: 'Rotate clockwise', keys: ['R'] };
 
 export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[]): readonly ShortcutGroup[] {
@@ -21,7 +21,7 @@ export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[])
   ] }];
   return [{ label: 'Choose and position', rows: [{ label: 'Previous item', keys: ['['] },
     { label: 'Next item', keys: [']'] }, MOVE, ROTATE] },
-    { label: 'Finish', rows: [{ label: tool === 'buy' ? 'Buy' : 'Confirm', keys: ['Enter'] },
+    { label: 'Finish', rows: [{ label: tool === 'buy' ? 'Buy' : 'Place', keys: ['Enter'] },
       ...(tool === 'furniture' ? [{ label: 'Sell', keys: ['Delete', 'Backspace'], alternatives: true }] : []), CANCEL] }];
 }
 

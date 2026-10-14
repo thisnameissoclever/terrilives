@@ -18,6 +18,7 @@ import { SimBridge } from './bridge.js';
 import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
+import { BuildSession } from './ui/build-session.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { WindowTool } from './ui/window-tool.js';
@@ -333,6 +334,11 @@ async function main(): Promise<void> {
   const [seedLow, seedHigh] = newGameSeed();
   const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
+  const buildSession = new BuildSession(sim, {
+    prepare: () => prepareBuildConfirmation(),
+    settled: () => settleBuildControllers(),
+    restored: () => restoreBuildPresentation(),
+  });
   // The names of the conversation recordings come from the compiled content
   // pack, so this is the first moment they exist. The controller decides WHEN
   // to fetch them: decoding needs an audio context, and a context needs a
@@ -346,7 +352,7 @@ async function main(): Promise<void> {
   const commandStatus: HTMLElement = commandStatusElement;
   const persistence = new PersistenceController(
     createSaveStore(),
-    sim,
+    buildSession,
     saveStatus,
     (error) => console.error('save storage failed:', error),
   );
@@ -791,7 +797,7 @@ async function main(): Promise<void> {
   if (!deathInput) throw new Error('missing death setting');
   const deathControls = new DeathControls(sim, deathInput);
   deathControls.update();
-  deathInput.addEventListener('change', () => { deathControls.change(); });
+  deathInput.addEventListener('change', () => { if (!buildSession.active) deathControls.change(); });
 
   attachOptionsMenu(
     document as unknown as OptionsDocument,
@@ -1147,15 +1153,16 @@ async function main(): Promise<void> {
   });
   housemateView = new HousemateFormView(document, housemateForm);
   const syncNewHousemateButton = (): void => {
-    newHousemateButton.disabled = !housemateForm.roomForOne();
+    newHousemateButton.disabled = buildSession.active || !housemateForm.roomForOne();
   };
   // Off while a move-in or edit is on its way, and with nobody selected.
   const syncEditHousemateButton = (): void => {
-    editHousemateButton.disabled = housemateForm.pending || sim.selectedIndex() === null;
+    editHousemateButton.disabled = buildSession.active || housemateForm.pending || sim.selectedIndex() === null;
   };
   syncNewHousemateButton();
   syncEditHousemateButton();
   editHousemateButton.addEventListener('click', () => {
+    if (buildSession.active) return;
     const selected = sim.selectedIndex();
     if (selected === null) return;
     const members = householdMembers(sim);
@@ -1169,6 +1176,7 @@ async function main(): Promise<void> {
   });
   newHousemateButton.addEventListener('click', () => {
     optionsMenu.close();
+    if (buildSession.active) return;
     housemateForm.reset();
     housemateOpener = optionsToggle;
     // [FM-choose]: the household as it stands right now, since it changes
@@ -1504,7 +1512,7 @@ async function main(): Promise<void> {
   const choresHeader=document.createElement('header');choresHeader.className='chores-header';choresHeader.append(choresTitle,choresClose);
   choresDialog.append(choresHeader,choresBoard.element());document.body.append(choresDialog);
   choresClose.addEventListener('click',()=>choresDialog.close());
-  document.querySelector('#chores-toggle')!.addEventListener('click',()=>{optionsMenu.close();menu.close(); overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
+  document.querySelector('#chores-toggle')!.addEventListener('click',()=>{if(buildSession.active)return;optionsMenu.close();menu.close(); overlayPause.suspend('chores');choresBoard.update();choresDialog.showModal();});
   choresDialog.addEventListener('close',()=>overlayPause.resume('chores'));
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
@@ -1650,12 +1658,20 @@ async function main(): Promise<void> {
       : document.documentElement.clientHeight;
   };
   const builder = new FurnitureBuilder(sim, overlayPause, {
+    beforeEnter: () => buildSession.begin(),
+    beforeExit: () => {
+      const cancelled = buildSession.end();
+      if (!cancelled) buildBatchStatus.textContent = 'Changes could not be cancelled. Build mode remains open.';
+      return cancelled;
+    },
     changed: () => {
       builderControls?.render();
       placementActions?.invalidate();
     },
     enter() {
       optionsMenu.close();
+      syncBuildIsolation();
+      buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
       document.querySelectorAll<HTMLDetailsElement>('#builder-controls .shortcuts').forEach(section => { section.open = false; });
       canvas.focus();
       menu.close();
@@ -1665,6 +1681,7 @@ async function main(): Promise<void> {
       cameraDirty = true;
     },
     exit() {
+      syncBuildIsolation();
       contextLayout.setRows(false);
       wallTool.exit();
       roomTool.exit();
@@ -1677,6 +1694,67 @@ async function main(): Promise<void> {
       cameraDirty = true;
     },
   });
+  const buildBatchStatus = document.querySelector<HTMLElement>('#build-batch-status')!;
+  function syncBuildIsolation(): void {
+    syncNewHousemateButton(); syncEditHousemateButton();
+    document.querySelector<HTMLButtonElement>('#chores-toggle')!.disabled = buildSession.active;
+    document.querySelector<HTMLElement>('#sim-dock')!.inert = buildSession.active;
+    deathInput!.disabled = buildSession.active;
+  }
+  function settleBuildControllers(): boolean {
+    wallTool.afterCommands(); windowTool.afterCommands(); roomTool.afterCommands();
+    floorTool.afterCommands(); buyTool.afterCommands();
+    housemateForm.afterCommands(); bedAssignmentPanel.afterCommands(); bookResults.drain();
+    if (builder.afterCommands()) refreshBuildArchitecture();
+    return !builder.pending && wallTool.pending === null && windowTool.pending === null
+      && !roomTool.pending && !buyTool.pending && floorTool.pending === null
+      && sim.pendingBookCommands() === 0;
+  }
+  function prepareBuildConfirmation(): boolean {
+    // Tool actions apply to the draft. Include an outstanding furniture move
+    // when the player uses the batch Confirm instead of its nearby Place button.
+    if (!buildTools.some(tool => tool.active) && builder.hasPlacementChange) {
+      if (!builder.confirm()) return false;
+      sim.flushCommands();
+      const accepted = sim.lastPlacementResult()?.reason === null;
+      if (builder.afterCommands()) refreshBuildArchitecture();
+      return accepted;
+    }
+    return true;
+  }
+  function refreshBuildArchitecture(): void {
+    lot.walls = sim.wallTiles(); lot.edges = sim.wallEdges();
+    lot.windows = sim.windowLines();
+    lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
+    lot.floors = sim.floorTiles(); syncFloorResources();
+    lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
+    lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
+    if (buildSession.active) buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
+  }
+  function restoreBuildPresentation(): void {
+    menu.close(); keyboardTargets.clear(); wallFade.reset();
+    bookResults.resetAfterLoad(); bookCommerce.resetAfterLoad();
+    builder.resetAfterLoad(); wallTool.resetAfterLoad(lotWidth, lotHeight);
+    windowTool.resetAfterLoad(lotWidth, lotHeight); roomTool.resetAfterLoad(lotWidth, lotHeight);
+    buyTool.resetAfterLoad(lotWidth, lotHeight); floorTool.resetAfterLoad(lotWidth, lotHeight);
+    refreshBuildArchitecture(); audio.reset('load');
+    toolSwitch?.render(); placementActions?.invalidate();
+  }
+  function cancelBuildBatch(): void {
+    const cancelled = buildSession.cancel();
+    buildBatchStatus.textContent = cancelled ? 'Pending changes cancelled.'
+      : 'Changes could not be cancelled. Build mode remains open.';
+  }
+  document.querySelector('#build-batch-cancel')!.addEventListener('click', cancelBuildBatch);
+  document.querySelector('#build-batch-confirm')!.addEventListener('click', () => {
+    const confirmed = buildSession.confirm();
+    buildBatchStatus.textContent = confirmed ? 'Changes confirmed.' : 'Finish or cancel the current placement before confirming.';
+    if (confirmed) {
+      builder.cancel(); wallTool.clearSelection(); windowTool.handleKey('Escape');
+      roomTool.cancel(); buyTool.cancel(); floorTool.clearSelection();
+      placementActions?.invalidate();
+    }
+  });
   function syncBuildOptionsHost(): void {
     if (!optionsRoot) return;
     const host = document.getElementById(builder.active && compactBuildQuery.matches ? 'build-camera' : 'world-actions')!;
@@ -1687,6 +1765,7 @@ async function main(): Promise<void> {
   }
   const placementButtons = new BuildContextActions(
     { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
+      cancelBuild: cancelBuildBatch,
       suspended: () => optionsMenu.isOpen(),
       focusCatalogue: () => document.querySelector<HTMLSelectElement>('#buy-object')?.focus() },
     createContextSurface(document, placementRoot, stage,
@@ -1756,6 +1835,9 @@ async function main(): Promise<void> {
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
     if (builder.active) {
+      if (event.key === 'Escape' && !menu.isShowing() && !overlayPause.suspendedExcept('builder')) {
+        cancelBuildBatch(); event.preventDefault(); return;
+      }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && event.key.toLowerCase() === 'n') {
         if (toolSwitch?.select('build-tool-walls')) wallTool.selectWindows();
@@ -1917,7 +1999,9 @@ async function main(): Promise<void> {
     if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
     const target = event.target;
     if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
-    if (routeBuildKey(event.key, buildTools, builder)) event.preventDefault();
+    if (!overlayPause.suspendedExcept('builder')) {
+      cancelBuildBatch(); event.preventDefault();
+    }
   });
 
   const timer = new FrameTimer(FRAME_WINDOW);
@@ -1968,17 +2052,7 @@ async function main(): Promise<void> {
     bedAssignmentPanel.afterCommands();
     if(choresDialog.open)choresBoard.update();
     if (builder.afterCommands()) {
-      lot.walls = sim.wallTiles();
-      lot.edges = sim.wallEdges();
-      lot.windows = sim.windowLines();
-      lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
-      lot.floors = sim.floorTiles();
-      syncFloorResources();
-      lot.doors = sim.interiorDoorLines();
-      lot.horizontalDoors = sim.interiorHorizontalDoorLines();
-      lightingDirty = true;
-      cameraDirty = true;
-      keyboardTargets.clear();
+      refreshBuildArchitecture();
     }
     // [WB-draw]: the walls the view cuts away are drawn while a wall tool
     // is in use, so the player sees every line they can edit. The static

@@ -61,7 +61,8 @@ function fixture() {
     { enter() {}, exit() {}, changed: () => controls?.render() });
   controls = new BuilderControls(doc, builder);
   const model = () => contextModel({ furniture: builder, buy: { active: false },
-    walls: { active: false }, room: { active: false }, floors: { active: false }, focusCatalogue() {} } as ContextTools);
+    walls: { active: false }, room: { active: false }, floors: { active: false },
+    focusCatalogue() {}, cancelBuild: () => builder.cancel() } as ContextTools);
   const action = (id: string) => model()?.actions.find(a => a.id === id);
   return { handle, source, builder, controls, node, action };
 }

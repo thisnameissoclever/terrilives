@@ -40,19 +40,24 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
         }
     }
     let windows = layout.window_placements();
-    let edges: Vec<WallEdge> = layout
-        .edges()
+    let mut edges = layout.edges().to_vec();
+    for edge in lot
+        .wall_edges
         .iter()
-        .chain(
-            lot.wall_edges
-                .iter()
-                .filter(|edge| !edge.in_bounds(house_width, house_height)),
-        )
-        .copied()
-        .collect();
+        .filter(|edge| !edge.in_bounds(house_width, house_height))
+    {
+        if !edges
+            .iter()
+            .any(|held| held.axis == edge.axis && held.x == edge.x && held.y == edge.y)
+        {
+            edges.push(*edge);
+        }
+    }
     for edge in &edges {
-        let [from, to] = edge.cells();
-        grown.set_edge_blocked(from, to, !edge.doorway);
+        if edge.in_bounds(lot.width, lot.height) {
+            let [from, to] = edge.cells();
+            grown.set_edge_blocked(from, to, !edge.doorway);
+        }
     }
     // [WN-rules]: a grown house keeps its windows, and each still blocks.
     for window in windows.iter().flat_map(|w| w.lines()) {

@@ -28,6 +28,21 @@ it('opens Build on the exact object without committing a previous move preview',
   } finally { handle.free(); }
 });
 
+it('only stages changed geometry when confirming a build batch', () => {
+  const { handle, source, builder } = fixture();
+  try {
+    builder.enter(); builder.select(15);
+    expect(builder.hasPlacementChange).toBe(false);
+    builder.recolour(1); source.flushCommands(); builder.afterCommands();
+    expect(source.objectColourway(15)).toBe(1);
+    expect(builder.hasPlacementChange).toBe(false);
+    builder.moveTo(7, 0);
+    expect(builder.hasPlacementChange).toBe(true);
+    builder.cancel();
+    expect(builder.hasPlacementChange).toBe(false);
+  } finally { handle.free(); }
+});
+
 it('commits a valid move before selecting another object without advancing time', () => {
   const { handle, source, builder } = fixture();
   builder.enter(); builder.select(15); builder.moveTo(7, 0);

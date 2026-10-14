@@ -107,6 +107,65 @@ it.each(['drag without click', 'drag with click', 'pinch', 'long press'])('limit
   } finally { vi.useRealTimers(); }
 });
 
+it('consumes the opening touch click even when the browser retargets it to a menu button', () => {
+  vi.useFakeTimers();
+  try {
+    const canvasListeners = new Map<string, (event: any) => void>();
+    const capture = new Map<string, (event: any) => void>();
+    const canvas = { width: 390, height: 844, focus() {}, setPointerCapture() {},
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 390, height: 844 }),
+      addEventListener: (type: string, callback: (event: any) => void) => canvasListeners.set(type, callback),
+      ownerDocument: { addEventListener: (type: string, callback: (event: any) => void, options?: boolean) => {
+        if (options === true) capture.set(type, callback);
+      } } };
+    const refuse = () => false;
+    const target = { ...source([]), selectedIndex: () => 0, select: refuse, useObject: refuse,
+      useObjectFirst: refuse, cancelIntents: refuse, talkTo: refuse, talkToFirst: refuse,
+      entityName: () => '', interactionLabels: () => [], socialLabels: () => [] };
+    const menu = { close() {}, open: vi.fn(), handleKey: () => false, pointerDown() {} };
+    attachPointerInput(canvas as unknown as HTMLCanvasElement, target, menu, {} as Node,
+      { originX: 0, originY: 0, scale: 1 }, { panBy() {}, zoomAt() {} });
+    const pointer = { pointerId: 4, pointerType: 'touch', button: 0, clientX: 130, clientY: 550 };
+    const open = () => {
+      capture.get('pointerdown')?.(pointer);
+      canvasListeners.get('pointerdown')!(pointer);
+      vi.advanceTimersByTime(1000);
+      capture.get('pointerup')?.(pointer);
+      canvasListeners.get('pointerup')!(pointer);
+    };
+    const click = (details: Record<string, unknown> = { pointerId: 4 }) => {
+      const event = { detail: 1, preventDefault: vi.fn(), stopPropagation: vi.fn(), ...details };
+      capture.get('click')?.(event);
+      return event;
+    };
+    open();
+    expect(menu.open).toHaveBeenCalledOnce();
+    const released = click();
+    expect(released.preventDefault).toHaveBeenCalledOnce();
+    expect(released.stopPropagation).toHaveBeenCalledOnce();
+    expect(click().preventDefault).not.toHaveBeenCalled();
+    open();
+    expect(click({ detail: 0, pointerId: -1 }).preventDefault).not.toHaveBeenCalled();
+    expect(click({ pointerId: 9 }).preventDefault).not.toHaveBeenCalled();
+    expect(click({}).preventDefault).toHaveBeenCalledOnce();
+    open();
+    // Browsers may omit the compatibility click. A fresh menu tap must survive.
+    capture.get('pointerdown')!(pointer);
+    capture.get('pointerup')!(pointer);
+    expect(click().preventDefault).not.toHaveBeenCalled();
+    // A second finger on the menu must not disarm the opener still on canvas.
+    capture.get('pointerdown')!(pointer);
+    canvasListeners.get('pointerdown')!(pointer);
+    vi.advanceTimersByTime(1000);
+    capture.get('pointerdown')!({ ...pointer, pointerId: 9 });
+    capture.get('pointerup')!({ ...pointer, pointerId: 9 });
+    expect(click({ pointerId: 9 }).preventDefault).not.toHaveBeenCalled();
+    capture.get('pointerup')!(pointer);
+    canvasListeners.get('pointerup')!(pointer);
+    expect(click().preventDefault).toHaveBeenCalledOnce();
+  } finally { vi.useRealTimers(); }
+});
+
 // Copilot's review of PR 95: the Walls tool picks the nearest line from the
 // unrounded point under the pointer, so a click must hand the build editor that
 // point, not the tile it rounds to. The expected point comes from the forward
@@ -196,9 +255,9 @@ describe('LongPressGesture', () => {
 
   it('opens at the original touch point after the hold', () => {
     const timer = manualScheduler();
-    const fired: Array<[number, number]> = [];
+    const fired: Array<[number, number, number]> = [];
     const gesture = new LongPressGesture(
-      (x, y) => fired.push([x, y]),
+      (x, y, pointerId) => fired.push([x, y, pointerId]),
       timer.scheduler,
       500,
       6,
@@ -208,7 +267,7 @@ describe('LongPressGesture', () => {
     gesture.move(7, 123, 242);
     timer.fire();
 
-    expect(fired).toEqual([[120, 240]]);
+    expect(fired).toEqual([[120, 240, 7]]);
   });
 
   it('ignores another pointer and cancels after a drag, lift, or cancellation', () => {

@@ -11560,6 +11560,36 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: fixtures inherited the production constructor's changing initial content while relying on a bookless starting state.
 3. Prevention: explicitly construct bookless worlds for historical envelopes and synthetic activity tests. Keep production starter grants covered by separate current-save round trips. Do not weaken state hashes or save validators to accommodate incompatible fixtures.
 4. Verification: run historical persistence and synthetic meal tests alongside constructor, commerce and current-save tests.
+
+## [L-build-draft-boundary] Build previews need one persistence boundary
+
+**What happened.** Individual build tools applied edits immediately, so a player could not cancel an accidental wall replacement or discard a batch on exit. Room construction also omitted outer plot edges under the old assumption that the plot perimeter was already a house wall.
+
+**Root cause.** Tool-level preview acceptance had been treated as final acceptance. The persistence layer read the working world directly. Separately, yard expansion changed the physical boundary without revisiting the room outline's interior-only rule.
+
+**Prevention.** Keep one last-confirmed baseline for the whole build session, and route every save path through it. Make cancellation replace the draft transactionally, clear all receipts, and refresh render state. Keep physical wall bounds separate from movement-grid edge bounds. Selection handoff may apply a preview to the draft but must not advance the baseline; this supersedes the permanent-commit interpretation of [L-builder-selection-handoff].
+
+**How to verify.** Queue and apply mixed edits, save while dirty, confirm one batch, then cancel or exit another. Check funds, objects, walls, and queued commands against the baseline. Build rooms against each outer edge and reload the resulting walls. Verify a failed rollback leaves the editor paused and retains its baseline.
+
+## [L-native-touch-menu-ownership] A game menu must also reject native selection
+
+**What happened.** A mobile long press opened the game menu, then the browser selected its text and showed a native menu over the action buttons.
+
+**Root cause.** The canvas owned pointer gestures and prevented its own native context menu, but the newly visible menu was a different DOM surface. Neither it nor the canvas disabled text selection and touch callouts.
+
+**Prevention.** Apply selection and touch-callout styles to the game interaction surfaces, including their overlays. Prevent native selectstart and contextmenu events on menu roots. Do not cancel pointer, click, keyboard, or touch-scroll events as a shortcut; that can break activation and scrolling. Keep ordinary form fields outside these protections.
+
+**How to verify.** Hold a touch pointer until the game menu opens, keep holding, then release and activate an action. Check that no text is selected and native menu events are cancelled. Also check keyboard activation, scrollable menus, and selection in an unrelated text field. Emulated touch verifies the application path; the owner's physical mobile browser remains the acceptance check for its native callout UI.
+
+## [L-long-press-release-target] Pointer capture does not establish click ownership
+
+**What happened.** After native text selection was disabled, a browser touch trace showed a held touch opening an Armchair menu and its release entering Build without a separate tap. The pointer-up event reached the captured canvas, but the subsequent trusted click reached the newly visible Enter build mode button with the same pointer ID.
+
+**Root cause.** Compatibility-click suppression ran only on the canvas. A radial menu could place a button beneath the held finger, outside that listener. The viewport did not resize during the observed failure.
+
+**Prevention.** Track the menu-opening pointer and consume its release click at the shared document capture boundary. Preserve fresh gestures, other pointer IDs, and keyboard activation. Do not infer click targets solely from pointer capture or block every later click.
+
+**How to verify.** Keep the original hold coordinates even when an action appears beneath them. Record state immediately after release, before attempting another tap: the menu must remain open and no action may run. Then verify a fresh tap works. Also cover omitted compatibility clicks, legacy mouse-click events, and keyboard activation. For browser checks, click custom radio labels and test visible radial buttons rather than the intentionally zero-sized wrapper.
 5. Current-game continuation tests must use the current save envelope. A legacy writer cannot retain fields introduced after its format was frozen. Keep dedicated historical-format tests on their original APIs and construct only the state those formats represent; do not replace their corruption or migration assertions with current-format coverage.
 
 ## Verify source restoration after interrupting mutation tests

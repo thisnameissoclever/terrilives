@@ -6,6 +6,7 @@ import type { CompactBuildLayout } from './build-layout.js';
 import type { BuyTool } from './buy-tool.js';
 import type { FloorTool } from './floor-tool.js';
 import { formatFunds } from './game-hud.js';
+import { preventMenuSelection } from './menu-selection.js';
 import type { RoomTool } from './room-tool.js';
 import { DOORWAY, OPEN, WALL, WINDOW, type WallTool } from './wall-tool.js';
 
@@ -95,6 +96,7 @@ export interface ContextTools {
   readonly room: RoomTool;
   readonly floors: FloorTool;
   readonly focusCatalogue: () => void;
+  readonly cancelBuild: () => void;
   readonly suspended?: () => boolean;
 }
 
@@ -111,10 +113,10 @@ export function contextModel(tools: ContextTools): ContextModel | null {
     if (!line || walls.blocked) return null;
     const ready = walls.pending === null && windows?.pending == null;
     if (windows?.active) return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
-      action('fit-window', windows.owner ? 'Replace window' : 'Fit window', 'top', windows.canApply(), () => windows.apply(), 'window'),
+      action('fit-window', windows.owner ? 'Replace window' : 'Place Window', 'top', windows.canApply(), () => windows.apply(), 'window'),
       ...(windows.owner ? [action('remove-window', 'Remove window', 'top', windows.canRemove(), () => windows.remove(), 'remove')] : []),
       action('wall-controls', 'Wall controls', 'bottom', ready, () => walls.selectWalls(), 'wall'),
-      action('clear', 'Clear', 'bottom', ready, () => windows.handleKey('Escape'), 'clear'),
+      action('clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
     return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
       action('wall', 'Wall', 'top', walls.canApply(WALL), () => walls.apply(WALL), 'wall'),
@@ -124,7 +126,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       action('left', 'Rotate counterclockwise', 'left', ready, () => walls.rotate(), 'left'),
       action('right', 'Rotate clockwise', 'right', ready, () => walls.rotate(), 'right'),
       action('remove', 'Remove', 'bottom', walls.canApply(OPEN), () => walls.apply(OPEN), 'remove'),
-      action('clear', 'Clear', 'bottom', ready, () => walls.clearSelection(), 'clear'),
+      action('clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
   }
   if (room.active) {
@@ -135,7 +137,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       action('doorway', 'Doorway', 'top', ready && room.second !== null, () => room.chooseDoorway(), 'doorway'),
       action('build', 'Build room', 'top', room.canBuild, () => room.build(), 'confirm'),
       action('corners', 'Corners', 'top', ready, () => room.restartCorners(), 'corners'),
-      action('cancel', 'Cancel', 'bottom', ready, () => room.cancel(), 'clear'),
+      action('cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
   }
   if (floors.active) {
@@ -144,7 +146,7 @@ export function contextModel(tools: ContextTools): ContextModel | null {
       ...floors.coverings().map((name, index) => action(`floor-${index + 1}`, name, 'top',
         floors.canApplyCovering(index + 1), () => floors.applyCovering(index + 1))),
       action('remove', 'Remove', 'bottom', floors.canApplyCovering(0), () => floors.applyCovering(0), 'remove'),
-      action('clear', 'Clear', 'bottom', floors.pending === null, () => floors.clearSelection(), 'clear'),
+      action('clear', 'Cancel', 'bottom', floors.pending === null, tools.cancelBuild, 'clear'),
     ] };
   }
   const buying = buy.active;
@@ -155,13 +157,13 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   const rotate = (direction: -1 | 1) => buying ? buy.rotate(direction) : furniture.rotate(direction);
   return { tool: buying ? 'buy' : 'furniture', x: ghost.x + (ghost.width - 1) / 2,
     y: ghost.y + (ghost.depth - 1) / 2, ghost, actions: [
-      action('confirm', buying ? 'Buy' : 'Confirm', 'top',
+      action('confirm', buying ? 'Buy' : 'Place', 'top',
         buying ? buy.canBuy : furniture.canConfirm, () => { if (buying) buy.buy(); else furniture.confirm(); }, 'confirm', buying ? buy.chosen?.price : undefined),
       action('left', 'Rotate counterclockwise', 'left', canRotate, () => rotate(-1), 'left'),
       action('right', 'Rotate clockwise', 'right', canRotate, () => rotate(1), 'right'),
       action(buying ? 'choose' : 'sell', buying ? 'Choose item' : 'Sell',
         'bottom', buying ? ready : furniture.canSell, () => { if (buying) tools.focusCatalogue(); else furniture.sell(); }, undefined, buying ? undefined : furniture.saleValue ?? undefined),
-      action('cancel', 'Cancel', 'bottom', ready, () => { if (buying) buy.cancel(); else furniture.cancel(); }, 'clear'),
+      action('cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
 }
 
@@ -253,6 +255,7 @@ const ICON_PATHS: Record<ContextIcon, string> = {
 export function createContextSurface(doc: Document, root: HTMLElement, canvas: HTMLCanvasElement,
   bounds: () => ContextBounds, invalidate: () => void, layout?: CompactBuildLayout,
   shiftAnchor?: (dx: number, dy: number) => void): ContextSurface {
+  preventMenuSelection(root);
   const groups = new Map<ContextSlot, HTMLElement>();
   for (const slot of ['top', 'left', 'right', 'bottom'] as const) {
     const group = doc.createElement('div'); group.className = `context-${slot}`;

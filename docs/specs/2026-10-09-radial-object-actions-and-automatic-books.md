@@ -16,6 +16,8 @@ Use separate dark buttons around the picked object's visible anchor, with open s
 
 Keep native buttons, visible focus, keyboard activation and long-press input. Escape and outside activation dismiss the menu without sending a Sim order. Camera changes reposition the open menu from the existing rendered-object projection. Viewport placement avoids the world controls, dock and visible edges. Touch targets remain at least 44 pixels. Menus that exceed six action slots use five actions plus More actions; the next radial page includes Back and at most five actions. No action is discarded or reindexed. The small central Close control dismisses only the menu.
 
+The game canvas, object menus, and build-action menus suppress browser text selection and touch callouts. Menu roots cancel native selectstart and contextmenu events, including events from their labels and descriptions. Pointer, click, keyboard, and touch-scroll events retain their normal behavior. Text fields and other page content remain selectable. The touch that opens a menu cannot activate a newly visible action when released, even if the browser retargets its compatibility click. Suppression follows that opening pointer only; a fresh tap, another pointer, or keyboard activation remains available.
+
 ## Book rules
 
 New-household construction grants one copy of each of the first three distinct titles in the existing migration-starter list, at no charge, after the authored lot and household exist. Low-level constructors and current-save restoration do not grant books. Existing households retain their ownership and reading memories. Historical pre-books conversion retains its established five-book grant.

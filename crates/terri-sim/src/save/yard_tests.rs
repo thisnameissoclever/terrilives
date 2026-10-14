@@ -143,3 +143,43 @@ fn a_house_saved_before_edge_walls_is_not_grown() {
         SavedLayout::LegacyAuthoredV1
     ));
 }
+
+#[test]
+fn yard_growth_preserves_explicit_perimeter_without_duplicate_authored_edges() {
+    let mut sim = Sim::new_from_pre_yard_lot();
+    let mut held = edges(&sim);
+    let rear = WallEdge {
+        axis: EdgeAxis::Vertical,
+        x: 0,
+        y: 3,
+        doorway: false,
+    };
+    let front = WallEdge {
+        axis: EdgeAxis::Vertical,
+        x: 16,
+        y: 1,
+        doorway: false,
+    };
+    held.extend([rear, front]);
+    sim.world_mut()
+        .insert_resource(SavedLayout::EdgeWallsV1 { edges: held });
+    grow(&mut sim, terri_data::pack());
+    let grown = edges(&sim);
+    for edge in [rear, front] {
+        assert_eq!(
+            grown
+                .iter()
+                .filter(|&&other| other.axis == edge.axis && other.x == edge.x && other.y == edge.y)
+                .count(),
+            1
+        );
+    }
+    assert!(!sim
+        .world()
+        .resource::<TileGrid>()
+        .can_cross((15, 1), (16, 1)));
+    assert!(!sim
+        .world()
+        .resource::<TileGrid>()
+        .can_cross((-1, 3), (0, 3)));
+}

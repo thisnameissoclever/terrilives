@@ -169,3 +169,19 @@ describe('windows', () => {
     expect(solid([0, 1, 1])).toEqual(solid([]));
   });
 });
+
+
+it('keeps explicit north and west perimeter extensions full height without duplicate shell arms', () => {
+  const edges = Uint32Array.from([0, 0, 0, 0, 0, 0, 3, 0, 1, 3, 0, 0, 0, 5, 3, 0, 1, 3, 5, 0]);
+  const panels = buildEdgeWallGeometry(5, 5, edges, [], [2, 2], true, [], true);
+  for (const [x, y, mask] of [[-.5, 2.5, 4], [2.5, -.5, 2]]) {
+    const at = panels.filter(panel => panel.x === x && panel.y === y);
+    expect(at).toHaveLength(1);
+    expect(at[0].mask).toBe(mask);
+    expect(at[0].low).not.toBe(true);
+  }
+  expect(panels.filter(panel => panel.x === -.5 && panel.y === -.5)).toHaveLength(1);
+  for (const [x, y] of [[4.5, 2.5], [2.5, 4.5]]) {
+    expect(panels.some(panel => panel.x === x && panel.y === y && panel.low)).toBe(true);
+  }
+});

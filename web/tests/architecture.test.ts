@@ -235,3 +235,23 @@ it.each([false, true])('hinged frames own both doorway orientations with cutaway
     expect(panels.some(panel => panel.fadeKey === `door/${1 - axis}/3/3`)).toBe(true);
   }
 });
+
+
+it('keeps explicit north and west plot walls full in cutaway and preserves original shell ownership', () => {
+  const edges = Uint32Array.from([0, 0, 0, 0, 0, 0, 7, 0, 1, 7, 0, 0, 0, 10, 7, 0, 1, 7, 10, 0]);
+  const panels = buildArchitectureWallGeometry({ ...base, edges, cutaway: true });
+  for (const [x, y] of [[-.5, 6.5], [6.5, -.5]]) {
+    const at = panels.filter(panel => panel.x === x && panel.y === y);
+    expect(at.length).toBeGreaterThan(0);
+    expect(at.every(panel => !panel.low)).toBe(true);
+  }
+  for (const [x, y] of [[9.5, 6.5], [6.5, 9.5]]) {
+    const at = panels.filter(panel => panel.x === x && panel.y === y);
+    expect(at.length).toBeGreaterThan(0);
+    expect(at.every(panel => panel.low)).toBe(true);
+  }
+  const shell = buildArchitectureWallGeometry({ ...base, cutaway: true });
+  expect(panels.filter(panel => panel.x === -.5 && panel.y === -.5))
+    .toEqual(shell.filter(panel => panel.x === -.5 && panel.y === -.5));
+  expect(new Set(panels.map(panel => panel.fadeKey)).size).toBe(panels.length);
+});

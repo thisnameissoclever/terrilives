@@ -384,3 +384,61 @@ fn window_save_refuses_duplicate_overlap_conflict_bounds_and_overflow_atomically
         assert_eq!(live.world_hash(), hash);
     }
 }
+
+#[test]
+fn physical_perimeter_saves_accept_solids_but_reject_doors_and_outside_coordinates() {
+    use terri_core::layout::EdgeAxis::{Horizontal, Vertical};
+    for (axis, x, y) in [
+        (Vertical, 0, 1),
+        (Vertical, 4, 1),
+        (Horizontal, 1, 0),
+        (Horizontal, 1, 3),
+    ] {
+        let edge = WallEdge {
+            axis,
+            x,
+            y,
+            doorway: false,
+        };
+        for layout in [
+            SavedLayout::EdgeWallsV1 { edges: vec![edge] },
+            SavedLayout::from_window_placements(vec![edge], vec![]),
+        ] {
+            let mut grid = TileGrid::new(4, 3);
+            assert_eq!(apply_layout(&mut grid, &layout, (2, 2)), Ok(()));
+            assert_eq!(grid.blocked_edges().count(), 0);
+        }
+        let mut grid = TileGrid::new(4, 3);
+        let door = SavedLayout::EdgeWallsV1 {
+            edges: vec![WallEdge {
+                doorway: true,
+                ..edge
+            }],
+        };
+        assert_eq!(
+            apply_layout(&mut grid, &door, (2, 2)),
+            Err(SaveError::InvalidGrid)
+        );
+    }
+    for (axis, x, y) in [
+        (Vertical, 5, 1),
+        (Vertical, 0, 3),
+        (Horizontal, 1, 4),
+        (Horizontal, 4, 0),
+        (Vertical, u32::MAX, 1),
+        (Horizontal, 1, u32::MAX),
+    ] {
+        let layout = SavedLayout::EdgeWallsV1 {
+            edges: vec![WallEdge {
+                axis,
+                x,
+                y,
+                doorway: false,
+            }],
+        };
+        assert_eq!(
+            apply_layout(&mut TileGrid::new(4, 3), &layout, (2, 2)),
+            Err(SaveError::InvalidGrid)
+        );
+    }
+}

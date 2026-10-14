@@ -30,7 +30,11 @@ function fixture(singleFacing = false) {
     new OverlayPauseController({ setSpeed() {} }, () => {}, 1), { ...hooks, enter() {}, exit() {} });
   const tools: ContextTools = { furniture, buy: new BuyTool(source, 16, 12, hooks),
     walls: new WallTool(source, 16, 12, hooks), room: new RoomTool(source, 16, 12, hooks),
-    floors: new FloorTool(source, 16, 12, hooks), focusCatalogue: vi.fn() };
+    floors: new FloorTool(source, 16, 12, hooks), focusCatalogue: vi.fn(),
+    cancelBuild: vi.fn(() => {
+      furniture.cancel(); tools.buy.cancel(); tools.walls.clearSelection();
+      tools.walls.windows?.handleKey('Escape'); tools.room.cancel(); tools.floors.clearSelection();
+    }) };
   furniture.enter();
   return { handle, source, ...tools, tools };
 }

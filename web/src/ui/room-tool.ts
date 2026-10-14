@@ -25,10 +25,10 @@ const EDIT_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
 type Tile = readonly [number, number];
 
 /**
- * The interior lines on the edge of the rectangle of tiles between two corners,
+ * Every physical line on the rectangle of tiles between two corners,
  * in the order the simulation writes them: the top side, then the bottom side,
  * left to right; then the left side, then the right side, top to bottom. Lines
- * on the lot's own edge are the outside wall and are left out. Mirrors
+ * on the lot perimeter are solid walls and cannot be doorways. Mirrors
  * `rooms::outline` in Rust, which decides; this only draws and chooses.
  */
 export function roomOutline(width: number, height: number, a: Tile, b: Tile): EdgeLine[] {
@@ -42,8 +42,8 @@ export function roomOutline(width: number, height: number, a: Tile, b: Tile): Ed
     for (let y = top; y <= bottom; y += 1) lines.push({ axis: 0, x, y });
   }
   return lines.filter(line => line.axis === 0
-    ? line.x > 0 && line.x < width && line.y < height
-    : line.y > 0 && line.y < height && line.x < width);
+    ? line.x >= 0 && line.x <= width && line.y >= 0 && line.y < height
+    : line.y >= 0 && line.y <= height && line.x >= 0 && line.x < width);
 }
 
 function sameLine(a: EdgeLine | null, b: EdgeLine | null): boolean {
@@ -111,7 +111,7 @@ export class RoomTool {
     if (tile[0] < 0 || tile[1] < 0 || tile[0] >= this.width || tile[1] >= this.height) return;
     if (this.first !== null && this.second !== null) {
       const line = nearestLine(wx, wy, this.width, this.height);
-      if (line && this.outline().some(edge => sameLine(edge, line))) {
+      if (line && this.interiorLine(line) && this.outline().some(edge => sameLine(edge, line))) {
         this.doorway = sameLine(this.doorway, line) ? null : line;
         this.doorwayMode = false;
         this.refresh();
@@ -129,10 +129,14 @@ export class RoomTool {
     this.refresh();
   }
 
+  private interiorLine(line: EdgeLine): boolean {
+    return line.axis === 0 ? line.x > 0 && line.x < this.width : line.y > 0 && line.y < this.height;
+  }
+
   /** Steps the doorway along the outline: none, each line in turn, then none. */
   cycleDoorway(): void {
     if (!this.active || this.pending || this.blocked || this.second === null) return;
-    const lines = this.outline();
+    const lines = this.outline().filter(line => this.interiorLine(line));
     const at = lines.findIndex(line => sameLine(line, this.doorway));
     this.doorway = at + 1 < lines.length ? lines[at + 1] : null;
     this.refresh();
