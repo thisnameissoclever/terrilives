@@ -1,0 +1,173 @@
+[
+  {
+    "mutation": "arrival cap",
+    "group": 1,
+    "file": "crates/terri-sim/src/social_company.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "social_episode::tests",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "68c6ec61ecabacc527b1b5a9f1bdaada44f70c157240908eaec6cfe3bed729ac",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-1.log"
+  },
+  {
+    "mutation": "sampler bypass",
+    "group": 1,
+    "file": "crates/terri-sim/src/social_episode.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "social_episode::tests",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "df7d3163a4e4a8a1ae5adf3595e8c7d16b5a1e53011e205a5eb0920465d8de36",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-1.log"
+  },
+  {
+    "mutation": "replace conversation topic",
+    "group": 1,
+    "file": "crates/terri-sim/src/social_episode.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "social_episode::tests",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "df7d3163a4e4a8a1ae5adf3595e8c7d16b5a1e53011e205a5eb0920465d8de36",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-1.log"
+  },
+  {
+    "mutation": "prune dead peers",
+    "group": 1,
+    "file": "crates/terri-sim/src/social_episode.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "social_episode::tests",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "df7d3163a4e4a8a1ae5adf3595e8c7d16b5a1e53011e205a5eb0920465d8de36",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-1.log"
+  },
+  {
+    "mutation": "release incoming on start",
+    "group": 2,
+    "file": "crates/terri-sim/src/social_episode.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "social_episode::tests",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "df7d3163a4e4a8a1ae5adf3595e8c7d16b5a1e53011e205a5eb0920465d8de36",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-2.log"
+  },
+  {
+    "mutation": "recipient talk preemption",
+    "group": 2,
+    "file": "crates/terri-sim/src/systems/action.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "social_episode::tests",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "e531a6382de83a56bb60dafd55196d5ba8bff12b9ce0526b48fb1977c27a07ad",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-2.log"
+  },
+  {
+    "mutation": "whole recipe busy guard",
+    "group": 2,
+    "file": "crates/terri-sim/src/systems/movement.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "social_episode::tests",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "aa9a724c3def280947803037469ae2d53d7f7cb9f18a74e27bdaad0a11275656",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-2.log"
+  },
+  {
+    "mutation": "completed work freeze",
+    "group": 3,
+    "file": "crates/terri-sim/src/reading.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "communal_reading_keeps_completed_book_company_without_repeating_earnings",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "ef4d0a7cba23f140164553b5d02060f5dec6801fb6c5b68e26c9b6b0d51e016a",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-3.log"
+  },
+  {
+    "mutation": "held chair Comfort",
+    "group": 4,
+    "file": "crates/terri-sim/src/reading.rs",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "communal_reading_keeps_completed_book_company_without_repeating_earnings",
+      "--",
+      "--test-threads=2"
+    ],
+    "exit_code": 101,
+    "killed": true,
+    "restored": true,
+    "sha256": "ef4d0a7cba23f140164553b5d02060f5dec6801fb6c5b68e26c9b6b0d51e016a",
+    "log": "D:\\VIBES\\.worktrees\\7515\\terrilives\\social-mutation-group-4.log"
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "base": "04160fe215fb8238e8b9aaff2f8493e7ff6a20d4",
+  "historicalSpriteMetadataAndPixelsPreserved": 30887,
+  "newConversationSprites": 40,
+  "architectureChange": "base and sprite ids shifted by 40 only",
+  "verdict": "PASS"
+}

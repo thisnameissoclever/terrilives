@@ -1,0 +1,12 @@
+
+> test
+> vitest run --maxWorkers=1 tests/legacy-save.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/7515/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  15:16:43
+   Duration  1.07s (transform 54ms, setup 37ms, import 36ms, tests 886ms, environment 0ms)

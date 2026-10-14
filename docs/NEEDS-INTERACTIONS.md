@@ -14,7 +14,7 @@ meaning. Dated verification belongs in `docs/evidence/`.
 | Energy | Alertness and physical reserves | Sleeping; a small amount from reclining | Sitting upright, entertainment and company do not replace sleep. |
 | Hygiene | General cleanliness, including body odor | Bathing; partial improvement from washing hands | Hand washing cannot clean the whole body or remove the body-odor penalty. |
 | Bladder | Relief from needing the toilet | Using a toilet | Sinks, bathing and food do not provide toilet relief. |
-| Social | Satisfying company with someone the receiver likes | Conversation and eligible concurrent shared activities | Solo entertainment, solo food, empty tables, travel and passive proximity provide no Social. |
+| Social | Company, with affinity and family scaling its benefit | Conversation and eligible concurrent shared activities | Solo entertainment, solo food, empty tables, travel and passive proximity provide no Social. |
 | Fun | Active entertainment or an engaging pastime | Media, reading, exercise, correspondence, aquarium watching and conversation | Plain sitting or lying down restores physical comfort rather than entertainment. |
 | Comfort | Physical ease and relaxation | Restful furniture, beds, bathing and watching fish | Washing hands has no Comfort cost. Standing eating has a small physical cost. |
 
@@ -33,7 +33,7 @@ only during active eating or shared use.
 | Object and action | Authored duration | Need effects | Reason |
 | --- | --- | --- | --- |
 | Fridge: grab a snack | 20 getting, 30 plating, 35 eating minutes, plus travel | Hunger +40 after eating; standing-eating cost during the counter eating step | The snack is real food. Preparation and travel carry no food reward. Snacks currently use a standing counter step. |
-| Cook and eat dinner | 500 working minutes across the recipe, plus travel; 90 eating minutes | Hunger +70 after eating; chair Comfort or standing-eating cost; conditional Social +11 over 90 eating minutes | Food feeds the diner. A chair supplies physical comfort; liked company supplies Social. Food quality does not manufacture either effect. |
+| Cook and eat dinner | 500 working minutes across the recipe, plus travel; 90 eating minutes | Hunger +70 after eating; chair Comfort or standing-eating cost; conditional Social +11 over 90 eating minutes | Food feeds the diner. A chair supplies physical comfort; company supplies Social. Food quality does not manufacture either effect. |
 | Collect and eat a prepared shared meal | 25 collecting and 90 eating minutes, plus travel | Same meal rewards and contextual costs as dinner | The portion supplies the same food benefit, whether the diner cooked it or collected it. |
 | Bunk bed: sleep | 180 minutes | Energy +100, Comfort +5 | Sleep restores Energy. A bunk is a real resting place, with half the double bed's nominal Comfort. |
 | Double bed: sleep | 210 minutes | Energy +108, Comfort +10 | A longer sleep and a more comfortable bed provide greater total relief. |
@@ -53,7 +53,7 @@ only during active eating or shared use.
 | Exercise bike: exercise | 83 minutes | Fun +28, Energy -8, Hygiene -5; conditional shared-activity Social | Exercise is an active pastime. Exertion costs Energy, and sweat reduces cleanliness. |
 | Desk: correspondence | 58 minutes | Fun +36, Energy -7 | The game treats correspondence as engaging desk work with a small effort cost. It is not a conversation with another household Sim and provides no Social. |
 | Aquarium: watch fish | 67 minutes | Fun +25, Comfort +21; conditional shared-activity Social | Watching fish entertains and relaxes the viewer. Eligible shared watching also provides mild company. |
-| Chat | 67-minute authored rate; actual length follows the chosen voice clips | Social +50.25 and Fun +10.05 over 67 minutes; Social requires positive receiver affinity | Conversation entertains and provides satisfying company. Each participant's own feeling controls their Social reward. |
+| Chat | 67-minute authored rate; actual length follows the chosen voice clips | Social +50.25 and Fun +10.05 over 67 minutes; Social scales with affinity and family | Conversation entertains and provides satisfying company. Each participant's own feeling controls their Social reward. |
 | Clean dishes, including a targeted pile or surface | Collection and washing work, plus travel | No direct need reward | Cleaning removes dishes and their environmental mood consequences. It does not wash the Sim's body or refill a need. |
 | Clean floor | 24 work minutes per patch, plus travel | No direct need reward or additional need cost | Work removes actual grime and its mood effect; normal need decay accounts for time spent working. |
 | Wipe surface | 45 work minutes, plus travel | No direct need reward or additional need cost | Wiping cleans furniture rather than the Sim. Grime, mood and commitment credit change separately. |
@@ -114,12 +114,14 @@ hand washing alone cannot remove them. Bathing has no partial-wash ceiling
 and can restore Hygiene toward 100. Both hand-washing actions leave Comfort
 unchanged apart from normal decay.
 
-## Social requires actual, liked company
+## Social requires actual company
 
-Relationship affinity is a directional feeling between -1 and +1. The receiver must have
-a value strictly above zero toward at least one eligible participant. One-way
-liking can therefore restore one Sim's Social without restoring the other's.
-More participants do not multiply the rate.
+Relationship affinity is a directional feeling between -1 and +1. Company
+provides a positive Social benefit even at maximum dislike. Its multiplier is
+`max(0.25, 1 + affinity * relationship_delta_scale)`, with another 0.1 for
+family. The shipped relationship scale is 0.5. A group uses the strongest
+eligible affinity multiplier and adds the family bonus once if any eligible
+participant is family. More participants do not multiply the rate.
 
 1. **Television and radio:** another Sim must actively use the same device
    and interaction. A reservation or a travelling co-user is insufficient.
@@ -136,10 +138,9 @@ More participants do not multiply the rate.
    room within four tiles. Both must accept that activity according to their
    personality, traits and hobbies. A failed activity does not count. The
    additional rate is 0.12 Social per overlapping game minute.
-4. **Chats:** each receiver must like the other participant. A neutral first
-   chat can develop friendship without refilling Social; later chats can
-   refill it once the receiver's feeling becomes positive. Conversation Fun
-   remains separate from that Social condition.
+4. **Chats:** each participant receives Social scaled by their own affinity,
+   family relationship and satisfaction multiplier. Neutral and disliked
+   partners still provide company. Conversation Fun remains a separate reward.
 
 Walking, working off-lot, commuting and interruptions exclude active shared
 participation. General proximity can develop friendship or affect mood, but
@@ -163,22 +164,22 @@ other diner remain the sources of those effects.
 Habituation, which makes repetition less appealing, activity preferences,
 hobbies and sleep rhythm affect action choice. They are not extra need
 payments. Hobbies also scale completion-based life satisfaction. Conversations
-scale positive need delivery by `1 + affinity * 0.5`; direct chat Social still
-requires strictly positive relationship affinity.
+scale positive Social delivery by the affinity and family formula above. Other
+positive chat benefits retain their existing affinity scaling.
 
 Skills improve through completed attempts and influence capability-linked
 fumble chances through mastery; practice itself refills no need. Repetition
 above the ordinary appeal range can create Overdoing and Feeling sick
 moodlets. Those affect mood and life satisfaction, without changing the
 need-delivery rates. Object likes and dislikes also affect mood, and annoyance
-at another Sim's media use can lower the relationship feeling that permits
+at another Sim's media use can reduce the affinity multiplier on
 Social. They do not directly refill needs or replace relationship affinity.
 
 Autonomous scoring, private-room alternatives, urgent-need decisions and
 waiting frustration use effects available at the planned destination. They
 exclude capped hand washing and unavailable company, and include a valid
 media seat's Comfort and eligible shared activity. Cooking cannot promise a
-future seat or liked dining company before diners actually sit together.
+future seat or dining company before diners actually sit together.
 
 Every need also decays throughout ordinary life:
 
@@ -224,7 +225,7 @@ completion rewards and long-term mood; it is separate from all seven meters.
 | Caps, contextual rates, decay and modifier values | `content/tuning.toml` |
 | Personality, trait and hobby preferences | `content/personalities.toml`, `content/traits.toml`, `compatibility.rs` |
 | Contextual benefits, caps and physical Comfort delivery | `crates/terri-sim/src/need_interactions.rs` |
-| Actual participants and positive-affinity company gates | `crates/terri-sim/src/social_company.rs` |
+| Actual participants and affinity/family company scaling | `crates/terri-sim/src/social_company.rs` |
 | Ordinary, recipe and chat delivery | `crates/terri-sim/src/systems/interact.rs`, `chain.rs`, `social.rs` |
 | Physical claims and valid seating | `crates/terri-sim/src/seating.rs`, `media.rs`, `dining.rs` |
 

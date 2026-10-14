@@ -1,4 +1,4 @@
-//! Social benefits require active, liked company rather than furniture alone.
+//! Social benefits require actual company; affinity scales its value.
 use crate::Content;
 use bevy_ecs::prelude::*;
 use terri_core::{
@@ -30,32 +30,104 @@ pub struct SocialCompany {
     preferences: std::collections::BTreeMap<Entity, crate::compatibility::Preferences>,
     rooms: Option<crate::room_regions::RoomRegions>,
     radius: f32,
+    strength: f32,
+    identities: std::collections::BTreeMap<Entity, SimId>,
+    family: terri_core::layout::FamilyTies,
 }
 
 pub(crate) fn effective_delta(need: u8, delta: f32, social_available: bool) -> bool {
     delta <= 0. || need as usize != NeedId::Social.index() || social_available
 }
 
-/// Future Social relief is worth seeking after enough completed chats to become liked.
-/// Affinity determines effort; it is not converted into need points.
-pub(crate) fn friendship_score(
-    deficit: f32,
-    delta: f32,
-    duration: u32,
-    distance: f32,
-    affinity: f32,
-    gain: f32,
-) -> f32 {
-    if deficit <= 0. || delta <= 0. || affinity > 0. || gain <= 0. {
-        return 0.;
-    }
-    let building = (-affinity / gain).floor() + 1.;
-    let horizon = (building + 1.) * duration as f32;
-    let d = deficit.clamp(0., 1.);
-    d * d * d * delta / (horizon + distance / crate::systems::advertise::TILES_PER_TICK + 1.)
-}
-
 impl SocialCompany {
+    pub(crate) fn active_scale(&self, owner: Entity, feelings: &Relationships) -> f32 {
+        let Some(me) = self.participants.iter().find(|p| p.entity == owner) else {
+            return 0.;
+        };
+        self.scale(owner, me.station, &me.activity, feelings, me.position)
+    }
+    fn peers<'a>(
+        &'a self,
+        owner: Entity,
+        station: Entity,
+        activity: &'a Activity,
+        position: Position,
+    ) -> impl Iterator<Item = &'a Participant> {
+        self.participants.iter().filter(move |p| {
+            if p.entity == owner || &p.activity != activity {
+                return false;
+            }
+            match activity {
+                Activity::Shared(group) => {
+                    p.station != station
+                        && self
+                            .preferences
+                            .get(&owner)
+                            .is_some_and(|prefs| prefs.get(group).copied().unwrap_or(0.) >= 0.)
+                        && self.rooms.as_ref().is_some_and(|r| {
+                            let room = r.at((position.x.round() as i32, position.y.round() as i32));
+                            room.is_some()
+                                && room
+                                    == r.at((
+                                        p.position.x.round() as i32,
+                                        p.position.y.round() as i32,
+                                    ))
+                        })
+                        && (p.position.x - position.x).hypot(p.position.y - position.y)
+                            <= self.radius
+                }
+                _ => p.station == station,
+            }
+        })
+    }
+    fn scale(
+        &self,
+        owner: Entity,
+        station: Entity,
+        activity: &Activity,
+        feelings: &Relationships,
+        position: Position,
+    ) -> f32 {
+        let mut value = 0.0f32;
+        let mut related = false;
+        for other in self.peers(owner, station, activity, position) {
+            related |= self
+                .identities
+                .get(&owner)
+                .is_some_and(|id| self.family.relation(id.0, other.id.0).is_some());
+            value = value.max(crate::social_episode::benefit(
+                feelings.feeling(other.id),
+                self.strength,
+                false,
+            ));
+        }
+        value + if related { 0.1 } else { 0. }
+    }
+    pub(crate) fn proposed_scale(
+        &self,
+        owner: Entity,
+        station: Entity,
+        interaction: u32,
+        feelings: &Relationships,
+        endpoint: (i32, i32),
+    ) -> f32 {
+        let activity = self
+            .groups
+            .get(&(station, interaction))
+            .map_or(Activity::Media(interaction), |g| {
+                Activity::Shared(g.clone())
+            });
+        self.scale(
+            owner,
+            station,
+            &activity,
+            feelings,
+            Position {
+                x: endpoint.0 as f32,
+                y: endpoint.1 as f32,
+            },
+        )
+    }
     pub(crate) fn shared_activity(&self, owner: Entity) -> Option<(Entity, String)> {
         let me = self.participants.iter().find(|p| p.entity == owner)?;
         if let Activity::Shared(group) = &me.activity {
@@ -69,13 +141,10 @@ impl SocialCompany {
         owner: Entity,
         station: Entity,
         activity: &Activity,
-        feelings: &Relationships,
+        _feelings: &Relationships,
     ) -> bool {
         self.participants.iter().any(|other| {
-            other.entity != owner
-                && other.station == station
-                && &other.activity == activity
-                && feelings.feeling(other.id) > 0.
+            other.entity != owner && other.station == station && &other.activity == activity
         })
     }
 
@@ -140,7 +209,7 @@ impl SocialCompany {
         owner: Entity,
         station: Entity,
         group: &str,
-        feelings: &Relationships,
+        _feelings: &Relationships,
         position: Position,
     ) -> bool {
         if self
@@ -166,7 +235,6 @@ impl SocialCompany {
                 )) == Some(room)
                 && (other.position.x - position.x).hypot(other.position.y - position.y)
                     <= self.radius
-                && feelings.feeling(other.id) > 0.
         })
     }
 }
@@ -282,6 +350,15 @@ pub(crate) fn refresh(world: &mut World) {
     {
         world.insert_resource(SocialCompany {
             participants,
+            strength: pack.tuning.relationship_delta_scale,
+            identities: people
+                .iter()
+                .filter_map(|&p| world.get::<SimId>(p).map(|&id| (p, id)))
+                .collect(),
+            family: world
+                .get_resource::<terri_core::layout::FamilyTies>()
+                .cloned()
+                .unwrap_or_default(),
             ..Default::default()
         });
         return;
@@ -321,7 +398,274 @@ pub(crate) fn refresh(world: &mut World) {
         preferences,
         rooms: Some(crate::room_regions::RoomRegions::from_world(world)),
         radius: pack.tuning.relationships.contact_radius,
+        strength: pack.tuning.relationship_delta_scale,
+        identities: people
+            .iter()
+            .filter_map(|&p| world.get::<SimId>(p).map(|&id| (p, id)))
+            .collect(),
+        family: world
+            .get_resource::<terri_core::layout::FamilyTies>()
+            .cloned()
+            .unwrap_or_default(),
     });
+}
+
+/// Arrival snapshots are immutable across the pass, so newcomers on the same
+/// tick cannot inherit each other's just-extended timers.
+pub(crate) fn extend_episodes(world: &mut World) {
+    use crate::social_episode::{CommunalEpisode, SocialEpisodes};
+    use std::collections::{BTreeMap, BTreeSet};
+    refresh(world);
+    let company = world.resource::<SocialCompany>().clone();
+    let pack = world.resource::<Content>().0;
+    let remaining = |person| {
+        world
+            .get::<Eating>(person)
+            .map(|e| e.remaining_ticks)
+            .or_else(|| world.get::<StepWork>(person).map(|s| s.remaining_ticks))
+            .or_else(|| {
+                world
+                    .get::<crate::reading::ReadingJourney>(person)
+                    .map(|j| {
+                        world
+                            .resource::<SocialEpisodes>()
+                            .communal
+                            .get(&person)
+                            .filter(|e| e.remaining > 0)
+                            .map_or_else(
+                                || {
+                                    pack.reading
+                                        .as_ref()
+                                        .unwrap()
+                                        .session_ticks
+                                        .saturating_sub(j.elapsed)
+                                },
+                                |e| e.remaining,
+                            )
+                    })
+            })
+            .unwrap_or(0)
+    };
+    let durations: BTreeMap<_, _> = company
+        .participants
+        .iter()
+        .map(|p| (p.entity, remaining(p.entity)))
+        .collect();
+    let old = world.resource::<SocialEpisodes>().communal.clone();
+    let mut incoming: Vec<_> = world
+        .query::<(Entity, &Target, &Path)>()
+        .iter(world)
+        .filter(|(e, _, _)| world.get::<Agent>(*e).is_some())
+        .map(|(e, t, p)| (e, *t, p.steps.last().copied()))
+        .collect();
+    incoming.extend(
+        world
+            .query::<(Entity, &crate::reading::ReadingJourney)>()
+            .iter(world)
+            .filter(|(_, j)| approaching_reader(j))
+            .map(|(e, j)| (e, j.origin, Some(j.destination))),
+    );
+    let mut next: BTreeMap<_, _> = old
+        .iter()
+        .filter(|(person, _)| {
+            world
+                .get::<crate::reading::ReadingJourney>(**person)
+                .is_some_and(|j| {
+                    j.stage != terri_core::save_v6::ReadingStage::Read
+                        && j.elapsed > pack.reading.as_ref().unwrap().session_ticks
+                })
+        })
+        .map(|(&person, episode)| (person, episode.clone()))
+        .collect();
+    for me in &company.participants {
+        let Some(target) = world
+            .get::<crate::reading::ReadingJourney>(me.entity)
+            .map(|journey| journey.origin)
+            .or_else(|| world.get::<Target>(me.entity).copied())
+        else {
+            continue;
+        };
+        let peers: BTreeSet<_> = company
+            .peers(me.entity, me.station, &me.activity, me.position)
+            .map(|p| p.entity)
+            .collect();
+        let previous = old.get(&me.entity).filter(|e| e.target == target);
+        let mut episode = previous.cloned().unwrap_or(CommunalEpisode {
+            target,
+            extensions: 0,
+            participants: peers.clone(),
+            remaining: 0,
+            completed_novelty: None,
+        });
+        let mut duration = durations[&me.entity];
+        if previous.is_some() && episode.extensions < 2 {
+            let mut newcomers: Vec<_> = peers.difference(&episode.participants).copied().collect();
+            newcomers.sort_by_key(|e| e.index_u32());
+            for newcomer in &newcomers {
+                let newcomer_duration = durations.get(newcomer).copied().unwrap_or(0);
+                if episode.extensions < 2 && newcomer_duration > duration {
+                    duration = newcomer_duration;
+                    episode.extensions += 1;
+                    if world
+                        .get::<crate::reading::ReadingJourney>(me.entity)
+                        .is_some()
+                    {
+                        episode.remaining = duration;
+                    }
+                }
+            }
+        }
+        // Continue the present activity while an admitted newcomer approaches.
+        // At the cap, even travel cannot keep this participant past its deadline.
+        let inbound = episode.extensions < 2
+            && !crate::social_episode::urgent(world, me.entity)
+            && incoming.iter().any(|(person, t, endpoint)| {
+                if *person == me.entity || crate::social_episode::urgent(world, *person) {
+                    return false;
+                }
+                match &me.activity {
+                    Activity::Media(i) => t.object == me.station && t.interaction == *i,
+                    Activity::Meal => {
+                        t.object == me.station && crate::dining::terminal(world, *person)
+                    }
+                    Activity::Shared(group) => {
+                        t.object != me.station
+                            && company.groups.get(&(t.object, t.interaction)) == Some(group)
+                            && endpoint.is_some_and(|(x, y)| {
+                                company.rooms.as_ref().is_some_and(|r| {
+                                    let room = r.at((x, y));
+                                    room.is_some()
+                                        && room
+                                            == r.at((
+                                                me.position.x.round() as i32,
+                                                me.position.y.round() as i32,
+                                            ))
+                                }) && (x as f32 - me.position.x).hypot(y as f32 - me.position.y)
+                                    <= company.radius
+                            })
+                    }
+                }
+            });
+        if inbound && duration <= 1 {
+            duration = 2;
+            if world
+                .get::<crate::reading::ReadingJourney>(me.entity)
+                .is_some()
+            {
+                episode.remaining = duration;
+            }
+        }
+        if let Some(mut eating) = world.get_mut::<Eating>(me.entity) {
+            eating.remaining_ticks = duration;
+        }
+        if let Some(mut step) = world.get_mut::<StepWork>(me.entity) {
+            step.remaining_ticks = duration;
+        }
+        episode.participants = peers;
+        next.insert(me.entity, episode);
+    }
+    world.resource_mut::<SocialEpisodes>().communal = next;
+}
+
+fn approaching_reader(journey: &crate::reading::ReadingJourney) -> bool {
+    matches!(
+        journey.stage,
+        terri_core::save_v6::ReadingStage::Fetch
+            | terri_core::save_v6::ReadingStage::Pickup
+            | terri_core::save_v6::ReadingStage::Travel
+    )
+}
+
+/// The reading save validator uses the same real approach conditions as holds.
+pub(crate) fn has_inbound(world: &World, person: Entity) -> bool {
+    let Some(me) = participation(world, person) else {
+        return false;
+    };
+    let Activity::Shared(ref group) = me.activity else {
+        return false;
+    };
+    let pack = world.resource::<Content>().0;
+    let rooms = crate::room_regions::RoomRegions::from_world(world);
+    let room = rooms.at((me.position.x.round() as i32, me.position.y.round() as i32));
+    let planned = world
+        .try_query::<(Entity, &crate::reading::ReadingJourney)>()
+        .is_some_and(|mut query| {
+            query.iter(world).any(|(other, j)| {
+                if other == person
+                    || crate::social_episode::urgent(world, other)
+                    || !approaching_reader(j)
+                {
+                    return false;
+                }
+                let Some(action) = crate::reading::action(world, j.origin) else {
+                    return false;
+                };
+                let (x, y) = j.destination;
+                action.shared_activity.as_ref() == Some(group)
+                    && j.origin.object != me.station
+                    && room.is_some()
+                    && rooms.at((x, y)) == room
+                    && (x as f32 - me.position.x).hypot(y as f32 - me.position.y)
+                        <= pack.tuning.relationships.contact_radius
+            })
+        });
+    let newly_arrived = world
+        .try_query_filtered::<Entity, With<Agent>>()
+        .is_some_and(|mut query| {
+            query.iter(world).any(|other| {
+                if other == person
+                    || crate::social_episode::urgent(world, other)
+                    || world
+                        .resource::<crate::social_episode::SocialEpisodes>()
+                        .communal
+                        .get(&person)
+                        .is_some_and(|episode| episode.participants.contains(&other))
+                {
+                    return false;
+                }
+                let Some(peer) = participation(world, other) else {
+                    return false;
+                };
+                peer.station != me.station
+                    && matches!(&peer.activity,Activity::Shared(theirs) if theirs==group)
+                    && room.is_some()
+                    && rooms.at((
+                        peer.position.x.round() as i32,
+                        peer.position.y.round() as i32,
+                    )) == room
+                    && (peer.position.x - me.position.x).hypot(peer.position.y - me.position.y)
+                        <= pack.tuning.relationships.contact_radius
+            })
+        });
+    planned
+        || newly_arrived
+        || world
+            .try_query::<(Entity, &Target, &Path)>()
+            .is_some_and(|mut query| {
+                query.iter(world).any(|(other, target, path)| {
+                    if other == person || crate::social_episode::urgent(world, other) {
+                        return false;
+                    }
+                    let Some(object) = world.get::<SmartObject>(target.object) else {
+                        return false;
+                    };
+                    let Some(action) = pack
+                        .object(object.0)
+                        .interactions
+                        .get(target.interaction as usize)
+                    else {
+                        return false;
+                    };
+                    target.object != me.station
+                        && action.shared_activity.as_ref() == Some(group)
+                        && path.steps.last().is_some_and(|&(x, y)| {
+                            room.is_some()
+                                && rooms.at((x, y)) == room
+                                && (x as f32 - me.position.x).hypot(y as f32 - me.position.y)
+                                    <= pack.tuning.relationships.contact_radius
+                        })
+                })
+            })
 }
 
 /// A shared meal pays only for the minutes actually spent eating in company.
@@ -351,7 +695,10 @@ pub(crate) fn tick_meals(world: &mut World) {
             let personality = world
                 .get::<Personality>(p.entity)
                 .map_or(1., |p| p.satisfaction[NeedId::Social.index()]);
-            Some((p.entity, delta * personality / duration))
+            Some((
+                p.entity,
+                delta * personality * company.active_scale(p.entity, &feelings) / duration,
+            ))
         })
         .collect();
     for (person, delta) in payments {
@@ -487,7 +834,7 @@ mod tests {
     }
 
     #[test]
-    fn social_privacy_substitution_requires_active_liked_company_and_a_free_endpoint() {
+    fn social_privacy_substitution_requires_active_company_and_a_free_endpoint() {
         let mut sim = crate::Sim::new_with_lot(8, 8);
         let pack = sim.world().resource::<Content>().0;
         let television =
@@ -534,13 +881,14 @@ mod tests {
         sim.world_mut().entity_mut(first).insert(feelings);
         refresh(sim.world_mut());
         let grid = sim.world().resource::<terri_core::TileGrid>().clone();
-        assert!(!crate::privacy::substitute(
+        assert!(crate::privacy::substitute(
             sim.world_mut(),
             first,
             NeedId::Social.index() as u8,
             &grid,
             false
         ));
+        sim.world_mut().entity_mut(first).remove::<(Target, Path)>();
         let mut feelings = Relationships::default();
         feelings.bump(SimId(1), 0.5);
         sim.world_mut().entity_mut(first).insert(feelings);
@@ -740,22 +1088,6 @@ mod tests {
         assert!(
             allowed(&sim),
             "Architectural room boundaries do not erase actual shared device use"
-        );
-    }
-
-    #[test]
-    fn friendship_utility_counts_building_chats_and_requires_future_relief() {
-        let neutral = friendship_score(0.8, 30., 40, 0., 0., 0.2);
-        assert!((neutral - 0.18962963).abs() < 0.000001);
-        let disliked = friendship_score(0.8, 30., 40, 0., -0.2, 0.2);
-        assert!((disliked - 0.12694215).abs() < 0.000001);
-        assert!(disliked < neutral);
-        assert_eq!(friendship_score(0., 30., 40, 0., 0., 0.2), 0.);
-        assert_eq!(friendship_score(0.8, 30., 40, 0., 0., 0.), 0.);
-        assert_eq!(friendship_score(0.8, 30., 40, 0., 0.1, 0.2), 0.);
-        assert_eq!(
-            friendship_score(0.8, 30., 40, 0., -1., f32::MIN_POSITIVE / 100.),
-            0.
         );
     }
 }

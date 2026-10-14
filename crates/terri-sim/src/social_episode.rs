@@ -1,0 +1,406 @@
+//! Owned conversation rendezvous, topics and bounded shared activity episodes.
+use bevy_ecs::prelude::*;
+use std::collections::{BTreeMap, BTreeSet};
+use terri_core::{Agent, Eating, NeedId, Needs, Path, SimRng, Socialising, Target};
+
+#[derive(Resource, Default, Clone)]
+pub struct SocialEpisodes {
+    pub(crate) rendezvous: BTreeMap<Entity, Entity>,
+    pub(crate) topics: BTreeMap<Entity, Topic>,
+    pub(crate) communal: BTreeMap<Entity, CommunalEpisode>,
+}
+#[derive(Clone, Debug)]
+pub(crate) struct Topic {
+    pub code: u32,
+    pub tag: String,
+    pub initiator_preference: f32,
+    pub listener_preference: f32,
+}
+#[derive(Clone, Debug)]
+pub(crate) struct CommunalEpisode {
+    pub target: Target,
+    pub extensions: u8,
+    pub participants: BTreeSet<Entity>,
+    pub remaining: u32,
+    pub completed_novelty: Option<f32>,
+}
+
+/// Family adds value independently of affinity; dislike never removes company.
+pub(crate) fn benefit(affinity: f32, strength: f32, family: bool) -> f32 {
+    (1. + affinity * strength).max(0.25) + if family { 0.1 } else { 0. }
+}
+pub(crate) fn urgent(world: &World, person: Entity) -> bool {
+    world.get::<terri_core::AtWork>(person).is_some()
+        || world.get::<terri_core::Commuting>(person).is_some()
+        || world.get::<Needs>(person).is_some_and(|n| {
+            [NeedId::Energy, NeedId::Hunger, NeedId::Bladder]
+                .iter()
+                .any(|&id| {
+                    n.get(id)
+                        <= world
+                            .resource::<crate::Content>()
+                            .0
+                            .tuning
+                            .mood_critical_need_level
+                })
+        })
+}
+
+pub(crate) fn started(world: &mut World, initiator: Entity, partner: Entity) {
+    let mut episodes = world.resource_mut::<SocialEpisodes>();
+    episodes.topics.remove(&initiator);
+    if episodes.rendezvous.get(&partner) == Some(&initiator) {
+        episodes.rendezvous.remove(&partner);
+    }
+}
+
+pub(crate) fn cancel_incoming(world: &mut World, recipient: Entity) {
+    let Some(initiator) = world
+        .resource_mut::<SocialEpisodes>()
+        .rendezvous
+        .remove(&recipient)
+    else {
+        return;
+    };
+    if let Some(target) = world
+        .get::<Target>(initiator)
+        .copied()
+        .filter(|t| t.object == recipient)
+    {
+        crate::reservations::release_now(world, initiator, target);
+        if let Some(mut queue) = world.get_mut::<terri_core::IntentQueue>(initiator) {
+            queue.remove_first(terri_core::Intent {
+                object: recipient,
+                interaction: target.interaction,
+                cleanup: None,
+                chore: None,
+            });
+        }
+        world
+            .entity_mut(initiator)
+            .remove::<(Target, Path, terri_core::Blocked)>();
+    }
+}
+
+pub(crate) fn forget_person(world: &mut World, person: Entity) {
+    let topics: BTreeSet<_> = world
+        .resource::<SocialEpisodes>()
+        .topics
+        .keys()
+        .copied()
+        .filter(|&owner| {
+            owner == person
+                || world
+                    .get::<Socialising>(owner)
+                    .is_some_and(|s| s.partner == person)
+        })
+        .collect();
+    let mut episodes = world.resource_mut::<SocialEpisodes>();
+    episodes
+        .rendezvous
+        .retain(|&recipient, initiator| recipient != person && *initiator != person);
+    episodes.topics.retain(|owner, _| !topics.contains(owner));
+    episodes.communal.remove(&person);
+    for episode in episodes.communal.values_mut() {
+        episode.participants.remove(&person);
+    }
+}
+
+pub(crate) fn maintain(world: &mut World) {
+    let mut claims: Vec<_> = world
+        .resource::<SocialEpisodes>()
+        .rendezvous
+        .iter()
+        .map(|(&recipient, &initiator)| (recipient, initiator))
+        .collect();
+    claims.sort_by_key(|(recipient, _)| recipient.index_u32());
+    for (recipient, initiator) in claims {
+        let target = world.get::<Target>(initiator).copied();
+        let valid = world.get::<Agent>(recipient).is_some()
+            && target.is_some_and(|t| t.object == recipient)
+            && (world.get::<Path>(recipient).is_none()
+                || world.get::<terri_core::ChainState>(recipient).is_some()
+                || world
+                    .get::<crate::reading::ReadingJourney>(recipient)
+                    .is_some())
+            && !urgent(world, recipient)
+            && !urgent(world, initiator);
+        if !valid {
+            world
+                .resource_mut::<SocialEpisodes>()
+                .rendezvous
+                .remove(&recipient);
+            if world.get::<Socialising>(initiator).is_none() {
+                if target.is_some_and(|t| t.object == recipient) {
+                    if let Some(mut queue) = world.get_mut::<terri_core::IntentQueue>(initiator) {
+                        queue.remove_first(terri_core::Intent {
+                            object: recipient,
+                            interaction: target.unwrap().interaction,
+                            cleanup: None,
+                            chore: None,
+                        });
+                    }
+                    world
+                        .entity_mut(initiator)
+                        .remove::<(Target, Path, terri_core::Blocked)>();
+                }
+                let active_partner = world
+                    .query::<&Socialising>()
+                    .iter(world)
+                    .any(|s| s.partner == recipient);
+                if !active_partner {
+                    if let Ok(mut entity) = world.get_entity_mut(recipient) {
+                        entity.remove::<terri_core::Reserved>();
+                    }
+                }
+            }
+            continue;
+        }
+        if world.get::<Socialising>(initiator).is_none() {
+            let recipient_position = world.get::<terri_core::Position>(recipient).copied();
+            let initiator_position = world.get::<terri_core::Position>(initiator).copied();
+            if let Some((recipient_position, initiator_position)) =
+                recipient_position.zip(initiator_position)
+            {
+                let to = (
+                    recipient_position.x.round() as i32,
+                    recipient_position.y.round() as i32,
+                );
+                let from = (
+                    initiator_position.x.round() as i32,
+                    initiator_position.y.round() as i32,
+                );
+                let grid = world.resource::<terri_core::TileGrid>();
+                let endpoint = world
+                    .get::<Path>(initiator)
+                    .and_then(|p| p.steps.last().copied())
+                    .unwrap_or(from);
+                if !grid.can_interact_with_rect(endpoint, to, terri_core::Footprint::SINGLE) {
+                    let route = grid.find_path_adjacent_to_tile(from, to).and_then(|steps| {
+                        grid.anchor_path((initiator_position.x, initiator_position.y), steps)
+                    });
+                    if let Some(steps) = route {
+                        world
+                            .entity_mut(initiator)
+                            .insert(Path { steps, cursor: 0 });
+                    } else {
+                        crate::reservations::release_now(world, initiator, target.unwrap());
+                        world
+                            .entity_mut(initiator)
+                            .remove::<(Target, Path, terri_core::Blocked)>();
+                        world
+                            .resource_mut::<SocialEpisodes>()
+                            .rendezvous
+                            .remove(&recipient);
+                        continue;
+                    }
+                }
+            }
+        }
+        let recipient_busy = world.get::<Target>(recipient).is_some()
+            || world.get::<terri_core::ChainState>(recipient).is_some()
+            || world
+                .get::<crate::reading::ReadingJourney>(recipient)
+                .is_some()
+            || world.get::<Eating>(recipient).is_some()
+            || world.get::<Socialising>(recipient).is_some()
+            || world
+                .query::<&Socialising>()
+                .iter(world)
+                .any(|talk| talk.partner == recipient);
+        if !recipient_busy
+            && world.get::<Path>(initiator).is_none()
+            && world.get::<Socialising>(initiator).is_none()
+        {
+            world
+                .entity_mut(initiator)
+                .remove::<terri_core::Blocked>()
+                .insert(Path {
+                    steps: vec![],
+                    cursor: 0,
+                });
+        }
+        // Finishing the old activity leaves the recipient available for its owner.
+        if world.get::<Target>(recipient).is_none() && world.get::<Path>(recipient).is_none() {
+            world
+                .entity_mut(recipient)
+                .remove::<terri_core::Wander>()
+                .remove::<terri_core::Restless>()
+                .insert(terri_core::Reserved);
+        }
+    }
+    let mut held_readers: Vec<_> = world
+        .resource::<SocialEpisodes>()
+        .communal
+        .keys()
+        .copied()
+        .collect();
+    held_readers.sort_by_key(|person| person.index_u32());
+    for person in held_readers {
+        crate::reading::finish_abandoned_company(world, person);
+    }
+    let live: BTreeSet<_> = world
+        .query::<(Entity, &Socialising)>()
+        .iter(world)
+        .map(|(e, _)| e)
+        .collect();
+    world
+        .resource_mut::<SocialEpisodes>()
+        .topics
+        .retain(|e, _| live.contains(e));
+    let active: BTreeSet<_> = world
+        .query::<Entity>()
+        .iter(world)
+        .filter(|e| {
+            world.get::<Eating>(*e).is_some()
+                || world.get::<terri_core::StepWork>(*e).is_some()
+                || world.get::<crate::reading::ReadingJourney>(*e).is_some()
+        })
+        .collect();
+    world
+        .resource_mut::<SocialEpisodes>()
+        .communal
+        .retain(|e, _| active.contains(e));
+}
+
+pub(crate) fn tag_code(tag: &str) -> u32 {
+    match tag {
+        "reading" => 8,
+        "exercise" => 9,
+        "aquarium" | "fish" => 10,
+        "television" | "tv" => 14,
+        "music" | "radio" => 18,
+        "socialising" => 4,
+        "lounging" => 15,
+        "correspondence" => 19,
+        "cooking" => 23,
+        "eating" | "food" => 3,
+        "sleeping" | "sleep" => 5,
+        "sitting" | "comfort" => 11,
+        "showering" | "shower" => 12,
+        "toilet" => 13,
+        "bathing" | "bath" => 20,
+        "washing" | "hygiene" => 16,
+        "cleaning" => 17,
+        _ => 7,
+    }
+}
+pub(crate) fn topic_weight(mine: f32, theirs: f32, inclination: f32) -> f32 {
+    mine.max(0.) * (1. + 4. * inclination.clamp(0., 1.) * theirs.max(0.))
+}
+pub(crate) fn begin_topics(world: &mut World) {
+    let mut talks: Vec<_> = world
+        .query::<(Entity, &Socialising)>()
+        .iter(world)
+        .map(|(e, s)| (e, s.partner))
+        .collect();
+    talks.sort_by_key(|(e, _)| e.index_u32());
+    for (initiator, listener) in talks {
+        if world
+            .resource::<SocialEpisodes>()
+            .topics
+            .contains_key(&initiator)
+        {
+            continue;
+        }
+        let pack = world.resource::<crate::Content>().0;
+        let prefs = |person| {
+            crate::compatibility::preferences(
+                pack,
+                world.get::<terri_core::Personality>(person),
+                world.get::<terri_core::Traits>(person),
+                world.get::<terri_core::Hobbies>(person),
+            )
+        };
+        let mine = prefs(initiator);
+        let theirs = prefs(listener);
+        let inclination = mine
+            .get("socialising")
+            .copied()
+            .unwrap_or(0.)
+            .max(0.)
+            .max(
+                world
+                    .get::<terri_core::Personality>(initiator)
+                    .map_or(0., |p| {
+                        ((p.satisfaction[NeedId::Social.index()] - 1.) / 2.).clamp(0., 1.)
+                    }),
+            )
+            .max(
+                crate::skills::mastery_for_tag(
+                    world.get::<terri_core::Skills>(initiator),
+                    pack,
+                    "socialising",
+                )
+                .unwrap_or(0.),
+            );
+        let candidates: Vec<_> = mine
+            .iter()
+            .filter(|(_, value)| **value > 0.)
+            .map(|(tag, &value)| {
+                (
+                    tag.clone(),
+                    value,
+                    theirs.get(tag).copied().unwrap_or(0.),
+                    topic_weight(value, theirs.get(tag).copied().unwrap_or(0.), inclination),
+                )
+            })
+            .collect();
+        let topic = if candidates.is_empty() {
+            Topic {
+                code: 4,
+                tag: "smalltalk".into(),
+                initiator_preference: 0.,
+                listener_preference: 0.,
+            }
+        } else {
+            let total: f32 = candidates.iter().map(|c| c.3).sum();
+            let draw = world.resource_mut::<SimRng>().next_f32() * total;
+            let mut cumulative = 0.;
+            let choice = candidates
+                .iter()
+                .find(|c| {
+                    cumulative += c.3;
+                    draw < cumulative
+                })
+                .unwrap_or(candidates.last().unwrap());
+            Topic {
+                code: tag_code(&choice.0),
+                tag: choice.0.clone(),
+                initiator_preference: choice.1,
+                listener_preference: choice.2,
+            }
+        };
+        world
+            .resource_mut::<SocialEpisodes>()
+            .topics
+            .insert(initiator, topic);
+    }
+}
+
+pub(crate) fn bubble(world: &World, index: u32) -> (u32, f32) {
+    let Some(index) = bevy_ecs::entity::EntityIndex::from_raw_u32(index) else {
+        return (0, 0.);
+    };
+    let entity = world.entities().resolve_from_index(index);
+    let episodes = world.resource::<SocialEpisodes>();
+    if world.get::<Socialising>(entity).is_some() {
+        return episodes
+            .topics
+            .get(&entity)
+            .map_or((0, 0.), |t| (t.code, t.initiator_preference));
+    }
+    episodes
+        .topics
+        .iter()
+        .find_map(|(owner, topic)| {
+            world
+                .get::<Socialising>(*owner)
+                .filter(|talk| talk.partner == entity)
+                .map(|_| (topic.code, topic.listener_preference))
+        })
+        .unwrap_or((0, 0.))
+}
+
+#[cfg(test)]
+mod tests;

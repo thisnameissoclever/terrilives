@@ -16,6 +16,14 @@ Run `python assets/sprites/gen/build.py` to regenerate the pages and metadata.
 Run the same command with `--check` to compare every page and both catalogues.
 Do not edit generated metadata or retain an obsolete texture for tests.
 
+New sprite records also need a pinned entry in `historicalExtensions` in
+`assets/models/architecture/architecture.json`. Architecture starts after the
+complete sprite catalogue, so an undeclared tail would change its base index
+without satisfying the historical-art contract. Keep the frozen prefix digest
+unchanged. Conversation icons use a catalogue of reviewed names, dimensions
+and decoded pixel hashes; their loader rejects any changed image before the
+architecture suffix is generated.
+
 The deterministic shelf allocator preserves record order and never rotates
 images. Every padded rectangle must fit its selected page. Oversized input
 fails explicitly; do not lower density to conceal a capacity failure.

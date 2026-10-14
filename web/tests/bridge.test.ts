@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
+import {createHash} from 'node:crypto';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { buildLightField } from '../src/render/lighting.js';
@@ -26,6 +27,32 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('loads the published V8 game save and continues through a current save', () => {
+    const bytes = readFileSync('tests/fixtures/released-v8-social.sav');
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(
+      'ef79c0c125faaddafa0fa7107648905164ce4740efd57045fc8b1b171213c8c1');
+    expect(Array.from(bytes.subarray(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 8, 0]);
+    const firstHandle = SimHandle.from_lot();
+    const restoredHandle = SimHandle.from_lot();
+    const first = new SimBridge(firstHandle, wasmMemory);
+    const restored = new SimBridge(restoredHandle, wasmMemory);
+    try {
+      expect(first.loadBytes(bytes)).toBe(true);
+      for (let tick = 0; tick < 60; tick++) first.tick();
+      const current = first.saveBytes();
+      expect(current[8]).toBe(9);
+      expect(restored.loadBytes(current)).toBe(true);
+      expect(restored.worldHash()).toBe(first.worldHash());
+      for (let tick = 0; tick < 60; tick++) {
+        first.tick();
+        restored.tick();
+        expect(restored.worldHash()).toBe(first.worldHash());
+      }
+    } finally {
+      firstHandle.free();
+      restoredHandle.free();
+    }
+  });
   it('exports reading stages and physical copy identity through distinct buffers', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(bridge.readingStages()).toHaveLength(bridge.count);
@@ -887,7 +914,7 @@ describe('SimBridge', () => {
     for (let tick = 0; tick < 173; tick++) original.tick();
     const before = original.worldHash();
     const bytes = original.saveBytes();
-    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 8, 0]);
+    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 9, 0]);
     const expectedEdges = original.wallEdges()!.slice();
     expect(expectedEdges).toHaveLength((34 + 28) * 4);
 
@@ -909,7 +936,7 @@ describe('SimBridge', () => {
   it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const legacyCells = blank.saveBytes();
-    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 8, 0]);
+    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 9, 0]);
     // The current V5 prefix contains SavedLayout, the empty facing list, the empty
     // retired-index list ([SL-save]) and the empty colourway list
     // ([RC-save]). Change only that tag to EdgeWallsV1 (2). This fixture has
@@ -940,14 +967,14 @@ describe('SimBridge', () => {
     expect(restored.saveBytes()).toEqual(legacyCells);
   });
 
-  it('rejects every V8 truncation, trailing bytes and future versions transactionally', () => {
+  it('rejects every V9 truncation, trailing bytes and future versions transactionally', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
-    expect(Array.from(valid.slice(8, 10))).toEqual([8, 0]);
+    expect(Array.from(valid.slice(8, 10))).toEqual([9, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
-    future[8] = 9;
+    future[8] = 10;
     const invalid = [trailing, future, ...Array.from({ length: valid.length }, (_, length) => valid.slice(0, length))];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
@@ -1720,6 +1747,13 @@ describe('SimBridge', () => {
         if (values(bridge.voiceFirsts()).every((clip) => clip !== 0xffff_ffff)) break;
       }
       expect(values(bridge.activities())).toEqual([4, 4]);
+      const topics = values(bridge.conversationTopics());
+      const preferences = rows().map(row => bridge.conversationPreferences()[row]);
+      expect(topics[0]).toBeGreaterThan(0);
+      expect(topics[1]).toBe(topics[0]);
+      expect(preferences[0]).toBeGreaterThanOrEqual(0);
+      expect(bridge.conversationTopics()).toHaveLength(bridge.count);
+      expect(bridge.conversationPreferences()).toHaveLength(bridge.count);
       expect(values(bridge.voiceFirsts()).every((clip) => clip !== 0xffff_ffff)).toBe(true);
       const owners = bridge.conversationOwners();
       const lows = bridge.conversationEndLows();
@@ -1735,6 +1769,8 @@ describe('SimBridge', () => {
       bridge.tick();
       expect(handle.load_bytes(saved)).toBe(true);
       expect(values(bridge.conversationOwners())).toEqual([0, 0]);
+      expect(values(bridge.conversationTopics())).toEqual(topics);
+      expect(rows().map(row => bridge.conversationPreferences()[row])).toEqual(preferences);
       expect(values(bridge.conversationEndLows())).toEqual(deadline);
       const held = [bridge.conversationOwners(), bridge.conversationEndLows(), bridge.conversationEndHighs()];
       wasmMemory.grow(1);
@@ -1745,6 +1781,9 @@ describe('SimBridge', () => {
       expect(bridge.conversationOwners().buffer).toBe(wasmMemory.buffer);
       expect(bridge.conversationEndLows().buffer).toBe(wasmMemory.buffer);
       expect(bridge.conversationEndHighs().buffer).toBe(wasmMemory.buffer);
+      expect(bridge.conversationTopics().buffer).toBe(wasmMemory.buffer);
+      expect(bridge.conversationPreferences().buffer).toBe(wasmMemory.buffer);
+      expect(values(bridge.conversationTopics())).toEqual(topics);
     } finally { handle.free(); }
   });
 
@@ -1765,7 +1804,7 @@ describe('SimBridge', () => {
       const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
       expect(b.spawnObject(2, 8, 'bed')).toBe(true);
       expect(b.spawnObject(11, 8, 'radio')).toBe(true);
-      b.spawnAgent(8, 8, 20);
+      b.spawnAgent(8, 8, 80);
       b.spawnAgent(8, 11, 80);
       return b;
     };

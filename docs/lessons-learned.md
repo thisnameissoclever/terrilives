@@ -1,5 +1,57 @@
 # Lessons Learned
 
+## [L-register-atlas-extensions] Register new sprites before rebuilding architecture
+
+**What happened.** Appending conversation sprites to the generator failed the
+complete historical-atlas length check after the source art had loaded.
+
+**Root cause.** The sprites were appended in order, but their reviewed extension
+was missing from the architecture catalogue that determines the suffix base.
+
+**Prevention.** Register and pin each new extension before a full build. Preserve
+the frozen prefix digest and validate new decoded pixels separately.
+
+**Verification.** Confirm the registered extension loads and an altered pixel
+fails its review digest. Run the full generator and reproducibility check;
+require both to pass.
+
+## [L-social-lifecycle-fixtures] Start social lifecycle tests through real commands
+
+**What happened.** A test constructed a running conversation directly and
+missed the incoming claim created by normal admission. A third Sim could pass
+the fixture while remaining unable to approach that listener in play. Separate
+review also found stale episode state across redirects and death.
+
+**Root cause.** The fixture omitted ownership established by earlier schedule
+phases, while cleanup checks stopped before the final lifecycle transition.
+
+**Prevention.** Start conversations through their public command path. Check
+approach, active ownership, replacement and cleanup as one episode. Save after
+the full death tick, including references held by surviving participants.
+Treat fetching, picking up, travelling and the first reading frame as one
+owned approach when validating a reader who is joining company. A missing
+intermediate phase can make a live hold impossible to restore.
+
+**Verification.** A real third-party approach must begin before the original
+conversation ends. Immediate redirects must select the new listener's topic
+reaction, and saves taken directly after death must load successfully.
+Round-trip each reading approach boundary before and after actual admission.
+
+## [L-extend-existing-game-art] Inspect the world before extending its visual language
+
+**What happened.** A compound conversation indicator used a rounded square and
+bright tints despite the game's existing circular linen activity bubbles.
+
+**Root cause.** The symbols were checked on an isolated sheet before the
+surrounding game art and established indicator geometry were inspected.
+
+**Prevention.** Inspect the running world and existing indicators first. Reuse
+their silhouette, palette and stroke weight when adding information. Increase
+size only as needed for legibility.
+
+**Verification.** Compare old and new indicators at normal scale, then inspect
+the new indicator above actual Sims at the supported camera scales.
+
 ## [L-conditional-needs-and-first-friendships] Separate company from furniture rewards
 
 **What happened.** Solo media and empty-table sitting refilled Social through
@@ -11538,3 +11590,18 @@ Load the production atlas during test collection and prepare mocked module depen
 **Prevention.** Track the menu-opening pointer and consume its release click at the shared document capture boundary. Preserve fresh gestures, other pointer IDs, and keyboard activation. Do not infer click targets solely from pointer capture or block every later click.
 
 **How to verify.** Keep the original hold coordinates even when an action appears beneath them. Record state immediately after release, before attempting another tap: the menu must remain open and no action may run. Then verify a fresh tap works. Also cover omitted compatibility clicks, legacy mouse-click events, and keyboard activation. For browser checks, click custom radio labels and test visible radial buttons rather than the intentionally zero-sized wrapper.
+5. Current-game continuation tests must use the current save envelope. A legacy writer cannot retain fields introduced after its format was frozen. Keep dedicated historical-format tests on their original APIs and construct only the state those formats represent; do not replace their corruption or migration assertions with current-format coverage.
+
+## Verify source restoration after interrupting mutation tests
+
+1. What happened: an interrupted in-place mutation run left a deliberately broken function in the working tree. A subsequent baseline correctly failed against that temporary mutation.
+2. Root cause: the runner had advanced beyond its baseline before interruption, and printing the source digest did not enforce restoration.
+3. Prevention: prefer mutation runs in isolated build copies. If an in-place run is necessary, retain exact original bytes outside the runner and require their restoration before another baseline. Cleanup blocks cannot recover from every forced termination. When examples are unrelated, apply `--cargo-arg=--lib` to both cargo-mutants build and test phases.
+4. Verification: compare restored bytes with the reviewed source, then run the unmodified baseline. An interrupted sweep and a failed baseline provide no completed mutation result.
+
+## Persist activity ownership separately from its presentation target
+
+1. What happened: a seated reader's new save could not load because the communal episode named the chair while the book journey named its originating shelf.
+2. Root cause: episode capture used the visible `Target` for an activity whose logical ownership lives in `ReadingJourney.origin`.
+3. Prevention: use the owning activity's canonical identity when recording continuation state. Preserve the separate seat and presentation records rather than treating their target as the activity origin.
+4. Verification: load an unchanged historical seated-reading fixture, advance into actual reading, save the current format, reload it and compare subsequent world hashes. Bypassing the canonical-origin selection must make that regression fail.

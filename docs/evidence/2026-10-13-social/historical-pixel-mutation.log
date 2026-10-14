@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\7515\terrilives\docs\evidence\2026-10-13-social\check-generated-art.py", line 34, in <module>
+    assert before.crop(left).tobytes() == after.crop(right).tobytes(), left['name']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: floor

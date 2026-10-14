@@ -1,0 +1,77 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bridge.test.ts tests/interaction-production.test.ts -t reacquires loaded reading columns|places a plain order first|compiled reading_chair
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/7515/terrilives/web
+
+ ❯ tests/bridge.test.ts (55 tests | 2 failed | 53 skipped) 190ms
+     × reacquires loaded reading columns after real release-wasm memory growth 132ms
+     × places a plain order first, with method bytes matching the hand-written wire bytes 32ms
+ ❯ tests/interaction-production.test.ts (10 tests | 1 failed | 9 skipped) 234ms
+   × compiled reading_chair selects its exact occupied presentation and restores the empty body 213ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > reacquires loaded reading columns after real release-wasm memory growth
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/bridge.test.ts:620:50
+    618|
+    619|     const loaded = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    620|     expect(loaded.loadBytes(source.saveBytes())).toBe(true);
+       |                                                  ^
+    621|     readerRow = rowOf(loaded, 1);
+    622|     expect(readerRow).toBeGreaterThanOrEqual(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > places a plain order first, with method bytes matching the hand-written wire bytes
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/bridge.test.ts:1835:41
+    1833|
+    1834|     expect(viaMethod.queuedOrdersOf(2)).toBe(2);
+    1835|     expect(viaMethod.queuedOrdersOf(3)).toBe(1);
+       |                                         ^
+    1836|     expect(viaMethod.positions()[4], 'the front-placed bed order wins'…
+    1837|     expect(control.positions()[4], 'an appended bed order waits').toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/interaction-production.test.ts > compiled reading_chair selects its exact occupied presentation and restores the empty body
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/interaction-production.test.ts:114:43
+    112|           const saved = source.saveBytes();
+    113|           for (let step=0; step<20; step++) source.tick();
+    114|           expect(source.loadBytes(saved)).toBe(true);
+       |                                           ^
+    115|           expect(source.visualActions()[1]).toBe(action);
+    116|           expect(source.interactionTargets()[1]).toBe(objectId);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 62 skipped (65)
+   Start at  15:15:13
+   Duration  5.51s (transform 3.52s, setup 45ms, import 4.74s, tests 424ms, environment 0ms)

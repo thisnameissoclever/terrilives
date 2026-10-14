@@ -716,13 +716,13 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     queue.push(SimCommand::SetSpeed(1));
     let bytes = source.save_bytes();
     let (decoded, tail) =
-        postcard::take_from_bytes::<terri_core::SaveSnapshotV6>(&bytes[SAVE_HEADER_BYTES..])
+        postcard::take_from_bytes::<terri_core::SaveSnapshotV9>(&bytes[SAVE_HEADER_BYTES..])
             .unwrap();
     assert!(tail.is_empty());
-    assert_eq!(&bytes[8..10], &8u16.to_le_bytes());
-    assert_eq!(decoded.legacy.object_facings, vec![(0, 0)]);
+    assert_eq!(&bytes[8..10], &9u16.to_le_bytes());
+    assert_eq!(decoded.legacy.legacy.object_facings, vec![(0, 0)]);
     assert_eq!(
-        decoded.legacy.world.queued_commands,
+        decoded.legacy.legacy.world.queued_commands,
         vec![
             SavedCommand::SetSpeed(2),
             SavedCommand::PlaceObject {
@@ -737,7 +737,7 @@ fn current_rotated_geometry_and_ordered_pending_commands_survive_the_public_enve
     let mut loaded = SimHandle::new(1, 1);
     assert!(loaded.load_bytes(&bytes));
     assert_eq!(loaded.object_facing(0.0), Some(0));
-    assert_eq!(loaded.sim.save_snapshot_v6(), decoded);
+    assert_eq!(loaded.sim.save_snapshot_v9(), decoded);
     assert_eq!(loaded.save_bytes(), bytes);
     for _ in 0..20 {
         loaded.tick();
@@ -1833,8 +1833,9 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         .iter()
         .position(|action| action.id == "grab_snack")
         .expect("the fridge offers a snack") as u32;
-    let good = handle.sim.save_snapshot_v6();
+    let good = handle.sim.save_snapshot_v9();
     let person = good
+        .legacy
         .legacy
         .world
         .entities
@@ -1843,7 +1844,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         .expect("the shipped household");
     let with_value = |value: f32| {
         let mut snapshot = good.clone();
-        snapshot.legacy.world.entities[person].habituation =
+        snapshot.legacy.legacy.world.entities[person].habituation =
             Some(vec![terri_core::SavedHabituation {
                 object: "fridge".into(),
                 interaction: row,
@@ -1852,9 +1853,9 @@ fn overdone_habituation_loads_through_the_public_boundary() {
         snapshot
     };
 
-    let current_bytes = |snapshot: &terri_core::SaveSnapshotV6| {
+    let current_bytes = |snapshot: &terri_core::SaveSnapshotV9| {
         let mut bytes = SAVE_MAGIC.to_vec();
-        bytes.extend_from_slice(&8u16.to_le_bytes());
+        bytes.extend_from_slice(&9u16.to_le_bytes());
         bytes.extend(postcard::to_allocvec(snapshot).unwrap());
         bytes
     };
@@ -1871,7 +1872,7 @@ fn overdone_habituation_loads_through_the_public_boundary() {
 
     let overdone = with_value(2.0);
     assert!(handle.load_bytes(&current_bytes(&overdone)));
-    assert_eq!(handle.sim.save_snapshot_v6(), overdone);
+    assert_eq!(handle.sim.save_snapshot_v9(), overdone);
     assert_eq!(
         handle.save_bytes(),
         current_bytes(&overdone),

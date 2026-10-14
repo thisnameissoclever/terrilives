@@ -1,0 +1,13 @@
+..D:\VIBES\.worktrees\7515\terrilives\assets\models\bedroom\double_bed_linear.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for parts in zip(*(image.getdata() for image in layers)):
+D:\VIBES\.worktrees\7515\terrilives\assets\models\seating\seat_export_contract.py:157: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for red, green, blue, coverage in zip(*(band.getdata() for band in filtered)):
+D:\VIBES\.worktrees\7515\terrilives\assets\models\bedroom\double_bed_layers.py:29: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for expected, result, *parts in zip(reference.getdata(), actual.getdata(),
+D:\VIBES\.worktrees\7515\terrilives\assets\models\bedroom\double_bed_layers.py:30: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  *(owner.getdata() for owner in owners)):
+........
+----------------------------------------------------------------------
+Ran 10 tests in 68.329s
+
+OK

@@ -1,0 +1,25 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\7515\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\7515\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized] target(s) in 7.99s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-20a30b54e060e57b.exe)
+
+running 1 test
+test social_boundary_regressions::historical_seated_reader_resaves_current_state ... FAILED
+
+failures:
+
+---- social_boundary_regressions::historical_seated_reader_resaves_current_state stdout ----
+
+thread 'social_boundary_regressions::historical_seated_reader_resaves_current_state' (28212) panicked at crates\terri-wasm\src\lib.rs:10292:9:
+assertion `left == right` failed
+  left: Err(InvalidEntityReference)
+ right: Ok(())
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    social_boundary_regressions::historical_seated_reader_resaves_current_state
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 265 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p terri-wasm --lib`

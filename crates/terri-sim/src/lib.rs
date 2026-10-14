@@ -47,6 +47,7 @@ mod seating;
 mod shyness;
 pub mod skills;
 mod social_company;
+pub mod social_episode;
 pub mod systems;
 mod targeted_cleanup;
 #[cfg(test)]
@@ -1401,6 +1402,7 @@ impl Sim {
         world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
         world.insert_resource(social_company::SocialCompany::default());
+        world.insert_resource(social_episode::SocialEpisodes::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -1589,6 +1591,7 @@ impl Sim {
                 // the day clock it reads must be THIS tick's.
                 (
                     reading::reconcile,
+                    social_episode::maintain,
                     systems::career::start_shift,
                     media::maintain,
                     social_company::refresh,
@@ -1639,6 +1642,8 @@ impl Sim {
                     privacy::route,
                     systems::interpersonal::refresh_routes,
                     systems::movement::follow_path,
+                    social_episode::begin_topics,
+                    social_company::extend_episodes,
                     systems::interpersonal::apply,
                     relationship_dynamics::tick,
                     // Directly after ordinary company, in the same pass:
@@ -1670,7 +1675,7 @@ impl Sim {
                 // the reservation. After `follow_path` so a conversation
                 // begins delivering on the tick after arrival, exactly
                 // as a meal does.
-                systems::social::tick_social,
+                (systems::social::tick_social, social_episode::maintain).chain(),
                 // Decay after completion rewards and before the later mood
                 // projection. Mood-derived satisfaction reads both repetition
                 // and relationship state, so those values must already be current.
@@ -1989,6 +1994,7 @@ impl Sim {
         seating::maintain(&mut self.world);
         privacy::maintain(&mut self.world);
         media::maintain(&mut self.world);
+        social_episode::maintain(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
     }
@@ -2119,6 +2125,8 @@ impl Sim {
         self.render.colourways.clear();
         self.render.ids.clear();
         self.render.activities.clear();
+        self.render.conversation_topics.clear();
+        self.render.conversation_preferences.clear();
         self.render.visual_actions.clear();
         self.render.chore_progress.clear();
         self.render.interaction_targets.clear();
@@ -2714,6 +2722,9 @@ impl Sim {
             // the row number will not do.
             self.render.ids.push(row.index);
             self.render.activities.push(row.activity);
+            let (topic, preference) = social_episode::bubble(&self.world, row.index);
+            self.render.conversation_topics.push(topic);
+            self.render.conversation_preferences.push(preference);
             self.render.visual_actions.push(row.visual_action);
             let bin_progress = self
                 .world
@@ -4453,6 +4464,7 @@ impl Sim {
             state.hash_into(&mut hasher);
         }
         save::v6::hash(&self.world, &mut hasher);
+        save::social::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }

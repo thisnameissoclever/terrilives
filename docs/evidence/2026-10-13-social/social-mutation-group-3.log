@@ -1,0 +1,24 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\7515\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 18s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings ... FAILED
+
+failures:
+
+---- reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings stdout ----
+
+thread 'reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings' (136640) panicked at crates\terri-sim\src\reading\tests.rs:65:17:
+assertion `left == right` failed: company does not repeat book work or rewards
+  left: (31, 31.0, 2.0159335)
+ right: (30, 30.0, 2.002583)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    reading::tests::communal_reading_keeps_completed_book_company_without_repeating_earnings
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1319 filtered out; finished in 0.44s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -825,6 +825,14 @@ export class SimBridge {
     );
   }
 
+  conversationTopics(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.conversation_topics_ptr(), this.count);
+  }
+
+  conversationPreferences(): Float32Array {
+    return new Float32Array(this.memory.buffer, this.handle.conversation_preferences_ptr(), this.count);
+  }
+
   /**
    * The presentation body-action category for each row: 0 none; 1 talk;
    * 2 eat; 3 seated read; 4 standing read; 5 walk; 6 exercise; 7 watch fish;
