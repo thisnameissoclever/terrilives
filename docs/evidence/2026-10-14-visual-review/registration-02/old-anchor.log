@@ -1,0 +1,27 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+CHAIR_REGISTRATION_FAULT_APPLIED
+ ❯ tests/preview-fixture.test.ts (4 tests | 1 failed) 201ms
+   × keeps each quarter turn on the source chair origin at both preview scales 40ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  11:21:16
+   Duration  14.13s (transform 7.26s, setup 0ms, import 13.82s, tests 201ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/preview-fixture.test.ts > keeps each quarter turn on the source chair origin at both preview scales
+AssertionError: expected 20.999999516069217 to be less than 0.0001
+ ❯ tests/preview-fixture.test.ts:74:97
+     72|       const y=origin[1]-point.reduce((sum,value,i)=>sum+value*camera.c…
+     73|       expect(Math.abs(x*scale-data[6]-32*(point[0]+point[1])*scale)).t…
+     74|       expect(Math.abs(y*scale-data[7]-(21*(point[0]-point[1])-Math.sqr…
+       |                                                                                                 ^
+     75|     }
+     76|     expect(data[8]).toBe(index%4);expect(data[9]).toBe(.5);expect(data…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

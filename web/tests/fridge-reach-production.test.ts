@@ -2,7 +2,7 @@ import { beforeAll, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
-import { buildInstances, simShirtVariant, type RenderSource } from '../src/frame.js';
+import { buildInstanceBatch, buildInstances, simShirtVariant, type RenderSource } from '../src/frame.js';
 import { FLOATS_PER_INSTANCE, SURFACE_DEPTH_PROJECTION, KIND_AGENT, OFFSET_DEPTH, OFFSET_WALL_MASK,
   OFFSET_FOOTPRINT_SPAN } from '../src/render/instances.js';
 import { layeredDepth, LAYER_SIM, LAYER_FOREGROUND } from '../src/render/iso.js';
@@ -182,7 +182,8 @@ function tileScreen(x: number, y: number): [number, number] {
 function checkMarkerAndBubble(source: SimBridge, person: number, scene: number, sample: number): void {
   const empty = spriteIndex('offlineFridgeSW');
   const feet = BATHROOM_SPRITES[empty][FETCH_VISUAL_ACTION].feet![sample];
-  const data = buildInstances(source, 1, 0, 0, 64, person, 1, false, source.clockTick());
+  const batch = buildInstanceBatch(source, 1, 0, 0, 64, person, 1, false, source.clockTick());
+  const data = batch.instances;
   const ring = spriteIndex('selectionRing'), bubble = spriteIndex('activityIngredients');
   const rows = Array.from({ length: data.length / FLOATS_PER_INSTANCE }, (_, i) => i);
   const ringRow = rows.find(i => data[i * FLOATS_PER_INSTANCE + 3] === ring)!;
@@ -195,7 +196,10 @@ function checkMarkerAndBubble(source: SimBridge, person: number, scene: number, 
   expect(data[ringRow * FLOATS_PER_INSTANCE + 1]).toBeCloseTo(fridgeY + fy, 4);
   expect(data[bubbleRow * FLOATS_PER_INSTANCE]).toBeCloseTo(fridgeX + fx, 4);
   expect(data[bubbleRow * FLOATS_PER_INSTANCE + OFFSET_DEPTH])
-    .toBeLessThan(layeredDepth(feet[0], feet[1], 64, LAYER_FOREGROUND) + 1e-9);
+    .toBe(Math.fround(layeredDepth(feet[0], feet[1], 64, LAYER_FOREGROUND)));
+  expect(bubbleRow).toBeGreaterThanOrEqual(batch.annotations.start);
+  expect(bubbleRow).toBeLessThan(batch.annotations.start+batch.annotations.count);
+  expect(batch.owners[bubbleRow]).toBe(Array.from(source.ids()).indexOf(person)+1);
   // In scene pixels (density two), the feet stand on the body's lowest
   // covered rows near the ring's column, and the bubble's column crosses the body.
   const [anchorX, anchorY] = SPRITE_ANCHORS[scene];

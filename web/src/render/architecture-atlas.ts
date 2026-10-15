@@ -3,7 +3,7 @@ import { unpackedBytes } from './gzip-file.js';
 import { SPRITES, type AtlasSprite } from './atlas.js';
 import { ARCHITECTURE } from './architecture-data.js';
 import { BYTES_PER_SPRITE } from './sprite-table-layout.js';
-import { prepareArchitectureFinishes, type ActiveFinishes, type FinishCatalogue,
+import { prepareArchitectureFinishes, SPRITE_BASE_TEXTURE_COUNT, MAX_ARCHITECTURE_PATTERN_COUNT, type ActiveFinishes, type FinishCatalogue,
   type PatternResource } from './architecture-finishes.js';
 
 /** Separate opt-in atlas; historical sprite records and pixels stay fixed. */
@@ -73,7 +73,8 @@ export function validateArchitectureDevice(atlas: ArchitectureAtlas, limits: Pic
     || (atlas.carrier ? 2 : 1) > limits.maxTextureArrayLayers) {
     throw new Error('Architecture resources exceed device dimensions or layer limits');
   }
-  if ((atlas.patterns?.length ?? 0) + 4 > limits.maxSampledTexturesPerShaderStage) {
+  if ((atlas.patterns?.length ?? 0) > Math.min(MAX_ARCHITECTURE_PATTERN_COUNT,
+    limits.maxSampledTexturesPerShaderStage - SPRITE_BASE_TEXTURE_COUNT)) {
     throw new Error('Architecture resources exceed device sampled texture limits');
   }
   if (limits.maxStorageBuffersPerShaderStage < 4) {

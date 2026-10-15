@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "wasmSha256": "efbd90129fe4a1005b2280e469553bd3a866f11e305514d9529e59b4561da1a0",
+  "queuedBytes": 5270,
+  "completedBytes": 5244,
+  "queuedSha256": "e94ea6d0d9fe955a8f29f76a34edd7c06175bf08dec143c675d740aa36062fe9",
+  "completedSha256": "4f8f0f5c48cf4e20f5e880980d68a2dd76e6e77ccdad4a622514b08d47907878"
+}

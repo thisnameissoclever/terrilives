@@ -1,0 +1,362 @@
+{
+  "loadedBefore": {
+    "version": 1,
+    "name": "Tim",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "masculine",
+      "body": {
+        "height": 50,
+        "build": 50,
+        "shoulders": 50,
+        "hips": 50,
+        "torso": 50
+      },
+      "face": {
+        "shape": "oval",
+        "cheeks": 50,
+        "jaw": 50,
+        "chin": 50,
+        "eyes": "almond",
+        "eye_size": 50,
+        "brows": "soft",
+        "brow_thickness": 50,
+        "nose": "straight",
+        "nose_width": 50,
+        "mouth": "neutral",
+        "mouth_fullness": 50,
+        "ears": 50
+      },
+      "colors": {
+        "skin": [
+          190,
+          143,
+          107
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          101,
+          69,
+          46
+        ],
+        "eyes": [
+          102,
+          91,
+          69
+        ],
+        "shirt": [
+          62,
+          117,
+          164
+        ],
+        "trousers": [
+          57,
+          70,
+          80
+        ],
+        "shoes": [
+          76,
+          64,
+          55
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "curl",
+      "bald": false,
+      "facial_hair": "none",
+      "freckles": false,
+      "freckle_density": 50,
+      "scar": "none",
+      "top": "overshirt",
+      "sleeves": "rolled",
+      "bottoms": "trousers",
+      "footwear": "loafers",
+      "glasses": false,
+      "glasses_style": "round",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 89,
+      "cleanliness": 1063675494,
+      "self_preservation": 62,
+      "chronotype_offset_ticks": -90,
+      "drain": [
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1067869798,
+        1060320051
+      ],
+      "recovery": [
+        1065353216,
+        1066611507,
+        1065353216,
+        1065353216,
+        1065353216,
+        1062836634,
+        1065353216
+      ],
+      "dispositions": [
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1057803469
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1069128090
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1071225242
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1067702026
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "low_spirits",
+        "state": 1058642330
+      },
+      {
+        "id": "bookworm",
+        "state": 0
+      },
+      {
+        "id": "out_of_shape",
+        "state": 1054280253
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 3191290512
+      },
+      {
+        "id": "aquarium",
+        "value": 3172339904
+      },
+      {
+        "id": "television",
+        "value": 3210838040
+      },
+      {
+        "id": "radio",
+        "value": 3209908610
+      }
+    ],
+    "hobbies": [
+      "correspondence",
+      "reading"
+    ],
+    "skills": [
+      {
+        "id": "exercise",
+        "practice": 1054280253
+      }
+    ],
+    "ties": [
+      [
+        1,
+        null
+      ],
+      [
+        2,
+        null
+      ]
+    ]
+  },
+  "loadedAfter": {
+    "version": 1,
+    "name": "Existing Person Review",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "masculine",
+      "body": {
+        "height": 50,
+        "build": 50,
+        "shoulders": 50,
+        "hips": 50,
+        "torso": 50
+      },
+      "face": {
+        "shape": "oval",
+        "cheeks": 50,
+        "jaw": 50,
+        "chin": 50,
+        "eyes": "almond",
+        "eye_size": 50,
+        "brows": "soft",
+        "brow_thickness": 50,
+        "nose": "straight",
+        "nose_width": 50,
+        "mouth": "neutral",
+        "mouth_fullness": 50,
+        "ears": 50
+      },
+      "colors": {
+        "skin": [
+          190,
+          143,
+          107
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          101,
+          69,
+          46
+        ],
+        "eyes": [
+          102,
+          91,
+          69
+        ],
+        "shirt": [
+          62,
+          117,
+          164
+        ],
+        "trousers": [
+          57,
+          70,
+          80
+        ],
+        "shoes": [
+          76,
+          64,
+          55
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "curl",
+      "bald": false,
+      "facial_hair": "none",
+      "freckles": false,
+      "freckle_density": 50,
+      "scar": "none",
+      "top": "overshirt",
+      "sleeves": "rolled",
+      "bottoms": "trousers",
+      "footwear": "loafers",
+      "glasses": false,
+      "glasses_style": "round",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 89,
+      "cleanliness": 1063675494,
+      "self_preservation": 62,
+      "chronotype_offset_ticks": -90,
+      "drain": [
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1067869798,
+        1060320051
+      ],
+      "recovery": [
+        1065353216,
+        1066611507,
+        1065353216,
+        1065353216,
+        1065353216,
+        1062836634,
+        1065353216
+      ],
+      "dispositions": [
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1057803469
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1069128090
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1071225242
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1067702026
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "low_spirits",
+        "state": 1058642330
+      },
+      {
+        "id": "bookworm",
+        "state": 0
+      },
+      {
+        "id": "out_of_shape",
+        "state": 1054280253
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 3191290512
+      },
+      {
+        "id": "aquarium",
+        "value": 3172339904
+      },
+      {
+        "id": "television",
+        "value": 3210838040
+      },
+      {
+        "id": "radio",
+        "value": 3209908610
+      }
+    ],
+    "hobbies": [
+      "correspondence",
+      "reading"
+    ],
+    "skills": [
+      {
+        "id": "exercise",
+        "practice": 1054280253
+      }
+    ],
+    "ties": [
+      [
+        1,
+        null
+      ],
+      [
+        2,
+        null
+      ]
+    ]
+  }
+}

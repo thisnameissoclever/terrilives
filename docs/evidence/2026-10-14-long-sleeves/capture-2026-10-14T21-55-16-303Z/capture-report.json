@@ -1,0 +1,5201 @@
+{
+  "url": "http://127.0.0.1:5187/proofs/character-creator.html",
+  "capturedAt": "2026-10-14T21:55:16.304Z",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "source": {
+    "before": {
+      "manifestSha256": "5eb757357c87e121f32cb4e127f9116541395ac693fe148b692d98eb17b64fcb",
+      "sourceSha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+    },
+    "current": {
+      "manifestSha256": "c28286c84370a5b4c1c2923ca22ad9290e1c27a40431fff188c41981435bb126",
+      "sourceSha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+    }
+  },
+  "producerHashes": {
+    "scripts/character-creator-repair/capture-long-sleeves.cjs": "aefdd4b6c9fd4ac136d2635a5134e1866877e2db0f5a2331242d5b137c48742a",
+    "web/src/render/character/prepared-body.ts": "e9c9c8fd4527664e8dcce42120c8706c0ed34bf2ab6748c3320af61503b7da3d",
+    "web/src/render/character/prepared-character.ts": "440f6fabfc643ef1e3be0e2f537d6c3e48ae3f02599ea18d0b38321d0bc95512",
+    "web/src/render/character/renderer.ts": "5a98dbb532b8452fe9f56e52f72de5fa9088d6cbcffcebeb219b6a770ce0443d",
+    "web/src/render/character/authored-surfaces.ts": "27e5c8522d9f09fd0c96cece9a2758818b0983af880c547a423b933a97b70c6d",
+    "web/src/ui/character-creator/preview.ts": "c92cf92ab71aef42ab929fd28ecd9aae288a4547b9e46f739135bcd47e3135dc",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "rows": [
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-idle-default-1-large",
+      "file": "current-masculine-tshirt-long-clothed-idle-default-1-large.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "4e07810b85f51f63489db4b2cd2b53f604c47197cb1a201ce07124fd696235cc"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-idle-default-1-normal",
+      "file": "current-masculine-tshirt-long-clothed-idle-default-1-normal.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "3d7515abb4b94c78615ba881f2f29c1c8e9252c6714319e22d95b223edc9e666"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-idle-default-3-large",
+      "file": "current-masculine-tshirt-long-clothed-idle-default-3-large.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "7faade45a5abe326a1a5c20a8d4649d8cb99e6b2f52733de5386e1457dcd4970"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-idle-default-3-normal",
+      "file": "current-masculine-tshirt-long-clothed-idle-default-3-normal.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "7d53f50dfc12611cb5959a088238d4d27d43f505d67521ccfc071ba28666edb5"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-read-default-1-large",
+      "file": "current-masculine-tshirt-long-clothed-read-default-1-large.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "60e1682ad2090fd294a009cc81d510655e95fb8c4214466919442a9a2b3cd482"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-read-default-1-normal",
+      "file": "current-masculine-tshirt-long-clothed-read-default-1-normal.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "9b4e6a13d92db3f7cb09decec9f61bfea8c855b4fce4fc8f7f3cb2a3ebb46ebf"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-read-default-3-large",
+      "file": "current-masculine-tshirt-long-clothed-read-default-3-large.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "8ac5ac4d9f2472dc6331003dae8c2810e6b6630fbea6abb23dfa7680e919a5a3"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-tshirt-long-clothed-read-default-3-normal",
+      "file": "current-masculine-tshirt-long-clothed-read-default-3-normal.png",
+      "presentation": "masculine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "899a0b3d37b907ce91d428e5c373779611eb6f2bae53dd5305a7616ebe0b0eb2"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-idle-default-1-large",
+      "file": "current-masculine-jacket-long-clothed-idle-default-1-large.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "c29cb20da3d62eb0b1ec1564290777e859e24ba797a20980736eaf6d1d552d35"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-idle-default-1-normal",
+      "file": "current-masculine-jacket-long-clothed-idle-default-1-normal.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "fe0526fba46ff939c6ec12192b139716e51347869c2ea3badd9988fed8f88974"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-idle-default-3-large",
+      "file": "current-masculine-jacket-long-clothed-idle-default-3-large.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "7faade45a5abe326a1a5c20a8d4649d8cb99e6b2f52733de5386e1457dcd4970"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-idle-default-3-normal",
+      "file": "current-masculine-jacket-long-clothed-idle-default-3-normal.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "7d53f50dfc12611cb5959a088238d4d27d43f505d67521ccfc071ba28666edb5"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-read-default-1-large",
+      "file": "current-masculine-jacket-long-clothed-read-default-1-large.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "9570e56ca0ef4d1d923dba8a1f310fcf61748807f265aab6782ca86f8d4d2a27"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-read-default-1-normal",
+      "file": "current-masculine-jacket-long-clothed-read-default-1-normal.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "c70b783f3616ec6211830845956f3be2288714e4c2b23560942a5f76addf32cd"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-read-default-3-large",
+      "file": "current-masculine-jacket-long-clothed-read-default-3-large.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "b1799eade7a9d70ae3128fe8269454cd25acb96963f1c8d51210320bf9bb8175"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-jacket-long-clothed-read-default-3-normal",
+      "file": "current-masculine-jacket-long-clothed-read-default-3-normal.png",
+      "presentation": "masculine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "b6eac5b25a0ca1f488860464437289df0dc0345de3c1c76f4fc5edada30486d5"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-idle-default-1-large",
+      "file": "current-feminine-tshirt-long-clothed-idle-default-1-large.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "b805bc462a11a3d4129ad43ebcdc1b621e368c369bc11b054e20efd0483af546"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-idle-default-1-normal",
+      "file": "current-feminine-tshirt-long-clothed-idle-default-1-normal.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "f6b6555fa7c82933c0c41298299d3fd87d81c407210a9e283d6f863ab98e8c56"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-idle-default-3-large",
+      "file": "current-feminine-tshirt-long-clothed-idle-default-3-large.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "e9294efca23d67f60eafff3c8d2063a4f943797e3e4c5deffc23982364962e19"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-idle-default-3-normal",
+      "file": "current-feminine-tshirt-long-clothed-idle-default-3-normal.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "99b3f6549c2af0882d6d03736ea20caa05ead93bf083a257c246d2eefb161a22"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-read-default-1-large",
+      "file": "current-feminine-tshirt-long-clothed-read-default-1-large.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "3c5c454dcf18cbb2171cc5211ab63ed82ce003f29bef7cfa1bbd97356fb94402"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-read-default-1-normal",
+      "file": "current-feminine-tshirt-long-clothed-read-default-1-normal.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "7a2b3196a0c1258d02c2e05b59da5ad0d3ec4dcafd81233ced93ddcfd588164a"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-read-default-3-large",
+      "file": "current-feminine-tshirt-long-clothed-read-default-3-large.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "2137603c65633338dabf8c6268d5018fa2a036fc3f51888d7f681a1480ff30cf"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-tshirt-long-clothed-read-default-3-normal",
+      "file": "current-feminine-tshirt-long-clothed-read-default-3-normal.png",
+      "presentation": "feminine",
+      "top": "tshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "tshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "c4c50e60a3388f2f93eeba465595c8ee8402fe8cc4c021e04d4e6253de93cf95"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-idle-default-1-large",
+      "file": "current-feminine-jacket-long-clothed-idle-default-1-large.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "e7deea9b488074046c155bda38c4d3370b5db567a222cfac93c620f6f0f1f75e"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-idle-default-1-normal",
+      "file": "current-feminine-jacket-long-clothed-idle-default-1-normal.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "d3fabc9ea3b44173499af0d5508399b51131350704250b02dcd4d2fff113f0e1"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-idle-default-3-large",
+      "file": "current-feminine-jacket-long-clothed-idle-default-3-large.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "e9294efca23d67f60eafff3c8d2063a4f943797e3e4c5deffc23982364962e19"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-idle-default-3-normal",
+      "file": "current-feminine-jacket-long-clothed-idle-default-3-normal.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "99b3f6549c2af0882d6d03736ea20caa05ead93bf083a257c246d2eefb161a22"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-read-default-1-large",
+      "file": "current-feminine-jacket-long-clothed-read-default-1-large.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "46b27e54dce7fd12b620e9c454eb7478d8eb39e93d6d8d52f075818ba22ac50e"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-read-default-1-normal",
+      "file": "current-feminine-jacket-long-clothed-read-default-1-normal.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "958b9200a24a977b676fba61c00a52577fb1d409eaba8fe7a9dbeda69ea14e7f"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-read-default-3-large",
+      "file": "current-feminine-jacket-long-clothed-read-default-3-large.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "2bf1f41b6c6ed679703a1ab4824f42953e408975d22efc422b9c644a5de2c8ff"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-jacket-long-clothed-read-default-3-normal",
+      "file": "current-feminine-jacket-long-clothed-read-default-3-normal.png",
+      "presentation": "feminine",
+      "top": "jacket",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "default",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "jacket",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "d832720ab6fcd472c7b0c265e9cfb89db9b9c44e2a4b1930a187eea9208307d8"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-idle-broad-short-1-large",
+      "file": "current-masculine-overshirt-long-clothed-idle-broad-short-1-large.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "c7d0254185f2b7beee9210710bc32a98d958fc09f38ce6d83d6de4f611816c7b"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-idle-broad-short-1-normal",
+      "file": "current-masculine-overshirt-long-clothed-idle-broad-short-1-normal.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "69cca6bfcd1979875e985d16e18cd383f5e03d7b7ff5df98b0aeb47eb8061e25"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-idle-broad-short-3-large",
+      "file": "current-masculine-overshirt-long-clothed-idle-broad-short-3-large.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "d5c4f8c06ce62acc073d924542c4e09aecc46ae61d12adbc8864ed1cfcc30abd"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-idle-broad-short-3-normal",
+      "file": "current-masculine-overshirt-long-clothed-idle-broad-short-3-normal.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "0c0191602a4705747b2a16d432568b9bdd966e5c2ae461243f47b246cd24aa24"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-read-broad-short-1-large",
+      "file": "current-masculine-overshirt-long-clothed-read-broad-short-1-large.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "188b0dcc1d7e8505b56d0be0f5763b1efcd7036945a1360b6d0f8cdffc3ae463"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-read-broad-short-1-normal",
+      "file": "current-masculine-overshirt-long-clothed-read-broad-short-1-normal.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "63a451566d7034b59ea73f8ebbdce3bbf4b1ff0c4155a9a064293fa82d8d19ad"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-read-broad-short-3-large",
+      "file": "current-masculine-overshirt-long-clothed-read-broad-short-3-large.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "b68d030c969ca700c2b32501d84f6cc2e580cdbc0682613ca2fd06fea89c5f6d"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-read-broad-short-3-normal",
+      "file": "current-masculine-overshirt-long-clothed-read-broad-short-3-normal.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "b6a368278916b465974db288a0f2cfdab74cbb926082910f9d0eb6ad23de49a8"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-mop-broad-short-1-large",
+      "file": "current-masculine-overshirt-long-clothed-mop-broad-short-1-large.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 1,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "66d8b810966f73f65bec477f597faf744f43b4efcc7319cd3ebeff9ee08b8adb"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-mop-broad-short-1-normal",
+      "file": "current-masculine-overshirt-long-clothed-mop-broad-short-1-normal.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 1,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "f9ff792e81f352de95c5d659cc57e7971c0e4f6c41c6e531f2adb7dad4803ea5"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-mop-broad-short-3-large",
+      "file": "current-masculine-overshirt-long-clothed-mop-broad-short-3-large.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 3,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "0db4f5719e40146a3d48430cabdd607260fdd11c1a9d03517fba003c65c711c7"
+    },
+    {
+      "condition": "current",
+      "key": "masculine-overshirt-long-clothed-mop-broad-short-3-normal",
+      "file": "current-masculine-overshirt-long-clothed-mop-broad-short-3-normal.png",
+      "presentation": "masculine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 3,
+      "body": "broad-short",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "1af6608393c46d7e2f8e7fe7db56ab1c4c35c90123840a479db8f7e17360e9c4"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-idle-narrow-tall-1-large",
+      "file": "current-feminine-overshirt-long-clothed-idle-narrow-tall-1-large.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "2b72b05aa9129ddf618a40ee85c94a70c018afe9d8f702c46fedbf0b82eb6ec6"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-idle-narrow-tall-1-normal",
+      "file": "current-feminine-overshirt-long-clothed-idle-narrow-tall-1-normal.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 1,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "07f7c17390c9b1c054f40bab802426704cbfccdc5c0faf76fb84c1289b81f976"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-idle-narrow-tall-3-large",
+      "file": "current-feminine-overshirt-long-clothed-idle-narrow-tall-3-large.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "2ba3ba5bff98c473412b3d5253d23ed5a61ef1d039355e5e0b6d2ff7e236e3fc"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-idle-narrow-tall-3-normal",
+      "file": "current-feminine-overshirt-long-clothed-idle-narrow-tall-3-normal.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "idle",
+      "frame": 0,
+      "facing": 3,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "2366ac8b30cb90898fd1048f58edc40d83506b0373bdfc6d72d75f5a7102ad4a"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-read-narrow-tall-1-large",
+      "file": "current-feminine-overshirt-long-clothed-read-narrow-tall-1-large.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "d8218d8e0b811e12f6da6e2f1246e57013921a358d9d25a04b5129c19dd1e94a"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-read-narrow-tall-1-normal",
+      "file": "current-feminine-overshirt-long-clothed-read-narrow-tall-1-normal.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 1,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "18b087d9e9148ae672a248801e609edca6d2b5e0896e52fef370cedcf0daebe5"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-read-narrow-tall-3-large",
+      "file": "current-feminine-overshirt-long-clothed-read-narrow-tall-3-large.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "bde58d4844af1ab7a8379f444efe15a48bd1fc59bef43e35b98eade5f628c70a"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-read-narrow-tall-3-normal",
+      "file": "current-feminine-overshirt-long-clothed-read-narrow-tall-3-normal.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "read",
+      "frame": 1.5,
+      "facing": 3,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "252c142de7a9f5efb2c1a22b49ecb093c2c6db1f87800a8d4dd4fd120cdce7f0"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-mop-narrow-tall-1-large",
+      "file": "current-feminine-overshirt-long-clothed-mop-narrow-tall-1-large.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 1,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "5650c8317ade3a6451262d1ad81171986b7d9cdda28e7bc0597c6bb2bab0f92b"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-mop-narrow-tall-1-normal",
+      "file": "current-feminine-overshirt-long-clothed-mop-narrow-tall-1-normal.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 1,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "349594f9e56a0f12c9b5a202093bb41cd9a61e7bf2ef2566088997fb337e51a9"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-mop-narrow-tall-3-large",
+      "file": "current-feminine-overshirt-long-clothed-mop-narrow-tall-3-large.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 3,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "large",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "ed4a1ca59f8ce987fb7814a932fecc73a8d1bc148c9f254f95135ea3435dc98a"
+    },
+    {
+      "condition": "current",
+      "key": "feminine-overshirt-long-clothed-mop-narrow-tall-3-normal",
+      "file": "current-feminine-overshirt-long-clothed-mop-narrow-tall-3-normal.png",
+      "presentation": "feminine",
+      "top": "overshirt",
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 3,
+      "body": "narrow-tall",
+      "sleeves": "long",
+      "wear": "clothed",
+      "size": "normal",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "sha256": "c13755ae4a6cfd79b979419a0c0d92f0840a033fa9bc4c12527b0bf27f30d5a6"
+    }
+  ],
+  "errors": [],
+  "restored": [],
+  "preserved": [],
+  "outlinePolicyProbes": [
+    {
+      "condition": "current",
+      "parts": {
+        "Creator long sleeve L": true,
+        "Creator long sleeve R": true,
+        "Relaxed shirt sleeve": true,
+        "Relaxed shirt sleeve.001": true
+      }
+    }
+  ],
+  "scope": "Only previously missing facings for top variants and extreme bodies; prior control receipts remain separate.",
+  "originalScreenshotSettings": "The supplied screenshot has no appearance record or animation phase. These captures use declared default presentations, long sleeves and a purple shirt.",
+  "blindMapping": {
+    "before": "sample-b",
+    "current": "sample-a"
+  }
+}

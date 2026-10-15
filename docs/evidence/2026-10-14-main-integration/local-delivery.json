@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "source": "D:\\VIBES\\.worktrees\\5637\\terrilives\\.local-build\\main-integration-20261014\\accepted-web",
+  "target": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\dist",
+  "url": "http://127.0.0.1:5190/",
+  "incomingFiles": 284,
+  "retainedExistingFiles": 287,
+  "changedExistingFiles": [
+    "atlas-page-10.png",
+    "atlas-page-22.png",
+    "atlas-page-23.png",
+    "atlas-page-24.png",
+    "atlas-page-25.png",
+    "atlas-page-26.png",
+    "atlas-page-28.png",
+    "atlas-page-30.png",
+    "atlas-page-31.png",
+    "atlas-page-32.png",
+    "atlas-page-33.png",
+    "atlas-page-34.png",
+    "atlas-page-35.png",
+    "atlas-page-36.png",
+    "atlas-page-37.png",
+    "atlas-page-38.png",
+    "atlas-page-39.png",
+    "atlas-page-40.png",
+    "atlas-page-7.png",
+    "atlas-page-8.png",
+    "atlas-page-9.png",
+    "index.html",
+    "changelog/index.html"
+  ],
+  "oldHashedAssetsPreserved": true,
+  "backup": "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\main-integration-20261014\\local-server-before",
+  "indexSha256": "e8db0f2ffa5dc05398d9bda662306ea18ba05795b8bba0907480d49d4870a85c",
+  "servedEntryAssets": {
+    "./assets/index-c70F80k8.js": "f42d226a5b797282059fe30a7166dfd68de67fb6b15f3431acad1424d9b98775",
+    "./assets/index-DKMEpzhU.css": "99c99bc00c3c1e1e03a33e55dda134a07f0e0e31d442fb49966e3c7b1f35c397"
+  },
+  "browserStorageAccessed": false,
+  "browserPagesChanged": false
+}

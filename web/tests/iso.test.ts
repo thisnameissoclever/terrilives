@@ -459,7 +459,7 @@ describe('layeredDepth', () => {
 describe('depth sense contract with the render pipeline', () => {
   // `worldDepth` returns `1 - nearness`, and every assertion in the block
   // above derives from that. **Nothing in `iso.ts` makes that the right
-  // sense.** It is right only because `sprites.ts` configures the pipeline
+  // sense.** It is right only because `sprite-pipelines.ts` configures the pipeline
   // to compare with 'less' against a clear value of 1.0, so the smaller
   // depth wins the pixel. Change those two settings to 'greater' and 0.0
   // and every other test in this repository stays green while occlusion
@@ -467,7 +467,7 @@ describe('depth sense contract with the render pipeline', () => {
   // fridge would be drawn inside it. That inversion already shipped once,
   // in the Task 11 brief, together with a test that pinned it - [L16].
   //
-  // So this reads `sprites.ts` as text, the same mechanism
+  // So this reads the sprite pipeline definitions and draw host as text, the same mechanism
   // `instances.test.ts` uses to tie the WGSL declarations to the
   // TypeScript constants, and for the same reason: CI has no GPU, and the
   // contract spans two files that the type system does not connect.
@@ -482,7 +482,8 @@ describe('depth sense contract with the render pipeline', () => {
   // test is the checklist: flip `worldDepth` to return `nearness`, flip the
   // three expectations in `worldDepth`'s own tests, and update this one.
   // Changing any one of those alone is the bug.
-  const sprites = readFileSync('src/render/sprites.ts', 'utf8');
+  const sprites = readFileSync('src/render/sprite-pipelines.ts', 'utf8')
+    + readFileSync('src/render/scene-target.ts', 'utf8');
 
   it('uses the same less-than depth sense for opaque geometry, translucent grime and walls', () => {
     const compares = [...sprites.matchAll(/depthCompare:\s*'([a-z-]+)'/g)];

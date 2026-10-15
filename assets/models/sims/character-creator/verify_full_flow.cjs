@@ -1,0 +1,41 @@
+const {chromium}=require('C:/Users/myema/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+(async()=>{const out=path.resolve('docs/evidence/2026-10-12-full-character-creator/full-flow');fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true});let page;const errors=[];
+ try{page=await browser.newPage({viewport:{width:1440,height:1100}});page.on('pageerror',e=>errors.push(String(e)));
+  await page.goto('http://127.0.0.1:5187/?stress=0');await page.waitForFunction(()=>window.__terriStress,null,{timeout:120000});
+  if(await page.locator('#help-panel').evaluate(el=>el.open))await page.locator('#close-help').click();await page.getByText('Pause',{exact:true}).click();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.locator('#options-toggle').click();await page.locator('#new-housemate').click();
+  await page.locator('[data-field="appearance.presentation"] select').selectOption({label:'Feminine'});
+  for(const [id,value] of Object.entries({height:0,build:100,shoulders:100,hips:0,torso:100})){
+   const input=page.locator(`[data-field="appearance.body.${id}"] input[type=number]`);await input.fill(String(value));await input.press('Tab');
+  }
+  await page.locator('[data-field="appearance.hairstyle"] select').selectOption({label:'Bob'});
+  await page.locator('[data-field="appearance.bald"] input').uncheck();
+  await page.getByRole('button',{name:'Identity',exact:true}).click();await page.getByLabel('Name',{exact:true}).fill('Briar Proof');await page.getByLabel('Name',{exact:true}).press('Tab');
+  await page.getByRole('button',{name:'Personality',exact:true}).click();await page.getByLabel('Shyness value',{exact:true}).fill('37');await page.getByLabel('Shyness value',{exact:true}).press('Tab');
+  await page.getByLabel('Cleanliness value',{exact:true}).fill('83');await page.getByLabel('Cleanliness value',{exact:true}).press('Tab');
+  await page.getByRole('button',{name:'Review',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('[data-next]').disabled);
+  await page.screenshot({path:path.join(out,'created-review.png')});await page.getByRole('button',{name:'Move in',exact:true}).click();
+  await page.waitForFunction(()=>!document.querySelector('#housemate-dialog').open);
+  const created=await page.evaluate(()=>{const sim=window.__terriStress.sim;const row=sim.characterAppearances().find(row=>sim.characterSnapshot(row.sim).name==='Briar Proof');return {row,value:sim.characterSnapshot(row.sim)};});
+  assert.deepEqual(created.value.appearance.body,{height:0,build:100,shoulders:100,hips:0,torso:100});assert.equal(created.value.behavior.shyness,37);assert.equal(created.value.appearance.presentation,'feminine');
+  await page.getByText('1x',{exact:true}).click();await page.waitForFunction(tick=>window.__terriStress.sim.clockTick()>=tick+25,await page.evaluate(()=>window.__terriStress.sim.clockTick()));await page.getByText('Pause',{exact:true}).click();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const beforeSave=await page.evaluate(id=>({person:window.__terriStress.sim.characterSnapshot(id),hash:window.__terriStress.sim.worldHash().toString(),appearance:window.__terriStress.sim.appearanceHash().toString()}),created.row.sim);
+  await page.locator('#options-toggle').click();await page.locator('#save-game').click();
+  await page.waitForFunction(async()=>{try{const root=await navigator.storage.getDirectory(),file=await root.getFileHandle('terri-save-1.bin');return (await file.getFile()).size>10;}catch{return false;}});
+  const saved=await page.evaluate(async()=>{const root=await navigator.storage.getDirectory(),file=await root.getFileHandle('terri-save-1.bin');return Array.from(new Uint8Array(await(await file.getFile()).arrayBuffer()));});assert.deepEqual(saved.slice(8,10),[9,0]);
+  await page.locator('#household-roster-members button').filter({hasText:'Briar Proof'}).click();await page.locator('#edit-housemate').click();
+  await page.getByRole('button',{name:'Identity',exact:true}).click();assert.equal(await page.getByLabel('Name',{exact:true}).inputValue(),'Briar Proof');await page.getByLabel('Name',{exact:true}).fill('Temporary edit');await page.getByLabel('Name',{exact:true}).press('Tab');await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  assert.deepEqual(await page.evaluate(id=>window.__terriStress.sim.characterSnapshot(id),created.row.sim),beforeSave.person);
+  await page.locator('#edit-housemate').click();await page.getByRole('button',{name:'Identity',exact:true}).click();await page.getByLabel('Name',{exact:true}).fill('Renamed Proof');await page.getByLabel('Name',{exact:true}).press('Tab');await page.getByRole('button',{name:'Review',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('[data-next]').disabled);await page.getByRole('button',{name:'Apply changes',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#housemate-dialog').open);
+  const renamed=await page.evaluate(id=>window.__terriStress.sim.characterSnapshot(id),created.row.sim);assert.deepEqual(renamed,{...beforeSave.person,name:'Renamed Proof'});
+  if(!await page.locator('#load-game').isVisible())await page.locator('#options-toggle').click();await page.locator('#load-game').click();await page.locator('#confirm-load-game').click();await page.waitForFunction(()=>document.querySelector('#save-status').textContent==='Saved game loaded');
+  assert.deepEqual(await page.evaluate(id=>window.__terriStress.sim.characterSnapshot(id),created.row.sim),beforeSave.person);
+  await page.reload();await page.waitForFunction(()=>window.__terriStress,null,{timeout:120000});await page.getByText('Pause',{exact:true}).click();
+  const reloaded=await page.evaluate(id=>window.__terriStress.sim.characterSnapshot(id),created.row.sim);assert.deepEqual(reloaded.appearance,beforeSave.person.appearance);assert.deepEqual(reloaded.behavior,beforeSave.person.behavior);assert.equal(reloaded.name,'Briar Proof');
+  await page.screenshot({path:path.join(out,'reloaded-world.png')});assert.deepEqual(errors,[]);
+  const report={created:created.value,beforeSave,reloaded,checks:['create through UI','extreme appearance','custom personality','play','OPFS schema9 save','edit exact preload','cancel preservation','name-only apply preservation','manual load','page reload'],errors};fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({checks:report.checks,errors}));
+ }catch(error){if(page)await page.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});throw error;}finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1});

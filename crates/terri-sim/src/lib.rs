@@ -7,6 +7,7 @@ mod activity_tests;
 pub mod affinity;
 pub mod beds;
 pub mod books;
+pub mod character_draft;
 pub mod chores;
 mod reading;
 mod recipe_actions;
@@ -1181,7 +1182,7 @@ impl SnapshotSource<'_> {
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v6` for complete persistence of a current world.
+    /// Use `save_snapshot_v10` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
@@ -1225,7 +1226,7 @@ impl Sim {
         SnapshotSource { world: &self.world }.save_snapshot_v4()
     }
 
-    /// Legacy V5 projection. It omits books; use V6 for current persistence.
+    /// Legacy V5 projection. It omits books, social episodes and appearance; use V10.
     /// Colourways remain ascending by entity index for objects not as drawn.
     pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
         SnapshotSource { world: &self.world }.save_snapshot_v5()
@@ -1243,9 +1244,52 @@ impl Sim {
         Ok(())
     }
 
-    /// Complete current persistence, including owned copies and reading memory.
+    /// Frozen V8 envelope; owned copies and reading memory, without social episodes or appearance.
     pub fn save_snapshot_v6(&self) -> terri_core::SaveSnapshotV6 {
         save::v6::capture(self)
+    }
+
+    /// Current persistence, including social episodes, appearance and creator command ordering.
+    pub fn save_snapshot_v10(&self) -> terri_core::SaveSnapshotV10 {
+        save::v10::capture(self)
+    }
+
+    pub fn appearance_hash(&self) -> u64 {
+        save::v10::appearance_hash(self)
+    }
+
+    pub fn load_snapshot_v10(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV10,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::v10::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
+    /// The two historical V9 producers shared a header, but never a record layout.
+    /// Validate both candidates without touching the live world; refuse ambiguity.
+    pub fn load_historical_v9_candidates(
+        &mut self,
+        social: Option<terri_core::SaveSnapshotV9>,
+        character: Option<terri_core::save_v10::LegacyCharacterSnapshotV9>,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let social = social.and_then(|snapshot| {
+            save::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals).ok()
+        });
+        let character = character.and_then(|snapshot| {
+            save::v10::restore_legacy_character_v9(snapshot, content, portals).ok()
+        });
+        let candidate = match (social, character) {
+            (Some(candidate), None) | (None, Some(candidate)) => candidate,
+            _ => return Err(SaveError::InvalidValue),
+        };
+        self.adopt_current(candidate);
+        Ok(())
     }
 
     pub fn load_snapshot_v6(
@@ -1346,6 +1390,7 @@ impl Sim {
     }
 
     fn adopt_current(&mut self, mut restored: Sim) {
+        character_draft::ensure_appearance_components(&mut restored.world);
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -1492,10 +1537,7 @@ impl Sim {
         // M2e's two. `Satisfaction` is in `world_hash`'s query, so [L3]
         // bites exactly as it does for Habituation and Relationships:
         // unregistered, the digest goes EMPTY rather than wrong.
-        // `Hobbies` stays out of the digest (spawn-time content,
-        // derivable from the pack - the Personality precedent, with the
-        // same expiry the day something mutates one), but tests reach
-        // it through `try_query`.
+        // Creator hobby edits are hashed as deviations from authored household values.
         world.register_component::<terri_core::Satisfaction>();
         world.register_component::<terri_core::Hobbies>();
         // The exhaustion counter. Registered for [L3]'s reason like the
@@ -3999,6 +4041,7 @@ impl Sim {
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
         beds::hash(&self.world, &mut hasher);
+        character_draft::hash_hobby_changes(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<terri_core::Funds>().0 as u64);
 
         let commands = self.world.resource::<terri_core::CommandQueue>();
@@ -4008,6 +4051,7 @@ impl Sim {
             for command in commands.as_slice() {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
+                    Character(command) => vec![30, terri_core::character_hash::command(command)],
                     CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
                         if matches!(command, CleanChoreFirst { .. }) {
                             26

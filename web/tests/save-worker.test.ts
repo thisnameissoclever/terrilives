@@ -1,3 +1,4 @@
+import { CURRENT_SAVE_VERSION } from '../src/storage/save-header.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const PRIMARY = 'terri-save-1.bin';
@@ -18,7 +19,9 @@ const v5 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 5, 0, 29, 128, 0, 0, 
 const v6 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 6, 0, 29, 128, 0, 0, 0, 1]);
 const V8_BACKUP = 'terri-save-1.v8-backup.bin';
 const v8 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 8, 0, 29, 128, 0, 0, 0, 1]);
+const V9_BACKUP = 'terri-save-1.v9-backup.bin';
 const v9 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 9, 0, 29, 128, 0, 0, 0, 1]);
+const v10 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 10, 0, 29, 128, 0, 0, 0, 1]);
 
 type Response = { id: number; ok: boolean; bytes?: ArrayBuffer | null; error?: string };
 
@@ -73,7 +76,7 @@ async function workerSlot(initial: Uint8Array | null = v1) {
       return result;
     }),
   };
-  async function connect(legacy: false | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8' = false) {
+  async function connect(legacy: false | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8' | 'v9' = false) {
     const waiting = new Map<number, (response: Response) => void>();
     const port = {
       onmessage: null as ((event: { data: unknown }) => void) | null,
@@ -87,11 +90,12 @@ async function workerSlot(initial: Uint8Array | null = v1) {
     else if (legacy === 'v4') await import('./fixtures/v4-worker/save-worker.js');
     else if (legacy === 'v5') await import('./fixtures/v5-worker/save-worker.js');
     else if (legacy === 'v6') await import('./fixtures/v6-worker/save-worker.js');
-    else if (legacy === 'v8') await import('./fixtures/v8-worker/save-worker.js');
     else if (legacy === 'v7') await import('./fixtures/v7-worker/save-worker.js');
+    else if (legacy === 'v8') await import('./fixtures/v8-worker/save-worker.js');
+    else if (legacy === 'v9') await import('./fixtures/v9-worker/save-worker.js');
     else await import('../src/storage/save-worker.js');
     let id = 0;
-    function request(kind: 'load' | 'save' | 'clear', bytes: Uint8Array = v9): Promise<Response> {
+    function request(kind: 'load' | 'save' | 'clear', bytes: Uint8Array = v10): Promise<Response> {
       const requestId = ++id;
       return new Promise((resolve) => {
         waiting.set(requestId, resolve);
@@ -107,22 +111,52 @@ async function workerSlot(initial: Uint8Array | null = v1) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('save worker recovery backup', () => {
-  it('preserves V8 before a V9 write and rejects a cached V8 overwrite', async () => {
+  it('preserves exact V8 bytes before a V10 write and refuses a cached V8 overwrite', async () => {
     const slot = await workerSlot(v8);
-    expect(await slot.request('save', v9)).toMatchObject({ok: true});
+    expect(await slot.request('save', v10)).toMatchObject({ ok: true });
     expect(slot.files.get(V8_BACKUP)).toEqual(v8);
     const cached = await slot.connect('v8');
-    expect(await cached('save', v8)).toMatchObject({ok: false});
-    expect(slot.files.get(PRIMARY)).toEqual(v9);
+    expect(await cached('save', v8)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v10);
+    expect(slot.events.indexOf(`close ${V8_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
   });
-  it('preserves V7 before a V9 write and refuses a cached V7 overwrite', async () => {
+  it('preserves V7 before a V10 write and refuses a cached V7 overwrite', async () => {
     const slot = await workerSlot(v7);
-    expect(await slot.request('save', v9)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v10)).toMatchObject({ ok: true });
     expect(slot.files.get(V7_BACKUP)).toEqual(v7);
     const cached = await slot.connect('v7');
     expect(await cached('save', v7)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v9);
+    expect(slot.files.get(PRIMARY)).toEqual(v10);
   });
+  it('preserves V9 before V10 and refuses a cached V9 writer', async () => {
+    const slot = await workerSlot(v9);
+    expect(await slot.request('save', v10)).toMatchObject({ ok: true });
+    expect(slot.files.get(V9_BACKUP)).toEqual(v9);
+    const cached = await slot.connect('v9');
+    expect(await cached('save', v9)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v10);
+  });
+  it.each(['local-character-0', 'main-social-active'])(
+    'preserves exact %s V9 recovery bytes before writing a real V10 save', async (name) => {
+      const { readFileSync } = await import('node:fs');
+      const { default: init, SimHandle } = await import('../src/wasm/terri_wasm.js');
+      await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') });
+      const previous = new Uint8Array(readFileSync(new URL(
+        `../../crates/terri-wasm/tests/fixtures/schema-v9/${name}.sav`, import.meta.url)));
+      const sim = SimHandle.from_lot();
+      try {
+        expect(sim.load_bytes(previous)).toBe(true);
+        const current = sim.save_bytes();
+        const slot = await workerSlot(previous);
+        expect(await slot.request('save', current)).toMatchObject({ ok: true });
+        expect(slot.files.get(V9_BACKUP)).toEqual(previous);
+        const cached = await slot.connect('v9');
+        expect(await cached('save', previous)).toMatchObject({ ok: false });
+        expect(slot.files.get(PRIMARY)).toEqual(current);
+        expect(slot.files.get(V9_BACKUP)).toEqual(previous);
+      } finally { sim.free(); }
+    },
+  );
   it('stores the current simulation save without changing its bytes', async () => {
     const { readFileSync } = await import('node:fs');
     const { default: init, SimHandle } = await import('../src/wasm/terri_wasm.js');
@@ -139,11 +173,11 @@ describe('save worker recovery backup', () => {
     }
   });
 
-  it('backs up exact V5 bytes before the first V9 write', async () => {
+  it('backs up exact V5 bytes before the first V10 write', async () => {
     const slot = await workerSlot(v5);
-    expect(await slot.request('save', v9)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v10)).toMatchObject({ ok: true });
     expect(slot.files.get(V5_BACKUP)).toEqual(v5);
-    expect(slot.files.get(PRIMARY)).toEqual(v9);
+    expect(slot.files.get(PRIMARY)).toEqual(v10);
     expect(slot.events.indexOf(`close ${V5_BACKUP}`)).toBeLessThan(slot.events.indexOf(`writable ${PRIMARY}`));
   });
 
@@ -151,12 +185,12 @@ describe('save worker recovery backup', () => {
     const slot = await workerSlot(v5);
     slot.fail.file = V5_BACKUP;
     slot.fail.phase = phase;
-    expect(await slot.request('save', v9)).toMatchObject({ ok: false });
+    expect(await slot.request('save', v10)).toMatchObject({ ok: false });
     expect(slot.files.get(PRIMARY)).toEqual(v5);
     expect(slot.files.has(V5_BACKUP)).toBe(false);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     slot.fail.file = '';
-    expect(await slot.request('save', v9)).toMatchObject({ ok: true });
+    expect(await slot.request('save', v10)).toMatchObject({ ok: true });
     expect(slot.files.get(V5_BACKUP)).toEqual(v5);
   });
 
@@ -167,11 +201,11 @@ describe('save worker recovery backup', () => {
     expect(slot.files.get(PRIMARY)).toEqual(v6);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
-  it('the previous V6 worker refuses a V9 slot', async () => {
-    const slot = await workerSlot(v9);
+  it('the previous V6 worker refuses a V10 slot', async () => {
+    const slot = await workerSlot(v10);
     const oldWorker = await slot.connect('v6');
     expect(await oldWorker('save', v6)).toMatchObject({ ok: false });
-    expect(slot.files.get(PRIMARY)).toEqual(v9);
+    expect(slot.files.get(PRIMARY)).toEqual(v10);
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
@@ -203,7 +237,7 @@ describe('save worker recovery backup', () => {
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
-  it.each([v1, v2, v3, v4, v5, v6, v7, v8, new Uint8Array([2, 0]), new Uint8Array([...v5.slice(0, 8), 10, 0])])(
+  it.each([v1, v2, v3, v4, v5, v6, v7, v8, v9, new Uint8Array([2, 0]), new Uint8Array([...v5.slice(0, 8), CURRENT_SAVE_VERSION + 1, 0])])(
     'refuses non-current outgoing headers before touching storage', async (next) => {
       const slot = await workerSlot(v5);
       expect(await slot.request('save', next)).toMatchObject({ ok: false });
@@ -277,23 +311,23 @@ describe('save worker recovery backup', () => {
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
-  it.each([[v1, BACKUP], [v2, V2_BACKUP], [v3, V3_BACKUP], [v4, V4_BACKUP], [v5, V5_BACKUP], [v6, V6_BACKUP], [v7, V7_BACKUP], [v8, V8_BACKUP]] as const)(
-    'preserves original historical bytes before a V9 overwrite', async (previous, backup) => {
+  it.each([[v1, BACKUP], [v2, V2_BACKUP], [v3, V3_BACKUP], [v4, V4_BACKUP], [v5, V5_BACKUP], [v6, V6_BACKUP], [v7, V7_BACKUP], [v8, V8_BACKUP], [v9, V9_BACKUP]] as const)(
+    'preserves original historical bytes before a V10 overwrite', async (previous, backup) => {
       const slot = await workerSlot(previous);
-      expect(await slot.request('save', v9)).toMatchObject({ ok: true });
+      expect(await slot.request('save', v10)).toMatchObject({ ok: true });
       expect(slot.files.get(backup)).toEqual(previous);
-      expect(slot.files.get(PRIMARY)).toEqual(v9);
+      expect(slot.files.get(PRIMARY)).toEqual(v10);
       expect(slot.events.indexOf(`close ${backup}`)).toBeLessThan(
         slot.events.indexOf(`writable ${PRIMARY}`),
       );
     },
   );
 
-  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), 10, 0, 77]),
+  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), CURRENT_SAVE_VERSION + 1, 0, 77]),
     new Uint8Array([...v1.slice(0, 8), 0, 0, 77])])(
-    'refuses unknown primary headers before a V9 write', async (previous) => {
+    'refuses unknown primary headers before a V10 write', async (previous) => {
       const slot = await workerSlot(previous);
-      expect(await slot.request('save', v9)).toMatchObject({ ok: false });
+      expect(await slot.request('save', v10)).toMatchObject({ ok: false });
       expect(slot.files.get(PRIMARY)).toEqual(previous);
       expect(slot.events).not.toContain(`writable ${PRIMARY}`);
     },
@@ -313,15 +347,15 @@ describe('save worker recovery backup', () => {
       slot.fail.file = '';
       expect(await slot.request('save')).toMatchObject({ ok: true });
       expect(slot.files.get(BACKUP)).toEqual(v1);
-      expect(slot.files.get(PRIMARY)).toEqual(v9);
+      expect(slot.files.get(PRIMARY)).toEqual(v10);
     },
   );
 
-  it('closes a byte-exact V1 backup before opening the primary for a V9 write', async () => {
+  it('closes a byte-exact V1 backup before opening the primary for a V10 write', async () => {
     const slot = await workerSlot();
     expect(await slot.request('save')).toMatchObject({ ok: true });
     expect(slot.files.get(BACKUP)).toEqual(v1);
-    expect(slot.files.get(PRIMARY)).toEqual(v9);
+    expect(slot.files.get(PRIMARY)).toEqual(v10);
     expect(slot.events.indexOf(`close ${BACKUP}`)).toBeGreaterThan(-1);
     expect(slot.events.indexOf(`close ${BACKUP}`)).toBeLessThan(
       slot.events.indexOf(`writable ${PRIMARY}`),
@@ -372,9 +406,9 @@ describe('save worker recovery backup', () => {
   });
 
   it.each([
-    { previous: v9, next: v9 },
-    { previous: null, next: v9 },
-  ])('writes V9 without a historical backup when none is needed: %j', async ({ previous, next }) => {
+    { previous: v10, next: v10 },
+    { previous: null, next: v10 },
+  ])('writes V10 without a historical backup when none is needed: %j', async ({ previous, next }) => {
     const slot = await workerSlot(previous);
     expect(await slot.request('save', next)).toMatchObject({ ok: true });
     expect(slot.files.get(PRIMARY)).toEqual(next);
@@ -382,7 +416,7 @@ describe('save worker recovery backup', () => {
     expect(slot.files.has(V4_BACKUP)).toBe(false);
   });
 
-  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), 10, 0, 77])])(
+  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), CURRENT_SAVE_VERSION + 1, 0, 77])])(
     'does not overwrite an unreadable or newer slot installed after this tab loaded', async (previous) => {
       const slot = await workerSlot(previous);
       expect(await slot.request('save')).toMatchObject({ ok: false });
@@ -394,10 +428,10 @@ describe('save worker recovery backup', () => {
   it('serializes simultaneous first saves from two worker instances under one origin lock', async () => {
     const slot = await workerSlot();
     const other = await slot.connect();
-    const newerV9 = new Uint8Array([...v9, 42]);
-    const responses = await Promise.all([slot.request('save'), other('save', newerV9)]);
+    const newerV10 = new Uint8Array([...v10, 42]);
+    const responses = await Promise.all([slot.request('save'), other('save', newerV10)]);
     expect(responses.map((response) => response.ok)).toEqual([true, true]);
-    expect(slot.files.get(PRIMARY)).toEqual(newerV9);
+    expect(slot.files.get(PRIMARY)).toEqual(newerV10);
     expect(slot.files.get(BACKUP)).toEqual(v1);
     expect(slot.events.filter((event) => event === `writable ${BACKUP}`)).toHaveLength(1);
     expect(slot.locks.request).toHaveBeenCalledTimes(2);

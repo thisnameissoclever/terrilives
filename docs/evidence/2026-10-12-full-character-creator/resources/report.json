@@ -1,0 +1,196 @@
+{
+  "cycles": [
+    {
+      "cycle": 0,
+      "edits": [
+        {
+          "height": 0,
+          "elapsedMs": 31.930000066757202
+        },
+        {
+          "height": 25,
+          "elapsedMs": 32.3199999332428
+        },
+        {
+          "height": 50,
+          "elapsedMs": 34.235000014305115
+        },
+        {
+          "height": 75,
+          "elapsedMs": 32.49500000476837
+        },
+        {
+          "height": 100,
+          "elapsedMs": 33.94000005722046
+        },
+        {
+          "height": 33,
+          "elapsedMs": 33.889999985694885
+        }
+      ],
+      "alive": {
+        "buffers": 16,
+        "textures": 8,
+        "bufferBytes": 16958008
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0
+      }
+    },
+    {
+      "cycle": 1,
+      "edits": [
+        {
+          "height": 0,
+          "elapsedMs": 53.355000019073486
+        },
+        {
+          "height": 25,
+          "elapsedMs": 67.59500002861023
+        },
+        {
+          "height": 50,
+          "elapsedMs": 83.43999993801117
+        },
+        {
+          "height": 75,
+          "elapsedMs": 65.7700001001358
+        },
+        {
+          "height": 100,
+          "elapsedMs": 66.67499995231628
+        },
+        {
+          "height": 33,
+          "elapsedMs": 67.5349999666214
+        }
+      ],
+      "alive": {
+        "buffers": 16,
+        "textures": 8,
+        "bufferBytes": 26977680
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0
+      }
+    },
+    {
+      "cycle": 2,
+      "edits": [
+        {
+          "height": 0,
+          "elapsedMs": 49.91499996185303
+        },
+        {
+          "height": 25,
+          "elapsedMs": 49.735000014305115
+        },
+        {
+          "height": 50,
+          "elapsedMs": 49.625
+        },
+        {
+          "height": 75,
+          "elapsedMs": 49.889999985694885
+        },
+        {
+          "height": 100,
+          "elapsedMs": 49.94500005245209
+        },
+        {
+          "height": 33,
+          "elapsedMs": 50.044999957084656
+        }
+      ],
+      "alive": {
+        "buffers": 16,
+        "textures": 8,
+        "bufferBytes": 24055568
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0
+      }
+    },
+    {
+      "cycle": 3,
+      "edits": [
+        {
+          "height": 0,
+          "elapsedMs": 25.33999991416931
+        },
+        {
+          "height": 25,
+          "elapsedMs": 33.924999952316284
+        },
+        {
+          "height": 50,
+          "elapsedMs": 34.02499997615814
+        },
+        {
+          "height": 75,
+          "elapsedMs": 31.945000052452087
+        },
+        {
+          "height": 100,
+          "elapsedMs": 33.50999999046326
+        },
+        {
+          "height": 33,
+          "elapsedMs": 33.5
+        }
+      ],
+      "alive": {
+        "buffers": 16,
+        "textures": 8,
+        "bufferBytes": 19249944
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0
+      }
+    },
+    {
+      "cycle": 4,
+      "edits": [
+        {
+          "height": 0,
+          "elapsedMs": 46.61500000953674
+        },
+        {
+          "height": 25,
+          "elapsedMs": 45.84500002861023
+        },
+        {
+          "height": 50,
+          "elapsedMs": 33.37999999523163
+        },
+        {
+          "height": 75,
+          "elapsedMs": 33.455000042915344
+        },
+        {
+          "height": 100,
+          "elapsedMs": 33.02999997138977
+        },
+        {
+          "height": 33,
+          "elapsedMs": 32.955000042915344
+        }
+      ],
+      "alive": {
+        "buffers": 16,
+        "textures": 8,
+        "bufferBytes": 19778040
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0
+      }
+    }
+  ],
+  "errors": [],
+  "scope": "Explicit creator buffers and textures; physical driver reclamation is not measured."
+}

@@ -1,0 +1,8 @@
+{
+  "interruptedAt": "2026-10-14T15:05:21.9517317-07:00",
+  "helperExitCode": 1,
+  "reason": "Parent requested pause for fresh harness review after three failed full-flow attempts.",
+  "execSession": 52874,
+  "status": "INTERRUPTED",
+  "cleanupVerification": "No creator-save-check node process or Playwright Chromium profile process remained after Ctrl+C."
+}

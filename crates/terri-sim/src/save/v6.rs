@@ -28,6 +28,7 @@ pub(crate) fn capture_world(world: &World) -> SaveSnapshotV6 {
         .resource::<terri_core::CommandQueue>()
         .as_slice()
         .iter()
+        .filter(|command| !matches!(command, terri_core::SimCommand::Character(_)))
         .map(|c| match c {
             terri_core::SimCommand::Book(book) => Some(book.clone()),
             _ => None,

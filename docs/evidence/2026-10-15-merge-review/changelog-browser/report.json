@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Dark is the default in fresh storage.",
+    "1440px dark displays the full release entry without horizontal overflow.",
+    "1440px light displays the full release entry without horizontal overflow.",
+    "390px dark displays the full release entry without horizontal overflow.",
+    "390px light displays the full release entry without horizontal overflow."
+  ],
+  "errors": [],
+  "status": "PASS",
+  "browserClosed": true,
+  "ownedPreviewStopped": true
+}

@@ -1,0 +1,85 @@
+
+> test
+> vitest run --maxWorkers=1 --reporter=verbose tests/character-support-surface-equivalence.test.ts -t neutral first-fit
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ↓ tests/character-support-surface-equivalence.test.ts > pins the independent old surface and the previously recorded complete bike fits
+ ↓ tests/character-support-surface-equivalence.test.ts > matches actual saddle, hip and sole surface queries for 'masculine' endpoint +0
+ ↓ tests/character-support-surface-equivalence.test.ts > matches actual saddle, hip and sole surface queries for 'masculine' endpoint 100
+ ↓ tests/character-support-surface-equivalence.test.ts > matches actual saddle, hip and sole surface queries for 'feminine' endpoint +0
+ ↓ tests/character-support-surface-equivalence.test.ts > matches actual saddle, hip and sole surface queries for 'feminine' endpoint 100
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves degeneracies, winding, layers, sparse coordinates and signed zero
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner +0
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 1
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 2
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 3
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 4
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 5
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 6
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 7
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 8
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 9
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 10
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 11
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 12
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 13
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 14
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 15
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 16
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 17
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 18
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 19
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 20
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 21
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 22
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 23
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 24
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 25
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 26
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 27
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 28
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 29
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 30
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'masculine' corner 31
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner +0
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 1
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 2
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 3
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 4
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 5
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 6
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 7
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 8
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 9
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 10
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 11
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 12
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 13
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 14
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 15
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 16
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 17
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 18
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 19
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 20
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 21
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 22
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 23
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 24
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 25
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 26
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 27
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 28
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 29
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 30
+ ↓ tests/character-support-surface-equivalence.test.ts > preserves complete fit values and query counts for 'feminine' corner 31
+ ✓ tests/character-support-surface-equivalence.test.ts > measures neutral first-fit setup with original and compiled surfaces: masculine 274ms
+ ✓ tests/character-support-surface-equivalence.test.ts > measures neutral first-fit setup with original and compiled surfaces: feminine 259ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 70 skipped (72)
+   Start at  16:24:50
+   Duration  858ms (transform 111ms, setup 0ms, import 221ms, tests 535ms, environment 0ms)
+

@@ -1,0 +1,1091 @@
+{
+  "gameUrl": "http://127.0.0.1:5193",
+  "checks": [
+    "Existing creator opens with Walking playing",
+    "Reselected condition displays its exact previous severity",
+    "Unapplied toggles preserve the live native record",
+    "Loaded percentage is readable without overlap at 1440px/Lock",
+    "Loaded percentage is readable without overlap at 1440px/Locked",
+    "Loaded percentage is readable without overlap at 1051px/Lock",
+    "Loaded percentage is readable without overlap at 1051px/Locked",
+    "Loaded percentage is readable without overlap at 1050px/Lock",
+    "Loaded percentage is readable without overlap at 1050px/Locked",
+    "Loaded percentage is readable without overlap at 761px/Lock",
+    "Loaded percentage is readable without overlap at 761px/Locked",
+    "Loaded percentage is readable without overlap at 760px/Lock",
+    "Loaded percentage is readable without overlap at 760px/Locked",
+    "Loaded percentage is readable without overlap at 390px/Lock",
+    "Loaded percentage is readable without overlap at 390px/Locked",
+    "Loaded percentage is readable without overlap at 320px/Lock",
+    "Loaded percentage is readable without overlap at 320px/Locked",
+    "Actual 320px creator has a content scrollbar",
+    "Apply preserves exact stored traits, order and every unedited character field",
+    "Player Save and browser reload preserve the applied character",
+    "Narrow new creator keeps the optional preview hidden",
+    "Seven narrow pages are reachable without page overflow",
+    "Ten activity categories begin visible",
+    "Section Reset restores all activity preferences to 1.0x",
+    "Undo restores the previous activity preferences",
+    "Move in enables without opening the narrow preview",
+    "Hidden-preview Move in creates the new character with one to four traits",
+    "No browser or graphics diagnostics",
+    "Browser loaded the final built application module",
+    "Browser loaded the final built application stylesheet"
+  ],
+  "errors": [],
+  "captures": [
+    "01-condition-before.png",
+    "02-condition-reselected.png",
+    "02-condition-width-1440-lock.png",
+    "02-condition-width-1440-locked.png",
+    "02-condition-width-1051-lock.png",
+    "02-condition-width-1051-locked.png",
+    "02-condition-width-1050-lock.png",
+    "02-condition-width-1050-locked.png",
+    "02-condition-width-761-lock.png",
+    "02-condition-width-761-locked.png",
+    "02-condition-width-760-lock.png",
+    "02-condition-width-760-locked.png",
+    "02-condition-width-390-lock.png",
+    "02-condition-width-390-locked.png",
+    "02-condition-width-320-lock.png",
+    "02-condition-width-320-locked.png",
+    "03-existing-review.png",
+    "04-narrow-reset.png",
+    "05-narrow-review.png",
+    "06-created-household.png"
+  ],
+  "status": "PASS",
+  "fixture": {
+    "condition": {
+      "id": "low_spirits",
+      "label": "Low spirits",
+      "description": "Less activity satisfaction; correspondence helps; starts 6 points lower.",
+      "kind": "condition",
+      "initial_state": 1058642330,
+      "weights": []
+    },
+    "other": [
+      {
+        "id": "television_devotee",
+        "label": "Television devotee",
+        "description": "Loves watching television.",
+        "kind": "disposition",
+        "initial_state": 0,
+        "weights": [
+          {
+            "tag": "television",
+            "value": 1069547520
+          }
+        ]
+      },
+      {
+        "id": "cannot_cook",
+        "label": "Can't cook",
+        "description": "Ruins most meals at first, and gets better with every attempt.",
+        "kind": "capability",
+        "initial_state": 1048576000,
+        "weights": []
+      }
+    ],
+    "snapshot": {
+      "version": 1,
+      "name": "Tim",
+      "pronouns": "",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            62,
+            117,
+            164
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "behavior": {
+        "shyness": 89,
+        "cleanliness": 1063675494,
+        "self_preservation": 0,
+        "chronotype_offset_ticks": -90,
+        "drain": [
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1067869798,
+          1060320051
+        ],
+        "recovery": [
+          1065353216,
+          1066611507,
+          1065353216,
+          1065353216,
+          1065353216,
+          1062836634,
+          1065353216
+        ],
+        "dispositions": [
+          {
+            "object": "television",
+            "action": "watch_tv",
+            "weight": 1057803469
+          },
+          {
+            "object": "bookshelf",
+            "action": "read",
+            "weight": 1069128090
+          },
+          {
+            "object": "desk",
+            "action": "attend_correspondence",
+            "weight": 1071225242
+          },
+          {
+            "object": "reading_chair",
+            "action": "settle_in",
+            "weight": 1067702026
+          }
+        ]
+      },
+      "traits": [
+        {
+          "id": "television_devotee",
+          "state": 0
+        },
+        {
+          "id": "cannot_cook",
+          "state": 1048576000
+        },
+        {
+          "id": "low_spirits",
+          "state": 1060844080
+        }
+      ],
+      "affinities": [
+        {
+          "id": "plants",
+          "value": 3202472412
+        },
+        {
+          "id": "aquarium",
+          "value": 1025201440
+        },
+        {
+          "id": "television",
+          "value": 3199444428
+        },
+        {
+          "id": "radio",
+          "value": 1045704896
+        }
+      ],
+      "hobbies": [
+        "correspondence",
+        "reading"
+      ],
+      "skills": [
+        {
+          "id": "exercise",
+          "practice": 1054280253
+        }
+      ],
+      "ties": [
+        [
+          1,
+          null
+        ],
+        [
+          2,
+          null
+        ]
+      ]
+    },
+    "severityBits": 1060844080
+  },
+  "percentageLayouts": [
+    {
+      "width": 1440,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Lock",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 1440,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Locked",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 1051,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Lock",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 1051,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Locked",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 1050,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Lock",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 1050,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Locked",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 761,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Lock",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 761,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Locked",
+      "contentScrollbar": 0,
+      "editorScrollbar": 15
+    },
+    {
+      "width": 760,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Lock",
+      "contentScrollbar": 15,
+      "editorScrollbar": 0
+    },
+    {
+      "width": 760,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Locked",
+      "contentScrollbar": 15,
+      "editorScrollbar": 0
+    },
+    {
+      "width": 390,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Lock",
+      "contentScrollbar": 15,
+      "editorScrollbar": 0
+    },
+    {
+      "width": 390,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Locked",
+      "contentScrollbar": 15,
+      "editorScrollbar": 0
+    },
+    {
+      "width": 320,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Lock",
+      "contentScrollbar": 15,
+      "editorScrollbar": 0
+    },
+    {
+      "width": 320,
+      "value": "73.1235",
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false,
+      "editorOverflow": false,
+      "overlaps": [],
+      "uncontained": [],
+      "clippedLabels": [],
+      "editorScrollOverflow": false,
+      "lockText": "Locked",
+      "contentScrollbar": 15,
+      "editorScrollbar": 0
+    }
+  ],
+  "applied": {
+    "version": 1,
+    "name": "Final Creator Edit",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "masculine",
+      "body": {
+        "height": 50,
+        "build": 50,
+        "shoulders": 50,
+        "hips": 50,
+        "torso": 50
+      },
+      "face": {
+        "shape": "oval",
+        "cheeks": 50,
+        "jaw": 50,
+        "chin": 50,
+        "eyes": "almond",
+        "eye_size": 50,
+        "brows": "soft",
+        "brow_thickness": 50,
+        "nose": "straight",
+        "nose_width": 50,
+        "mouth": "neutral",
+        "mouth_fullness": 50,
+        "ears": 50
+      },
+      "colors": {
+        "skin": [
+          190,
+          143,
+          107
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          101,
+          69,
+          46
+        ],
+        "eyes": [
+          102,
+          91,
+          69
+        ],
+        "shirt": [
+          62,
+          117,
+          164
+        ],
+        "trousers": [
+          57,
+          70,
+          80
+        ],
+        "shoes": [
+          76,
+          64,
+          55
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "curl",
+      "bald": false,
+      "facial_hair": "none",
+      "freckles": false,
+      "freckle_density": 50,
+      "scar": "none",
+      "top": "overshirt",
+      "sleeves": "rolled",
+      "bottoms": "trousers",
+      "footwear": "loafers",
+      "glasses": false,
+      "glasses_style": "round",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 89,
+      "cleanliness": 1063675494,
+      "self_preservation": 0,
+      "chronotype_offset_ticks": -90,
+      "drain": [
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1067869798,
+        1060320051
+      ],
+      "recovery": [
+        1065353216,
+        1066611507,
+        1065353216,
+        1065353216,
+        1065353216,
+        1062836634,
+        1065353216
+      ],
+      "dispositions": [
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1057803469
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1069128090
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1071225242
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1067702026
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "television_devotee",
+        "state": 0
+      },
+      {
+        "id": "cannot_cook",
+        "state": 1048576000
+      },
+      {
+        "id": "low_spirits",
+        "state": 1060844080
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 3202472412
+      },
+      {
+        "id": "aquarium",
+        "value": 1025201440
+      },
+      {
+        "id": "television",
+        "value": 3199444428
+      },
+      {
+        "id": "radio",
+        "value": 1045704896
+      }
+    ],
+    "hobbies": [
+      "correspondence",
+      "reading"
+    ],
+    "skills": [
+      {
+        "id": "exercise",
+        "practice": 1054280253
+      }
+    ],
+    "ties": [
+      [
+        1,
+        null
+      ],
+      [
+        2,
+        null
+      ]
+    ]
+  },
+  "navigation": [
+    {
+      "name": "identity",
+      "selected": "identity",
+      "overflow": false
+    },
+    {
+      "name": "appearance",
+      "selected": "appearance",
+      "overflow": false
+    },
+    {
+      "name": "personality",
+      "selected": "personality",
+      "overflow": false
+    },
+    {
+      "name": "needs",
+      "selected": "needs",
+      "overflow": false
+    },
+    {
+      "name": "interests",
+      "selected": "interests",
+      "overflow": false
+    },
+    {
+      "name": "household",
+      "selected": "household",
+      "overflow": false
+    },
+    {
+      "name": "review",
+      "selected": "review",
+      "overflow": false
+    }
+  ],
+  "created": {
+    "version": 1,
+    "name": "Final Narrow",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "feminine",
+      "body": {
+        "height": 26,
+        "build": 6,
+        "shoulders": 14,
+        "hips": 3,
+        "torso": 82
+      },
+      "face": {
+        "shape": "round",
+        "cheeks": 90,
+        "jaw": 55,
+        "chin": 30,
+        "eyes": "almond",
+        "eye_size": 5,
+        "brows": "straight",
+        "brow_thickness": 14,
+        "nose": "broad",
+        "nose_width": 35,
+        "mouth": "upturned",
+        "mouth_fullness": 56,
+        "ears": 2
+      },
+      "colors": {
+        "skin": [
+          105,
+          70,
+          47
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          169,
+          90,
+          54
+        ],
+        "eyes": [
+          129,
+          105,
+          86
+        ],
+        "shirt": [
+          69,
+          106,
+          153
+        ],
+        "trousers": [
+          150,
+          113,
+          79
+        ],
+        "shoes": [
+          160,
+          144,
+          126
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "quiff",
+      "bald": false,
+      "facial_hair": "none",
+      "freckles": false,
+      "freckle_density": 50,
+      "scar": "brow",
+      "top": "jacket",
+      "sleeves": "rolled",
+      "bottoms": "trousers",
+      "footwear": "trainers",
+      "glasses": false,
+      "glasses_style": "round",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 74,
+      "cleanliness": 1059145646,
+      "self_preservation": 93,
+      "chronotype_offset_ticks": -30,
+      "drain": [
+        1067702026,
+        1069295862,
+        1058139013,
+        1057803469,
+        1059816735,
+        1068792545,
+        1065437102
+      ],
+      "recovery": [
+        1063339950,
+        1063339950,
+        1068037571,
+        1067702026,
+        1063843267,
+        1065688760,
+        1062333317
+      ],
+      "dispositions": [
+        {
+          "object": "fridge",
+          "action": "grab_snack",
+          "weight": 1072147988
+        },
+        {
+          "object": "fridge",
+          "action": "cook_dinner",
+          "weight": 1072147988
+        },
+        {
+          "object": "bed",
+          "action": "sleep",
+          "weight": 1066527621
+        },
+        {
+          "object": "shower",
+          "action": "take_shower",
+          "weight": 1069044204
+        },
+        {
+          "object": "toilet",
+          "action": "relieve_self",
+          "weight": 1069044204
+        },
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1066443735
+        },
+        {
+          "object": "sofa",
+          "action": "lounge",
+          "weight": 1061662228
+        },
+        {
+          "object": "sofa",
+          "action": "read",
+          "weight": 1068457001
+        },
+        {
+          "object": "sink",
+          "action": "wash_hands",
+          "weight": 1069044204
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1068457001
+        },
+        {
+          "object": "kitchen_sink",
+          "action": "wash_up",
+          "weight": 1069044204
+        },
+        {
+          "object": "dining_table",
+          "action": "sit_properly",
+          "weight": 1072147988
+        },
+        {
+          "object": "dining_table",
+          "action": "take_prepared_food",
+          "weight": 1072147988
+        },
+        {
+          "object": "chair",
+          "action": "sit",
+          "weight": 1061662228
+        },
+        {
+          "object": "chair",
+          "action": "read",
+          "weight": 1068457001
+        },
+        {
+          "object": "long_sofa",
+          "action": "stretch_out",
+          "weight": 1061662228
+        },
+        {
+          "object": "long_sofa",
+          "action": "sit",
+          "weight": 1061662228
+        },
+        {
+          "object": "long_sofa",
+          "action": "read",
+          "weight": 1068457001
+        },
+        {
+          "object": "armchair",
+          "action": "take_the_chair",
+          "weight": 1061662228
+        },
+        {
+          "object": "armchair",
+          "action": "read",
+          "weight": 1068457001
+        },
+        {
+          "object": "radio",
+          "action": "listen",
+          "weight": 1072819077
+        },
+        {
+          "object": "double_bed",
+          "action": "sleep_properly",
+          "weight": 1066527621
+        },
+        {
+          "object": "moving_box",
+          "action": "use_exercise_bike",
+          "weight": 1058977874
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1069463634
+        },
+        {
+          "object": "desk_chair",
+          "action": "sit",
+          "weight": 1061662228
+        },
+        {
+          "object": "desk_chair",
+          "action": "read",
+          "weight": 1068457001
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1068457001
+        },
+        {
+          "object": "reading_chair",
+          "action": "sit",
+          "weight": 1061662228
+        },
+        {
+          "object": "reference_shelf",
+          "action": "watch_fish",
+          "weight": 1063004406
+        },
+        {
+          "object": "bathtub",
+          "action": "soak",
+          "weight": 1069044204
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "exercise_averse",
+        "state": 0
+      },
+      {
+        "id": "television_averse",
+        "state": 0
+      },
+      {
+        "id": "isolated",
+        "state": 1057803469
+      },
+      {
+        "id": "cooped_up",
+        "state": 1065017672
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 3208307016
+      },
+      {
+        "id": "aquarium",
+        "value": 3180289065
+      },
+      {
+        "id": "television",
+        "value": 1059648963
+      },
+      {
+        "id": "radio",
+        "value": 1049247089
+      }
+    ],
+    "hobbies": [
+      "aquarium",
+      "bathroom_privacy",
+      "cooking",
+      "correspondence",
+      "lounging",
+      "television"
+    ],
+    "skills": [
+      {
+        "id": "cooking",
+        "practice": 1065353217
+      },
+      {
+        "id": "exercise",
+        "practice": 1060320052
+      },
+      {
+        "id": "reading",
+        "practice": 1060320052
+      }
+    ],
+    "ties": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        null
+      ],
+      [
+        2,
+        2
+      ]
+    ]
+  },
+  "browser": "155.0.8059.39",
+  "bundleFiles": {
+    "index-B1WNKcup.css": "1e116326c422cb3c6f5c558274851bcd2eee93840268496e4735cbf31836e96a",
+    "index-BNA5Gf1o.js": "e81911a6e9bd41fb6e4dffb95758904c12830441cb5b87db3e3a33a6d65e456d",
+    "preparation-worker-DdKXMRR3.js": "1e6929d4da910caaa4d11c10ff8f2e17be24288f9c5ec5aff5089403236b1a56",
+    "save-worker-Ddp7uOL0.js": "08c8a225a3862854688422a74d5bd9cbb9a96c34a8f16aa7a199add9f8249689",
+    "terri_wasm_bg-BPvXwH75.wasm": "4231efe627fd8c55cfb3fa1de244f8723155910d5f9e9959aa80088580a9dacf"
+  },
+  "loadedScripts": [
+    "http://127.0.0.1:5193/assets/index-BNA5Gf1o.js",
+    "http://127.0.0.1:5193/assets/save-worker-Ddp7uOL0.js",
+    "http://127.0.0.1:5193/assets/preparation-worker-DdKXMRR3.js"
+  ],
+  "loadedStyles": [
+    "http://127.0.0.1:5193/assets/index-B1WNKcup.css"
+  ],
+  "browserClosed": true
+}

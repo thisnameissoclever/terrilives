@@ -1,0 +1,31 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-clips.test.ts tests/door-audio-bridge.test.ts -t fits configured trainers|real household crossings
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-clips.test.ts (47 tests | 1 failed | 45 skipped) 57649ms
+   × fits configured trainers and shorts on the bike: masculine 30532ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-clips.test.ts > fits configured trainers and shorts on the bike: masculine
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/character-clips.test.ts:91:43
+     89| });
+     90|
+     91| it.each(['masculine','feminine'] as const)('fits configured trainers a…
+       |                                           ^
+     92|   const base=readGeometry(manifest.runtime,'export'),parts=JSON.parse(…
+     93|   const source=combineClipFamily(base,readGeometry(parts.geometry!,'cl…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 2 passed | 45 skipped (48)
+   Start at  14:43:09
+   Duration  89.62s (transform 19.83s, setup 0ms, import 26.78s, tests 59.47s, environment 0ms)
+

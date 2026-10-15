@@ -212,12 +212,12 @@ fn window_save_all_models_axes_and_pending_commands_restore_before_any_drain() {
                     model,
                 });
             source.sync_render_buffer();
-            let saved = source.save_snapshot_v9();
+            let saved = source.save_snapshot_v10();
             let hash = source.world_hash();
             let mut restored =
                 crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-            restored.load_snapshot_v9(saved.clone()).unwrap();
-            assert_eq!(restored.save_snapshot_v9(), saved, "model {id}, {axis:?}");
+            restored.load_snapshot_v10(saved.clone()).unwrap();
+            assert_eq!(restored.save_snapshot_v10(), saved, "model {id}, {axis:?}");
             assert_eq!(restored.world_hash(), hash);
             assert_eq!(
                 restored
@@ -250,7 +250,7 @@ fn window_save_all_models_axes_and_pending_commands_restore_before_any_drain() {
                 [placement]
             );
             assert_eq!(restored.world_hash(), source.world_hash());
-            assert_eq!(restored.save_snapshot_v9(), source.save_snapshot_v9());
+            assert_eq!(restored.save_snapshot_v10(), source.save_snapshot_v10());
             for _ in 0..3 {
                 source.tick();
                 restored.tick();

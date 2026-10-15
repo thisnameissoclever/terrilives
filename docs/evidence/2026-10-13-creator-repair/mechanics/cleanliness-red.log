@@ -1,0 +1,49 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 54.60s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 8 tests
+test chores::cleanliness_tests::cleanliness_daily_floor_and_surface_work_waits_for_owner_threshold_without_a_draw ... FAILED
+test chores::cleanliness_tests::cleanliness_room_mood_thresholds_each_source_before_averaging ... FAILED
+test chores::grime_tests::cleanliness_scales_rolls_and_surface_probability_is_doubled ... ok
+test domestic::tests::average_cleanliness_has_stronger_own_cleanup_and_thirty_percent_blocker_response ... ok
+test domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once ... FAILED
+test domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap ... FAILED
+test edit::tests::a_changed_cleanliness_score_breaks_the_match_until_an_explicit_edit ... ok
+test edit::tests::an_explicit_personality_change_creates_a_missing_cleanliness_row_in_index_order ... ok
+
+failures:
+
+---- chores::cleanliness_tests::cleanliness_daily_floor_and_surface_work_waits_for_owner_threshold_without_a_draw stdout ----
+
+thread 'chores::cleanliness_tests::cleanliness_daily_floor_and_surface_work_waits_for_owner_threshold_without_a_draw' (163312) panicked at crates\terri-sim\src\chores\cleanliness_tests.rs:83:17:
+c=0 amount=399 kind=Floors
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- chores::cleanliness_tests::cleanliness_room_mood_thresholds_each_source_before_averaging stdout ----
+
+thread 'chores::cleanliness_tests::cleanliness_room_mood_thresholds_each_source_before_averaging' (208156) panicked at crates\terri-sim\src\chores\cleanliness_tests.rs:45:17:
+assertion `left == right` failed
+  left: -0.1197
+ right: 0.0
+
+---- domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once stdout ----
+
+thread 'domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once' (229112) panicked at crates\terri-sim\src\domestic\tests.rs:1052:5:
+below-threshold piles must remain eligible for a later reaction
+
+---- domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap stdout ----
+
+thread 'domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap' (37652) panicked at crates\terri-sim\src\domestic\tests.rs:1031:13:
+c=0 units=2: 1 != 0
+
+
+failures:
+    chores::cleanliness_tests::cleanliness_daily_floor_and_surface_work_waits_for_owner_threshold_without_a_draw
+    chores::cleanliness_tests::cleanliness_room_mood_thresholds_each_source_before_averaging
+    domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once
+    domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap
+
+test result: FAILED. 4 passed; 4 failed; 0 ignored; 0 measured; 1304 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

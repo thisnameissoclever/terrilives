@@ -1,0 +1,24 @@
+{
+  "local_character_v9": {
+    "producer": "Preserved pre-integration web/src/wasm release binary",
+    "producer_backup": ".scratch/main-integration-20261014/wasm-local-v9/wasm",
+    "wasm_sha256": "efbd90129fe4a1005b2280e469553bd3a866f11e305514d9529e59b4561da1a0",
+    "files": {
+      "local-character-0.sav": "8fa748db328864248779f97df1082a146293f442603e4775333cd83039fda989",
+      "local-character-1200.sav": "fa87f14865f2ee239d685c3a884cc71d51631feb47070c76edd86624c8aba2cf",
+      "local-character-400.sav": "90b3cff33cb953df7ff41c2ce667f6780060da7a13a4c798e65ddd5745f969f4"
+    }
+  },
+  "main_social_v9": {
+    "revision": "e999fdf8f496756b16ddd1670e77b922c924cc0b",
+    "producer_source": ".scratch/main-integration-20261014/main-v9-producer/crates/terri-wasm/examples/capture_main_v9.rs",
+    "status": "captured from frozen source",
+    "files": {
+      "main-social-0.sav": "995d1f84cf4c2d621cc346988df719a263d9122d2d2636f9972b0a98531a2149",
+      "main-social-1200.sav": "ad0e6025d11cc1df81cf8744cae22427d6a78de0cf32574cc5842d60144cbe47",
+      "main-social-400.sav": "91551537c1cd34140abe2338e1d568738a0e9cf97054bfc70c98be960c0ee224",
+      "main-social-active.sav": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda"
+    },
+    "active_conversation_tick": 49
+  }
+}

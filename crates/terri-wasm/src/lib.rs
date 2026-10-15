@@ -10,6 +10,8 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(test)]
 mod book_commerce_tests;
+#[cfg(test)]
+mod character_tests;
 mod save_before_voice;
 
 #[cfg(test)]
@@ -2249,6 +2251,9 @@ impl SimHandle {
         // Raw bytes cannot be trimmed after the fact, so the untrimmed name
         // is held to the byte limit here; see `housemate_fields_within_bounds`.
         let within_bounds = match &command {
+            SimCommand::Character(command) => {
+                bytes.len() <= 262_144 && command.validate_structure().is_ok()
+            }
             SimCommand::SetChoreProfile {
                 responsibility,
                 preferences,
@@ -2485,14 +2490,59 @@ impl SimHandle {
         self.enqueue_command(&bytes)
     }
 
+    /// Returns the content-backed character editor catalog.
+    pub fn character_catalog(&self) -> Vec<u8> {
+        postcard::to_allocvec(&terri_sim::character_draft::catalog(
+            self.sim.world().resource::<Content>().0,
+        ))
+        .expect("character catalog serializes")
+    }
+
+    pub fn character_snapshot(&self, sim: u32) -> Vec<u8> {
+        postcard::to_allocvec(&terri_sim::character_draft::snapshot(self.sim.world(), sim).ok())
+            .expect("character snapshot serializes")
+    }
+
+    pub fn character_results(&mut self) -> Vec<u8> {
+        let results = self
+            .sim
+            .world_mut()
+            .get_resource_mut::<terri_sim::character_draft::CharacterResults>()
+            .map_or_else(Vec::new, |mut results| std::mem::take(&mut results.0));
+        postcard::to_allocvec(&results).expect("character results serialize")
+    }
+
+    pub fn character_appearances(&self) -> Vec<u8> {
+        let world = self.sim.world();
+        let mut rows = world
+            .try_query::<(terri_core::Entity, &terri_core::Agent, &terri_core::SimId)>()
+            .map_or_else(Vec::new, |mut query| {
+                query
+                    .iter(world)
+                    .map(|(entity, _, sim)| {
+                        let appearance = world
+                            .get::<terri_core::appearance::CharacterAppearanceV1>(entity)
+                            .cloned()
+                            .unwrap_or_else(|| {
+                                terri_sim::character_draft::legacy_appearance(sim.0)
+                            });
+                        (entity.index_u32(), sim.0, appearance)
+                    })
+                    .collect()
+            });
+        rows.sort_by_key(|row| row.1);
+        postcard::to_allocvec(&rows).expect("character appearances serialize")
+    }
+
+    pub fn appearance_hash(&self) -> u64 {
+        self.sim.appearance_hash()
+    }
+
     /// Serialises the running game for browser-owned persistent storage.
-    ///
-    /// The magic and little-endian schema version live outside postcard's
-    /// payload, so a future version can be rejected before this build tries to
-    /// interpret a shape it does not understand.
+    /// The header identifies the schema before the payload is decoded.
     pub fn save_bytes(&self) -> Vec<u8> {
-        let payload =
-            postcard::to_allocvec(&self.sim.save_snapshot_v9()).expect("SaveSnapshotV9 serialises");
+        let payload = postcard::to_allocvec(&self.sim.save_snapshot_v10())
+            .expect("SaveSnapshotV10 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -2516,11 +2566,27 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
-        if version == 9 {
-            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV9>(payload) {
-                Ok((snapshot, [])) => self.sim.load_snapshot_v9(snapshot).is_ok(),
+        if version == 10 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV10>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v10(snapshot).is_ok(),
                 _ => false,
             };
+        }
+        if version == 9 {
+            let social = postcard::take_from_bytes::<terri_core::SaveSnapshotV9>(payload)
+                .ok()
+                .filter(|(_, tail)| tail.is_empty())
+                .map(|(snapshot, _)| snapshot);
+            let character = postcard::take_from_bytes::<
+                terri_core::save_v10::LegacyCharacterSnapshotV9,
+            >(payload)
+            .ok()
+            .filter(|(_, tail)| tail.is_empty())
+            .map(|(snapshot, _)| snapshot);
+            return self
+                .sim
+                .load_historical_v9_candidates(social, character)
+                .is_ok();
         }
         if version == 6 {
             return match postcard::take_from_bytes::<terri_core::save_v6::FrozenSaveSnapshotV6>(
@@ -4294,15 +4360,15 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            9,
-            "the public writer must emit the schema-9 envelope"
+            10,
+            "the public writer must emit the schema-10 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&bytes));
         assert_eq!(
-            resumed.sim.save_snapshot_v2(),
-            uninterrupted.sim.save_snapshot_v2()
+            resumed.sim.save_snapshot_v10(),
+            uninterrupted.sim.save_snapshot_v10()
         );
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -4314,8 +4380,8 @@ mod boundary_tests {
             );
         }
         assert_eq!(
-            resumed.sim.save_snapshot_v2(),
-            uninterrupted.sim.save_snapshot_v2()
+            resumed.sim.save_snapshot_v10(),
+            uninterrupted.sim.save_snapshot_v10()
         );
     }
 
@@ -10279,7 +10345,7 @@ mod social_boundary_regressions {
                 break;
             }
         }
-        let saved = source.sim.save_snapshot_v9();
+        let saved = source.sim.save_snapshot_v10();
         let mut restored = terri_sim::Sim::new_with_lot(64, 64);
         let row = source
             .sim
@@ -10289,8 +10355,8 @@ mod social_boundary_regressions {
             .position(|id| *id == 1)
             .unwrap();
         assert_eq!(source.sim.render_buffer().visual_actions[row], 3);
-        assert_eq!(restored.load_snapshot_v9(saved.clone()), Ok(()));
-        assert_eq!(restored.save_snapshot_v9(), saved);
+        assert_eq!(restored.load_snapshot_v10(saved.clone()), Ok(()));
+        assert_eq!(restored.save_snapshot_v10(), saved);
         for _ in 0..20 {
             source.tick();
             restored.tick();

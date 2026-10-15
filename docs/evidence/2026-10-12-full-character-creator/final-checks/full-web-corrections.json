@@ -1,0 +1,5 @@
+{
+  "command": "npm --prefix web test -- --maxWorkers=1 tests/bridge.test.ts tests/housemate-form.test.ts tests/instance-batch-production.test.ts tests/skills-panel.test.ts tests/affinities-panel.test.ts tests/frame-audio.test.ts tests/options-menu.test.ts tests/personal-details.test.ts tests/sky.test.ts",
+  "exitCode": 0,
+  "verdict": "PASS"
+}

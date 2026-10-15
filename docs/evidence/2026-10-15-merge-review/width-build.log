@@ -1,0 +1,189 @@
+
+> build
+> vite build --outDir ../.local-build/merge-20261015/web-width
+
+vite v8.1.5 building client environment for production...
+[2K
+transforming...✓ 432 modules transformed.
+
+(!) outDir D:\VIBES\.worktrees\5637\terrilives\.local-build\merge-20261015\web-width is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../.local-build/merge-20261015/web-width/assets/save-worker-Ddp7uOL0.js                                                                    2.24 kB
+../.local-build/merge-20261015/web-width/assets/parts-CAWA1MQW.json                                                                        5.49 kB │ gzip:     1.60 kB
+../.local-build/merge-20261015/web-width/assets/parts-D1jPq1WK.json                                                                        6.46 kB │ gzip:     1.68 kB
+../.local-build/merge-20261015/web-width/assets/parts-BJgyS_ly.json                                                                        6.58 kB │ gzip:     1.58 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-C1P354iI.bin                                                          6.74 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-BrL8SpGq.bin                                                        6.74 kB
+../.local-build/merge-20261015/web-width/assets/parts-DLzoTgX9.json                                                                        6.96 kB │ gzip:     1.64 kB
+../.local-build/merge-20261015/web-width/assets/parts-BBKlS4xI.json                                                                        7.38 kB │ gzip:     1.52 kB
+../.local-build/merge-20261015/web-width/assets/parts-CZALCMum.json                                                                        7.50 kB │ gzip:     1.64 kB
+../.local-build/merge-20261015/web-width/assets/parts-1Bu9D9VH.json                                                                        7.84 kB │ gzip:     1.66 kB
+../.local-build/merge-20261015/web-width/assets/parts-Cq9LnJDJ.json                                                                        8.02 kB │ gzip:     1.84 kB
+../.local-build/merge-20261015/web-width/assets/parts-iEKsYa-Y.json                                                                        8.29 kB │ gzip:     1.89 kB
+../.local-build/merge-20261015/web-width/assets/parts-z3kwAftZ.json                                                                        9.31 kB │ gzip:     1.98 kB
+../.local-build/merge-20261015/web-width/assets/parts-b5XE7-Pq.json                                                                       10.60 kB │ gzip:     1.96 kB
+../.local-build/merge-20261015/web-width/assets/parts-B-gRj3m4.json                                                                       11.20 kB │ gzip:     2.25 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-DIWRHGbb.bin                                                         12.16 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-DQuALifC.bin                                                       12.16 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-iOuvvzgK.bin                                                        13.48 kB
+../.local-build/merge-20261015/web-width/assets/parts-WUhsIRdK.json                                                                       14.31 kB │ gzip:     2.21 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-BnodGIfh.bin                                                         15.50 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-Pew3Sgnb.bin                                                       15.50 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-Bx9jZ4QM.bin                                                         15.80 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-ca7isEso.bin                                                       15.80 kB
+../.local-build/merge-20261015/web-width/assets/parts-BVjgtavn.json                                                                       16.01 kB │ gzip:     2.30 kB
+../.local-build/merge-20261015/web-width/assets/parts-QhEjgRiD.json                                                                       16.86 kB │ gzip:     2.67 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-CXTcR62j.bin                                                         17.02 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-D_8ro98k.bin                                                       17.02 kB
+../.local-build/merge-20261015/web-width/assets/parts-T3ghSmku.json                                                                       17.11 kB │ gzip:     2.87 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-DUsEwddA.bin                                                              18.51 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-B8pzrtCi.bin                                                      18.51 kB
+../.local-build/merge-20261015/web-width/assets/parts-8z4FsTXN.json                                                                       19.88 kB │ gzip:     2.96 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-C1g9wwz_.bin                                                         24.06 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-DuzRWlu_.bin                                                       24.06 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-BMZKf7OG.bin                                                        24.32 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-BCyLCC3h.bin                                                        31.00 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-ChQIuyJx.bin                                                         31.26 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights--8l-QbYp.bin                                                       31.26 kB
+../.local-build/merge-20261015/web-width/assets/parts-DFTVdCwj.json                                                                       31.43 kB │ gzip:     2.80 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-DiK6Fjty.bin                                                        31.61 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-CZrnanYJ.bin                                                         32.52 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-CmJWShKC.bin                                                       32.52 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-WeWVHPaV.bin                                                        34.04 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-BYhcgm-x.bin                                                              36.00 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-DwDBBy-g.bin                                                      36.00 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-CkbMqlEL.bin                                                              38.78 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-C--27M86.bin                                                      38.78 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-Bb-7_DYL.bin                                                         38.91 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-DMvdqcMw.bin                                                       38.91 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-8esNp-vO.bin                                                              46.80 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-BDqOakhW.bin                                                      46.80 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-BUk_CR2R.bin                                                        48.12 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-2FNzC--n.bin                                                         49.84 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-Ct6iNRWl.bin                                                       49.84 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-DmkjeUP4.bin                                                              50.40 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-D7eIhXJJ.bin                                                      50.40 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-BEgxdkDu.bin                                                         50.64 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-CkPSn_cq.bin                                                       50.64 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-BPNX_Bs6.bin                                                                 53.95 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-h9NIsCvS.bin                                                             53.95 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-Ds1snF1A.bin                                                         55.42 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-DHaB4SBu.bin                                                       55.42 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-BjO_Eyqp.bin                                                        62.52 kB
+../.local-build/merge-20261015/web-width/index.html                                                                                       63.12 kB │ gzip:    14.82 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-10QvEBqa.bin                                                        65.05 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-B7v4_hOh.bin                                                         71.36 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-DvTM8vUd.bin                                                       71.36 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-CLhDfo7T.bin                                                              71.85 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-BnXgPeLz.bin                                                      71.85 kB
+../.local-build/merge-20261015/web-width/changelog/index.html                                                                             76.13 kB │ gzip:    18.98 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-qZqO4ceo.bin                                                        77.82 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-CtwjjPIo.bin                                                              89.18 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-k585Bh2Y.bin                                                      89.18 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-DIamPoj0.bin                                                              91.58 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-SkzUPkwL.bin                                                      91.58 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-Cdv2_ypI.bin                                                                 97.28 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-BIVHVyjw.bin                                                             97.28 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-sdk9fCQL.bin                                                        99.68 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-DEi5eStW.bin                                                       101.28 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-CadKfBAx.bin                                                       110.84 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-BMZpZR5E.bin                                                             115.20 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-DxhbkTaK.bin                                                     115.20 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-0P_SAPZI.bin                                                                124.03 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-Ban4dnXu.bin                                                            124.03 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-CtIovlCN.bin                                                        124.86 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-f9Df20FO.bin                                                      124.86 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-D6hvoSmf.bin                                                                126.46 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-BWkMOQwJ.bin                                                            126.46 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-C4Ip9rMq.bin                                                        134.96 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-CMasaypd.bin                                                      134.96 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-CVooRTz8.bin                                                                136.19 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-DdSoq6qq.bin                                                                136.19 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-CI5sqHnX.bin                                                            136.19 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-DtvG45Fx.bin                                                            136.19 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-CUnfWUaX.bin                                                       142.72 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-D6VYAKjc.bin                                                             147.81 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-DitPThSI.bin                                                     147.81 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-ZzgU-J9B.bin                                                             150.57 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-BoRaOARq.bin                                                     150.57 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-Br89ELVp.bin                                                             164.85 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-DgdlMwhn.bin                                                     164.85 kB
+../.local-build/merge-20261015/web-width/assets/base-pixels-CGl6g8Or.rgba                                                                184.32 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-DBS31bmG.bin                                                                192.51 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-BKHOXhnk.bin                                                            192.51 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-BfQyzCr4.bin                                                             212.40 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-BxL9CjJc.bin                                                     212.40 kB
+../.local-build/merge-20261015/web-width/assets/source-pixels-DiqbsDeD.rgba                                                              217.60 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-BpZiAt6E.bin                                                       249.72 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-B1qnV-tt.bin                                                                250.11 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-Dr73xjjh.bin                                                            250.11 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-Dhw79FRU.bin                                                                260.22 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-7tLkIoXl.bin                                                            260.22 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-CED-sOmU.bin                                                       269.92 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-B0-m5cBW.bin                                                                311.29 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-BuGovt_O.bin                                                                311.29 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-CXYLGymF.bin                                                            311.29 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-nxHb3Efm.bin                                                            311.29 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-BPGl_lvZ.bin                                                             372.96 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-BpVGSOHo.bin                                                     372.96 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-C_ut2vX_.bin                                                             392.59 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-DUvI4NDY.bin                                                     392.59 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-C_TDWAls.bin                                                                398.72 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-DJACI6Dj.bin                                                            398.72 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-Dmg8HxPN.bin                                                                405.12 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-CVQ-pyiw.bin                                                            405.12 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-DXuPMack.bin                                                                443.39 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-CRaRh20a.bin                                                            443.39 kB
+../.local-build/merge-20261015/web-width/assets/render-pixels-Bl8vNXUz.rgba                                                              450.56 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-DnOG-25j.bin                                                        506.75 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-Dz7KAPG7.bin                                                      506.75 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-w92svHoF.bin                                                                570.88 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-CKDbJG4_.bin                                                            570.88 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalRanges-BOyampBs.bin                                                        983.10 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-CVLC8BYl.bin                                                                998.91 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-DbVfunKo.bin                                                            998.91 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-rTBGQ8fV.bin                                                     1,013.50 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-B_6tkHWt.bin                                                              1,058.17 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-CrUP1KLt.bin                                                          1,079.68 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-Cj6kXsJw.bin                                                           1,498.89 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-DgxvESjS.bin                                                   1,498.89 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilRanges-BJQc2qPu.bin                                                     1,966.20 kB
+../.local-build/merge-20261015/web-width/assets/runtime.indices-DczNUgjw.bin                                                           2,798.11 kB
+../.local-build/merge-20261015/web-width/assets/runtime.normalTriangles-LaqE7zy1.bin                                                   2,798.11 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-Qnakb9K3.bin                                                              3,856.32 kB
+../.local-build/merge-20261015/web-width/assets/runtime.cage-BGf54hXF.bin                                                              4,054.01 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-BJzLd4Sd.bin                                                          4,054.01 kB
+../.local-build/merge-20261015/web-width/assets/preparation-worker-DdKXMRR3.js                                                         4,845.53 kB
+../.local-build/merge-20261015/web-width/assets/terri_wasm_bg-BPvXwH75.wasm                                                            5,372.95 kB │ gzip: 1,753.38 kB
+../.local-build/merge-20261015/web-width/assets/runtime.vertices-1XuvGrzg.bin                                                          7,864.83 kB
+../.local-build/merge-20261015/web-width/assets/runtime.stencilWeights-snRZU28T.bin                                                   12,325.68 kB
+../.local-build/merge-20261015/web-width/assets/color-309123079f75fc699fd261e054bf4036d0ab1d4552621889af6c60217d319085-BZKtc086.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/color-7c84521638dd6844e2238e05cd739f7e44932133c091970b8cfaaddd6e183079-DKA6EEtW.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/color-b3a69c9d11684069df7c78d48961c2a58d8a13b3ff53f8115e647e0bb3a0ea6f-B5oFCQpG.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-09538b9043abc023c75a0f4f9fec73079c1d71fa7c9b9f50f3e381e6604e4012-BtJRnOhh.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-1e33df4b9dd56e8794eb7209d31a9852d35ef5121fb483441054d701d58480f7-DmWE-6Oz.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-537fa04530194f515f1b54dc5bf4d7831c3e7f5ae6e197bc9f2415560b8ebdf0-C40RYXVK.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7-BtfAuu7D.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9-DBYyAawo.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-eaf741397ee951a975b258c3f004540f4a36eabc7fd4d2ee11439fd85485f7e1-DMWXXPOd.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-f18a18ffa0faf9a662bf582bd570a1394554531e2badfe0dd05486776bf094fe-BRdVprCe.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/depth-f36822143eeddb76a5b1044c07200bc3fb41231dea7208116ada62680c13d174-DoDOVHR7.rgba  16,777.21 kB
+../.local-build/merge-20261015/web-width/assets/index-eOq4i1-R.css                                                                        28.69 kB │ gzip:     6.13 kB
+../.local-build/merge-20261015/web-width/assets/index-9APnBMNI.js                                                                     14,853.42 kB │ gzip: 2,155.89 kB
+
+[INEFFECTIVE_DYNAMIC_IMPORT] src/render/character/creator-assets.ts is dynamically imported by src/render/character/bike-contact-preparation.ts, src/render/character/sleep-contact-preparation.ts but also statically imported by src/render/character/world.ts, src/ui/character-creator/preview.ts, dynamic import will not move module into another chunk.
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - vite:asset (77%)
+  - vite:prepare-out-dir (14%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+✓ built in 16.20s

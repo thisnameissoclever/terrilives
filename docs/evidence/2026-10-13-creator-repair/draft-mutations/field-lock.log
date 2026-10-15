@@ -1,0 +1,50 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web
+
+ ❯ tests/creator-repair.test.ts (11 tests | 2 failed) 106ms
+   × treats baldness and hairstyle as one edit and one randomization lock 4ms
+   × permits no manually selected traits and respects locks on absent traits and gender 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/creator-repair.test.ts > treats baldness and hairstyle as one edit and one randomization lock
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/creator-repair.test.ts:38:39
+     36|   expect(draft.value.appearance.hairstyle).toBe(source.appearance.hair…
+     37|   draft.lock('appearance.hairstyle',true);draft.randomize('appearance'…
+     38|   expect(draft.value.appearance.bald).toBe(true);expect(draft.value.ap…
+       |                                       ^
+     39|   draft.reset('appearance.hairstyle');expect(draft.value.appearance.ba…
+     40|   draft.undo();expect(draft.value.appearance.bald).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/creator-repair.test.ts > permits no manually selected traits and respects locks on absent traits and gender
+AssertionError: expected 'Sebastian' to be 'Keep name' // Object.is equality
+
+Expected: "Keep name"
+Received: "Sebastian"
+
+ ❯ tests/creator-repair.test.ts:78:129
+     76|   for(const trait of catalog.traits)draft.lock(JSON.stringify(['trait'…
+     77|   draft.lock('appearance.presentation',true);draft.lock('name',true);d…
+     78|   expect(draft.value.traits).toEqual([]);expect(draft.value.appearance…
+       |                                                                                                                                 ^
+     79|   draft.set(JSON.stringify(['trait','trait0']),true);draft.set(JSON.st…
+     80| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 passed (11)
+   Start at  13:37:12
+   Duration  319ms (transform 54ms, setup 0ms, import 68ms, tests 106ms, environment 0ms)
+

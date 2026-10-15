@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  4 passed (4)
+      Tests  76 passed (76)
+   Start at  12:43:10
+   Duration  35.61s (transform 12.58s, setup 0ms, import 33.58s, tests 1.39s, environment 0ms)
+

@@ -1,0 +1,31 @@
+
+> test
+> vitest run --maxWorkers=1 tests/frame.test.ts tests/scene-sampling.test.ts tests/instance-batch-production.test.ts tests/instances.test.ts tests/iso.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/frame.test.ts (113 tests | 1 failed) 1017ms
+     × separates eligible person annotations from physical rows and resets the borrowed range 649ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/frame.test.ts > buildInstances > separates eligible person annotations from physical rows and resets the borrowed range
+Error: the sprite atlas has no sprite named activityEating
+ ❯ spriteIndex src/render/atlas.ts:234732:11
+    234730|   const index = SPRITES.findIndex((sprite) => sprite.name === name);
+    234731|   if (index < 0) {
+    234732|     throw new Error(`the sprite atlas has no sprite named ${name}`);
+       |           ^
+    234733|   }
+    234734|   return index;
+ ❯ tests/frame.test.ts:1339:72
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 171 passed (172)
+   Start at  13:59:55
+   Duration  41.52s (transform 11.79s, setup 0ms, import 39.74s, tests 1.10s, environment 0ms)
+

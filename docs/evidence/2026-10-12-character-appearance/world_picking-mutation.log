@@ -1,0 +1,6 @@
+page.evaluate: Error: World picking did not cover occlusion/identity: 0/138/88
+    at eval (eval at evaluate (:311:30), <anonymous>:8:53)
+    at async <anonymous>:337:30
+    at D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\appearance-proof\verify_motion.cjs:21:28 {
+  log: []
+}

@@ -29,9 +29,9 @@
 //   w = how shaded from the sky the instance is ([OS-daylight]), 0 outdoors.
 //
 // Not alpha for a mechanical reason as well as a naming one: the
-// fragment shader alpha-TESTS at 0.5 and writes depth, so anything
-// scaling alpha would move the discard threshold and erode every sprite
-// edge as the light changed.
+// fragment shader resolves alpha coverage per scene sample and writes
+// depth, so scaling alpha with light would change visible coverage and
+// erode every sprite edge as the light changed.
 //
 // One atlas serves both layers: opaque sprites first, translucent short
 // walls second. Both draws share a bind group, render pass and submission.
@@ -39,6 +39,9 @@
 const SURFACE_DEPTH_PROJECTION: f32 = -2.0;
 const DINING_BACKGROUND: f32 = -3.0;
 const DINING_FOREGROUND: f32 = -4.0;
+const SURFACE_PLANE_PROJECTION: f32 = -5.0;
+const REGISTERED_SURFACE_DEPTH: f32 = -8.0;
+const SHELF_SURFACE_DEPTH:f32=-9.0;
 
 struct Uniforms {
   viewport: vec2<f32>,
@@ -145,7 +148,7 @@ struct DiningSupport { records: array<vec4f>, };
 override grimePass: bool = false;
 
 struct VertexOut {
-  @location(14) @interpolate(flat) grimeOpacity: f32,
+  @location(14) @interpolate(flat) ownership:vec2u,
   @builtin(position) clip: vec4<f32>,
   @location(0) uv: vec2<f32>,
   @location(2) @interpolate(flat) uvBounds: vec4<f32>,
@@ -176,7 +179,7 @@ const CORNERS = array<vec2<f32>, 6>(
   vec2f(0.0, 1.0), vec2f(1.0, 0.0), vec2f(1.0, 1.0),
 );
 
-fn vertex(vi: u32, instance: vec4f, tint: vec4f, wall: vec4f, colourway: vec4f, opacity: f32) -> VertexOut {
+fn vertex(vi: u32, instance: vec4f, tint: vec4f, wall: vec4f, colourway: vec4f, opacity: f32, owner:u32) -> VertexOut {
   let sprite = atlas.sprites[u32(instance.w)];
   let corner = CORNERS[vi];
   let size = sprite.size.xy;
@@ -212,7 +215,8 @@ fn vertex(vi: u32, instance: vec4f, tint: vec4f, wall: vec4f, colourway: vec4f, 
   );
 
   var out: VertexOut;
-  out.grimeOpacity = opacity;
+
+  out.ownership=vec2u(owner,bitcast<u32>(opacity));
   out.clip = vec4f(clipXy, instance.z, 1.0);
   out.uv = mix(sprite.uv.xy, sprite.uv.zw, textureCorner);
   out.uvBounds = sprite.uv;
@@ -248,16 +252,17 @@ fn vs(
   @location(1) tint: vec4<f32>,
   @location(2) wall: vec4<f32>,
   @location(3) colourway: vec4<f32>,
+  @location(5) owner:u32,
 ) -> VertexOut {
-  return vertex(vi, instance, tint, wall, colourway, 1.0);
+  return vertex(vi, instance, tint, wall, colourway, 1.0, owner);
 }
 
 @vertex
 fn vsGrime(@builtin(vertex_index) vi: u32,
   @location(0) instance: vec4f, @location(1) tint: vec4f,
   @location(2) wall: vec4f, @location(3) colourway: vec4f,
-  @location(4) opacity: f32) -> VertexOut {
-  return vertex(vi, instance, tint, wall, colourway, opacity);
+  @location(4) opacity: f32, @location(5) owner:u32) -> VertexOut {
+  return vertex(vi, instance, tint, wall, colourway, opacity,owner);
 }
 
 // [RC-shift]: turns a straight-alpha colour's hue and scales its colour
@@ -297,7 +302,10 @@ fn recolour(rgb: vec3<f32>, shift: vec4<f32>) -> vec3<f32> {
   return select(1.055 * pow(back, vec3f(1.0 / 2.4)) - 0.055, back * 12.92, back <= vec3f(0.0031308));
 }
 
+override sceneTranslucent:bool=false;
 struct FragmentOut {
+  @location(1) surface:f32,
+  @location(2) identity:u32,
   @location(0) colour: vec4<f32>,
   @builtin(frag_depth) depth: f32,
 };
@@ -333,7 +341,21 @@ fn linearToSrgb(rgb: vec3f) -> vec3f {
     rgb * 12.92, rgb <= vec3f(0.0031308));
 }
 
-fn bedLayer(reference: u32, corner: vec2f, sceneSize: vec2f) -> vec4f {
+// Filter straight source artwork in linear premultiplied space before coverage.
+fn sampleAtlasColor(uv:vec2f,page:i32)->vec4f {
+  let at=uv*vec2f(textureDimensions(atlasTexture))-.5;
+  let pixel=vec2i(floor(at));let f=fract(at);
+  var sum=vec4f(0.);
+  for(var y=0;y<2;y++){for(var x=0;x<2;x++){
+    let texel=textureLoad(atlasTexture,pixel+vec2i(x,y),page,0);
+    let weight=select(1.-f.x,f.x,x==1)*select(1.-f.y,f.y,y==1);
+    sum+=vec4f(sceneLinear(texel.rgb)*texel.a,texel.a)*weight;
+  }}
+  if(sum.a<=0.){return vec4f(0.);}
+  return vec4f(sceneEncoded(sum.rgb/sum.a),sum.a);
+}
+
+fn bedLayerAt(reference: u32, corner: vec2f, sceneSize: vec2f, point:bool) -> vec4f {
   if (reference == 0u) { return vec4f(0.0); }
   let sprite = atlas.sprites[reference - 1u];
   var sampleCorner = corner;
@@ -344,22 +366,25 @@ fn bedLayer(reference: u32, corner: vec2f, sceneSize: vec2f) -> vec4f {
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(mix(sprite.uv.xy, sprite.uv.zw, sampleCorner),
     sprite.uv.xy + halfTexel, sprite.uv.zw - halfTexel);
+  if(point){return textureLoad(atlasTexture,vec2i(floor(uv*vec2f(textureDimensions(atlasTexture)))),i32(sprite.registration.z),0);}
   return textureSampleLevel(atlasTexture, atlasSampler, uv, i32(sprite.registration.z), 0.0);
 }
 
-fn shelfDifference(pair: vec2u, corner: vec2f, sceneSize: vec2f) -> vec3f {
+fn bedLayer(reference:u32,corner:vec2f,sceneSize:vec2f)->vec4f {return bedLayerAt(reference,corner,sceneSize,false);}
+fn shelfDifferenceAt(pair: vec2u, corner: vec2f, sceneSize: vec2f,point:bool) -> vec3f {
   if (pair.x == 0u) { return vec3f(0.0); }
   let sprite = atlas.sprites[pair.x - 1u];
   let local = (corner * sceneSize - sprite.registration.xy) / sprite.size.xy;
   if (any(local < vec2f(0.0)) || any(local > vec2f(1.0))) { return vec3f(0.0); }
-  let high = bedLayer(pair.x, corner, sceneSize).rgb;
-  let low = bedLayer(pair.y, corner, sceneSize).rgb;
+  let high = bedLayerAt(pair.x, corner, sceneSize,point).rgb;
+  let low = bedLayerAt(pair.y, corner, sceneSize,point).rgb;
   let code = (high * 255.0 - 128.0) * 256.0 + low * 255.0;
   return select(code, vec3f(0.0), abs(code) <= vec3f(0.0625)) / 32767.0;
 }
 
-@fragment
-fn fs(in: VertexOut) -> FragmentOut {
+fn shelfDifference(pair:vec2u,corner:vec2f,sceneSize:vec2f)->vec3f {return shelfDifferenceAt(pair,corner,sceneSize,false);}
+
+fn shadeFragment(in: VertexOut) -> FragmentOut {
   // Complementary passes reconstruct the same complete occupied colour.
   // Only tabletop geometry changes depth; no meal pixels are drawn twice.
   if (in.wall.x == DINING_BACKGROUND || in.wall.x == DINING_FOREGROUND) {
@@ -376,7 +401,12 @@ fn fs(in: VertexOut) -> FragmentOut {
   // the transparent atlas gutter darkens every panel seam at fractional zoom.
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
-  var colour = textureSample(atlasTexture, atlasSampler, uv, i32(in.page));
+  let fixturePixel = vec2i(floor(uv * vec2f(textureDimensions(atlasTexture))));
+  let registered=in.wall.x==REGISTERED_SURFACE_DEPTH||in.wall.x==SHELF_SURFACE_DEPTH;
+  var colour:vec4f;
+  if(registered){colour=textureLoad(atlasTexture,fixturePixel,i32(in.page),0);}
+  else{colour=sampleAtlasColor(uv,i32(in.page));}
+
   let architectureFloor = isArchitectureFloor(in.wall.x);
   let architecture = isArchitecture(in.wall.x);
   var architecturePixel = vec2i(0);
@@ -399,7 +429,7 @@ fn fs(in: VertexOut) -> FragmentOut {
         let height = (21.0 * localSum - localPixel.y) / 38.0;
         var coordinates = vec2f(in.groundOrigin.x + in.groundOrigin.y + localSum, height);
         if (architectureFloor) {
-          let groundScreen = (in.clip.xy - u.scale.yz) / u.scale.x;
+          let groundScreen = (in.clip.xy * .5 - u.scale.yz) / u.scale.x;
           coordinates = vec2f((groundScreen.y / 21.0 + groundScreen.x / 32.0) * 0.5,
             (groundScreen.y / 21.0 - groundScreen.x / 32.0) * 0.5) + vec2f(0.5);
         }
@@ -421,12 +451,18 @@ fn fs(in: VertexOut) -> FragmentOut {
   }
   if (in.sceneExtra.y > 0u && in.bed.x == 0u) {
     let base = atlas.sprites[in.sceneExtra.z - 1u];
-    colour = bedLayer(in.sceneExtra.z, in.corner, base.size.xy);
+    var stockCorner=in.corner;
+    let point=in.wall.x==SHELF_SURFACE_DEPTH;
+    if(point){
+      let size=vec2f(textureDimensions(atlasTexture));
+      stockCorner=(vec2f(fixturePixel)-round(in.uvBounds.xy*size)+.5)/round((in.uvBounds.zw-in.uvBounds.xy)*size);
+    }
+    colour = bedLayerAt(in.sceneExtra.z, stockCorner, base.size.xy,point);
     var rgb = colour.rgb;
     for (var row = 0u; row < 4u; row++) {
       let state = (in.sceneExtra.w >> (row * 6u)) & 63u;
       let pair = beds.records[in.sceneExtra.y - 1u + row * 64u + state].layers.xy;
-      rgb += shelfDifference(pair, in.corner, base.size.xy);
+      rgb += shelfDifferenceAt(pair, stockCorner, base.size.xy,point);
     }
     colour = vec4f(clamp(rgb, vec3f(0.0), vec3f(1.0)), colour.a);
   } else if (in.bed.x > 0u) {
@@ -486,11 +522,11 @@ fn fs(in: VertexOut) -> FragmentOut {
   // discard, every sprite's transparent bounding box would claim depth
   // too, and a bed would occlude a strip of floor and any sim behind it
   // in a rectangle nothing is drawn in. A discarded fragment writes no
-  // depth, which is what makes the alpha genuinely see-through.
+  // depth, which is what makes the alpha see-through.
   //
-  // 0.5 rather than 0: keeping the partially-covered edge texels means
-  // they blend against whatever is behind, which is what the alpha blend
-  // configured in sprites.ts is for.
+  // Opaque draws resolve partial coverage on the shared four-sample grid.
+  // Translucent walls and grime blend linear premultiplied color without
+  // replacing the resolved surface depth or identity.
   var visibleAlpha = colour.a;
   var jointLayer = in.sceneExtra.w;
   if (in.bed.x > 0u && in.sceneExtra.y > 0u) {
@@ -504,7 +540,7 @@ fn fs(in: VertexOut) -> FragmentOut {
     visibleAlpha = textureSampleLevel(jointAlpha, atlasSampler,
       (registration.xy + sampleCorner * sceneSize) / vec2f(textureDimensions(jointAlpha)), i32(registration.z), 0.0).r;
   }
-  if ((!grimePass && visibleAlpha < 0.5) || (grimePass && visibleAlpha <= 0.0)) {
+  if ((!grimePass && !sceneTranslucent && !sceneCovered(visibleAlpha,in.clip.xy)) || ((grimePass || sceneTranslucent) && visibleAlpha <= 0.0)) {
     discard;
   }
   if (in.bed.x > 0u) {
@@ -535,7 +571,7 @@ fn fs(in: VertexOut) -> FragmentOut {
   let lit = mix(daylight, vec3f(1.0), in.tint.w);
   var out: FragmentOut;
   out.colour = vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
-  if (grimePass) { out.colour.a *= in.grimeOpacity; }
+  if (grimePass) { out.colour.a *= bitcast<f32>(in.ownership.y); }
   out.depth = in.clip.z;
   if (architecture) {
     let localSum = textureLoad(architectureDepth, architecturePixel, 0).r;
@@ -548,6 +584,24 @@ fn fs(in: VertexOut) -> FragmentOut {
     // Coverage was tested above. Short walls blend after opaque geometry
     // without claiming depth, including when their current opacity is one.
     if (short) { out.colour.a *= in.wall.z; }
+  } else if (in.wall.x == REGISTERED_SURFACE_DEPTH || in.wall.x == SHELF_SURFACE_DEPTH) {
+    let surface = atlas.sprites[u32(in.wall.z)];
+    let atlasSize = vec2f(textureDimensions(atlasTexture));
+    let local = fixturePixel - vec2i(round(in.uvBounds.xy * atlasSize));
+    let sourcePixel = vec2i(round(surface.uv.xy * atlasSize)) + local;
+    let sample = textureLoad(atlasTexture, sourcePixel, i32(surface.registration.z), 0);
+    var sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0;
+    if(in.wall.x==SHELF_SURFACE_DEPTH){
+      let mask=u32(in.wall.w);
+      for(var slot=0u;slot<24u;slot++){
+        if((mask&(1u<<slot))==0u){continue;}
+        let layer=atlas.sprites[u32(in.wall.z)+1u+slot];
+        let at=vec2i(round(layer.uv.xy*atlasSize))+local;
+        let covered=textureLoad(atlasTexture,at,i32(layer.registration.z),0);
+        if(covered.a>0.){sum=max(sum,dot(covered.rg,vec2f(65280.,255.))/65535.*4.-2.);}
+      }
+    }
+    out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);
   } else if (in.wall.x == SURFACE_DEPTH_PROJECTION) {
     let surface = atlas.sprites[u32(in.wall.z)];
     let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
@@ -559,6 +613,9 @@ fn fs(in: VertexOut) -> FragmentOut {
     // Flush threshold pixels share the floor's ordering convention, just
     // ahead of the tile but behind the leaf, casing and every person's feet.
     if (sample.b > 0.5) { out.depth = 1.0 - 1.0 / 4096.0 * 0.625; }
+  } else if (in.wall.x == SURFACE_PLANE_PROJECTION) {
+    let sum = in.localPixel.y / 21.0 + in.wall.z;
+    out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);
   } else if (in.wall.x < 0.0) {
     // Intersect the view column x-y=t with the centered rectangular
     // footprint. Its interval midpoint in x+y is this clamped slope.
@@ -570,5 +627,21 @@ fn fs(in: VertexOut) -> FragmentOut {
     let offset = sign(span) * clamp(t, -abs(span), abs(span));
     out.depth = clamp(in.clip.z - offset * in.wall.y, 0.0, 1.0);
   }
+  let opacity=select(1.0,out.colour.a,grimePass||sceneTranslucent);
+  out.colour=vec4f(sceneLinear(out.colour.rgb)*opacity,opacity);
+  out.surface=out.depth;out.identity=in.ownership.x;
   return out;
+}
+
+@fragment
+fn fs(in:VertexOut)->FragmentOut {return shadeFragment(in);}
+
+struct AnnotationOut {
+  @location(0) colour:vec4f,
+  @location(1) owner:u32,
+};
+@fragment
+fn fsAnnotation(in:VertexOut)->AnnotationOut {
+  let shaded=shadeFragment(in);
+  return AnnotationOut(shaded.colour,in.ownership.x);
 }

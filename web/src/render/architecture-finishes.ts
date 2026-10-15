@@ -1,6 +1,10 @@
 import { ARCHITECTURE } from './architecture-data.js';
 import { MAX_ARCHITECTURE_FINISH_SLOT } from './instances.js';
 
+// Atlas, architecture depth/color/roles, and joint alpha are always resident.
+export const SPRITE_BASE_TEXTURE_COUNT=5;
+export const MAX_ARCHITECTURE_PATTERN_COUNT=12;
+
 export interface FinishCatalogue {
   readonly patterns: Readonly<Record<string, { readonly role: 'wall' | 'floor';
     readonly period: readonly number[]; readonly resource: string }>>;
@@ -55,7 +59,8 @@ export function prepareArchitectureFinishes(keys: readonly string[],
     table.set([activeResources.indexOf(pattern.resource), pattern.role === 'wall' ? 1 : 2,
       ...pattern.period, ...palette.multiply, 0], index * 8);
   });
-  if (activeResources.length > Math.min(12, limits.maxSampledTexturesPerShaderStage - 4)) {
+  if (activeResources.length > Math.min(MAX_ARCHITECTURE_PATTERN_COUNT,
+    limits.maxSampledTexturesPerShaderStage - SPRITE_BASE_TEXTURE_COUNT)) {
     throw new Error('Active architecture patterns exceed device sampled texture limits');
   }
   const pixels = ARCHITECTURE.width * ARCHITECTURE.height;
@@ -73,7 +78,7 @@ export function architectureFinishSlot(active: ActiveFinishes, key: string): num
 
 /** The resource switch is generated per resident texture, never per finish. */
 export function architecturePatternShader(count: number): string {
-  if (!Number.isInteger(count) || count < 0 || count > 12) throw new Error('Invalid pattern binding count');
+  if (!Number.isInteger(count) || count < 0 || count > MAX_ARCHITECTURE_PATTERN_COUNT) throw new Error('Invalid pattern binding count');
   const declarations = Array.from({ length: count }, (_, index) =>
     `@group(0) @binding(${11 + index}) var architecturePattern${index}: texture_2d<f32>;`).join('\n');
   const cases = Array.from({ length: count }, (_, index) =>

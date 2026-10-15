@@ -1,0 +1,12 @@
+{
+  "case": "wave hairstyle, angular face, all face sliders 100, masculine body height/build/shoulders/hips 100 and torso 0",
+  "currentSearchLimitDegrees": 35,
+  "requiredHeadMinX": -0.414,
+  "measuredHeadMinX": [
+    {"degrees": 35, "minimumX": -0.44426643893270124},
+    {"degrees": 40, "minimumX": -0.42933686392885206},
+    {"degrees": 45, "minimumX": -0.41298284179234707}
+  ],
+  "cause": "The initial bounded pose search stopped before a fitting axial head turn; wall and fixture bounds remain unchanged.",
+  "scope": "Read-only measurement in the independent validation copy; diagnostic instrumentation removed by restoring exact live source bytes."
+}

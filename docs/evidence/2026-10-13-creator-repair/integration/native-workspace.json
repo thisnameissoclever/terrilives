@@ -1,0 +1,11 @@
+{
+  "command": "cargo test --locked -j 1 --workspace -- --test-threads=1",
+  "exitCode": 0,
+  "status": "PASS",
+  "totals": {
+    "passed": 2089,
+    "failed": 0,
+    "ignored": 1
+  },
+  "scope": "Full native workspace baseline before the newly discovered dining-setting repair. The ignored example requires an explicitly supplied private save; no private save was requested or used. The dining repair has its own red/green and lifecycle receipts."
+}

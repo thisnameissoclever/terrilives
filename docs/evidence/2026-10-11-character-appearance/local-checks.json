@@ -1,0 +1,14 @@
+[
+  {
+    "name": "web-tests",
+    "command": "npm --prefix web test -- --maxWorkers=1 character- atlas.test.ts",
+    "exitCode": 1,
+    "verdict": "FAIL"
+  },
+  {
+    "name": "web-build",
+    "command": "npm --prefix web run build",
+    "exitCode": 0,
+    "verdict": "PASS"
+  }
+]

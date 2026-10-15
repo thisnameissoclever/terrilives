@@ -1,0 +1,201 @@
+{
+  "errors": [],
+  "motion": [
+    {
+      "presentation": "masculine",
+      "height": 0,
+      "build": 0,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579381748874281e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 0,
+      "build": 50,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579381748874281e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 0,
+      "build": 100,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579381748874281e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 50,
+      "build": 0,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.5767152173381875e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 50,
+      "build": 50,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.5767152173381875e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 50,
+      "build": 100,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.5767152173381875e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 100,
+      "build": 0,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579575600955383e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 100,
+      "build": 50,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579575600955383e-7
+      }
+    },
+    {
+      "presentation": "masculine",
+      "height": 100,
+      "build": 100,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579575600955383e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 0,
+      "build": 0,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579381748874281e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 0,
+      "build": 50,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579381748874281e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 0,
+      "build": 100,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579381748874281e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 50,
+      "build": 0,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.577054704474748e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 50,
+      "build": 50,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.5767152173381875e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 50,
+      "build": 100,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.5767152173381875e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 100,
+      "build": 0,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579575600955383e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 100,
+      "build": 50,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579575600955383e-7
+      }
+    },
+    {
+      "presentation": "feminine",
+      "height": 100,
+      "build": 100,
+      "samples": 172,
+      "surface": {
+        "vertices": 64801,
+        "maxError": 3.579575600955383e-7
+      }
+    }
+  ],
+  "picking": {
+    "testedPixels": 226,
+    "hiddenActors": 81,
+    "visibleActors": 57,
+    "fixtures": 88,
+    "personPosition": [
+      3,
+      3.0599999986588955
+    ]
+  },
+  "cleanup": {
+    "cycles": 8,
+    "created": 120,
+    "remaining": 0
+  },
+  "gpuErrors": []
+}

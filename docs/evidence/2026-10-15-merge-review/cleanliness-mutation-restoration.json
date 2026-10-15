@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "cases": 18,
+  "sourceRestoredSha256": "98ffc6923c723592d77f95a8c48e7938111cafc32817fe809c11b6985490607c",
+  "originalWorkspaceUnchanged": true,
+  "scope": "terri-core cleanliness functions, package tests; full workspace baseline already passed; not the exhaustive remote mutation sweep"
+}

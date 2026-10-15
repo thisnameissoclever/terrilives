@@ -34,7 +34,7 @@ export async function initDevice(
   if (!adapter) {
     throw new NoGpuAdapterError();
   }
-  const device = await adapter.requestDevice();
+  const device = await adapter.requestDevice({requiredLimits:{maxTextureDimension2D:adapter.limits.maxTextureDimension2D}});
   const context = canvas.getContext('webgpu');
   if (!context) {
     throw new Error('Could not acquire a WebGPU canvas context.');

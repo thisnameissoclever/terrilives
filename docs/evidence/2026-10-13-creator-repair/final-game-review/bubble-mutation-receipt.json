@@ -1,0 +1,105 @@
+{
+  "command": "node scripts/character-creator-repair/final-game-bubble-mutation.cjs",
+  "observations": [
+    {
+      "label": "baseline",
+      "bubbleSamples": 3807,
+      "baselineHeadSamples": 4676,
+      "bubbleBottomEdge": 462.5,
+      "baselineHeadTopEdge": 470.5,
+      "clearLogicalPixels": 8,
+      "overlapSubpixels": 0,
+      "overlapWitnesses": [],
+      "outsideBubbleIdentityChanges": 0,
+      "anchorMutationCalls": 0
+    },
+    {
+      "label": "lowered-head-anchor-mutant",
+      "bubbleSamples": 5889,
+      "baselineHeadSamples": 4676,
+      "bubbleBottomEdge": 479,
+      "baselineHeadTopEdge": 470.5,
+      "clearLogicalPixels": -8.5,
+      "overlapSubpixels": 208,
+      "overlapWitnesses": [
+        [
+          406.25,
+          470.75
+        ],
+        [
+          406.75,
+          470.75
+        ],
+        [
+          407.75,
+          470.75
+        ],
+        [
+          408.25,
+          470.75
+        ],
+        [
+          408.75,
+          470.75
+        ],
+        [
+          409.25,
+          470.75
+        ],
+        [
+          409.75,
+          470.75
+        ],
+        [
+          410.25,
+          470.75
+        ]
+      ],
+      "outsideBubbleIdentityChanges": 0,
+      "anchorMutationCalls": 103
+    },
+    {
+      "label": "restored",
+      "bubbleSamples": 3807,
+      "baselineHeadSamples": 4676,
+      "bubbleBottomEdge": 462.5,
+      "baselineHeadTopEdge": 470.5,
+      "clearLogicalPixels": 8,
+      "overlapSubpixels": 0,
+      "overlapWitnesses": [],
+      "outsideBubbleIdentityChanges": 0,
+      "anchorMutationCalls": 0
+    }
+  ],
+  "diagnostics": [
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "productionHashesBefore": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "methodRestored": true,
+  "status": "PASS",
+  "productionHashesAfter": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "productionUnchanged": true
+}

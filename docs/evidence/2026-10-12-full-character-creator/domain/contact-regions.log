@@ -1,0 +1,35 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-clips.test.ts (3 tests | 1 failed) 5530ms
+   × solves production clips at proof endpoints and independent body corners 5447ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-clips.test.ts > solves production clips at proof endpoints and independent body corners
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "bath masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for bath.",
++ ]
+
+ ❯ tests/character-clips.test.ts:48:20
+     46|     }
+     47|   }
+     48|   expect(failures).toEqual([]);
+       |                    ^
+     49| },30000);
+     50|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  20:51:05
+   Duration  5.72s (transform 72ms, setup 0ms, import 95ms, tests 5.53s, environment 0ms)
+

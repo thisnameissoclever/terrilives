@@ -1,0 +1,102 @@
+[
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-contact-compile.ts",
+    "Hash": "0C8F165C60D77439C2EB0A1AC0BDB72C8C656F1939FC44B2E8F0ED1356635C35"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-contact-identity.ts",
+    "Hash": "F7BDEACBCCD3E3DFFD4FA98AAE7B549A1C8E68299D87789C2E77516F0DA0611F"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-contact-preparation.ts",
+    "Hash": "C6CB17A2494841E72B72862804CADA7186BFDEB6108882E646602D13AB7B8D4C"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-contact-protocol.ts",
+    "Hash": "8D9DC3FE20BA2619B81BC7B918440FE64BE8582C1B96D71DB4B8661143396188"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-contact-sample.ts",
+    "Hash": "E433B5A4F60E61666BA7FDC5626E9F5B49FC8D0FBD1230B4372F7E0C84DFFE09"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-contact-types.ts",
+    "Hash": "BBB02A518A770E3E03345DF0271510EAA8EA651E823331669A37C65F7CEFA642"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-cover.ts",
+    "Hash": "B71F3B2E05EEC672D0DAF4292B3D0F360F83B56DE32FEC14E4E4A1B8C769D796"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\sleep-fit.ts",
+    "Hash": "1294BF1631A7E3FFA27A08C6F9D0318509D5AAF19404D11DB93CCD5D7AD0BCB5"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\tests\\fixtures\\sleep-contact\\cover-original.ts",
+    "Hash": "D5317E505B9F5DA47ECDFC71BAEE63CC8C625DF34AF13E7804B83DFC5AC32404"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\tests\\fixtures\\sleep-contact\\fit-original.ts",
+    "Hash": "0D01E27A4ED17E9564E02F0C6796AD6D2EC7CD2508D26DC95016F263951BF8AE"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\tests\\fixtures\\sleep-contact\\interaction-original.ts",
+    "Hash": "4489054A00BB1F704D6A97AA71A7DE0CC04C2BA28649DA8964A073B0F50DD1AF"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\tests\\fixtures\\sleep-contact\\joints-original.ts",
+    "Hash": "082E1EE76F13C3689DA473842D5F49E334427D4F9597F996BAD403CB5E0699BB"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\tests\\fixtures\\sleep-contact\\pose-original.ts",
+    "Hash": "8DFB37914C148660B2DC6DE8FCA8547B499701EC9A562866EF16A0D811F64175"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\math.ts",
+    "Hash": "9BCF7D44FC597EFF1FD15109DC07827B9BCBA54EA573D209881041BDB20B8A9B"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\shape.ts",
+    "Hash": "E5826037E4149E84080828CE2B40F5599BD8268C41299A1BFFA5EC083A75D66E"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\head-shape.ts",
+    "Hash": "89FAEDA59AAE702ECD1D34E3563ED9D59B1B42AD1601B74601A28184EA085CFD"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\surface-query.ts",
+    "Hash": "1195DE97B69BDBE82304E9A8A057C6E031465714A291DEEF609F7D22A2486F10"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\surface.ts",
+    "Hash": "F4C05761F55795B76E08C8EE34F84B55ADDC838E74856840B152D178E88B7FF7"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\static-mesh.ts",
+    "Hash": "700E5A99FF4FDEA70B2BBFCCBDFD34659FE6D83036A373801A4E9A17A960723B"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\prepared-body.ts",
+    "Hash": "E9C9C8FD4527664E8DCCE42120C8706C0ED34BF2AB6748C3320AF61503B7DA3D"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\variants.ts",
+    "Hash": "707A0AE95E05BE7046D602E4C6873150A54AD7D219A4C9492443FCB5FC9C6DD7"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\motion.ts",
+    "Hash": "2791B1C4F2690D48E1F5185527DF80E092ED12E464B49525BE8B3D22777A5388"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\clip-runtime.ts",
+    "Hash": "F25DB97458FD49D5089E11E58CD4246CBD7F516C904B6E32C2A22321DC87EDA3"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\geometry-proof.ts",
+    "Hash": "0741EE37A42613F9BBE181FC2F4357DD23896E598C6F72FD39F88EC6A7E3D3D4"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\creator-assets.ts",
+    "Hash": "A29D282C1ECA146B4DB8FE40D97097BB965E03F28B8AE7607E1AEE40B1D277E6"
+  }
+]

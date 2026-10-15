@@ -1,0 +1,232 @@
+{
+  "id": "creator-save",
+  "fixture": "main-social-active",
+  "status": "PASS",
+  "contextClosed": true,
+  "checks": [
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: fixture is schema 9",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Authentic main fixture has an active conversation topic",
+      "pass": true,
+      "evidence": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        19,
+        19,
+        0
+      ]
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: actual startup preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: disk Save writes schema 10",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: disk Save preserves exact live bytes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: V9 recovery backup is byte exact",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: V10 browser reload preserves exact character and social state",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: browser reload leaves V9 backup untouched",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Actual creator opens on Walking",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Needs Reset presents ten 1.0x Activity preferences",
+      "pass": true,
+      "evidence": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Activity preferences disclosure starts open",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Activity preferences disclosure retains a deliberate collapse",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Creator Move in applies the requested character",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Created character reload preserves the exact saved bytes and tick",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Created character survives actual disk Save and browser reload",
+      "pass": true,
+      "evidence": {
+        "zeroPracticeEntriesOmittedBySave": true
+      }
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Nonzero reading practice survives without normalization",
+      "pass": true,
+      "evidence": {
+        "id": "reading",
+        "practice": 1036831949
+      }
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Edit reopens the exact saved created person",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Creator Apply commits name and need changes exactly",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Edited character survives actual disk Save and browser reload",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Repeated saves retain the original V9 recovery bytes",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

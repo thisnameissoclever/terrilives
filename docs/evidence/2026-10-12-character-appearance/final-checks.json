@@ -1,0 +1,38 @@
+{
+  "typecheck": {
+    "command": "npm --prefix web run typecheck",
+    "exitCode": 0
+  },
+  "python": {
+    "tests": 6,
+    "exitCode": 0
+  },
+  "appearance": {
+    "distinctTests": 25,
+    "focusedRuns": [
+      "22-test appearance suite",
+      "updated four-test motion suite",
+      "two-test draft-storage suite"
+    ],
+    "exitCodes": 0
+  },
+  "motionFrames": 3096,
+  "mutationCases": 10,
+  "contactInputsCurrent": true,
+  "renderBootstrapFollowup": {
+    "previousSha256": "62d6abd417ab72133d4031b089ba1fbd3001cf30140d81bb17371f6d9328c215",
+    "currentSha256": "aba3bf027d46727f1aa529405d6d4a10df57346c526801d75a0551d69e1bc4fc",
+    "renderControlAndBenchmarkBodiesUnchanged": true,
+    "change": "Strict saved-draft validation before GPU allocation, null-only initial persistence, explicit recovery that exits baseline mode, and a complete source-checkpoint history reset",
+    "checks": [
+      "character-draft-storage.test.ts",
+      "invalid-storage-browser.json",
+      "invalid_storage mutation"
+    ]
+  },
+  "invalidStorageBrowser": {
+    "cases": 3,
+    "exitCode": 0,
+    "baselineRecovery": true
+  }
+}

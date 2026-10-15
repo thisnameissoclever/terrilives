@@ -1,0 +1,639 @@
+{
+  "graphicsRecovery": true,
+  "unsavedDraftPreserved": true,
+  "lockPreserved": true,
+  "savedCharacterPreserved": true,
+  "narrowViewport": [
+    390,
+    844
+  ],
+  "phonePerformance": "not measured",
+  "focusContained": true,
+  "touchTargets": [
+    {
+      "label": "Show preview",
+      "height": 44
+    },
+    {
+      "label": "Randomize",
+      "height": 44
+    },
+    {
+      "label": "Identity",
+      "height": 44
+    },
+    {
+      "label": "Appearance",
+      "height": 44
+    },
+    {
+      "label": "Personality",
+      "height": 44
+    },
+    {
+      "label": "Traits",
+      "height": 44
+    },
+    {
+      "label": "Preferences",
+      "height": 44
+    },
+    {
+      "label": "Household",
+      "height": 44
+    },
+    {
+      "label": "Review",
+      "height": 44
+    },
+    {
+      "label": "Randomize appearance",
+      "height": 44
+    },
+    {
+      "label": "Reset appearance to preset",
+      "height": 44
+    },
+    {
+      "label": "MasculineFeminine",
+      "height": 44
+    },
+    {
+      "label": "Presentation: randomize",
+      "height": 44
+    },
+    {
+      "label": "Presentation: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Height value",
+      "height": 44
+    },
+    {
+      "label": "Height: randomize",
+      "height": 44
+    },
+    {
+      "label": "Height: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Build value",
+      "height": 44
+    },
+    {
+      "label": "Build: randomize",
+      "height": 44
+    },
+    {
+      "label": "Build: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Shoulder width value",
+      "height": 44
+    },
+    {
+      "label": "Shoulder width: randomize",
+      "height": 44
+    },
+    {
+      "label": "Shoulder width: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Hip width value",
+      "height": 44
+    },
+    {
+      "label": "Hip width: randomize",
+      "height": 44
+    },
+    {
+      "label": "Hip width: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Torso proportions value",
+      "height": 44
+    },
+    {
+      "label": "Torso proportions: randomize",
+      "height": 44
+    },
+    {
+      "label": "Torso proportions: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "NeutralWarmCool",
+      "height": 44
+    },
+    {
+      "label": "Skin undertone: randomize",
+      "height": 44
+    },
+    {
+      "label": "Skin undertone: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "CurlBobWaveCropQuiff",
+      "height": 44
+    },
+    {
+      "label": "Hairstyle: randomize",
+      "height": 44
+    },
+    {
+      "label": "Hairstyle: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "NoneStubbleMoustacheBeard",
+      "height": 44
+    },
+    {
+      "label": "Facial hair: randomize",
+      "height": 44
+    },
+    {
+      "label": "Facial hair: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "NoneBrowCheek",
+      "height": 44
+    },
+    {
+      "label": "Scar: randomize",
+      "height": 44
+    },
+    {
+      "label": "Scar: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "OvershirtT-shirtJacket",
+      "height": 44
+    },
+    {
+      "label": "Top: randomize",
+      "height": 44
+    },
+    {
+      "label": "Top: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "RolledLongShort",
+      "height": 44
+    },
+    {
+      "label": "Sleeves: randomize",
+      "height": 44
+    },
+    {
+      "label": "Sleeves: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "TrousersShorts",
+      "height": 44
+    },
+    {
+      "label": "Bottoms: randomize",
+      "height": 44
+    },
+    {
+      "label": "Bottoms: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "LoafersLace-up shoesTrainers",
+      "height": 44
+    },
+    {
+      "label": "Shoes: randomize",
+      "height": 44
+    },
+    {
+      "label": "Shoes: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "RoundRectangular",
+      "height": 44
+    },
+    {
+      "label": "Glasses style: randomize",
+      "height": 44
+    },
+    {
+      "label": "Glasses style: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "NoneStudsHoops",
+      "height": 44
+    },
+    {
+      "label": "Earrings: randomize",
+      "height": 44
+    },
+    {
+      "label": "Earrings: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "color",
+      "height": 44
+    },
+    {
+      "label": "Skin color swatch",
+      "height": 44
+    },
+    {
+      "label": "Skin color: randomize",
+      "height": 44
+    },
+    {
+      "label": "Skin color: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "color",
+      "height": 44
+    },
+    {
+      "label": "Hair color swatch",
+      "height": 44
+    },
+    {
+      "label": "Hair color: randomize",
+      "height": 44
+    },
+    {
+      "label": "Hair color: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "color",
+      "height": 44
+    },
+    {
+      "label": "Facial hair color swatch",
+      "height": 44
+    },
+    {
+      "label": "Facial hair color: randomize",
+      "height": 44
+    },
+    {
+      "label": "Facial hair color: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "color",
+      "height": 44
+    },
+    {
+      "label": "Eyes color swatch",
+      "height": 44
+    },
+    {
+      "label": "Eyes color: randomize",
+      "height": 44
+    },
+    {
+      "label": "Eyes color: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "color",
+      "height": 44
+    },
+    {
+      "label": "Shirt color swatch",
+      "height": 44
+    },
+    {
+      "label": "Shirt color: randomize",
+      "height": 44
+    },
+    {
+      "label": "Shirt color: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "color",
+      "height": 44
+    },
+    {
+      "label": "Trousers color swatch",
+      "height": 44
+    },
+    {
+      "label": "Trousers color: randomize",
+      "height": 44
+    },
+    {
+      "label": "Trousers color: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "color",
+      "height": 44
+    },
+    {
+      "label": "Shoes color swatch",
+      "height": 44
+    },
+    {
+      "label": "Shoes color: randomize",
+      "height": 44
+    },
+    {
+      "label": "Shoes color: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "checkbox",
+      "height": 44
+    },
+    {
+      "label": "Bald: randomize",
+      "height": 44
+    },
+    {
+      "label": "Bald: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "checkbox",
+      "height": 44
+    },
+    {
+      "label": "Freckles: randomize",
+      "height": 44
+    },
+    {
+      "label": "Freckles: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "checkbox",
+      "height": 44
+    },
+    {
+      "label": "Glasses: randomize",
+      "height": 44
+    },
+    {
+      "label": "Glasses: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Freckle density value",
+      "height": 44
+    },
+    {
+      "label": "Freckle density: randomize",
+      "height": 44
+    },
+    {
+      "label": "Freckle density: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "OvalRoundAngular",
+      "height": 44
+    },
+    {
+      "label": "Face shape: randomize",
+      "height": 44
+    },
+    {
+      "label": "Face shape: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "AlmondRoundSoft",
+      "height": 44
+    },
+    {
+      "label": "Eye shape: randomize",
+      "height": 44
+    },
+    {
+      "label": "Eye shape: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "SoftStraightArched",
+      "height": 44
+    },
+    {
+      "label": "Eyebrow shape: randomize",
+      "height": 44
+    },
+    {
+      "label": "Eyebrow shape: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "StraightButtonBroad",
+      "height": 44
+    },
+    {
+      "label": "Nose shape: randomize",
+      "height": 44
+    },
+    {
+      "label": "Nose shape: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "NeutralUpturnedFull",
+      "height": 44
+    },
+    {
+      "label": "Mouth shape: randomize",
+      "height": 44
+    },
+    {
+      "label": "Mouth shape: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Cheek fullness value",
+      "height": 44
+    },
+    {
+      "label": "Cheek fullness: randomize",
+      "height": 44
+    },
+    {
+      "label": "Cheek fullness: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Jaw width value",
+      "height": 44
+    },
+    {
+      "label": "Jaw width: randomize",
+      "height": 44
+    },
+    {
+      "label": "Jaw width: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Chin length value",
+      "height": 44
+    },
+    {
+      "label": "Chin length: randomize",
+      "height": 44
+    },
+    {
+      "label": "Chin length: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Eye size value",
+      "height": 44
+    },
+    {
+      "label": "Eye size: randomize",
+      "height": 44
+    },
+    {
+      "label": "Eye size: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Eyebrow thickness value",
+      "height": 44
+    },
+    {
+      "label": "Eyebrow thickness: randomize",
+      "height": 44
+    },
+    {
+      "label": "Eyebrow thickness: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Nose width value",
+      "height": 44
+    },
+    {
+      "label": "Nose width: randomize",
+      "height": 44
+    },
+    {
+      "label": "Nose width: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Mouth fullness value",
+      "height": 44
+    },
+    {
+      "label": "Mouth fullness: randomize",
+      "height": 44
+    },
+    {
+      "label": "Mouth fullness: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "range",
+      "height": 44
+    },
+    {
+      "label": "Ear size value",
+      "height": 44
+    },
+    {
+      "label": "Ear size: randomize",
+      "height": 44
+    },
+    {
+      "label": "Ear size: protect from randomization",
+      "height": 44
+    },
+    {
+      "label": "Cancel",
+      "height": 44
+    },
+    {
+      "label": "Undo",
+      "height": 44
+    },
+    {
+      "label": "Reset section",
+      "height": 44
+    },
+    {
+      "label": "Continue",
+      "height": 44
+    }
+  ],
+  "errors": []
+}

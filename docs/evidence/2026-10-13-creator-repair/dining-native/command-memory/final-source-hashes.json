@@ -1,0 +1,42 @@
+[
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-core\\src\\command.rs",
+    "Hash": "A05E631388BAEF34AB1310ABEA52909F467CCD282AB6C822BF15D50AA4F90BF1"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-core\\src\\command\\character_tests.rs",
+    "Hash": "9B88D34E94729CB21F1482CD6A39D8BDEF24E7C1FFAA4A45B7F384D296E58327"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-core\\src\\appearance.rs",
+    "Hash": "DD3B605632E3B71CE03F7C072E98D51C79C73037C9AA77E054555881D3CBE34E"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-core\\src\\character.rs",
+    "Hash": "D905163F4F69402635F3FE86A70989311E7BDAA2324594C5485D576FD702554C"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\save\\v9.rs",
+    "Hash": "A6A77B1B5D4B415E68F6576B178819E82154C954485DAC26AE8C3AFC3ADBB10D"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\character_draft\\catalog.rs",
+    "Hash": "56E007C6B4C6530B8AE986E20B55BE9C48E6924B908F5CABA77567045AF52839"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\character_draft\\application.rs",
+    "Hash": "159F5AF1326D94DC9C7199956EBA8E41AE3C20437F3D808B2B32C1D7F6025176"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-wasm\\src\\character_tests.rs",
+    "Hash": "C0F03070ED6DE825A83F34418D9BA60282DE19555C348F8AFE7CF96E2199F772"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-wasm\\tests\\fixtures\\command-memory\\queued-edit-pre-box-v9.sav",
+    "Hash": "E94EA6D0D9FE955A8F29F76A34EDD7C06175BF08DEC143C675D740AA36062FE9"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-wasm\\tests\\fixtures\\command-memory\\completed-edit-pre-box-v9.sav",
+    "Hash": "4F8F0F5C48CF4E20F5E880980D68A2DD76E6E77CCDAD4A622514B08D47907878"
+  }
+]

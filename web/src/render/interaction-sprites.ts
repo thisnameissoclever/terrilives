@@ -132,6 +132,12 @@ export class InteractionSelection {
     return this.owners[row] ?? -1;
   }
 
+  timingFor(row:number):number|undefined {
+    const target=this.targetRows[row];if(target<0)return undefined;
+    return this.profileFor(this.columns.sprites[target],this.columns.actions?.[row]??0,
+      this.columns.mealTables?.[row]!==undefined&&this.columns.mealTables[row]!==0xffffffff)?.halfCycleTicks;
+  }
+
   private profileFor(sprite: number, action: number, atTable = false): InteractionProfile | undefined {
     if (atTable && action === 8 && this.catalog[sprite]?.idleFrames) return this.catalog[sprite];
     const profile = this.actionCatalog[sprite]?.[action] ?? this.catalog[sprite];

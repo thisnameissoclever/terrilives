@@ -242,7 +242,7 @@ describe('personal details surface', () => {
     expect(toggle).toContain('if (personalDetails.open) {');
     expect(toggle).toContain('personalDetailsPanel.update(nowMs, true);');
     expect(toggle).toContain('bedAssignmentPanel.update(nowMs, true);');
-    const load = main.slice(main.indexOf('housemateForm.resetAfterLoad();'), main.indexOf('housemateForm.resetAfterLoad();') + 1700);
+    const load = main.slice(main.indexOf('characterWorld.reset();'), main.indexOf('characterWorld.reset();') + 1700);
     expect(load).toContain('bedAssignmentPanel.resetAfterLoad();');
     expect(load).toContain('bedAssignmentPanel.update(nowMs, true);');
     expect(main).toContain('bedAssignmentPanel.afterCommands();');

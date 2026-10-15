@@ -593,7 +593,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 9; the version 1 decoder and its historical optional sleep-pressure
+use version 10; the version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -633,7 +633,7 @@ Before replacing an older primary save, the storage worker retains its original
 bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
 `terri-save-1.v3-backup.bin`, `terri-save-1.v4-backup.bin`,
 `terri-save-1.v5-backup.bin`, `terri-save-1.v6-backup.bin`,
-`terri-save-1.v7-backup.bin` or `terri-save-1.v8-backup.bin`, according to its
+`terri-save-1.v7-backup.bin`, `terri-save-1.v8-backup.bin`, or `terri-save-1.v9-backup.bin`, according to its
 source version. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
@@ -647,7 +647,7 @@ a cached V3 writer rejects a primary V4 header instead of overwriting its
 retired indices, and a cached V4 writer rejects a primary V5 header instead of
 overwriting its colourways. A cached V5 writer rejects a primary V6 header. A cached V6 writer rejects a
 primary V7 header. A cached V7 writer rejects a primary V8 header, and a cached
-V8 writer rejects a primary V9 header. The storage writer and load-status controller share the current
+V8 writer rejects a primary V9 header, and a cached V9 writer rejects a primary V10 header. The storage writer and load-status controller share the current
 wire version; a regression test sends actual simulation saves through the storage
 worker so fabricated header fixtures cannot conceal a version mismatch.
 Earlier V1 workers do not have that protection or participate in the lock;
@@ -680,11 +680,13 @@ extensions. Validation checks participant identities and active activity
 ownership before restoring those records. Version 8 and earlier readers
 retain their historical layouts and initialize the new social state empty.
 
+The combined version 10 envelope stores the frozen version 8 world, social state, explicit appearance and legacy pronouns for every living housemate, and the interleaving of creator commands with the ordinary command queue. Separate frozen readers preserve published version 9 social saves and the unpublished creator version 9 layout. A version 9 payload must decode completely and validate as exactly one supported layout; ambiguous or invalid candidates are rejected before adoption. Historical appearance migration uses no random draw. Appearance has a separate checksum; behavior edits remain part of simulation state.
+
 The frozen version 8 envelope wraps an explicitly frozen version 5 layout with a stable action
 manifest, the owned-book library, physical-seat claims, reading journeys,
 deferred career departures, current order metadata, chain origins and active
 recipe-order identity. `SaveSnapshotV6` retains its historical Rust API name;
-its payload remains part of the version 9 envelope. Commerce commands append AutoPurchase, Sell and Recover after the three original book command tags. V6 and V7 decode their frozen three-variant command vocabulary and reject newer tags. V8 accepts household-wide book fetching while older envelopes retain their original shelf-origin validation. Commerce quotes include the exact price and copy or reserved slot identities; native execution rechecks the quote before changing ownership or Funds. Preview choice and slot allocation derive from saved taste seed and copy identity without consuming simulation randomness. Its `current_legacy` adapter uses
+its payload remains part of the version 10 envelope. Commerce commands append AutoPurchase, Sell and Recover after the three original book command tags. V6 and V7 decode their frozen three-variant command vocabulary and reject newer tags. V8 accepts household-wide book fetching while older envelopes retain their original shelf-origin validation. Commerce quotes include the exact price and copy or reserved slot identities; native execution rechecks the quote before changing ownership or Funds. Preview choice and slot allocation derive from saved taste seed and copy identity without consuming simulation randomness. Its `current_legacy` adapter uses
 the exact `FrozenCurrentV5` field layout, so later additions to `SaveSnapshotV5`
 cannot shift this envelope's boundary. Earlier version 6 book saves use
 `FrozenSaveSnapshotV6` and `FrozenPreAffinityV5` explicitly before conversion.
@@ -878,44 +880,27 @@ single-pack `OnceLock` does not anticipate.
 
 ## [D10] Renderer
 
-WebGPU. One instanced draw call per texture atlas per layer. Depth comes from
-world position via the depth buffer rather than painter's-algorithm sorting; at
-100k objects, not sorting beats sorting well. The alpha uploads static geometry
-for its one lot. Streaming visible lots in chunks remains future scale work.
+WebGPU renders static sprite batches and configured character geometry into one shared scene. The scene has twice the framebuffer width and height, with linear premultiplied color, physical depth, and integer ownership at every sample. Visibility is resolved before color is reduced for display. Depth and ownership are never averaged. Framebuffer size respects the device's texture limits.
 
-`buildInstanceBatch` packs dynamic instances once and publishes the actual written
-row count, including floor-tool highlights. Main draws `batch.instances` with
-`batch.count`; it does not repeat interaction selection or traverse entities to
-reconstruct that count. The batch object and its high-water-mark array are borrowed,
-module-owned storage, valid only until the next call through `buildInstanceBatch`
-or the legacy `buildInstances` wrapper. Only the first `count` rows are live;
-unused capacity is neither cleared nor inspected. `instanceCount` remains a legacy
-verification helper, outside the production frame loop. The 16-float row layout
-and renderer draw interface are unchanged.
+`buildInstanceBatch` packs instances once and publishes the actual written count, including floor-tool highlights. Its borrowed, reusable storage includes the existing 16-float instance rows and a separate integer owner stream. Main draws those arrays without repeating interaction selection. `instanceCount` remains a legacy verification helper outside the production loop. Primary owners map to source rows; explicit auxiliary owners retain dish cleanup and dropped-book recovery semantics. Picking uses the visible shared scene and does not fall back to an obscured sprite mask.
 
-Short walls form a second atlas draw after opaque geometry, in the same render
-pass and submission. This small batch is sorted at geometry rebuild, tests the
-opaque depth buffer without writing it, and updates only its local fade opacity
-each frame. The entity buffer is never sorted. See
-`docs/specs/2026-09-30-cutaway-walls.md` for adjacency and build-mode rules.
+Configured people draw their actual selected meshes and saved parameters directly at scene resolution. Pose fitting retains immutable fixture geometry separately from visible mesh ownership. The same character renderer serves the enlarged creator and game-size previews. An authored surface policy identifies silhouettes, marks, recesses, and fabric; names alone do not imply an inflated outline shell.
 
-Edge-wall pixels use depth from the authored wall plane. Rectangular furniture
-uses the midpoint of the viewing column's intersection with its oriented
-collision footprint. Its occupied composite, foreground and indicator share
-that geometry; placement previews use the candidate footprint. Square footprints
-retain constant depth. This is a 2.5D ordering model for disjoint footprints,
-not a reconstruction of each sprite's 3D surfaces or overhangs. See
-`docs/assets/review-evidence/wall-clipping.md` for pixel and mutation checks.
+A prepared character retains its configured body when animation tracks, props, hands, or covers change. Source parts must have independent vertex ownership before they can share a persistent body buffer; unsupported shared vertices fail validation. Context changes select draw ranges without rebuilding the body. All component outlines precede all fills in the original part order. Contact fitting evaluates only the required source surfaces while preserving shape and subdivision arithmetic.
 
-The shipped art direction is **Muted Line**. Its isometric atlas combines
-historical procedural sprites with reviewed offline Blender renders. Current
-explicit-edge architecture uses its own paired colour/depth resources.
-The approved rig supplies character animation frames in three shirt colours;
-furniture exports supply consistent facings and, where implemented, matched
-occupied layers. Those models are authoring sources, not live 3D objects.
-Per-instance colour shifts and emissive strength apply to the sprite atlas
-without an extra draw. See TECH_STACK.md and the asset review evidence for
-the pipelines and their visual acceptance limits.
+Bike fitting and sleeping support are required preparation steps for each configuration. Sparse source surfaces describe the bike's hips, saddle, and shoe soles. One background worker serializes both resource types and computes the complete bike contact cycle from authored phase zero; the draw loop only samples the prepared result at the current animation phase. Source, fixture, shoe, and solver revisions identify the result. Entering the animation at a different phase cannot choose a different fit. Sleeping support uses the exact static authored poses and per-slot draped grids. Separate dependency keys let head and upper-garment edits retain bike data, while uniform-only edits retain both resources. Production rendering has no synchronous fitting fallback.
+
+Live people, pending commands, load candidates, and the current creator draft explicitly own their prepared contacts. Owners share identical configurations and release unused results. A load inspects its saved command outcomes on a disposable simulation, prepares the required configurations, and validates that the load is still current before adopting the untouched original bytes. Creator changes become applicable only when the current configuration is ready; finishing preparation never submits a change automatically. These CPU resources survive graphics-device recovery independently of mesh buffers.
+
+The two creator previews share one pose and deformation, with separate camera, lighting, and identity uniforms. Shader programs belong to the graphics device; body and attachment buffers belong to their live character. Closing the last view releases its mesh resources, and device loss invalidates the shared programs. Color and freckle-density changes update uniforms without rebuilding rest geometry.
+
+Furniture keeps published colors and registration. Source-derived depth accompanies the visible artwork, including surface props and inventory-dependent shelf geometry. Occupancy selects only declared moving-component states, while the character remains independently rendered and picked. Generated covers retain fixture identity and colorways. The historical dropped-book source is unavailable; its companion depth uses an explicitly recorded rigid reconstruction fitted to all four published silhouettes. The published color pixels remain unchanged, and exact historical surface depths remain unproven. Bitmap-only ingredient art remains an explicitly represented hand-anchored plane.
+
+Activity bubbles occupy a separate annotation pass after physical and translucent surfaces, before color reduction. They share scene color and ordered edge coverage but leave physical depth and identity unchanged. A separate integer texture carries person ownership for covered annotation samples. Picking checks that texture first, using the same stable annotation draw order, then falls through to physical surface picking. This preserves full icons near walls without inventing a world-depth offset.
+
+Short walls and grime use separate translucent draws after opaque geometry. They test existing scene depth without claiming an entire opaque pixel. Render passes restore their pipeline, bind group, and vertex streams after dynamic draws. Wall adjacency and build-mode behavior remain defined in `docs/specs/2026-09-30-cutaway-walls.md`.
+
+The art direction remains Muted Line: reviewed offline Blender artwork, historical procedural sprites, and configured cartoon character meshes. Registered color and depth share source samples; ordinary image interpolation uses premultiplied linear values. Existing colorway and lighting meanings are preserved. Dated evidence distinguishes source preservation, actual visual comparisons, graphics measurements, and owner acceptance.
 
 Nighttime pools are a presentation-only tile field built from the render
 snapshot. The lamp and television spread neutral emissive strength by four-way
@@ -1210,16 +1195,21 @@ has a chair indicator. The compiled visual enum, render action code, and activit
 code are append-only. The presentation does not add a simulation component,
 save field, bridge column, object reservation rule, or world-hash input.
 
-`bed.sleep` adds the first horizontal socket body and the first authored object
-foreground. The exact `sleep / object_socket / socket` contract emits visual
-action 9 and existing sleeping activity 5. The shell selects four 104 by 76
-sleeping frames per facing on a 16-tick, stable-id phase; reduced
-motion pins frame zero. The optional foreground sprite is compiled and resolved
-with the placement, then exposed as a render-buffer column with `u32::MAX` for
-no layer. The renderer draws that row on foreground layer 3 after the sim, so
-the upper bunk, near posts, rail, and ladder occlude the lower-mattress body.
-No object-id lookup exists in TypeScript. Save V1 omits this reconstructed
-presentation metadata and Load rebuilds it from current compiled content.
+`bed.sleep` uses the exact `sleep / object_socket / socket` contract and emits
+visual action 9 with existing sleeping activity 5. Configured characters use
+the authored one-sample `bed_sleep` or `bunk_sleep` mesh pose. Required character
+preparation computes its fitted support and each sleeping slot's draped cover
+grid in the same bounded worker used for bike support. Admission waits for both
+independently keyed resources. Occupancy changes combine the prepared grids and
+update a cover mesh retained by the live fixture; they never construct a fitted
+surface during drawing. CPU artifacts survive graphics recovery.
+
+The legacy sprite fallback retains four 104 by 76 sleeping frames per facing on
+a 16-tick, stable-id phase, with frame zero under reduced motion. Its optional
+foreground sprite is compiled with the placement and exposed as a render-buffer
+column with `u32::MAX` for no layer. Foreground layer 3 lets the upper bunk,
+posts, rail, and ladder occlude the lower-mattress body. Save V1 omits this
+reconstructed presentation metadata; loading rebuilds it from current content.
 
 Standing bookshelf reading reuses the same compiled `Read` action without an
 object socket. `bookshelf.read` authors the exact

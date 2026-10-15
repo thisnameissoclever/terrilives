@@ -1,0 +1,53 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-clips.test.ts (3 tests | 1 failed) 5150ms
+   × solves production clips at proof endpoints and independent body corners 5066ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-clips.test.ts > solves production clips at proof endpoints and independent body corners
+AssertionError: expected [ …(19) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "exercise masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "exercise feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: No supported bike pose fits the configured body and shoes.",
++   "wipe_counter masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f4: Error: Configured contacts are unreachable for wipe_counter.",
++   "wipe_counter masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f4: Error: Configured contacts are unreachable for wipe_counter.",
++   "bath masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for bath.",
++ ]
+
+ ❯ tests/character-clips.test.ts:48:20
+     46|     }
+     47|   }
+     48|   expect(failures).toEqual([]);
+       |                    ^
+     49| },30000);
+     50|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 6 passed (7)
+   Start at  20:38:09
+   Duration  5.74s (transform 73ms, setup 0ms, import 136ms, tests 5.42s, environment 0ms)
+

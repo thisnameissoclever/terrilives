@@ -1,0 +1,876 @@
+{
+  "version": 1,
+  "state": "failed",
+  "encoding": "rg-u16-unorm-x-minus-y-range-minus2-plus2",
+  "sources": {
+    "fridge": {
+      "path": "assets/models/kitchen/owner-review-pending/refrigerator/candidate-03/refrigerator-authoring.blend",
+      "sha256": "4bed8dfb3fb968725c99c8345ac5e17a4c75b45b5e487d867655ed17163a7b82"
+    },
+    "bike": {
+      "path": "assets/models/sims/sim-01/sim-01-rigged.blend",
+      "sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+    }
+  },
+  "states": [
+    {
+      "id": "fridge-SE-closed",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15485,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20503,
+      "outlineSamples": 1070,
+      "maxOutlineDistancePixels": 2.9430256450746737,
+      "minSum": -0.8820233028015587,
+      "maxSum": 0.9563755989074707,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SE-ajar20",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15345,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 21187,
+      "outlineSamples": 1139,
+      "maxOutlineDistancePixels": 2.9474622087329245,
+      "minSum": -0.8820233028015587,
+      "maxSum": 1.1647090911865234,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SE-ajar55",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15471,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22483,
+      "outlineSamples": 1275,
+      "maxOutlineDistancePixels": 3.0112931402011993,
+      "minSum": -0.8820233028015587,
+      "maxSum": 1.2171683311462402,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SE-open",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15473,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 25480,
+      "outlineSamples": 1311,
+      "maxOutlineDistancePixels": 2.9430256450746737,
+      "minSum": -0.8820233028015587,
+      "maxSum": 0.9563746452331543,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-closed",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20396,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20740,
+      "outlineSamples": 1083,
+      "maxOutlineDistancePixels": 3.077400685496362,
+      "minSum": -0.946355789899826,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-ajar20",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20392,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20911,
+      "outlineSamples": 1082,
+      "maxOutlineDistancePixels": 3.077400685496362,
+      "minSum": -0.946355789899826,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-ajar55",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20346,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22633,
+      "outlineSamples": 1213,
+      "maxOutlineDistancePixels": 3.1155430806889988,
+      "minSum": -1.20720537006855,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-open",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20384,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 25725,
+      "outlineSamples": 1324,
+      "maxOutlineDistancePixels": 3.077400685496362,
+      "minSum": -0.946355789899826,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-closed",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15485,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20503,
+      "outlineSamples": 1070,
+      "maxOutlineDistancePixels": 2.9430998435778952,
+      "minSum": -0.8820236118895464,
+      "maxSum": 0.9563755989074707,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-ajar20",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15293,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22181,
+      "outlineSamples": 1146,
+      "maxOutlineDistancePixels": 3.0406574366019705,
+      "minSum": -0.8820236118895464,
+      "maxSum": 0.9807672500610352,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-ajar55",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15184,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 23131,
+      "outlineSamples": 1214,
+      "maxOutlineDistancePixels": 3.1375721535918575,
+      "minSum": -0.8820236118895464,
+      "maxSum": 1.2597708702087402,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-open",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 14921,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22238,
+      "outlineSamples": 1259,
+      "maxOutlineDistancePixels": 3.043836643652402,
+      "minSum": -0.8820236118895464,
+      "maxSum": 1.796156406402588,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-closed",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20397,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20741,
+      "outlineSamples": 1084,
+      "maxOutlineDistancePixels": 3.0774092273926,
+      "minSum": -0.9463557600975037,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-ajar20",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20358,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 21962,
+      "outlineSamples": 1130,
+      "maxOutlineDistancePixels": 3.0774092273926,
+      "minSum": -0.9463557600975037,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-ajar55",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20301,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22224,
+      "outlineSamples": 1155,
+      "maxOutlineDistancePixels": 3.124681949230998,
+      "minSum": -1.1917373333126307,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-open",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20336,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 21034,
+      "outlineSamples": 1157,
+      "maxOutlineDistancePixels": 3.0774092273926,
+      "minSum": -1.7863559126853943,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "bike-SE-0",
+      "family": "bike",
+      "facing": "SE",
+      "state": "0",
+      "sample": 0,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7739,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 7936,
+      "outlineSamples": 1042,
+      "maxOutlineDistancePixels": 3.157118404399565,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    }
+  ],
+  "families": {
+    "fridge": {
+      "prefix": "offlineFridge",
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "states": [
+        {
+          "id": "closed",
+          "sample": 0
+        },
+        {
+          "id": "ajar20",
+          "sample": 1
+        },
+        {
+          "id": "ajar55",
+          "sample": 2
+        },
+        {
+          "id": "open",
+          "sample": 3
+        }
+      ],
+      "colorPolicy": "published-static-pixels-with-actor-free-authored-moving-surfaces",
+      "clipSamples": [
+        "closed",
+        "ajar20",
+        "ajar55",
+        "open",
+        "open",
+        "open",
+        "open",
+        "closed"
+      ]
+    },
+    "bike": {
+      "prefix": "offlineBike",
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "states": [
+        {
+          "id": "0",
+          "sample": 0
+        },
+        {
+          "id": "1",
+          "sample": 1
+        },
+        {
+          "id": "2",
+          "sample": 2
+        },
+        {
+          "id": "3",
+          "sample": 3
+        },
+        {
+          "id": "4",
+          "sample": 4
+        },
+        {
+          "id": "5",
+          "sample": 5
+        },
+        {
+          "id": "6",
+          "sample": 6
+        },
+        {
+          "id": "7",
+          "sample": 7
+        }
+      ],
+      "colorPolicy": "published-static-pixels-with-actor-free-authored-moving-surfaces"
+    }
+  },
+  "producerHashes": {
+    "export_components.py": "6697aaef7aaefcc332225b04ab3373865509bda388a4d6cb71fd193ea3bb2351",
+    "depth_geometry.py": "afa740a620bcc0eb3528f08d1bad169b93b9f94eeb6a3736b72b2bdfe9720c24",
+    "color_pixels.py": "1f17e2cbe369451c35efa3bad341bcb6c0967a88d4d137c2c99cf64c3e357878"
+  },
+  "error": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\5637\\terrilives\\assets\\models\\sims\\character-repair\\export_components.py\", line 147, in main\n    run_family('bike','offlineBike',MODELS/'sims/sim-01/sim-01-rigged.blend',root,moving,\n  File \"D:\\VIBES\\.worktrees\\5637\\terrilives\\assets\\models\\sims\\character-repair\\export_components.py\", line 100, in run_family\n    depth, proof, ids, names = sample(root.children_recursive,width,height,pixels[:,:,3]>0,\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\5637\\terrilives\\assets\\models\\sims\\character-repair\\depth_geometry.py\", line 78, in sample\n    raise ValueError(f'Published coverage is not registered to source geometry: {max_distance:.9f} > {max_edge_distance:.9f}')\nValueError: Published coverage is not registered to source geometry: 3.715761684 > 3.707106781\n"
+}

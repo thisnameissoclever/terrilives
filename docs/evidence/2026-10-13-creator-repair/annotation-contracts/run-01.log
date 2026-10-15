@@ -1,0 +1,101 @@
+{
+  "status": "FAIL",
+  "failure": "Error: restore-old-world-depth-test must fail Near world geometry cannot clip annotation; actual GPU validation: Attachment state of [RenderPipeline (unlabeled)] is not compatible with [RenderPassEncoder (unlabeled)].\n[RenderPassEncoder (unlabeled)] expects an attachment state of { colorTargets: [0={format:TextureFormat::RGBA16Float}, 1={format:TextureFormat::R32Uint}], sampleCount: 1 }.\n[RenderPipeline (unlabeled)] has an attachment state of { colorTargets: [0={format:TextureFormat::RGBA16Float}, 1={format:TextureFormat::R32Uint}], depthStencilFormat: TextureFormat::Depth24Plus, sampleCount: 1 }.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n\n    at assert (eval at evaluate (:311:30), <anonymous>:7:57)\n    at mutant (eval at evaluate (:311:30), <anonymous>:135:5)\n    at async exercise (eval at evaluate (:311:30), <anonymous>:141:3)\n    at async <anonymous>:337:30",
+  "checks": [
+    {
+      "name": "production-shader-compilation",
+      "status": "PASS",
+      "modules": 1,
+      "messages": []
+    },
+    {
+      "name": "annotation-visible-over-near-world",
+      "status": "PASS",
+      "coveredSamples": 1080,
+      "nearWorldDepth": 0.05,
+      "annotationDepth": 0.85,
+      "identitySha256": "0869a7d7dc7bb80bd0d377b188e72141c913f86e1471e80e4d39612ff5b25847"
+    },
+    {
+      "name": "world-attachments-byte-identical",
+      "status": "PASS",
+      "surfaceBytes": 65536,
+      "identityBytes": 65536,
+      "surfaceSha256": "9ba2e6a76b2e202c109d694adef9bdb7d4dd54bb6664e45be877094a4c69b017",
+      "identitySha256": "46450b863ff776657e8a9213c482a8962c7802809ff818ab38c1b9a59874f6e5"
+    },
+    {
+      "name": "coverage-and-person-picking",
+      "status": "PASS",
+      "opaque": [
+        41,
+        41,
+        41,
+        41
+      ],
+      "quarter": [
+        41,
+        0,
+        0,
+        0
+      ],
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "coveredPick": 41,
+      "quarterPick": 41,
+      "paddingPick": 19
+    },
+    {
+      "name": "overlap-priority-at-mixed-edge",
+      "status": "PASS",
+      "mixed": [
+        83,
+        41,
+        41,
+        41
+      ],
+      "picked": 83,
+      "opposite": [
+        41,
+        83,
+        83,
+        83
+      ],
+      "oppositePick": 41
+    },
+    {
+      "name": "next-frame-clears-semantic-picking",
+      "status": "PASS",
+      "nextFramePick": 19,
+      "annotationIdentityHidden": true,
+      "reusedAllocation": true
+    }
+  ],
+  "mutants": [],
+  "errors": [],
+  "productionHashesBefore": {
+    "web/src/render/sprites.ts": "4bd8f4f0c68ece3d09ef92f7c110812b3098592db9ac73777a31f4f4bc7566c7",
+    "web/src/render/sprite-pipelines.ts": "1fb7fb083249d93248cff2853b901c86eb2c88d080c618d51a14f63d845827b5",
+    "web/src/render/sprites.wgsl": "ee003baaa136e4f65a6d163e7d71c2e50a2789dbf43ad83edd1fd6522ff063d6",
+    "web/src/render/scene-target.ts": "5b1153498326f8494e61b90495944f033f96c2550d8da1cb39bc16fa0cc1ad8c",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "web/src/render/scene-sampling.ts": "c953df5c8d2a603847ccb7dabf6ef9aa13bc1d5c87ebde9210905cb6ebe97066",
+    "web/src/frame.ts": "795588346ab2c411b964fb7684705b1c1284c6c1af3f221ab6df4d3ea232d227"
+  },
+  "productionHashesAfter": {
+    "web/src/render/sprites.ts": "4bd8f4f0c68ece3d09ef92f7c110812b3098592db9ac73777a31f4f4bc7566c7",
+    "web/src/render/sprite-pipelines.ts": "1fb7fb083249d93248cff2853b901c86eb2c88d080c618d51a14f63d845827b5",
+    "web/src/render/sprites.wgsl": "ee003baaa136e4f65a6d163e7d71c2e50a2789dbf43ad83edd1fd6522ff063d6",
+    "web/src/render/scene-target.ts": "5b1153498326f8494e61b90495944f033f96c2550d8da1cb39bc16fa0cc1ad8c",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "web/src/render/scene-sampling.ts": "c953df5c8d2a603847ccb7dabf6ef9aa13bc1d5c87ebde9210905cb6ebe97066",
+    "web/src/frame.ts": "795588346ab2c411b964fb7684705b1c1284c6c1af3f221ab6df4d3ea232d227"
+  },
+  "productionUnchanged": true,
+  "command": "node scripts/character-creator-repair/check-annotation-contracts.cjs",
+  "exitCode": 1
+}

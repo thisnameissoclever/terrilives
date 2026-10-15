@@ -1,6 +1,11 @@
 //! Pure simulation core. No web dependencies, ever.
 
+pub mod appearance;
 pub mod books;
+pub mod character;
+pub mod character_catalog;
+pub mod character_hash;
+pub mod cleanliness;
 pub mod clock;
 pub mod command;
 pub mod components;
@@ -19,6 +24,8 @@ pub mod save_v8;
 pub use save_v8::SaveSnapshotV8;
 pub mod save_v9;
 pub use save_v9::SaveSnapshotV9;
+pub mod save_v10;
+pub use save_v10::SaveSnapshotV10;
 mod save_before_voice;
 pub mod windows;
 

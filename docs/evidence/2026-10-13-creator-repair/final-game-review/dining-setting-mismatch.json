@@ -1,0 +1,9185 @@
+{
+  "command": "node scripts/character-creator-repair/final-game-dining.cjs",
+  "rows": [
+    {
+      "name": "dining-facing-0-setting-0",
+      "facing": 0,
+      "setting": 0,
+      "visualSetting": 2,
+      "placement": {
+        "x": 2.5,
+        "y": 3,
+        "chair": 8,
+        "chairFacing": 0,
+        "chairAt": [
+          2,
+          2
+        ],
+        "baselineDishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      "states": [
+        {
+          "tick": 146,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 147,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 148,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 149,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 150,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 151,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 152,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 153,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 154,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 155,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 156,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 157,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 158,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 159,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 160,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 161,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 162,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 163,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 164,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 165,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 166,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 167,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 168,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 169,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 170,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 171,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 172,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 173,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 174,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 175,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 176,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 177,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 178,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 179,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 180,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 181,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 182,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 183,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 184,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 185,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 186,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 187,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 188,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 189,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 190,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 191,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 192,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 193,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 194,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 195,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 196,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 197,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 198,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 199,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 200,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 201,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 202,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 203,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 204,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 205,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 206,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 207,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 208,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 209,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 210,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 211,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 212,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 213,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 214,
+          "action": 0,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 215,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 216,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 217,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 218,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 219,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 220,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 221,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 222,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 223,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 224,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 225,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 226,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 227,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 228,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 229,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 230,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 231,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 232,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 233,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 234,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 235,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 236,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 237,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 238,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 239,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 240,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 241,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 242,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 243,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 244,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 245,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 246,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 247,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 248,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 249,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 250,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 251,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 252,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 253,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 254,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 255,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 256,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 257,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 258,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 259,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 260,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 261,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 262,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 263,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 264,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 265,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 266,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 267,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 268,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 269,
+          "action": 11,
+          "target": 2,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 270,
+          "action": 0,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            2,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 271,
+          "action": 5,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1.75,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 272,
+          "action": 5,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1.5,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 273,
+          "action": 5,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1.25,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 274,
+          "action": 0,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 275,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 276,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 277,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 278,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 279,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 280,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 281,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 282,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 283,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 284,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 285,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 286,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 287,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 288,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 289,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 290,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 291,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 292,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 293,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 294,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 295,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 296,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 297,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 298,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 299,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 300,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 301,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 302,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 303,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 304,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 305,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 306,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 307,
+          "action": 10,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 308,
+          "action": 0,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 309,
+          "action": 5,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1.25
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 310,
+          "action": 5,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1.5
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 311,
+          "action": 5,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            1.75
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 312,
+          "action": 0,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 313,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 314,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 315,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 316,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 317,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 318,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 319,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 320,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 321,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 322,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 323,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 324,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 325,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 326,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 327,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 328,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 329,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 330,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 331,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 332,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 333,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 334,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 335,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 336,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 337,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 338,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 339,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 340,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 341,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 342,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 343,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 344,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 345,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 346,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 347,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 348,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 349,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 350,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 351,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 352,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 353,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 354,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 355,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 356,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 357,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 358,
+          "action": 13,
+          "target": 8,
+          "mealTable": 7,
+          "position": [
+            2,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "tick": 359,
+          "action": 0,
+          "target": 4294967295,
+          "mealTable": 4294967295,
+          "position": [
+            1,
+            2
+          ],
+          "dishes": [
+            1,
+            4,
+            0,
+            7,
+            2,
+            1
+          ]
+        }
+      ],
+      "captures": [
+        {
+          "label": "unused",
+          "screenshot": "dining-facing-0-setting-0-unused.png",
+          "scene": {
+            "actors": [
+              {
+                "entity": 34,
+                "sim": 0,
+                "token": 35,
+                "clip": "bed_sleep",
+                "sample": 0.2994734375000001,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      62,
+                      117,
+                      164
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 0.5,
+                "y": 8.5,
+                "angle": 1.5707963267948966,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  -0.23184384859862328,
+                  8.122934257234508,
+                  1.1617453689448625
+                ],
+                "feet": [
+                  1.2991474866867065,
+                  8.11500006914139,
+                  0.5676872375260645
+                ],
+                "fixture": 19,
+                "textureBytes": 0,
+                "privateBufferBytes": 8128784
+              },
+              {
+                "entity": 35,
+                "sim": 1,
+                "token": 36,
+                "clip": "cook_v2",
+                "sample": 4.066520000000004,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      107,
+                      159,
+                      155
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 2,
+                "y": 1,
+                "angle": 3.141592653589793,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  2.0090917507567942,
+                  0.8465521777398103,
+                  2.0794687136324157
+                ],
+                "feet": [
+                  2,
+                  1,
+                  0.12999999523162842
+                ],
+                "fixture": null,
+                "textureBytes": 0,
+                "privateBufferBytes": 7578336
+              },
+              {
+                "entity": 36,
+                "sim": 2,
+                "token": 37,
+                "clip": "bed_sleep",
+                "sample": 0.3307234375000001,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      168,
+                      71,
+                      62
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 0.5,
+                "y": 8.5,
+                "angle": 1.5707963267948966,
+                "offset": [
+                  -0.77,
+                  0,
+                  0
+                ],
+                "head": [
+                  -0.23184384859862328,
+                  8.89293425723451,
+                  1.1617453689448625
+                ],
+                "feet": [
+                  1.2991474866867065,
+                  8.88500006914139,
+                  0.5676872375260645
+                ],
+                "fixture": 19,
+                "textureBytes": 0,
+                "privateBufferBytes": 7675936
+              }
+            ],
+            "allocation": {
+              "bufferBytes": 53134992,
+              "textureBytes": 0,
+              "textureCount": 0,
+              "sharedGeometryCount": 3
+            },
+            "view": {
+              "originX": 881.999995361673,
+              "originY": 349.00000622598975,
+              "scale": 2.0000000724738607,
+              "width": 1600,
+              "height": 1100
+            }
+          }
+        },
+        {
+          "label": "eating",
+          "screenshot": "dining-facing-0-setting-0-eating.png",
+          "scene": {
+            "actors": [
+              {
+                "entity": 34,
+                "sim": 0,
+                "token": 35,
+                "clip": "walk",
+                "sample": 0.33260000000001355,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      62,
+                      117,
+                      164
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 12.958424999999998,
+                "y": 7,
+                "angle": 4.71238898038469,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  12.80080392791652,
+                  6.834230685088466,
+                  2.0233535121197064
+                ],
+                "feet": [
+                  12.95842499291018,
+                  7,
+                  0.13881938493161852
+                ],
+                "fixture": null,
+                "textureBytes": 0,
+                "privateBufferBytes": 7574784
+              },
+              {
+                "entity": 35,
+                "sim": 1,
+                "token": 36,
+                "clip": "seated_eat",
+                "sample": 7.041575000000009,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      107,
+                      159,
+                      155
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 2,
+                "y": 2,
+                "angle": 1.5707963267948966,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  1.8804749803169374,
+                  2.1559057397699495,
+                  1.842321719502923
+                ],
+                "feet": [
+                  1.9999999711406613,
+                  2.574999988079071,
+                  0.12999999523162842
+                ],
+                "fixture": 8,
+                "textureBytes": 0,
+                "privateBufferBytes": 7917152
+              },
+              {
+                "entity": 36,
+                "sim": 2,
+                "token": 37,
+                "clip": "book_walk",
+                "sample": 6.332600000000021,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      168,
+                      71,
+                      62
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 9,
+                "y": 0.7915750000000026,
+                "angle": 0,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  8.8876787877879,
+                  0.7313634736116364,
+                  1.99800700639247
+                ],
+                "feet": [
+                  9.00000000372529,
+                  0.7915750012796298,
+                  0.16384688842350678
+                ],
+                "fixture": null,
+                "textureBytes": 0,
+                "privateBufferBytes": 7594496
+              }
+            ],
+            "allocation": {
+              "bufferBytes": 52681680,
+              "textureBytes": 0,
+              "textureCount": 0,
+              "sharedGeometryCount": 3
+            },
+            "view": {
+              "originX": 881.999995361673,
+              "originY": 349.00000622598975,
+              "scale": 2.0000000724738607,
+              "width": 1600,
+              "height": 1100
+            }
+          }
+        },
+        {
+          "label": "dish",
+          "screenshot": "dining-facing-0-setting-0-dish.png",
+          "scene": {
+            "actors": [
+              {
+                "entity": 34,
+                "sim": 0,
+                "token": 35,
+                "clip": "walk",
+                "sample": 2.3326000000000136,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      62,
+                      117,
+                      164
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 12.291575000000002,
+                "y": 7,
+                "angle": 1.5707963267948966,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  12.128942744629727,
+                  6.877083796365974,
+                  1.9576275414334696
+                ],
+                "feet": [
+                  12.291575003142274,
+                  7.0000000037334855,
+                  0.16384689214879697
+                ],
+                "fixture": null,
+                "textureBytes": 0,
+                "privateBufferBytes": 7574784
+              },
+              {
+                "entity": 35,
+                "sim": 1,
+                "token": 36,
+                "clip": "idle",
+                "sample": 0.5831500000000176,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      107,
+                      159,
+                      155
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 1,
+                "y": 2,
+                "angle": 0,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  0.8710493826178622,
+                  1.8913772831520506,
+                  2.0382910708622495
+                ],
+                "feet": [
+                  1,
+                  2,
+                  0.12999999523162842
+                ],
+                "fixture": null,
+                "textureBytes": 0,
+                "privateBufferBytes": 7574784
+              },
+              {
+                "entity": 36,
+                "sim": 2,
+                "token": 37,
+                "clip": "book_walk",
+                "sample": 2.3326000000000207,
+                "appearance": {
+                  "version": 1,
+                  "presentation": "masculine",
+                  "body": {
+                    "height": 50,
+                    "build": 50,
+                    "shoulders": 50,
+                    "hips": 50,
+                    "torso": 50
+                  },
+                  "face": {
+                    "shape": "oval",
+                    "cheeks": 50,
+                    "jaw": 50,
+                    "chin": 50,
+                    "eyes": "almond",
+                    "eye_size": 50,
+                    "brows": "soft",
+                    "brow_thickness": 50,
+                    "nose": "straight",
+                    "nose_width": 50,
+                    "mouth": "neutral",
+                    "mouth_fullness": 50,
+                    "ears": 50
+                  },
+                  "colors": {
+                    "skin": [
+                      190,
+                      143,
+                      107
+                    ],
+                    "hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "facial_hair": [
+                      101,
+                      69,
+                      46
+                    ],
+                    "eyes": [
+                      102,
+                      91,
+                      69
+                    ],
+                    "shirt": [
+                      168,
+                      71,
+                      62
+                    ],
+                    "trousers": [
+                      57,
+                      70,
+                      80
+                    ],
+                    "shoes": [
+                      76,
+                      64,
+                      55
+                    ]
+                  },
+                  "undertone": "neutral",
+                  "hairstyle": "curl",
+                  "bald": false,
+                  "facial_hair": "none",
+                  "freckles": false,
+                  "freckle_density": 50,
+                  "scar": "none",
+                  "top": "overshirt",
+                  "sleeves": "rolled",
+                  "bottoms": "trousers",
+                  "footwear": "loafers",
+                  "glasses": false,
+                  "glasses_style": "round",
+                  "earrings": "none"
+                },
+                "x": 12,
+                "y": 7.291575000000003,
+                "angle": 0,
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "head": [
+                  11.8876787877879,
+                  7.231363473611636,
+                  1.99800700639247
+                ],
+                "feet": [
+                  11.999999996266514,
+                  7.291575003142276,
+                  0.16384689214879697
+                ],
+                "fixture": null,
+                "textureBytes": 0,
+                "privateBufferBytes": 7594496
+              }
+            ],
+            "allocation": {
+              "bufferBytes": 42383264,
+              "textureBytes": 0,
+              "textureCount": 0,
+              "sharedGeometryCount": 2
+            },
+            "view": {
+              "originX": 881.999995361673,
+              "originY": 349.00000622598975,
+              "scale": 2.0000000724738607,
+              "width": 1600,
+              "height": 1100
+            }
+          }
+        }
+      ],
+      "picks": {
+        "result": [
+          {
+            "token": 1,
+            "point": [
+              880,
+              181
+            ],
+            "interiorPixels": 16319,
+            "actual": {
+              "entity": 0,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 0,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 2,
+            "point": [
+              941,
+              293
+            ],
+            "interiorPixels": 7390,
+            "actual": {
+              "entity": 1,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 1,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 38,
+            "point": [
+              914,
+              316
+            ],
+            "interiorPixels": 507,
+            "actual": {
+              "entity": 1,
+              "sim": null,
+              "kind": "fixture",
+              "cleanup": {
+                "surface": 1,
+                "dishes": [
+                  0
+                ]
+              }
+            },
+            "expected": {
+              "surface": 1,
+              "setting": 4,
+              "dishes": [
+                0
+              ]
+            }
+          },
+          {
+            "token": 36,
+            "point": [
+              812,
+              326
+            ],
+            "interiorPixels": 5818,
+            "actual": {
+              "entity": 35,
+              "kind": "person",
+              "sim": 1
+            },
+            "expected": {
+              "entity": 35,
+              "sim": 1,
+              "kind": "person"
+            }
+          },
+          {
+            "token": 3,
+            "point": [
+              1006,
+              326
+            ],
+            "interiorPixels": 8767,
+            "actual": {
+              "entity": 2,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 2,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 4,
+            "point": [
+              1069,
+              377
+            ],
+            "interiorPixels": 7923,
+            "actual": {
+              "entity": 3,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 3,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 5,
+            "point": [
+              1133,
+              419
+            ],
+            "interiorPixels": 8019,
+            "actual": {
+              "entity": 4,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 4,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 9,
+            "point": [
+              879,
+              421
+            ],
+            "interiorPixels": 3935,
+            "actual": {
+              "entity": 8,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 8,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 6,
+            "point": [
+              1197,
+              461
+            ],
+            "interiorPixels": 10498,
+            "actual": {
+              "entity": 5,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 5,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 8,
+            "point": [
+              817,
+              470
+            ],
+            "interiorPixels": 10257,
+            "actual": {
+              "entity": 7,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 7,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 39,
+            "point": [
+              797,
+              501
+            ],
+            "interiorPixels": 386,
+            "actual": {
+              "entity": 7,
+              "sim": null,
+              "kind": "fixture",
+              "cleanup": {
+                "surface": 7,
+                "dishes": [
+                  1
+                ]
+              }
+            },
+            "expected": {
+              "surface": 7,
+              "setting": 2,
+              "dishes": [
+                1
+              ]
+            }
+          },
+          {
+            "token": 11,
+            "point": [
+              1390,
+              540
+            ],
+            "interiorPixels": 8882,
+            "actual": {
+              "entity": 10,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 10,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 7,
+            "point": [
+              1264,
+              544
+            ],
+            "interiorPixels": 1697,
+            "actual": {
+              "entity": 6,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 6,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 20,
+            "point": [
+              358,
+              585
+            ],
+            "interiorPixels": 24711,
+            "actual": {
+              "entity": 19,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 19,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 21,
+            "point": [
+              624,
+              629
+            ],
+            "interiorPixels": 3144,
+            "actual": {
+              "entity": 20,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 20,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 12,
+            "point": [
+              1522,
+              667
+            ],
+            "interiorPixels": 13818,
+            "actual": {
+              "entity": 11,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 11,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 22,
+            "point": [
+              252,
+              676
+            ],
+            "interiorPixels": 7296,
+            "actual": {
+              "entity": 21,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 21,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 17,
+            "point": [
+              1215,
+              755
+            ],
+            "interiorPixels": 3334,
+            "actual": {
+              "entity": 16,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 16,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 24,
+            "point": [
+              880,
+              765
+            ],
+            "interiorPixels": 12655,
+            "actual": {
+              "entity": 23,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 23,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 26,
+            "point": [
+              1073,
+              802
+            ],
+            "interiorPixels": 24852,
+            "actual": {
+              "entity": 25,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 25,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 25,
+            "point": [
+              785,
+              813
+            ],
+            "interiorPixels": 4236,
+            "actual": {
+              "entity": 24,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 24,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 18,
+            "point": [
+              1343,
+              813
+            ],
+            "interiorPixels": 5741,
+            "actual": {
+              "entity": 17,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 17,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 28,
+            "point": [
+              620,
+              879
+            ],
+            "interiorPixels": 14208,
+            "actual": {
+              "entity": 27,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 27,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 23,
+            "point": [
+              475,
+              894
+            ],
+            "interiorPixels": 6943,
+            "actual": {
+              "entity": 22,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 22,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 19,
+            "point": [
+              1457,
+              924
+            ],
+            "interiorPixels": 4260,
+            "actual": {
+              "entity": 18,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 18,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 27,
+            "point": [
+              879,
+              997
+            ],
+            "interiorPixels": 7112,
+            "actual": {
+              "entity": 26,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 26,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 35,
+            "point": [
+              1212,
+              1014
+            ],
+            "interiorPixels": 3485,
+            "actual": {
+              "entity": 34,
+              "kind": "person",
+              "sim": 0
+            },
+            "expected": {
+              "entity": 34,
+              "sim": 0,
+              "kind": "person"
+            }
+          },
+          {
+            "token": 37,
+            "point": [
+              1171,
+              1016
+            ],
+            "interiorPixels": 3431,
+            "actual": {
+              "entity": 36,
+              "kind": "person",
+              "sim": 2
+            },
+            "expected": {
+              "entity": 36,
+              "sim": 2,
+              "kind": "person"
+            }
+          },
+          {
+            "token": 30,
+            "point": [
+              1250,
+              1017
+            ],
+            "interiorPixels": 2398,
+            "actual": {
+              "entity": 29,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 29,
+              "sim": null,
+              "kind": "fixture"
+            }
+          },
+          {
+            "token": 31,
+            "point": [
+              1393,
+              1025
+            ],
+            "interiorPixels": 3333,
+            "actual": {
+              "entity": 30,
+              "kind": "fixture",
+              "sim": null
+            },
+            "expected": {
+              "entity": 30,
+              "sim": null,
+              "kind": "fixture"
+            }
+          }
+        ],
+        "dishes": [
+          1,
+          4,
+          0,
+          7,
+          2,
+          1
+        ],
+        "books": [],
+        "expectedExtras": [
+          [
+            38,
+            {
+              "entity": 1,
+              "sim": null,
+              "kind": "fixture",
+              "cleanup": {
+                "surface": 1,
+                "dishes": [
+                  0
+                ]
+              },
+              "setting": 4
+            }
+          ],
+          [
+            39,
+            {
+              "entity": 7,
+              "sim": null,
+              "kind": "fixture",
+              "cleanup": {
+                "surface": 7,
+                "dishes": [
+                  1
+                ]
+              },
+              "setting": 2
+            }
+          ]
+        ],
+        "scene": {
+          "actors": [
+            {
+              "entity": 34,
+              "sim": 0,
+              "token": 35,
+              "clip": "walk",
+              "sample": 2.3326000000000136,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    62,
+                    117,
+                    164
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 12.291575000000002,
+              "y": 7,
+              "angle": 1.5707963267948966,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                12.128942744629727,
+                6.877083796365974,
+                1.9576275414334696
+              ],
+              "feet": [
+                12.291575003142274,
+                7.0000000037334855,
+                0.16384689214879697
+              ],
+              "fixture": null,
+              "textureBytes": 0,
+              "privateBufferBytes": 7574784
+            },
+            {
+              "entity": 35,
+              "sim": 1,
+              "token": 36,
+              "clip": "idle",
+              "sample": 0.5831500000000176,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    107,
+                    159,
+                    155
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 1,
+              "y": 2,
+              "angle": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                0.8710493826178622,
+                1.8913772831520506,
+                2.0382910708622495
+              ],
+              "feet": [
+                1,
+                2,
+                0.12999999523162842
+              ],
+              "fixture": null,
+              "textureBytes": 0,
+              "privateBufferBytes": 7574784
+            },
+            {
+              "entity": 36,
+              "sim": 2,
+              "token": 37,
+              "clip": "book_walk",
+              "sample": 2.3326000000000207,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    168,
+                    71,
+                    62
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 12,
+              "y": 7.291575000000003,
+              "angle": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                11.8876787877879,
+                7.231363473611636,
+                1.99800700639247
+              ],
+              "feet": [
+                11.999999996266514,
+                7.291575003142276,
+                0.16384689214879697
+              ],
+              "fixture": null,
+              "textureBytes": 0,
+              "privateBufferBytes": 7594496
+            }
+          ],
+          "allocation": {
+            "bufferBytes": 42383264,
+            "textureBytes": 0,
+            "textureCount": 0,
+            "sharedGeometryCount": 2
+          },
+          "view": {
+            "originX": 881.999995361673,
+            "originY": 349.00000622598975,
+            "scale": 2.0000000724738607,
+            "width": 1600,
+            "height": 1100
+          }
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "productionHashesBefore": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "current": {
+    "name": "dining-facing-0-setting-1",
+    "facing": 0,
+    "setting": 1,
+    "placement": {
+      "x": 2.5,
+      "y": 3,
+      "chair": 8,
+      "chairFacing": 0,
+      "chairAt": [
+        3,
+        2
+      ],
+      "baselineDishes": [
+        1,
+        4,
+        0
+      ]
+    },
+    "captures": [
+      {
+        "label": "unused",
+        "screenshot": "dining-facing-0-setting-1-unused.png",
+        "scene": {
+          "actors": [
+            {
+              "entity": 34,
+              "sim": 0,
+              "token": 35,
+              "clip": "bed_sleep",
+              "sample": 0.2994734375000001,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    62,
+                    117,
+                    164
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 0.5,
+              "y": 8.5,
+              "angle": 1.5707963267948966,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                -0.23184384859862328,
+                8.122934257234508,
+                1.1617453689448625
+              ],
+              "feet": [
+                1.2991474866867065,
+                8.11500006914139,
+                0.5676872375260645
+              ],
+              "fixture": 19,
+              "textureBytes": 0,
+              "privateBufferBytes": 8128784
+            },
+            {
+              "entity": 35,
+              "sim": 1,
+              "token": 36,
+              "clip": "cook_v2",
+              "sample": 4.066520000000004,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    107,
+                    159,
+                    155
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 2,
+              "y": 1,
+              "angle": 3.141592653589793,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                2.0090917507567942,
+                0.8465521777398103,
+                2.0794687136324157
+              ],
+              "feet": [
+                2,
+                1,
+                0.12999999523162842
+              ],
+              "fixture": null,
+              "textureBytes": 0,
+              "privateBufferBytes": 7578336
+            },
+            {
+              "entity": 36,
+              "sim": 2,
+              "token": 37,
+              "clip": "bed_sleep",
+              "sample": 0.3307234375000001,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    168,
+                    71,
+                    62
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 0.5,
+              "y": 8.5,
+              "angle": 1.5707963267948966,
+              "offset": [
+                -0.77,
+                0,
+                0
+              ],
+              "head": [
+                -0.23184384859862328,
+                8.89293425723451,
+                1.1617453689448625
+              ],
+              "feet": [
+                1.2991474866867065,
+                8.88500006914139,
+                0.5676872375260645
+              ],
+              "fixture": 19,
+              "textureBytes": 0,
+              "privateBufferBytes": 7675936
+            }
+          ],
+          "allocation": {
+            "bufferBytes": 53134992,
+            "textureBytes": 0,
+            "textureCount": 0,
+            "sharedGeometryCount": 3
+          },
+          "view": {
+            "originX": 881.999992390245,
+            "originY": 349.0000080740729,
+            "scale": 1.9999999999999998,
+            "width": 1600,
+            "height": 1100
+          }
+        }
+      },
+      {
+        "label": "eating",
+        "screenshot": "dining-facing-0-setting-1-eating.png",
+        "scene": {
+          "actors": [
+            {
+              "entity": 34,
+              "sim": 0,
+              "token": 35,
+              "clip": "walk",
+              "sample": 0.33260000000002066,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    62,
+                    117,
+                    164
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 12,
+              "y": 7.041575000000003,
+              "angle": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                11.871049382617862,
+                6.932952283152053,
+                1.9932756351964038
+              ],
+              "feet": [
+                12,
+                7.041575007089822,
+                0.13881938493161852
+              ],
+              "fixture": null,
+              "textureBytes": 0,
+              "privateBufferBytes": 7574784
+            },
+            {
+              "entity": 35,
+              "sim": 1,
+              "token": 36,
+              "clip": "seated_eat",
+              "sample": 0.0415750000000088,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    107,
+                    159,
+                    155
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 3,
+              "y": 2,
+              "angle": 1.5707963267948966,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                2.8710493750835373,
+                2.172032350635692,
+                1.839602206890953
+              ],
+              "feet": [
+                2.9999999711406615,
+                2.574999988079071,
+                0.12999999523162842
+              ],
+              "fixture": 8,
+              "textureBytes": 0,
+              "privateBufferBytes": 7917152
+            },
+            {
+              "entity": 36,
+              "sim": 2,
+              "token": 37,
+              "clip": "book_walk",
+              "sample": 6.332600000000021,
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    168,
+                    71,
+                    62
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "x": 9,
+              "y": 1.7915750000000026,
+              "angle": 0,
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "head": [
+                8.8876787877879,
+                1.7313634736116363,
+                1.99800700639247
+              ],
+              "feet": [
+                9.00000000372529,
+                1.7915750012796297,
+                0.16384688842350678
+              ],
+              "fixture": null,
+              "textureBytes": 0,
+              "privateBufferBytes": 7594496
+            }
+          ],
+          "allocation": {
+            "bufferBytes": 52681680,
+            "textureBytes": 0,
+            "textureCount": 0,
+            "sharedGeometryCount": 3
+          },
+          "view": {
+            "originX": 881.999992390245,
+            "originY": 349.0000080740729,
+            "scale": 1.9999999999999998,
+            "width": 1600,
+            "height": 1100
+          }
+        }
+      }
+    ],
+    "states": [
+      {
+        "tick": 146,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 147,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 148,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 149,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 150,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 151,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 152,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 153,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 154,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 155,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 156,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 157,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 158,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 159,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 160,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 161,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 162,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 163,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 164,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 165,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 166,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 167,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 168,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 169,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 170,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 171,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 172,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 173,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 174,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 175,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 176,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 177,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 178,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 179,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 180,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 181,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 182,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 183,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 184,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 185,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 186,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 187,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 188,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 189,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 190,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 191,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 192,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 193,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 194,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 195,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 196,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 197,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 198,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 199,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 200,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 201,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 202,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 203,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 204,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 205,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 206,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 207,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 208,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 209,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 210,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 211,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 212,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 213,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 214,
+        "action": 0,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 215,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 216,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 217,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 218,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 219,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 220,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 221,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 222,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 223,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 224,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 225,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 226,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 227,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 228,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 229,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 230,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 231,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 232,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 233,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 234,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 235,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 236,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 237,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 238,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 239,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 240,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 241,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 242,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 243,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 244,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 245,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 246,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 247,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 248,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 249,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 250,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 251,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 252,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 253,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 254,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 255,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 256,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 257,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 258,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 259,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 260,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 261,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 262,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 263,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 264,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 265,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 266,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 267,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 268,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 269,
+        "action": 11,
+        "target": 2,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 270,
+        "action": 0,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 271,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1.75,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 272,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1.5,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 273,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1.25,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 274,
+        "action": 0,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 275,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 276,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 277,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 278,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 279,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 280,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 281,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 282,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 283,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 284,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 285,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 286,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 287,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 288,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 289,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 290,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 291,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 292,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 293,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 294,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 295,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 296,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 297,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 298,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 299,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 300,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 301,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 302,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 303,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 304,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 305,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 306,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 307,
+        "action": 10,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 308,
+        "action": 0,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 309,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1.25,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 310,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1.5,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 311,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          1.75,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 312,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 313,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1.25
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 314,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1.5
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 315,
+        "action": 5,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          1.75
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 316,
+        "action": 0,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 317,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 318,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 319,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 320,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 321,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 322,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 323,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 324,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 325,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 326,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 327,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 328,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 329,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 330,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 331,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 332,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 333,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 334,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 335,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 336,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 337,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 338,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 339,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 340,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 341,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 342,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 343,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 344,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 345,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 346,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 347,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 348,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 349,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 350,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 351,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 352,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 353,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 354,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 355,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 356,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 357,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 358,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 359,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 360,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 361,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 362,
+        "action": 13,
+        "target": 8,
+        "mealTable": 7,
+        "position": [
+          3,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0
+        ]
+      },
+      {
+        "tick": 363,
+        "action": 0,
+        "target": 4294967295,
+        "mealTable": 4294967295,
+        "position": [
+          2,
+          2
+        ],
+        "dishes": [
+          1,
+          4,
+          0,
+          7,
+          2,
+          1
+        ]
+      }
+    ],
+    "status": "running"
+  },
+  "status": "FAIL",
+  "failure": "Error: Completed meal did not leave dishes at expected setting: {\"setting\":1,\"state\":{\"tick\":363,\"action\":0,\"target\":4294967295,\"mealTable\":4294967295,\"position\":[2,2],\"dishes\":[1,4,0,7,2,1]}}\n    at D:\\VIBES\\.worktrees\\5637\\terrilives\\scripts\\character-creator-repair\\final-game-dining.cjs:58:35",
+  "productionHashesAfter": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "productionUnchanged": true
+}

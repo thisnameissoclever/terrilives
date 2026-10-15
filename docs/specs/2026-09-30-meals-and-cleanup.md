@@ -120,17 +120,22 @@ for later visitors rather than an invisible chore debt.
 
 Room membership comes from saved wall boundaries. Doorways separate rooms
 even though Sims can walk through them. Occupied furniture does not cut a room
-in two. A Sim in a room containing visible dishes, including their own old mess, gets a Dirty
-dishes moodlet. More cleanliness increases its strength. Current needs, mood,
+in two. Visible dishes, including a Sim's own old mess, produce a Dirty dishes
+moodlet once the room load exceeds that Sim's cleanliness threshold. Six dish
+units count as full load. The [cleanliness response](2026-10-13-cleanliness.md)
+scales the ordinary penalty up to its existing maximum; more cleanliness lowers
+tolerance and increases that maximum. Current needs, mood,
 relationship environment and conditions continue to contribute independently.
 The existing sustained-mood rule integrates the resulting mood into life
 satisfaction; the dish system does not add a second direct satisfaction cost.
 
-On each visit, a new pile causes a small directional affinity penalty toward
-its creator. A room visit remembers the piles already noticed. Remaining in
-the room does not repeatedly charge the penalty. A new pile can be noticed
-during the visit; leaving and returning starts another visit. Own dishes do
-not cause resentment toward oneself.
+On each visit, a new pile above the room-load threshold causes a small
+directional affinity penalty toward its creator, scaled by the same room
+response. A room visit remembers piles that caused annoyance. Below-threshold
+piles remain eligible to cause a reaction if the room load later crosses the
+threshold. Remaining in the room does not repeatedly charge the penalty. A new
+pile can be noticed during the visit; leaving and returning starts another
+visit. Own dishes count toward the room load but do not cause self-resentment.
 
 Room entry or a genuinely new visible dish identity arms one pending cleanup opportunity. A busy Sim retains it until the next idle boundary. Own old mess also qualifies, without an affinity penalty toward oneself. The idle Sim gets one cleanup roll at 35% of
 their needs-adjusted own-cleanup probability. Claims still prevent duplicate

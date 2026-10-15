@@ -1,0 +1,159 @@
+{
+  "gameUrl": "http://127.0.0.1:5192",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "errors": [],
+  "navigation": [
+    {
+      "name": "identity",
+      "selected": "identity",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "appearance",
+      "selected": "appearance",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "personality",
+      "selected": "personality",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "needs",
+      "selected": "needs",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "interests",
+      "selected": "interests",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "household",
+      "selected": "household",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "review",
+      "selected": "review",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    }
+  ],
+  "keyboard": [
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Random",
+      "id": "creator-field-0-random"
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Lock",
+      "id": "creator-field-0-lock"
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Cancel",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Reset section",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Continue",
+      "id": ""
+    },
+    {
+      "inside": false,
+      "tag": "BODY",
+      "text": "\n    \n    \n    \n    \n      \n        \n          Time\n        ",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Show preview",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Randomize",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Identity",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Appearance",
+      "id": ""
+    }
+  ],
+  "checks": [
+    "Move in enables with the preview never opened",
+    "All seven narrow sections are reachable without page overflow",
+    "Tab traversal does not reach underlying game controls",
+    "Creation draft keeps preview hidden",
+    "Unapplied narrow draft leaves household bytes exact",
+    "Hidden-preview creator creates the fourth person",
+    "Existing edit preloads the created name",
+    "Apply changes enables with edit preview never opened",
+    "Hidden-preview edit changes the same native person",
+    "Escape closes an unapplied existing edit",
+    "No browser or graphics diagnostics"
+  ],
+  "hiddenPreviewCanSubmit": true,
+  "beforePreview": {
+    "expanded": "false",
+    "status": "",
+    "disabled": false,
+    "action": "walk"
+  },
+  "created": {
+    "person": 3,
+    "count": 4
+  },
+  "edited": {
+    "person": 3,
+    "name": "Narrow Edited",
+    "count": 4
+  },
+  "escapeCloses": true,
+  "bundleFiles": {
+    "index-c70F80k8.js": "f42d226a5b797282059fe30a7166dfd68de67fb6b15f3431acad1424d9b98775",
+    "preparation-worker-DdKXMRR3.js": "1e6929d4da910caaa4d11c10ff8f2e17be24288f9c5ec5aff5089403236b1a56",
+    "save-worker-Ddp7uOL0.js": "08c8a225a3862854688422a74d5bd9cbb9a96c34a8f16aa7a199add9f8249689",
+    "terri_wasm_bg-Ck4HYOh5.wasm": "c57dd4776779113f7c5f8639b9344afa8de15a9aed786ab08d161900e53effcd"
+  },
+  "status": "PASS",
+  "browserClosed": true
+}

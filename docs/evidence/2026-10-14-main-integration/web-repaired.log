@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bridge.test.ts tests/fixture-depth.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  2 passed (2)
+      Tests  121 passed (121)
+   Start at  15:22:36
+   Duration  9.19s (transform 2.89s, setup 35ms, import 3.94s, tests 5.02s, environment 0ms)
+

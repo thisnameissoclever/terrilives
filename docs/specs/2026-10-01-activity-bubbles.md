@@ -1,10 +1,10 @@
 # Activity bubbles
 
 Activities and waiting have a bubble above the Sim's displayed head. Walking
-has no bubble because it is travel toward an activity. The 21 displayed symbols
+has no bubble because it is travel toward an activity. The displayed symbols
 share a linen circle, charcoal strokes, a logical 26-pixel size,
 and texture density two. Revised existing symbols append alongside new ones;
-the 1,370 historical atlas records retain their indices and decoded pixels.
+historical atlas records retain their indices and decoded pixels.
 
 `activity` is optional authored presentation metadata on ordinary interactions
 and chain steps. It does not enter the compatibility fingerprint, persisted
@@ -41,14 +41,28 @@ work begins. The unused footprints sprite remains in the append-only atlas.
 | Dinner step 2, hob | 23 | Steaming pot |
 
 Idle/deciding code 0 has no active task and no bubble. At-work code 6 has no
-visible body on the lot. Decorative furniture, laundry and loose chairs have
-no executable interactions in this content pack and need no invented activity.
+visible body on the lot. Objects without executable interactions need no
+invented activity. Chairs use the activity of their current supported action.
 The dining table's existing menu label says "Sit down to eat", but that
 ordinary interaction supplies comfort and social needs; its icon correctly
 shows sitting. Actual dinner eating is the terminal dinner-chain step.
 
-The bubble follows the displayed body's content top, scales with the camera,
-and shares occupied footprint depth so near furniture cannot cut it in half.
+The bubble follows the configured body's projected head-and-hair envelope.
+Its visible bottom remains four logical pixels above that envelope, including
+the character outline and the bubble texture's transparent padding. Legacy
+sprite bodies retain their authored content-top registration. Both scale with
+the camera.
+
+Bubbles are screen annotations. Draw them after physical geometry and
+translucent walls, at the same twice-display resolution, before reducing color.
+They do not test or write world depth. Their covered samples carry the person's
+token in a separate integer owner texture; physical depth and ownership remain
+unchanged. Transparent padding falls through to the world. At overlapping
+annotation edges, the last displayed annotation with covered samples wins
+picking, matching the stable draw order. Do not average owner tokens.
+
+An eligible on-lot activity remains visible even when a wall obscures its person.
+This is an information overlay, not a physical object intersecting the room.
 The renderer and its instance counter use the same activity mapping and draw
 bubbles only for agents. Reduced motion and pause preserve meaningful icons.
 

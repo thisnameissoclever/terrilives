@@ -1,0 +1,116 @@
+{
+  "command": "node scripts/character-creator-repair/final-game-proof.cjs",
+  "cases": [
+    {
+      "action": "idle",
+      "observation": {
+        "errors": [],
+        "bounds": {
+          "minX": 218,
+          "minY": 159,
+          "maxX": 383,
+          "maxY": 663,
+          "bodyPixels": 60783,
+          "fixturePixels": 0
+        },
+        "status": "Source checkpoint with authored material colors. Appearance and contact approval remain open."
+      }
+    },
+    {
+      "action": "walk",
+      "observation": {
+        "errors": [],
+        "bounds": {
+          "minX": 222,
+          "minY": 165,
+          "maxX": 380,
+          "maxY": 665,
+          "bodyPixels": 53467,
+          "fixturePixels": 0
+        },
+        "status": "Source checkpoint with authored material colors. Appearance and contact approval remain open."
+      }
+    },
+    {
+      "action": "read",
+      "observation": {
+        "errors": [],
+        "bounds": {
+          "minX": 164,
+          "minY": 246,
+          "maxX": 366,
+          "maxY": 709,
+          "bodyPixels": 59788,
+          "fixturePixels": 38477
+        },
+        "status": "Source checkpoint with authored material colors. Appearance and contact approval remain open."
+      }
+    },
+    {
+      "action": "standing_read",
+      "observation": {
+        "errors": [],
+        "bounds": {
+          "minX": 93,
+          "minY": 220,
+          "maxX": 306,
+          "maxY": 709,
+          "bodyPixels": 60068,
+          "fixturePixels": 52552
+        },
+        "status": "Source checkpoint with authored material colors. Appearance and contact approval remain open."
+      }
+    },
+    {
+      "action": "sit_down",
+      "observation": {
+        "errors": [],
+        "bounds": {
+          "minX": 96,
+          "minY": 221,
+          "maxX": 308,
+          "maxY": 709,
+          "bodyPixels": 60199,
+          "fixturePixels": 52106
+        },
+        "status": "Source checkpoint with authored material colors. Appearance and contact approval remain open."
+      }
+    },
+    {
+      "action": "stand_up",
+      "observation": {
+        "errors": [],
+        "bounds": {
+          "minX": 161,
+          "minY": 247,
+          "maxX": 363,
+          "maxY": 709,
+          "bodyPixels": 59587,
+          "fixturePixels": 39127
+        },
+        "status": "Source checkpoint with authored material colors. Appearance and contact approval remain open."
+      }
+    }
+  ],
+  "diagnostics": [],
+  "productionHashesBefore": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "status": "PASS",
+  "productionHashesAfter": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "productionUnchanged": true
+}

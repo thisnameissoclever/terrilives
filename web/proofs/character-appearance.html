@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Character appearance proof</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { color-scheme: dark; font: 15px system-ui,sans-serif; background:#17171c; color:#e8e9ed }
+  body { margin:0; padding:24px } header { display:flex; gap:24px; align-items:baseline }
+  h1 { font-size:25px; margin:0 0 12px } p { color:#adb5c6 } main { display:flex; gap:24px; flex-wrap:wrap }
+  canvas { width:420px; max-width:100%; height:auto; border:1px solid #353740 }
+  button,select { padding:10px; margin:4px; border:1px solid #444954; border-radius:4px; background:#232630; color:inherit }
+  button:focus-visible,select:focus-visible { outline:2px solid #63c7f4 } pre { white-space:pre-wrap; max-width:700px }
+  #status { max-width:900px; white-space:pre-wrap } .bad { color:#ffada7 }
+  #fields { min-width:360px; max-width:480px } .field { display:grid; grid-template-columns:100px 1fr 60px 70px 55px; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid #343844 }
+  .field input[type=number] { width:55px } input { accent-color:#59c4f0; min-width:0 } .field label { font-size:14px }
+  #world { width:720px; max-width:100% } h2 { font-size:17px; margin:12px 0 } output { color:#aac1d3 }
+  #actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px } .primary { background:#59c4f0; color:#071c26; font-weight:600 }
+</style>
+<header><h1>Character appearance proof</h1><span>Development preview</span></header>
+<p id="status" role="status">Loading the actual character geometry.</p>
+<main><section id="fields"><h2>Appearance</h2><div id="field-list"></div>
+  <button id="randomize" class="primary" type="button">Randomize</button><button id="randomize-colors" type="button">Randomize colors</button><button id="undo" type="button">Undo</button>
+  <p>Locked fields stay unchanged when randomized.</p>
+  <button id="baseline" type="button">Load source checkpoint</button><button id="new-draft" type="button">New random draft</button>
+</section><section><h2>Creator preview</h2><canvas id="preview" width="608" height="800" aria-label="Actual character model"></canvas><p id="picked" role="status"></p></section>
+<section id="controls"><h2>World view</h2><canvas id="world" width="960" height="640" aria-label="Game compositor with actual floor and wall assets"></canvas>
+<div id="actions">
+  <label>Study <select id="driver"><option value="manual">Manual frames</option><option value="walk">Simulation walking</option><option value="read">Simulation reading</option></select></label>
+  <label>Facing <select id="facing"><option value="0">Front left</option><option value="1.5707963267948966">Front right</option><option value="3.141592653589793">Back left</option><option value="4.71238898038469">Back right</option></select></label>
+  <label>Action <select id="action"><option>idle</option><option>walk</option><option>read</option><option value="standing_read">Standing with book</option><option value="sit_down">Sit down</option><option value="stand_up">Stand up</option></select></label>
+  <button id="advance" type="button">Next frame</button><button id="play" type="button">Play</button>
+  <label><input id="wall" type="checkbox">Foreground wall</label></div>
+  <button id="benchmark" type="button">Measure six characters</button><output id="benchmark-result"></output>
+  <details><summary>Proof diagnostics</summary><pre id="facts"></pre></details>
+</section></main>
+<script type="module" src="./character-appearance.ts"></script>
+</html>

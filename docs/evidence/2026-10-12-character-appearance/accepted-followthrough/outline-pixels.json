@@ -1,0 +1,151 @@
+{
+  "individualDraws": 56,
+  "combinedDraws": 7,
+  "cases": [
+    {
+      "presentation": "masculine",
+      "action": "idle",
+      "facing": 0,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "idle",
+      "facing": 1,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "idle",
+      "facing": 2,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "idle",
+      "facing": 3,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "walk",
+      "facing": 0,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "walk",
+      "facing": 1,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "walk",
+      "facing": 2,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "walk",
+      "facing": 3,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "read",
+      "facing": 0,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "read",
+      "facing": 1,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "read",
+      "facing": 2,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "masculine",
+      "action": "read",
+      "facing": 3,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "idle",
+      "facing": 0,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "idle",
+      "facing": 1,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "idle",
+      "facing": 2,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "idle",
+      "facing": 3,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "walk",
+      "facing": 0,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "walk",
+      "facing": 1,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "walk",
+      "facing": 2,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "walk",
+      "facing": 3,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "read",
+      "facing": 0,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "read",
+      "facing": 1,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "read",
+      "facing": 2,
+      "changedBytes": 0
+    },
+    {
+      "presentation": "feminine",
+      "action": "read",
+      "facing": 3,
+      "changedBytes": 0
+    }
+  ],
+  "errors": []
+}

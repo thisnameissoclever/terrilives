@@ -1,0 +1,4601 @@
+{
+  "checks": [
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: fixture is schema 9",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "Authentic main fixture has an active conversation topic",
+      "pass": true,
+      "evidence": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        19,
+        19,
+        0
+      ]
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: actual startup preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: disk Save writes schema 10",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: disk Save preserves exact live bytes",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: V9 recovery backup is byte exact",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: V10 browser reload preserves exact character and social state",
+      "pass": true
+    },
+    {
+      "scenario": "main-v9-migration",
+      "name": "main-social-active: browser reload leaves V9 backup untouched",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: fixture is schema 9",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: actual startup preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: explicit disk Load preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: disk Save writes schema 10",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: disk Save preserves exact live bytes",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: V9 recovery backup is byte exact",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: V10 browser reload preserves exact character and social state",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: browser reload leaves V9 backup untouched",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: fixture is schema 9",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Authentic main fixture has an active conversation topic",
+      "pass": true,
+      "evidence": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        19,
+        19,
+        0
+      ]
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: actual startup preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: disk Save writes schema 10",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: disk Save preserves exact live bytes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: V9 recovery backup is byte exact",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: V10 browser reload preserves exact character and social state",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "main-social-active: browser reload leaves V9 backup untouched",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Actual creator opens on Walking",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Needs Reset presents ten 1.0x Activity preferences",
+      "pass": true,
+      "evidence": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Activity preferences disclosure starts open",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Activity preferences disclosure retains a deliberate collapse",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Creator Move in applies the requested character",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Created character reload preserves the exact saved bytes and tick",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Created character survives actual disk Save and browser reload",
+      "pass": true,
+      "evidence": {
+        "zeroPracticeEntriesOmittedBySave": true
+      }
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Nonzero reading practice survives without normalization",
+      "pass": true,
+      "evidence": {
+        "id": "reading",
+        "practice": 1036831949
+      }
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Edit reopens the exact saved created person",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Creator Apply commits name and need changes exactly",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Edited character survives actual disk Save and browser reload",
+      "pass": true
+    },
+    {
+      "scenario": "creator-save",
+      "name": "Repeated saves retain the original V9 recovery bytes",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: fixture is schema 9",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Authentic main fixture has an active conversation topic",
+      "pass": true,
+      "evidence": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        19,
+        19,
+        0
+      ]
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: actual startup preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: disk Save writes schema 10",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: disk Save preserves exact live bytes",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: V9 recovery backup is byte exact",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: V10 browser reload preserves exact character and social state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: browser reload leaves V9 backup untouched",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Build begins with live state different from the disk save",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Build mode is active before Load",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Pending Build placement changes live bytes",
+      "pass": true,
+      "evidence": {
+        "id": 0,
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          7,
+          0
+        ],
+        "facing": 1
+      }
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Actual Load replaces the pending Build world with disk state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Build Cancel retains the newly loaded world instead of the old baseline",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Exit Build restores play controls",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Leaving Build retains the newly loaded world",
+      "pass": true
+    },
+    {
+      "scenario": "overall",
+      "name": "Every independently reported scenario passed",
+      "pass": true
+    },
+    {
+      "scenario": "overall",
+      "name": "No browser or graphics diagnostics",
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "scenario": "overall",
+      "name": "Relevant runtime sources remained unchanged during the proof",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "fixtures": [
+    {
+      "scenario": "main-v9-migration",
+      "fixture": "main-social-active",
+      "originalSha256": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda",
+      "savedSha256": "70be517dc9df646504127f2eb7da6ba26d125c812ff9d3c2215f6ff4283d8be1",
+      "backupSha256": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda",
+      "expected": {
+        "tick": 49,
+        "characters": [
+          {
+            "sim": 0,
+            "snapshot": {
+              "version": 1,
+              "name": "Tim",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    62,
+                    117,
+                    164
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 89,
+                "cleanliness": 1063675494,
+                "self_preservation": 55,
+                "chronotype_offset_ticks": -90,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067869798,
+                  1060320051
+                ],
+                "recovery": [
+                  1065353216,
+                  1066611507,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1062836634,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1057803469
+                  },
+                  {
+                    "object": "bookshelf",
+                    "action": "read",
+                    "weight": 1069128090
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1071225242
+                  },
+                  {
+                    "object": "reading_chair",
+                    "action": "settle_in",
+                    "weight": 1067702026
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "low_spirits",
+                  "state": 1058642330
+                },
+                {
+                  "id": "bookworm",
+                  "state": 0
+                },
+                {
+                  "id": "out_of_shape",
+                  "state": 1054280253
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3205206584
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1033883952
+                },
+                {
+                  "id": "television",
+                  "value": 1058063034
+                },
+                {
+                  "id": "radio",
+                  "value": 1045710968
+                }
+              ],
+              "hobbies": [
+                "correspondence",
+                "reading"
+              ],
+              "skills": [
+                {
+                  "id": "exercise",
+                  "practice": 1054280253
+                }
+              ],
+              "ties": [
+                [
+                  1,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 1,
+            "snapshot": {
+              "version": 1,
+              "name": "Bill",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    107,
+                    159,
+                    155
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 22,
+                "cleanliness": 1034147594,
+                "self_preservation": 71,
+                "chronotype_offset_ticks": 0,
+                "drain": [
+                  1065353216,
+                  1061997773,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1069547520
+                ],
+                "recovery": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067450368
+                ],
+                "dispositions": [
+                  {
+                    "object": "long_sofa",
+                    "action": "stretch_out",
+                    "weight": 1068289229
+                  },
+                  {
+                    "object": "armchair",
+                    "action": "take_the_chair",
+                    "weight": 1072483533
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1055286886
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "television_devotee",
+                  "state": 0
+                },
+                {
+                  "id": "exercise_averse",
+                  "state": 0
+                },
+                {
+                  "id": "fish_watcher",
+                  "state": 0
+                },
+                {
+                  "id": "private_person",
+                  "state": 0
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 1052782696
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1053609165
+                },
+                {
+                  "id": "television",
+                  "value": 1061997773
+                },
+                {
+                  "id": "radio",
+                  "value": 3180604464
+                }
+              ],
+              "hobbies": [
+                "television",
+                "cooking"
+              ],
+              "skills": [],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 2,
+            "snapshot": {
+              "version": 1,
+              "name": "Casey",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    168,
+                    71,
+                    62
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 30,
+                "cleanliness": 1057803469,
+                "self_preservation": 29,
+                "chronotype_offset_ticks": 180,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1063675494,
+                  1065353216,
+                  1068708659,
+                  1065353216,
+                  1065353216
+                ],
+                "recovery": [
+                  1066192077,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1061158912,
+                  1065353216,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1067030938
+                  },
+                  {
+                    "object": "dining_table",
+                    "action": "sit_properly",
+                    "weight": 1065772646
+                  },
+                  {
+                    "object": "radio",
+                    "action": "listen",
+                    "weight": 1070386381
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "cannot_cook",
+                  "state": 1048576000
+                },
+                {
+                  "id": "keen_cyclist",
+                  "state": 0
+                },
+                {
+                  "id": "chatterbox",
+                  "state": 0
+                },
+                {
+                  "id": "slow_reader",
+                  "state": 1058306785
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3211585826
+                },
+                {
+                  "id": "aquarium",
+                  "value": 3192984136
+                },
+                {
+                  "id": "television",
+                  "value": 3189707464
+                },
+                {
+                  "id": "radio",
+                  "value": 1025306688
+                }
+              ],
+              "hobbies": [
+                "socialising"
+              ],
+              "skills": [
+                {
+                  "id": "cooking",
+                  "practice": 1048576000
+                },
+                {
+                  "id": "reading",
+                  "practice": 1058306785
+                }
+              ],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  1,
+                  null
+                ]
+              ]
+            }
+          }
+        ],
+        "topics": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          19,
+          19,
+          0
+        ],
+        "preferences": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          -0.550000011920929,
+          0
+        ],
+        "owners": [
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          0,
+          0,
+          4294967295
+        ],
+        "endLow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          115,
+          115,
+          0
+        ],
+        "endHigh": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "local-v9-migration",
+      "fixture": "local-character-0",
+      "originalSha256": "8fa748db328864248779f97df1082a146293f442603e4775333cd83039fda989",
+      "savedSha256": "659f4089bac5aa00b31a4c5e99f15b4f467868524b82123c289f94f62160794c",
+      "backupSha256": "8fa748db328864248779f97df1082a146293f442603e4775333cd83039fda989",
+      "expected": {
+        "tick": 0,
+        "characters": [
+          {
+            "sim": 0,
+            "snapshot": {
+              "version": 1,
+              "name": "Tim",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    62,
+                    117,
+                    164
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 89,
+                "cleanliness": 1063675494,
+                "self_preservation": 55,
+                "chronotype_offset_ticks": -90,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067869798,
+                  1060320051
+                ],
+                "recovery": [
+                  1065353216,
+                  1066611507,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1062836634,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1057803469
+                  },
+                  {
+                    "object": "bookshelf",
+                    "action": "read",
+                    "weight": 1069128090
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1071225242
+                  },
+                  {
+                    "object": "reading_chair",
+                    "action": "settle_in",
+                    "weight": 1067702026
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "low_spirits",
+                  "state": 1058642330
+                },
+                {
+                  "id": "bookworm",
+                  "state": 0
+                },
+                {
+                  "id": "out_of_shape",
+                  "state": 1054280253
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3205206584
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1033883952
+                },
+                {
+                  "id": "television",
+                  "value": 1058063034
+                },
+                {
+                  "id": "radio",
+                  "value": 1045710968
+                }
+              ],
+              "hobbies": [
+                "correspondence",
+                "reading"
+              ],
+              "skills": [
+                {
+                  "id": "exercise",
+                  "practice": 1054280253
+                }
+              ],
+              "ties": [
+                [
+                  1,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 1,
+            "snapshot": {
+              "version": 1,
+              "name": "Bill",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    107,
+                    159,
+                    155
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 22,
+                "cleanliness": 1034147594,
+                "self_preservation": 71,
+                "chronotype_offset_ticks": 0,
+                "drain": [
+                  1065353216,
+                  1061997773,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1069547520
+                ],
+                "recovery": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067450368
+                ],
+                "dispositions": [
+                  {
+                    "object": "long_sofa",
+                    "action": "stretch_out",
+                    "weight": 1068289229
+                  },
+                  {
+                    "object": "armchair",
+                    "action": "take_the_chair",
+                    "weight": 1072483533
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1055286886
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "television_devotee",
+                  "state": 0
+                },
+                {
+                  "id": "exercise_averse",
+                  "state": 0
+                },
+                {
+                  "id": "fish_watcher",
+                  "state": 0
+                },
+                {
+                  "id": "private_person",
+                  "state": 0
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 1052782696
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1053609165
+                },
+                {
+                  "id": "television",
+                  "value": 1061997773
+                },
+                {
+                  "id": "radio",
+                  "value": 3180604464
+                }
+              ],
+              "hobbies": [
+                "television",
+                "cooking"
+              ],
+              "skills": [],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 2,
+            "snapshot": {
+              "version": 1,
+              "name": "Casey",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    168,
+                    71,
+                    62
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 30,
+                "cleanliness": 1057803469,
+                "self_preservation": 29,
+                "chronotype_offset_ticks": 180,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1063675494,
+                  1065353216,
+                  1068708659,
+                  1065353216,
+                  1065353216
+                ],
+                "recovery": [
+                  1066192077,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1061158912,
+                  1065353216,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1067030938
+                  },
+                  {
+                    "object": "dining_table",
+                    "action": "sit_properly",
+                    "weight": 1065772646
+                  },
+                  {
+                    "object": "radio",
+                    "action": "listen",
+                    "weight": 1070386381
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "cannot_cook",
+                  "state": 1048576000
+                },
+                {
+                  "id": "keen_cyclist",
+                  "state": 0
+                },
+                {
+                  "id": "chatterbox",
+                  "state": 0
+                },
+                {
+                  "id": "slow_reader",
+                  "state": 1058306785
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3211585826
+                },
+                {
+                  "id": "aquarium",
+                  "value": 3192984136
+                },
+                {
+                  "id": "television",
+                  "value": 3189707464
+                },
+                {
+                  "id": "radio",
+                  "value": 1025306688
+                }
+              ],
+              "hobbies": [
+                "socialising"
+              ],
+              "skills": [
+                {
+                  "id": "cooking",
+                  "practice": 1048576000
+                },
+                {
+                  "id": "reading",
+                  "practice": 1058306785
+                }
+              ],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  1,
+                  null
+                ]
+              ]
+            }
+          }
+        ],
+        "topics": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "preferences": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "owners": [
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295
+        ],
+        "endLow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "endHigh": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "creator-save",
+      "fixture": "main-social-active",
+      "originalSha256": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda",
+      "savedSha256": "70be517dc9df646504127f2eb7da6ba26d125c812ff9d3c2215f6ff4283d8be1",
+      "backupSha256": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda",
+      "expected": {
+        "tick": 49,
+        "characters": [
+          {
+            "sim": 0,
+            "snapshot": {
+              "version": 1,
+              "name": "Tim",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    62,
+                    117,
+                    164
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 89,
+                "cleanliness": 1063675494,
+                "self_preservation": 55,
+                "chronotype_offset_ticks": -90,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067869798,
+                  1060320051
+                ],
+                "recovery": [
+                  1065353216,
+                  1066611507,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1062836634,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1057803469
+                  },
+                  {
+                    "object": "bookshelf",
+                    "action": "read",
+                    "weight": 1069128090
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1071225242
+                  },
+                  {
+                    "object": "reading_chair",
+                    "action": "settle_in",
+                    "weight": 1067702026
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "low_spirits",
+                  "state": 1058642330
+                },
+                {
+                  "id": "bookworm",
+                  "state": 0
+                },
+                {
+                  "id": "out_of_shape",
+                  "state": 1054280253
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3205206584
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1033883952
+                },
+                {
+                  "id": "television",
+                  "value": 1058063034
+                },
+                {
+                  "id": "radio",
+                  "value": 1045710968
+                }
+              ],
+              "hobbies": [
+                "correspondence",
+                "reading"
+              ],
+              "skills": [
+                {
+                  "id": "exercise",
+                  "practice": 1054280253
+                }
+              ],
+              "ties": [
+                [
+                  1,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 1,
+            "snapshot": {
+              "version": 1,
+              "name": "Bill",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    107,
+                    159,
+                    155
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 22,
+                "cleanliness": 1034147594,
+                "self_preservation": 71,
+                "chronotype_offset_ticks": 0,
+                "drain": [
+                  1065353216,
+                  1061997773,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1069547520
+                ],
+                "recovery": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067450368
+                ],
+                "dispositions": [
+                  {
+                    "object": "long_sofa",
+                    "action": "stretch_out",
+                    "weight": 1068289229
+                  },
+                  {
+                    "object": "armchair",
+                    "action": "take_the_chair",
+                    "weight": 1072483533
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1055286886
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "television_devotee",
+                  "state": 0
+                },
+                {
+                  "id": "exercise_averse",
+                  "state": 0
+                },
+                {
+                  "id": "fish_watcher",
+                  "state": 0
+                },
+                {
+                  "id": "private_person",
+                  "state": 0
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 1052782696
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1053609165
+                },
+                {
+                  "id": "television",
+                  "value": 1061997773
+                },
+                {
+                  "id": "radio",
+                  "value": 3180604464
+                }
+              ],
+              "hobbies": [
+                "television",
+                "cooking"
+              ],
+              "skills": [],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 2,
+            "snapshot": {
+              "version": 1,
+              "name": "Casey",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    168,
+                    71,
+                    62
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 30,
+                "cleanliness": 1057803469,
+                "self_preservation": 29,
+                "chronotype_offset_ticks": 180,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1063675494,
+                  1065353216,
+                  1068708659,
+                  1065353216,
+                  1065353216
+                ],
+                "recovery": [
+                  1066192077,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1061158912,
+                  1065353216,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1067030938
+                  },
+                  {
+                    "object": "dining_table",
+                    "action": "sit_properly",
+                    "weight": 1065772646
+                  },
+                  {
+                    "object": "radio",
+                    "action": "listen",
+                    "weight": 1070386381
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "cannot_cook",
+                  "state": 1048576000
+                },
+                {
+                  "id": "keen_cyclist",
+                  "state": 0
+                },
+                {
+                  "id": "chatterbox",
+                  "state": 0
+                },
+                {
+                  "id": "slow_reader",
+                  "state": 1058306785
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3211585826
+                },
+                {
+                  "id": "aquarium",
+                  "value": 3192984136
+                },
+                {
+                  "id": "television",
+                  "value": 3189707464
+                },
+                {
+                  "id": "radio",
+                  "value": 1025306688
+                }
+              ],
+              "hobbies": [
+                "socialising"
+              ],
+              "skills": [
+                {
+                  "id": "cooking",
+                  "practice": 1048576000
+                },
+                {
+                  "id": "reading",
+                  "practice": 1058306785
+                }
+              ],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  1,
+                  null
+                ]
+              ]
+            }
+          }
+        ],
+        "topics": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          19,
+          19,
+          0
+        ],
+        "preferences": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          -0.550000011920929,
+          0
+        ],
+        "owners": [
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          0,
+          0,
+          4294967295
+        ],
+        "endLow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          115,
+          115,
+          0
+        ],
+        "endHigh": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "build-load-cancel",
+      "fixture": "main-social-active",
+      "originalSha256": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda",
+      "savedSha256": "70be517dc9df646504127f2eb7da6ba26d125c812ff9d3c2215f6ff4283d8be1",
+      "backupSha256": "b3bf436324ee55f459d7883c60f6a345b65a562ab5ecdf337f2e0f8cd0c68dda",
+      "expected": {
+        "tick": 49,
+        "characters": [
+          {
+            "sim": 0,
+            "snapshot": {
+              "version": 1,
+              "name": "Tim",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    62,
+                    117,
+                    164
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 89,
+                "cleanliness": 1063675494,
+                "self_preservation": 55,
+                "chronotype_offset_ticks": -90,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067869798,
+                  1060320051
+                ],
+                "recovery": [
+                  1065353216,
+                  1066611507,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1062836634,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1057803469
+                  },
+                  {
+                    "object": "bookshelf",
+                    "action": "read",
+                    "weight": 1069128090
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1071225242
+                  },
+                  {
+                    "object": "reading_chair",
+                    "action": "settle_in",
+                    "weight": 1067702026
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "low_spirits",
+                  "state": 1058642330
+                },
+                {
+                  "id": "bookworm",
+                  "state": 0
+                },
+                {
+                  "id": "out_of_shape",
+                  "state": 1054280253
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3205206584
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1033883952
+                },
+                {
+                  "id": "television",
+                  "value": 1058063034
+                },
+                {
+                  "id": "radio",
+                  "value": 1045710968
+                }
+              ],
+              "hobbies": [
+                "correspondence",
+                "reading"
+              ],
+              "skills": [
+                {
+                  "id": "exercise",
+                  "practice": 1054280253
+                }
+              ],
+              "ties": [
+                [
+                  1,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 1,
+            "snapshot": {
+              "version": 1,
+              "name": "Bill",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    107,
+                    159,
+                    155
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 22,
+                "cleanliness": 1034147594,
+                "self_preservation": 71,
+                "chronotype_offset_ticks": 0,
+                "drain": [
+                  1065353216,
+                  1061997773,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1069547520
+                ],
+                "recovery": [
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1067450368
+                ],
+                "dispositions": [
+                  {
+                    "object": "long_sofa",
+                    "action": "stretch_out",
+                    "weight": 1068289229
+                  },
+                  {
+                    "object": "armchair",
+                    "action": "take_the_chair",
+                    "weight": 1072483533
+                  },
+                  {
+                    "object": "desk",
+                    "action": "attend_correspondence",
+                    "weight": 1055286886
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "television_devotee",
+                  "state": 0
+                },
+                {
+                  "id": "exercise_averse",
+                  "state": 0
+                },
+                {
+                  "id": "fish_watcher",
+                  "state": 0
+                },
+                {
+                  "id": "private_person",
+                  "state": 0
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 1052782696
+                },
+                {
+                  "id": "aquarium",
+                  "value": 1053609165
+                },
+                {
+                  "id": "television",
+                  "value": 1061997773
+                },
+                {
+                  "id": "radio",
+                  "value": 3180604464
+                }
+              ],
+              "hobbies": [
+                "television",
+                "cooking"
+              ],
+              "skills": [],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  2,
+                  null
+                ]
+              ]
+            }
+          },
+          {
+            "sim": 2,
+            "snapshot": {
+              "version": 1,
+              "name": "Casey",
+              "pronouns": "",
+              "appearance": {
+                "version": 1,
+                "presentation": "masculine",
+                "body": {
+                  "height": 50,
+                  "build": 50,
+                  "shoulders": 50,
+                  "hips": 50,
+                  "torso": 50
+                },
+                "face": {
+                  "shape": "oval",
+                  "cheeks": 50,
+                  "jaw": 50,
+                  "chin": 50,
+                  "eyes": "almond",
+                  "eye_size": 50,
+                  "brows": "soft",
+                  "brow_thickness": 50,
+                  "nose": "straight",
+                  "nose_width": 50,
+                  "mouth": "neutral",
+                  "mouth_fullness": 50,
+                  "ears": 50
+                },
+                "colors": {
+                  "skin": [
+                    190,
+                    143,
+                    107
+                  ],
+                  "hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "facial_hair": [
+                    101,
+                    69,
+                    46
+                  ],
+                  "eyes": [
+                    102,
+                    91,
+                    69
+                  ],
+                  "shirt": [
+                    168,
+                    71,
+                    62
+                  ],
+                  "trousers": [
+                    57,
+                    70,
+                    80
+                  ],
+                  "shoes": [
+                    76,
+                    64,
+                    55
+                  ]
+                },
+                "undertone": "neutral",
+                "hairstyle": "curl",
+                "bald": false,
+                "facial_hair": "none",
+                "freckles": false,
+                "freckle_density": 50,
+                "scar": "none",
+                "top": "overshirt",
+                "sleeves": "rolled",
+                "bottoms": "trousers",
+                "footwear": "loafers",
+                "glasses": false,
+                "glasses_style": "round",
+                "earrings": "none"
+              },
+              "behavior": {
+                "shyness": 30,
+                "cleanliness": 1057803469,
+                "self_preservation": 29,
+                "chronotype_offset_ticks": 180,
+                "drain": [
+                  1065353216,
+                  1065353216,
+                  1063675494,
+                  1065353216,
+                  1068708659,
+                  1065353216,
+                  1065353216
+                ],
+                "recovery": [
+                  1066192077,
+                  1065353216,
+                  1065353216,
+                  1065353216,
+                  1061158912,
+                  1065353216,
+                  1065353216
+                ],
+                "dispositions": [
+                  {
+                    "object": "television",
+                    "action": "watch_tv",
+                    "weight": 1067030938
+                  },
+                  {
+                    "object": "dining_table",
+                    "action": "sit_properly",
+                    "weight": 1065772646
+                  },
+                  {
+                    "object": "radio",
+                    "action": "listen",
+                    "weight": 1070386381
+                  }
+                ]
+              },
+              "traits": [
+                {
+                  "id": "cannot_cook",
+                  "state": 1048576000
+                },
+                {
+                  "id": "keen_cyclist",
+                  "state": 0
+                },
+                {
+                  "id": "chatterbox",
+                  "state": 0
+                },
+                {
+                  "id": "slow_reader",
+                  "state": 1058306785
+                }
+              ],
+              "affinities": [
+                {
+                  "id": "plants",
+                  "value": 3211585826
+                },
+                {
+                  "id": "aquarium",
+                  "value": 3192984136
+                },
+                {
+                  "id": "television",
+                  "value": 3189707464
+                },
+                {
+                  "id": "radio",
+                  "value": 1025306688
+                }
+              ],
+              "hobbies": [
+                "socialising"
+              ],
+              "skills": [
+                {
+                  "id": "cooking",
+                  "practice": 1048576000
+                },
+                {
+                  "id": "reading",
+                  "practice": 1058306785
+                }
+              ],
+              "ties": [
+                [
+                  0,
+                  null
+                ],
+                [
+                  1,
+                  null
+                ]
+              ]
+            }
+          }
+        ],
+        "topics": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          19,
+          19,
+          0
+        ],
+        "preferences": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          -0.550000011920929,
+          0
+        ],
+        "owners": [
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          4294967295,
+          0,
+          0,
+          4294967295
+        ],
+        "endLow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          115,
+          115,
+          0
+        ],
+        "endHigh": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "captures": [
+    "main-v9-migration-loaded.png",
+    "local-v9-migration-loaded.png",
+    "creator-save-loaded.png",
+    "activity-preferences-reset.png",
+    "creator-applied.png",
+    "build-load-cancel-loaded.png",
+    "build-load-cancel.png"
+  ],
+  "scenarios": [
+    {
+      "id": "main-v9-migration",
+      "fixture": "main-social-active",
+      "status": "PASS",
+      "contextClosed": true,
+      "checks": [
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: fixture is schema 9",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "Authentic main fixture has an active conversation topic",
+          "pass": true,
+          "evidence": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            19,
+            19,
+            0
+          ]
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: actual startup preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "Pause remains selected after Help closes",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "Load confirmation closes after successful adoption",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: disk Save writes schema 10",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: disk Save preserves exact live bytes",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: V9 recovery backup is byte exact",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: V10 browser reload preserves exact character and social state",
+          "pass": true
+        },
+        {
+          "scenario": "main-v9-migration",
+          "name": "main-social-active: browser reload leaves V9 backup untouched",
+          "pass": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "id": "local-v9-migration",
+      "fixture": "local-character-0",
+      "status": "PASS",
+      "contextClosed": true,
+      "checks": [
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: fixture is schema 9",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: actual startup preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "Pause remains selected after Help closes",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "Load confirmation closes after successful adoption",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: explicit disk Load preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: disk Save writes schema 10",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: disk Save preserves exact live bytes",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: V9 recovery backup is byte exact",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: V10 browser reload preserves exact character and social state",
+          "pass": true
+        },
+        {
+          "scenario": "local-v9-migration",
+          "name": "local-character-0: browser reload leaves V9 backup untouched",
+          "pass": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "id": "creator-save",
+      "fixture": "main-social-active",
+      "status": "PASS",
+      "contextClosed": true,
+      "checks": [
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: fixture is schema 9",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Authentic main fixture has an active conversation topic",
+          "pass": true,
+          "evidence": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            19,
+            19,
+            0
+          ]
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: actual startup preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Pause remains selected after Help closes",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Load confirmation closes after successful adoption",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: disk Save writes schema 10",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: disk Save preserves exact live bytes",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: V9 recovery backup is byte exact",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: V10 browser reload preserves exact character and social state",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "main-social-active: browser reload leaves V9 backup untouched",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Pause remains selected after Help closes",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Actual creator opens on Walking",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Needs Reset presents ten 1.0x Activity preferences",
+          "pass": true,
+          "evidence": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Activity preferences disclosure starts open",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Activity preferences disclosure retains a deliberate collapse",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Creator Move in applies the requested character",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Created character reload preserves the exact saved bytes and tick",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Created character survives actual disk Save and browser reload",
+          "pass": true,
+          "evidence": {
+            "zeroPracticeEntriesOmittedBySave": true
+          }
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Nonzero reading practice survives without normalization",
+          "pass": true,
+          "evidence": {
+            "id": "reading",
+            "practice": 1036831949
+          }
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Pause remains selected after Help closes",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Edit reopens the exact saved created person",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Creator Apply commits name and need changes exactly",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Edited character survives actual disk Save and browser reload",
+          "pass": true
+        },
+        {
+          "scenario": "creator-save",
+          "name": "Repeated saves retain the original V9 recovery bytes",
+          "pass": true
+        }
+      ],
+      "errors": []
+    },
+    {
+      "id": "build-load-cancel",
+      "fixture": "main-social-active",
+      "status": "PASS",
+      "contextClosed": true,
+      "checks": [
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: fixture is schema 9",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Authentic main fixture has an active conversation topic",
+          "pass": true,
+          "evidence": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            19,
+            19,
+            0
+          ]
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: actual startup preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Pause remains selected after Help closes",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Load confirmation closes after successful adoption",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: disk Save writes schema 10",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: disk Save preserves exact live bytes",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: V9 recovery backup is byte exact",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Startup reports the seeded saved game loaded",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Help pauses startup before inspection",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: V10 browser reload preserves exact character and social state",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "main-social-active: browser reload leaves V9 backup untouched",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Pause remains selected after Help closes",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Build begins with live state different from the disk save",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Build mode is active before Load",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Pending Build placement changes live bytes",
+          "pass": true,
+          "evidence": {
+            "id": 0,
+            "from": [
+              0,
+              0
+            ],
+            "to": [
+              7,
+              0
+            ],
+            "facing": 1
+          }
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Load confirmation closes after successful adoption",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Actual Load replaces the pending Build world with disk state",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Build Cancel retains the newly loaded world instead of the old baseline",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Exit Build restores play controls",
+          "pass": true
+        },
+        {
+          "scenario": "build-load-cancel",
+          "name": "Leaving Build retains the newly loaded world",
+          "pass": true
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "sourceBefore": {
+    "web/src/main.ts": "ce49d70fe11d33b90041bf03d65cb797c21efffd99f7f13632c3db8fe78b20bb",
+    "web/src/ui/build-session.ts": "6cf2cf575e4eee65b66e1f8c23ea73fac5454d19af7b2583b537aedf67585e70",
+    "web/src/storage/save-worker.ts": "1fb8664081be7b0b54cdef5e5ff670e4bdafebe69e99c99a87de02c616cc9e2a",
+    "web/src/storage/save-header.ts": "8ec02905b99a044e240f57b05c0eeab8440dbb797459373c7e40914f51e407f4",
+    "web/src/ui/persistence-controller.ts": "5a5f2c9e9776327976b86b4185750cf1bad4c53be4d503c05ebe8f12efe1d78f",
+    "web/src/bridge.ts": "edeab83840ed78cd78520f49006f77375bc464d75d8aae2cab901fcb537b3acb",
+    "web/src/character/draft.ts": "978e8bbe8d64f6436d487d1be78d42e7b59a55940833121e4d69b4d429dc1ccc",
+    "web/src/character/fields.ts": "20a0c090323b40b36942499d91df98c9c4709169b7b0ba9dc5ea36a678cb19df",
+    "web/src/character/schema.ts": "56638e8e6b7628454ba68e6e7a0aa1a35920b6e28f694302319c833d47414b46",
+    "web/src/character/validate.ts": "b382a14c02230eb3259b158b02a87219a497188ceadcd485be4024c97c85a3e3",
+    "web/src/ui/character-creator/view.ts": "61674302b236da852ab049b00b0b52d6fcaaee49596b1e9bd32ab28daf7bf241",
+    "web/src/ui/character-creator/session.ts": "12ef10347ed030f00e1bf02e6b48963ec32fd40da86f5ebe9bff5e4cdb229990",
+    "web/src/render/character/prepared-character-load.ts": "9a069cfb22547aca3a32f54eb02426cb84b0fa3eda5dc3e7ed32cab8746d0944",
+    "web/src/wasm/terri_wasm.js": "8ce3c55df54bc6dc36feb5ed4d94ffdbdb952a15b681cfaf2404329f1d6a32ef",
+    "web/src/wasm/terri_wasm_bg.wasm": "c57dd4776779113f7c5f8639b9344afa8de15a9aed786ab08d161900e53effcd",
+    "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\main-integration-20261014\\creator-save-check.cjs": "52af0b7f5fb32159960cd67fb5accc6faf7c9c49c376bbd3cd90a0d41d8b0530"
+  },
+  "browser": "155.0.8059.39",
+  "created": {
+    "sim": 3,
+    "snapshot": {
+      "version": 1,
+      "name": "Migration Test",
+      "pronouns": "",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 67,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "behavior": {
+        "shyness": 50,
+        "cleanliness": 1056964608,
+        "self_preservation": 50,
+        "chronotype_offset_ticks": 0,
+        "drain": [
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216
+        ],
+        "recovery": [
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216
+        ],
+        "dispositions": []
+      },
+      "traits": [],
+      "affinities": [
+        {
+          "id": "plants",
+          "value": 0
+        },
+        {
+          "id": "aquarium",
+          "value": 0
+        },
+        {
+          "id": "television",
+          "value": 0
+        },
+        {
+          "id": "radio",
+          "value": 0
+        }
+      ],
+      "hobbies": [],
+      "skills": [
+        {
+          "id": "cooking",
+          "practice": 0
+        },
+        {
+          "id": "exercise",
+          "practice": 0
+        },
+        {
+          "id": "reading",
+          "practice": 1036831949
+        }
+      ],
+      "ties": [
+        [
+          0,
+          null
+        ],
+        [
+          1,
+          null
+        ],
+        [
+          2,
+          null
+        ]
+      ]
+    }
+  },
+  "creatorSave": {
+    "createdDiskSha256": "5ce54aeed587f33c8dca96a058c926242f9b0967c28d4ec3f218c67ba8121f6f",
+    "editedDiskSha256": "7e4b55d5f3fa1fb92a3a26635289281d759c97bd902446958322a05ca8effec5",
+    "edited": {
+      "sim": 3,
+      "snapshot": {
+        "version": 1,
+        "name": "Edited Migration",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 67,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 50,
+          "cleanliness": 1056964608,
+          "self_preservation": 50,
+          "chronotype_offset_ticks": 0,
+          "drain": [
+            1067450368,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216
+          ],
+          "recovery": [
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216
+          ],
+          "dispositions": []
+        },
+        "traits": [],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 0
+          },
+          {
+            "id": "aquarium",
+            "value": 0
+          },
+          {
+            "id": "television",
+            "value": 0
+          },
+          {
+            "id": "radio",
+            "value": 0
+          }
+        ],
+        "hobbies": [],
+        "skills": [
+          {
+            "id": "reading",
+            "practice": 1036831949
+          }
+        ],
+        "ties": [
+          [
+            0,
+            null
+          ],
+          [
+            1,
+            null
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      }
+    }
+  },
+  "buildLoad": {
+    "loadedDiskSha256": "70be517dc9df646504127f2eb7da6ba26d125c812ff9d3c2215f6ff4283d8be1",
+    "unsavedBaselineSha256": "4c2e06b048805b3bde3c71d7347804f8a32be463b4893a192b77ea989edb1b52",
+    "moved": {
+      "id": 0,
+      "from": [
+        0,
+        0
+      ],
+      "to": [
+        7,
+        0
+      ],
+      "facing": 1
+    }
+  },
+  "sourceAfter": {
+    "web/src/main.ts": "ce49d70fe11d33b90041bf03d65cb797c21efffd99f7f13632c3db8fe78b20bb",
+    "web/src/ui/build-session.ts": "6cf2cf575e4eee65b66e1f8c23ea73fac5454d19af7b2583b537aedf67585e70",
+    "web/src/storage/save-worker.ts": "1fb8664081be7b0b54cdef5e5ff670e4bdafebe69e99c99a87de02c616cc9e2a",
+    "web/src/storage/save-header.ts": "8ec02905b99a044e240f57b05c0eeab8440dbb797459373c7e40914f51e407f4",
+    "web/src/ui/persistence-controller.ts": "5a5f2c9e9776327976b86b4185750cf1bad4c53be4d503c05ebe8f12efe1d78f",
+    "web/src/bridge.ts": "edeab83840ed78cd78520f49006f77375bc464d75d8aae2cab901fcb537b3acb",
+    "web/src/character/draft.ts": "978e8bbe8d64f6436d487d1be78d42e7b59a55940833121e4d69b4d429dc1ccc",
+    "web/src/character/fields.ts": "20a0c090323b40b36942499d91df98c9c4709169b7b0ba9dc5ea36a678cb19df",
+    "web/src/character/schema.ts": "56638e8e6b7628454ba68e6e7a0aa1a35920b6e28f694302319c833d47414b46",
+    "web/src/character/validate.ts": "b382a14c02230eb3259b158b02a87219a497188ceadcd485be4024c97c85a3e3",
+    "web/src/ui/character-creator/view.ts": "61674302b236da852ab049b00b0b52d6fcaaee49596b1e9bd32ab28daf7bf241",
+    "web/src/ui/character-creator/session.ts": "12ef10347ed030f00e1bf02e6b48963ec32fd40da86f5ebe9bff5e4cdb229990",
+    "web/src/render/character/prepared-character-load.ts": "9a069cfb22547aca3a32f54eb02426cb84b0fa3eda5dc3e7ed32cab8746d0944",
+    "web/src/wasm/terri_wasm.js": "8ce3c55df54bc6dc36feb5ed4d94ffdbdb952a15b681cfaf2404329f1d6a32ef",
+    "web/src/wasm/terri_wasm_bg.wasm": "c57dd4776779113f7c5f8639b9344afa8de15a9aed786ab08d161900e53effcd",
+    "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\main-integration-20261014\\creator-save-check.cjs": "52af0b7f5fb32159960cd67fb5accc6faf7c9c49c376bbd3cd90a0d41d8b0530"
+  },
+  "status": "PASS",
+  "browserClosed": true
+}

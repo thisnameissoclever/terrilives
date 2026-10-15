@@ -84,13 +84,14 @@ describe('combined shader interstage contract', () => {
   function fields(source: string): { name: string; location: number; components: number }[] {
     const body = source.match(/struct VertexOut\s*\{([\s\S]*?)\};/)?.[1];
     if (!body) throw new Error('Missing shared vertex/fragment output');
-    return [...body.matchAll(/@location\((\d+)\)(?:\s+@interpolate\([^)]*\))?\s+(\w+):\s+(vec([234])(?:<[\w]+>|[fiu])|u32|f32)/g)]
+    return [...body.matchAll(/@location\((\d+)\)(?:\s+@interpolate\([^)]*\))?\s+(\w+):\s*(vec([234])(?:<[\w]+>|[fiu])|u32|f32)/g)]
       .map(match => ({ location: Number(match[1]), name: match[2], components: Number(match[4] ?? 1) }));
   }
   function check(source: string): void {
     const output = fields(source);
     expect(output).toHaveLength(16);
-    expect(output.some(field=>field.location===14 && field.name==='grimeOpacity')).toBe(true);
+    expect(output.some(field=>field.location===14 && field.name==='ownership' && field.components===2)).toBe(true);
+    expect(source).toMatch(/@location\(14\)\s+@interpolate\(flat\)\s+ownership:\s*vec2u/);
     expect(output.some(field=>field.location===15 && field.name==='sceneExtra')).toBe(true);
     expect(new Set(output.map(field => field.location)).size).toBe(output.length);
     // The portable pipeline has sixteen interstage locations and sixty scalar components.
@@ -103,11 +104,16 @@ describe('combined shader interstage contract', () => {
     expect([byName.bed, byName.supportUv, byName.supportMask, byName.registration, byName.groundOrigin, byName.page])
       .toEqual([8, 9, 10, 11, 12, 13]);
     expect(shader).toMatch(/fn vs\([\s\S]*?\) -> VertexOut/);
-    expect(shader).toContain('fn fs(in: VertexOut)');
+    expect(shader).toMatch(/fn\s+fs\(\s*in:\s*VertexOut\s*\)/);
   });
   it.each([['registration', 8], ['groundOrigin', 9]] as const)('rejects duplicated location for %s', (name, location) => {
     const collision = shader.replace(new RegExp(`@location\\(\\d+\\)(?= @interpolate\\(flat\\) ${name}:)`), `@location(${location})`);
     expect(collision).not.toBe(shader);
     expect(() => check(collision)).toThrow();
+  });
+  it('rejects interpolated ownership',()=>{
+    const changed=shader.replace('@interpolate(flat) ownership:','ownership:');
+    expect(changed).not.toBe(shader);
+    expect(()=>check(changed)).toThrow();
   });
 });

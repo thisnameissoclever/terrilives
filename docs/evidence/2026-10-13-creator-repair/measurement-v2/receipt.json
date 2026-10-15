@@ -1,0 +1,54 @@
+{
+  "results": [
+    {
+      "name": "baseline",
+      "command": [
+        "--max-old-space-size=4096",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceSha256": "e83ac8290b8365fe3a68f2d31ce48c656119f15b0e2bc98e93aa3456aef19ac7"
+    },
+    {
+      "name": "animation-stamp-as-execution",
+      "command": [
+        "--max-old-space-size=4096",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "sourceSha256": "d20357e5ad7ef7f010a0d6dc73b1f5dd6ebcc901a3c15c176cda2f56394169a3"
+    },
+    {
+      "name": "discarded-callback-delay",
+      "command": [
+        "--max-old-space-size=4096",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "sourceSha256": "0c0a79b6883460cee1b1391836483551dffa2f3f74aa517ef63855326750f88d"
+    },
+    {
+      "name": "restored",
+      "command": [
+        "--max-old-space-size=4096",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceSha256": "e83ac8290b8365fe3a68f2d31ce48c656119f15b0e2bc98e93aa3456aef19ac7"
+    }
+  ],
+  "productionUnchanged": true,
+  "isolatedRestored": true
+}

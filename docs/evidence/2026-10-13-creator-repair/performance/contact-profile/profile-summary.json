@@ -1,0 +1,426 @@
+{
+  "self": [
+    {
+      "name": "(idle)",
+      "url": "",
+      "line": 0,
+      "selfMs": 10789.078999999923,
+      "inclusiveMs": 10789.078999999923
+    },
+    {
+      "name": "(program)",
+      "url": "",
+      "line": 0,
+      "selfMs": 5074.771,
+      "inclusiveMs": 5074.771
+    },
+    {
+      "name": "pose",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 115,
+      "selfMs": 3128.5359999999955,
+      "inclusiveMs": 3128.5359999999955
+    },
+    {
+      "name": "top",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 188,
+      "selfMs": 2027.1970000000008,
+      "inclusiveMs": 2071.029000000001
+    },
+    {
+      "name": "multiply",
+      "url": "http://127.0.0.1:5187/src/render/character/math.ts",
+      "line": 22,
+      "selfMs": 134.55700000000002,
+      "inclusiveMs": 134.55700000000002
+    },
+    {
+      "name": "submit",
+      "url": "",
+      "line": 0,
+      "selfMs": 100.579,
+      "inclusiveMs": 100.579
+    },
+    {
+      "name": "diagnostics",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791937099156",
+      "line": 216,
+      "selfMs": 78.61200000000001,
+      "inclusiveMs": 96.16399999999997
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "selfMs": 67.35200000000002,
+      "inclusiveMs": 67.35200000000002
+    },
+    {
+      "name": "configuredPoseWithBike",
+      "url": "http://127.0.0.1:5187/src/render/character/pose.ts?t=1791937099156",
+      "line": 17,
+      "selfMs": 62.767,
+      "inclusiveMs": 871.9550000000005
+    },
+    {
+      "name": "wasm-function[2385]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 57.67899999999999,
+      "inclusiveMs": 64.581
+    },
+    {
+      "name": "preparePose",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791937099156",
+      "line": 258,
+      "selfMs": 57.62199999999998,
+      "inclusiveMs": 997.510000000001
+    },
+    {
+      "name": "writeBuffer",
+      "url": "",
+      "line": 0,
+      "selfMs": 55.50199999999998,
+      "inclusiveMs": 55.50199999999998
+    },
+    {
+      "name": "update",
+      "url": "http://127.0.0.1:5187/src/ui/action-queue.ts",
+      "line": 21,
+      "selfMs": 51.89,
+      "inclusiveMs": 60.968
+    },
+    {
+      "name": "normal",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 148,
+      "selfMs": 43.832,
+      "inclusiveMs": 43.832
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/render/character/interaction-pose.ts?t=1791937099156",
+      "line": 469,
+      "selfMs": 41.287000000000006,
+      "inclusiveMs": 63.713
+    },
+    {
+      "name": "solveInteraction",
+      "url": "http://127.0.0.1:5187/src/render/character/interaction-pose.ts?t=1791937099156",
+      "line": 53,
+      "selfMs": 38.475,
+      "inclusiveMs": 220.37299999999996
+    },
+    {
+      "name": "interpolateTransform",
+      "url": "http://127.0.0.1:5187/src/render/character/motion.ts",
+      "line": 40,
+      "selfMs": 37.82699999999999,
+      "inclusiveMs": 51.752
+    },
+    {
+      "name": "frame",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791937099156",
+      "line": 1704,
+      "selfMs": 36.877,
+      "inclusiveMs": 8071.768000000011
+    },
+    {
+      "name": "select",
+      "url": "http://127.0.0.1:5187/src/render/character/prepared-character.ts?t=1791937099156",
+      "line": 81,
+      "selfMs": 36.53199999999999,
+      "inclusiveMs": 147.74500000000006
+    },
+    {
+      "name": "validateAppearance",
+      "url": "http://127.0.0.1:5187/src/character/schema.ts",
+      "line": 253,
+      "selfMs": 36.429,
+      "inclusiveMs": 52.842999999999996
+    },
+    {
+      "name": "prepare",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791937099156",
+      "line": 72,
+      "selfMs": 33.953,
+      "inclusiveMs": 6720.030000000005
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/render/character/math.ts",
+      "line": 34,
+      "selfMs": 33.42,
+      "inclusiveMs": 33.42
+    },
+    {
+      "name": "setCharacterAppearance",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791937099156",
+      "line": 138,
+      "selfMs": 31.716,
+      "inclusiveMs": 84.55899999999998
+    },
+    {
+      "name": "update",
+      "url": "http://127.0.0.1:5187/src/render/interaction-sprites.ts",
+      "line": 139,
+      "selfMs": 29.276000000000007,
+      "inclusiveMs": 32.966
+    },
+    {
+      "name": "update",
+      "url": "http://127.0.0.1:5187/src/render/character/scene-plan.ts?t=1791927310071",
+      "line": 84,
+      "selfMs": 27.340000000000003,
+      "inclusiveMs": 6779.815000000007
+    }
+  ],
+  "application": [
+    {
+      "name": "loop",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791937099156",
+      "line": 2004,
+      "selfMs": 15.829,
+      "inclusiveMs": 8102.88600000001
+    },
+    {
+      "name": "frame",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791937099156",
+      "line": 1704,
+      "selfMs": 36.877,
+      "inclusiveMs": 8071.768000000011
+    },
+    {
+      "name": "buildInstanceBatch",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 804,
+      "selfMs": 27.234999999999996,
+      "inclusiveMs": 6983.369000000012
+    },
+    {
+      "name": "update",
+      "url": "http://127.0.0.1:5187/src/render/character/scene-plan.ts?t=1791927310071",
+      "line": 84,
+      "selfMs": 27.340000000000003,
+      "inclusiveMs": 6779.815000000007
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791937099156",
+      "line": 35,
+      "selfMs": 9.902999999999999,
+      "inclusiveMs": 6734.626000000005
+    },
+    {
+      "name": "prepare",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791937099156",
+      "line": 72,
+      "selfMs": 33.953,
+      "inclusiveMs": 6720.030000000005
+    },
+    {
+      "name": "anchors",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791937099156",
+      "line": 202,
+      "selfMs": 16.032,
+      "inclusiveMs": 5266.624999999986
+    },
+    {
+      "name": "pose",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 115,
+      "selfMs": 3128.5359999999955,
+      "inclusiveMs": 3128.5359999999955
+    },
+    {
+      "name": "top",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 188,
+      "selfMs": 2027.1970000000008,
+      "inclusiveMs": 2071.029000000001
+    },
+    {
+      "name": "prepareScene",
+      "url": "http://127.0.0.1:5187/src/render/character/prepared-character.ts?t=1791937099156",
+      "line": 122,
+      "selfMs": 12.53,
+      "inclusiveMs": 1231.6820000000016
+    },
+    {
+      "name": "prepareScene",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791937099156",
+      "line": 297,
+      "selfMs": 21.503,
+      "inclusiveMs": 1219.1520000000016
+    },
+    {
+      "name": "preparePose",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791937099156",
+      "line": 258,
+      "selfMs": 57.62199999999998,
+      "inclusiveMs": 997.510000000001
+    },
+    {
+      "name": "configuredPose",
+      "url": "http://127.0.0.1:5187/src/render/character/pose.ts?t=1791937099156",
+      "line": 9,
+      "selfMs": 4.522,
+      "inclusiveMs": 878.0240000000007
+    },
+    {
+      "name": "configuredPoseWithBike",
+      "url": "http://127.0.0.1:5187/src/render/character/pose.ts?t=1791937099156",
+      "line": 17,
+      "selfMs": 62.767,
+      "inclusiveMs": 871.9550000000005
+    },
+    {
+      "name": "configuredJointSetup",
+      "url": "http://127.0.0.1:5187/src/render/character/pose-joints.ts",
+      "line": 24,
+      "selfMs": 23.660000000000004,
+      "inclusiveMs": 517.6249999999998
+    },
+    {
+      "name": "advanceFrameWithCommandFeedback",
+      "url": "http://127.0.0.1:5187/src/ui/command-feedback.ts",
+      "line": 55,
+      "selfMs": 1.657,
+      "inclusiveMs": 465.3830000000001
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791937099156",
+      "line": 1715,
+      "selfMs": 0,
+      "inclusiveMs": 444.9230000000001
+    },
+    {
+      "name": "advanceSimulationFrame",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 719,
+      "selfMs": 0,
+      "inclusiveMs": 444.9230000000001
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 721,
+      "selfMs": 3.112,
+      "inclusiveMs": 441.1610000000001
+    },
+    {
+      "name": "advance",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 682,
+      "selfMs": 0,
+      "inclusiveMs": 441.1610000000001
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791937099156",
+      "line": 307,
+      "selfMs": 1.779,
+      "inclusiveMs": 438.0490000000001
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:5187/src/bridge.ts",
+      "line": 571,
+      "selfMs": 0,
+      "inclusiveMs": 385.5740000000001
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm.js?t=1791928350920",
+      "line": 2605,
+      "selfMs": 0,
+      "inclusiveMs": 385.5740000000001
+    },
+    {
+      "name": "js-to-wasm:iiidiid:i",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 385.5740000000001
+    },
+    {
+      "name": "wasm-function[2534]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 385.5740000000001
+    },
+    {
+      "name": "wasm-function[376]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 1.915,
+      "inclusiveMs": 375.51000000000016
+    },
+    {
+      "name": "wasm-function[1764]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 375.51000000000016
+    },
+    {
+      "name": "draw",
+      "url": "http://127.0.0.1:5187/src/ui/character-creator/preview.ts",
+      "line": 61,
+      "selfMs": 25.333000000000006,
+      "inclusiveMs": 299.75600000000014
+    },
+    {
+      "name": "solveInteraction",
+      "url": "http://127.0.0.1:5187/src/render/character/interaction-pose.ts?t=1791937099156",
+      "line": 53,
+      "selfMs": 38.475,
+      "inclusiveMs": 220.37299999999996
+    },
+    {
+      "name": "composeSkeletonPose",
+      "url": "http://127.0.0.1:5187/src/render/character/pose-joints.ts",
+      "line": 12,
+      "selfMs": 21.177999999999997,
+      "inclusiveMs": 185.27800000000002
+    },
+    {
+      "name": "draw",
+      "url": "http://127.0.0.1:5187/src/render/sprites.ts?t=1791924616566",
+      "line": 612,
+      "selfMs": 5.186,
+      "inclusiveMs": 155.84799999999996
+    },
+    {
+      "name": "select",
+      "url": "http://127.0.0.1:5187/src/render/character/prepared-character.ts?t=1791937099156",
+      "line": 81,
+      "selfMs": 36.53199999999999,
+      "inclusiveMs": 147.74500000000006
+    },
+    {
+      "name": "prepareScene",
+      "url": "http://127.0.0.1:5187/src/render/character/prepared-character.ts?t=1791937099156",
+      "line": 122,
+      "selfMs": 1.572,
+      "inclusiveMs": 146.327
+    },
+    {
+      "name": "prepareScene",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791937099156",
+      "line": 297,
+      "selfMs": 0,
+      "inclusiveMs": 144.755
+    },
+    {
+      "name": "sampleMotion",
+      "url": "http://127.0.0.1:5187/src/render/character/motion.ts",
+      "line": 115,
+      "selfMs": 16.327,
+      "inclusiveMs": 143.59700000000004
+    }
+  ]
+}

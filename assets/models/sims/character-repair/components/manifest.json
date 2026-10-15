@@ -1,0 +1,2996 @@
+{
+  "version": 1,
+  "state": "complete",
+  "encoding": "rg-u16-unorm-x-minus-y-range-minus2-plus2",
+  "sources": {
+    "fridge": {
+      "path": "assets/models/kitchen/owner-review-pending/refrigerator/candidate-03/refrigerator-authoring.blend",
+      "sha256": "4bed8dfb3fb968725c99c8345ac5e17a4c75b45b5e487d867655ed17163a7b82"
+    },
+    "bike": {
+      "path": "assets/models/sims/sim-01/sim-01-rigged.blend",
+      "sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+    },
+    "bed": {
+      "path": "assets/models/bedroom/owner-review-pending/double-bed/candidate-02/double-bed-authoring.blend",
+      "sha256": "3ad570674e768e07bbd6e2d9cac6dfd58a9b59e3202f2be4d5d782dd7f973d9f"
+    },
+    "bunk": {
+      "path": "assets/models/bedroom/owner-review-pending/bunk/candidate-03/bunk-authoring.blend",
+      "sha256": "10b507a6dfcbbec05457cf7c9c857ee1f3fc08b80915967b743cace15b9fa9fa"
+    }
+  },
+  "states": [
+    {
+      "id": "fridge-SE-closed",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15485,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20503,
+      "outlineSamples": 1070,
+      "maxOutlineDistancePixels": 2.9430256450746737,
+      "minSum": -0.8820233028015587,
+      "maxSum": 0.9563755989074707,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SE-ajar20",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15345,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 21187,
+      "outlineSamples": 1139,
+      "maxOutlineDistancePixels": 2.9474622087329245,
+      "minSum": -0.8820233028015587,
+      "maxSum": 1.1647090911865234,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SE-ajar55",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15471,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22483,
+      "outlineSamples": 1275,
+      "maxOutlineDistancePixels": 3.0112931402011993,
+      "minSum": -0.8820233028015587,
+      "maxSum": 1.2171683311462402,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SE-open",
+      "family": "fridge",
+      "facing": "SE",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1089,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15473,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 25480,
+      "outlineSamples": 1311,
+      "maxOutlineDistancePixels": 2.9430256450746737,
+      "minSum": -0.8820233028015587,
+      "maxSum": 0.9563746452331543,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-closed",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20396,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20740,
+      "outlineSamples": 1083,
+      "maxOutlineDistancePixels": 3.077400685496362,
+      "minSum": -0.946355789899826,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-ajar20",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 0,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20392,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20911,
+      "outlineSamples": 1082,
+      "maxOutlineDistancePixels": 3.077400685496362,
+      "minSum": -0.946355789899826,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-ajar55",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20346,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22633,
+      "outlineSamples": 1213,
+      "maxOutlineDistancePixels": 3.1155430806889988,
+      "minSum": -1.20720537006855,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NW-open",
+      "family": "fridge",
+      "facing": "NW",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1090,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20384,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 25725,
+      "outlineSamples": 1324,
+      "maxOutlineDistancePixels": 3.077400685496362,
+      "minSum": -0.946355789899826,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-closed",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15485,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20503,
+      "outlineSamples": 1070,
+      "maxOutlineDistancePixels": 2.9430998435778952,
+      "minSum": -0.8820236118895464,
+      "maxSum": 0.9563755989074707,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-ajar20",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15293,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22181,
+      "outlineSamples": 1146,
+      "maxOutlineDistancePixels": 3.0406574366019705,
+      "minSum": -0.8820236118895464,
+      "maxSum": 0.9807672500610352,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-ajar55",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 15184,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 23131,
+      "outlineSamples": 1214,
+      "maxOutlineDistancePixels": 3.1375721535918575,
+      "minSum": -0.8820236118895464,
+      "maxSum": 1.2597708702087402,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-SW-open",
+      "family": "fridge",
+      "facing": "SW",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1091,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1480,
+        "y": 326,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 14921,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22238,
+      "outlineSamples": 1259,
+      "maxOutlineDistancePixels": 3.043836643652402,
+      "minSum": -0.8820236118895464,
+      "maxSum": 1.796156406402588,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-closed",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "closed",
+      "sample": 0,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20397,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 20741,
+      "outlineSamples": 1084,
+      "maxOutlineDistancePixels": 3.0774092273926,
+      "minSum": -0.9463557600975037,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-ajar20",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "ajar20",
+      "sample": 1,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 296,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20358,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 21962,
+      "outlineSamples": 1130,
+      "maxOutlineDistancePixels": 3.0774092273926,
+      "minSum": -0.9463557600975037,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-ajar55",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "ajar55",
+      "sample": 2,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 592,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20301,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 22224,
+      "outlineSamples": 1155,
+      "maxOutlineDistancePixels": 3.124681949230998,
+      "minSum": -1.1917373333126307,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "fridge-NE-open",
+      "family": "fridge",
+      "facing": "NE",
+      "state": "open",
+      "sample": 3,
+      "atlasIndex": 1092,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        26,
+        21
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 888,
+        "y": 652,
+        "w": 296,
+        "h": 326
+      },
+      "preservedStaticPixels": 20336,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "opaquePixels": 21034,
+      "outlineSamples": 1157,
+      "maxOutlineDistancePixels": 3.0774092273926,
+      "minSum": -1.7863559126853943,
+      "maxSum": 0.892876148223877,
+      "vertices": 8920,
+      "triangles": 17700
+    },
+    {
+      "id": "bike-SE-0",
+      "family": "bike",
+      "facing": "SE",
+      "state": "0",
+      "sample": 0,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1184,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7739,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 7936,
+      "outlineSamples": 1042,
+      "maxOutlineDistancePixels": 3.157118404399565,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SE-1",
+      "family": "bike",
+      "facing": "SE",
+      "state": "1",
+      "sample": 1,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1376,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1376,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7340,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8210,
+      "outlineSamples": 1318,
+      "maxOutlineDistancePixels": 3.715761683563252,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SE-2",
+      "family": "bike",
+      "facing": "SE",
+      "state": "2",
+      "sample": 2,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1568,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1568,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7250,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8223,
+      "outlineSamples": 1311,
+      "maxOutlineDistancePixels": 3.715761683563252,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SE-3",
+      "family": "bike",
+      "facing": "SE",
+      "state": "3",
+      "sample": 3,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1760,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1760,
+        "y": 652,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7216,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8247,
+      "outlineSamples": 1285,
+      "maxOutlineDistancePixels": 3.715761683563252,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SE-4",
+      "family": "bike",
+      "facing": "SE",
+      "state": "4",
+      "sample": 4,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7251,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8312,
+      "outlineSamples": 1326,
+      "maxOutlineDistancePixels": 3.715761683563252,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SE-5",
+      "family": "bike",
+      "facing": "SE",
+      "state": "5",
+      "sample": 5,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7265,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8446,
+      "outlineSamples": 1405,
+      "maxOutlineDistancePixels": 3.715761683563252,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SE-6",
+      "family": "bike",
+      "facing": "SE",
+      "state": "6",
+      "sample": 6,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7270,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8409,
+      "outlineSamples": 1374,
+      "maxOutlineDistancePixels": 3.715761683563252,
+      "minSum": -0.5518627238541207,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SE-7",
+      "family": "bike",
+      "facing": "SE",
+      "state": "7",
+      "sample": 7,
+      "atlasIndex": 849,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7279,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8275,
+      "outlineSamples": 1328,
+      "maxOutlineDistancePixels": 3.715761683563252,
+      "minSum": -0.5228524773012432,
+      "maxSum": 0.9368476867675781,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-0",
+      "family": "bike",
+      "facing": "NW",
+      "state": "0",
+      "sample": 0,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 768,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 768,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 8249,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8576,
+      "outlineSamples": 1302,
+      "maxOutlineDistancePixels": 3.1324228333816575,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-1",
+      "family": "bike",
+      "facing": "NW",
+      "state": "1",
+      "sample": 1,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 960,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 960,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7739,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8967,
+      "outlineSamples": 1660,
+      "maxOutlineDistancePixels": 3.6951148131434284,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-2",
+      "family": "bike",
+      "facing": "NW",
+      "state": "2",
+      "sample": 2,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1152,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1152,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7720,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8858,
+      "outlineSamples": 1643,
+      "maxOutlineDistancePixels": 3.6951148131434284,
+      "minSum": -0.7362576425075531,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-3",
+      "family": "bike",
+      "facing": "NW",
+      "state": "3",
+      "sample": 3,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1344,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1344,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7779,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8841,
+      "outlineSamples": 1640,
+      "maxOutlineDistancePixels": 3.6951148131434284,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-4",
+      "family": "bike",
+      "facing": "NW",
+      "state": "4",
+      "sample": 4,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1536,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1536,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7741,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8858,
+      "outlineSamples": 1645,
+      "maxOutlineDistancePixels": 3.6951148131434284,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-5",
+      "family": "bike",
+      "facing": "NW",
+      "state": "5",
+      "sample": 5,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1728,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1728,
+        "y": 978,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7799,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 9013,
+      "outlineSamples": 1691,
+      "maxOutlineDistancePixels": 3.6951148131434284,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-6",
+      "family": "bike",
+      "facing": "NW",
+      "state": "6",
+      "sample": 6,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7817,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 9114,
+      "outlineSamples": 1703,
+      "maxOutlineDistancePixels": 3.6951148131434284,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NW-7",
+      "family": "bike",
+      "facing": "NW",
+      "state": "7",
+      "sample": 7,
+      "atlasIndex": 850,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7727,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8879,
+      "outlineSamples": 1651,
+      "maxOutlineDistancePixels": 3.715011508984382,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-0",
+      "family": "bike",
+      "facing": "SW",
+      "state": "0",
+      "sample": 0,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7474,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 7824,
+      "outlineSamples": 1020,
+      "maxOutlineDistancePixels": 3.1186508366522148,
+      "minSum": -0.5518634817221038,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-1",
+      "family": "bike",
+      "facing": "SW",
+      "state": "1",
+      "sample": 1,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7022,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8208,
+      "outlineSamples": 1349,
+      "maxOutlineDistancePixels": 3.735927140074186,
+      "minSum": -0.5518634817221038,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-2",
+      "family": "bike",
+      "facing": "SW",
+      "state": "2",
+      "sample": 2,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 768,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 768,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 6993,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8171,
+      "outlineSamples": 1318,
+      "maxOutlineDistancePixels": 3.735927140074186,
+      "minSum": -0.5518634817221038,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-3",
+      "family": "bike",
+      "facing": "SW",
+      "state": "3",
+      "sample": 3,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 960,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 960,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 6924,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8037,
+      "outlineSamples": 1272,
+      "maxOutlineDistancePixels": 3.735927140074186,
+      "minSum": -0.522853236314855,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-4",
+      "family": "bike",
+      "facing": "SW",
+      "state": "4",
+      "sample": 4,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1152,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1152,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7028,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 7972,
+      "outlineSamples": 1260,
+      "maxOutlineDistancePixels": 3.735927140074186,
+      "minSum": -0.5518634817221038,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-5",
+      "family": "bike",
+      "facing": "SW",
+      "state": "5",
+      "sample": 5,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1344,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1344,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7081,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 7972,
+      "outlineSamples": 1262,
+      "maxOutlineDistancePixels": 3.735927140074186,
+      "minSum": -0.5518634817221038,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-6",
+      "family": "bike",
+      "facing": "SW",
+      "state": "6",
+      "sample": 6,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1536,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1536,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7016,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 7981,
+      "outlineSamples": 1251,
+      "maxOutlineDistancePixels": 3.735927140074186,
+      "minSum": -0.5518634817221038,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-SW-7",
+      "family": "bike",
+      "facing": "SW",
+      "state": "7",
+      "sample": 7,
+      "atlasIndex": 851,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1728,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1728,
+        "y": 1218,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7018,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8002,
+      "outlineSamples": 1222,
+      "maxOutlineDistancePixels": 3.735927140074186,
+      "minSum": -0.5518634817221038,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-0",
+      "family": "bike",
+      "facing": "NE",
+      "state": "0",
+      "sample": 0,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 8261,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8468,
+      "outlineSamples": 1285,
+      "maxOutlineDistancePixels": 3.1556279200865056,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-1",
+      "family": "bike",
+      "facing": "NE",
+      "state": "1",
+      "sample": 1,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7895,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8971,
+      "outlineSamples": 1679,
+      "maxOutlineDistancePixels": 3.7141541130354927,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-2",
+      "family": "bike",
+      "facing": "NE",
+      "state": "2",
+      "sample": 2,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7848,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 9081,
+      "outlineSamples": 1697,
+      "maxOutlineDistancePixels": 3.7141541130354927,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-3",
+      "family": "bike",
+      "facing": "NE",
+      "state": "3",
+      "sample": 3,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7726,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8844,
+      "outlineSamples": 1642,
+      "maxOutlineDistancePixels": 3.7150174818831525,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-4",
+      "family": "bike",
+      "facing": "NE",
+      "state": "4",
+      "sample": 4,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 768,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 768,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7694,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8885,
+      "outlineSamples": 1640,
+      "maxOutlineDistancePixels": 3.7141541130354927,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-5",
+      "family": "bike",
+      "facing": "NE",
+      "state": "5",
+      "sample": 5,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 960,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 960,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7676,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8924,
+      "outlineSamples": 1647,
+      "maxOutlineDistancePixels": 3.7141541130354927,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-6",
+      "family": "bike",
+      "facing": "NE",
+      "state": "6",
+      "sample": 6,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1152,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1152,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7713,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8816,
+      "outlineSamples": 1631,
+      "maxOutlineDistancePixels": 3.7141541130354927,
+      "minSum": -0.7362576425075531,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bike-NE-7",
+      "family": "bike",
+      "facing": "NE",
+      "state": "7",
+      "sample": 7,
+      "atlasIndex": 852,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1344,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1344,
+        "y": 1458,
+        "w": 192,
+        "h": 240
+      },
+      "preservedStaticPixels": 7798,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.707106781186548,
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "opaquePixels": 8799,
+      "outlineSamples": 1628,
+      "maxOutlineDistancePixels": 3.7141541130354927,
+      "minSum": -0.7036294937133789,
+      "maxSum": 0.9368486404418945,
+      "vertices": 16534,
+      "triangles": 32716
+    },
+    {
+      "id": "bed-SE-cover-removed",
+      "family": "bed",
+      "facing": "SE",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1133,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 1536,
+        "y": 1458,
+        "w": 320,
+        "h": 352
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 1536,
+        "y": 1458,
+        "w": 320,
+        "h": 352
+      },
+      "preservedStaticPixels": 14679,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Folded duvet edge",
+        "Sage duvet"
+      ],
+      "opaquePixels": 26594,
+      "outlineSamples": 1429,
+      "maxOutlineDistancePixels": 3.094633575871833,
+      "minSum": -1.7684293345038684,
+      "maxSum": 1.7721633911132812,
+      "vertices": 1976,
+      "triangles": 3900
+    },
+    {
+      "id": "bed-NW-cover-removed",
+      "family": "bed",
+      "facing": "NW",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1134,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 1,
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 352
+      },
+      "depth": {
+        "pageIndex": 1,
+        "x": 0,
+        "y": 0,
+        "w": 320,
+        "h": 352
+      },
+      "preservedStaticPixels": 11470,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Folded duvet edge",
+        "Sage duvet"
+      ],
+      "opaquePixels": 22517,
+      "outlineSamples": 1305,
+      "maxOutlineDistancePixels": 3.094633575871833,
+      "minSum": -1.6263645043937827,
+      "maxSum": 1.7759332656860352,
+      "vertices": 1976,
+      "triangles": 3900
+    },
+    {
+      "id": "bed-SW-cover-removed",
+      "family": "bed",
+      "facing": "SW",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1135,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 1,
+        "x": 320,
+        "y": 0,
+        "w": 320,
+        "h": 352
+      },
+      "depth": {
+        "pageIndex": 1,
+        "x": 320,
+        "y": 0,
+        "w": 320,
+        "h": 352
+      },
+      "preservedStaticPixels": 14688,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Folded duvet edge",
+        "Sage duvet"
+      ],
+      "opaquePixels": 26596,
+      "outlineSamples": 1431,
+      "maxOutlineDistancePixels": 3.0946054859803485,
+      "minSum": -1.7684295823275842,
+      "maxSum": 1.772162914276123,
+      "vertices": 1976,
+      "triangles": 3900
+    },
+    {
+      "id": "bed-NE-cover-removed",
+      "family": "bed",
+      "facing": "NE",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1136,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 1,
+        "x": 640,
+        "y": 0,
+        "w": 320,
+        "h": 352
+      },
+      "depth": {
+        "pageIndex": 1,
+        "x": 640,
+        "y": 0,
+        "w": 320,
+        "h": 352
+      },
+      "preservedStaticPixels": 11471,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Folded duvet edge",
+        "Sage duvet"
+      ],
+      "opaquePixels": 22518,
+      "outlineSamples": 1306,
+      "maxOutlineDistancePixels": 3.09461595863316,
+      "minSum": -1.6263655264717045,
+      "maxSum": 1.775932788848877,
+      "vertices": 1976,
+      "triangles": 3900
+    },
+    {
+      "id": "bunk-SE-cover-removed",
+      "family": "bunk",
+      "facing": "SE",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1137,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 1,
+        "x": 960,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "depth": {
+        "pageIndex": 1,
+        "x": 960,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "preservedStaticPixels": 25453,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Upper duvet",
+        "Upper duvet fold"
+      ],
+      "opaquePixels": 30013,
+      "outlineSamples": 2848,
+      "maxOutlineDistancePixels": 2.9631055136110724,
+      "minSum": -1.4433435201644897,
+      "maxSum": 1.4474225044250488,
+      "vertices": 4560,
+      "triangles": 9000
+    },
+    {
+      "id": "bunk-NW-cover-removed",
+      "family": "bunk",
+      "facing": "NW",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1138,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 1,
+        "x": 1160,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "depth": {
+        "pageIndex": 1,
+        "x": 1160,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "preservedStaticPixels": 24619,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Upper duvet",
+        "Upper duvet fold"
+      ],
+      "opaquePixels": 29539,
+      "outlineSamples": 2744,
+      "maxOutlineDistancePixels": 3.0668973769197083,
+      "minSum": -1.4433435499668121,
+      "maxSum": 1.4474225044250488,
+      "vertices": 4560,
+      "triangles": 9000
+    },
+    {
+      "id": "bunk-SW-cover-removed",
+      "family": "bunk",
+      "facing": "SW",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1139,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 1,
+        "x": 1360,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "depth": {
+        "pageIndex": 1,
+        "x": 1360,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "preservedStaticPixels": 25594,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Upper duvet",
+        "Upper duvet fold"
+      ],
+      "opaquePixels": 30000,
+      "outlineSamples": 2758,
+      "maxOutlineDistancePixels": 2.963098479042929,
+      "minSum": -1.4433435499668121,
+      "maxSum": 1.4474225044250488,
+      "vertices": 4560,
+      "triangles": 9000
+    },
+    {
+      "id": "bunk-NE-cover-removed",
+      "family": "bunk",
+      "facing": "NE",
+      "state": "cover-removed",
+      "sample": 1,
+      "atlasIndex": 1140,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        0,
+        0
+      ],
+      "color": {
+        "pageIndex": 1,
+        "x": 1560,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "depth": {
+        "pageIndex": 1,
+        "x": 1560,
+        "y": 0,
+        "w": 200,
+        "h": 272
+      },
+      "preservedStaticPixels": 25144,
+      "staticColorMaxDifference": 0,
+      "actorFree": true,
+      "filterSupportPixels": 3,
+      "sourceOutlineWidth": 4.0,
+      "outlineSupportPixels": 4.207106781186548,
+      "movingParts": [
+        "Upper duvet",
+        "Upper duvet fold"
+      ],
+      "opaquePixels": 30104,
+      "outlineSamples": 2884,
+      "maxOutlineDistancePixels": 2.96310028790368,
+      "minSum": -1.4433435797691345,
+      "maxSum": 1.4474291801452637,
+      "vertices": 4560,
+      "triangles": 9000
+    }
+  ],
+  "families": {
+    "fridge": {
+      "prefix": "offlineFridge",
+      "movingParts": [
+        "Refrigerator door",
+        "Refrigerator door seal",
+        "Refrigerator handle",
+        "Refrigerator handle mount -1",
+        "Refrigerator handle mount 1",
+        "Refrigerator inner liner"
+      ],
+      "states": [
+        {
+          "id": "closed",
+          "sample": 0
+        },
+        {
+          "id": "ajar20",
+          "sample": 1
+        },
+        {
+          "id": "ajar55",
+          "sample": 2
+        },
+        {
+          "id": "open",
+          "sample": 3
+        }
+      ],
+      "colorPolicy": "published-static-pixels-with-actor-free-authored-moving-surfaces",
+      "clipSamples": [
+        "closed",
+        "ajar20",
+        "ajar55",
+        "open",
+        "open",
+        "open",
+        "open",
+        "closed"
+      ]
+    },
+    "bike": {
+      "prefix": "offlineBike",
+      "movingParts": [
+        "Bike crank L",
+        "Bike crank R",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike pedal spindle L",
+        "Bike pedal spindle R"
+      ],
+      "states": [
+        {
+          "id": "0",
+          "sample": 0
+        },
+        {
+          "id": "1",
+          "sample": 1
+        },
+        {
+          "id": "2",
+          "sample": 2
+        },
+        {
+          "id": "3",
+          "sample": 3
+        },
+        {
+          "id": "4",
+          "sample": 4
+        },
+        {
+          "id": "5",
+          "sample": 5
+        },
+        {
+          "id": "6",
+          "sample": 6
+        },
+        {
+          "id": "7",
+          "sample": 7
+        }
+      ],
+      "colorPolicy": "published-static-pixels-with-actor-free-authored-moving-surfaces",
+      "clipSamples": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7"
+      ]
+    },
+    "bed": {
+      "prefix": "offlineDoubleBed",
+      "movingParts": [
+        "Folded duvet edge",
+        "Sage duvet"
+      ],
+      "states": [
+        {
+          "id": "cover-removed",
+          "sample": 1
+        }
+      ],
+      "colorPolicy": "published-static-pixels-with-actor-free-authored-moving-surfaces",
+      "coverMaterials": [
+        {
+          "name": "Double bed sage duvet",
+          "diffuse": [
+            0.30000001192092896,
+            0.4300000071525574,
+            0.3700000047683716,
+            1.0
+          ],
+          "ramps": [
+            [
+              [
+                0.11301024258136749,
+                0.159136101603508,
+                0.13822244107723236,
+                1.0
+              ],
+              [
+                0.17627792060375214,
+                0.25046661496162415,
+                0.21651682257652283,
+                1.0
+              ],
+              [
+                0.2685033082962036,
+                0.3842147886753082,
+                0.3308945298194885,
+                1.0
+              ],
+              [
+                0.3266759514808655,
+                0.4688100218772888,
+                0.40313324332237244,
+                1.0
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "Double bed turned duvet edge",
+          "diffuse": [
+            0.38999998569488525,
+            0.5199999809265137,
+            0.44999998807907104,
+            1.0
+          ],
+          "ramps": [
+            [
+              [
+                0.1469133198261261,
+                0.19244365394115448,
+                0.16810837388038635,
+                1.0
+              ],
+              [
+                0.22916129231452942,
+                0.302889883518219,
+                0.26333126425743103,
+                1.0
+              ],
+              [
+                0.3490543067455292,
+                0.4646318256855011,
+                0.40243929624557495,
+                1.0
+              ],
+              [
+                0.4246787130832672,
+                0.5669330358505249,
+                0.49029719829559326,
+                1.0
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "bunk": {
+      "prefix": "offlineBunk",
+      "movingParts": [
+        "Upper duvet",
+        "Upper duvet fold"
+      ],
+      "states": [
+        {
+          "id": "cover-removed",
+          "sample": 1
+        }
+      ],
+      "colorPolicy": "published-static-pixels-with-actor-free-authored-moving-surfaces",
+      "coverMaterials": [
+        {
+          "name": "Bunk sage duvet",
+          "diffuse": [
+            0.30000001192092896,
+            0.4300000071525574,
+            0.3700000047683716,
+            1.0
+          ],
+          "ramps": [
+            [
+              [
+                0.11301024258136749,
+                0.159136101603508,
+                0.13822244107723236,
+                1.0
+              ],
+              [
+                0.17627792060375214,
+                0.25046661496162415,
+                0.21651682257652283,
+                1.0
+              ],
+              [
+                0.2685033082962036,
+                0.3842147886753082,
+                0.3308945298194885,
+                1.0
+              ],
+              [
+                0.3266759514808655,
+                0.4688100218772888,
+                0.40313324332237244,
+                1.0
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "Bunk turned duvet edge",
+          "diffuse": [
+            0.38999998569488525,
+            0.5199999809265137,
+            0.44999998807907104,
+            1.0
+          ],
+          "ramps": [
+            [
+              [
+                0.1469133198261261,
+                0.19244365394115448,
+                0.16810837388038635,
+                1.0
+              ],
+              [
+                0.22916129231452942,
+                0.302889883518219,
+                0.26333126425743103,
+                1.0
+              ],
+              [
+                0.3490543067455292,
+                0.4646318256855011,
+                0.40243929624557495,
+                1.0
+              ],
+              [
+                0.4246787130832672,
+                0.5669330358505249,
+                0.49029719829559326,
+                1.0
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "producerHashes": {
+    "export_components.py": "ba840246b3d94f8eabc63897b8c135f953bf3965901ea9b990b5b07d1563c5ca",
+    "depth_geometry.py": "6a76cc2dcc44d00a29acd8c6dedf382ae306bcfcd365e82fa22257fcf3d7f365",
+    "color_pixels.py": "a912c009a6de163d2a440399481d14dd984242e10a01b208563423e14f49268e"
+  },
+  "colorPages": [
+    {
+      "pageIndex": 0,
+      "path": "color-b3a69c9d11684069df7c78d48961c2a58d8a13b3ff53f8115e647e0bb3a0ea6f.rgba",
+      "sha256": "b3a69c9d11684069df7c78d48961c2a58d8a13b3ff53f8115e647e0bb3a0ea6f",
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "pageIndex": 1,
+      "path": "color-7c84521638dd6844e2238e05cd739f7e44932133c091970b8cfaaddd6e183079.rgba",
+      "sha256": "7c84521638dd6844e2238e05cd739f7e44932133c091970b8cfaaddd6e183079",
+      "width": 2048,
+      "height": 2048
+    }
+  ],
+  "depthPages": [
+    {
+      "pageIndex": 0,
+      "path": "depth-f36822143eeddb76a5b1044c07200bc3fb41231dea7208116ada62680c13d174.rgba",
+      "sha256": "f36822143eeddb76a5b1044c07200bc3fb41231dea7208116ada62680c13d174",
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "pageIndex": 1,
+      "path": "depth-1e33df4b9dd56e8794eb7209d31a9852d35ef5121fb483441054d701d58480f7.rgba",
+      "sha256": "1e33df4b9dd56e8794eb7209d31a9852d35ef5121fb483441054d701d58480f7",
+      "width": 2048,
+      "height": 2048
+    }
+  ]
+}

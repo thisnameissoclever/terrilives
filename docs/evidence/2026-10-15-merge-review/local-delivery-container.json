@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "source": "D:\\VIBES\\.worktrees\\5637\\terrilives\\.local-build\\merge-20261015\\web-container",
+  "target": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\dist",
+  "url": "http://127.0.0.1:5190/",
+  "incomingFiles": 284,
+  "retainedExistingFiles": 325,
+  "changedExistingFiles": [
+    "index.html"
+  ],
+  "oldHashedAssetsPreserved": true,
+  "backup": "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\merge-20261015\\local-server-before-container",
+  "indexSha256": "0f7dc7669958844336f0f826d5ae1383ea79e575fcfa0cdfc3c879149bb83e77",
+  "servedEntryAssets": {
+    "./assets/index-BNA5Gf1o.js": "e81911a6e9bd41fb6e4dffb95758904c12830441cb5b87db3e3a33a6d65e456d",
+    "./assets/index-B1WNKcup.css": "1e116326c422cb3c6f5c558274851bcd2eee93840268496e4735cbf31836e96a"
+  },
+  "browserStorageAccessed": false,
+  "browserPagesChanged": false
+}

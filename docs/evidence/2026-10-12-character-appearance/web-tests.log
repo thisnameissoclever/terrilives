@@ -1,0 +1,31 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/architecture-resources.test.ts (6 tests | 1 failed) 6161ms
+   × keeps browser fixture pattern bytes identical to the accepted portable export 5823ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/architecture-resources.test.ts > keeps browser fixture pattern bytes identical to the accepted portable export
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/architecture-resources.test.ts:59:1
+     57| });
+     58|
+     59| it('keeps browser fixture pattern bytes identical to the accepted port…
+       | ^
+     60|   for (const name of ['fixture-stripes', 'fixture-checks']) {
+     61|     const source = readFileSync(`../assets/models/architecture/export/…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 185 passed (186)
+      Tests  1 failed | 2245 passed (2246)
+   Start at  11:51:13
+   Duration  618.35s (transform 25.72s, setup 0ms, import 507.51s, tests 87.57s, environment 11ms)
+

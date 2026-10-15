@@ -42,7 +42,7 @@ import { visibleSceneOwner } from './render/visible-scene-coverage.js';
 import { sampleDiningSupport } from './render/dining-support.js';
 import { sampleDishCoverage } from './render/dish-coverage.js';
 import { sampleBodyCoverage } from './render/body-coverage.js';
-import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
+import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex, surfaceItemDishIds } from './render/surface-items.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteWidth, spriteHeight } from './render/sprite-size.js';
@@ -394,6 +394,7 @@ export function pickSprite(
   reducedMotion = false,
   interactions: InteractionSelection = pickInteractions,
   contentBounds: Readonly<Record<number, readonly [number, number, number, number]>> = SPRITE_CONTENT_BOUNDS,
+  excluded:(entity:number)=>boolean=()=>false,
 ): Pick | null {
   // This owned projection can allocate in WASM; read it before zero-copy views.
   const piles = source.dishPiles?.();
@@ -433,7 +434,7 @@ export function pickSprite(
 
   for (let row = 0; row < count; row++) {
     // Not drawn, not clickable: frame.ts parks this row off-screen.
-    if (activities[row] === ACTIVITY_AT_WORK) continue;
+    if (activities[row] === ACTIVITY_AT_WORK || excluded(ids[row])) continue;
     const positionRow = interactions.targetRows[row] >= 0 ? interactions.targetRows[row] : row;
     const wx = positions[positionRow * 2];
     const wy = positions[positionRow * 2 + 1];
@@ -585,12 +586,7 @@ export function pickSprite(
     const items = surfaceItemCount(layout, dirty[row], food?.[row] ?? 0, settings?.[row]);
     for (let item = 0; item < items; item++) {
       const slot = surfacePointIndex(layout, dirty[row], item, settings?.[row]);
-      const visualSlot = layout.kind === 'counter' ? 4 : slot;
-      if (layout.kind === 'counter' && (dirty[row] === 0 || item !== 0)) continue;
-      const dishes: number[] = [];
-      for (let i = 0; i + 2 < piles.length; i += 3) {
-        if (piles[i] === ids[row] && piles[i + 1] === visualSlot) dishes.push(piles[i + 2]);
-      }
+      const dishes=surfaceItemDishIds(layout,ids[row],dirty[row],item,piles,settings?.[row]);
       if (dishes.length === 0) continue;
       const prop = surfaceItemSprite(layout, dirty[row], item, settings?.[row]);
       const point = layout.points[slot];
@@ -924,9 +920,10 @@ export function handleLeftClick(
   reducedMotion = false,
   onOrderAttempt: () => void = () => {},
   onBookPicked: (copy: number) => void = () => {},
+  displayedPick:Pick|null|undefined=undefined,
 ): LeftClickOutcome {
   if (point === null) return { kind: 'none' };
-  const pick = pickSprite(
+  const pick = displayedPick===undefined?pickSprite(
     target,
     point.x,
     point.y,
@@ -934,7 +931,7 @@ export function handleLeftClick(
     originY,
     scale,
     reducedMotion,
-  );
+  ):displayedPick;
   if (pick?.bookCopy !== undefined) { onBookPicked(pick.bookCopy); return { kind: 'none' }; }
   const interaction = pick !== null && !pick.isAgent
     ? target.defaultInteraction?.(pick.entity) ?? LEFT_CLICK_INTERACTION
@@ -1041,8 +1038,9 @@ export function resolveRightClick(
   originY: number,
   scale = 1,
   reducedMotion = false,
+  displayedPick:Pick|null|undefined=undefined,
 ): Menu | null {
-  const pick =
+  const pick = displayedPick!==undefined?displayedPick:
     point === null
       ? null
       : pickSprite(
@@ -1102,6 +1100,7 @@ export function handleRightClick(
   originY: number,
   scale = 1,
   reducedMotion = false,
+  displayedPick:Pick|null|undefined=undefined,
 ): void {
   event.preventDefault();
   const entries = resolveRightClick(
@@ -1111,6 +1110,7 @@ export function handleRightClick(
     originY,
     scale,
     reducedMotion,
+    displayedPick,
   );
   if (entries === null) {
     menu.close();
@@ -1354,7 +1354,19 @@ export function attachPointerInput(
   onCommandAccepted: (kind: RejectedCommandKind) => void = () => {},
   editing?: CanvasEditInput,
   onBookPicked: (copy: number) => void = () => {},
+  displayedPick?:(point:CanvasPoint)=>Promise<Pick|null|undefined>,
 ): void {
+  let pickGeneration=0;
+  const withPick=(point:CanvasPoint|null,apply:(pick:Pick|null|undefined)=>void)=>{
+    const generation=++pickGeneration;
+    if(!displayedPick||!point){apply(undefined);return;}
+    const originX=camera.originX,originY=camera.originY,scale=camera.scale,width=canvas.width,height=canvas.height,mode=editing?.active(),selected=target.selectedIndex();
+    void displayedPick(point).then(pick=>{
+      if(pick!==undefined&&generation===pickGeneration&&camera.originX===originX&&camera.originY===originY&&camera.scale===scale&&canvas.width===width&&canvas.height===height&&editing?.active()===mode&&target.selectedIndex()===selected)apply(pick);
+    }).catch(error=>{
+      console.error('Displayed scene selection failed',error);if(generation===pickGeneration)onCommandRejected('selection');
+    });
+  };
   const canvasPoint = (event: {
     clientX: number;
     clientY: number;
@@ -1391,16 +1403,18 @@ export function attachPointerInput(
     suppressNextClick = true;
     menuOpeningPointer = pointerId;
     canvas.focus();
-    handleRightClick(
+    const point=canvasPoint({clientX,clientY});
+    withPick(point,pick=>handleRightClick(
       target,
       menu,
       { clientX, clientY, preventDefault() {} },
-      canvasPoint({ clientX, clientY }),
+      point,
       camera.originX,
       camera.originY,
       camera.scale,
       reducedMotion(),
-    );
+      pick,
+    ));
   });
 
   const touchPoints = () => [...pointers.values()].slice(0, 2);
@@ -1524,11 +1538,12 @@ export function attachPointerInput(
       suppressNextClick = false;
       return;
     }
+    const point=canvasPoint(event);
+    withPick(point,pick=>{
     if (editing?.active()) {
       canvas.focus();
-      const point = canvasPoint(event);
       const rect = canvas.getBoundingClientRect();
-      editing.click(point ? pickSprite(target, point.x, point.y, camera.originX,
+      editing.click(pick!==undefined?pick:point ? pickSprite(target, point.x, point.y, camera.originX,
         camera.originY, camera.scale, reducedMotion()) : null,
       clientToTile(event.clientX, event.clientY, rect,
         canvas.width, canvas.height, camera.originX, camera.originY, camera.scale),
@@ -1538,7 +1553,7 @@ export function attachPointerInput(
     }
     const outcome = handleLeftClick(
       target,
-      canvasPoint(event),
+      point,
       camera.originX,
       camera.originY,
       event.ctrlKey || event.metaKey || additiveMode(),
@@ -1546,22 +1561,26 @@ export function attachPointerInput(
       reducedMotion(),
       onOrderAttempt,
       onBookPicked,
+      pick,
     );
     reportCommandOutcome(outcome, onCommandAccepted, onCommandRejected);
+    });
   });
 
   canvas.addEventListener('contextmenu', (event) => {
     canvas.focus();
-    handleRightClick(
+    event.preventDefault();const point=canvasPoint(event);
+    withPick(point,pick=>handleRightClick(
       target,
       menu,
       event,
-      canvasPoint(event),
+      point,
       camera.originX,
       camera.originY,
       camera.scale,
       reducedMotion(),
-    );
+      pick,
+    ));
   });
 
   const doc = canvas.ownerDocument;
@@ -1584,6 +1603,7 @@ export function attachPointerInput(
     event.stopPropagation();
   }, true);
   doc.addEventListener('pointerdown', (event) => {
+    pickGeneration++;
     // `instanceof Node` rather than a cast: `event.target` is an
     // `EventTarget`, and a pointer-down on something that is not a node -
     // the window itself - must count as outside rather than throw.
@@ -1592,6 +1612,7 @@ export function attachPointerInput(
     menu.pointerDown(inside);
   });
   doc.addEventListener('keydown', (event) => {
+    pickGeneration++;
     if (event.defaultPrevented) return;
     if (menu.handleKey(event.key)) {
       event.preventDefault();

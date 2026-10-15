@@ -457,6 +457,7 @@ pub fn tick_chain_steps(
     content: Res<Content>,
     mut origins: Query<&mut crate::recipe_actions::Origin>,
     domestic: Option<Res<terri_core::save::SavedDomestic>>,
+    dining: Option<Res<terri_core::save::SavedDining>>,
     mut working: Query<
         (
             Entity,
@@ -524,6 +525,17 @@ pub fn tick_chain_steps(
         let completed_chain = chain_state.chain;
         let completed_step = chain_state.step;
         let station = target.map(|target| target.object);
+        // Reservation release removes the diner, and recipe teardown removes
+        // the chain that identifies its claim. Preserve the completed place now.
+        let dining_setting = dining
+            .as_ref()
+            .and_then(|state| {
+                state.diners.iter().find(|diner| {
+                    diner.person == sim.index_u32()
+                        && station.is_some_and(|station| diner.station == station.index_u32())
+                })
+            })
+            .and_then(|diner| diner.setting);
 
         // The hands, first: the step's whole observable effect below
         // the terminal. Compile's hands rule proved the bookkeeping, so
@@ -569,7 +581,14 @@ pub fn tick_chain_steps(
             }
             chain_state.step += 1;
             commands.queue(move |world: &mut World| {
-                crate::domestic::completed(world, sim, completed_chain, completed_step, station)
+                crate::domestic::completed(
+                    world,
+                    sim,
+                    completed_chain,
+                    completed_step,
+                    station,
+                    dining_setting,
+                )
             });
             continue;
         }
@@ -640,7 +659,14 @@ pub fn tick_chain_steps(
             world
                 .entity_mut(sim)
                 .remove::<crate::recipe_actions::ActiveRecipe>();
-            crate::domestic::completed(world, sim, completed_chain, completed_step, station)
+            crate::domestic::completed(
+                world,
+                sim,
+                completed_chain,
+                completed_step,
+                station,
+                dining_setting,
+            )
         });
     }
 }

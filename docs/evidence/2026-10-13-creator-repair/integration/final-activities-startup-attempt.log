@@ -1,0 +1,10 @@
+page.goto: Timeout 30000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:5187/?stress=0", waiting until "load"
+
+    at D:\VIBES\.worktrees\5637\terrilives\scripts\character-creator-repair\final-activities.cjs:7:479 {
+  log: [
+    '  - navigating to "http://127.0.0.1:5187/?stress=0", waiting until "load"'
+  ],
+  name: 'TimeoutError'
+}

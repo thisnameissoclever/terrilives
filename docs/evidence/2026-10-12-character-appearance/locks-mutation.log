@@ -1,0 +1,37 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-appearance.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-appearance.test.ts (10 tests | 1 failed) 10ms
+     × reproduces seeded draws and keeps all locked fields through randomization and undo 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-appearance.test.ts > appearance proof record > reproduces seeded draws and keeps all locked fields through randomization and undo
+AssertionError: expected 2 to be 29 // Object.is equality
+
+- Expected
++ Received
+
+- 29
++ 2
+
+ ❯ tests/character-appearance.test.ts:30:43
+     28|     a.locks.add('height'); a.locks.add('skin');
+     29|     const before = { ...a.value };
+     30|     a.randomize(); expect(a.value.height).toBe(before.height); expect(…
+       |                                           ^
+     31|     expect(a.value).not.toEqual(before);
+     32|     a.undo(); expect(a.value).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 passed (10)
+   Start at  11:41:38
+   Duration  253ms (transform 26ms, setup 0ms, import 35ms, tests 10ms, environment 0ms)
+

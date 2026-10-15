@@ -1,0 +1,60 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bridge.test.ts tests/fixture-depth.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/fixture-depth.test.ts (66 tests | 3 failed) 909ms
+   × verifies immutable source web/public/atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png 3ms
+   × verifies immutable source web/public/atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png 0ms
+   × requires fixture coverage provenance to match the current sprite atlas 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/fixture-depth.test.ts > verifies immutable source web/public/atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png
+Error: ENOENT: no such file or directory, open 'D:\VIBES\.worktrees\5637\terrilives\web\public\atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png'
+ ❯ tests/fixture-depth.test.ts:35:16
+     33| it.each(pageCases)('verifies immutable $folder/$record.path bytes',({f…
+     34| it.each([...sourceHashes])('verifies immutable source %s',(path,sha)=>{
+     35|  expect(digest(readFileSync(new URL('../../'+path,import.meta.url)))).…
+       |                ^
+     36| });
+     37| it('requires fixture coverage provenance to match the current sprite a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/fixture-depth.test.ts > verifies immutable source web/public/atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png
+Error: ENOENT: no such file or directory, open 'D:\VIBES\.worktrees\5637\terrilives\web\public\atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png'
+ ❯ tests/fixture-depth.test.ts:35:16
+     33| it.each(pageCases)('verifies immutable $folder/$record.path bytes',({f…
+     34| it.each([...sourceHashes])('verifies immutable source %s',(path,sha)=>{
+     35|  expect(digest(readFileSync(new URL('../../'+path,import.meta.url)))).…
+       |                ^
+     36| });
+     37| it('requires fixture coverage provenance to match the current sprite a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/fixture-depth.test.ts > requires fixture coverage provenance to match the current sprite atlas
+AssertionError: expected '5a05e0054259d4b98d681167302a5faa0a1c7…' to be '8d6d8bbd75b695f7a11c8bbc25f0e53b5589e…' // Object.is equality
+
+Expected: "8d6d8bbd75b695f7a11c8bbc25f0e53b5589e662e2d876bf8b3da458b25bcc00"
+Received: "5a05e0054259d4b98d681167302a5faa0a1c723b6bc87a634418223cde827bfd"
+
+ ❯ tests/fixture-depth.test.ts:39:81
+     37| it('requires fixture coverage provenance to match the current sprite a…
+     38|  const atlasHash=digest(readFileSync(new URL('../../assets/sprites/atl…
+     39|  for(const manifest of [staticDepth,aquariumDepth])expect(manifest.atl…
+       |                                                                                 ^
+     40| });
+     41| it('binds all completed companion pages to valid appended atlas record…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  3 failed | 118 passed (121)
+   Start at  15:21:00
+   Duration  9.19s (transform 3.00s, setup 40ms, import 4.05s, tests 4.88s, environment 0ms)
+

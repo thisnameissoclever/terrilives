@@ -1,0 +1,67 @@
+{
+  "initialCase": {
+    "key": "male-original",
+    "gender": "Male",
+    "body": {
+      "Height": 90,
+      "Build": 3,
+      "Shoulder width": 63,
+      "Hip width": 71,
+      "Torso proportions": 65
+    }
+  },
+  "shapeCases": [
+    {
+      "key": "female-original",
+      "gender": "Female",
+      "body": {
+        "Height": 90,
+        "Build": 3,
+        "Shoulder width": 63,
+        "Hip width": 71,
+        "Torso proportions": 65
+      }
+    },
+    {
+      "key": "female-maximum",
+      "gender": "Female",
+      "body": {
+        "Height": 100,
+        "Build": 100,
+        "Shoulder width": 100,
+        "Hip width": 100,
+        "Torso proportions": 100
+      }
+    },
+    {
+      "key": "male-maximum",
+      "gender": "Male",
+      "body": {
+        "Height": 100,
+        "Build": 100,
+        "Shoulder width": 100,
+        "Hip width": 100,
+        "Torso proportions": 100
+      }
+    }
+  ],
+  "readingCaptures": [
+    "reading-male-original-front-left.png",
+    "reading-male-original-front-right.png",
+    "reading-male-original-back-left.png",
+    "reading-male-original-back-right.png",
+    "reading-female-original-front-left.png",
+    "reading-female-original-front-right.png",
+    "reading-female-original-back-left.png",
+    "reading-female-original-back-right.png",
+    "reading-female-maximum-front-left.png",
+    "reading-female-maximum-front-right.png",
+    "reading-female-maximum-back-left.png",
+    "reading-female-maximum-back-right.png",
+    "reading-male-maximum-front-left.png",
+    "reading-male-maximum-front-right.png",
+    "reading-male-maximum-back-left.png",
+    "reading-male-maximum-back-right.png"
+  ],
+  "setupCorrection": "An attempted height115 was outside the UI range and retained90. Maximum screenshots were replaced after entering100 and reading all five controls back."
+}

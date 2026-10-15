@@ -1,0 +1,66 @@
+{
+  "commandSHA256": "5d4851646740a26201e68011ce4168a402f44f9e39da2942752a13a47e746929",
+  "stats": {
+    "clips": 92,
+    "poses": 25600,
+    "cagePoints": 728708864,
+    "failures": [],
+    "headSamples": 213504
+  },
+  "bounds": {
+    "x": 67.56736762014066,
+    "low": -36.49651267331711,
+    "high": 125.84587420377287,
+    "depth": 2.1114802381293956
+  },
+  "witness": {
+    "x": {
+      "action": "fridge",
+      "presentation": "masculine",
+      "bits": 0,
+      "frame": 2,
+      "headEnvelope": true
+    },
+    "low": {
+      "action": "fridge",
+      "presentation": "feminine",
+      "bits": 8,
+      "frame": 2
+    },
+    "high": {
+      "action": "fridge",
+      "presentation": "feminine",
+      "bits": 1,
+      "frame": 2,
+      "headEnvelope": true
+    }
+  },
+  "headBoxes": {
+    "masculine": {
+      "low": [
+        -0.3183293282512457,
+        -0.26734270760572165,
+        1.4008343470206799
+      ],
+      "high": [
+        0.3155078287973504,
+        0.26597240567207336,
+        2.0931999683380127
+      ]
+    },
+    "feminine": {
+      "low": [
+        -0.3183293282512457,
+        -0.26734270760572165,
+        1.4008343470206799
+      ],
+      "high": [
+        0.3155078287973504,
+        0.26597240567207336,
+        2.0931999683380127
+      ]
+    }
+  },
+  "seconds": 76.268,
+  "note": "Body32corners and sourceframes; all hairstyle and face coordinatewise conservative head box evaluated through each sampled head transform; does not re-solve posture for every face combination."
+}

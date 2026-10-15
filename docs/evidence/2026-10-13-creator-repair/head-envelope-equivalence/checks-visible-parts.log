@@ -1,0 +1,54 @@
+
+> test
+> vitest run --maxWorkers=1 --reporter=verbose tests/character-head-visible-parts.test.ts tests/character-head-envelope-equivalence.test.ts tests/character-surfaces.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ✓ tests/character-head-visible-parts.test.ts > retains the original compact selector independently of the prepared-rig selector 1ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected curl heads through eyes, wear and grip masks 8947ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected bob heads through eyes, wear and grip masks 8658ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected wave heads through eyes, wear and grip masks 8899ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected crop heads through eyes, wear and grip masks 9081ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected quiff heads through eyes, wear and grip masks 8673ms
+ ✓ tests/character-head-visible-parts.test.ts > matches compact selected bald heads through eyes, wear and grip masks 8942ms
+ ✓ tests/character-head-visible-parts.test.ts > preserves first insertion tie order and last selected part metadata for shared indices 1ms
+ ✓ tests/character-head-visible-parts.test.ts > filters shared-vertex normal adjacency to the selected triangles 1ms
+ ✓ tests/character-head-visible-parts.test.ts > reuses immutable masks, preserves them through configure, and restores all parts with undefined 1ms
+ ✓ tests/character-head-visible-parts.test.ts > uses selected region metadata and still respects hidden bone flags 0ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > retains the isolated original head envelope and covers every exported animation 2ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'curl' at endpoint +0 2097ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'curl' at endpoint 100 2015ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bob' at endpoint +0 1283ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bob' at endpoint 100 1180ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'wave' at endpoint +0 1171ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'wave' at endpoint 100 1072ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'crop' at endpoint +0 1106ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'crop' at endpoint 100 1026ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'quiff' at endpoint +0 1120ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'quiff' at endpoint 100 1066ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bald' at endpoint +0 1042ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bald' at endpoint 100 1007ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'curl' at endpoint +0 2138ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'curl' at endpoint 100 1902ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bob' at endpoint +0 1523ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bob' at endpoint 100 1856ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'wave' at endpoint +0 1265ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'wave' at endpoint 100 1290ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'crop' at endpoint +0 1359ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'crop' at endpoint 100 1185ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'quiff' at endpoint +0 1179ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'quiff' at endpoint 100 1154ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bald' at endpoint +0 1096ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bald' at endpoint 100 1174ms
+ ✓ tests/character-surfaces.test.ts > requires explicit outline ownership and leaves seams and recessed surfaces uninflated 7ms
+ ✓ tests/character-surfaces.test.ts > keeps freckles on the head and nose surfaces without sphere geometry or density steps 1721ms
+ ✓ tests/character-surfaces.test.ts > anchors above the posed projected head surface for every facing and body extreme 383ms
+ ✓ tests/character-surfaces.test.ts > applies all skin weights before subdivision when locating the head 0ms
+ ✓ tests/character-surfaces.test.ts > accounts for and destroys surface coordinates and avoids subdivision writes for density edits 45ms
+
+ Test Files  3 passed (3)
+      Tests  41 passed (41)
+   Start at  15:34:31
+   Duration  88.52s (transform 212ms, setup 0ms, import 526ms, tests 87.68s, environment 0ms)
+

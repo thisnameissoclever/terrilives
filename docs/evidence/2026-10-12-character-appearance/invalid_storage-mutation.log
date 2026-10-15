@@ -1,0 +1,30 @@
+
+> test
+> vitest run --maxWorkers=1 character-draft-storage.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-draft-storage.test.ts (2 tests | 1 failed) 5ms
+   × distinguishes missing storage from an empty or invalid saved record without rerolling 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-draft-storage.test.ts > distinguishes missing storage from an empty or invalid saved record without rerolling
+AssertionError: expected [Function] to throw an error
+ ❯ tests/character-draft-storage.test.ts:7:101
+      5| it('distinguishes missing storage from an empty or invalid saved recor…
+      6|   const seed=vi.fn(()=>17);
+      7|   for(const text of ['', 'null', '{}', '{"draftVersion":99}'])expect((…
+       |                                                                                                     ^
+      8|   expect(seed).not.toHaveBeenCalled();
+      9|   expect(loadProofDraft(null,seed).draft.value.version).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  12:37:09
+   Duration  144ms (transform 22ms, setup 0ms, import 30ms, tests 5ms, environment 0ms)
+

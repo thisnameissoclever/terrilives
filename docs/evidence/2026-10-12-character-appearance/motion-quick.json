@@ -1,0 +1,67 @@
+{
+  "errors": [],
+  "sourceHashes": {
+    "web/src/render/character/appearance.ts": "850ab15ecc037c574c635e61178cc999283a37ff09aa5ea842b8fccf9e998ae7",
+    "web/src/render/character/bundle.ts": "b0357a1ee7eb6ae5a3d6bf35dce31afa9f517674f9f2b60e1593af86b4f010e2",
+    "web/src/render/character/camera.ts": "6ed68724332e227db3dd631a8c99786fa1d62512011743b12279b16b172d83b4",
+    "web/src/render/character/clock.ts": "43d4bf29e9e76b83c096aac0956e134e07f860f6c639ffa58a99eaa32b21b650",
+    "web/src/render/character/compositor.ts": "365d6677b4ce9a625df0347664d93850547973ee72bee3bfa2511993c7076e37",
+    "web/src/render/character/draft-storage.ts": "53e6a49cc7b1c862dcab27a7aef5f37ae7f83b7b5556fd8ed9e7dccadbd1a928",
+    "web/src/render/character/geometry-proof.ts": "7329c137ec1a1c45284553203d2b81171c78834042fe352e03c5b8775e210af1",
+    "web/src/render/character/gpu-proof.ts": "6dc2659200041561b965db69d803c8cad8f915dcf32e238e1025a6eabcadf62e",
+    "web/src/render/character/math.ts": "cf1a30c72735118a69c5c84c5552c6dbd3c0b151eff4113d2152d15daccdacc6",
+    "web/src/render/character/mesh.wgsl": "21e12e879a51c401837204a703c70a97756f6227b27e341e6031233b51cfd299",
+    "web/src/render/character/motion.ts": "69078d57ab3b2499b3b2d7386eebb1674a59674f87f21f8379bc85e1da2e19e4",
+    "web/src/render/character/pose.ts": "2c0e6ac55fc19ab18ed2aff40ca04ad02761e8722df82288f0637c1f9f5a94ff",
+    "web/src/render/character/present.ts": "4833fcbc95bcd8632dc17e1204f8d72fc2d45dd4ef6ad5c841ca56b0b9dcec73",
+    "web/src/render/character/renderer.ts": "029a76c6cd118ad1d5fee6e9b915a08b4495057102da90dbe36b32b59efe3408",
+    "web/src/render/character/shape.ts": "8243465e84fba0156d8d1ce7a3609c65349290197fd0bbecd0ccf2c65eaa6051",
+    "web/src/render/character/skin-cage.wgsl": "7c642d175f3c88f835a286aa77e91ce75212fb33f8b5746969ed95cbce8c2eab",
+    "web/src/render/character/subdivide.wgsl": "f275fb1366660a5f20eb5a9f77b268657c3cf681d00c1c6ff9607a4834db97c2",
+    "web/src/render/character/subdivision-gpu.ts": "d08590c0081944e287bb2362ad78f125525ac1e1977c0d61a4dbceb9198e51ef",
+    "web/src/render/character/surface-normals.wgsl": "755a7067b4b47fa7ed3bc1fb5a217407f9b823804fd9d1e87dce0d32da53ad87",
+    "web/src/render/character/surface.ts": "f4c05761f55795b76e08c8ee34f84b55addc838e74856840b152d178e88b7ff7",
+    "web/src/render/character/world-picking.ts": "2c354c52df12649dd18011128fe4c8bddabd8dc6fd42e59c05c3314348d00429",
+    "web/proofs/character-appearance.ts": "bef53588d50967e3e608d2946f6b658432a3cede3961866aa82deeacd7397556",
+    "web/src/render/sprites.ts": "0297205fa3f72b19002b62ebfba39a3539898d3ff3994e4b40ef9e7c3a638137",
+    "assets/models/sims/appearance-proof/export-v2/manifest.json": "1d5b15af0202dbc0765a3d20d310806ad97635eaffbf53abfd0d2be8f98651bc"
+  },
+  "seeking": [
+    {
+      "action": "idle",
+      "frame": 0.25
+    },
+    {
+      "action": "walk",
+      "frame": 0.25
+    },
+    {
+      "action": "read",
+      "frame": 0.25
+    },
+    {
+      "action": "sit_down",
+      "frame": 0.25
+    },
+    {
+      "action": "stand_up",
+      "frame": 0.25
+    }
+  ],
+  "picking": {
+    "testedPixels": 226,
+    "hiddenActors": 81,
+    "visibleActors": 57,
+    "fixtures": 88,
+    "personPosition": [
+      3,
+      3.0599999986588955
+    ]
+  },
+  "cleanup": {
+    "cycles": 8,
+    "created": 152,
+    "remaining": 0
+  },
+  "gpuErrors": []
+}

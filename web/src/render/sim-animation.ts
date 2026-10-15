@@ -8,7 +8,7 @@ function positiveModulo(value: number, modulus: number): number {
  * redirected path begins with a diagonal segment. Integer waypoints meet at
  * phase zero when a tile contains a whole number of authored gait cycles.
  */
-export function distanceAnimationFrame(
+export function distanceAnimationSample(
   x: number,
   y: number,
   facing: number,
@@ -26,7 +26,19 @@ export function distanceAnimationFrame(
   if (reducedMotion || facing < 1 || facing > 4 || !Number.isInteger(facing)) return 0;
   const axis = facing <= 2 ? x : y;
   const sign = facing === 2 || facing === 4 ? -1 : 1;
-  return Math.floor(positiveModulo(sign * axis, cycleTiles) / cycleTiles * frameCount);
+  return positiveModulo(sign * axis, cycleTiles) / cycleTiles * frameCount;
+}
+
+/** Baked sprites select the whole sample; runtime meshes retain its fraction. */
+export function distanceAnimationFrame(x: number, y: number, facing: number, frameCount: number,
+  cycleTiles: number, reducedMotion: boolean): number {
+  return Math.floor(distanceAnimationSample(x,y,facing,frameCount,cycleTiles,reducedMotion));
+}
+
+export function tickAnimationSample(simulationTick: number, phaseTicks: number, frameCount: number,
+  ticksPerFrame: number, reducedMotion: boolean): number {
+  tickAnimationFrame(simulationTick,phaseTicks,frameCount,ticksPerFrame,reducedMotion);
+  return reducedMotion ? 0 : positiveModulo((simulationTick+phaseTicks)/ticksPerFrame,frameCount);
 }
 
 /** Keep the authored action cadence while supporting more than two samples. */

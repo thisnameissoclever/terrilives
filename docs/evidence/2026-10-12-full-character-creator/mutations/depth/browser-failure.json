@@ -1,0 +1,42 @@
+{
+  "browserVersion": "155.0.8059.39",
+  "viewport": [
+    1600,
+    1100
+  ],
+  "checks": [
+    "UI randomization preserves height/skin locks and undo restores exact record",
+    "Reload preserves saved record; simulation hash unchanged",
+    "Reload preserves locks and next random draw; source color changes remain region-specific; pause and resume use one clock"
+  ],
+  "cases": [],
+  "errors": [],
+  "adapter": {
+    "vendor": "nvidia",
+    "architecture": "lovelace",
+    "device": "",
+    "description": ""
+  },
+  "expectedInputErrors": [
+    "Error: Invalid appearance record. Expected version 1, known selections, shape values 0-100, and six-digit colors."
+  ],
+  "heightBounds": [
+    {
+      "minX": 218,
+      "minY": 222,
+      "maxX": 383,
+      "maxY": 663,
+      "bodyPixels": 53000,
+      "fixturePixels": 0
+    },
+    {
+      "minX": 218,
+      "minY": 96,
+      "maxX": 383,
+      "maxY": 663,
+      "bodyPixels": 68690,
+      "fixturePixels": 0
+    }
+  ],
+  "failure": "Error: page.evaluate: Error: Depth partition failed: near=47855, far=12952, mismatches=47855\n    at verifyDepthPartition (http://127.0.0.1:5187/src/render/character/gpu-proof.ts:160:58)\n    at async <anonymous>:337:30"
+}

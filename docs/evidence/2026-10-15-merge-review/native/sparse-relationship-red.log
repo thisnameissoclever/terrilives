@@ -1,0 +1,38 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.18s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 7 tests
+test character_draft::application::tests::appearance_changes_do_not_reorder_simulation_updates ... ok
+test character_draft::application::tests::invalid_request_changes_neither_person_nor_world ... ok
+test character_draft::application::tests::name_and_appearance_edits_preserve_dynamic_and_custom_values_exactly ... ok
+test character_draft::application::tests::resolved_creation_preserves_all_choices_and_spends_no_world_randomness ... ok
+test character_draft::application::tests::sparse_relationship_clear_removes_only_the_submitted_pair ... FAILED
+test character_draft::application::tests::sparse_relationship_patch_preserves_unsubmitted_pairs_and_inverse_direction ... FAILED
+test character_draft::application::tests::sparse_relationship_patch_with_an_absent_relative_rejects_every_change ... ok
+
+failures:
+
+---- character_draft::application::tests::sparse_relationship_clear_removes_only_the_submitted_pair stdout ----
+
+thread 'character_draft::application::tests::sparse_relationship_clear_removes_only_the_submitted_pair' (173060) panicked at crates\terri-sim\src\character_draft\application.rs:484:9:
+assertion `left == right` failed
+  left: None
+ right: Some(Sibling)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- character_draft::application::tests::sparse_relationship_patch_preserves_unsubmitted_pairs_and_inverse_direction stdout ----
+
+thread 'character_draft::application::tests::sparse_relationship_patch_preserves_unsubmitted_pairs_and_inverse_direction' (198808) panicked at crates\terri-sim\src\character_draft\application.rs:462:9:
+assertion `left == right` failed
+  left: None
+ right: Some(Sibling)
+
+
+failures:
+    character_draft::application::tests::sparse_relationship_clear_removes_only_the_submitted_pair
+    character_draft::application::tests::sparse_relationship_patch_preserves_unsubmitted_pairs_and_inverse_direction
+
+test result: FAILED. 5 passed; 2 failed; 0 ignored; 0 measured; 1384 filtered out; finished in 4.59s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

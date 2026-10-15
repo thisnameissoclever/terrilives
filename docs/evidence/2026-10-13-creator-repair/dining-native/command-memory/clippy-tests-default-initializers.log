@@ -1,0 +1,46 @@
+    Checking terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Checking terri-wasm v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-wasm)
+    Checking terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> crates\terri-core\src\appearance.rs:278:17
+    |
+278 |                 appearance.presentation = presentation.into();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `appearance::CharacterAppearanceV1 { presentation: presentation.into(), ..Default::default() }` and removing relevant reassignments
+   --> crates\terri-core\src\appearance.rs:277:17
+    |
+277 |                 let mut appearance = CharacterAppearanceV1::default();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#field_reassign_with_default
+    = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::field_reassign_with_default)]`
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> crates\terri-core\src\appearance.rs:313:9
+    |
+313 |         appearance.presentation = "feminine".into();
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `appearance::CharacterAppearanceV1 { presentation: "feminine".into(), hairstyle: "quiff".into(), bald: true, facial_hair: "beard".into(), ..Default::default() }` and removing relevant reassignments
+   --> crates\terri-core\src\appearance.rs:312:9
+    |
+312 |         let mut appearance = CharacterAppearanceV1::default();
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#field_reassign_with_default
+
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> crates\terri-core\src\character.rs:285:9
+    |
+285 |         patch.name = Some("New name".into());
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `character::CharacterPatchV1 { name: Some("New name".into()), ..Default::default() }` and removing relevant reassignments
+   --> crates\terri-core\src\character.rs:284:9
+    |
+284 |         let mut patch = CharacterPatchV1::default();
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#field_reassign_with_default
+
+error: could not compile `terri-core` (lib test) due to 3 previous errors
+EXIT_CODE=101

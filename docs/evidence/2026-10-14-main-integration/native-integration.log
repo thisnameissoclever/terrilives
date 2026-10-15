@@ -1,0 +1,66 @@
+   Compiling bevy_macro_utils v0.18.1
+   Compiling bevy_reflect_derive v0.18.1
+   Compiling bevy_ecs_macros v0.18.1
+   Compiling bevy_reflect v0.18.1
+   Compiling bevy_ecs v0.18.1
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-data)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 12s
+     Running tests\bathroom_layout.rs (target\debug\deps\bathroom_layout-72b767ac6158c265.exe)
+
+running 1 test
+test bathtub_quarter_turn_matches_its_collision_rectangle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\book_content.rs (target\debug\deps\book_content-2e70c8ed836a3647.exe)
+
+running 5 tests
+test legacy_objects_default_to_exclusive_actions_and_no_owned_book_requirement ... ok
+test malformed_catalogue_rejects_duplicates_blank_copy_unknown_genres_and_zero_values ... ok
+test reading_tuning_rejects_nonfinite_out_of_range_and_zero_inputs ... ok
+test reusable_actions_accept_explicit_book_and_seat_contracts ... ok
+test shipped_catalogue_has_six_genres_and_eight_books_at_each_length_and_price ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\content_hierarchy.rs (target\debug\deps\content_hierarchy-602ea9a1e3100e4e.exe)
+
+running 25 tests
+test a_seat_action_may_remove_a_count_inherited_from_its_template ... ok
+test a_type_names_the_action_a_left_click_starts ... ok
+test bookcase_reading_refuses_an_authored_count ... ok
+test canonical_type_is_the_only_hierarchical_presentation_authority ... ok
+test every_resolved_sitting_or_reclining_action_has_no_passive_fun ... ok
+test every_shipped_model_has_classification_and_seat_actions_take_capacity_from_seats ... ok
+test hierarchy_results_still_pass_existing_action_validation ... ok
+test hierarchy_sources_accept_models_without_legacy_objects ... ok
+test hygiene_shower_model_resolves_values_order_and_final_duration_rounding ... ok
+test inherited_action_removal_and_model_only_action_keep_survivor_order ... ok
+test invalid_unused_definitions_cannot_hide_until_a_model_uses_them ... ok
+test malformed_layers_are_rejected_with_author_context ... ok
+test malformed_physical_seats_fail_content_compilation ... ok
+test model_metadata_and_seats_survive_pack_serialization ... ok
+test review_legacy_objects_cannot_author_resolved_classification_metadata ... ok
+test review_optional_satisfaction_can_remove_an_inherited_reward ... ok
+test review_partial_templates_keep_model_dependent_socket_validation_at_final_resolution ... ok
+test review_unused_action_layers_reject_unknown_semantic_references ... ok
+test seat_actions_take_capacity_from_seats_and_refuse_an_authored_count ... ok
+test seat_comfort_inherits_category_type_and_model_operations ... ok
+test shelf_access_is_inherited_validated_and_rotates_from_base_facing ... ok
+test shipped_migration_scopes_retirement_balance_and_seating_changes ... ok
+test template_durations_are_not_rounded_or_range_checked_before_inheritance ... ok
+test unknown_operations_and_multiple_parent_fields_are_parse_errors ... ok
+test unrelated_types_share_templates_without_sharing_categories ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.76s
+
+     Running tests\inherited_runtime.rs (target\debug\deps\inherited_runtime-fcab9b62bb478e57.exe)
+
+running 3 tests
+test inherited_runtime_fixture_compiles_real_model_actions_and_rounding ... ok
+test inherited_runtime_rejects_external_admission_stages_even_in_unused_templates ... ok
+test inherited_runtime_rejects_unknown_unused_bindings_and_incompatible_models ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.52s
+

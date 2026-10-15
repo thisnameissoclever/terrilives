@@ -1,0 +1,1788 @@
+{
+  "command": "node scripts/character-creator-repair/final-game-picking.cjs",
+  "cases": [
+    {
+      "name": "occupied-bed",
+      "result": [
+        {
+          "token": 1,
+          "point": [
+            990,
+            16
+          ],
+          "interiorPixels": 16670,
+          "actual": {
+            "entity": 0,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 0,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 2,
+          "point": [
+            1051,
+            128
+          ],
+          "interiorPixels": 7958,
+          "actual": {
+            "entity": 1,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 1,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 3,
+          "point": [
+            1116,
+            161
+          ],
+          "interiorPixels": 8767,
+          "actual": {
+            "entity": 2,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 2,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 4,
+          "point": [
+            1179,
+            212
+          ],
+          "interiorPixels": 7923,
+          "actual": {
+            "entity": 3,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 3,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 5,
+          "point": [
+            1243,
+            254
+          ],
+          "interiorPixels": 8019,
+          "actual": {
+            "entity": 4,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 4,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 9,
+          "point": [
+            863,
+            256
+          ],
+          "interiorPixels": 4262,
+          "actual": {
+            "entity": 8,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 8,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 6,
+          "point": [
+            1307,
+            296
+          ],
+          "interiorPixels": 10498,
+          "actual": {
+            "entity": 5,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 5,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 8,
+          "point": [
+            927,
+            305
+          ],
+          "interiorPixels": 9651,
+          "actual": {
+            "entity": 7,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 7,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 35,
+          "point": [
+            1037,
+            325
+          ],
+          "interiorPixels": 4882,
+          "actual": {
+            "entity": 34,
+            "kind": "person",
+            "sim": 0
+          },
+          "expected": {
+            "entity": 34,
+            "sim": 0,
+            "kind": "person"
+          }
+        },
+        {
+          "token": 11,
+          "point": [
+            1500,
+            375
+          ],
+          "interiorPixels": 8882,
+          "actual": {
+            "entity": 10,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 10,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 7,
+          "point": [
+            1374,
+            379
+          ],
+          "interiorPixels": 1697,
+          "actual": {
+            "entity": 6,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 6,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 10,
+          "point": [
+            1085,
+            400
+          ],
+          "interiorPixels": 3753,
+          "actual": {
+            "entity": 9,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 9,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 20,
+          "point": [
+            471,
+            421
+          ],
+          "interiorPixels": 21839,
+          "actual": {
+            "entity": 19,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 19,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 36,
+          "point": [
+            457,
+            431
+          ],
+          "interiorPixels": 2193,
+          "actual": {
+            "entity": 35,
+            "kind": "person",
+            "sim": 1
+          },
+          "expected": {
+            "entity": 35,
+            "sim": 1,
+            "kind": "person"
+          }
+        },
+        {
+          "token": 21,
+          "point": [
+            734,
+            464
+          ],
+          "interiorPixels": 3144,
+          "actual": {
+            "entity": 20,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 20,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 37,
+          "point": [
+            404,
+            471
+          ],
+          "interiorPixels": 2210,
+          "actual": {
+            "entity": 36,
+            "kind": "person",
+            "sim": 2
+          },
+          "expected": {
+            "entity": 36,
+            "sim": 2,
+            "kind": "person"
+          }
+        },
+        {
+          "token": 22,
+          "point": [
+            362,
+            511
+          ],
+          "interiorPixels": 7296,
+          "actual": {
+            "entity": 21,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 21,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 12,
+          "point": [
+            1598,
+            541
+          ],
+          "interiorPixels": 1043,
+          "actual": {
+            "entity": 11,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 11,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 17,
+          "point": [
+            1325,
+            590
+          ],
+          "interiorPixels": 3334,
+          "actual": {
+            "entity": 16,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 16,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 24,
+          "point": [
+            990,
+            600
+          ],
+          "interiorPixels": 12655,
+          "actual": {
+            "entity": 23,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 23,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 26,
+          "point": [
+            1183,
+            637
+          ],
+          "interiorPixels": 25696,
+          "actual": {
+            "entity": 25,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 25,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 25,
+          "point": [
+            895,
+            648
+          ],
+          "interiorPixels": 4236,
+          "actual": {
+            "entity": 24,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 24,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 18,
+          "point": [
+            1453,
+            648
+          ],
+          "interiorPixels": 5741,
+          "actual": {
+            "entity": 17,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 17,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 28,
+          "point": [
+            730,
+            714
+          ],
+          "interiorPixels": 14208,
+          "actual": {
+            "entity": 27,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 27,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 23,
+          "point": [
+            585,
+            729
+          ],
+          "interiorPixels": 6943,
+          "actual": {
+            "entity": 22,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 22,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 19,
+          "point": [
+            1567,
+            759
+          ],
+          "interiorPixels": 3865,
+          "actual": {
+            "entity": 18,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 18,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 27,
+          "point": [
+            989,
+            832
+          ],
+          "interiorPixels": 8038,
+          "actual": {
+            "entity": 26,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 26,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 30,
+          "point": [
+            1360,
+            852
+          ],
+          "interiorPixels": 3907,
+          "actual": {
+            "entity": 29,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 29,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 31,
+          "point": [
+            1503,
+            860
+          ],
+          "interiorPixels": 12250,
+          "actual": {
+            "entity": 30,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 30,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 29,
+          "point": [
+            933,
+            990
+          ],
+          "interiorPixels": 2386,
+          "actual": {
+            "entity": 28,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 28,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 34,
+          "point": [
+            1054,
+            1001
+          ],
+          "interiorPixels": 7975,
+          "actual": {
+            "entity": 33,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 33,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 33,
+          "point": [
+            1118,
+            1028
+          ],
+          "interiorPixels": 2469,
+          "actual": {
+            "entity": 32,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 32,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 32,
+          "point": [
+            1311,
+            1080
+          ],
+          "interiorPixels": 764,
+          "actual": {
+            "entity": 31,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 31,
+            "sim": null,
+            "kind": "fixture"
+          }
+        }
+      ],
+      "dishes": [],
+      "books": [],
+      "expectedExtras": [],
+      "scene": {
+        "actors": [
+          {
+            "entity": 34,
+            "sim": 0,
+            "token": 35,
+            "clip": "seat_dining_sit",
+            "sample": 3.9167187500000002,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 50,
+                "build": 50,
+                "shoulders": 50,
+                "hips": 50,
+                "torso": 50
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  62,
+                  117,
+                  164
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 4,
+            "y": 3,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              3.564322542628836,
+              2.8342307699086624,
+              1.870024356750851
+            ],
+            "feet": [
+              3.425000009983778,
+              3.0000001119566275,
+              0.1300000026822089
+            ],
+            "fixture": 9,
+            "textureBytes": 0,
+            "privateBufferBytes": 7575680
+          },
+          {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "bed_sleep",
+            "sample": 0.005214843750000142,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 100,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 100,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 0.5,
+            "y": 8.5,
+            "angle": 1.5707963267948966,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              -0.26997439730896666,
+              7.998424409364579,
+              1.1465104286142331
+            ],
+            "feet": [
+              1.2991471886634827,
+              8.11500006914139,
+              0.5676871779214198
+            ],
+            "fixture": 19,
+            "textureBytes": 0,
+            "privateBufferBytes": 5904320
+          },
+          {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "bed_sleep",
+            "sample": 0.020839843750000142,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 0.5,
+            "y": 8.5,
+            "angle": 1.5707963267948966,
+            "offset": [
+              -0.77,
+              0,
+              0
+            ],
+            "head": [
+              -0.23184376432973275,
+              8.89293425723451,
+              1.1337397707583663
+            ],
+            "feet": [
+              1.2991471886634827,
+              8.88500006914139,
+              0.5676871779214198
+            ],
+            "fixture": 19,
+            "textureBytes": 0,
+            "privateBufferBytes": 7675936
+          }
+        ],
+        "allocation": {
+          "bufferBytes": 50155296,
+          "textureBytes": 0,
+          "textureCount": 0,
+          "sharedGeometryCount": 3
+        },
+        "view": {
+          "originX": 991.999995361673,
+          "originY": 184.0004334720835,
+          "scale": 2.0000000724738607,
+          "width": 1600,
+          "height": 1100
+        }
+      }
+    },
+    {
+      "name": "exact-dish-stacks",
+      "result": [
+        {
+          "token": 1,
+          "point": [
+            830,
+            151
+          ],
+          "interiorPixels": 16670,
+          "actual": {
+            "entity": 0,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 0,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 2,
+          "point": [
+            891,
+            263
+          ],
+          "interiorPixels": 7390,
+          "actual": {
+            "entity": 1,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 1,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 38,
+          "point": [
+            864,
+            286
+          ],
+          "interiorPixels": 507,
+          "actual": {
+            "entity": 1,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 1,
+              "dishes": [
+                3
+              ]
+            }
+          },
+          "expected": {
+            "surface": 1,
+            "setting": 4,
+            "dishes": [
+              3
+            ]
+          }
+        },
+        {
+          "token": 3,
+          "point": [
+            956,
+            296
+          ],
+          "interiorPixels": 8767,
+          "actual": {
+            "entity": 2,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 2,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 4,
+          "point": [
+            1019,
+            347
+          ],
+          "interiorPixels": 7473,
+          "actual": {
+            "entity": 3,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 3,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 39,
+          "point": [
+            992,
+            375
+          ],
+          "interiorPixels": 394,
+          "actual": {
+            "entity": 3,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 3,
+              "dishes": [
+                4
+              ]
+            }
+          },
+          "expected": {
+            "surface": 3,
+            "setting": 4,
+            "dishes": [
+              4
+            ]
+          }
+        },
+        {
+          "token": 5,
+          "point": [
+            1083,
+            389
+          ],
+          "interiorPixels": 8019,
+          "actual": {
+            "entity": 4,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 4,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 9,
+          "point": [
+            703,
+            391
+          ],
+          "interiorPixels": 4262,
+          "actual": {
+            "entity": 8,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 8,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 6,
+          "point": [
+            1147,
+            431
+          ],
+          "interiorPixels": 10498,
+          "actual": {
+            "entity": 5,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 5,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 8,
+          "point": [
+            767,
+            440
+          ],
+          "interiorPixels": 9724,
+          "actual": {
+            "entity": 7,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 7,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 41,
+          "point": [
+            746,
+            470
+          ],
+          "interiorPixels": 420,
+          "actual": {
+            "entity": 7,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 7,
+              "dishes": [
+                0,
+                2
+              ]
+            }
+          },
+          "expected": {
+            "surface": 7,
+            "setting": 2,
+            "dishes": [
+              0,
+              2
+            ]
+          }
+        },
+        {
+          "token": 11,
+          "point": [
+            1340,
+            510
+          ],
+          "interiorPixels": 8544,
+          "actual": {
+            "entity": 10,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 10,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 7,
+          "point": [
+            1214,
+            514
+          ],
+          "interiorPixels": 1697,
+          "actual": {
+            "entity": 6,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 6,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 40,
+          "point": [
+            816,
+            518
+          ],
+          "interiorPixels": 374,
+          "actual": {
+            "entity": 7,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 7,
+              "dishes": [
+                1
+              ]
+            }
+          },
+          "expected": {
+            "surface": 7,
+            "setting": 0,
+            "dishes": [
+              1
+            ]
+          }
+        },
+        {
+          "token": 10,
+          "point": [
+            925,
+            535
+          ],
+          "interiorPixels": 3942,
+          "actual": {
+            "entity": 9,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 9,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 20,
+          "point": [
+            308,
+            555
+          ],
+          "interiorPixels": 24711,
+          "actual": {
+            "entity": 19,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 19,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 21,
+          "point": [
+            574,
+            599
+          ],
+          "interiorPixels": 3144,
+          "actual": {
+            "entity": 20,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 20,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 35,
+          "point": [
+            1274,
+            632
+          ],
+          "interiorPixels": 5853,
+          "actual": {
+            "entity": 34,
+            "kind": "person",
+            "sim": 0
+          },
+          "expected": {
+            "entity": 34,
+            "sim": 0,
+            "kind": "person"
+          }
+        },
+        {
+          "token": 12,
+          "point": [
+            1472,
+            637
+          ],
+          "interiorPixels": 17139,
+          "actual": {
+            "entity": 11,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 11,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 22,
+          "point": [
+            202,
+            646
+          ],
+          "interiorPixels": 7296,
+          "actual": {
+            "entity": 21,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 21,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 17,
+          "point": [
+            1165,
+            725
+          ],
+          "interiorPixels": 3334,
+          "actual": {
+            "entity": 16,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 16,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 24,
+          "point": [
+            830,
+            735
+          ],
+          "interiorPixels": 12655,
+          "actual": {
+            "entity": 23,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 23,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 26,
+          "point": [
+            1023,
+            772
+          ],
+          "interiorPixels": 25696,
+          "actual": {
+            "entity": 25,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 25,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 25,
+          "point": [
+            735,
+            783
+          ],
+          "interiorPixels": 4236,
+          "actual": {
+            "entity": 24,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 24,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 18,
+          "point": [
+            1293,
+            783
+          ],
+          "interiorPixels": 5741,
+          "actual": {
+            "entity": 17,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 17,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 28,
+          "point": [
+            570,
+            849
+          ],
+          "interiorPixels": 14208,
+          "actual": {
+            "entity": 27,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 27,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 23,
+          "point": [
+            425,
+            864
+          ],
+          "interiorPixels": 6943,
+          "actual": {
+            "entity": 22,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 22,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 16,
+          "point": [
+            1594,
+            891
+          ],
+          "interiorPixels": 1216,
+          "actual": {
+            "entity": 15,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 15,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 19,
+          "point": [
+            1407,
+            894
+          ],
+          "interiorPixels": 4260,
+          "actual": {
+            "entity": 18,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 18,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 27,
+          "point": [
+            829,
+            967
+          ],
+          "interiorPixels": 8016,
+          "actual": {
+            "entity": 26,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 26,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 30,
+          "point": [
+            1200,
+            987
+          ],
+          "interiorPixels": 3907,
+          "actual": {
+            "entity": 29,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 29,
+            "sim": null,
+            "kind": "fixture"
+          }
+        },
+        {
+          "token": 31,
+          "point": [
+            1343,
+            995
+          ],
+          "interiorPixels": 5043,
+          "actual": {
+            "entity": 30,
+            "kind": "fixture",
+            "sim": null
+          },
+          "expected": {
+            "entity": 30,
+            "sim": null,
+            "kind": "fixture"
+          }
+        }
+      ],
+      "dishes": [
+        1,
+        4,
+        3,
+        3,
+        4,
+        4,
+        7,
+        0,
+        1,
+        7,
+        2,
+        0,
+        7,
+        2,
+        2
+      ],
+      "books": [],
+      "expectedExtras": [
+        [
+          38,
+          {
+            "entity": 1,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 1,
+              "dishes": [
+                3
+              ]
+            },
+            "setting": 4
+          }
+        ],
+        [
+          39,
+          {
+            "entity": 3,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 3,
+              "dishes": [
+                4
+              ]
+            },
+            "setting": 4
+          }
+        ],
+        [
+          40,
+          {
+            "entity": 7,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 7,
+              "dishes": [
+                1
+              ]
+            },
+            "setting": 0
+          }
+        ],
+        [
+          41,
+          {
+            "entity": 7,
+            "sim": null,
+            "kind": "fixture",
+            "cleanup": {
+              "surface": 7,
+              "dishes": [
+                0,
+                2
+              ]
+            },
+            "setting": 2
+          }
+        ]
+      ],
+      "scene": {
+        "actors": [
+          {
+            "entity": 34,
+            "sim": 0,
+            "token": 35,
+            "clip": "idle",
+            "sample": 0.2650249999761627,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 50,
+                "build": 50,
+                "shoulders": 50,
+                "hips": 50,
+                "torso": 50
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  62,
+                  117,
+                  164
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 9,
+            "y": 2,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              8.871049382617862,
+              1.8913772831520506,
+              2.0382910708622495
+            ],
+            "feet": [
+              9,
+              2,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          }
+        ],
+        "allocation": {
+          "bufferBytes": 17390576,
+          "textureBytes": 0,
+          "textureCount": 0,
+          "sharedGeometryCount": 1
+        },
+        "view": {
+          "originX": 831.999995361673,
+          "originY": 319.00000622598975,
+          "scale": 2.0000000724738607,
+          "width": 1600,
+          "height": 1100
+        }
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "productionHashesBefore": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "status": "FAIL",
+  "failure": "page.evaluate: Error: Actual pick registry module not observed\n    at eval (eval at evaluate (:311:30), <anonymous>:3:23)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at D:\\VIBES\\.worktrees\\5637\\terrilives\\scripts\\character-creator-repair\\final-game-picking.cjs:73:16",
+  "productionHashesAfter": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+  },
+  "productionUnchanged": true
+}

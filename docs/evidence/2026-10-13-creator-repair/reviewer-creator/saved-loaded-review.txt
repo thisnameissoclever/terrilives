@@ -1,0 +1,171 @@
+Review
+Identity
+Name
+Creator Review
+Appearance
+Gender
+Female
+Face shape
+Round
+Eye shape
+Round
+Eyebrow shape
+Straight
+Nose shape
+Broad
+Mouth shape
+Upturned
+Skin undertone
+Neutral
+Hairstyle
+Bald
+Facial hair
+None
+Scar
+None
+Top
+T-shirt
+Sleeves
+Rolled
+Bottoms
+Trousers
+Shoes
+Trainers
+Glasses style
+Rectangular
+Earrings
+None
+Height
+90
+Build
+3
+Shoulder width
+63
+Hip width
+71
+Torso proportions
+65
+Cheek fullness
+100
+Jaw width
+76
+Chin length
+84
+Eye size
+79
+Eyebrow thickness
+26
+Nose width
+60
+Mouth fullness
+27
+Ear size
+4
+Freckles
+Yes
+Freckle density
+100
+Glasses
+No
+Skin color
+Light peach
+Hair color
+Plum
+Facial hair color
+Grey
+Eyes color
+Grey
+Top color
+Blue
+Bottoms color
+Stone
+Shoes color
+Brown
+Personality
+Shyness
+43
+Cleanliness
+78
+Self-preservation
+97
+Low spirits severity
+97
+Isolated severity
+56
+Selected traits
+Television devotee, Low spirits, Out of shape, Isolated
+Needs & habits
+Sleep timing
+-1.5
+Hunger drain
+102
+Energy drain
+149
+Hygiene drain
+62
+Bladder drain
+83
+Social drain
+121
+Fun drain
+82
+Comfort drain
+125
+Hunger recovery
+52
+Energy recovery
+69
+Hygiene recovery
+67
+Bladder recovery
+115
+Social recovery
+56
+Fun recovery
+122
+Comfort recovery
+112
+Eat & cook
+1.35
+Sleep
+0.69
+Wash & bathroom
+1.66
+Relax
+0.37
+Read
+1.73
+Watch TV
+1.74
+Listen to music
+1.22
+Exercise
+0.73
+Write letters
+0.64
+Watch fish
+0.93
+Interests & skills
+Plants
+Dislikes (-0.16)
+Aquarium
+Likes (0.88)
+Television
+Dislikes (-0.99)
+Radio
+Likes (0.79)
+Cooking
+Level 2; 0% to level 3
+Fitness
+Level 4; 0% to level 5
+Reading
+Level 1; 0% to level 2
+Selected hobbies
+Aquarium, Bathroom privacy, Exercise, Reading
+Household
+Relationship to Tim
+Parent
+Relationship to Bill
+Child
+Relationship to Casey
+None

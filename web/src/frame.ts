@@ -1,5 +1,8 @@
+import {indicatorAnchorY} from './render/indicator-coverage.js';
 import {cleaningFrame} from './render/cleaning-animation.js';
 import {conversationBubble, conversationTint} from './render/conversation-bubbles.js';
+import type {CharacterScenePlan} from './render/character/scene-plan.js';
+import {fixtureSurfaceHeight,surfacePropDepthOffset} from './render/fixture-depth.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 import { shelfPresence } from './render/shelf-sprites.js';
 import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
@@ -42,8 +45,8 @@ import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animati
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
-import { writeFootprintProjection, writeSceneDepth } from './render/footprint-depth.js';
-import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
+import { writeFootprintProjection, writeSceneDepth,writeRegisteredSurfaceDepth } from './render/footprint-depth.js';
+import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex, surfaceItemDishIds } from './render/surface-items.js';
 import type { PlacementPreview } from './bridge.js';
 import {
   placementInstanceCount,
@@ -700,12 +703,10 @@ export const ACTIVITY_EATING = 3;
 const INDICATOR_INSET = 4;
 
 /**
- * Nudges a bubble nearer than the foreground layer it shares. Far smaller
- * than the layer step, so it can never reorder a bubble against another tile;
- * without it, a bubble and authored foreground on one anchor could share a
- * depth exactly, where `depthCompare: 'less'` discards the second quad drawn.
+ * Separates legacy carried sprites and bed markers from coincident support
+ * layers. Activity annotations use their own pass and do not use this bias.
  */
-const INDICATOR_DEPTH_NUDGE = 1e-5;
+const COPLANAR_SPRITE_NUDGE = 1e-5;
 
 /** Linear interpolation. `t` of 0 gives `a` exactly, 1 gives `b` exactly. */
 export function lerp(a: number, b: number, t: number): number {
@@ -936,6 +937,7 @@ export interface RenderSource {
    */
   carrying(): Uint32Array;
   dirtyDishes?(): Uint32Array;
+  dishPiles?(): Uint32Array;
   surfaceGrime?(): Uint32Array;
   binWaste?(): Uint32Array;
   dirtySettings?(): Uint32Array;
@@ -1047,11 +1049,15 @@ let scratch: InstanceArray = new Float32Array(0);
 
 /** Borrowed live prefix; both fields are invalidated by either building API. */
 export interface InstanceBatch {
+  readonly owners:Uint32Array;
+  readonly annotations:{start:number;count:number};
   readonly instances: InstanceArray;
   readonly count: number;
 }
 const batch: { -readonly [K in keyof InstanceBatch]: InstanceBatch[K] } = {
   instances: scratch,
+  owners:new Uint32Array(0),
+  annotations:{start:0,count:0},
   count: 0,
 };
 
@@ -1084,6 +1090,7 @@ export function buildInstanceBatch(
   placementColourway = 0,
   /** How much open sky each tile sees ([OS-daylight]); open sky everywhere by default. */
   sky: SkyExposure = OPEN_SKY,
+  dynamic:CharacterScenePlan|null=null,
 ): InstanceBatch {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -1091,12 +1098,16 @@ export function buildInstanceBatch(
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
+  // This bridge call may allocate WASM memory; finish it before borrowing row views.
+  const dishPiles=source.dishPiles?.();
   const needed = (count * 8 + 1 + (source.droppedBookCount ?? 0) + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
     + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
     batch.instances = scratch;
   }
+  if(batch.owners.length<needed/FLOATS_PER_INSTANCE)batch.owners=new Uint32Array(needed/FLOATS_PER_INSTANCE);
+  batch.owners.fill(0);
 
   // Read every frame, never hoisted or cached. `positions_ptr()` and
   // `prev_positions_ptr()` trade values on every sync because
@@ -1130,14 +1141,16 @@ export function buildInstanceBatch(
   const mealPortions = source.mealPortions?.();
   const shelfOffsets = source.shelfBookOffsets?.(), shelfCounts = source.shelfBookCounts?.();
   const shelfMasks = source.shelfBookMasks?.();
+  dynamic?.pickOwners.begin(ids,kinds,simIds);
   interactions.updateSource(source, simulationTick, reducedMotion);
+  dynamic?.update(source,interactions,alpha,simulationTick,reducedMotion);
   const replacedRow = placementReplacedRow(source, selected, placement);
 
   for (let i = 0; i < count; i++) {
     // Office Sims, paired objects and drawable move previews keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
-    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || interactions.drawSuppressed[i] || i === replacedRow) {
+    if (activities[i] === ACTIVITY_AT_WORK || (interactions.suppressed[i] || interactions.drawSuppressed[i]) && !dynamic?.fixtureAt(i) || dynamic?.replacedRows[i] || i === replacedRow) {
       writeInstance(scratch, i, -1e6, -1e6, 1, 0);
       continue;
     }
@@ -1174,7 +1187,7 @@ export function buildInstanceBatch(
     // Entity IDs affect animation phase, not appearance. Every object starts with what
     // content resolved; `objectBodySprite` may select an authored alternate
     // frame, such as the aquarium's fish-motion frame.
-    const sprite = interactions.bodies[i] >= 0 ? interactions.bodies[i] :
+    const sprite = dynamic?.fixtureAt(i) ? objectBodySprite(sprites[i],simulationTick,reducedMotion,choreProgress?.[i]) : interactions.bodies[i] >= 0 ? interactions.bodies[i] :
       kinds[i] === KIND_AGENT
         ? simBodySprite(
             ids[i],
@@ -1193,11 +1206,12 @@ export function buildInstanceBatch(
     const localLight = lighting === null
       ? EMISSIVE_NONE
       : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
+    const replacement=dynamic?.drawForSprite(sprite,i);
     writeInstance(
       scratch,
       i,
-      screenX(wx, wy, originX, scale) + spriteDrawOffsetX(sprite) * scale,
-      screenY(wx, wy, originY, scale) + spriteDrawOffsetY(sprite) * scale,
+      screenX(wx, wy, originX, scale) + (replacement?.offsetX??spriteDrawOffsetX(sprite)) * scale,
+      screenY(wx, wy, originY, scale) + (replacement?.offsetY??spriteDrawOffsetY(sprite)) * scale,
       // Depth stays in WORLD terms on purpose: zoom changes how big
       // things are drawn, never what covers what.
       layeredDepth(
@@ -1206,7 +1220,7 @@ export function buildInstanceBatch(
         gridSize,
         kinds[i] === KIND_AGENT ? LAYER_SIM : LAYER_PROP,
       ),
-      sprite,
+      replacement?.sprite??sprite,
       SHELF_PROFILES[sprite] || interactions.bookReachRows[i]
         ? interactions.shelfMask(positionRow, shelfPresence(positionRow, shelfOffsets, shelfCounts, shelfMasks))
         : TINT_NONE,
@@ -1214,6 +1228,7 @@ export function buildInstanceBatch(
       TINT_NONE,
       Math.max(emissiveForSprite(sprite), localLight),
     );
+    batch.owners[i]=i+1;
     writeShade(scratch, i, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
     // [RC-render]: an object takes its own colourway; a sim drawn using an
     // object takes that object's, which the shader applies to the furniture
@@ -1227,6 +1242,14 @@ export function buildInstanceBatch(
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
     const sceneDepth = interactions.reachRows[i] ? FIXTURE_SCENE_DEPTHS[sprite] : undefined;
     if (sceneDepth !== undefined) writeSceneDepth(scratch, i, sceneDepth, gridSize);
+    const fixtureDepth=replacement?.depth??dynamic?.depthForSprite(sprite);
+    if(fixtureDepth!==undefined&&fixtureDepth!==null)writeRegisteredSurfaceDepth(scratch,i,fixtureDepth,gridSize);
+    const shelfDepth=dynamic?.shelfDepthForSprite(sprite);
+    if(shelfDepth!==undefined&&shelfDepth!==null){
+      writeRegisteredSurfaceDepth(scratch,i,shelfDepth,gridSize);
+      scratch[i*FLOATS_PER_INSTANCE+OFFSET_WALL_MASK]=-9;
+      scratch[i*FLOATS_PER_INSTANCE+OFFSET_PROJECTION_ANCHOR_X]=interactions.shelfMask(positionRow,shelfPresence(positionRow,shelfOffsets,shelfCounts,shelfMasks));
+    }
     if (interactions.mealRows[i] >= 0 && SPRITE_DINING_SUPPORT[sprite]
         && interactions.mealRows[i] !== replacedRow) {
       scratch[i * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_BACKGROUND;
@@ -1239,6 +1262,7 @@ export function buildInstanceBatch(
   // owns those pixels.
   let slot = count;
   for (let row = 0; row < count; row++) {
+    if(dynamic?.replacedRows[row])continue;
     const table = interactions.mealRows[row];
     const body = interactions.bodies[row]>=0 ? interactions.bodies[row] : scratch[row*FLOATS_PER_INSTANCE+3];
     const meal = SPRITE_DINING_SUPPORT[body];
@@ -1262,10 +1286,11 @@ export function buildInstanceBatch(
     scratch[slot * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_FOREGROUND;
     scratch[slot * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] +=
       ((wx - tableX) - (wy - tableY)) * TILE_HALF_WIDTH;
+    batch.owners[slot]=table+1;
     slot++;
   }
   for (let row = 0; row < count; row++) {
-    if (row === replacedRow || interactions.suppressed[row]) continue;
+    if (row === replacedRow || interactions.suppressed[row]&&!dynamic?.fixtureAt(row)) continue;
     const wx = current[row * 2];
     const wy = current[row * 2 + 1];
     const layout = surfaceLayout(sprites[row]);
@@ -1288,6 +1313,14 @@ export function buildInstanceBatch(
       writeFootprintProjection(scratch, slot, footprintWidths?.[row] ?? 0,
         footprintDepths?.[row] ?? 0, sprite, gridSize);
       scratch[slot * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += point[0];
+      const depth=dynamic?.depthForSprite(sprite);
+      if(depth!==undefined&&depth!==null&&fixtureSurfaceHeight(sprites[row])!==null){
+        writeRegisteredSurfaceDepth(scratch,slot,depth,gridSize);
+        const step=layeredDepth(0,0,gridSize,LAYER_PROP)-layeredDepth(1,0,gridSize,LAYER_PROP);
+        scratch[slot*FLOATS_PER_INSTANCE+2]-=surfacePropDepthOffset(sprites[row],point[1])*step;
+      }
+      const dishes=surfaceItemDishIds(layout,ids[row],dirty,item,dishPiles,settings);
+      batch.owners[slot]=dynamic&&dishes.length?dynamic.pickOwners.cleanup(ids[row],dishes):row+1;
       slot++;
     }
   }
@@ -1297,7 +1330,7 @@ export function buildInstanceBatch(
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
       const sprite = foregroundSprites[i];
-      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || i === replacedRow) {
+      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || dynamic?.replacedRows[i] || i === replacedRow) {
         continue;
       }
       const wx = lerp(previous[i * 2], current[i * 2], alpha);
@@ -1323,20 +1356,25 @@ export function buildInstanceBatch(
       }
       writeFootprintProjection(scratch, slot - 1, footprintWidths?.[i] ?? 0,
         footprintDepths?.[i] ?? 0, sprite, gridSize);
+      batch.owners[slot-1]=i+1;
     }
   }
 
-  // **The indicator bubbles, after authored foregrounds.** One per
-  // sim whose activity draws, floated over the sim's interpolated
-  // position so it tracks a walker into a conversation, and nudged
-  // nearer than the sim itself so the two never tie on depth. This is
-  // the owner's "if you can't see what they're doing, they may as well
-  // not be doing anything", as quads.
+  // Activity symbols are annotations, with person ownership independent of
+  // physical surfaces. The renderer draws this range after the world.
+  batch.annotations.start=slot;
   for (let i = 0; i < count; i++) {
     const preference = conversationPreferences?.[i] ?? 0;
     const conversation = conversationBubble(activities[i], conversationTopics?.[i] ?? 0, preference);
     const sprite = kinds[i] === KIND_AGENT ? conversation ?? INDICATOR_SPRITES[activities[i]] ?? null : null;
     if (sprite === null) continue;
+    const configured=dynamic?.actorAt(i);
+    if(configured){const [x,y,z]=configured.head;
+      writeInstance(scratch,slot++,screenX(x,y,originX,scale),indicatorAnchorY(sprite,screenY(x,y,originY,scale)-z*Math.sqrt(1166)*scale,scale),
+        layeredDepth(x,y,gridSize,LAYER_FOREGROUND),sprite,
+        conversation===null?1:conversationTint(preference,0),
+        conversation===null?1:conversationTint(preference,1),
+        conversation===null?1:conversationTint(preference,2));batch.owners[slot-1]=i+1;continue;}
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
@@ -1382,18 +1420,15 @@ export function buildInstanceBatch(
       screenY(wx, wy, originY, scale) + (bedOwner
         ? bedOwner.marker[1] - 24
         : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
-      layeredDepth(bx, by, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
+      layeredDepth(bx, by, gridSize, LAYER_FOREGROUND),
       sprite,
       conversation === null ? 1 : conversationTint(preference, 0),
       conversation === null ? 1 : conversationTint(preference, 1),
       conversation === null ? 1 : conversationTint(preference, 2),
     );
-    // The indicator must stay ahead of every column of its occupied owner,
-    // not merely the owner's center. Its screen X remains that same center.
-    if (!reach) writeFootprintProjection(scratch, slot - 1, footprintWidths?.[positionRow] ?? 0,
-      footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
-    if (bedOwner) scratch[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += bedOwner.marker[0];
+    batch.owners[slot-1]=i+1;
   }
+  batch.annotations.count=slot-batch.annotations.start;
 
   // **The carried and eating props, after the bubbles** - [K3]'s hands on
   // screen. Ordinary carried items stay at their established badge anchor;
@@ -1407,6 +1442,8 @@ export function buildInstanceBatch(
   // the offsets take the scale.
   for (let i = 0; i < count; i++) {
     if (activities[i] === ACTIVITY_AT_WORK) continue;
+    const configured=dynamic?.actorAt(i);
+    if(configured&&['food_idle','food_walk','carry_idle','carry_walk'].includes(configured.action.clip))continue;
     const eatingPose = exactEatingPose(
       kinds[i],
       activities[i],
@@ -1415,6 +1452,15 @@ export function buildInstanceBatch(
     );
     const sprite = displayedPropSprite(source, carrying[i], eatingPose, visualActions[i], activities[i]);
     if (sprite === null) continue;
+    if(configured){const [x,y,z]=configured.hand;
+      // Unregistered ingredient art is a camera-facing bitmap plane at the hand.
+      writeInstance(scratch,slot++,screenX(x,y,originX,scale),screenY(x,y,originY,scale)+(-z*Math.sqrt(1166)+spriteHeight(sprite)/2)*scale,
+        layeredDepth(x,y,gridSize,LAYER_SIM),sprite,TINT_NONE,TINT_NONE,TINT_NONE,
+        lighting===null?EMISSIVE_NONE:sampleLight(lighting,Math.floor(x),Math.floor(y)));
+      writeShade(scratch,slot-1,sampleShade(sky,Math.floor(x),Math.floor(y)));
+      const depth=dynamic?.depthForSprite(sprite);
+      if(depth!==undefined&&depth!==null)writeRegisteredSurfaceDepth(scratch,slot-1,depth,gridSize);
+      batch.owners[slot-1]=i+1;continue;}
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
     const eatingFood =
@@ -1422,7 +1468,7 @@ export function buildInstanceBatch(
       (carrying[i] === NOT_CARRYING || carrying[i] === dinnerItemKind);
     let foodX = CARRIED_SIDE;
     let foodY = -CARRIED_LIFT;
-    let foodDepthNudge = -INDICATOR_DEPTH_NUDGE;
+    let foodDepthNudge = -COPLANAR_SPRITE_NUDGE;
     if (eatingFood) {
       const body = simBodySprite(ids[i], VISUAL_ACTION_EAT, facings[i], simulationTick, reducedMotion, wx, wy, simIds?.[i]);
       const hand = SPRITE_HAND_ANCHORS[body];
@@ -1430,7 +1476,7 @@ export function buildInstanceBatch(
       foodX = hand[0] - anchor[0];
       foodY = hand[1] - anchor[1] + spriteHeight(sprite) / 2;
       foodDepthNudge = SPRITE_HAND_FOREGROUND[body]
-        ? -INDICATOR_DEPTH_NUDGE : INDICATOR_DEPTH_NUDGE;
+        ? -COPLANAR_SPRITE_NUDGE : COPLANAR_SPRITE_NUDGE;
     }
     const localLight = lighting === null
       ? EMISSIVE_NONE
@@ -1450,17 +1496,21 @@ export function buildInstanceBatch(
       localLight,
     );
     writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
+    batch.owners[slot-1]=i+1;
   }
 
   const droppedIds = source.droppedBookIds?.(), droppedPositions = source.droppedBookPositions?.();
   for (let drop = 0; drop < (source.droppedBookCount ?? 0); drop++) {
     const sprite = DROPPED_BOOK_SPRITES[droppedIds![drop] % DROPPED_BOOK_SPRITES.length].sprite;
     const x = droppedPositions![drop * 2], y = droppedPositions![drop * 2 + 1];
-    writeInstance(scratch, slot++, screenX(x, y, originX, scale) + spriteDrawOffsetX(sprite) * scale,
-      screenY(x, y, originY, scale) + spriteDrawOffsetY(sprite) * scale,
-      layeredDepth(x, y, gridSize, LAYER_PROP), sprite, TINT_NONE, TINT_NONE, TINT_NONE,
+    const replacement=dynamic?.drawForSprite(sprite);
+    writeInstance(scratch, slot++, screenX(x, y, originX, scale) + (replacement?.offsetX??spriteDrawOffsetX(sprite)) * scale,
+      screenY(x, y, originY, scale) + (replacement?.offsetY??spriteDrawOffsetY(sprite)) * scale,
+      layeredDepth(x, y, gridSize, LAYER_PROP), replacement?.sprite??sprite, TINT_NONE, TINT_NONE, TINT_NONE,
       lighting === null ? EMISSIVE_NONE : sampleLight(lighting, Math.floor(x), Math.floor(y)));
     writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(x), Math.floor(y)));
+    if(replacement)writeRegisteredSurfaceDepth(scratch,slot-1,replacement.depth,gridSize);
+    if(dynamic)batch.owners[slot-1]=dynamic.pickOwners.book(droppedIds![drop]);
   }
 
   // **The selection ring, last, in the slot past the live entities and
@@ -1475,7 +1525,11 @@ export function buildInstanceBatch(
   // `LAYER_FLOOR`'s old depth would be invisible now that the floor shares one
   // depth in front of nothing.
   const ringRow = replacedRow === null ? findSelectedRow(source, selected) : null;
-  if (ringRow !== null) {
+  const configuredRing=ringRow!==null?dynamic?.actorAt(ringRow):undefined;
+  if(configuredRing){const [x,y,z]=configuredRing.feet;
+    writeInstance(scratch,slot++,screenX(x,y,originX,scale),screenY(x,y,originY,scale)-Math.max(0,z-.13)*Math.sqrt(1166)*scale,
+      layeredDepth(x,y,gridSize,LAYER_PROP),SELECTION_RING_SPRITE,TINT_NONE,TINT_NONE,TINT_NONE,SELECTION_RING_EMISSIVE);
+  }else if (ringRow !== null) {
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
     // A body drawn off its fixture's tile is ringed under its drawn feet.
     const reach = interactions.reachRows[ringRow] === 1;
@@ -1490,7 +1544,7 @@ export function buildInstanceBatch(
       screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
       screenY(wx, wy, originY, scale) + (bedOwner ? bedOwner.marker[1] + TILE_HALF_HEIGHT : 0) * scale,
       layeredDepth(wx, wy, gridSize, bedOwner ? LAYER_FOREGROUND : LAYER_PROP)
-        - (bedOwner ? INDICATOR_DEPTH_NUDGE : 0),
+        - (bedOwner ? COPLANAR_SPRITE_NUDGE : 0),
       SELECTION_RING_SPRITE,
       TINT_NONE,
       TINT_NONE,

@@ -1,0 +1,14 @@
+{
+  "scope": "Actual merge topology using diagnostic commit in isolated object directory",
+  "diagnosticJoin": "316ae436f4ef61c3b8648427fd2890008b378829",
+  "tree": "2fe045b939d0d6dec98e4ec09286791e929c2d56",
+  "parents": [
+    "20c4a32d996e99f0af7702e0c53e69766b0f97a0",
+    "0c40b0175b59c7585875ec55e9c97b7e18f31300"
+  ],
+  "packBytes": 2842,
+  "packObjects": 36,
+  "revListObjects": 36,
+  "sha256": "55133fbe6f7f9ecc0f50ca7a32ad3d923062c202f14eafc65edc5b10c2b12a65",
+  "exit": 0
+}

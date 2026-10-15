@@ -1,0 +1,39 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-wasm)
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `postcard`
+   --> crates\terri-sim\src\save\v9.rs:173:23
+    |
+173 |         let encoded = postcard::to_allocvec(&before).unwrap();
+    |                       ^^^^^^^^ use of unresolved module or unlinked crate `postcard`
+    |
+    = help: if you wanted to use a crate named `postcard`, use `cargo add postcard` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `postcard`
+   --> crates\terri-sim\src\save\v9.rs:176:29
+    |
+176 |         assert_eq!(encoded, postcard::to_allocvec(&expected).unwrap());
+    |                             ^^^^^^^^ use of unresolved module or unlinked crate `postcard`
+    |
+    = help: if you wanted to use a crate named `postcard`, use `cargo add postcard` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `postcard`
+   --> crates\terri-sim\src\save\v9.rs:177:23
+    |
+177 |         let decoded = postcard::from_bytes::<SaveSnapshotV9>(&encoded).unwrap();
+    |                       ^^^^^^^^ use of unresolved module or unlinked crate `postcard`
+    |
+    = help: if you wanted to use a crate named `postcard`, use `cargo add postcard` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `postcard`
+   --> crates\terri-sim\src\save\v9.rs:183:20
+    |
+183 |         assert_eq!(postcard::to_allocvec(&capture(&restored)).unwrap(), encoded);
+    |                    ^^^^^^^^ use of unresolved module or unlinked crate `postcard`
+    |
+    = help: if you wanted to use a crate named `postcard`, use `cargo add postcard` to add it to your `Cargo.toml`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `terri-sim` (lib test) due to 4 previous errors
+EXIT_CODE=101

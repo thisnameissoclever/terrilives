@@ -112,6 +112,10 @@ export function decodeArchitectureMode(mode: number): { floor: boolean; finishSl
   return { floor: value % 4 === 3, finishSlot: Math.floor(value / 4) - 1 };
 }
 export const SURFACE_DEPTH_PROJECTION = -2;
+/** Coplanar decals on an authored horizontal model surface. */
+export const SURFACE_PLANE_PROJECTION = -5;
+/** Registered color coverage and physical depth share one nearest source texel. */
+export const REGISTERED_SURFACE_DEPTH = -8;
 export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
 /** Byte offset of the tint attribute within one instance. */

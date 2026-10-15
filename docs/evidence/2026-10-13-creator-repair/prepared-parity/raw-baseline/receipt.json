@@ -1,0 +1,19 @@
+{
+  "label": "raw-baseline",
+  "url": "http://127.0.0.1:5192",
+  "viewport": [
+    1600,
+    1100
+  ],
+  "scale": 1.37,
+  "light": "flat",
+  "expected": 1,
+  "rows": [],
+  "errors": [],
+  "current": {
+    "file": "docs/evidence/2026-10-13-creator-repair/interaction-contracts/bath-0-active-56.sav",
+    "sha256": "bd850565e9cfd3f8bcd12ecf3f94dc4561e458192f6f060d242dff9648dc0480"
+  },
+  "status": "FAIL",
+  "failure": "AssertionError [ERR_ASSERTION]: Paused reference must be stable\n+ actual - expected\n... Skipped lines\n\n  {\n    annotation: {\n      height: 2200,\n      sha256: '4473185f9d8343f579721f08fe5cb443062a64c81efe8216f62accb4166d086e',\n      width: 3200\n...\n      height: 2200,\n+     sha256: '72326b7a096d85fda59f49d89c02bcd3f41a1e5f18f8631e13ed992ec3a94182',\n-     sha256: '2f9d27566293426048028e358a9e0763d179749cd30d0f111da5ae7b1f331b68',\n      width: 3200\n    },\n    identity: {\n      height: 2200,\n      sha256: '3ae5cfb2f25c8050904722614afb4d50bc99b86f1f6eadb1b9cf42f95f17cfb5',\n"
+}

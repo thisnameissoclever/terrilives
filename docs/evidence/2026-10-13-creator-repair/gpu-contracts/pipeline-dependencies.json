@@ -1,0 +1,15 @@
+{
+  "checks": [
+    {
+      "path": "web/src/render/sprite-pipelines.ts",
+      "sha256": "f30480b069520812dbcab1c853a5620c360977665033e4ae47f4815612cb1378",
+      "matchesEarlierShaderGate": true
+    },
+    {
+      "path": "web/src/render/scene-pipeline.ts",
+      "sha256": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+      "matchesEarlierShaderGate": true
+    }
+  ],
+  "scope": "Additional dependency hashes checked after the pixel run against its earlier frozen shader-gate receipt. Future pixel runs include these files in their before/after set. Pixel assertions and production code were unchanged by this harness metadata addition."
+}

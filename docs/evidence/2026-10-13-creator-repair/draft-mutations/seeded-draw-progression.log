@@ -1,0 +1,26 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web
+
+ ❯ tests/character-random.test.ts (1 test | 1 failed) 4ms
+   × advances only its own seeded state and reproduces a saved continuation 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-random.test.ts > advances only its own seeded state and reproduces a saved continuation
+AssertionError: expected 21 not to be 21 // Object.is equality
+ ❯ tests/character-random.test.ts:9:29
+      7|     const draft = new DraftRandom(21), other = new DraftRandom(21);
+      8|     const initial = draft.state, first = draft.index(1000000);
+      9|     expect(draft.state).not.toBe(initial);
+       |                             ^
+     10|     expect(other.state).toBe(initial);
+     11|     expect(other.index(1000000)).toBe(first);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  13:37:16
+   Duration  133ms (transform 16ms, setup 0ms, import 23ms, tests 4ms, environment 0ms)
+

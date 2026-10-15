@@ -1,0 +1,29 @@
+{
+  "scope": "Combined world and preview completion above 16.6 ms; full timestamps remain in game-30000-normal-driver.json",
+  "frames": [
+    {
+      "index": 0,
+      "relativeMs": 11.925000095367068,
+      "elapsedMs": 16.720000004768735,
+      "previewMs": 12.245000004768372
+    },
+    {
+      "index": 2,
+      "relativeMs": 45.23000009536918,
+      "elapsedMs": 25.40000001907174,
+      "previewMs": 21.925000071525574
+    },
+    {
+      "index": 3,
+      "relativeMs": 78.63500009536801,
+      "elapsedMs": 20.19499994754733,
+      "previewMs": 15.774999976158142
+    },
+    {
+      "index": 1681,
+      "relativeMs": 28061.82500009537,
+      "elapsedMs": 26.124999952313374,
+      "previewMs": 12.370000004768372
+    }
+  ]
+}

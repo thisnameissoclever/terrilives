@@ -1,0 +1,36 @@
+{
+  "errors": [],
+  "seeking": [
+    {
+      "action": "idle",
+      "frame": 0.25
+    },
+    {
+      "action": "walk",
+      "frame": 0.25
+    },
+    {
+      "action": "read",
+      "frame": 0.25
+    },
+    {
+      "action": "sit_down",
+      "frame": 0.25
+    },
+    {
+      "action": "stand_up",
+      "frame": 0.25
+    }
+  ],
+  "picking": {
+    "testedPixels": 226,
+    "hiddenActors": 81,
+    "visibleActors": 57,
+    "fixtures": 88,
+    "personPosition": [
+      3,
+      3.0599999986588955
+    ]
+  },
+  "failure": "Error: page.evaluate: Error: Owned GPU resources remain: 6\n    at eval (eval at evaluate (:311:30), <anonymous>:9:510)\n    at async <anonymous>:337:30"
+}

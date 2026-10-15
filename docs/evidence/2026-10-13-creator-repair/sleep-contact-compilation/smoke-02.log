@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-sleep-contact.test.ts -t curl|rounding|keys every|rejects malformed
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed | 75 skipped (79)
+   Start at  19:13:00
+   Duration  2.55s (transform 547ms, setup 0ms, import 833ms, tests 1.60s, environment 0ms)
+

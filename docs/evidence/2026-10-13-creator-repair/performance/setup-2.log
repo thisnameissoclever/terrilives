@@ -1,0 +1,5 @@
+Error: Unaccounted texture format r16float
+    at D:\VIBES\.worktrees\5637\terrilives\scripts\character-creator-repair\measure-world.cjs:8:57
+    at Array.map (<anonymous>)
+    at textureEstimate (D:\VIBES\.worktrees\5637\terrilives\scripts\character-creator-repair\measure-world.cjs:7:22)
+    at D:\VIBES\.worktrees\5637\terrilives\scripts\character-creator-repair\measure-world.cjs:77:144

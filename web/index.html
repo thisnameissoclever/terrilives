@@ -1384,52 +1384,8 @@
     <!-- The New housemate form - [CS-command] in
          docs/specs/2026-09-22-create-a-sim.md. The lists are filled from
          content by main.ts, so nothing here names a personality or a trait. -->
-    <dialog id="housemate-dialog" aria-labelledby="housemate-title">
-      <h2 id="housemate-title">New housemate</h2>
-      <p id="housemate-count"></p>
-      <p id="housemate-status" role="status"></p>
-      <form id="housemate-form" method="dialog">
-        <!-- [CS-pages]: every button is type="button", so no press submits
-             the form; the view moves between pages and closes the dialog. -->
-        <div id="housemate-page-personality">
-          <label for="housemate-name">Name</label>
-          <input id="housemate-name" type="text" autocomplete="off">
-          <fieldset id="housemate-personality">
-            <legend>Personality</legend>
-            <!-- [ES-personality]: Edit mode's "Keep current personality",
-                 outside the scrolling list so it stays in view. -->
-            <div id="housemate-keep-personality" hidden></div>
-            <div id="housemate-personality-list"></div>
-          </fieldset>
-          <menu>
-            <button id="housemate-cancel" class="hud-button" type="button">Cancel</button>
-            <button id="housemate-next" class="hud-button" type="button">Next</button>
-          </menu>
-        </div>
-        <div id="housemate-page-traits" hidden>
-          <fieldset id="housemate-traits-field">
-            <legend id="housemate-traits-legend">Traits</legend>
-            <div id="housemate-traits"></div>
-          </fieldset>
-          <!-- Who the newcomer is to somebody already here - [FM-choose] in
-               docs/specs/2026-09-22-family.md. Both lists are built from the
-               game at the moment the form opens. -->
-          <div class="builder-choices" id="housemate-family">
-            <label for="housemate-relation">They are the</label>
-            <select id="housemate-relation"></select>
-            <label for="housemate-relative">of</label>
-            <select id="housemate-relative"></select>
-          </div>
-          <!-- [ES-form] in docs/specs/2026-09-30-edit-sims.md: edit mode's
-               relation to each other household member, built by the view. -->
-          <div id="housemate-ties" hidden></div>
-          <p id="housemate-removal-note" hidden>Removing a condition forgets its severity. Skills are kept.</p>
-          <menu>
-            <button id="housemate-back" class="hud-button" type="button">Back</button>
-            <button id="housemate-confirm" class="hud-button" type="button">Move in</button>
-          </menu>
-        </div>
-      </form>
+    <dialog id="housemate-dialog" aria-label="Character creator">
+      <div id="character-creator-root"></div>
     </dialog>
     <dialog id="load-game-dialog" aria-labelledby="load-game-title">
       <h2 id="load-game-title">Load the saved game?</h2>

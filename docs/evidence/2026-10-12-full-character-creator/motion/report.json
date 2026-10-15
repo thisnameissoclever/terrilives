@@ -1,0 +1,55 @@
+{
+  "rows": [
+    {
+      "presentation": "masculine",
+      "facing": 0,
+      "frames": 32,
+      "step": 0.25
+    },
+    {
+      "presentation": "masculine",
+      "facing": 1,
+      "frames": 32,
+      "step": 0.25
+    },
+    {
+      "presentation": "masculine",
+      "facing": 2,
+      "frames": 32,
+      "step": 0.25
+    },
+    {
+      "presentation": "masculine",
+      "facing": 3,
+      "frames": 32,
+      "step": 0.25
+    },
+    {
+      "presentation": "feminine",
+      "facing": 0,
+      "frames": 32,
+      "step": 0.25
+    },
+    {
+      "presentation": "feminine",
+      "facing": 1,
+      "frames": 32,
+      "step": 0.25
+    },
+    {
+      "presentation": "feminine",
+      "facing": 2,
+      "frames": 32,
+      "step": 0.25
+    },
+    {
+      "presentation": "feminine",
+      "facing": 3,
+      "frames": 32,
+      "step": 0.25
+    }
+  ],
+  "errors": [],
+  "sharedAnimation": "exercise",
+  "expectedFrames": 256
+}

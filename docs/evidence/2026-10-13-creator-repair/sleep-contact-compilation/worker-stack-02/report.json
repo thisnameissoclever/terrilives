@@ -1,0 +1,46 @@
+{
+  "console": [],
+  "errors": [],
+  "worker": [
+    {
+      "id": 1,
+      "ok": true
+    },
+    {
+      "version": 1,
+      "id": 1,
+      "kind": "bike",
+      "ok": true
+    },
+    {
+      "version": 1,
+      "id": 2,
+      "kind": "sleep",
+      "ok": true
+    }
+  ],
+  "ready": true,
+  "readiness": {
+    "roster": {
+      "live": 3,
+      "queued": 0,
+      "staging": false
+    },
+    "service": {
+      "owners": 3,
+      "entries": 2,
+      "queued": 0,
+      "inFlight": 0,
+      "ready": 2,
+      "generations": 8,
+      "inputPreparations": 2,
+      "compilations": 2,
+      "discardedResults": 0,
+      "lastError": null,
+      "lastWorkerError": null,
+      "disposed": false,
+      "resourceOwners": 6,
+      "workerAlive": true
+    }
+  }
+}

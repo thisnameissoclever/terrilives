@@ -1,0 +1,66 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-draft.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-draft.test.ts (9 tests | 2 failed) 274ms
+   × protects locks, preserves a locked condition severity and restores random state on undo 4ms
+   × randomizes unrelated fields with locked legacy traits above the current cap 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-draft.test.ts > protects locks, preserves a locked condition severity and restores random state on undo
+AssertionError: expected 90 to be 74 // Object.is equality
+
+- Expected
++ Received
+
+- 74
++ 90
+
+ ❯ tests/character-draft.test.ts:33:42
+     31|   const before=draft.resolve(),state=draft.randomState;
+     32|   draft.randomize('all');const changed=draft.resolve();
+     33|   expect(changed.appearance.body.height).toBe(before.appearance.body.h…
+       |                                          ^
+     34|   expect(changed.traits.find(t=>t.id==='trait0')?.state).toBe(floatBit…
+     35|   draft.undo();expect(draft.resolve()).toEqual(before);expect(draft.ra…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/character-draft.test.ts > randomizes unrelated fields with locked legacy traits above the current cap
+AssertionError: expected [ { id: 'trait0', …(1) }, …(1) ] to deeply equal [ { id: 'trait0', …(1) }, …(1) ]
+
+- Expected
++ Received
+
+@@ -1,9 +1,9 @@
+  [
+    {
+      "id": "trait0",
+-     "state": 1060320051,
++     "state": 1031127695,
+    },
+    {
+      "id": "trait1",
+      "state": 0,
+    },
+
+ ❯ tests/character-draft.test.ts:96:57
+     94|   for(const trait of original.traits)draft.lock(JSON.stringify(['trait…
+     95|   draft.lock(JSON.stringify(['severity','trait0']),true);
+     96|   draft.randomize('all');expect(draft.resolve().traits).toEqual(origin…
+       |                                                         ^
+     97|   expect(draft.resolve().appearance).not.toEqual(original.appearance);
+     98|   const before=draft.resolve(),state=draft.randomState;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 7 passed (9)
+   Start at  23:22:50
+   Duration  436ms (transform 45ms, setup 0ms, import 57ms, tests 274ms, environment 0ms)
+

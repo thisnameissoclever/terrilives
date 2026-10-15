@@ -1,0 +1,24 @@
+{
+  "stable": {
+    "actor": true,
+    "small": true,
+    "geometry": true,
+    "deformed": true,
+    "generationBefore": 233,
+    "generationAfter": 233
+  },
+  "boundsBefore": {
+    "x": 931,
+    "y": 221,
+    "width": 389,
+    "height": 365.8125
+  },
+  "boundsAfter": {
+    "x": 931,
+    "y": 221,
+    "width": 389,
+    "height": 365.8125
+  },
+  "before": "0f86c8b661ea74239c64231406c43457a6b49c880db58e03c1910015a6224219",
+  "after": "0f86c8b661ea74239c64231406c43457a6b49c880db58e03c1910015a6224219"
+}

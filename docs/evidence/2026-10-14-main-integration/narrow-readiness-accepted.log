@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/creator-contact-preview.test.ts tests/creator-view.test.ts tests/character-contact-admission.test.ts tests/character-draft.test.ts tests/character-session.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  5 passed (5)
+      Tests  42 passed (42)
+   Start at  15:30:16
+   Duration  6.35s (transform 3.66s, setup 56ms, import 5.27s, tests 481ms, environment 0ms)
+

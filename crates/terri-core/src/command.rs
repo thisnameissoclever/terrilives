@@ -3,6 +3,9 @@
 use bevy_ecs::prelude::Resource;
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod character_tests;
+
 /// One player action, as data.
 ///
 /// This type is the whole anti-corner requirement of M1b. JavaScript
@@ -292,6 +295,34 @@ pub enum SimCommand {
         enabled: bool,
     },
     Book(BookCommand),
+    /// Creator drafts are large; ordinary queue entries retain their compact layout.
+    /// Box is serialization-transparent, preserving code 30 and its payload bytes.
+    Character(Box<CharacterCommand>),
+}
+
+/// Resolved creator commands append after every published command discriminant.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CharacterCommand {
+    Create {
+        request: u32,
+        draft: crate::character::CharacterDraftV1,
+    },
+    Edit {
+        request: u32,
+        sim: u32,
+        patch: crate::character::CharacterPatchV1,
+    },
+}
+
+impl CharacterCommand {
+    pub fn validate_structure(&self) -> Result<(), &'static str> {
+        match self {
+            Self::Create { draft, .. } => draft.validate_structure(),
+            Self::Edit { patch, .. } => patch
+                .resolve(&crate::character::CharacterDraftV1::neutral("Validation"))
+                .map(|_| ()),
+        }
+    }
 }
 
 /// Book operations use stable authored title/action IDs and preserve stream order.

@@ -1,0 +1,290 @@
+[
+  {
+    "gender": "Male",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Front left",
+    "file": "reading-male-neutral-0.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Front right",
+    "file": "reading-male-neutral-1.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Back left",
+    "file": "reading-male-neutral-2.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Back right",
+    "file": "reading-male-neutral-3.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Front left",
+    "file": "reading-male-minimum-0.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Front right",
+    "file": "reading-male-minimum-1.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Back left",
+    "file": "reading-male-minimum-2.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Back right",
+    "file": "reading-male-minimum-3.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Front left",
+    "file": "reading-male-maximum-0.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Front right",
+    "file": "reading-male-maximum-1.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Back left",
+    "file": "reading-male-maximum-2.png"
+  },
+  {
+    "gender": "Male",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Back right",
+    "file": "reading-male-maximum-3.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Front left",
+    "file": "reading-female-neutral-0.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Front right",
+    "file": "reading-female-neutral-1.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Back left",
+    "file": "reading-female-neutral-2.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "facing": "Back right",
+    "file": "reading-female-neutral-3.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Front left",
+    "file": "reading-female-minimum-0.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Front right",
+    "file": "reading-female-minimum-1.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Back left",
+    "file": "reading-female-minimum-2.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "facing": "Back right",
+    "file": "reading-female-minimum-3.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Front left",
+    "file": "reading-female-maximum-0.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Front right",
+    "file": "reading-female-maximum-1.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Back left",
+    "file": "reading-female-maximum-2.png"
+  },
+  {
+    "gender": "Female",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "facing": "Back right",
+    "file": "reading-female-maximum-3.png"
+  }
+]

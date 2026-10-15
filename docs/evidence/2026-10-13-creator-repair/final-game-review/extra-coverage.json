@@ -1,0 +1,3013 @@
+{
+  "status": "RUNTIME_PASS_VISUAL_FAIL",
+  "expected": 32,
+  "completed": 32,
+  "captures": 272,
+  "sourceReceipts": [
+    "extra-seat-pass-recline-boundary.json",
+    "extra-recline-pass-visual-fail.json"
+  ],
+  "exclusion": "First receipt retains a final recline predicate setup failure; its completed28seatcases remain valid. The second receipt supplies all4reclinecases with native action0/activity15/whole-seat predicate.",
+  "cases": [
+    {
+      "name": "extra-office-sit-0",
+      "states": 52,
+      "captures": [
+        "extra-office-sit-0-unused.png",
+        "extra-office-sit-0-entry-0.png",
+        "extra-office-sit-0-entry-23.png",
+        "extra-office-sit-0-active.png",
+        "extra-office-sit-0-active-8.png",
+        "extra-office-sit-0-active-18.png",
+        "extra-office-sit-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-sit-1",
+      "states": 60,
+      "captures": [
+        "extra-office-sit-1-unused.png",
+        "extra-office-sit-1-entry-0.png",
+        "extra-office-sit-1-entry-35.png",
+        "extra-office-sit-1-active.png",
+        "extra-office-sit-1-active-8.png",
+        "extra-office-sit-1-active-18.png",
+        "extra-office-sit-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-sit-2",
+      "states": 48,
+      "captures": [
+        "extra-office-sit-2-unused.png",
+        "extra-office-sit-2-entry-0.png",
+        "extra-office-sit-2-entry-19.png",
+        "extra-office-sit-2-active.png",
+        "extra-office-sit-2-active-8.png",
+        "extra-office-sit-2-active-18.png",
+        "extra-office-sit-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-sit-3",
+      "states": 92,
+      "captures": [
+        "extra-office-sit-3-unused.png",
+        "extra-office-sit-3-entry-0.png",
+        "extra-office-sit-3-entry-63.png",
+        "extra-office-sit-3-active.png",
+        "extra-office-sit-3-active-8.png",
+        "extra-office-sit-3-active-18.png",
+        "extra-office-sit-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-0",
+      "states": 202,
+      "captures": [
+        "extra-office-read-0-unused.png",
+        "extra-office-read-0-entry-0.png",
+        "extra-office-read-0-entry-59.png",
+        "extra-office-read-0-entry-60.png",
+        "extra-office-read-0-entry-64.png",
+        "extra-office-read-0-entry-140.png",
+        "extra-office-read-0-active.png",
+        "extra-office-read-0-active-8.png",
+        "extra-office-read-0-active-18.png",
+        "extra-office-read-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-1",
+      "states": 150,
+      "captures": [
+        "extra-office-read-1-unused.png",
+        "extra-office-read-1-entry-0.png",
+        "extra-office-read-1-entry-27.png",
+        "extra-office-read-1-entry-28.png",
+        "extra-office-read-1-entry-32.png",
+        "extra-office-read-1-entry-88.png",
+        "extra-office-read-1-active.png",
+        "extra-office-read-1-active-8.png",
+        "extra-office-read-1-active-18.png",
+        "extra-office-read-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-2",
+      "states": 182,
+      "captures": [
+        "extra-office-read-2-unused.png",
+        "extra-office-read-2-entry-0.png",
+        "extra-office-read-2-entry-59.png",
+        "extra-office-read-2-entry-60.png",
+        "extra-office-read-2-entry-64.png",
+        "extra-office-read-2-entry-120.png",
+        "extra-office-read-2-active.png",
+        "extra-office-read-2-active-8.png",
+        "extra-office-read-2-active-18.png",
+        "extra-office-read-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-3",
+      "states": 170,
+      "captures": [
+        "extra-office-read-3-unused.png",
+        "extra-office-read-3-entry-0.png",
+        "extra-office-read-3-entry-27.png",
+        "extra-office-read-3-entry-28.png",
+        "extra-office-read-3-entry-32.png",
+        "extra-office-read-3-entry-108.png",
+        "extra-office-read-3-active.png",
+        "extra-office-read-3-active-8.png",
+        "extra-office-read-3-active-18.png",
+        "extra-office-read-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-sit-0",
+      "states": 90,
+      "captures": [
+        "extra-ottoman-sit-0-unused.png",
+        "extra-ottoman-sit-0-entry-0.png",
+        "extra-ottoman-sit-0-entry-63.png",
+        "extra-ottoman-sit-0-active.png",
+        "extra-ottoman-sit-0-active-8.png",
+        "extra-ottoman-sit-0-active-18.png",
+        "extra-ottoman-sit-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-sit-1",
+      "states": 81,
+      "captures": [
+        "extra-ottoman-sit-1-unused.png",
+        "extra-ottoman-sit-1-entry-0.png",
+        "extra-ottoman-sit-1-entry-31.png",
+        "extra-ottoman-sit-1-active.png",
+        "extra-ottoman-sit-1-active-8.png",
+        "extra-ottoman-sit-1-active-18.png",
+        "extra-ottoman-sit-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-sit-2",
+      "states": 90,
+      "captures": [
+        "extra-ottoman-sit-2-unused.png",
+        "extra-ottoman-sit-2-entry-0.png",
+        "extra-ottoman-sit-2-entry-63.png",
+        "extra-ottoman-sit-2-active.png",
+        "extra-ottoman-sit-2-active-8.png",
+        "extra-ottoman-sit-2-active-18.png",
+        "extra-ottoman-sit-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-sit-3",
+      "states": 81,
+      "captures": [
+        "extra-ottoman-sit-3-unused.png",
+        "extra-ottoman-sit-3-entry-0.png",
+        "extra-ottoman-sit-3-entry-31.png",
+        "extra-ottoman-sit-3-active.png",
+        "extra-ottoman-sit-3-active-8.png",
+        "extra-ottoman-sit-3-active-18.png",
+        "extra-ottoman-sit-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-read-0",
+      "states": 146,
+      "captures": [
+        "extra-ottoman-read-0-unused.png",
+        "extra-ottoman-read-0-entry-0.png",
+        "extra-ottoman-read-0-entry-59.png",
+        "extra-ottoman-read-0-entry-60.png",
+        "extra-ottoman-read-0-entry-64.png",
+        "extra-ottoman-read-0-entry-84.png",
+        "extra-ottoman-read-0-active.png",
+        "extra-ottoman-read-0-active-8.png",
+        "extra-ottoman-read-0-active-18.png",
+        "extra-ottoman-read-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-read-1",
+      "states": 114,
+      "captures": [
+        "extra-ottoman-read-1-unused.png",
+        "extra-ottoman-read-1-entry-0.png",
+        "extra-ottoman-read-1-entry-27.png",
+        "extra-ottoman-read-1-entry-28.png",
+        "extra-ottoman-read-1-entry-32.png",
+        "extra-ottoman-read-1-entry-52.png",
+        "extra-ottoman-read-1-active.png",
+        "extra-ottoman-read-1-active-8.png",
+        "extra-ottoman-read-1-active-18.png",
+        "extra-ottoman-read-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-read-2",
+      "states": 146,
+      "captures": [
+        "extra-ottoman-read-2-unused.png",
+        "extra-ottoman-read-2-entry-0.png",
+        "extra-ottoman-read-2-entry-59.png",
+        "extra-ottoman-read-2-entry-60.png",
+        "extra-ottoman-read-2-entry-64.png",
+        "extra-ottoman-read-2-entry-84.png",
+        "extra-ottoman-read-2-active.png",
+        "extra-ottoman-read-2-active-8.png",
+        "extra-ottoman-read-2-active-18.png",
+        "extra-ottoman-read-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-read-3",
+      "states": 114,
+      "captures": [
+        "extra-ottoman-read-3-unused.png",
+        "extra-ottoman-read-3-entry-0.png",
+        "extra-ottoman-read-3-entry-27.png",
+        "extra-ottoman-read-3-entry-28.png",
+        "extra-ottoman-read-3-entry-32.png",
+        "extra-ottoman-read-3-entry-52.png",
+        "extra-ottoman-read-3-active.png",
+        "extra-ottoman-read-3-active-8.png",
+        "extra-ottoman-read-3-active-18.png",
+        "extra-ottoman-read-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-sit-0",
+      "states": 54,
+      "captures": [
+        "extra-dining-sit-0-unused.png",
+        "extra-dining-sit-0-entry-0.png",
+        "extra-dining-sit-0-entry-27.png",
+        "extra-dining-sit-0-active.png",
+        "extra-dining-sit-0-active-8.png",
+        "extra-dining-sit-0-active-18.png",
+        "extra-dining-sit-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-sit-1",
+      "states": 57,
+      "captures": [
+        "extra-dining-sit-1-unused.png",
+        "extra-dining-sit-1-entry-0.png",
+        "extra-dining-sit-1-entry-19.png",
+        "extra-dining-sit-1-active.png",
+        "extra-dining-sit-1-active-8.png",
+        "extra-dining-sit-1-active-18.png",
+        "extra-dining-sit-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-sit-2",
+      "states": 54,
+      "captures": [
+        "extra-dining-sit-2-unused.png",
+        "extra-dining-sit-2-entry-0.png",
+        "extra-dining-sit-2-entry-27.png",
+        "extra-dining-sit-2-active.png",
+        "extra-dining-sit-2-active-8.png",
+        "extra-dining-sit-2-active-18.png",
+        "extra-dining-sit-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-sit-3",
+      "states": 57,
+      "captures": [
+        "extra-dining-sit-3-unused.png",
+        "extra-dining-sit-3-entry-0.png",
+        "extra-dining-sit-3-entry-19.png",
+        "extra-dining-sit-3-active.png",
+        "extra-dining-sit-3-active-8.png",
+        "extra-dining-sit-3-active-18.png",
+        "extra-dining-sit-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-read-0",
+      "states": 166,
+      "captures": [
+        "extra-dining-read-0-unused.png",
+        "extra-dining-read-0-entry-0.png",
+        "extra-dining-read-0-entry-59.png",
+        "extra-dining-read-0-entry-60.png",
+        "extra-dining-read-0-entry-64.png",
+        "extra-dining-read-0-entry-104.png",
+        "extra-dining-read-0-active.png",
+        "extra-dining-read-0-active-8.png",
+        "extra-dining-read-0-active-18.png",
+        "extra-dining-read-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-read-1",
+      "states": 134,
+      "captures": [
+        "extra-dining-read-1-unused.png",
+        "extra-dining-read-1-entry-0.png",
+        "extra-dining-read-1-entry-27.png",
+        "extra-dining-read-1-entry-28.png",
+        "extra-dining-read-1-entry-32.png",
+        "extra-dining-read-1-entry-72.png",
+        "extra-dining-read-1-active.png",
+        "extra-dining-read-1-active-8.png",
+        "extra-dining-read-1-active-18.png",
+        "extra-dining-read-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-read-2",
+      "states": 166,
+      "captures": [
+        "extra-dining-read-2-unused.png",
+        "extra-dining-read-2-entry-0.png",
+        "extra-dining-read-2-entry-59.png",
+        "extra-dining-read-2-entry-60.png",
+        "extra-dining-read-2-entry-64.png",
+        "extra-dining-read-2-entry-104.png",
+        "extra-dining-read-2-active.png",
+        "extra-dining-read-2-active-8.png",
+        "extra-dining-read-2-active-18.png",
+        "extra-dining-read-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-read-3",
+      "states": 134,
+      "captures": [
+        "extra-dining-read-3-unused.png",
+        "extra-dining-read-3-entry-0.png",
+        "extra-dining-read-3-entry-27.png",
+        "extra-dining-read-3-entry-28.png",
+        "extra-dining-read-3-entry-32.png",
+        "extra-dining-read-3-entry-72.png",
+        "extra-dining-read-3-active.png",
+        "extra-dining-read-3-active-8.png",
+        "extra-dining-read-3-active-18.png",
+        "extra-dining-read-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-read-0",
+      "states": 138,
+      "captures": [
+        "extra-sofa-read-0-unused.png",
+        "extra-sofa-read-0-entry-0.png",
+        "extra-sofa-read-0-entry-59.png",
+        "extra-sofa-read-0-entry-60.png",
+        "extra-sofa-read-0-entry-64.png",
+        "extra-sofa-read-0-entry-76.png",
+        "extra-sofa-read-0-active.png",
+        "extra-sofa-read-0-active-8.png",
+        "extra-sofa-read-0-active-18.png",
+        "extra-sofa-read-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-read-1",
+      "states": 98,
+      "captures": [
+        "extra-sofa-read-1-unused.png",
+        "extra-sofa-read-1-entry-0.png",
+        "extra-sofa-read-1-entry-27.png",
+        "extra-sofa-read-1-entry-28.png",
+        "extra-sofa-read-1-entry-32.png",
+        "extra-sofa-read-1-entry-36.png",
+        "extra-sofa-read-1-active.png",
+        "extra-sofa-read-1-active-8.png",
+        "extra-sofa-read-1-active-18.png",
+        "extra-sofa-read-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-read-2",
+      "states": 130,
+      "captures": [
+        "extra-sofa-read-2-unused.png",
+        "extra-sofa-read-2-entry-0.png",
+        "extra-sofa-read-2-entry-59.png",
+        "extra-sofa-read-2-entry-60.png",
+        "extra-sofa-read-2-entry-64.png",
+        "extra-sofa-read-2-entry-68.png",
+        "extra-sofa-read-2-active.png",
+        "extra-sofa-read-2-active-8.png",
+        "extra-sofa-read-2-active-18.png",
+        "extra-sofa-read-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-read-3",
+      "states": 118,
+      "captures": [
+        "extra-sofa-read-3-unused.png",
+        "extra-sofa-read-3-entry-0.png",
+        "extra-sofa-read-3-entry-27.png",
+        "extra-sofa-read-3-entry-28.png",
+        "extra-sofa-read-3-entry-32.png",
+        "extra-sofa-read-3-entry-56.png",
+        "extra-sofa-read-3-active.png",
+        "extra-sofa-read-3-active-8.png",
+        "extra-sofa-read-3-active-18.png",
+        "extra-sofa-read-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-recline-0",
+      "states": 121,
+      "captures": [
+        "extra-recline-0-unused.png",
+        "extra-recline-0-entry-0.png",
+        "extra-recline-0-entry-59.png",
+        "extra-recline-0-active.png",
+        "extra-recline-0-active-8.png",
+        "extra-recline-0-active-18.png",
+        "extra-recline-0-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-recline-1",
+      "states": 85,
+      "captures": [
+        "extra-recline-1-unused.png",
+        "extra-recline-1-entry-0.png",
+        "extra-recline-1-entry-23.png",
+        "extra-recline-1-active.png",
+        "extra-recline-1-active-8.png",
+        "extra-recline-1-active-18.png",
+        "extra-recline-1-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-recline-2",
+      "states": 121,
+      "captures": [
+        "extra-recline-2-unused.png",
+        "extra-recline-2-entry-0.png",
+        "extra-recline-2-entry-59.png",
+        "extra-recline-2-active.png",
+        "extra-recline-2-active-8.png",
+        "extra-recline-2-active-18.png",
+        "extra-recline-2-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "bob",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-recline-3",
+      "states": 85,
+      "captures": [
+        "extra-recline-3-unused.png",
+        "extra-recline-3-entry-0.png",
+        "extra-recline-3-entry-23.png",
+        "extra-recline-3-active.png",
+        "extra-recline-3-active-8.png",
+        "extra-recline-3-active-18.png",
+        "extra-recline-3-exit.png"
+      ],
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 100,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 100,
+          "torso": 0
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            107,
+            159,
+            155
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "entered": true,
+      "exited": true
+    }
+  ],
+  "visualFinding": {
+    "case": "extra-recline-1",
+    "finding": "Tall person hair and bubble clipped by rear wall",
+    "screenshots": [
+      "extra-recline-1-active.png",
+      "extra-recline-1-active-8.png"
+    ]
+  }
+}

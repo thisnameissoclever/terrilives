@@ -1,0 +1,4 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-wasm)
+EXIT_CODE=1
+INTERRUPTED: Task-owned Cargo PID194460 tree stopped before assertions to avoid unrelated example links. Replaced by the same test filters with --lib. Other Cargo processes were left alone.

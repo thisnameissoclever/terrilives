@@ -1,0 +1,101 @@
+{
+  "finding": "The protruding magenta shape is the existing breast pocket body and its top seam. It is visible in both the original split-sleeve and final continuous-sleeve renders. Removing the pocket body leaves its seam; removing both removes the protrusion. These removals occurred only in isolated browser metadata.",
+  "productionChange": false,
+  "imagesInspected": [
+    "original",
+    "current",
+    "without-pocket-body",
+    "without-pocket-seam",
+    "without-pocket-and-seam"
+  ],
+  "comparisons": [
+    {
+      "condition": "original",
+      "changedPixelsInReviewerRegion": 15,
+      "maximumChannelDifferenceInReviewerRegion": 48,
+      "changedRegionBounds": [
+        196,
+        337,
+        348,
+        467
+      ],
+      "region": [
+        210,
+        387,
+        238,
+        418
+      ]
+    },
+    {
+      "condition": "current",
+      "changedPixelsInReviewerRegion": 0,
+      "maximumChannelDifferenceInReviewerRegion": 0,
+      "changedRegionBounds": null,
+      "region": [
+        210,
+        387,
+        238,
+        418
+      ]
+    },
+    {
+      "condition": "without-pocket-body",
+      "changedPixelsInReviewerRegion": 460,
+      "maximumChannelDifferenceInReviewerRegion": 81,
+      "changedRegionBounds": [
+        210,
+        387,
+        235,
+        420
+      ],
+      "region": [
+        210,
+        387,
+        238,
+        418
+      ]
+    },
+    {
+      "condition": "without-pocket-seam",
+      "changedPixelsInReviewerRegion": 74,
+      "maximumChannelDifferenceInReviewerRegion": 104,
+      "changedRegionBounds": [
+        207,
+        393,
+        231,
+        411
+      ],
+      "region": [
+        210,
+        387,
+        238,
+        418
+      ]
+    },
+    {
+      "condition": "without-pocket-and-seam",
+      "changedPixelsInReviewerRegion": 501,
+      "maximumChannelDifferenceInReviewerRegion": 104,
+      "changedRegionBounds": [
+        207,
+        387,
+        235,
+        420
+      ],
+      "region": [
+        210,
+        387,
+        238,
+        418
+      ]
+    }
+  ],
+  "originalCurrentDifferencesInsidePocketRemovalMask": 0,
+  "originalCurrentDifferenceBoundsWithinReviewerRegion": [
+    227,
+    387,
+    233,
+    392
+  ],
+  "pocketRemovalMaskPixelsInRegion": 501
+}

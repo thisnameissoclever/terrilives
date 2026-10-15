@@ -1,0 +1,1451 @@
+{
+  "scope": "Exact old first-entry phase 2 versus explicit canonical phase 0; no tolerance or changed-pixel masking.",
+  "rows": [
+    {
+      "file": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-0.sav",
+      "physicalIdentityExact": true,
+      "annotationIdentityExact": true,
+      "surfaceSamplesChanged": 11,
+      "surfaceOwners": [
+        37
+      ],
+      "surfaceMaxAbsoluteDifference": 7.152557373046875e-07,
+      "surfaceBoundsAtSceneResolution": [
+        971,
+        1170,
+        998,
+        1220
+      ],
+      "colorSamplesChanged": 0,
+      "colorOwners": [],
+      "colorMaxAbsoluteDifference": 0.0,
+      "colorBoundsAtSceneResolution": null,
+      "displayedPixelsChanged": 0,
+      "displayedMaxChannelDifference": 0,
+      "sceneSize": [
+        3200,
+        2200
+      ],
+      "actors": [
+        {
+          "entity": 34,
+          "sim": 0,
+          "token": 35,
+          "clip": "walk",
+          "sample": 6,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                62,
+                117,
+                164
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 3,
+          "y": 6.25,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.0090917507567942,
+            6.09655217773981,
+            2.0704687232166563
+          ],
+          "feet": [
+            2.9999999962747097,
+            6.249999997553321,
+            0.16749999526875475
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        },
+        {
+          "entity": 35,
+          "sim": 1,
+          "token": 36,
+          "clip": "cook_v2",
+          "sample": 6.799999999999997,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                107,
+                159,
+                155
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 2,
+          "y": 1,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            2.0090917507567942,
+            0.8465521777398103,
+            2.0794687136324157
+          ],
+          "feet": [
+            2,
+            1,
+            0.12999999523162842
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17072304,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 1
+          }
+        },
+        {
+          "entity": 36,
+          "sim": 2,
+          "token": 37,
+          "clip": "exercise",
+          "sample": 2,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                168,
+                71,
+                62
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 4,
+          "y": 11,
+          "angle": 1.5707963267948966,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.6773677482060045,
+            10.877083796365973,
+            2.0462244032429617
+          ],
+          "feet": [
+            4.018788453660905,
+            11.000000000770235,
+            0.49835186532139764
+          ],
+          "fixture": 22,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-1.sav",
+      "physicalIdentityExact": true,
+      "annotationIdentityExact": true,
+      "surfaceSamplesChanged": 3,
+      "surfaceOwners": [
+        37
+      ],
+      "surfaceMaxAbsoluteDifference": 5.960464477539063e-08,
+      "surfaceBoundsAtSceneResolution": [
+        972,
+        1217,
+        988,
+        1235
+      ],
+      "colorSamplesChanged": 0,
+      "colorOwners": [],
+      "colorMaxAbsoluteDifference": 0.0,
+      "colorBoundsAtSceneResolution": null,
+      "displayedPixelsChanged": 0,
+      "displayedMaxChannelDifference": 0,
+      "sceneSize": [
+        3200,
+        2200
+      ],
+      "actors": [
+        {
+          "entity": 34,
+          "sim": 0,
+          "token": 35,
+          "clip": "walk",
+          "sample": 2,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                62,
+                117,
+                164
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 3,
+          "y": 5.75,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.0090917507567942,
+            5.59655217773981,
+            2.0704687232166563
+          ],
+          "feet": [
+            3.0000000074505806,
+            5.749999994759353,
+            0.16750000271933674
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        },
+        {
+          "entity": 35,
+          "sim": 1,
+          "token": 36,
+          "clip": "cook_v2",
+          "sample": 7.599999999999994,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                107,
+                159,
+                155
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 2,
+          "y": 1,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            2.0090917507567942,
+            0.8465521777398103,
+            2.0794687136324157
+          ],
+          "feet": [
+            2,
+            1,
+            0.12999999523162842
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17072304,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 1
+          }
+        },
+        {
+          "entity": 36,
+          "sim": 2,
+          "token": 37,
+          "clip": "exercise",
+          "sample": 3,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                168,
+                71,
+                62
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 4,
+          "y": 11,
+          "angle": 1.5707963267948966,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.6773677482060045,
+            10.877083796365973,
+            2.0462244032429617
+          ],
+          "feet": [
+            4.018788453660905,
+            11.000000000770235,
+            0.4983518876731394
+          ],
+          "fixture": 22,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-2.sav",
+      "physicalIdentityExact": true,
+      "annotationIdentityExact": true,
+      "surfaceSamplesChanged": 13,
+      "surfaceOwners": [
+        37
+      ],
+      "surfaceMaxAbsoluteDifference": 5.960464477539063e-08,
+      "surfaceBoundsAtSceneResolution": [
+        954,
+        1151,
+        1029,
+        1232
+      ],
+      "colorSamplesChanged": 2,
+      "colorOwners": [
+        37
+      ],
+      "colorMaxAbsoluteDifference": 0.0001220703125,
+      "colorBoundsAtSceneResolution": [
+        999,
+        1125,
+        1028,
+        1158
+      ],
+      "displayedPixelsChanged": 0,
+      "displayedMaxChannelDifference": 0,
+      "sceneSize": [
+        3200,
+        2200
+      ],
+      "actors": [
+        {
+          "entity": 34,
+          "sim": 0,
+          "token": 35,
+          "clip": "walk",
+          "sample": 6,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                62,
+                117,
+                164
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 3,
+          "y": 5.25,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.0090917507567942,
+            5.09655217773981,
+            2.0704687232166563
+          ],
+          "feet": [
+            2.9999999962747097,
+            5.249999997553321,
+            0.16749999526875475
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        },
+        {
+          "entity": 35,
+          "sim": 1,
+          "token": 36,
+          "clip": "cook_v2",
+          "sample": 0.4000000000000057,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                107,
+                159,
+                155
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 2,
+          "y": 1,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            2.0090917507567942,
+            0.8465521777398103,
+            2.0794687136324157
+          ],
+          "feet": [
+            2,
+            1,
+            0.12999999523162842
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17072304,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 1
+          }
+        },
+        {
+          "entity": 36,
+          "sim": 2,
+          "token": 37,
+          "clip": "exercise",
+          "sample": 4,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                168,
+                71,
+                62
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 4,
+          "y": 11,
+          "angle": 1.5707963267948966,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.6773677482060045,
+            10.877083796365973,
+            2.0462244032429617
+          ],
+          "feet": [
+            4.018788453660905,
+            11.000000000770235,
+            0.4983518876731394
+          ],
+          "fixture": 22,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-3.sav",
+      "physicalIdentityExact": true,
+      "annotationIdentityExact": true,
+      "surfaceSamplesChanged": 19,
+      "surfaceOwners": [
+        37
+      ],
+      "surfaceMaxAbsoluteDifference": 4.76837158203125e-07,
+      "surfaceBoundsAtSceneResolution": [
+        941,
+        1145,
+        1040,
+        1217
+      ],
+      "colorSamplesChanged": 1,
+      "colorOwners": [
+        37
+      ],
+      "colorMaxAbsoluteDifference": 0.0001220703125,
+      "colorBoundsAtSceneResolution": [
+        964,
+        1199,
+        964,
+        1199
+      ],
+      "displayedPixelsChanged": 0,
+      "displayedMaxChannelDifference": 0,
+      "sceneSize": [
+        3200,
+        2200
+      ],
+      "actors": [
+        {
+          "entity": 34,
+          "sim": 0,
+          "token": 35,
+          "clip": "walk",
+          "sample": 2,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                62,
+                117,
+                164
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 3,
+          "y": 4.75,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.0090917507567942,
+            4.59655217773981,
+            2.0704687232166563
+          ],
+          "feet": [
+            3.0000000074505806,
+            4.749999994759353,
+            0.16750000271933674
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        },
+        {
+          "entity": 35,
+          "sim": 1,
+          "token": 36,
+          "clip": "cook_v2",
+          "sample": 1.2000000000000028,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                107,
+                159,
+                155
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 2,
+          "y": 1,
+          "angle": 3.141592653589793,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            2.0090917507567942,
+            0.8465521777398103,
+            2.0794687136324157
+          ],
+          "feet": [
+            2,
+            1,
+            0.12999999523162842
+          ],
+          "fixture": null,
+          "textureBytes": 0,
+          "privateBufferBytes": 17072304,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 1
+          }
+        },
+        {
+          "entity": 36,
+          "sim": 2,
+          "token": 37,
+          "clip": "exercise",
+          "sample": 5,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                168,
+                71,
+                62
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "x": 4,
+          "y": 11,
+          "angle": 1.5707963267948966,
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "head": [
+            3.6773677482060045,
+            10.877083796365973,
+            2.0462244032429617
+          ],
+          "feet": [
+            4.018788453660905,
+            11.000000000770235,
+            0.4983518876731394
+          ],
+          "fixture": 22,
+          "textureBytes": 0,
+          "privateBufferBytes": 17068864,
+          "prepared": {
+            "bodyCompactions": 1,
+            "bodyShapeChanges": 1,
+            "attachmentChanges": 0
+          }
+        }
+      ]
+    }
+  ]
+}

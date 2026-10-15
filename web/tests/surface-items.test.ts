@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SURFACE_LAYOUTS, spriteIndex } from '../src/render/atlas.js';
-import { surfaceItemCount, surfaceItemSprite, surfacePointIndex } from '../src/render/surface-items.js';
+import { surfaceItemCount, surfaceItemSprite, surfacePointIndex, surfaceItemDishIds } from '../src/render/surface-items.js';
 
 describe('authored surface occupancy',()=>{
   it.each(['','NW','SW','NE'])('keeps counter prep and all three meals apart in facing %s',(facing)=>{
@@ -19,6 +19,19 @@ describe('authored surface occupancy',()=>{
 });
 
 describe('exact meal settings and cooking support',()=>{
+  it('matches counter prep slot four without selecting adjacent meals or other surfaces',()=>{
+    const layout=SURFACE_LAYOUTS[spriteIndex('offlineCounter')],piles=new Uint32Array([90,4,701,90,1,702,91,4,703,90,4,704]);
+    expect(surfaceItemDishIds(layout,90,3,0,piles)).toEqual([701,704]);
+    expect(surfaceItemDishIds(layout,90,3,1,piles)).toEqual([]);
+    expect(surfaceItemDishIds(layout,90,0,0,piles)).toEqual([]);
+  });
+  it('matches stable dish IDs to each visible table setting, including stacks',()=>{
+    const layout=SURFACE_LAYOUTS[spriteIndex('offlineDiningTable')],piles=new Uint32Array([90,0,701,90,2,702,91,2,703,90,2,704,90,3,705]);
+    const settings=1|(2<<8);
+    expect(surfaceItemDishIds(layout,90,3,0,piles,settings)).toEqual([701]);
+    expect(surfaceItemDishIds(layout,90,3,1,piles,settings)).toEqual([702,704]);
+    expect(surfaceItemDishIds(SURFACE_LAYOUTS[spriteIndex('offlineStove')],90,3,0,piles)).toEqual([]);
+  });
   it('draws only dirty settings, including a piled setting, and clears washed slots',()=>{
     const layout=SURFACE_LAYOUTS[spriteIndex('offlineDiningTable')];
     const packed=1 | (2<<8);

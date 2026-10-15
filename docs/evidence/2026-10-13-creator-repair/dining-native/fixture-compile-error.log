@@ -1,0 +1,28 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+error[E0308]: arguments to this method are incorrect
+   --> crates\terri-sim\src\dining\completion_tests.rs:18:56
+    |
+ 18 |             sim.world_mut().resource_mut::<TileGrid>().set_blocked(
+    |                                                        ^^^^^^^^^^^
+ 19 |                 x + dx as i32,
+    |                 ------------- expected `usize`, found `i32`
+ 20 |                 y + dy as i32,
+    |                 ------------- expected `usize`, found `i32`
+    |
+note: method defined here
+   --> crates\terri-core\src\grid.rs:121:12
+    |
+121 |     pub fn set_blocked(&mut self, x: usize, y: usize, blocked: bool) {
+    |            ^^^^^^^^^^^
+help: you can convert an `i32` to a `usize` and panic if the converted value doesn't fit
+    |
+ 19 |                 (x + dx as i32).try_into().unwrap(),
+    |                 +             +++++++++++++++++++++
+help: you can convert an `i32` to a `usize` and panic if the converted value doesn't fit
+    |
+ 20 |                 (y + dy as i32).try_into().unwrap(),
+    |                 +             +++++++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `terri-sim` (lib test) due to 1 previous error
+EXIT_CODE=101

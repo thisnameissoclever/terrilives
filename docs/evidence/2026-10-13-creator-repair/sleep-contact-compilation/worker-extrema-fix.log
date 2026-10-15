@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-support-surface-extrema.test.ts tests/character-sleep-contact.test.ts -t extrema|million-point|unused point|curl|rounding|keys every|rejects malformed
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  2 passed (2)
+      Tests  7 passed | 75 skipped (82)
+   Start at  19:37:23
+   Duration  2.64s (transform 541ms, setup 0ms, import 826ms, tests 1.61s, environment 0ms)
+

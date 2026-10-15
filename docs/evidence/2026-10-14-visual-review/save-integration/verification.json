@@ -1,0 +1,103 @@
+{
+  "schema": {
+    "current": 10,
+    "historical_v9": [
+      "published main social envelope",
+      "unpublished local character envelope"
+    ],
+    "selection": "Complete decode plus authoritative validation of each candidate; adopt exactly one valid candidate."
+  },
+  "checks": [
+    {
+      "command": "cargo test -p terri-wasm --lib --no-run --locked -j 1",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "observed_output": "Finished test profile; executable terri_wasm-dd3bb79986d069a6.exe"
+    },
+    {
+      "command": "cargo test -p terri-wasm --lib character_tests --locked -j 1 -- --test-threads=1",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "observed_output": "7 passed; 0 failed; 266 filtered out; finished in 14.72s",
+      "scope": "Before adding the authentic main V9 fixture test."
+    },
+    {
+      "command": "cargo run --manifest-path .scratch/main-integration-20261014/main-v9-producer/Cargo.toml --target-dir target -p terri-wasm --example capture_main_v9 --locked -j 1 -- D:/VIBES/.worktrees/5637/terrilives/crates/terri-wasm/tests/fixtures/schema-v9",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "observed_output": "Captured main V9 ticks 0, 400, 1200 and an active conversation at tick 49."
+    },
+    {
+      "command": "wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm -- --locked -j 1",
+      "environment": {
+        "CARGO_BUILD_JOBS": "1"
+      },
+      "exit_code": 0,
+      "verdict": "PASS",
+      "observed_output": "Done in 2m 38s; web/src/wasm generated."
+    },
+    {
+      "command": "node --input-type=module -e \"import fs from 'node:fs'; import init,{SimHandle} from './web/src/wasm/terri_wasm.js'; await init({module_or_path:fs.readFileSync('web/src/wasm/terri_wasm_bg.wasm')}); const sim=SimHandle.from_lot(); const bytes=sim.save_bytes(); console.log('save schema',new DataView(bytes.buffer,bytes.byteOffset).getUint16(8,true)); console.log('active main V9 accepted',sim.load_bytes(fs.readFileSync('crates/terri-wasm/tests/fixtures/schema-v9/main-social-active.sav')));sim.free();\"",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "observed_output": [
+        "save schema 10",
+        "active main V9 accepted true"
+      ]
+    },
+    {
+      "command": "npm exec -- vitest run tests/save-worker.test.ts tests/persistence-controller.test.ts --maxWorkers=1",
+      "working_directory": "web",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "passed": 88,
+      "log": "web-storage-rerun.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "log": "native-format-rerun.log",
+      "correction": "Four already-edited native source files required formatter normalization."
+    },
+    {
+      "command": "cargo test --workspace --lib --locked -j 1 -- --test-threads=1",
+      "exit_code": 101,
+      "verdict": "FAIL",
+      "passed": 2128,
+      "failed": 1,
+      "log": "native-workspace.log",
+      "failure": "boundary_tests::save_bytes_round_trip_and_continue_the_running_sim asserted header 9; actual current header was 10.",
+      "correction": "Expected header is now 10 and current-world equality uses the full V10 snapshot. Only this test is being rerun."
+    },
+    {
+      "command": "cargo test -p terri-wasm --lib boundary_tests::save_bytes_round_trip_and_continue_the_running_sim --locked -j 1 -- --exact --test-threads=1",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "passed": 1,
+      "filtered": 273,
+      "log": "native-corrected-test.log"
+    }
+  ],
+  "wasm_sha256": "c57dd4776779113f7c5f8639b9344afa8de15a9aed786ab08d161900e53effcd",
+  "limits": [
+    "Root owns the four terri-data integration targets, migrate_chores_preview example tests, doctests and all-target clippy after visual captures.",
+    "Root owns actual browser visual and OPFS acceptance.",
+    "Final impact scan found a stale current [9,0] / future 10 assertion and V9 labels in root-owned web/tests/bridge.test.ts around lines 956-978; root was notified and must update and verify that test."
+  ],
+  "integration_web_observation": {
+    "source": "docs/evidence/2026-10-14-main-integration/web-focused.log",
+    "passed": 325,
+    "failed": 4,
+    "finding": "Unsupported-version test fixtures still labeled V10 as a future version. They now use CURRENT_SAVE_VERSION + 1. Production validation is unchanged.",
+    "correction_verification": "PASS: 88 tests across both corrected files; see web-storage-rerun.log."
+  },
+  "native_library_coverage": {
+    "unique_tests_passed": 2129,
+    "method": "Full library run passed 2128 tests; its only failure was the stale V9 writer assertion. That corrected test passed its focused rerun. Passing tests were not repeated.",
+    "core": 146,
+    "data": 321,
+    "simulation": 1388,
+    "wasm": 274
+  }
+}

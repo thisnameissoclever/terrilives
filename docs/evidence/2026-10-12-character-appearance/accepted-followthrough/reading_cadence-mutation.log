@@ -1,0 +1,37 @@
+
+> test
+> vitest run --maxWorkers=1 character-simulation.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-simulation.test.ts (3 tests | 1 failed) 219ms
+   × samples real walking and reading states in all four simulation facings 192ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-simulation.test.ts > samples real walking and reading states in all four simulation facings
+AssertionError: expected +0 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ tests/character-simulation.test.ts:19:39
+     17|       const expected=mode==='walk'?distanceAnimationFrame(value.x,valu…
+     18|         :tickAnimationFrame(value.tick,value.entity%24,4,12,false);
+     19|       expect(Math.floor(value.frame)).toBe(expected);
+       |                                       ^
+     20|       const hash=study.sim.worldHash(),paused=study.sample();study.adv…
+     21|       expect(study.sim.worldHash()).toBe(hash);expect(study.sample()).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  13:51:25
+   Duration  11.35s (transform 6.52s, setup 0ms, import 11.03s, tests 219ms, environment 0ms)
+

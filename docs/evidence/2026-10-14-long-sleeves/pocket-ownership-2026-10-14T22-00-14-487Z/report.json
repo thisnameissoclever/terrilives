@@ -1,0 +1,453 @@
+{
+  "rows": [
+    {
+      "condition": "original",
+      "removed": [],
+      "file": "original.png",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 0,
+      "manifestSha256": "a8ba317c93241820efca47e3245ac20911f3f582c4600950b6097531756a5e66",
+      "imageSha256": "c3b9628ae3444c483b5f3983ec3459869e7a1f651b3b1646e184ce6506dfb6be"
+    },
+    {
+      "condition": "current",
+      "removed": [],
+      "file": "current.png",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 0,
+      "manifestSha256": "4d313c93925f30ede16f48fc81174e9dfa4c11404f810a905997e885a0d7effc",
+      "imageSha256": "e5de682db9290ce03834d7294198eec5c10170da40e2e35f4533c3333acf2026"
+    },
+    {
+      "condition": "without-pocket-body",
+      "removed": [
+        "One sewn breast pocket"
+      ],
+      "file": "without-pocket-body.png",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 0,
+      "manifestSha256": "2d8591d944aa8594d30dd3c560b1dcdda036eadb34231eac1bc25547d9b6e05e",
+      "imageSha256": "6713cd46df899db2985fe153a61b85b2acc4335b2297ae4fed24695f8e2733aa"
+    },
+    {
+      "condition": "without-pocket-seam",
+      "removed": [
+        "Pocket top seam"
+      ],
+      "file": "without-pocket-seam.png",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 0,
+      "manifestSha256": "6d7ce79b9d7b79e1ea2c4ccfde62e5d3e8964ab0e20ce05422e23e2185687af6",
+      "imageSha256": "634bb3aa0f4515397d28bf3823bd1ccd2d4828538bf76fc147d0e01e96db5ad1"
+    },
+    {
+      "condition": "without-pocket-and-seam",
+      "removed": [
+        "One sewn breast pocket",
+        "Pocket top seam"
+      ],
+      "file": "without-pocket-and-seam.png",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 0,
+          "build": 100,
+          "shoulders": 100,
+          "hips": 100,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            126,
+            63,
+            91
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "long",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "action": "mop",
+      "frame": 3.5,
+      "facing": 0,
+      "manifestSha256": "2978f063f4da53e2ceef40cb6febe5c3e9817e0cd8432852500ccaaa95bd8d4b",
+      "imageSha256": "069fee1334786015a641f6bba5e6748df337105e0de097012406ac9b9ad73014"
+    }
+  ],
+  "errors": [],
+  "region": [
+    210,
+    387,
+    238,
+    418
+  ]
+}

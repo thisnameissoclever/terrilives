@@ -1,0 +1,41 @@
+{
+  "state": "complete",
+  "scope": "isolated-in-memory-negative-controls",
+  "controls": [
+    {
+      "control": "one-changed-published-color-byte",
+      "rejected": true,
+      "message": "dropped-book-SE changed published RGBA or registration"
+    },
+    {
+      "control": "one-missing-covered-depth-pixel",
+      "rejected": true,
+      "message": ""
+    },
+    {
+      "control": "half-logical-pixel-registration-shift",
+      "rejected": true,
+      "message": ""
+    },
+    {
+      "control": "replacement-color-flag",
+      "rejected": true,
+      "message": ""
+    },
+    {
+      "control": "changed-source-hash",
+      "rejected": true,
+      "message": ""
+    },
+    {
+      "control": "changed-book-scale",
+      "rejected": true,
+      "message": ""
+    },
+    {
+      "control": "unsupported-floor-gap",
+      "rejected": true,
+      "message": ""
+    }
+  ]
+}

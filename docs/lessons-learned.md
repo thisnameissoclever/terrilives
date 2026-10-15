@@ -8580,6 +8580,9 @@ selection handoff. Inspect a moved piece in the running game before confirming.
 **Root cause.** PowerShell left the wildcard in the literal path argument.
 **Prevention rule.** Apply the existing lesson at the first failure: pass a real
 folder and use ripgrep's `-g` filter. The fresh-context review confirmed this.
+Inventory uncertain directories with `rg --files` before narrowing the search.
+Do not carry a failed positional wildcard into another command after inspecting
+its error; the shell has not changed between searches.
 **How to verify.** `rg --files web/tests -g '*frame*'` returns the matching files.
 
 ## [L-append-corrected-bookcase-art] Preserve historical atlas records when replacing live furniture art
@@ -11605,3 +11608,401 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: episode capture used the visible `Target` for an activity whose logical ownership lives in `ReadingJourney.origin`.
 3. Prevention: use the owning activity's canonical identity when recording continuation state. Preserve the separate seat and presentation records rather than treating their target as the activity origin.
 4. Verification: load an unchanged historical seated-reading fixture, advance into actual reading, save the current format, reload it and compare subsequent world hashes. Bypassing the canonical-origin selection must make that regression fail.
+## Keep character previews free of arbitrary behavioral summaries
+
+1. What happened: a creator mockup placed two selected personality observations below the character, repeating information already explained by its controls. The owner rejected the text.
+2. Root cause: the mockup introduced a summary without a rule for selecting, ranking, or updating the observations, or a player decision that required it.
+3. Prevention: put functional explanations beside the controls they explain. Add a separate summary only when its purpose and selection rules are defined and approved. Do not fill unused preview space with speculative commentary.
+4. Verification: inspect the revised mockup and proposal together. The preview contains the character without the rejected commentary; control explanations remain beside their settings.
+
+## Preserve deformation order and contact coordinates when exporting characters
+
+1. What happened: a browser character used subdivided rest vertices with interpolated skin weights, while its Blender source skinned the control cage before subdivision. Seated fit measurements also applied chair-local support limits in world coordinates.
+2. Root cause: the export preserved the visible rest mesh but changed the deformation operator. The contact checker omitted the fixture basis transformation.
+3. Prevention: verify the source modifier order, export the required control representation, and compare evaluated animated surfaces before changing a pose. Transform contact samples into the coordinate system in which support limits were authored. Never use a failed retargeted pose as evidence that the furniture cannot accommodate a body size.
+4. Verification: compare exported operators against actual source poses, compare browser vertices against an independent evaluation, and hash every geometry and math dependency in contact receipts. See the dated appearance-proof evidence under `docs/evidence/2026-10-11-character-appearance/`.
+
+## Keep appearance material ownership explicit
+
+1. What happened: a substring match classified Armchair materials as hair. A separate source-checkpoint flag made one color edit change all character material regions.
+2. Root cause: material ownership was inferred from partial names, and override state was stored for the whole character instead of each region.
+3. Prevention: map authored materials explicitly to editable regions. Store source-color and override state per region, including undo and reload.
+4. Verification: assert that fixture materials have no character color group. Start from source colors, edit one field, and check that unrelated regions retain their previous state through undo and reload.
+
+## Keep a visual checkpoint separate from unfinished engineering work
+
+1. What happened: a character proof stopped for owner feedback while a known hair defect and several authorized technical checks remained actionable.
+2. Root cause: the visual-review boundary was interpreted as permission to stop all work. The acceptance checklist also grew to require an underlying body mesh that the approved clothed-shell design did not need.
+3. Prevention: finish known fixes and authorized checks before asking for visual direction. Use adversarial review when requested, preserve owner-approved positioning, and distinguish actual visible defects from stronger requirements invented during verification.
+4. Verification: map each remaining task to the user-approved scope and an observable result. Do not mark a task blocked merely because an unfinished diagnostic or identifiable art defect remains.
+
+## Verify the physical meaning of animation endpoints
+
+1. What happened: a standing-reading endpoint moved downward when a forward offset was written directly into the root bone's local translation. Endpoint-equality tests passed because both sides reused the same incorrect pose.
+2. Root cause: the root rest transform rotates its local axes. Internal agreement was mistaken for evidence that the pose represented standing in front of the chair.
+3. Prevention: apply world-space offsets in world coordinates and convert them through the rest transform. Test an independently specified standing height and position as well as continuity and joint attachment.
+4. Verification: assert the standing pelvis is forward of the fixed chair and higher than the seated pelvis. Inspect real start/middle/end renders. Preserve configured limb lengths and actual shoe contact points throughout the transition.
+
+## Make screenshot sweeps fail when a captured case fails
+
+1. What happened: an appearance sweep caught per-facing errors into its report but could still exit successfully.
+2. Root cause: the script treated collecting evidence as equivalent to satisfying its acceptance assertions.
+3. Prevention: assert complete expected coverage and zero failed cases before writing a successful receipt. Preserve failed cases for diagnosis, but propagate failure to the process result.
+4. Verification: inject an error into a complete set of capture results, confirm rejection, remove the rejection mechanism and observe the test fail, then restore exact source bytes.
+
+## Distinguish accepted contact overlap from a visual defect
+
+1. What happened: a character proof described hidden cushion intersections as unfinished defects without first showing them, then retained zero intersection as a gate after the owner accepted the demonstrated overlap.
+2. Root cause: a geometric diagnostic was treated as the product's visual acceptance rule.
+3. Prevention: show ordinary rendered views and clearly labeled geometry evidence together. Review every supported facing. Preserve measurements and record the owner's decision against the reviewed asset revision; do not silently change tolerances or require repairs to accepted artwork.
+4. Verification: retain all four facings, the measured surfaces, the approval scope and independent visual review. Compare new assets with the approved reference rather than assuming either that all overlap is forbidden or that all future overlap is permitted.
+
+## Use complete simulation fixtures when proving owned-object actions
+
+1. What happened: a reading proof tried to rotate and sell objects in a spawn-only test world, then buy a book for a debug agent. Commands entered the queue but layout validation rejected them; the agent also lacked persistent household identity required by reading.
+2. Root cause: low-level spawn helpers were mistaken for production household initialization, and queued-command acceptance was mistaken for successful application.
+3. Prevention: use a fresh authored household for tests requiring book ownership, placement and persistent people. Inspect previews and drained command results. Use spawn-only worlds only for behaviors those helpers actually support.
+4. Verification: require successful placement results and the actual resulting facing, observe real seated reading in each direction, and prove appearance changes leave the paused simulation state unchanged.
+
+## Prove animation timing against the simulation source
+
+1. What happened: a preview reused the fixed-step driver but generated its own travel and used a reading cadence three times faster than the game. This was described too broadly as simulation-derived animation.
+2. Root cause: deterministic preview time was treated as equivalent to consuming authoritative positions, facing and ticks.
+3. Prevention: keep manual inspection distinct from a real simulation study. Share distance sampling rules and authored action cadence, and verify actual simulation projections. Reset fractional driver state on explicit stepping.
+4. Verification: compare walking samples with current/previous simulation positions, compare reading phase with the authored tick duration, check pause and 30/60 Hz equivalence, and test fractional play followed by step and resume.
+
+## Give animation contacts a physical region and ownership
+
+1. What happened: configured bodies failed reach checks when a resting arm, wiping stroke or fridge grip was constrained to an unrelated source point. A bike passed limb checks while touching only the saddle nose.
+2. Root cause: authored pose preferences were treated as universal contact constraints. Finite matrices and self-reported target errors did not establish visible support.
+3. Prevention: distinguish free limbs, surface contacts and approach/release motion. Fit against the actual configured surface and the relevant support area. Permit body articulation before declaring a range impossible. Preserve owner-approved overlap without weakening unrelated support checks.
+4. Verification: compare final posed triangles with the independent fixture surface, inspect all four facings and full cycles, and test transitions around contact-mode boundaries. Use fresh adversarial review after three unsuccessful revisions of the same fitting model.
+
+## Check closed authored mesh winding before visual review
+
+1. What happened: rounded upper-arm meshes rendered as dark silhouettes after a skin-shape repair.
+2. Root cause: faces used the opposite winding from the local coordinate basis, so back-face culling removed the skin and the outline pass covered it.
+3. Prevention: verify positive signed volume for closed authored parts. Derive ring face order from the declared basis; do not copy winding from a differently oriented construction.
+4. Verification: assert the authored closed volume is positive, then inspect actual shaded front and rear views. A successful export does not prove visible surface orientation.
+
+## Verify browser readiness and first-run modal ownership separately
+
+1. What happened: a game-shell creator check clicked Options before startup completed, then failed behind the first-run Help dialog. A later cancellation comparison captured the queued Pause command before it drained.
+2. Root cause: a status label was used as initialization evidence, and command and modal lifecycles were omitted from the test setup. Concurrent asset exports also reloaded the development page.
+3. Prevention: freeze source during capture, wait for the supported readiness hook, dismiss Help through its real control, and let the player's Pause command drain before recording state.
+4. Verification: assert each visible transition and compare state after command draining. Never force clicks through a modal or change application behavior to satisfy a browser script.
+
+## Verify save versions across the real storage boundary
+
+1. What happened: the simulation emitted a new save version while the browser worker still accepted only the previous version.
+2. Root cause: simulation round trips were tested without exercising the storage worker that writes the bytes.
+3. Prevention: send actual current simulation bytes through the worker, retain an immutable previous-worker fixture, and update historical recovery files with each schema change.
+4. Verification: save and reload a customized person through the real interface and browser filesystem. Prove that a cached old worker refuses the newer primary file and that the prior bytes survive in their recovery copy.
+
+## Measure a declared household workload
+
+1. What happened: a benchmark advanced a fixed number of ticks and then waited for six visible people after one had left for work.
+2. Root cause: elapsed ticks and accepted queued orders were mistaken for an established rendered scene.
+3. Prevention: start from a reproducible household, stop on actual activity and position predicates, verify visible identity pixels, and preserve failed setup state.
+4. Verification: record the clock interval, submitted population, actual visible identities, viewport, preview workload and frame distributions. Distinguish paused-world rendering from live simulation cost.
+
+## Bound the complete rotated character scene
+
+1. What happened: a tall character's head was cropped during rear-facing fridge use even though the pose solver succeeded.
+2. Root cause: the offscreen render target was sized around ordinary standing and seated poses rather than the complete character, fixture and outline envelope.
+3. Prevention: measure configured cage bounds across body corners, source frames, facings and shared-place offsets. Preserve pixel scale and world registration when expanding the target.
+4. Verification: assert the known reaching regression, inspect all four facings, and include hairstyle, face and generated-cover bounds. Keep unsupported between-sample claims separate from observed coverage.
+
+## Retain carried props without a dynamic replacement
+
+1. What happened: ingredient bags disappeared because configured people suppressed every ordinary carried-item badge.
+2. Root cause: owning a character mesh was mistaken for owning every carried prop.
+3. Prevention: suppress an existing prop only when the selected dynamic clip actually supplies that prop.
+4. Verification: render a configured walking ingredient carrier and a dinner carrier. The ingredient badge remains visible; the dynamic dinner does not acquire a duplicate badge.
+
+## Reject graphics resources lost during recovery
+
+1. What happened: a replacement graphics device could be lost while its resources were still rebuilding, consuming the only loss callback before recovery finished.
+2. Root cause: an in-progress guard prevented duplicate recovery but did not record the replacement device's loss.
+3. Prevention: track device lifetime independently of the recovery guard and check it before publishing replacement resources.
+4. Verification: lose the replacement during deferred construction. The attempt must retain an explicit retry state and must not resume rendering against that device.
+
+## Match depth representations at physical contacts
+
+1. What happened: the far-side wiping cloth was hidden by the countertop despite correct contact height and supported geometry.
+2. Root cause: dynamic geometry carried physical depth at each pixel, while a square static fixture used its center depth across the whole image.
+3. Prevention: pair physical characters with registered surface depth where they contact static objects. Preserve the existing color artwork and use the same source texel for color coverage and depth. Do not move a correctly placed hand or add a facing-dependent depth bias.
+4. Verification: inspect all actual worker directions, compare source geometry with the posed cloth, and sample rendered depth at fractional zoom around opaque edges and transparent boundaries. Preserve prior captures and source hashes, including color pages used to establish coverage. Place decals on the same physical worktop plane.
+
+## Encode replacement text before opening the destination
+
+1. What happened: updating a verification report with Python's Windows default encoding raised an encoding error after truncating the destination file.
+2. Root cause: the write opened the destination before discovering that its text was not representable in the default code page.
+3. Prevention: specify UTF-8 for prose reads and writes. Encode the complete replacement before opening its destination; write a temporary sibling and replace the destination only after the write succeeds.
+4. Verification: read the saved document back with UTF-8 and compare it with the intended text. Keep source evidence separate so a damaged report can be reconstructed without inventing results.
+
+## Require observations before accepting an instrumented check
+
+1. What happened: a preview-facing probe recorded no draws, but its pair-comparison loop still passed.
+2. Root cause: the browser probe imported a different module URL from the application, and the assertion did not require any observations. Once attached, its global draw stream also included world characters that were outside the intended preview comparison.
+3. Prevention: instrument the observed application module identity, including development revision queries. Preserve raw observations and scope assertions to the intended renderer instances. Require each expected action and compare its actual value with the expected value, not only with its peer.
+4. Verification: make an empty or incomplete capture fail explicitly, then record exactly one ordered pair of preview draws per turn. Check both argument angles and stored graphics values for all four facings. Inspect actual pixels independently.
+
+## Preserve the appearance path, not only its source bytes
+
+1. What happened: occupied fixtures changed colors and outlines even though their published sprite hashes were unchanged.
+2. Root cause: interaction rendering suppressed those sprites and substituted meshes with a different material and lighting model. Hash checks never exercised that substitution.
+3. Prevention: keep fixture appearance independently owned. Replace only declared moving components with matching authored artwork, and bind color, coverage, depth, and identity to the same sample.
+4. Verification: compare unused, entering, active, and exiting states in the actual household with matching camera and light. Inspect all facings, fractional zoom, and nearby props. Source hashes support this comparison but cannot replace it.
+
+## Validate the observer against independent registration evidence
+
+1. What happened: the reading preview placed the chair across the character's upper body. Its unit test explicitly expected the same incorrect anchor.
+2. Root cause: published sprite anchors include the game's half-tile offset. The preview treated that display anchor as the physical model origin.
+3. Prevention: derive the conversion from the accepted source camera and the world renderer's registration equation. Do not reproduce a renderer constant in a test and call that independent evidence.
+4. Verification: compare projected source vertices with uploaded placement across all facings and both preview scales, then inspect actual rendered images. Previously accepted minor overlap does not approve a new registration defect.
+
+## Keep contact geometry when transferring visible ownership
+
+1. What happened: removing fixture meshes from the character draw also removed mattress and saddle surfaces used by pose fitting. An autonomous bunk interaction then stopped the render loop.
+2. Root cause: the pose solver and visible mesh selector shared one geometry inventory, so an appearance-only change removed physical support data.
+3. Prevention: retain an immutable fixture-geometry reference separately from the selected character mesh. Preserve it when adding generated covers, and query body contacts from the selected body.
+4. Verification: compare pose matrices with and without fixture pixels for beds, bunks, and bikes. Run other household members autonomously during visual tests; testing only the commanded actor misses independent activity transitions.
+
+## Restore complete graphics state between draw owners
+
+1. What happened: short walls disappeared when dynamic character draws ran before them and no grime draw reset the vertex streams.
+2. Root cause: returning to sprite rendering restored the bind group but retained the character's vertex buffers.
+3. Prevention: restore every required pipeline, bind group, and vertex stream at the pass boundary. Do not rely on an optional intervening draw to repair state.
+4. Verification: exercise both zero-grime and visible-grime scenes, including short walls and direct dynamic geometry. Inspect the final frame rather than checking that draw calls were issued.
+
+## Review usable controls, not only their nominal dimensions
+
+1. What happened: mobile navigation buttons were 44 pixels high but their grid row collapsed to a scrollbar. Trait-limit guidance also repeated across individual descriptions and appeared before the limit was reached.
+2. Root cause: tests measured controls without checking clipping or actual clicks, and group-level state was rendered as field-level copy.
+3. Prevention: give mobile navigation a nonshrinking row and keep one conditional limit explanation beside the group. Preserve individual descriptions when group state changes.
+4. Verification: click every page at a narrow viewport after expanding long sections and showing the preview. Check warning counts below and at the limit, actual overlap, focus, and spacing in screenshots.
+
+## Isolate actor-free bakes from animation drivers
+
+1. What happened: eye surfaces appeared in a fixture-only bake even after individual actor objects were hidden.
+2. Root cause: Blender animation drivers restored object visibility during evaluation.
+3. Prevention: place non-fixture geometry in a render-hidden collection. Derive edge-support allowances from the authored line width and the actual image reconstruction filter.
+4. Verification: compare every covered color pixel with the fixture's projected geometry and retain failing captures. Detached actor pixels must fail registration rather than receive an arbitrary depth.
+
+## Separate graphical warnings from successful startup
+
+1. What happened: the interface reached its ready state while shader validation failures left the scene blank.
+2. Root cause: graphics validation was reported as console warnings, while the smoke check collected only JavaScript errors and console errors.
+3. Prevention: collect graphics warnings and validate visible scene output. Classify unrelated browser requests, such as a missing favicon, explicitly rather than suppressing a broad error category.
+4. Verification: a deliberately invalid shader must fail the check even if the interface is responsive. Retain the first graphics diagnostic, and inspect an actual frame after correction.
+
+## Give open fabric an explicit outline policy
+
+1. What happened: broken dark arcs appeared across an occupied bed cover.
+2. Root cause: a generated open fabric surface inherited an inflated outline intended for closed solids. The diagnostic pixels belonged to the cover, not the people beneath it.
+3. Prevention: apply explicit surface metadata to generated meshes as well as exported meshes. Keep open fabric out of closed-solid outline passes.
+4. Verification: retain the failing save, camera, pixel ownership, and depth. Replay the same scene after the repair, then restore the incorrect outline in an isolated browser and require the pixel check to fail.
+
+## Isolate deliberate faults from a live development server
+
+1. What happened: a mutation check temporarily changed source served by the owner's development server before the test was moved into an isolated copy.
+2. Root cause: restoring bytes afterward was treated as sufficient protection, despite automatic browser reloads during the mutation.
+3. Prevention: copy source into a separate validation directory or inject the fault only into the test's own browser instance. Never junction the copied source back to the live tree.
+4. Verification: compare live source hashes before and after every mutation run, prove the intended assertion rejects the fault, and close the test browser in a finally block.
+
+## Compile the production graphics definitions before loading artwork
+
+1. What happened: shader syntax and interface errors were discovered only after loading the complete game.
+2. Root cause: pipeline definitions were embedded in asset-dependent constructors, and type checking did not validate the graphics language or attachment layouts.
+3. Prevention: share exact shader sources, resource layouts, and pipeline descriptors between production and an asset-free browser check. Await shader diagnostics and pipeline creation; asynchronous rejection is not covered by graphics error events alone.
+4. Verification: compile every reachable variant and resource-count boundary on a real device. Deliberately introduce syntax, varying, parameter, attachment, and buffer-layout faults in the isolated check. Keep rendered pixel tests and actual play as separate requirements.
+
+## Derive resource limits from the actual graphics layout
+
+1. What happened: an architecture catalogue passed preparation but exceeded the graphics device's sampled-texture limit when its pipeline was created.
+2. Root cause: the preparation budget reserved four fixed textures while production bound five: the atlas, architecture depth, architecture color, architecture roles, and joint alpha.
+3. Prevention: share the fixed-resource count with the pipeline layout and use the requested device limits when validating catalogue capacity.
+4. Verification: test the highest supported count and the first rejected count against both preparation and actual pipeline creation. Confirm shipped catalogue entries remain supported.
+
+## Fit registered silhouettes without replacing accepted colors
+
+1. What happened: a reconstructed dropped book had reversed-looking narrow views despite matching the published image dimensions.
+2. Root cause: bounding-box width and height cannot distinguish all orientations of an asymmetric shape. Re-rendering the colors also introduced an unnecessary artwork change.
+3. Prevention: preserve published colors and registration. Fit complete registered silhouettes across every facing while keeping source shape, scale, and physical support fixed. Label reconstructed depth honestly when historical geometry is missing.
+4. Verification: compare color bytes and anchors independently of the fitter. Reopen the reconstructed geometry to check source shape and floor support, then inspect the actual rendered prop and its occlusion.
+
+## Preserve completion data before releasing its owner
+
+1. What happened: a finished meal placed its dish at the table's default setting instead of the diner's setting.
+2. Root cause: reservation release removed the diner record, and recipe teardown removed the state needed to validate that record, before completion read it.
+3. Prevention: capture validated diner, table, and setting data in the completion context before teardown. Keep cancellation and reservation release independent of that completed output.
+4. Verification: run normal queued meals through the first post-completion frame at every setting and rotation. Check exact dish placement, released claims, cancellation, stale ownership, and save/load.
+
+## Separate gameplay identity from rendered support in capture tests
+
+1. What happened: an interaction sweep could not recognize handwashing or media use because it expected every gameplay target in the rendered socket-target column.
+2. Root cause: an animation code and support projection were treated as a universal action contract. Losing that combined predicate could also be mistaken for a successful exit.
+3. Prevention: observe the actual order, activity, sound or socket owner, and rendered clip separately. Validate the content identifier rather than deriving it from a displayed object type. A presentation mismatch during continued use must fail, not become an exit.
+4. Verification: capture both sides of entry and require authoritative order release for exit. Preserve one save per sampled active frame, require exact case coverage, and retain harness errors even when earlier cases succeeded. Inspect the resulting pixels separately.
+
+## Refit supported poses after changing body proportions
+
+1. What happened: a taller reclining character extended through the sofa's wall while the torso and heels floated above their supports.
+2. Root cause: preserving the source pose's angles did not preserve contacts after changing limb and torso lengths. Checking only the sofa's long axis also missed a sideways hair intersection.
+3. Prevention: fit configured bodies against actual support surfaces on both horizontal axes. Include the visible outline and wall thickness. Articulate existing joints while preserving body dimensions and fixture placement.
+4. Verification: measure independently posed triangles against fixture surfaces. Test independent body corners, clothing, hair, facial settings, and every facing. Keep physical body intersections separate from annotation visibility defects.
+
+## Separate rare command payloads from queue storage
+
+1. What happened: a large character-edit payload increased every command queue slot, including ordinary commands.
+2. Root cause: an enum reserves enough inline space for its largest variant.
+3. Prevention: store a rare large payload indirectly while keeping its saved representation unchanged. Check in-memory size independently from serialized bytes.
+4. Verification: replay frozen queued and completed saves from the earlier binary, compare exact bytes and random state, and test interleaved ordinary and character commands.
+
+## Measure normal gameplay and first action entry separately
+
+1. What happened: a paused household with animated previews met the frame target, while moving people and action changes caused long frames.
+2. Root cause: the paused measurement reused poses and omitted the expensive work triggered by motion and resource reconstruction. Separate preview submissions were also missing from the game-only completion measurement.
+3. Prevention: measure the real simulation driver, paired world and preview completion, and preview cadence. Keep first configuration, first action entry, repeated entry, and sustained motion distinct. Own immutable shader programs at device scope and configured body resources at character scope.
+4. Verification: record raw times, slow frames, visibility, camera state, and live allocations. Profile the actual slow workload, retain the failures, and compare pixels, surfaces, identities, and contacts after changing resource ownership.
+
+## Settle presentation transitions before static pixel comparisons
+
+1. What happened: paused comparison scenes had different color hashes while their poses, depth, and identities matched. Some final screenshots also differed near a bystander.
+2. Root cause: cutaway walls continued their real-time opacity transition after loading a paused save. The two rendering paths reached the capture at different points in that transition.
+3. Prevention: distinguish paused simulation from settled presentation. Wait for the documented transition to complete before static comparisons; preserve transition captures as a separate check.
+4. Verification: capture the unchanged reference twice and require identical full attachments. Compare both implementations only after that stability check, without changing color tolerances. Retain the initially failing captures and their unchanged simulation state.
+
+## Prepare required character contacts before admitting a body
+
+1. What happened: sustained rendering met its target, but the first exercise action could still run a whole-cycle support search on the drawing thread.
+2. Root cause: contact preparation was treated as a lazy rendering cache miss, even though every valid body configuration requires that result before it can exercise.
+3. Prevention: compile the canonical contact artifact in one bounded background worker and require it at startup, load, and character-command admission. Keep current, queued, and newest-draft owners explicit. Do not start searches from drawing or commit a draft merely because asynchronous preparation finished.
+4. Verification: compare the complete canonical cycle and actual rendered scenes, measure first action entry, test A-B-A cancellation and graphics recovery, and preserve exact queued save bytes and live random state when candidate preparation is cancelled, superseded, refused, or fails. Validate a ready stage before native adoption, not afterward.
+
+## Test uncached inputs before claiming phase independence
+
+1. What happened: a cycle comparison reused the first fitted result and concealed tiny differences in authored foot orientations at other entry phases.
+2. Root cause: sampling a cached cycle proves repeatable sampling, not that construction is independent of its initial input.
+3. Prevention: compare actual uncached inputs at each phase before moving construction outside the animation loop. If deterministic construction requires a fixed reference phase, state that contract explicitly and preserve the old counterexample. Do not round inputs or change generic interpolation to erase the evidence.
+4. Verification: compare independent old and new cold fits, preserve signed zero, and distinguish raw graphics differences from displayed image equality. To establish causation, inject only the independently reproduced old fit into an isolated current renderer, require exact old output, then restore the original method and require exact current output.
+
+## Include verification tools in interface impact scans
+
+1. What happened: guarding raw game mutations and making load preparation asynchronous left maintained asset-capture tools calling the old interface. One load check treated a returned Promise as a successful boolean.
+2. Root cause: the initial caller scan covered repair scripts and the creator proof but missed authoring tools and another development page.
+3. Prevention: search maintained scripts, asset tools, development pages, and embedded scripts when changing a diagnostic interface. Follow aliases and callback boundaries. Distinguish guarded game access from independent simulation instances.
+4. Verification: check that every asynchronous mutation is awaited before inspecting its result. Run syntax checks, inspect the resulting state, and retain explicit historical-reference fallbacks separately from current callers.
+
+## Prepare every required support resource before drawing
+
+1. What happened: bike preparation moved off the drawing thread, but first bed entry still constructed a fitted sleeping surface and draped cover there.
+2. Root cause: admission covered one expensive interaction instead of all required support for the live configuration. Cover ownership also followed the current sleeper rather than the physical fixture.
+3. Prevention: admit the complete configuration through one bounded worker queue with independent resource keys. Prepare static sleeping poses and per-slot cover grids once, and let each live fixture retain its fixed cover topology across occupancy changes. Keep CPU support independent of graphics resources.
+4. Verification: compare exact old and prepared poses, surface bytes, cover grids, and rendered attachments. Test first entry, re-entry, shared occupancy, fixture removal, cancellation, queued commands, and graphics loss. Frame probes must reuse caller storage and carry stable resource identities so the observer cannot manufacture allocation tails or hide reconstruction.
+
+## Exercise large geometry in the actual browser worker
+
+1. What happened: exact sleeping-support tests passed in Node, but Chrome startup failed with `Maximum call stack size exceeded` in the preparation worker.
+2. Root cause: the surface bounds constructor expanded every prepared-body point into arguments to `Math.min` and `Math.max`. Chrome's worker reached its argument limit before the Node test process did. The worker initially returned only the message, hiding the useful stack.
+3. Prevention: reduce large geometry extrema one value at a time, retaining empty-array, NaN, infinity, sparse-array, and signed-zero behavior. Carry a bounded original worker stack in diagnostics separately from the concise user-facing error.
+4. Verification: test an inventory large enough to fail the old spread call, compare exact extrema and surface queries, then start the real worker in isolated Chrome and require complete application readiness. Preserve the failed browser receipt alongside the repaired run.
+
+## Separate frame execution from scheduling delay
+
+1. What happened: a frame metric called CPU time included the interval before its callback started, while a per-frame diagnostic cloned full character records and added allocations to the measured workload.
+2. Root cause: the browser's animation timestamp was mistaken for callback entry, and the measurement observer was treated as free work.
+3. Prevention: record animation time, actual entry, submission, and completion separately. Preserve scheduling delay and complete latency. Use caller-owned storage for per-frame probes, and record the probe's cost.
+4. Verification: reject timing mutations that conflate entry with animation time or hide scheduling delay. Measure actual gameplay with fixed visibility and camera state, retain slow frames, and distinguish profiling runs from acceptance measurements.
+
+## [L-visible-review-must-reject-known-defect] Validate the visual review against the known failure
+
+1. What happened: a review window showed a chair crossing the character's upper torso, but the completion report missed it. The owner supplied a screenshot from that same window.
+2. Root cause: technical passes and reviewer conclusions were accepted without sufficient inspection of the displayed result. The registration test also repeated the incorrect display anchor, so its original pass could not establish correct placement.
+3. Prevention: follow the visual evidence requirements in Testing Protocol section 9. The coordinator and a fresh reviewer must inspect the triggering state and supported facings. For a reproducible visual defect, give the reviewer matching defective and corrected captures without identifying the conditions before the verdict. Keep rendering assertions separate from visual judgments.
+4. Verification: reintroducing the chair offset must fail the independent source-camera assertion and produce a visible defect that the reviewer rejects. Restore the renderer, require identical corrected pixels, and retain inspected filenames, findings, source hashes, and explicit coverage limits. A browser being open is not evidence that its contents were reviewed.
+
+## [L-fetch-is-not-integration] Verify the working base before presenting a local build
+
+1. What happened: a local creator build omitted the loading screen already published on main, even though origin had recently been fetched.
+2. Root cause: remote-tracking references were updated, but the working branch remained on its earlier base. The delivery check did not compare the local startup behavior with current main.
+3. Prevention: inspect both the remote revision and the working branch's ancestry. Before an authorized integration, preserve tracked and untracked work, then reconcile behavior across modules rather than merely clearing conflict markers. Keep the owner's running game and browser storage separate from integration checks.
+4. Verification: prove the intended main revision is an ancestor, account for preserved files, and exercise the loading cover before JavaScript arrives and through the first drawable scene. Check semantic joins such as new conversation artwork with configured-character coverage and prepared loads with build-session cancellation.
+
+## [L-save-version-collision] Freeze colliding historical layouts before combining features
+
+1. What happened: two independently developed features used version 9 for different save payloads: published social state and unpublished creator state.
+2. Root cause: the same version marker was allocated independently. Selecting either layout during integration would lose the other's state or reject its saves.
+3. Prevention: retain both frozen readers, emit a new combined version, and require complete decoding plus authoritative validation of each historical candidate. Adopt exactly one valid candidate and reject ambiguity before changing the live world. Keep original bytes in a version-specific browser recovery file.
+4. Verification: load authentic files produced by both old binaries, including active conversations and queued creator commands. Preserve random state and continuation, reject truncated or trailing data transactionally, and confirm that cached old writers refuse the new format. Preserve existing zero-as-unlimited queue semantics in every envelope validator.
+
+## [L-reset-defaults-not-baseline] Keep Reset defaults separate from the edit baseline
+
+1. What happened: Reset restored the initial random draft, so activity preferences remained arbitrary rather than returning to 1.0x.
+2. Root cause: one initial snapshot served both edit comparison and the Reset target. Those are different product behaviors.
+3. Prevention: use fixed control defaults for Reset and retain the initial snapshot for patch comparison and existing-record validation. Preserve hidden legacy data, unrelated sections, and the private random-generator state. Make Reset one undoable operation; represent cleared saved relationships explicitly.
+4. Verification: exercise new and existing characters through field, section, and whole-character Reset. Check neutral values, all activity categories at 1.0x, exact Undo, cancellation, hidden records, and saved relationship removal.
+
+## [L-continuous-sleeve-coverage] Give covered joints one continuous garment surface
+
+1. What happened: long sleeves showed a dark ring at the elbow. Joining the sleeve pieces removed the ring but initially exposed forearm skin through the cloth in bent poses.
+2. Root cause: independently capped upper and lower sleeves created an internal boundary at the joint. The original skin surface remained visible beneath the replacement garment and crossed it during bending.
+3. Prevention: author a continuous garment with coherent joint weights. Declare which skin surfaces are covered in asset metadata, while preserving exposed hands and the skin required by short sleeves, rolled sleeves, and bare poses. Inspect bent poses as well as standing; do not conceal internal geometry with a generic outline exception.
+4. Verification: use matching defective and repaired images in a blind review, including each affected top, all facings, representative body extremes, and live walking, reading, and cleaning cycles. Require exact control images for unaffected clothing and bare arms. Record sampled motion coverage separately from continuous playback inspection.
+
+## [L-derived-atlas-provenance] Revalidate derived assets after sprite-sheet repacking
+
+1. What happened: integrating main replaced and repacked sprite sheets while derived fixture-depth manifests still named old sheets and the old atlas hash.
+2. Root cause: the derived depth surfaces use their own packing, so they can remain valid even when their recorded source locations become stale. Existing unit checks validated available source files but did not require the recorded atlas hash to match the current atlas.
+3. Prevention: compare each dependent sprite using each revision's own page and rectangle. Require identical pixels, dimensions, anchors, content bounds, and depth coverage before refreshing provenance. Never map old page numbers directly to new ones, restore obsolete sheets to silence a check, or move independently packed depth rectangles.
+4. Verification: retain the old source revision and manifest bytes, record exact region comparisons, and prove generated companion pages remain unchanged. Check the current atlas hash in unit tests and run the complete asset verifier. If source pixels or registration differ, regenerate the affected asset rather than updating hashes alone.
+
+## [L-optional-preview-readiness] Separate required preparation from optional drawing
+
+1. What happened: a new character could not move in on a narrow screen until the player opened the optional preview. The disabled button had no error explanation.
+2. Root cause: submission readiness was set only by a successful visible preview draw. The hidden preview prepared required character data but never updated that shared flag.
+3. Prevention: track required configuration readiness independently from display completion. Continue preparation while an optional preview is hidden, stop its drawing and clock, and let submission revalidate the prepared configuration. Guard asynchronous completions by request generation, including A-B-A edits and closure.
+4. Verification: begin with a cold narrow-screen creator, keep its preview hidden, and create a character through Review. Repeat for editing. Test pending preparation, current failure, stale success and failure, A-B-A changes, and destruction without requiring hidden GPU drawing.
+
+## [L-sparse-family-patches] Omitted relationships are not removal instructions
+
+1. What happened: a sparse character relationship patch removed unsubmitted ties to other living people.
+2. Root cause: application iterated the whole living household and converted an absent patch row into `None`. The relationship API correctly interprets an explicit `None` as deletion.
+3. Prevention: apply only submitted relationship pairs after validating the complete command. Preserve canonical identity ordering, inverse relationships, and unrelated ties to absent people.
+4. Verification: change or explicitly clear one pair while another living pair and an absent person's pair exist. Check inverse views, unchanged randomness, and atomic rejection when a mixed patch names an invalid relative. Require the old whole-household loop to fail these regressions.
+
+## [L-retain-unsubmitted-traits] Trait toggle history belongs to the draft transaction
+
+1. What happened: unchecking and rechecking a condition replaced its saved severity with the content default.
+2. Root cause: the selected trait list was the only state store. Removing its row discarded information needed by a later toggle in the same unsubmitted draft.
+3. Prevention: retain draft-only trait state and ordering within the same checkpoint as values, locks, and private randomness. Explicit Reset clears retained state only in its scope. Keep the cache out of submitted records so committed removal still forgets severity.
+4. Verification: toggle saved and edited conditions, randomize individual traits, exercise Undo and failed transactions, and compare exact state bits and ordering. Verify Reset followed by reselect uses defaults, Undo restores retained values, and a fresh edit after applied removal starts from content defaults.
+
+## [L-hash-bound-git-bytes] Verify asset hashes against staged checkout bytes
+
+1. What happened: new character receipts matched Windows working files, but Git's normal line-ending conversion would change hash-bound JSON and producer scripts in a fresh checkout.
+2. Root cause: validation read unstaged files without checking their Git attributes. Existing byte-preservation rules covered earlier asset families but not the new character exports.
+3. Prevention: scope `-text` attributes to hash-bound authoring assets, immutable golden fixtures, and dated receipts. Preserve those source bytes rather than changing recorded hashes to match a conversion that never ran the exporter.
+4. Verification: compare working files with staged blobs and export the candidate Git tree into an isolated directory. Run the asset verifier there before pushing. Keep normal text normalization for unrelated source files and leave generated caches ignored.
+
+## [L-numeric-control-precision] Size numeric controls for loaded values and adjacent controls
+
+1. What happened: a condition's saved percentage remained exact but its trailing digits were clipped in the creator's number input. Widening the input alone then crowded a tablet-width slider.
+2. Root cause: the control width suited short initial values, while review did not require a longer loaded value at each responsive layout boundary. A standalone fixture omitted the actual scrollbar, and rectangle checks missed text clipped inside shrinking buttons.
+3. Prevention: test representative saved precision using the actual font, native control affordances, units, and neighboring buttons. Base field layout on available editor width, preserve intrinsic button widths, and let numeric controls wrap. Never round stored state to conceal a layout defect.
+4. Verification: reject the known clipped image; assert readable input and button text, child containment, and no editor overflow at desktop, tablet, and narrow widths. Include scrollbars and both lock states in actual built-game captures. Preserve exact condition bits through toggling, Apply, Save, and reload after the layout repair.
+
+## [L-git-packed-transfer-budget] Measure the pack that a bounded push will transmit
+
+1. What happened: asset pushes timed out or lost their connection despite a budget based on unique new file bytes.
+2. Root cause: Git's sparse packing traversal included extra objects already available remotely. The planning total did not bound the producer's actual output.
+3. Prevention: when transfer size matters, preflight the actual commit and remote-parent graph using the same packing configuration as the push. Select conservative traversal with command-local `pack.useSparse=false`, and enforce a packed-byte ceiling. Do not infer merge payload size from equal trees or a different parent topology.
+4. Verification: compare required and packed object counts, measure packed bytes, and verify the remote tip after each accepted transfer. Preserve failed receipts. Keep the live index and branch unchanged on rejection, and update local references only after remote acceptance is proven.
+
+## [L-no-review-videos] Keep review recordings out of Git history
+
+1. What happened: browser review recordings were included with evidence, increasing repository size and complicating delivery without supplying required game assets.
+2. Root cause: evidence preservation was treated as permission to commit every capture output. A recording was retained even when reviewers had inspected sampled screenshots instead.
+3. Prevention: never commit or upload review videos, including videos embedded in trace archives or converted into animated GIF loops. Disable recording in routine capture scripts. Retain selected screenshots, measurements, reproduction settings, and written findings; keep temporary recordings in ignored local scratch storage.
+4. Verification: inspect the complete candidate tree and archive contents before publication. Require no review video files, no broken recording links, and no claim that retaining a recording establishes continuous visual review. Use a squash merge so rejected artifact commits do not enter main history.

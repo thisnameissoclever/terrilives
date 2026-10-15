@@ -1,0 +1,10 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.48s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-d9424414bfa066c7.exe)
+
+running 2 tests
+test cleanliness::tests::dish_units_share_the_curve_and_saturate_at_six ... ok
+test cleanliness::tests::thresholds_are_quiet_and_response_reaches_the_same_full_dirt_cap ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 142 filtered out; finished in 0.00s
+

@@ -1,0 +1,18 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 52.08s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 8 tests
+test chores::cleanliness_tests::cleanliness_daily_floor_and_surface_work_waits_for_owner_threshold_without_a_draw ... ok
+test chores::cleanliness_tests::cleanliness_room_mood_thresholds_each_source_before_averaging ... ok
+test chores::grime_tests::cleanliness_scales_rolls_and_surface_probability_is_doubled ... ok
+test domestic::tests::average_cleanliness_has_stronger_own_cleanup_and_thirty_percent_blocker_response ... ok
+test domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once ... ok
+test domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap ... ok
+test edit::tests::a_changed_cleanliness_score_breaks_the_match_until_an_explicit_edit ... ok
+test edit::tests::an_explicit_personality_change_creates_a_missing_cleanliness_row_in_index_order ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 1304 filtered out; finished in 0.13s
+

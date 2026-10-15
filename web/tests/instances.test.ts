@@ -255,14 +255,14 @@ describe('sprites.wgsl contract', () => {
     ).toBeNull();
   });
 
-  it('samples the atlas and discards below the alpha threshold', () => {
+  it('samples atlas color and discards scene samples outside alpha coverage', () => {
     // The discard is what makes the transparent part of a sprite
-    // genuinely see-through. The pipeline writes depth, so without it
+    // see-through. The pipeline writes depth, so without it
     // every quad's transparent bounding box would claim its pixels and a
     // bed would occlude a rectangle of floor and anything standing in
-    // it. There is no GPU in CI, so this is the only thing standing
-    // between that and a play session.
-    expect(shader).toMatch(/textureSample\(/);
+    // it. The separate real-GPU contract check measures the coverage pixels.
+    expect(shader).toContain('sampleAtlasColor(uv,i32(in.page))');
+    expect(shader).toContain('!sceneCovered(visibleAlpha,in.clip.xy)');
     expect(shader).toMatch(/discard;/);
   });
 
@@ -272,7 +272,7 @@ describe('sprites.wgsl contract', () => {
     expect(shader).toContain('out.uvBounds = sprite.uv;');
     expect(shader).toContain('vec2f(0.5) / vec2f(textureDimensions(atlasTexture))');
     expect(shader).toContain('clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel)');
-    expect(shader).toContain('textureSample(atlasTexture, atlasSampler, uv, i32(in.page))');
+    expect(shader).toContain('sampleAtlasColor(uv,i32(in.page))');
   });
 });
 

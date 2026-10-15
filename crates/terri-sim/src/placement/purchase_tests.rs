@@ -668,7 +668,7 @@ fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
             sim.tick();
         }
         sim.world_mut().insert_resource(Funds(1_000));
-        let base = sim.save_snapshot_v9();
+        let base = sim.save_snapshot_v10();
         let (width, height) = {
             let grid = sim.world().resource::<TileGrid>();
             (grid.width() as u32, grid.height() as u32)
@@ -683,13 +683,13 @@ fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
                 accepted += 1;
                 let mut buyer =
                     crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
-                buyer.load_snapshot_v9(base.clone()).unwrap();
+                buyer.load_snapshot_v10(base.clone()).unwrap();
                 stage(&mut buyer, purchase);
                 assert_eq!(last(&buyer).unwrap().reason, None, "({x}, {y})");
                 let mut reader =
                     crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
                 reader
-                    .load_snapshot_v9(buyer.save_snapshot_v9())
+                    .load_snapshot_v10(buyer.save_snapshot_v10())
                     .unwrap_or_else(|error| {
                         panic!("a chair at ({x}, {y}) at tick {ticks}: {error:?}")
                     });

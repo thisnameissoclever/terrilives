@@ -1,0 +1,689 @@
+{
+  "state": "complete",
+  "rows": [
+    {
+      "part": "Collar stand",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.738148291503626e-07
+    },
+    {
+      "part": "Collar stand",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 5.710338397649561e-07
+    },
+    {
+      "part": "Collar stand",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.3594593351786232e-06
+    },
+    {
+      "part": "Creator bare foot L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.3793049763394754e-07
+    },
+    {
+      "part": "Creator bare foot L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.3774577234141213e-07
+    },
+    {
+      "part": "Creator bare foot L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.6407104385092934e-07
+    },
+    {
+      "part": "Creator bare foot R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.3790627727654034e-07
+    },
+    {
+      "part": "Creator bare foot R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 7.596973347083042e-08
+    },
+    {
+      "part": "Creator bare foot R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.63716013354954e-07
+    },
+    {
+      "part": "Creator bare hips",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.560815717332321e-07
+    },
+    {
+      "part": "Creator bare hips",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.879743729519529e-07
+    },
+    {
+      "part": "Creator bare hips",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.9242183385332703e-07
+    },
+    {
+      "part": "Creator bare leg L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.2996345031161536e-07
+    },
+    {
+      "part": "Creator bare leg L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 2.7308895484778954e-07
+    },
+    {
+      "part": "Creator bare leg L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.7544301762400086e-07
+    },
+    {
+      "part": "Creator bare leg R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.2875935254483236e-07
+    },
+    {
+      "part": "Creator bare leg R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 2.1859248637573626e-07
+    },
+    {
+      "part": "Creator bare leg R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.755685656452215e-07
+    },
+    {
+      "part": "Creator bare torso",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.308641962483043e-07
+    },
+    {
+      "part": "Creator bare torso",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.115719378308805e-07
+    },
+    {
+      "part": "Creator bare torso",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.9385441549975296e-07
+    },
+    {
+      "part": "Creator long sleeve L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.179531138949758e-07
+    },
+    {
+      "part": "Creator long sleeve L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.1100248915582097e-07
+    },
+    {
+      "part": "Creator long sleeve L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.485993400392598e-07
+    },
+    {
+      "part": "Creator long sleeve R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.179678886877657e-07
+    },
+    {
+      "part": "Creator long sleeve R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.832980309088916e-07
+    },
+    {
+      "part": "Creator long sleeve R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.8197629233582684e-07
+    },
+    {
+      "part": "Creator short sleeve L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.179531138949758e-07
+    },
+    {
+      "part": "Creator short sleeve L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.098098003702417e-07
+    },
+    {
+      "part": "Creator short sleeve L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.367448985269591e-07
+    },
+    {
+      "part": "Creator short sleeve R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.179678886877657e-07
+    },
+    {
+      "part": "Creator short sleeve R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.832980309088916e-07
+    },
+    {
+      "part": "Creator short sleeve R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.917897280869479e-07
+    },
+    {
+      "part": "Creator shorts L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 5.444430355841882e-07
+    },
+    {
+      "part": "Creator shorts L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.0201957581600925e-07
+    },
+    {
+      "part": "Creator shorts L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.7808663506219172e-07
+    },
+    {
+      "part": "Creator shorts R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 5.442792068596157e-07
+    },
+    {
+      "part": "Creator shorts R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 2.9737061799707164e-07
+    },
+    {
+      "part": "Creator shorts R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.7729691204469242e-07
+    },
+    {
+      "part": "Creator shorts bare leg L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 5.091460707498717e-07
+    },
+    {
+      "part": "Creator shorts bare leg L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.4938184559525497e-07
+    },
+    {
+      "part": "Creator shorts bare leg L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.7349164430581503e-07
+    },
+    {
+      "part": "Creator shorts bare leg R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 5.088908123325612e-07
+    },
+    {
+      "part": "Creator shorts bare leg R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.815502885785429e-07
+    },
+    {
+      "part": "Creator shorts bare leg R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.7612686731879622e-07
+    },
+    {
+      "part": "Creator trainer L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 9.518640462405097e-08
+    },
+    {
+      "part": "Creator trainer L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.02599962194218e-07
+    },
+    {
+      "part": "Creator trainer L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.3130094315554256e-07
+    },
+    {
+      "part": "Creator trainer R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 9.514272679102744e-08
+    },
+    {
+      "part": "Creator trainer R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 9.697816349179837e-08
+    },
+    {
+      "part": "Creator trainer R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.1546585772300907e-07
+    },
+    {
+      "part": "Creator trainer sole L",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.707844202368817e-08
+    },
+    {
+      "part": "Creator trainer sole L",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 7.288676712879968e-08
+    },
+    {
+      "part": "Creator trainer sole L",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.1487000499010949e-07
+    },
+    {
+      "part": "Creator trainer sole R",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 9.621972422943486e-08
+    },
+    {
+      "part": "Creator trainer sole R",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 8.67912689442544e-08
+    },
+    {
+      "part": "Creator trainer sole R",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.267781500246976e-07
+    },
+    {
+      "part": "Fitted rounded shoe sole",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.623742249208017e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 7.529917201002586e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.1534409917183763e-07
+    },
+    {
+      "part": "Fitted rounded shoe sole.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 9.633658823572837e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 8.60422906728327e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.270363493112167e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 7.029620336840923e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.6824936206079716e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.524101337331157e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 7.014696046798429e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 2.7711486312861167e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.393002718058702e-07
+    },
+    {
+      "part": "Natural neck",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.1016284227141048e-06
+    },
+    {
+      "part": "Natural neck",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.219059064643082e-06
+    },
+    {
+      "part": "Natural neck",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.7570034530952785e-07
+    },
+    {
+      "part": "Overshirt body",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.309098011547284e-07
+    },
+    {
+      "part": "Overshirt body",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.1065329310320315e-07
+    },
+    {
+      "part": "Overshirt body",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.93935777556511e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.330906737272198e-06
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.1100248915582097e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.485993400392598e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.3309200361371394e-06
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.832980309088916e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.8197629233582684e-07
+    },
+    {
+      "part": "Sculpted head",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.393499851203075e-06
+    },
+    {
+      "part": "Sculpted head",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.9999763217537953e-06
+    },
+    {
+      "part": "Sculpted head",
+      "action": "read",
+      "frame": 1,
+      "maxError": 7.126901510889225e-07
+    },
+    {
+      "part": "Shaped shoe",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.1750474866159543e-07
+    },
+    {
+      "part": "Shaped shoe",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.2168683903175542e-07
+    },
+    {
+      "part": "Shaped shoe",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.2598935129575286e-07
+    },
+    {
+      "part": "Shaped shoe.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.1770701235074778e-07
+    },
+    {
+      "part": "Shaped shoe.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.0466390740561279e-07
+    },
+    {
+      "part": "Shaped shoe.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.4116854982152541e-07
+    },
+    {
+      "part": "Shirt lower hem",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 5.263485674557713e-07
+    },
+    {
+      "part": "Shirt lower hem",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 5.169607863771881e-07
+    },
+    {
+      "part": "Shirt lower hem",
+      "action": "read",
+      "frame": 1,
+      "maxError": 5.328669945008949e-07
+    },
+    {
+      "part": "Tailored trouser leg",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.2812834126052253e-07
+    },
+    {
+      "part": "Tailored trouser leg",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 2.1684754330263155e-07
+    },
+    {
+      "part": "Tailored trouser leg",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.2594085350875117e-07
+    },
+    {
+      "part": "Tailored trouser leg.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.2799904555863665e-07
+    },
+    {
+      "part": "Tailored trouser leg.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.1848029747245613e-07
+    },
+    {
+      "part": "Tailored trouser leg.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.2410414751553497e-07
+    },
+    {
+      "part": "Trouser hem",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.5704013856358092e-07
+    },
+    {
+      "part": "Trouser hem",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 5.7758248752451064e-08
+    },
+    {
+      "part": "Trouser hem",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.9230297552889273e-07
+    },
+    {
+      "part": "Trouser hem.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.569357943109369e-07
+    },
+    {
+      "part": "Trouser hem.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 7.014200711050141e-08
+    },
+    {
+      "part": "Trouser hem.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.8340820258068782e-07
+    },
+    {
+      "part": "Trouser hip bridge",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.560853918692213e-07
+    },
+    {
+      "part": "Trouser hip bridge",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.879227254550917e-07
+    },
+    {
+      "part": "Trouser hip bridge",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.927534506969831e-07
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.2795877717359865e-06
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.32647294584367e-07
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.3837902997203594e-07
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.27950889665036e-06
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.318456266559187e-07
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.7049497823571565e-07
+    }
+  ]
+}

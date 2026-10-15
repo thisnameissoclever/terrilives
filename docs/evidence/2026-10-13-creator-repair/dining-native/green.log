@@ -1,0 +1,12 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 43.36s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 3 tests
+test dining::completion_tests::queued_meal_cancel_releases_each_physical_setting_without_a_finished_dish ... ok
+test dining::completion_tests::queued_meal_completion_does_not_borrow_another_person_or_tables_setting ... ok
+test dining::completion_tests::queued_meal_completion_retains_each_physical_setting_in_every_facing ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 1320 filtered out; finished in 52.85s
+
+EXIT_CODE=0

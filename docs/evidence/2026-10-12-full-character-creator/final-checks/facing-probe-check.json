@@ -1,0 +1,17 @@
+{
+  "command": "node assets/models/sims/character-creator/capture_delivery.cjs",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "facings": 4,
+  "priorInstrumentationFailures": [
+    "Empty observations accepted by vacuous pair loop",
+    "Nonempty guard rejected wrong module identity",
+    "Pair order rejected global world draws outside preview scope"
+  ],
+  "correction": "Observed application module identity, scoped exact preview pair per user action, exact expected argument and float32 uniform values, raw rows retained.",
+  "independentReview": {
+    "verdict": "PASS",
+    "check": "Independent Node assertions on all four persisted cases; exit code 0. Each contains one ordered 608x800 and 96x128 pair with expected angle and float32 value. Raw 384x384 world rows confirm the previous observation-scope defect.",
+    "visualReview": "The visual reviewer independently closed the thumbnail-facing finding after inspecting the enlarged actual rear-view canvas."
+  }
+}

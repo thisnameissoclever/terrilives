@@ -1,0 +1,55 @@
+{
+  "results": [
+    {
+      "name": "baseline",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--max-old-space-size=4096",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "tests/preview-fixture.test.ts",
+        "--maxWorkers=1",
+        "--config",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\registration-01\\vitest.config.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "faultApplied": false
+    },
+    {
+      "name": "old-anchor",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--max-old-space-size=4096",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "tests/preview-fixture.test.ts",
+        "--maxWorkers=1",
+        "--config",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\registration-01\\vitest.config.mjs"
+      ],
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "faultApplied": true
+    },
+    {
+      "name": "restored",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--max-old-space-size=4096",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "tests/preview-fixture.test.ts",
+        "--maxWorkers=1",
+        "--config",
+        "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\registration-01\\vitest.config.mjs"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "faultApplied": false
+    }
+  ],
+  "sourceSha256": "672eb62dc095c5b373fbd3c62d22edd3c975b0ee415ed0e1720b5dd7b9efe929",
+  "productionUnchanged": true,
+  "mechanism": "Fault exists only in an isolated Vitest transform; source and owner browser are never modified."
+}

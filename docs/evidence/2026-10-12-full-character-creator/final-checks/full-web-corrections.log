@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bridge.test.ts tests/housemate-form.test.ts tests/instance-batch-production.test.ts tests/skills-panel.test.ts tests/affinities-panel.test.ts tests/frame-audio.test.ts tests/options-menu.test.ts tests/personal-details.test.ts tests/sky.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  9 passed (9)
+      Tests  246 passed (246)
+   Start at  01:55:35
+   Duration  24.47s (transform 6.24s, setup 0ms, import 19.97s, tests 3.62s, environment 0ms)
+

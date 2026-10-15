@@ -1,0 +1,1035 @@
+{
+  "categoryRows": [
+    {
+      "id": "activity-category:eat",
+      "label": "Eat & cook",
+      "displayed": "0.55",
+      "value": 0
+    },
+    {
+      "id": "activity-category:sleep",
+      "label": "Sleep",
+      "displayed": "0.28",
+      "value": 0
+    },
+    {
+      "id": "activity-category:wash",
+      "label": "Wash & bathroom",
+      "displayed": "1.27",
+      "value": 1.401298464324817e-45
+    },
+    {
+      "id": "activity-category:relax",
+      "label": "Relax",
+      "displayed": "1.96",
+      "value": 1.401298464324817e-45
+    },
+    {
+      "id": "activity-category:read",
+      "label": "Read",
+      "displayed": "0.27",
+      "value": 0
+    },
+    {
+      "id": "activity-category:television",
+      "label": "Watch TV",
+      "displayed": "1.18",
+      "value": 1.401298464324817e-45
+    },
+    {
+      "id": "activity-category:music",
+      "label": "Listen to music",
+      "displayed": "0.16",
+      "value": 0
+    },
+    {
+      "id": "activity-category:exercise",
+      "label": "Exercise",
+      "displayed": "0.67",
+      "value": 0
+    },
+    {
+      "id": "activity-category:letters",
+      "label": "Write letters",
+      "displayed": "0.08",
+      "value": 0
+    },
+    {
+      "id": "activity-category:fish",
+      "label": "Watch fish",
+      "displayed": "0.77",
+      "value": 0
+    }
+  ],
+  "beforeCategory": {
+    "version": 1,
+    "name": "Taylor",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "feminine",
+      "body": {
+        "height": 42,
+        "build": 25,
+        "shoulders": 57,
+        "hips": 80,
+        "torso": 48
+      },
+      "face": {
+        "shape": "round",
+        "cheeks": 58,
+        "jaw": 82,
+        "chin": 34,
+        "eyes": "soft",
+        "eye_size": 42,
+        "brows": "straight",
+        "brow_thickness": 52,
+        "nose": "broad",
+        "nose_width": 9,
+        "mouth": "full",
+        "mouth_fullness": 88,
+        "ears": 24
+      },
+      "colors": {
+        "skin": [
+          215,
+          174,
+          141
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          209,
+          183,
+          119
+        ],
+        "eyes": [
+          129,
+          105,
+          86
+        ],
+        "shirt": [
+          69,
+          106,
+          153
+        ],
+        "trousers": [
+          68,
+          63,
+          66
+        ],
+        "shoes": [
+          214,
+          208,
+          196
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "crop",
+      "bald": false,
+      "facial_hair": "stubble",
+      "freckles": true,
+      "freckle_density": 45,
+      "scar": "brow",
+      "top": "jacket",
+      "sleeves": "long",
+      "bottoms": "trousers",
+      "footwear": "loafers",
+      "glasses": true,
+      "glasses_style": "rectangular",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 52,
+      "cleanliness": 1058139013,
+      "self_preservation": 2,
+      "chronotype_offset_ticks": 0,
+      "drain": [
+        1057132380,
+        1063004406,
+        1065520988,
+        1059816735,
+        1069379748,
+        1068205343,
+        1057635697
+      ],
+      "recovery": [
+        1068792545,
+        1061494456,
+        1068037571,
+        1064178811,
+        1058810102,
+        1059313418,
+        1060655596
+      ],
+      "dispositions": [
+        {
+          "object": "fridge",
+          "action": "grab_snack",
+          "weight": 1057803469
+        },
+        {
+          "object": "fridge",
+          "action": "cook_dinner",
+          "weight": 1057803469
+        },
+        {
+          "object": "dining_table",
+          "action": "sit_properly",
+          "weight": 1057803469
+        },
+        {
+          "object": "dining_table",
+          "action": "take_prepared_food",
+          "weight": 1057803469
+        },
+        {
+          "object": "bed",
+          "action": "sleep",
+          "weight": 1049582633
+        },
+        {
+          "object": "double_bed",
+          "action": "sleep_properly",
+          "weight": 1049582633
+        },
+        {
+          "object": "shower",
+          "action": "take_shower",
+          "weight": 1067618140
+        },
+        {
+          "object": "toilet",
+          "action": "relieve_self",
+          "weight": 1067618140
+        },
+        {
+          "object": "sink",
+          "action": "wash_hands",
+          "weight": 1067618140
+        },
+        {
+          "object": "kitchen_sink",
+          "action": "wash_up",
+          "weight": 1067618140
+        },
+        {
+          "object": "bathtub",
+          "action": "soak",
+          "weight": 1067618140
+        },
+        {
+          "object": "sofa",
+          "action": "lounge",
+          "weight": 1073406280
+        },
+        {
+          "object": "chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "long_sofa",
+          "action": "stretch_out",
+          "weight": 1073406280
+        },
+        {
+          "object": "long_sofa",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "armchair",
+          "action": "take_the_chair",
+          "weight": 1073406280
+        },
+        {
+          "object": "desk_chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "reading_chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "sofa",
+          "action": "read",
+          "weight": 1049247089
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1049247089
+        },
+        {
+          "object": "chair",
+          "action": "read",
+          "weight": 1049247089
+        },
+        {
+          "object": "long_sofa",
+          "action": "read",
+          "weight": 1049247089
+        },
+        {
+          "object": "armchair",
+          "action": "read",
+          "weight": 1049247089
+        },
+        {
+          "object": "desk_chair",
+          "action": "read",
+          "weight": 1049247089
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1049247089
+        },
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1066863165
+        },
+        {
+          "object": "radio",
+          "action": "listen",
+          "weight": 1042536202
+        },
+        {
+          "object": "moving_box",
+          "action": "use_exercise_bike",
+          "weight": 1059816735
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1034147594
+        },
+        {
+          "object": "reference_shelf",
+          "action": "watch_fish",
+          "weight": 1061494456
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "fish_watcher",
+        "state": 0
+      },
+      {
+        "id": "out_of_shape",
+        "state": 1054280253
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 1053273620
+      },
+      {
+        "id": "aquarium",
+        "value": 1043878380
+      },
+      {
+        "id": "television",
+        "value": 1063507722
+      },
+      {
+        "id": "radio",
+        "value": 3180289065
+      }
+    ],
+    "hobbies": [
+      "aquarium",
+      "cooking",
+      "lounging",
+      "sleep",
+      "television"
+    ],
+    "skills": [
+      {
+        "id": "cooking",
+        "practice": 1061997774
+      },
+      {
+        "id": "exercise",
+        "practice": 1063675496
+      },
+      {
+        "id": "reading",
+        "practice": 1061997774
+      }
+    ],
+    "ties": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  },
+  "categoryChanged": {
+    "version": 1,
+    "name": "Taylor",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "feminine",
+      "body": {
+        "height": 42,
+        "build": 25,
+        "shoulders": 57,
+        "hips": 80,
+        "torso": 48
+      },
+      "face": {
+        "shape": "round",
+        "cheeks": 58,
+        "jaw": 82,
+        "chin": 34,
+        "eyes": "soft",
+        "eye_size": 42,
+        "brows": "straight",
+        "brow_thickness": 52,
+        "nose": "broad",
+        "nose_width": 9,
+        "mouth": "full",
+        "mouth_fullness": 88,
+        "ears": 24
+      },
+      "colors": {
+        "skin": [
+          215,
+          174,
+          141
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          209,
+          183,
+          119
+        ],
+        "eyes": [
+          129,
+          105,
+          86
+        ],
+        "shirt": [
+          69,
+          106,
+          153
+        ],
+        "trousers": [
+          68,
+          63,
+          66
+        ],
+        "shoes": [
+          214,
+          208,
+          196
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "crop",
+      "bald": false,
+      "facial_hair": "stubble",
+      "freckles": true,
+      "freckle_density": 45,
+      "scar": "brow",
+      "top": "jacket",
+      "sleeves": "long",
+      "bottoms": "trousers",
+      "footwear": "loafers",
+      "glasses": true,
+      "glasses_style": "rectangular",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 52,
+      "cleanliness": 1058139013,
+      "self_preservation": 2,
+      "chronotype_offset_ticks": 0,
+      "drain": [
+        1057132380,
+        1063004406,
+        1065520988,
+        1059816735,
+        1069379748,
+        1068205343,
+        1057635697
+      ],
+      "recovery": [
+        1068792545,
+        1061494456,
+        1068037571,
+        1064178811,
+        1058810102,
+        1059313418,
+        1060655596
+      ],
+      "dispositions": [
+        {
+          "object": "fridge",
+          "action": "grab_snack",
+          "weight": 1057803469
+        },
+        {
+          "object": "fridge",
+          "action": "cook_dinner",
+          "weight": 1057803469
+        },
+        {
+          "object": "dining_table",
+          "action": "sit_properly",
+          "weight": 1057803469
+        },
+        {
+          "object": "dining_table",
+          "action": "take_prepared_food",
+          "weight": 1057803469
+        },
+        {
+          "object": "bed",
+          "action": "sleep",
+          "weight": 1049582633
+        },
+        {
+          "object": "double_bed",
+          "action": "sleep_properly",
+          "weight": 1049582633
+        },
+        {
+          "object": "shower",
+          "action": "take_shower",
+          "weight": 1067618140
+        },
+        {
+          "object": "toilet",
+          "action": "relieve_self",
+          "weight": 1067618140
+        },
+        {
+          "object": "sink",
+          "action": "wash_hands",
+          "weight": 1067618140
+        },
+        {
+          "object": "kitchen_sink",
+          "action": "wash_up",
+          "weight": 1067618140
+        },
+        {
+          "object": "bathtub",
+          "action": "soak",
+          "weight": 1067618140
+        },
+        {
+          "object": "sofa",
+          "action": "lounge",
+          "weight": 1073406280
+        },
+        {
+          "object": "chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "long_sofa",
+          "action": "stretch_out",
+          "weight": 1073406280
+        },
+        {
+          "object": "long_sofa",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "armchair",
+          "action": "take_the_chair",
+          "weight": 1073406280
+        },
+        {
+          "object": "desk_chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "reading_chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "sofa",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "chair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "long_sofa",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "armchair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "desk_chair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1070386381
+        },
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1066863165
+        },
+        {
+          "object": "radio",
+          "action": "listen",
+          "weight": 1042536202
+        },
+        {
+          "object": "moving_box",
+          "action": "use_exercise_bike",
+          "weight": 1059816735
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1034147594
+        },
+        {
+          "object": "reference_shelf",
+          "action": "watch_fish",
+          "weight": 1061494456
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "fish_watcher",
+        "state": 0
+      },
+      {
+        "id": "out_of_shape",
+        "state": 1054280253
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 1053273620
+      },
+      {
+        "id": "aquarium",
+        "value": 1043878380
+      },
+      {
+        "id": "television",
+        "value": 1063507722
+      },
+      {
+        "id": "radio",
+        "value": 3180289065
+      }
+    ],
+    "hobbies": [
+      "aquarium",
+      "cooking",
+      "lounging",
+      "sleep",
+      "television"
+    ],
+    "skills": [
+      {
+        "id": "cooking",
+        "practice": 1061997774
+      },
+      {
+        "id": "exercise",
+        "practice": 1063675496
+      },
+      {
+        "id": "reading",
+        "practice": 1061997774
+      }
+    ],
+    "ties": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  },
+  "afterPersonality": {
+    "version": 1,
+    "name": "Taylor",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "feminine",
+      "body": {
+        "height": 42,
+        "build": 25,
+        "shoulders": 57,
+        "hips": 80,
+        "torso": 48
+      },
+      "face": {
+        "shape": "round",
+        "cheeks": 58,
+        "jaw": 82,
+        "chin": 34,
+        "eyes": "soft",
+        "eye_size": 42,
+        "brows": "straight",
+        "brow_thickness": 52,
+        "nose": "broad",
+        "nose_width": 9,
+        "mouth": "full",
+        "mouth_fullness": 88,
+        "ears": 24
+      },
+      "colors": {
+        "skin": [
+          215,
+          174,
+          141
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          209,
+          183,
+          119
+        ],
+        "eyes": [
+          129,
+          105,
+          86
+        ],
+        "shirt": [
+          69,
+          106,
+          153
+        ],
+        "trousers": [
+          68,
+          63,
+          66
+        ],
+        "shoes": [
+          214,
+          208,
+          196
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "crop",
+      "bald": false,
+      "facial_hair": "stubble",
+      "freckles": true,
+      "freckle_density": 45,
+      "scar": "brow",
+      "top": "jacket",
+      "sleeves": "long",
+      "bottoms": "trousers",
+      "footwear": "loafers",
+      "glasses": true,
+      "glasses_style": "rectangular",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 14,
+      "cleanliness": 1061997773,
+      "self_preservation": 2,
+      "chronotype_offset_ticks": 0,
+      "drain": [
+        1057132380,
+        1063004406,
+        1065520988,
+        1059816735,
+        1069379748,
+        1068205343,
+        1057635697
+      ],
+      "recovery": [
+        1068792545,
+        1061494456,
+        1068037571,
+        1064178811,
+        1058810102,
+        1059313418,
+        1060655596
+      ],
+      "dispositions": [
+        {
+          "object": "fridge",
+          "action": "grab_snack",
+          "weight": 1057803469
+        },
+        {
+          "object": "fridge",
+          "action": "cook_dinner",
+          "weight": 1057803469
+        },
+        {
+          "object": "dining_table",
+          "action": "sit_properly",
+          "weight": 1057803469
+        },
+        {
+          "object": "dining_table",
+          "action": "take_prepared_food",
+          "weight": 1057803469
+        },
+        {
+          "object": "bed",
+          "action": "sleep",
+          "weight": 1049582633
+        },
+        {
+          "object": "double_bed",
+          "action": "sleep_properly",
+          "weight": 1049582633
+        },
+        {
+          "object": "shower",
+          "action": "take_shower",
+          "weight": 1067618140
+        },
+        {
+          "object": "toilet",
+          "action": "relieve_self",
+          "weight": 1067618140
+        },
+        {
+          "object": "sink",
+          "action": "wash_hands",
+          "weight": 1067618140
+        },
+        {
+          "object": "kitchen_sink",
+          "action": "wash_up",
+          "weight": 1067618140
+        },
+        {
+          "object": "bathtub",
+          "action": "soak",
+          "weight": 1067618140
+        },
+        {
+          "object": "sofa",
+          "action": "lounge",
+          "weight": 1073406280
+        },
+        {
+          "object": "chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "long_sofa",
+          "action": "stretch_out",
+          "weight": 1073406280
+        },
+        {
+          "object": "long_sofa",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "armchair",
+          "action": "take_the_chair",
+          "weight": 1073406280
+        },
+        {
+          "object": "desk_chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "reading_chair",
+          "action": "sit",
+          "weight": 1073406280
+        },
+        {
+          "object": "sofa",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "chair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "long_sofa",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "armchair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "desk_chair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1070386381
+        },
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1066863165
+        },
+        {
+          "object": "radio",
+          "action": "listen",
+          "weight": 1042536202
+        },
+        {
+          "object": "moving_box",
+          "action": "use_exercise_bike",
+          "weight": 1059816735
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1034147594
+        },
+        {
+          "object": "reference_shelf",
+          "action": "watch_fish",
+          "weight": 1061494456
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "chatterbox",
+        "state": 0
+      },
+      {
+        "id": "keen_cyclist",
+        "state": 0
+      },
+      {
+        "id": "private_person",
+        "state": 0
+      },
+      {
+        "id": "television_averse",
+        "state": 0
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 1053273620
+      },
+      {
+        "id": "aquarium",
+        "value": 1043878380
+      },
+      {
+        "id": "television",
+        "value": 1063507722
+      },
+      {
+        "id": "radio",
+        "value": 3180289065
+      }
+    ],
+    "hobbies": [
+      "aquarium",
+      "cooking",
+      "lounging",
+      "sleep",
+      "television"
+    ],
+    "skills": [
+      {
+        "id": "cooking",
+        "practice": 1061997774
+      },
+      {
+        "id": "exercise",
+        "practice": 1063675496
+      },
+      {
+        "id": "reading",
+        "practice": 1061997774
+      }
+    ],
+    "ties": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  }
+}

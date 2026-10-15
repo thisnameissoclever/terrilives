@@ -1,0 +1,23 @@
+{
+  "scope": "Direct equivalent byte comparison; separate from the Vitest verdict and not a reconstruction of earlier host conditions",
+  "rows": [
+    {
+      "name": "fixture-stripes",
+      "bytes": 876,
+      "sourceReadMs": 0.08799999999999741,
+      "servedReadMs": 0.0373999999999981,
+      "hashMs": 0.20609999999999928,
+      "assertionMs": 0.035599999999998744,
+      "sha256": "2e20357e42648eec6c9c803642635f2f7fe5a7feb97366823887d8ea96fe816b"
+    },
+    {
+      "name": "fixture-checks",
+      "bytes": 1002,
+      "sourceReadMs": 0.055399999999998784,
+      "servedReadMs": 0.030100000000000904,
+      "hashMs": 0.02260000000000062,
+      "assertionMs": 0.0017999999999993577,
+      "sha256": "7501345920534648bc0a509d3b757961175bc677f2eac0f55a2a7fb1b3b37325"
+    }
+  ]
+}

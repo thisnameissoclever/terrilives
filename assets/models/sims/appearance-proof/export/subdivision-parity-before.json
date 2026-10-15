@@ -1,0 +1,175 @@
+{
+  "state": "complete",
+  "sourceUnchanged": true,
+  "convention": "Model-space Euclidean vertex error; no render or source edits",
+  "rows": [
+    {
+      "action": "idle",
+      "frame": 1,
+      "part": "Forearm with elbow and wrist sections",
+      "vertices": 1730,
+      "maxError": 3.6378370570342845e-07,
+      "meanError": 1.437715034212025e-07
+    },
+    {
+      "action": "idle",
+      "frame": 1,
+      "part": "Forearm with elbow and wrist sections.001",
+      "vertices": 1730,
+      "maxError": 3.6378370570342845e-07,
+      "meanError": 1.4393435667792405e-07
+    },
+    {
+      "action": "idle",
+      "frame": 1,
+      "part": "Natural neck",
+      "vertices": 962,
+      "maxError": 1.19456415957391e-07,
+      "meanError": 1.8567136094061944e-08
+    },
+    {
+      "action": "idle",
+      "frame": 1,
+      "part": "Relaxed shirt sleeve",
+      "vertices": 1730,
+      "maxError": 2.3889513280223075e-07,
+      "meanError": 5.1819933656631004e-08
+    },
+    {
+      "action": "idle",
+      "frame": 1,
+      "part": "Relaxed shirt sleeve.001",
+      "vertices": 1730,
+      "maxError": 2.402852852160751e-07,
+      "meanError": 5.167603597096659e-08
+    },
+    {
+      "action": "idle",
+      "frame": 1,
+      "part": "Tailored trouser leg",
+      "vertices": 2498,
+      "maxError": 6.188917057900187e-08,
+      "meanError": 8.634464037651508e-09
+    },
+    {
+      "action": "idle",
+      "frame": 1,
+      "part": "Tailored trouser leg.001",
+      "vertices": 2498,
+      "maxError": 6.188917057900187e-08,
+      "meanError": 8.643827224998754e-09
+    },
+    {
+      "action": "walk",
+      "frame": 4,
+      "part": "Forearm with elbow and wrist sections",
+      "vertices": 1730,
+      "maxError": 0.0028395169673993232,
+      "meanError": 0.0006209883869119024
+    },
+    {
+      "action": "walk",
+      "frame": 4,
+      "part": "Forearm with elbow and wrist sections.001",
+      "vertices": 1730,
+      "maxError": 0.0029532142133537136,
+      "meanError": 0.000721866039755036
+    },
+    {
+      "action": "walk",
+      "frame": 4,
+      "part": "Natural neck",
+      "vertices": 962,
+      "maxError": 2.1457672119140625e-06,
+      "meanError": 3.7895044874980714e-07
+    },
+    {
+      "action": "walk",
+      "frame": 4,
+      "part": "Relaxed shirt sleeve",
+      "vertices": 1730,
+      "maxError": 0.0038731684388726285,
+      "meanError": 0.0010271288850812609
+    },
+    {
+      "action": "walk",
+      "frame": 4,
+      "part": "Relaxed shirt sleeve.001",
+      "vertices": 1730,
+      "maxError": 0.0038733345912899428,
+      "meanError": 0.0010270841729827084
+    },
+    {
+      "action": "walk",
+      "frame": 4,
+      "part": "Tailored trouser leg",
+      "vertices": 2498,
+      "maxError": 0.01270035935027352,
+      "meanError": 0.003044961049025792
+    },
+    {
+      "action": "walk",
+      "frame": 4,
+      "part": "Tailored trouser leg.001",
+      "vertices": 2498,
+      "maxError": 0.023726871229685465,
+      "meanError": 0.007289613253471052
+    },
+    {
+      "action": "read",
+      "frame": 1,
+      "part": "Forearm with elbow and wrist sections",
+      "vertices": 1730,
+      "maxError": 0.02601748418747175,
+      "meanError": 0.00827529856678738
+    },
+    {
+      "action": "read",
+      "frame": 1,
+      "part": "Forearm with elbow and wrist sections.001",
+      "vertices": 1730,
+      "maxError": 0.029061780288135615,
+      "meanError": 0.010058992447853434
+    },
+    {
+      "action": "read",
+      "frame": 1,
+      "part": "Natural neck",
+      "vertices": 962,
+      "maxError": 0.0028323266729937935,
+      "meanError": 0.0014312556611970494
+    },
+    {
+      "action": "read",
+      "frame": 1,
+      "part": "Relaxed shirt sleeve",
+      "vertices": 1730,
+      "maxError": 0.00976168745909448,
+      "meanError": 0.0025885029042586006
+    },
+    {
+      "action": "read",
+      "frame": 1,
+      "part": "Relaxed shirt sleeve.001",
+      "vertices": 1730,
+      "maxError": 0.012844258026986995,
+      "meanError": 0.003405359974658192
+    },
+    {
+      "action": "read",
+      "frame": 1,
+      "part": "Tailored trouser leg",
+      "vertices": 2498,
+      "maxError": 0.0401194132556086,
+      "meanError": 0.013165158232698084
+    },
+    {
+      "action": "read",
+      "frame": 1,
+      "part": "Tailored trouser leg.001",
+      "vertices": 2498,
+      "maxError": 0.040119392943560324,
+      "meanError": 0.013165158267822335
+    }
+  ]
+}

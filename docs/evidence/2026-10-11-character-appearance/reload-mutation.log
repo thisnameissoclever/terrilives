@@ -1,0 +1,85 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-appearance.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-appearance.test.ts (10 tests | 2 failed) 20ms
+     × restores the next random draw, locks, and undo history with a draft 9ms
+     × loads exact saved values without making random draws 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-appearance.test.ts > appearance proof record > restores the next random draw, locks, and undo history with a draft
+AssertionError: expected { version: 1, …(9) } to deeply equal { version: 1, …(9) }
+
+- Expected
++ Received
+
+  {
+-   "build": 39,
++   "build": 50,
+    "hair": "#65452e",
+-   "hairstyle": "bob",
+-   "height": 83,
+-   "presentation": "feminine",
+-   "shirt": "#78815f",
+-   "shoes": "#242528",
+-   "skin": "#35241c",
++   "hairstyle": "curl",
++   "height": 50,
++   "presentation": "masculine",
++   "shirt": "#6b9f9b",
++   "shoes": "#4c4037",
++   "skin": "#be8f6b",
+    "trousers": "#394650",
+    "version": 1,
+  }
+
+ ❯ tests/character-appearance.test.ts:10:28
+      8|     first.randomize(); first.locks.add('build'); first.randomize();
+      9|     const restored = AppearanceDraft.restore(first.serialize());
+     10|     expect(restored.value).toEqual(first.value); expect([...restored.l…
+       |                            ^
+     11|     first.undo(); restored.undo(); expect(restored.value).toEqual(firs…
+     12|     first.randomize(); restored.randomize(); expect(restored.value).to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/character-appearance.test.ts > appearance proof record > loads exact saved values without making random draws
+AssertionError: expected { version: 1, …(9) } to deeply equal { version: 1, …(9) }
+
+- Expected
++ Received
+
+@@ -1,10 +1,10 @@
+  {
+-   "build": 96,
++   "build": 50,
+    "hair": "#65452e",
+    "hairstyle": "curl",
+-   "height": 17.125,
++   "height": 50,
+    "presentation": "masculine",
+    "shirt": "#6b9f9b",
+    "shoes": "#4c4037",
+    "skin": "#be8f6b",
+    "trousers": "#394650",
+
+ ❯ tests/character-appearance.test.ts:17:70
+     15|     const a = neutralAppearance(); a.height = 17.125; a.build = 96;
+     16|     const encoded = JSON.stringify(a);
+     17|     expect(new AppearanceDraft(128, parseAppearance(encoded)).value).t…
+       |                                                                      ^
+     18|     expect(JSON.stringify(parseAppearance(encoded))).toBe(encoded);
+     19|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 8 passed (10)
+   Start at  14:26:31
+   Duration  301ms (transform 47ms, setup 0ms, import 64ms, tests 20ms, environment 0ms)
+

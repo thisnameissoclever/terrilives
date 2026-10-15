@@ -1,0 +1,14 @@
+AssertionError [ERR_ASSERTION]: In entries[2], binding index 2 not present in the bind group layout.
+Expected layout: [{ binding: 0, visibility: ShaderStage::(Vertex|Fragment), buffer: {type: BufferBindingType::Uniform, minBindingSize: 32, hasDynamicOffset: 0} }, { binding: 1, visibility: ShaderStage::Fragment, texture: {sampleType: TextureSampleType::UnfilterableFloat, viewDimension: TextureViewDimension::e2D, multisampled: 0} }]
+ - While validating [BindGroupDescriptor] against [BindGroupLayout (unlabeled)]
+ - While calling [Device].CreateBindGroup([BindGroupDescriptor]).
+
+    at ready (D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\appearance-proof\verify-browser.cjs:16:14)
+    at async run (D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\appearance-proof\verify-browser.cjs:18:88) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

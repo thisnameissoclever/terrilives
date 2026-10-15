@@ -1,0 +1,7 @@
+{
+  "mutation": "Remove the separate seat obstruction surcharge",
+  "exitCode": 101,
+  "beforeSHA256": "966FCF89F02DF184152D77BCC6776813B7399D48E69231DA81B56F3A309802C3",
+  "afterSHA256": "966FCF89F02DF184152D77BCC6776813B7399D48E69231DA81B56F3A309802C3",
+  "byteRestored": true
+}

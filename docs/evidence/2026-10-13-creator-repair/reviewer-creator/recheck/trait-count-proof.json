@@ -1,0 +1,42 @@
+[
+  {
+    "count": 0,
+    "paragraphs": [
+      "0 of 4 traits selected."
+    ],
+    "removeOccurrences": 0,
+    "disabledUnchecked": 0
+  },
+  {
+    "count": 1,
+    "paragraphs": [
+      "1 of 4 traits selected."
+    ],
+    "removeOccurrences": 0,
+    "disabledUnchecked": 0
+  },
+  {
+    "count": 2,
+    "paragraphs": [
+      "2 of 4 traits selected."
+    ],
+    "removeOccurrences": 0,
+    "disabledUnchecked": 0
+  },
+  {
+    "count": 3,
+    "paragraphs": [
+      "3 of 4 traits selected."
+    ],
+    "removeOccurrences": 0,
+    "disabledUnchecked": 0
+  },
+  {
+    "count": 4,
+    "paragraphs": [
+      "4 of 4 traits selected. Remove a selected trait to make room."
+    ],
+    "removeOccurrences": 1,
+    "disabledUnchecked": 11
+  }
+]

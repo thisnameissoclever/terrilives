@@ -115,3 +115,33 @@ assets/models/doors/export/depth-02/review.json -text whitespace=blank-at-eol,bl
 assets/models/doors/export/depth-02/scene-audit.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/doors/export/depth-02/status.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/doors/render_doors.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Character authoring exports and dated receipts bind exact source bytes.
+assets/models/sims/appearance-proof/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/sims/character-creator/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/sims/character-repair/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/assets/character-creator-proposal/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-11-character-appearance/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-12-character-appearance/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-12-full-character-creator/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-13-creator-repair/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-14-long-sleeves/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-14-main-integration/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-14-visual-review/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/evidence/2026-10-15-merge-review/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# This immutable surface golden is checked by its raw byte hash.
+web/tests/fixtures/support-surface/bike-fit-golden.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Console spacing is part of the retained output, not authored source style.
+docs/evidence/2026-10-11-character-appearance/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/evidence/2026-10-12-character-appearance/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/evidence/2026-10-12-full-character-creator/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/evidence/2026-10-13-creator-repair/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/evidence/2026-10-14-long-sleeves/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/evidence/2026-10-14-main-integration/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/evidence/2026-10-14-visual-review/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+docs/evidence/2026-10-15-merge-review/**/*.log -text whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
+# These frozen input bytes are bound by existing export or proof hashes.
+assets/models/sims/character-creator/verify_action_roundtrips.cjs -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
+assets/models/sims/character-creator/verify_choice_influences.cjs -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
+assets/models/sims/character-repair/color_pixels.py -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol

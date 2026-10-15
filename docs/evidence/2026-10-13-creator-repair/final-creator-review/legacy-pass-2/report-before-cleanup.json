@@ -1,0 +1,855 @@
+{
+  "cases": [
+    {
+      "fixture": "pre-voice-157.hex",
+      "sourceHash": "0a3419f23fb524354e6f21cacd5b9d99538e303430ab1dbeb45a6ccada196523",
+      "before": {
+        "version": 1,
+        "name": "Tim",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              62,
+              117,
+              164
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 89,
+          "cleanliness": 1063675494,
+          "self_preservation": 52,
+          "chronotype_offset_ticks": 0,
+          "drain": [
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1067869798,
+            1060320051
+          ],
+          "recovery": [
+            1065353216,
+            1066611507,
+            1065353216,
+            1065353216,
+            1065353216,
+            1062836634,
+            1065353216
+          ],
+          "dispositions": [
+            {
+              "object": "television",
+              "action": "watch_tv",
+              "weight": 1057803469
+            },
+            {
+              "object": "bookshelf",
+              "action": "read",
+              "weight": 1069128090
+            },
+            {
+              "object": "desk",
+              "action": "attend_correspondence",
+              "weight": 1071225242
+            },
+            {
+              "object": "reading_chair",
+              "action": "settle_in",
+              "weight": 1067702026
+            }
+          ]
+        },
+        "traits": [
+          {
+            "id": "low_spirits",
+            "state": 1058642330
+          }
+        ],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 1058435116
+          },
+          {
+            "id": "aquarium",
+            "value": 1041200904
+          },
+          {
+            "id": "television",
+            "value": 3198872396
+          },
+          {
+            "id": "radio",
+            "value": 3188413744
+          }
+        ],
+        "hobbies": [
+          "correspondence",
+          "reading"
+        ],
+        "skills": [],
+        "ties": [
+          [
+            1,
+            null
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      },
+      "after": {
+        "version": 1,
+        "name": "Historical Edit",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              62,
+              117,
+              164
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 89,
+          "cleanliness": 1063675494,
+          "self_preservation": 52,
+          "chronotype_offset_ticks": 0,
+          "drain": [
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1067869798,
+            1060320051
+          ],
+          "recovery": [
+            1065353216,
+            1066611507,
+            1065353216,
+            1065353216,
+            1065353216,
+            1062836634,
+            1065353216
+          ],
+          "dispositions": [
+            {
+              "object": "television",
+              "action": "watch_tv",
+              "weight": 1057803469
+            },
+            {
+              "object": "bookshelf",
+              "action": "read",
+              "weight": 1069128090
+            },
+            {
+              "object": "desk",
+              "action": "attend_correspondence",
+              "weight": 1071225242
+            },
+            {
+              "object": "reading_chair",
+              "action": "settle_in",
+              "weight": 1067702026
+            }
+          ]
+        },
+        "traits": [
+          {
+            "id": "low_spirits",
+            "state": 1058642330
+          }
+        ],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 1058435116
+          },
+          {
+            "id": "aquarium",
+            "value": 1041200904
+          },
+          {
+            "id": "television",
+            "value": 3198872396
+          },
+          {
+            "id": "radio",
+            "value": 3188413744
+          }
+        ],
+        "hobbies": [
+          "correspondence",
+          "reading"
+        ],
+        "skills": [],
+        "ties": [
+          [
+            1,
+            null
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      },
+      "categories": [
+        {
+          "id": "eat",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 4
+        },
+        {
+          "id": "sleep",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 2
+        },
+        {
+          "id": "wash",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 5
+        },
+        {
+          "id": "relax",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 7
+        },
+        {
+          "id": "read",
+          "expected": 1.104285717010498,
+          "displayed": 1.1043,
+          "explicitMembers": 2,
+          "totalMembers": 7
+        },
+        {
+          "id": "television",
+          "expected": 0.550000011920929,
+          "displayed": 0.55,
+          "explicitMembers": 1,
+          "totalMembers": 1
+        },
+        {
+          "id": "music",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 1
+        },
+        {
+          "id": "exercise",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 1
+        },
+        {
+          "id": "letters",
+          "expected": 1.7000000476837158,
+          "displayed": 1.7,
+          "explicitMembers": 1,
+          "totalMembers": 1
+        },
+        {
+          "id": "fish",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 1
+        }
+      ],
+      "viewingSaveExact": true,
+      "nameOnlyPreservesEveryOtherGroup": true,
+      "cancelSaveExact": true
+    },
+    {
+      "fixture": "pre-trait-library-2400.hex",
+      "sourceHash": "4dfc8b394d0d32cc24b8d9614a90730965d9993d354b4e16b44610cba535880b",
+      "before": {
+        "version": 1,
+        "name": "Tim",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              62,
+              117,
+              164
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 89,
+          "cleanliness": 1063675494,
+          "self_preservation": 42,
+          "chronotype_offset_ticks": 0,
+          "drain": [
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1067869798,
+            1060320051
+          ],
+          "recovery": [
+            1065353216,
+            1066611507,
+            1065353216,
+            1065353216,
+            1065353216,
+            1062836634,
+            1065353216
+          ],
+          "dispositions": [
+            {
+              "object": "television",
+              "action": "watch_tv",
+              "weight": 1057803469
+            },
+            {
+              "object": "bookshelf",
+              "action": "read",
+              "weight": 1069128090
+            },
+            {
+              "object": "desk",
+              "action": "attend_correspondence",
+              "weight": 1071225242
+            },
+            {
+              "object": "reading_chair",
+              "action": "settle_in",
+              "weight": 1067702026
+            }
+          ]
+        },
+        "traits": [
+          {
+            "id": "low_spirits",
+            "state": 1058642330
+          }
+        ],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 1046101432
+          },
+          {
+            "id": "aquarium",
+            "value": 1042287584
+          },
+          {
+            "id": "television",
+            "value": 3207321490
+          },
+          {
+            "id": "radio",
+            "value": 1057211198
+          }
+        ],
+        "hobbies": [
+          "correspondence",
+          "reading"
+        ],
+        "skills": [],
+        "ties": [
+          [
+            1,
+            null
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      },
+      "after": {
+        "version": 1,
+        "name": "Historical Edit",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              62,
+              117,
+              164
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 89,
+          "cleanliness": 1063675494,
+          "self_preservation": 42,
+          "chronotype_offset_ticks": 0,
+          "drain": [
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1067869798,
+            1060320051
+          ],
+          "recovery": [
+            1065353216,
+            1066611507,
+            1065353216,
+            1065353216,
+            1065353216,
+            1062836634,
+            1065353216
+          ],
+          "dispositions": [
+            {
+              "object": "television",
+              "action": "watch_tv",
+              "weight": 1057803469
+            },
+            {
+              "object": "bookshelf",
+              "action": "read",
+              "weight": 1069128090
+            },
+            {
+              "object": "desk",
+              "action": "attend_correspondence",
+              "weight": 1071225242
+            },
+            {
+              "object": "reading_chair",
+              "action": "settle_in",
+              "weight": 1067702026
+            }
+          ]
+        },
+        "traits": [
+          {
+            "id": "low_spirits",
+            "state": 1058642330
+          }
+        ],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 1046101432
+          },
+          {
+            "id": "aquarium",
+            "value": 1042287584
+          },
+          {
+            "id": "television",
+            "value": 3207321490
+          },
+          {
+            "id": "radio",
+            "value": 1057211198
+          }
+        ],
+        "hobbies": [
+          "correspondence",
+          "reading"
+        ],
+        "skills": [],
+        "ties": [
+          [
+            1,
+            null
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      },
+      "categories": [
+        {
+          "id": "eat",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 4
+        },
+        {
+          "id": "sleep",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 2
+        },
+        {
+          "id": "wash",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 5
+        },
+        {
+          "id": "relax",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 7
+        },
+        {
+          "id": "read",
+          "expected": 1.104285717010498,
+          "displayed": 1.1043,
+          "explicitMembers": 2,
+          "totalMembers": 7
+        },
+        {
+          "id": "television",
+          "expected": 0.550000011920929,
+          "displayed": 0.55,
+          "explicitMembers": 1,
+          "totalMembers": 1
+        },
+        {
+          "id": "music",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 1
+        },
+        {
+          "id": "exercise",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 1
+        },
+        {
+          "id": "letters",
+          "expected": 1.7000000476837158,
+          "displayed": 1.7,
+          "explicitMembers": 1,
+          "totalMembers": 1
+        },
+        {
+          "id": "fish",
+          "expected": 1,
+          "displayed": 1,
+          "explicitMembers": 0,
+          "totalMembers": 1
+        }
+      ],
+      "viewingSaveExact": true,
+      "nameOnlyPreservesEveryOtherGroup": true,
+      "cancelSaveExact": true
+    }
+  ],
+  "errors": [],
+  "scope": "Historical native save fixtures loaded through the existing isolated development harness, then edited through the actual CreatorView controls. This is separate from the main-game UI flow reviewed in pass-2.",
+  "notes": [
+    {
+      "count": 0,
+      "text": "0 of 4 traits selected."
+    },
+    {
+      "count": 1,
+      "text": "1 of 4 traits selected."
+    },
+    {
+      "count": 2,
+      "text": "2 of 4 traits selected."
+    },
+    {
+      "count": 3,
+      "text": "3 of 4 traits selected."
+    },
+    {
+      "count": 4,
+      "text": "4 of 4 traits selected. Remove a selected trait to make room."
+    }
+  ],
+  "pass": true
+}

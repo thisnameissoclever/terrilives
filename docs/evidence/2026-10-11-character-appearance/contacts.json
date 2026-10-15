@@ -1,0 +1,5519 @@
+{
+  "state": "complete",
+  "inputHashes": {
+    "web/src/render/character/shape.ts": "8243465e84fba0156d8d1ce7a3609c65349290197fd0bbecd0ccf2c65eaa6051",
+    "web/src/render/character/pose.ts": "3ce8fcb57b1f014ae545f4e739f61ec56d681812ab5cd9379c5208b0acf6d161",
+    "web/src/render/character/geometry-proof.ts": "7329c137ec1a1c45284553203d2b81171c78834042fe352e03c5b8775e210af1",
+    "web/src/render/character/surface.ts": "f4c05761f55795b76e08c8ee34f84b55addc838e74856840b152d178e88b7ff7",
+    "web/src/render/character/math.ts": "cf1a30c72735118a69c5c84c5552c6dbd3c0b151eff4113d2152d15daccdacc6",
+    "web/src/render/character/bundle.ts": "b0357a1ee7eb6ae5a3d6bf35dce31afa9f517674f9f2b60e1593af86b4f010e2",
+    "assets/models/sims/appearance-proof/check_contacts.py": "7479bb151708f418f8643b7b83dac07940e6da1b305e5c624ee4d87706d4416f",
+    "assets/models/sims/appearance-proof/export-v2/manifest.json": "d03846bb58ea31cb3b85efc82f3dd1d671afaec11441aab122e7475be68f4223",
+    "assets/models/sims/appearance-proof/export-v2/runtime.vertices.bin": "3ac7fc43635bad4b5b88d7824eaee192db9d9fc2f6002c9f1e2478f6aeef452e",
+    "assets/models/sims/appearance-proof/export-v2/runtime.indices.bin": "32fe8218cb45fff66db79e220112b1bb142da31fa2338dc840745cc162e0dee3",
+    "assets/models/sims/appearance-proof/export-v2/runtime.cage.bin": "be6689fb6f4ffce6a390267a923d32165237bc26229e9b715b275d9c2dae8986",
+    "assets/models/sims/appearance-proof/export-v2/runtime.stencilRanges.bin": "ccd4c78065fbef5d4176abbac45ad6e1444aa482ca76cf3e2d4f76c15f2f3bf7",
+    "assets/models/sims/appearance-proof/export-v2/runtime.stencilWeights.bin": "d9bfd352d848d666244bde27a0426392f33a46ce47485d723e7c4f7c47191503",
+    "assets/models/sims/appearance-proof/export-v2/runtime.normalRanges.bin": "890b67fb75f8900e4576f5715552b7f9840a64a8934af7d267b6084c2cb2570a",
+    "assets/models/sims/appearance-proof/export-v2/runtime.normalTriangles.bin": "25533d22252c5d6087a42eb78daa5fe94b119c8056add0fe0758dbc2b61a9b22"
+  },
+  "cases": 72,
+  "basicSupportPassed": 32,
+  "gatePassed": false,
+  "unverified": [
+    "Complete garment/body clearance: the source is a clothed shell, without an independent underlying body surface",
+    "Back and hand contact area and supporting direction; minimum distances alone do not prove support",
+    "Walking foot contacts and standing/seated transitions"
+  ],
+  "checks": "Full runtime triangle crossing/containment against fixture; finite hip footprint and minimum gap 0..0.003; sole clearance 0.018..0.020; back/hand distance witnesses. No tolerance increase.",
+  "results": [
+    {
+      "file": "masculine-0-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.11669261008501053,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.11669262498617172,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.022349006207544243
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0033862320706248283,
+          "nearVertices": 35,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.817963675421197e-05,
+          "nearVertices": 222,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.11669261008501053,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.11669262498617172,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.022349006207544243
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00040788567275740206,
+          "nearVertices": 53,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.8179471226176247e-05,
+          "nearVertices": 247,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.11669261008501053,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.11669262498617172,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.022349006207544243
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0033862320706248283,
+          "nearVertices": 35,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.817963675421197e-05,
+          "nearVertices": 222,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.11669261008501053,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.11669262498617172,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.022349006207544243
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.006364697124809027,
+          "nearVertices": 18,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.443245416041464e-06,
+          "nearVertices": 184,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.12965847551822662,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.12965846061706543,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.028184802115788672
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.767968731466681e-05,
+          "nearVertices": 58,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 0.0001375433785142377,
+          "nearVertices": 202,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.12965847551822662,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.12965846061706543,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.028184802115788672
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 4.892949800705537e-05,
+          "nearVertices": 74,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.1373480194597505e-05,
+          "nearVertices": 223,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.12965847551822662,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.12965846061706543,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.028184802115788672
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.767968731466681e-05,
+          "nearVertices": 58,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 0.0001375433785142377,
+          "nearVertices": 202,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.12965847551822662,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.12965846061706543,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.028184802115788672
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0009465333423577249,
+          "nearVertices": 44,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.8628266995365266e-06,
+          "nearVertices": 167,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 80
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1012,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.16739057004451752,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.16739057004451752,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04574537039030557
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.86407685559243e-05,
+          "nearVertices": 96,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.757571489084512e-05,
+          "nearVertices": 160,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 80
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1012,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.16739057004451752,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.16739057004451752,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04574537039030557
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 6.507974467240274e-05,
+          "nearVertices": 111,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.874929436482489e-05,
+          "nearVertices": 178,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 80
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1012,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.16739057004451752,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.16739057004451752,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04574537039030557
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.86407685559243e-05,
+          "nearVertices": 96,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.757571489084512e-05,
+          "nearVertices": 160,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-0-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 80
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 156
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1012,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.16739057004451752,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.16739057004451752,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04574537039030557
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 5.559436249313876e-05,
+          "nearVertices": 87,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.5575576728442684e-05,
+          "nearVertices": 135,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00105658161919564,
+          "nearVertices": 48,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.3209600183472503e-05,
+          "nearVertices": 205,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 4.05235550715588e-05,
+          "nearVertices": 65,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.593956221768167e-05,
+          "nearVertices": 245,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00105658161919564,
+          "nearVertices": 48,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.3209600183472503e-05,
+          "nearVertices": 205,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.004035046324133873,
+          "nearVertices": 32,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 6.165854574646801e-05,
+          "nearVertices": 160,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0001215150550706312,
+          "nearVertices": 70,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 6.844176368758781e-06,
+          "nearVertices": 189,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00015435348905157298,
+          "nearVertices": 88,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.5728879589005373e-05,
+          "nearVertices": 220,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0001215150550706312,
+          "nearVertices": 70,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 6.844176368758781e-06,
+          "nearVertices": 189,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00013478114851750433,
+          "nearVertices": 53,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.3807598406856414e-05,
+          "nearVertices": 149,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.2992640879238024e-05,
+          "nearVertices": 110,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 3.385869422345422e-05,
+          "nearVertices": 151,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.5574669052730314e-05,
+          "nearVertices": 119,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.263490932818968e-05,
+          "nearVertices": 176,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.2992640879238024e-05,
+          "nearVertices": 110,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 3.385869422345422e-05,
+          "nearVertices": 151,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-50-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 4.5806857087882236e-05,
+          "nearVertices": 96,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 8.081040869001299e-05,
+          "nearVertices": 130,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 3.379951522219926e-05,
+          "nearVertices": 63,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.451373282179702e-05,
+          "nearVertices": 183,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00013184049748815596,
+          "nearVertices": 81,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.283302471070783e-06,
+          "nearVertices": 227,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 3.379951522219926e-05,
+          "nearVertices": 63,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.451373282179702e-05,
+          "nearVertices": 183,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.0899607241153717,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.08996071666479111,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.014170579450670814
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0014229818480089307,
+          "nearVertices": 46,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.4424816981772892e-05,
+          "nearVertices": 151,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.3894550395198166e-05,
+          "nearVertices": 84,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.413482070551254e-05,
+          "nearVertices": 170,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 3.8123525882838294e-05,
+          "nearVertices": 102,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.502654868090758e-06,
+          "nearVertices": 207,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.3894550395198166e-05,
+          "nearVertices": 84,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.413482070551254e-05,
+          "nearVertices": 170,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.09995637089014053,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.09995637089014053,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.017859544852129004
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.015202522277832e-07,
+          "nearVertices": 69,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.4048760931473225e-05,
+          "nearVertices": 138,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 37
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 34
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.6175348466495052e-05,
+          "nearVertices": 120,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.592610275722109e-05,
+          "nearVertices": 141,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 37
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 34
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00012079245789209381,
+          "nearVertices": 133,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.643710210279096e-06,
+          "nearVertices": 165,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 37
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 34
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.6175348466495052e-05,
+          "nearVertices": 120,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.592610275722109e-05,
+          "nearVertices": 141,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "masculine-100-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 37
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 34
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.12906190752983093,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.12906192243099213,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.02996289165638798
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.2454705685959198e-05,
+          "nearVertices": 110,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 0.00014901190297678113,
+          "nearVertices": 120,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.12626411020755768,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.12626411020755768,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.02431579055795576
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0033862339332699776,
+          "nearVertices": 35,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.817963675421197e-05,
+          "nearVertices": 222,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.12626411020755768,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.12626411020755768,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.02431579055795576
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0004078265046700835,
+          "nearVertices": 53,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.8209224435850047e-05,
+          "nearVertices": 247,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.12626411020755768,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.12626411020755768,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.02431579055795576
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0033862339332699776,
+          "nearVertices": 35,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.817963675421197e-05,
+          "nearVertices": 222,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022938847541809082,
+        "rayHits": 1254,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18424253165721893,
+              -0.12626411020755768,
+              0.40422967076301575
+            ],
+            [
+              -0.06807270646095276,
+              0.12626411020755768,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.02431579055795576
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.16883507370948792,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.006364637985825539,
+          "nearVertices": 18,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.38317738371552e-06,
+          "nearVertices": 184,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.1402934491634369,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.1402934491634369,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.03066492113015272
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.774064528755844e-05,
+          "nearVertices": 58,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 0.0001376052387058735,
+          "nearVertices": 202,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.1402934491634369,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.1402934491634369,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.03066492113015272
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 4.892949800705537e-05,
+          "nearVertices": 74,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.1372588889789768e-05,
+          "nearVertices": 223,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.1402934491634369,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.1402934491634369,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.03066492113015272
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.774064528755844e-05,
+          "nearVertices": 58,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 0.0001376052387058735,
+          "nearVertices": 202,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 116
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 1148,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.18947622179985046,
+              -0.1402934491634369,
+              0.40422967076301575
+            ],
+            [
+              -0.05742393061518669,
+              0.1402934491634369,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.03066492113015272
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.14082954823970795,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0009465350885875523,
+          "nearVertices": 44,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.801874638360459e-06,
+          "nearVertices": 167,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 36
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 157
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 108
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 154
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 984,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.1812160611152649,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.1812160760164261,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04977817202508608
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.858070552581921e-05,
+          "nearVertices": 96,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.757482722401619e-05,
+          "nearVertices": 160,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 36
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 157
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 108
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 154
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 984,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.1812160611152649,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.1812160760164261,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04977817202508608
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 6.507974467240274e-05,
+          "nearVertices": 111,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.874929436482489e-05,
+          "nearVertices": 178,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 36
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 157
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 108
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 154
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 984,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.1812160611152649,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.1812160760164261,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04977817202508608
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 9.858070552581921e-05,
+          "nearVertices": 96,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.757482722401619e-05,
+          "nearVertices": 160,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-0-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 36
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 157
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 108
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 154
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022962689399719238,
+        "rayHits": 984,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.20002005994319916,
+              -0.1812160611152649,
+              0.40422967076301575
+            ],
+            [
+              -0.03080194629728794,
+              0.1812160760164261,
+              0.4138781726360321
+            ]
+          ],
+          "xy_hull_area": 0.04977817202508608
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.07081575691699982,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 5.559436249313876e-05,
+          "nearVertices": 87,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.5576469852239825e-05,
+          "nearVertices": 135,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0010565798729658127,
+          "nearVertices": 48,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.3208736163505819e-05,
+          "nearVertices": 205,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 4.05235550715588e-05,
+          "nearVertices": 65,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.592476837686263e-05,
+          "nearVertices": 245,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0010565798729658127,
+          "nearVertices": 48,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.3208736163505819e-05,
+          "nearVertices": 205,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.4042990505695343
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08297793567180634,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.004035044461488724,
+          "nearVertices": 32,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 6.165676313685253e-05,
+          "nearVertices": 160,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0001214523144881241,
+          "nearVertices": 70,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 6.903355824761093e-06,
+          "nearVertices": 189,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00015441265713889152,
+          "nearVertices": 88,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.5731562598375604e-05,
+          "nearVertices": 220,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0001214523144881241,
+          "nearVertices": 70,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 6.903355824761093e-06,
+          "nearVertices": 189,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029900670051574707,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.4042990505695343
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.054972417652606964,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00013478293840307742,
+          "nearVertices": 53,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.3807598406856414e-05,
+          "nearVertices": 149,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 113
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 112
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.29944234888535e-05,
+          "nearVertices": 110,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 3.3921434805961326e-05,
+          "nearVertices": 151,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 113
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 112
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.5574669052730314e-05,
+          "nearVertices": 119,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.269321157655213e-05,
+          "nearVertices": 176,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 113
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 112
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.29944234888535e-05,
+          "nearVertices": 110,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 3.3921434805961326e-05,
+          "nearVertices": 151,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-50-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 116
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 113
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 86
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 112
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 90
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 74
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 76
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002987682819366455,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.4042990505695343
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41157266497612
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859703929279931e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 4.5866927393944934e-05,
+          "nearVertices": 96,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 8.08104159659706e-05,
+          "nearVertices": 130,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 3.3801297831814736e-05,
+          "nearVertices": 63,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.4454126358032227e-05,
+          "nearVertices": 183,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00013184049748815596,
+          "nearVertices": 81,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.283302471070783e-06,
+          "nearVertices": 227,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 3.3801297831814736e-05,
+          "nearVertices": 63,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.4454126358032227e-05,
+          "nearVertices": 183,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.09838543087244034,
+              -0.09737037122249603,
+              0.40436917543411255
+            ],
+            [
+              0.0030494113452732563,
+              0.09737036377191544,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.015432746162156804
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.08580274879932404,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.0014229827793315053,
+          "nearVertices": 46,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.445414363843156e-05,
+          "nearVertices": 151,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.3833590603317134e-05,
+          "nearVertices": 84,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.4135715648299083e-05,
+          "nearVertices": 170,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 3.81217323592864e-05,
+          "nearVertices": 102,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.5008066611699178e-06,
+          "nearVertices": 207,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.3833590603317134e-05,
+          "nearVertices": 84,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 2.4135715648299083e-05,
+          "nearVertices": 170,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00036913156509399414,
+        "rayHits": 1346,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.10361912846565247,
+              -0.10818930715322495,
+              0.40436917543411255
+            ],
+            [
+              0.01143772155046463,
+              0.10818929970264435,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.01945028543419697
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 0.058503441512584686,
+        "contactWithinExistingNearGap": false
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 8.40958989556384e-07,
+          "nearVertices": 69,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 1.4048760931473225e-05,
+          "nearVertices": 138,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 95
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 94
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859859452873934e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.6175348466495052e-05,
+          "nearVertices": 120,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.5987060730112717e-05,
+          "nearVertices": 141,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 95
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 94
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859859452873934e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 0.00012079245789209381,
+          "nearVertices": 133,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 5.642820269713411e-06,
+          "nearVertices": 165,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 95
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 94
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859859452873934e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.6175348466495052e-05,
+          "nearVertices": 120,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 4.5987060730112717e-05,
+          "nearVertices": 141,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    },
+    {
+      "file": "feminine-100-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "basicSupportPassed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Back cushion",
+          "trianglePairs": 92
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Back cushion",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 95
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 94
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 66
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Back cushion",
+          "trianglePairs": 16
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0003688931465148926,
+        "rayHits": 1318,
+        "footprint": {
+          "contact_bounds": [
+            [
+              -0.1167033389210701,
+              -0.1397647261619568,
+              0.40436917543411255
+            ],
+            [
+              0.03240848705172539,
+              0.1397647261619568,
+              0.41332995891571045
+            ]
+          ],
+          "xy_hull_area": 0.03264293633112354
+        },
+        "basis": "chair-local; unchanged source thresholds",
+        "finiteSupport": true
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.01914810761809349
+      },
+      "backSupport": {
+        "minSurfaceDistance": 1.2859859452873934e-05,
+        "contactWithinExistingNearGap": true
+      },
+      "hands": {
+        "Relaxed palm": {
+          "minSurfaceDistance": 2.2452919438364916e-05,
+          "nearVertices": 110,
+          "contactWithinExistingNearGap": true
+        },
+        "Relaxed palm.001": {
+          "minSurfaceDistance": 0.00014901369286235422,
+          "nearVertices": 120,
+          "contactWithinExistingNearGap": true
+        }
+      }
+    }
+  ]
+}

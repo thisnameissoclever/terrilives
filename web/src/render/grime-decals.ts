@@ -6,6 +6,8 @@ import { FLOOR_DEPTH, DEPTH_LAYER_STEP, LAYER_FOREGROUND, layeredDepth, screenX,
 import { surfaceLayout } from './surface-items.js';
 import { spriteDrawOffsetY } from './sprite-anchors.js';
 import { spriteHeight } from './sprite-size.js';
+import {fixtureSurfaceHeight} from './fixture-depth.js';
+import {SURFACE_PLANE_PROJECTION} from './instances.js';
 
 export const GRIME_SPRITE_COUNT = 12;
 export const GRIME_PAGE = ATLAS_PAGE_FILES.length;
@@ -77,7 +79,15 @@ export function buildGrimeInstances(source:GrimeSource,width:number,gridSize:num
         const point=layout.points[(n+1)%layout.points.length];
         const slot=mark(screenX(x,y,originX,scale)+point[0]*scale,screenY(x,y,originY,scale)+(point[1]+lift)*scale,
           layeredDepth(x,y,gridSize,LAYER_FOREGROUND-.5),1,(ids[row]+n)%2===0?0:3,surfaces[row]);
-        if(widths[row]!==depths[row]){
+        const height=fixtureSurfaceHeight(sprites[row]);
+        if(height!==null){
+          const at=slot*FLOATS_PER_INSTANCE;
+          scratch[at+OFFSET_WALL_MASK]=SURFACE_PLANE_PROJECTION;
+          scratch[at+OFFSET_WALL_DEPTH_STEP]=layeredDepth(0,0,gridSize,1)-layeredDepth(1,0,gridSize,1);
+          const anchorY=point[1]+lift+CELL_HEIGHT/DENSITIES[1]/2-TILE_HALF_HEIGHT;
+          scratch[at+OFFSET_FOOTPRINT_SPAN]=(anchorY+height*Math.sqrt(1166))/21;
+          scratch[at+OFFSET_PROJECTION_ANCHOR_X]=0;
+        }else if(widths[row]!==depths[row]){
           const at=slot*FLOATS_PER_INSTANCE;scratch[at+OFFSET_WALL_MASK]=FOOTPRINT_PROJECTION;
           scratch[at+OFFSET_WALL_DEPTH_STEP]=layeredDepth(0,0,gridSize,1)-layeredDepth(1,0,gridSize,1);
           scratch[at+OFFSET_FOOTPRINT_SPAN]=(widths[row]-depths[row])/2;scratch[at+OFFSET_PROJECTION_ANCHOR_X]=point[0];

@@ -1,0 +1,809 @@
+{
+  "checks": [
+    "UI randomization preserves height/skin locks and undo restores exact record",
+    "Reload preserves saved record; simulation hash unchanged",
+    "Reload preserves locks and next random draw; source color changes remain region-specific; pause and resume use one clock",
+    "Actual rendered height changes; per-pixel compositor depth matches independent texture oracle",
+    "GPU surface agrees with the CPU skinned-subdivision evaluation in idle, walking and reading"
+  ],
+  "cases": [
+    {
+      "label": "masculine-0-0-idle-0",
+      "bounds": {
+        "minX": 222,
+        "minY": 222,
+        "maxX": 374,
+        "maxY": 661,
+        "bodyPixels": 49420,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-idle-1",
+      "bounds": {
+        "minX": 230,
+        "minY": 229,
+        "maxX": 380,
+        "maxY": 661,
+        "bodyPixels": 48065,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-idle-2",
+      "bounds": {
+        "minX": 233,
+        "minY": 225,
+        "maxX": 385,
+        "maxY": 650,
+        "bodyPixels": 48133,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-idle-3",
+      "bounds": {
+        "minX": 227,
+        "minY": 204,
+        "maxX": 377,
+        "maxY": 650,
+        "bodyPixels": 48313,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-walk-0",
+      "bounds": {
+        "minX": 188,
+        "minY": 235,
+        "maxX": 401,
+        "maxY": 664,
+        "bodyPixels": 49164,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-walk-1",
+      "bounds": {
+        "minX": 230,
+        "minY": 242,
+        "maxX": 387,
+        "maxY": 694,
+        "bodyPixels": 44389,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-walk-2",
+      "bounds": {
+        "minX": 206,
+        "minY": 238,
+        "maxX": 419,
+        "maxY": 653,
+        "bodyPixels": 48258,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-walk-3",
+      "bounds": {
+        "minX": 220,
+        "minY": 217,
+        "maxX": 377,
+        "maxY": 683,
+        "bodyPixels": 45392,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-0-read-0",
+      "bounds": {
+        "minX": 163,
+        "minY": 293,
+        "maxX": 340,
+        "maxY": 707,
+        "bodyPixels": 49410,
+        "fixturePixels": 43200
+      }
+    },
+    {
+      "label": "masculine-0-0-read-1",
+      "bounds": {
+        "minX": 265,
+        "minY": 297,
+        "maxX": 444,
+        "maxY": 707,
+        "bodyPixels": 48181,
+        "fixturePixels": 42686
+      }
+    },
+    {
+      "label": "masculine-0-0-read-2",
+      "bounds": {
+        "minX": 267,
+        "minY": 239,
+        "maxX": 444,
+        "maxY": 539,
+        "bodyPixels": 35054,
+        "fixturePixels": 56271
+      }
+    },
+    {
+      "label": "masculine-0-0-read-3",
+      "bounds": {
+        "minX": 163,
+        "minY": 219,
+        "maxX": 342,
+        "maxY": 539,
+        "bodyPixels": 35566,
+        "fixturePixels": 56170
+      }
+    },
+    {
+      "label": "masculine-0-50-idle-0",
+      "bounds": {
+        "minX": 218,
+        "minY": 222,
+        "maxX": 383,
+        "maxY": 663,
+        "bodyPixels": 53000,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-idle-1",
+      "bounds": {
+        "minX": 224,
+        "minY": 229,
+        "maxX": 389,
+        "maxY": 663,
+        "bodyPixels": 51643,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-idle-2",
+      "bounds": {
+        "minX": 224,
+        "minY": 225,
+        "maxX": 389,
+        "maxY": 651,
+        "bodyPixels": 51530,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-idle-3",
+      "bounds": {
+        "minX": 218,
+        "minY": 204,
+        "maxX": 383,
+        "maxY": 651,
+        "bodyPixels": 51652,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-walk-0",
+      "bounds": {
+        "minX": 186,
+        "minY": 235,
+        "maxX": 403,
+        "maxY": 663,
+        "bodyPixels": 52543,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-walk-1",
+      "bounds": {
+        "minX": 224,
+        "minY": 242,
+        "maxX": 396,
+        "maxY": 695,
+        "bodyPixels": 47534,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-walk-2",
+      "bounds": {
+        "minX": 204,
+        "minY": 238,
+        "maxX": 422,
+        "maxY": 652,
+        "bodyPixels": 51534,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-walk-3",
+      "bounds": {
+        "minX": 211,
+        "minY": 217,
+        "maxX": 383,
+        "maxY": 684,
+        "bodyPixels": 48171,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-50-read-0",
+      "bounds": {
+        "minX": 163,
+        "minY": 293,
+        "maxX": 348,
+        "maxY": 709,
+        "bodyPixels": 51937,
+        "fixturePixels": 41855
+      }
+    },
+    {
+      "label": "masculine-0-50-read-1",
+      "bounds": {
+        "minX": 257,
+        "minY": 297,
+        "maxX": 444,
+        "maxY": 709,
+        "bodyPixels": 50878,
+        "fixturePixels": 41192
+      }
+    },
+    {
+      "label": "masculine-0-50-read-2",
+      "bounds": {
+        "minX": 259,
+        "minY": 239,
+        "maxX": 444,
+        "maxY": 542,
+        "bodyPixels": 36136,
+        "fixturePixels": 56024
+      }
+    },
+    {
+      "label": "masculine-0-50-read-3",
+      "bounds": {
+        "minX": 163,
+        "minY": 219,
+        "maxX": 350,
+        "maxY": 542,
+        "bodyPixels": 36665,
+        "fixturePixels": 56003
+      }
+    },
+    {
+      "label": "masculine-0-100-idle-0",
+      "bounds": {
+        "minX": 194,
+        "minY": 222,
+        "maxX": 409,
+        "maxY": 667,
+        "bodyPixels": 63416,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-idle-1",
+      "bounds": {
+        "minX": 198,
+        "minY": 229,
+        "maxX": 413,
+        "maxY": 667,
+        "bodyPixels": 62046,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-idle-2",
+      "bounds": {
+        "minX": 198,
+        "minY": 225,
+        "maxX": 413,
+        "maxY": 656,
+        "bodyPixels": 61528,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-idle-3",
+      "bounds": {
+        "minX": 194,
+        "minY": 204,
+        "maxX": 409,
+        "maxY": 656,
+        "bodyPixels": 61393,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-walk-0",
+      "bounds": {
+        "minX": 178,
+        "minY": 235,
+        "maxX": 411,
+        "maxY": 660,
+        "bodyPixels": 62477,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-walk-1",
+      "bounds": {
+        "minX": 198,
+        "minY": 242,
+        "maxX": 420,
+        "maxY": 700,
+        "bodyPixels": 57322,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-walk-2",
+      "bounds": {
+        "minX": 196,
+        "minY": 238,
+        "maxX": 429,
+        "maxY": 649,
+        "bodyPixels": 61069,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-walk-3",
+      "bounds": {
+        "minX": 187,
+        "minY": 217,
+        "maxX": 409,
+        "maxY": 689,
+        "bodyPixels": 56328,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-0-100-read-0",
+      "bounds": {
+        "minX": 155,
+        "minY": 293,
+        "maxX": 368,
+        "maxY": 714,
+        "bodyPixels": 58974,
+        "fixturePixels": 38056
+      }
+    },
+    {
+      "label": "masculine-0-100-read-1",
+      "bounds": {
+        "minX": 237,
+        "minY": 297,
+        "maxX": 455,
+        "maxY": 714,
+        "bodyPixels": 58030,
+        "fixturePixels": 37266
+      }
+    },
+    {
+      "label": "masculine-0-100-read-2",
+      "bounds": {
+        "minX": 239,
+        "minY": 239,
+        "maxX": 452,
+        "maxY": 592,
+        "bodyPixels": 39468,
+        "fixturePixels": 55542
+      }
+    },
+    {
+      "label": "masculine-0-100-read-3",
+      "bounds": {
+        "minX": 152,
+        "minY": 219,
+        "maxX": 370,
+        "maxY": 592,
+        "bodyPixels": 39831,
+        "fixturePixels": 55681
+      }
+    },
+    {
+      "label": "masculine-50-0-idle-0",
+      "bounds": {
+        "minX": 222,
+        "minY": 159,
+        "maxX": 374,
+        "maxY": 661,
+        "bodyPixels": 56413,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-idle-1",
+      "bounds": {
+        "minX": 230,
+        "minY": 166,
+        "maxX": 380,
+        "maxY": 661,
+        "bodyPixels": 55062,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-idle-2",
+      "bounds": {
+        "minX": 233,
+        "minY": 162,
+        "maxX": 385,
+        "maxY": 650,
+        "bodyPixels": 55138,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-idle-3",
+      "bounds": {
+        "minX": 227,
+        "minY": 141,
+        "maxX": 377,
+        "maxY": 650,
+        "bodyPixels": 55318,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-walk-0",
+      "bounds": {
+        "minX": 188,
+        "minY": 170,
+        "maxX": 401,
+        "maxY": 664,
+        "bodyPixels": 56443,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-walk-1",
+      "bounds": {
+        "minX": 230,
+        "minY": 177,
+        "maxX": 390,
+        "maxY": 694,
+        "bodyPixels": 51965,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-walk-2",
+      "bounds": {
+        "minX": 206,
+        "minY": 173,
+        "maxX": 419,
+        "maxY": 653,
+        "bodyPixels": 54980,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-walk-3",
+      "bounds": {
+        "minX": 217,
+        "minY": 152,
+        "maxX": 377,
+        "maxY": 683,
+        "bodyPixels": 51349,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-0-read-0",
+      "bounds": {
+        "minX": 164,
+        "minY": 248,
+        "maxX": 357,
+        "maxY": 707,
+        "bodyPixels": 56040,
+        "fixturePixels": 40567
+      }
+    },
+    {
+      "label": "masculine-50-0-read-1",
+      "bounds": {
+        "minX": 248,
+        "minY": 253,
+        "maxX": 443,
+        "maxY": 707,
+        "bodyPixels": 54900,
+        "fixturePixels": 40316
+      }
+    },
+    {
+      "label": "masculine-50-0-read-2",
+      "bounds": {
+        "minX": 250,
+        "minY": 218,
+        "maxX": 443,
+        "maxY": 549,
+        "bodyPixels": 38822,
+        "fixturePixels": 55919
+      }
+    },
+    {
+      "label": "masculine-50-0-read-3",
+      "bounds": {
+        "minX": 164,
+        "minY": 197,
+        "maxX": 359,
+        "maxY": 549,
+        "bodyPixels": 39370,
+        "fixturePixels": 55919
+      }
+    },
+    {
+      "label": "masculine-50-50-idle-0",
+      "bounds": {
+        "minX": 218,
+        "minY": 159,
+        "maxX": 383,
+        "maxY": 663,
+        "bodyPixels": 60832,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-idle-1",
+      "bounds": {
+        "minX": 224,
+        "minY": 166,
+        "maxX": 389,
+        "maxY": 663,
+        "bodyPixels": 59481,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-idle-2",
+      "bounds": {
+        "minX": 224,
+        "minY": 162,
+        "maxX": 389,
+        "maxY": 651,
+        "bodyPixels": 59313,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-idle-3",
+      "bounds": {
+        "minX": 218,
+        "minY": 141,
+        "maxX": 383,
+        "maxY": 651,
+        "bodyPixels": 59478,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-walk-0",
+      "bounds": {
+        "minX": 186,
+        "minY": 170,
+        "maxX": 403,
+        "maxY": 663,
+        "bodyPixels": 60733,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-walk-1",
+      "bounds": {
+        "minX": 224,
+        "minY": 177,
+        "maxX": 399,
+        "maxY": 695,
+        "bodyPixels": 55743,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-walk-2",
+      "bounds": {
+        "minX": 204,
+        "minY": 173,
+        "maxX": 422,
+        "maxY": 652,
+        "bodyPixels": 58985,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-walk-3",
+      "bounds": {
+        "minX": 208,
+        "minY": 152,
+        "maxX": 383,
+        "maxY": 684,
+        "bodyPixels": 54642,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-50-read-0",
+      "bounds": {
+        "minX": 164,
+        "minY": 248,
+        "maxX": 366,
+        "maxY": 709,
+        "bodyPixels": 59520,
+        "fixturePixels": 38615
+      }
+    },
+    {
+      "label": "masculine-50-50-read-1",
+      "bounds": {
+        "minX": 240,
+        "minY": 253,
+        "maxX": 443,
+        "maxY": 709,
+        "bodyPixels": 58425,
+        "fixturePixels": 38273
+      }
+    },
+    {
+      "label": "masculine-50-50-read-2",
+      "bounds": {
+        "minX": 241,
+        "minY": 218,
+        "maxX": 443,
+        "maxY": 552,
+        "bodyPixels": 40268,
+        "fixturePixels": 55731
+      }
+    },
+    {
+      "label": "masculine-50-50-read-3",
+      "bounds": {
+        "minX": 164,
+        "minY": 197,
+        "maxX": 367,
+        "maxY": 552,
+        "bodyPixels": 40819,
+        "fixturePixels": 55731
+      }
+    },
+    {
+      "label": "masculine-50-100-idle-0",
+      "bounds": {
+        "minX": 194,
+        "minY": 159,
+        "maxX": 409,
+        "maxY": 667,
+        "bodyPixels": 73389,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-100-idle-1",
+      "bounds": {
+        "minX": 198,
+        "minY": 166,
+        "maxX": 413,
+        "maxY": 667,
+        "bodyPixels": 72038,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-100-idle-2",
+      "bounds": {
+        "minX": 198,
+        "minY": 162,
+        "maxX": 413,
+        "maxY": 656,
+        "bodyPixels": 71438,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-100-idle-3",
+      "bounds": {
+        "minX": 194,
+        "minY": 141,
+        "maxX": 409,
+        "maxY": 656,
+        "bodyPixels": 71376,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-100-walk-0",
+      "bounds": {
+        "minX": 178,
+        "minY": 170,
+        "maxX": 411,
+        "maxY": 660,
+        "bodyPixels": 73031,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-100-walk-1",
+      "bounds": {
+        "minX": 198,
+        "minY": 177,
+        "maxX": 422,
+        "maxY": 700,
+        "bodyPixels": 67032,
+        "fixturePixels": 0
+      }
+    },
+    {
+      "label": "masculine-50-100-walk-2",
+      "error": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'bounds')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    },
+    {
+      "label": "masculine-50-100-walk-3",
+      "error": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'bounds')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    },
+    {
+      "label": "masculine-50-100-read-0",
+      "error": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'bounds')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    },
+    {
+      "label": "masculine-50-100-read-1",
+      "error": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'bounds')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    },
+    {
+      "label": "masculine-50-100-read-2",
+      "error": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'bounds')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    },
+    {
+      "label": "masculine-50-100-read-3",
+      "error": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'bounds')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    }
+  ],
+  "errors": [],
+  "adapter": {
+    "vendor": "nvidia",
+    "architecture": "lovelace",
+    "device": "",
+    "description": ""
+  },
+  "heightBounds": [
+    {
+      "minX": 218,
+      "minY": 222,
+      "maxX": 383,
+      "maxY": 663,
+      "bodyPixels": 53000,
+      "fixturePixels": 0
+    },
+    {
+      "minX": 218,
+      "minY": 96,
+      "maxX": 383,
+      "maxY": 663,
+      "bodyPixels": 68690,
+      "fixturePixels": 0
+    }
+  ],
+  "depth": {
+    "near": 47855,
+    "far": 12952,
+    "mismatches": 0
+  },
+  "surface": [
+    {
+      "action": "idle",
+      "vertices": 62701,
+      "maxError": 0.000002384197432519386
+    },
+    {
+      "action": "walk",
+      "vertices": 62701,
+      "maxError": 0.0000020265716182372166
+    },
+    {
+      "action": "read",
+      "vertices": 62701,
+      "maxError": 6.556616756549588e-7
+    }
+  ],
+  "failure": "Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'set')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:27)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+}

@@ -1,0 +1,5693 @@
+{
+  "status": "PASS",
+  "date": "2026-10-14",
+  "oldCommit": "622a0c4b27448b0d5bf1e00c75924ccd5b34a69b",
+  "currentCommit": "e999fdf8f496756b16ddd1670e77b922c924cc0b",
+  "oldAtlasSha256": "5a05e0054259d4b98d681167302a5faa0a1c723b6bc87a634418223cde827bfd",
+  "currentAtlasSha256": "8d6d8bbd75b695f7a11c8bbc25f0e53b5589e662e2d876bf8b3da458b25bcc00",
+  "dependentSpriteCount": 184,
+  "anchorTablesEqual": [
+    "SPRITE_ANCHORS",
+    "SPRITE_CONTENT_BOUNDS",
+    "SPRITE_CONTENT_TOPS"
+  ],
+  "companionPages": [
+    {
+      "path": "assets/models/sims/character-repair/fixture-depth/depth-eaf741397ee951a975b258c3f004540f4a36eabc7fd4d2ee11439fd85485f7e1.rgba",
+      "expected": "eaf741397ee951a975b258c3f004540f4a36eabc7fd4d2ee11439fd85485f7e1",
+      "before": "eaf741397ee951a975b258c3f004540f4a36eabc7fd4d2ee11439fd85485f7e1",
+      "after": "eaf741397ee951a975b258c3f004540f4a36eabc7fd4d2ee11439fd85485f7e1"
+    },
+    {
+      "path": "assets/models/sims/character-repair/fixture-depth/depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba",
+      "expected": "970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9",
+      "before": "970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9",
+      "after": "970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9"
+    },
+    {
+      "path": "assets/models/sims/character-repair/aquarium-depth/depth-09538b9043abc023c75a0f4f9fec73079c1d71fa7c9b9f50f3e381e6604e4012.rgba",
+      "expected": "09538b9043abc023c75a0f4f9fec73079c1d71fa7c9b9f50f3e381e6604e4012",
+      "before": "09538b9043abc023c75a0f4f9fec73079c1d71fa7c9b9f50f3e381e6604e4012",
+      "after": "09538b9043abc023c75a0f4f9fec73079c1d71fa7c9b9f50f3e381e6604e4012"
+    },
+    {
+      "path": "assets/models/sims/character-repair/shelf-depth/depth-537fa04530194f515f1b54dc5bf4d7831c3e7f5ae6e197bc9f2415560b8ebdf0.rgba",
+      "expected": "537fa04530194f515f1b54dc5bf4d7831c3e7f5ae6e197bc9f2415560b8ebdf0",
+      "before": "537fa04530194f515f1b54dc5bf4d7831c3e7f5ae6e197bc9f2415560b8ebdf0",
+      "after": "537fa04530194f515f1b54dc5bf4d7831c3e7f5ae6e197bc9f2415560b8ebdf0"
+    },
+    {
+      "path": "assets/models/sims/character-repair/shelf-depth/depth-f18a18ffa0faf9a662bf582bd570a1394554531e2badfe0dd05486776bf094fe.rgba",
+      "expected": "f18a18ffa0faf9a662bf582bd570a1394554531e2badfe0dd05486776bf094fe",
+      "before": "f18a18ffa0faf9a662bf582bd570a1394554531e2badfe0dd05486776bf094fe",
+      "after": "f18a18ffa0faf9a662bf582bd570a1394554531e2badfe0dd05486776bf094fe"
+    },
+    {
+      "path": "assets/models/sims/character-repair/components/color-b3a69c9d11684069df7c78d48961c2a58d8a13b3ff53f8115e647e0bb3a0ea6f.rgba",
+      "expected": "b3a69c9d11684069df7c78d48961c2a58d8a13b3ff53f8115e647e0bb3a0ea6f",
+      "before": "b3a69c9d11684069df7c78d48961c2a58d8a13b3ff53f8115e647e0bb3a0ea6f",
+      "after": "b3a69c9d11684069df7c78d48961c2a58d8a13b3ff53f8115e647e0bb3a0ea6f"
+    },
+    {
+      "path": "assets/models/sims/character-repair/components/color-7c84521638dd6844e2238e05cd739f7e44932133c091970b8cfaaddd6e183079.rgba",
+      "expected": "7c84521638dd6844e2238e05cd739f7e44932133c091970b8cfaaddd6e183079",
+      "before": "7c84521638dd6844e2238e05cd739f7e44932133c091970b8cfaaddd6e183079",
+      "after": "7c84521638dd6844e2238e05cd739f7e44932133c091970b8cfaaddd6e183079"
+    },
+    {
+      "path": "assets/models/sims/character-repair/components/depth-f36822143eeddb76a5b1044c07200bc3fb41231dea7208116ada62680c13d174.rgba",
+      "expected": "f36822143eeddb76a5b1044c07200bc3fb41231dea7208116ada62680c13d174",
+      "before": "f36822143eeddb76a5b1044c07200bc3fb41231dea7208116ada62680c13d174",
+      "after": "f36822143eeddb76a5b1044c07200bc3fb41231dea7208116ada62680c13d174"
+    },
+    {
+      "path": "assets/models/sims/character-repair/components/depth-1e33df4b9dd56e8794eb7209d31a9852d35ef5121fb483441054d701d58480f7.rgba",
+      "expected": "1e33df4b9dd56e8794eb7209d31a9852d35ef5121fb483441054d701d58480f7",
+      "before": "1e33df4b9dd56e8794eb7209d31a9852d35ef5121fb483441054d701d58480f7",
+      "after": "1e33df4b9dd56e8794eb7209d31a9852d35ef5121fb483441054d701d58480f7"
+    },
+    {
+      "path": "assets/models/sims/character-repair/dropped-book/color-309123079f75fc699fd261e054bf4036d0ab1d4552621889af6c60217d319085.rgba",
+      "expected": "309123079f75fc699fd261e054bf4036d0ab1d4552621889af6c60217d319085",
+      "before": "309123079f75fc699fd261e054bf4036d0ab1d4552621889af6c60217d319085",
+      "after": "309123079f75fc699fd261e054bf4036d0ab1d4552621889af6c60217d319085"
+    },
+    {
+      "path": "assets/models/sims/character-repair/dropped-book/depth-686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7.rgba",
+      "expected": "686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7",
+      "before": "686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7",
+      "after": "686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7"
+    }
+  ],
+  "sprites": [
+    {
+      "index": 849,
+      "name": "offlineBike",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1254,
+        1797,
+        192,
+        240
+      ],
+      "currentRect": [
+        1254,
+        1797,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 850,
+      "name": "offlineBikeNW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1447,
+        1797,
+        192,
+        240
+      ],
+      "currentRect": [
+        1447,
+        1797,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 851,
+      "name": "offlineBikeSW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1640,
+        1797,
+        192,
+        240
+      ],
+      "currentRect": [
+        1640,
+        1797,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 852,
+      "name": "offlineBikeNE",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1833,
+        1797,
+        192,
+        240
+      ],
+      "currentRect": [
+        1833,
+        1797,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 853,
+      "name": "offlineChair",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "currentPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "oldRect": [
+        0,
+        1799,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        1799,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e"
+    },
+    {
+      "index": 854,
+      "name": "offlineChairNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "currentPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "oldRect": [
+        193,
+        1799,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        1799,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e"
+    },
+    {
+      "index": 855,
+      "name": "offlineChairSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "currentPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "oldRect": [
+        386,
+        1799,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        1799,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e"
+    },
+    {
+      "index": 856,
+      "name": "offlineChairNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "currentPage": "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png",
+      "oldRect": [
+        579,
+        1799,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        1799,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e"
+    },
+    {
+      "index": 1089,
+      "name": "offlineFridge",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        193,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1090,
+      "name": "offlineFridgeNW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        386,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1091,
+      "name": "offlineFridgeSW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        579,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1092,
+      "name": "offlineFridgeNE",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        772,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1093,
+      "name": "offlineStove",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        965,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1094,
+      "name": "offlineStoveNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1158,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1095,
+      "name": "offlineStoveSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1351,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1096,
+      "name": "offlineStoveNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1544,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1097,
+      "name": "offlineCounter",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1737,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1098,
+      "name": "offlineCounterNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        0,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1099,
+      "name": "offlineCounterSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        193,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1100,
+      "name": "offlineCounterNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        386,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1101,
+      "name": "offlineSink",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        579,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1102,
+      "name": "offlineSinkNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        772,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1103,
+      "name": "offlineSinkSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        965,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1104,
+      "name": "offlineSinkNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1158,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1105,
+      "name": "offlineBathroomSink",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1351,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1106,
+      "name": "offlineBathroomSinkNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1544,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1107,
+      "name": "offlineBathroomSinkSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "currentPage": "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png",
+      "oldRect": [
+        1737,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b"
+    },
+    {
+      "index": 1108,
+      "name": "offlineBathroomSinkNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        0,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1109,
+      "name": "offlineToilet",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        193,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1110,
+      "name": "offlineToiletNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        386,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1111,
+      "name": "offlineToiletSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        579,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1112,
+      "name": "offlineToiletNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        772,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1113,
+      "name": "offlineShower",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        965,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1114,
+      "name": "offlineShowerNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1158,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1115,
+      "name": "offlineShowerSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1351,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1116,
+      "name": "offlineShowerNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1544,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1117,
+      "name": "offlineLaundry",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1737,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1118,
+      "name": "offlineLaundryNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        0,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1119,
+      "name": "offlineLaundrySW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        193,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1120,
+      "name": "offlineLaundryNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        386,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1121,
+      "name": "offlineBathtub",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        674,
+        1083,
+        320,
+        352
+      ],
+      "currentRect": [
+        674,
+        1083,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1122,
+      "name": "offlineBathtubNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        995,
+        1083,
+        320,
+        352
+      ],
+      "currentRect": [
+        995,
+        1083,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1123,
+      "name": "offlineBathtubSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1316,
+        1083,
+        320,
+        352
+      ],
+      "currentRect": [
+        1316,
+        1083,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1124,
+      "name": "offlineBathtubNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1637,
+        1083,
+        320,
+        352
+      ],
+      "currentRect": [
+        1637,
+        1083,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1125,
+      "name": "offlineNightstand",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        579,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1126,
+      "name": "offlineNightstandNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        772,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1127,
+      "name": "offlineNightstandSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        965,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1128,
+      "name": "offlineNightstandNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1158,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1129,
+      "name": "offlineDresser",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1351,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1130,
+      "name": "offlineDresserNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1544,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1131,
+      "name": "offlineDresserSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1737,
+        241,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        241,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1132,
+      "name": "offlineDresserNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        0,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1133,
+      "name": "offlineDoubleBed",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        0,
+        1444,
+        320,
+        352
+      ],
+      "currentRect": [
+        0,
+        1444,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1134,
+      "name": "offlineDoubleBedNW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        321,
+        1444,
+        320,
+        352
+      ],
+      "currentRect": [
+        321,
+        1444,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1135,
+      "name": "offlineDoubleBedSW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        642,
+        1444,
+        320,
+        352
+      ],
+      "currentRect": [
+        642,
+        1444,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1136,
+      "name": "offlineDoubleBedNE",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        963,
+        1444,
+        320,
+        352
+      ],
+      "currentRect": [
+        963,
+        1444,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1137,
+      "name": "offlineBunk",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        0,
+        1765,
+        200,
+        272
+      ],
+      "currentRect": [
+        0,
+        1765,
+        200,
+        272
+      ],
+      "density": 2,
+      "anchor": [
+        50.000009536743164,
+        124.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1138,
+      "name": "offlineBunkNW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        201,
+        1765,
+        200,
+        272
+      ],
+      "currentRect": [
+        201,
+        1765,
+        200,
+        272
+      ],
+      "density": 2,
+      "anchor": [
+        50.000009536743164,
+        124.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1139,
+      "name": "offlineBunkSW",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        402,
+        1765,
+        200,
+        272
+      ],
+      "currentRect": [
+        402,
+        1765,
+        200,
+        272
+      ],
+      "density": 2,
+      "anchor": [
+        50.000009536743164,
+        124.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1140,
+      "name": "offlineBunkNE",
+      "bundles": [
+        "components",
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        603,
+        1765,
+        200,
+        272
+      ],
+      "currentRect": [
+        603,
+        1765,
+        200,
+        272
+      ],
+      "density": 2,
+      "anchor": [
+        50.000009536743164,
+        124.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1213,
+      "name": "offlineDesk",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1284,
+        1444,
+        320,
+        352
+      ],
+      "currentRect": [
+        1284,
+        1444,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1214,
+      "name": "offlineDeskNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "currentPage": "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png",
+      "oldRect": [
+        1605,
+        1444,
+        320,
+        352
+      ],
+      "currentRect": [
+        1605,
+        1444,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9"
+    },
+    {
+      "index": 1215,
+      "name": "offlineDeskSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        0,
+        0,
+        320,
+        352
+      ],
+      "currentRect": [
+        0,
+        0,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1216,
+      "name": "offlineDeskNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        321,
+        0,
+        320,
+        352
+      ],
+      "currentRect": [
+        321,
+        0,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1246,
+      "name": "offlineDeskChair",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        193,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1247,
+      "name": "offlineDeskChairNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        386,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1248,
+      "name": "offlineDeskChairSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        579,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1249,
+      "name": "offlineDeskChairNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        772,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1250,
+      "name": "offlineDiningChair",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        965,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1251,
+      "name": "offlineDiningChairNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1158,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1252,
+      "name": "offlineDiningChairSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1351,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1253,
+      "name": "offlineDiningChairNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1544,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1254,
+      "name": "offlineDiningTable",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        642,
+        0,
+        320,
+        352
+      ],
+      "currentRect": [
+        642,
+        0,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1255,
+      "name": "offlineDiningTableNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        963,
+        0,
+        320,
+        352
+      ],
+      "currentRect": [
+        963,
+        0,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1256,
+      "name": "offlineDiningTableSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        1284,
+        0,
+        320,
+        352
+      ],
+      "currentRect": [
+        1284,
+        0,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1257,
+      "name": "offlineDiningTableNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        1605,
+        0,
+        320,
+        352
+      ],
+      "currentRect": [
+        1605,
+        0,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1258,
+      "name": "offlineLongSofa",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        0,
+        353,
+        320,
+        352
+      ],
+      "currentRect": [
+        0,
+        353,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1259,
+      "name": "offlineLongSofaNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        321,
+        353,
+        320,
+        352
+      ],
+      "currentRect": [
+        321,
+        353,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1260,
+      "name": "offlineLongSofaSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        642,
+        353,
+        320,
+        352
+      ],
+      "currentRect": [
+        642,
+        353,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1261,
+      "name": "offlineLongSofaNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "currentPage": "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png",
+      "oldRect": [
+        963,
+        353,
+        320,
+        352
+      ],
+      "currentRect": [
+        963,
+        353,
+        320,
+        352
+      ],
+      "density": 2,
+      "anchor": [
+        80.00000953674316,
+        144.00043869018555
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd"
+    },
+    {
+      "index": 1262,
+      "name": "offlineTelevision",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1737,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1263,
+      "name": "offlineTelevisionNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        0,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1264,
+      "name": "offlineTelevisionSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        193,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1265,
+      "name": "offlineTelevisionNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        386,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1266,
+      "name": "offlineRadio",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        579,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1267,
+      "name": "offlineRadioNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        772,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1268,
+      "name": "offlineRadioSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        965,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1269,
+      "name": "offlineRadioNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1158,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1270,
+      "name": "offlineArmchair",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1351,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1271,
+      "name": "offlineArmchairNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1544,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1272,
+      "name": "offlineArmchairSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        1737,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1273,
+      "name": "offlineArmchairNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "currentPage": "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png",
+      "oldRect": [
+        0,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4"
+    },
+    {
+      "index": 1346,
+      "name": "offlineFloorLamp",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        193,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1347,
+      "name": "offlineFloorLampNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        386,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1348,
+      "name": "offlineFloorLampSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        579,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1349,
+      "name": "offlineFloorLampNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        772,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1350,
+      "name": "offlineCoatRack",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        965,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1351,
+      "name": "offlineCoatRackNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1158,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1352,
+      "name": "offlineCoatRackSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1351,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1353,
+      "name": "offlineCoatRackNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1544,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1354,
+      "name": "offlinePottedPlant",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1737,
+        482,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        482,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1355,
+      "name": "offlinePottedPlantNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        0,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1356,
+      "name": "offlinePottedPlantSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        193,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1357,
+      "name": "offlinePottedPlantNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        386,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1358,
+      "name": "offlineOttoman",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        579,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1359,
+      "name": "offlineOttomanNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        772,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1360,
+      "name": "offlineOttomanSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        772,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1361,
+      "name": "offlineOttomanNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        965,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1362,
+      "name": "offlineTrashcan",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1158,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1363,
+      "name": "offlineTrashcanNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1351,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1364,
+      "name": "offlineTrashcanSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1544,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1365,
+      "name": "offlineTrashcanNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1737,
+        723,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        723,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1366,
+      "name": "offlineBookcase",
+      "bundles": [
+        "fixture-depth",
+        "shelf-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        0,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1367,
+      "name": "offlineBookcaseNW",
+      "bundles": [
+        "fixture-depth",
+        "shelf-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        193,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1368,
+      "name": "offlineBookcaseSW",
+      "bundles": [
+        "fixture-depth",
+        "shelf-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        386,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1369,
+      "name": "offlineBookcaseNE",
+      "bundles": [
+        "fixture-depth",
+        "shelf-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        579,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 1536,
+      "name": "dirtyDishes",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        994,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1422,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "6b03a46d61b2861e62f5fc21ebbe21cd020f7113d0a47e5f513e486123585f94",
+      "currentCropSha256": "6b03a46d61b2861e62f5fc21ebbe21cd020f7113d0a47e5f513e486123585f94"
+    },
+    {
+      "index": 1537,
+      "name": "dirtyDishesNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1043,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1471,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "167883e7820ac0d8363dc098e1b9f8718d25d795e22f8aeb8d2b445217725066",
+      "currentCropSha256": "167883e7820ac0d8363dc098e1b9f8718d25d795e22f8aeb8d2b445217725066"
+    },
+    {
+      "index": 1538,
+      "name": "dirtyDishesSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1092,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1520,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "d614d2bdb14f58e66c0c11e084af8e70ae3862dfea2bd61ee4d6a669a582df29",
+      "currentCropSha256": "d614d2bdb14f58e66c0c11e084af8e70ae3862dfea2bd61ee4d6a669a582df29"
+    },
+    {
+      "index": 1539,
+      "name": "dirtyDishesNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1141,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1569,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "331e626e638abaaa4b3c2933ba2cdf5c08f43efb124080cd622a6c857675567b",
+      "currentCropSha256": "331e626e638abaaa4b3c2933ba2cdf5c08f43efb124080cd622a6c857675567b"
+    },
+    {
+      "index": 1540,
+      "name": "dirtyDishesPair",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1190,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1618,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "ac28bc610a1474d3e92fe3e84b8bc45e78870d7992763109fcd1b47f5ca32cb6",
+      "currentCropSha256": "ac28bc610a1474d3e92fe3e84b8bc45e78870d7992763109fcd1b47f5ca32cb6"
+    },
+    {
+      "index": 1541,
+      "name": "dirtyDishesPairNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1239,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1667,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "6514b57359106901d16da69da7457f7c90d600e1afcf0e79e6442404c21704e9",
+      "currentCropSha256": "6514b57359106901d16da69da7457f7c90d600e1afcf0e79e6442404c21704e9"
+    },
+    {
+      "index": 1542,
+      "name": "dirtyDishesPairSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1288,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1716,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "5dfb1e9f96dca5230e8311c4161a269c818546bd0584477f953243f2a6087d42",
+      "currentCropSha256": "5dfb1e9f96dca5230e8311c4161a269c818546bd0584477f953243f2a6087d42"
+    },
+    {
+      "index": 1543,
+      "name": "dirtyDishesPairNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1337,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1765,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "468c203a884f59f4b20b6f4f33bfa3c4560d0881cb578e2176457256719fc159",
+      "currentCropSha256": "468c203a884f59f4b20b6f4f33bfa3c4560d0881cb578e2176457256719fc159"
+    },
+    {
+      "index": 1544,
+      "name": "dirtyPrep",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1386,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1814,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "c6cc963d4d89c902278180ac298fef4f2228e8e96afd441531ce190011c9cf6f",
+      "currentCropSha256": "c6cc963d4d89c902278180ac298fef4f2228e8e96afd441531ce190011c9cf6f"
+    },
+    {
+      "index": 1545,
+      "name": "dirtyPrepNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1435,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1863,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "458e1378144ab625e754871abdc692866f1789c6482d01b509584f7feb11ca3c",
+      "currentCropSha256": "458e1378144ab625e754871abdc692866f1789c6482d01b509584f7feb11ca3c"
+    },
+    {
+      "index": 1546,
+      "name": "dirtyPrepSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1484,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1912,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "b7e90708a1d1ec8da561ce3f54d72953ee49dd2d3026a09a489ce19a19d5256a",
+      "currentCropSha256": "b7e90708a1d1ec8da561ce3f54d72953ee49dd2d3026a09a489ce19a19d5256a"
+    },
+    {
+      "index": 1547,
+      "name": "dirtyPrepNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "oldRect": [
+        1533,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        1961,
+        1987,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "3eb1914c30a9260772dbe050707e12bce0c4c0398d243ef09da243fc8241a0c1",
+      "currentCropSha256": "3eb1914c30a9260772dbe050707e12bce0c4c0398d243ef09da243fc8241a0c1"
+    },
+    {
+      "index": 1548,
+      "name": "dirtyPrepLarge",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1582,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        0,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "8af593762aaad8dab9449f31f3c1f3a61eda75441800b55533bab32ae1385659",
+      "currentCropSha256": "8af593762aaad8dab9449f31f3c1f3a61eda75441800b55533bab32ae1385659"
+    },
+    {
+      "index": 1549,
+      "name": "dirtyPrepLargeNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1631,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        49,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "7653410aca5e710f941140712332692897772ee7d49ecc98dc90d177703496d8",
+      "currentCropSha256": "7653410aca5e710f941140712332692897772ee7d49ecc98dc90d177703496d8"
+    },
+    {
+      "index": 1550,
+      "name": "dirtyPrepLargeSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1680,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        98,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "603a98bae459f2016f403410d903a2aedb546015fc49d3a8f119986af6550696",
+      "currentCropSha256": "603a98bae459f2016f403410d903a2aedb546015fc49d3a8f119986af6550696"
+    },
+    {
+      "index": 1551,
+      "name": "dirtyPrepLargeNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1729,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        147,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "02b7188c2b244a33d2b2121c72de1b47e9776710301fbc67aef79f91697a637b",
+      "currentCropSha256": "02b7188c2b244a33d2b2121c72de1b47e9776710301fbc67aef79f91697a637b"
+    },
+    {
+      "index": 1552,
+      "name": "mealPlate",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1778,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        196,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "db0c6a2316189b4a1e86124df20376159ba2f1f6d258c8360f7f0ff93ad611ef",
+      "currentCropSha256": "db0c6a2316189b4a1e86124df20376159ba2f1f6d258c8360f7f0ff93ad611ef"
+    },
+    {
+      "index": 1553,
+      "name": "mealPlateNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1827,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        245,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "b89b96e33d20b6de7ddc3fca79a73f267fb2c076a9f8313ebf415522867af4ed",
+      "currentCropSha256": "b89b96e33d20b6de7ddc3fca79a73f267fb2c076a9f8313ebf415522867af4ed"
+    },
+    {
+      "index": 1554,
+      "name": "mealPlateSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1876,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        294,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "2b221ab71774383de3f0aee5c60cd8048e6dbfeb70204c1e22cc97d532a923af",
+      "currentCropSha256": "2b221ab71774383de3f0aee5c60cd8048e6dbfeb70204c1e22cc97d532a923af"
+    },
+    {
+      "index": 1555,
+      "name": "mealPlateNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1925,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        343,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "e3b78a165c57ea2edf692f7dfa75d9a982a7f0f07fed123d3c7e1e66f4070478",
+      "currentCropSha256": "e3b78a165c57ea2edf692f7dfa75d9a982a7f0f07fed123d3c7e1e66f4070478"
+    },
+    {
+      "index": 2249,
+      "name": "cookingPot",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1974,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        392,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "00a9d6d6c4d9d1a4e058afb97734ac864be8ce556c98ab2f6b6cc098c31cb9ea",
+      "currentCropSha256": "00a9d6d6c4d9d1a4e058afb97734ac864be8ce556c98ab2f6b6cc098c31cb9ea"
+    },
+    {
+      "index": 2250,
+      "name": "cookingPotNW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        0,
+        1987,
+        48,
+        48
+      ],
+      "currentRect": [
+        441,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "b5ec23faed34b782d818d4b65297308954327ee6487624c0a0c53544c13b6b76",
+      "currentCropSha256": "b5ec23faed34b782d818d4b65297308954327ee6487624c0a0c53544c13b6b76"
+    },
+    {
+      "index": 2251,
+      "name": "cookingPotSW",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        49,
+        1987,
+        48,
+        48
+      ],
+      "currentRect": [
+        490,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "18e67c9d02e4f67cc773ffb588f8aac0832738475731ae248c167f6b276dd90b",
+      "currentCropSha256": "18e67c9d02e4f67cc773ffb588f8aac0832738475731ae248c167f6b276dd90b"
+    },
+    {
+      "index": 2252,
+      "name": "cookingPotNE",
+      "bundles": [
+        "fixture-depth"
+      ],
+      "oldPage": "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "currentPage": "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+      "oldRect": [
+        1974,
+        1964,
+        48,
+        48
+      ],
+      "currentRect": [
+        392,
+        1999,
+        48,
+        48
+      ],
+      "density": 2,
+      "anchor": [
+        12.00001859664917,
+        33.51225256919861
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "00a9d6d6c4d9d1a4e058afb97734ac864be8ce556c98ab2f6b6cc098c31cb9ea",
+      "currentCropSha256": "00a9d6d6c4d9d1a4e058afb97734ac864be8ce556c98ab2f6b6cc098c31cb9ea"
+    },
+    {
+      "index": 2445,
+      "name": "offlineAquarium",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        772,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2446,
+      "name": "offlineAquariumNW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        965,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2447,
+      "name": "offlineAquariumSW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1158,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2448,
+      "name": "offlineAquariumNE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1351,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2449,
+      "name": "offlineAquariumFrame1",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1544,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2450,
+      "name": "offlineAquariumFrame1NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1737,
+        964,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        964,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2451,
+      "name": "offlineAquariumFrame1SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        0,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2452,
+      "name": "offlineAquariumFrame1NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        193,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2483,
+      "name": "offlineAquariumSwim0",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        386,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2484,
+      "name": "offlineAquariumSwim0NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        579,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2485,
+      "name": "offlineAquariumSwim0SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        772,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2486,
+      "name": "offlineAquariumSwim0NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        965,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2487,
+      "name": "offlineAquariumSwim1",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1158,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2488,
+      "name": "offlineAquariumSwim1NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1351,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2489,
+      "name": "offlineAquariumSwim1SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1544,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2490,
+      "name": "offlineAquariumSwim1NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1737,
+        1205,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        1205,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2491,
+      "name": "offlineAquariumSwim2",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        0,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2492,
+      "name": "offlineAquariumSwim2NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        193,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2493,
+      "name": "offlineAquariumSwim2SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        386,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2494,
+      "name": "offlineAquariumSwim2NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        579,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2495,
+      "name": "offlineAquariumSwim3",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        772,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2496,
+      "name": "offlineAquariumSwim3NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        965,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2497,
+      "name": "offlineAquariumSwim3SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1158,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2498,
+      "name": "offlineAquariumSwim3NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1351,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2499,
+      "name": "offlineAquariumSwim4",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1544,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2500,
+      "name": "offlineAquariumSwim4NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1737,
+        1446,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        1446,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2501,
+      "name": "offlineAquariumSwim4SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        0,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2502,
+      "name": "offlineAquariumSwim4NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        193,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2503,
+      "name": "offlineAquariumSwim5",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        386,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2504,
+      "name": "offlineAquariumSwim5NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        579,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2505,
+      "name": "offlineAquariumSwim5SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        772,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        772,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2506,
+      "name": "offlineAquariumSwim5NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        965,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        965,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2507,
+      "name": "offlineAquariumSwim6",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1158,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1158,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2508,
+      "name": "offlineAquariumSwim6NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1351,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1351,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2509,
+      "name": "offlineAquariumSwim6SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1544,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1544,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2510,
+      "name": "offlineAquariumSwim6NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "currentPage": "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png",
+      "oldRect": [
+        1737,
+        1687,
+        192,
+        240
+      ],
+      "currentRect": [
+        1737,
+        1687,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33"
+    },
+    {
+      "index": 2511,
+      "name": "offlineAquariumSwim7",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "currentPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "oldRect": [
+        0,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        0,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352"
+    },
+    {
+      "index": 2512,
+      "name": "offlineAquariumSwim7NW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "currentPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "oldRect": [
+        193,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        193,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352"
+    },
+    {
+      "index": 2513,
+      "name": "offlineAquariumSwim7SW",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "currentPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "oldRect": [
+        386,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        386,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352"
+    },
+    {
+      "index": 2514,
+      "name": "offlineAquariumSwim7NE",
+      "bundles": [
+        "aquarium-depth"
+      ],
+      "oldPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "currentPage": "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png",
+      "oldRect": [
+        579,
+        0,
+        192,
+        240
+      ],
+      "currentRect": [
+        579,
+        0,
+        192,
+        240
+      ],
+      "density": 2,
+      "anchor": [
+        48.0000114440918,
+        116.0004369020462
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352"
+    },
+    {
+      "index": 30595,
+      "name": "ownedDroppedBookSE",
+      "bundles": [
+        "dropped-book"
+      ],
+      "oldPage": "atlas-30fc966c2ae7a3dc5b394c2fc05d8bb670969a14b54556f48ff400c2d118bee1.png",
+      "currentPage": "atlas-30fc966c2ae7a3dc5b394c2fc05d8bb670969a14b54556f48ff400c2d118bee1.png",
+      "oldRect": [
+        2022,
+        1844,
+        25,
+        32
+      ],
+      "currentRect": [
+        2022,
+        1844,
+        25,
+        32
+      ],
+      "density": 2,
+      "anchor": [
+        6.500011444091797,
+        35.000436902046204
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "30fc966c2ae7a3dc5b394c2fc05d8bb670969a14b54556f48ff400c2d118bee1"
+    },
+    {
+      "index": 30596,
+      "name": "ownedDroppedBookNW",
+      "bundles": [
+        "dropped-book"
+      ],
+      "oldPage": "atlas-99e4cc40b4562efae767d0301b59e20cdd0343a840284fd407c8864b72e8cb6a.png",
+      "currentPage": "atlas-9d672a8689fd2cfc219e7cd662f23a0cbb25ff6fa39de49500f1926967c10967.png",
+      "oldRect": [
+        1839,
+        1375,
+        25,
+        28
+      ],
+      "currentRect": [
+        1139,
+        1547,
+        25,
+        28
+      ],
+      "density": 2,
+      "anchor": [
+        6.000011444091797,
+        34.000436902046204
+      ],
+      "equal": true,
+      "method": "exact-decoded-rgba",
+      "oldCropSha256": "7d3ed052a12427438ce980d3c585c179ed85c32a5e287656ebbf3731561860da",
+      "currentCropSha256": "7d3ed052a12427438ce980d3c585c179ed85c32a5e287656ebbf3731561860da"
+    },
+    {
+      "index": 30597,
+      "name": "ownedDroppedBookSW",
+      "bundles": [
+        "dropped-book"
+      ],
+      "oldPage": "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png",
+      "currentPage": "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png",
+      "oldRect": [
+        2022,
+        1083,
+        12,
+        42
+      ],
+      "currentRect": [
+        2022,
+        1083,
+        12,
+        42
+      ],
+      "density": 2,
+      "anchor": [
+        3.000011444091797,
+        37.500436902046204
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960"
+    },
+    {
+      "index": 30598,
+      "name": "ownedDroppedBookNE",
+      "bundles": [
+        "dropped-book"
+      ],
+      "oldPage": "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png",
+      "currentPage": "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png",
+      "oldRect": [
+        2035,
+        1083,
+        12,
+        42
+      ],
+      "currentRect": [
+        2035,
+        1083,
+        12,
+        42
+      ],
+      "density": 2,
+      "anchor": [
+        3.000011444091797,
+        37.500436902046204
+      ],
+      "equal": true,
+      "method": "identical-full-page-sha256-and-rectangle",
+      "pageSha256": "e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960"
+    }
+  ],
+  "unchangedPageDigests": {
+    "atlas-14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9.png": "14ad9d298010043265f56dcf05d11020182aa88a2399899afb6240192b111af9",
+    "atlas-be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e.png": "be47f9e1600206f0b34bb36f7e004f0814f6af8d4688453ead55c27c612a2f3e",
+    "atlas-4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b.png": "4e80de70d7b34b4acc7e026e053c1661a551432b1372473abf78e79e5a3c4d2b",
+    "atlas-c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4.png": "c8f89fa27da7f7800a91ad143e4c479041d228d3e0daa584b374da98cf5fecd4",
+    "atlas-5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd.png": "5f09234263e66c2f60611333e651afc3f79c8a8cba1369fc83f92c8bc43ce4dd",
+    "atlas-863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33.png": "863a54633a6d0f0b59658b4852af1ddf60734da791dd7b13695e9a2ec93f0b33",
+    "atlas-65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352.png": "65250ee0658f31220c3c8997a9e2eeb9c67ba8445f1fe17493123b74bf163352",
+    "atlas-30fc966c2ae7a3dc5b394c2fc05d8bb670969a14b54556f48ff400c2d118bee1.png": "30fc966c2ae7a3dc5b394c2fc05d8bb670969a14b54556f48ff400c2d118bee1",
+    "atlas-e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960.png": "e57812ddc2672ca89c049cc2a55a91c2946fcfa58b1024c9d55aad031db43960"
+  },
+  "decodedPages": {
+    "old": [
+      "atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+      "atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png",
+      "atlas-99e4cc40b4562efae767d0301b59e20cdd0343a840284fd407c8864b72e8cb6a.png"
+    ],
+    "current": [
+      "atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+      "atlas-9d672a8689fd2cfc219e7cd662f23a0cbb25ff6fa39de49500f1926967c10967.png",
+      "atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png"
+    ]
+  },
+  "changedCropCount": 25,
+  "companionAlphaChecks": [
+    {
+      "index": 1536,
+      "name": "dirtyDishes",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1537,
+      "name": "dirtyDishesNW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1538,
+      "name": "dirtyDishesSW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1539,
+      "name": "dirtyDishesNE",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1540,
+      "name": "dirtyDishesPair",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 594,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1541,
+      "name": "dirtyDishesPairNW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 594,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1542,
+      "name": "dirtyDishesPairSW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 594,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1543,
+      "name": "dirtyDishesPairNE",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 594,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1544,
+      "name": "dirtyPrep",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 684,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1545,
+      "name": "dirtyPrepNW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 684,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1546,
+      "name": "dirtyPrepSW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 684,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1547,
+      "name": "dirtyPrepNE",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 685,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 30596,
+      "name": "ownedDroppedBookNW",
+      "bundle": "dropped-book",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 559,
+      "companionPage": "depth-686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7.rgba"
+    },
+    {
+      "index": 1548,
+      "name": "dirtyPrepLarge",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 760,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1549,
+      "name": "dirtyPrepLargeNW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 759,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1550,
+      "name": "dirtyPrepLargeSW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 761,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1551,
+      "name": "dirtyPrepLargeNE",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 761,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1552,
+      "name": "mealPlate",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1553,
+      "name": "mealPlateNW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1554,
+      "name": "mealPlateSW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 1555,
+      "name": "mealPlateNE",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 558,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 2249,
+      "name": "cookingPot",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 1010,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 2250,
+      "name": "cookingPotNW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 1010,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 2251,
+      "name": "cookingPotSW",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 1010,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    },
+    {
+      "index": 2252,
+      "name": "cookingPotNE",
+      "bundle": "fixture-depth",
+      "nonzeroAlphaEqual": true,
+      "coveredPixels": 1010,
+      "companionPage": "depth-970d29f9599f75a3cb8bbc26c25d1f1c04ee9e94748491445fe23926978546a9.rgba"
+    }
+  ],
+  "alphaScope": "Direct alpha comparison covers all 25 changed crops. The remaining 159 source crops are proved unchanged by complete page hashes and identical coordinates; this run does not repeat their prior companion-alpha validation.",
+  "manifestsUnchanged": true
+}

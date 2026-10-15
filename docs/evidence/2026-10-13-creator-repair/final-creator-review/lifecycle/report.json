@@ -1,0 +1,114 @@
+{
+  "cycles": [
+    {
+      "cycle": 0,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 19,
+        "textures": 10,
+        "bufferBytes": 24931336
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      }
+    },
+    {
+      "cycle": 1,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 19,
+        "textures": 10,
+        "bufferBytes": 17502696
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      }
+    },
+    {
+      "cycle": 2,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 19,
+        "textures": 10,
+        "bufferBytes": 22587400
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      }
+    },
+    {
+      "cycle": 3,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 19,
+        "textures": 10,
+        "bufferBytes": 22587400
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      }
+    }
+  ],
+  "errors": [],
+  "notices": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:5187/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:5187/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "scope": "Counts explicit buffers and textures allocated after startup; physical driver reclamation is not measured.",
+  "pass": false,
+  "failure": {
+    "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    84,\n    69,\n    82,\n    82,\n...\n    0,\n-   1,\n    0,\n-   1,\n-   34,\n    0,\n    2,\n    62,\n    0,\n    8,\n...\n    0,\n-   1,\n    0,\n    0,\n    0,\n    3,\n    0,\n...\n    0,\n-   1,\n    0\n  ]\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    84,\n    69,\n    82,\n    82,\n...\n    0,\n-   1,\n    0,\n-   1,\n-   34,\n    0,\n    2,\n    62,\n    0,\n    8,\n...\n    0,\n-   1,\n    0,\n    0,\n    0,\n    3,\n    0,\n...\n    0,\n-   1,\n    0\n  ]\n\n    at D:\\VIBES\\.worktrees\\5637\\terrilives\\scripts\\character-creator-repair\\final-creator-lifecycle.cjs:75:12"
+  },
+  "cleanup": {
+    "contextClosed": true,
+    "browserClosed": true,
+    "serverUntouched": true
+  }
+}

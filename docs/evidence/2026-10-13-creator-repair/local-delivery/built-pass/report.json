@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Preview controls have at least 16 pixels above and below",
+    "Trait limit has one group notice and no repeated field descriptions",
+    "Unapplied creator keeps live save exact",
+    "Built creator creates the fourth household member",
+    "Created household reloads through required preparation",
+    "Reload preserves exact saved bytes",
+    "No browser or graphics errors"
+  ],
+  "spacing": {
+    "previewToControls": 20,
+    "controlsToSample": 20
+  },
+  "note": {
+    "total": 1,
+    "fields": 0
+  },
+  "saveSha256": "5d36a138bc10bbd2f5d9cf8f8bb72466c1cb8ee99df378fdb63e256c2511ddcc",
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "bundleFiles": {
+    "index-c9AyCnJV.js": "1fdd5e31b63c6b6a7e560f01fca7d219ac35ee0f147b192282edfba1eea08d35",
+    "preparation-worker-BvFNo158.js": "dbc85a38fdec1bd2ae336792ebdcfa1247e17e2b3f178d3f1b2797440e6267fa",
+    "save-worker-BUAmGpzQ.js": "5f88f783ce01941a9493fba305f69d4f133fb0c028fb561385f20fd5d996a076",
+    "terri_wasm_bg-B3P27jSk.wasm": "efbd90129fe4a1005b2280e469553bd3a866f11e305514d9529e59b4561da1a0"
+  }
+}

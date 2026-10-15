@@ -1,0 +1,13 @@
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.44s
+     Running unittests examples\migrate_chores_preview.rs (target\debug\examples\migrate_chores_preview-1e82605c9642584b.exe)
+
+running 5 tests
+test tests::complete_preview_requires_canonical_bytes_and_exact_header ... ok
+test tests::conversion_preserves_state_and_continues_after_resave ... ok
+test tests::conversion_rejects_semantically_invalid_preview ... ok
+test tests::six_preview_command_tags_convert_by_meaning ... ok
+test tests::supplied_private_preview_preserves_state_and_continues_after_resave ... ignored, requires an explicitly supplied private save path
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 4.45s
+

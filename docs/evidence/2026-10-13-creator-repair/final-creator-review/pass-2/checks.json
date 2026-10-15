@@ -1,0 +1,1218 @@
+{
+  "checks": [
+    {
+      "name": "Observer attached to actual application module",
+      "pass": true,
+      "evidence": "http://127.0.0.1:5187/src/ui/character-creator/view.ts?t=1791920721295"
+    },
+    {
+      "name": "First draft traits are between one and four",
+      "pass": true,
+      "evidence": [
+        {
+          "id": "isolated",
+          "state": 1052938076
+        },
+        {
+          "id": "chatterbox",
+          "state": 0
+        }
+      ]
+    },
+    {
+      "name": "Appearance groups start collapsed",
+      "pass": true,
+      "evidence": [
+        {
+          "label": "Colors",
+          "open": false
+        },
+        {
+          "label": "Body",
+          "open": false
+        },
+        {
+          "label": "Style",
+          "open": false
+        },
+        {
+          "label": "Face",
+          "open": false
+        },
+        {
+          "label": "Details",
+          "open": false
+        }
+      ]
+    },
+    {
+      "name": "First Randomize traits are between one and four",
+      "pass": true,
+      "evidence": [
+        {
+          "id": "private_person",
+          "state": 0
+        },
+        {
+          "id": "television_devotee",
+          "state": 0
+        }
+      ]
+    },
+    {
+      "name": "Trait cap count 0",
+      "pass": true,
+      "evidence": {
+        "note": "0 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 0,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 1",
+      "pass": true,
+      "evidence": {
+        "note": "1 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 1,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 2",
+      "pass": true,
+      "evidence": {
+        "note": "2 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 2,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 3",
+      "pass": true,
+      "evidence": {
+        "note": "3 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 3,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 4",
+      "pass": true,
+      "evidence": {
+        "note": "4 of 4 traits selected. Remove a selected trait to make room.",
+        "occurrences": 1,
+        "checked": 4,
+        "disabled": 11
+      }
+    },
+    {
+      "name": "Selected trait remains removable",
+      "pass": true,
+      "evidence": 3
+    },
+    {
+      "name": "Locked field Random is disabled",
+      "pass": true,
+      "evidence": true
+    },
+    {
+      "name": "Section random respects Shyness lock",
+      "pass": true,
+      "evidence": 36
+    },
+    {
+      "name": "Manual gender change keeps name",
+      "pass": true,
+      "evidence": "Jamie"
+    },
+    {
+      "name": "Name samples use current gender or either tag",
+      "pass": true,
+      "evidence": [
+        {
+          "gender": "Male",
+          "name": "Riley"
+        },
+        {
+          "gender": "Male",
+          "name": "Zain"
+        },
+        {
+          "gender": "Male",
+          "name": "Theo"
+        },
+        {
+          "gender": "Male",
+          "name": "Evan"
+        },
+        {
+          "gender": "Male",
+          "name": "Rafi"
+        },
+        {
+          "gender": "Male",
+          "name": "Cameron"
+        },
+        {
+          "gender": "Female",
+          "name": "Samira"
+        },
+        {
+          "gender": "Female",
+          "name": "Iris"
+        },
+        {
+          "gender": "Female",
+          "name": "Madison"
+        },
+        {
+          "gender": "Female",
+          "name": "Nora"
+        },
+        {
+          "gender": "Female",
+          "name": "Kayla"
+        },
+        {
+          "gender": "Female",
+          "name": "Hailey"
+        }
+      ]
+    },
+    {
+      "name": "Ten activity categories",
+      "pass": true,
+      "evidence": [
+        {
+          "id": "activity-category:eat",
+          "label": "Eat & cook",
+          "displayed": "1.5",
+          "value": 1.401298464324817e-45
+        },
+        {
+          "id": "activity-category:sleep",
+          "label": "Sleep",
+          "displayed": "0.86",
+          "value": 0
+        },
+        {
+          "id": "activity-category:wash",
+          "label": "Wash & bathroom",
+          "displayed": "0.14",
+          "value": 0
+        },
+        {
+          "id": "activity-category:relax",
+          "label": "Relax",
+          "displayed": "1.36",
+          "value": 1.401298464324817e-45
+        },
+        {
+          "id": "activity-category:read",
+          "label": "Read",
+          "displayed": "0.76",
+          "value": 0
+        },
+        {
+          "id": "activity-category:television",
+          "label": "Watch TV",
+          "displayed": "0.74",
+          "value": 0
+        },
+        {
+          "id": "activity-category:music",
+          "label": "Listen to music",
+          "displayed": "1.69",
+          "value": 1.401298464324817e-45
+        },
+        {
+          "id": "activity-category:exercise",
+          "label": "Exercise",
+          "displayed": "1.45",
+          "value": 1.401298464324817e-45
+        },
+        {
+          "id": "activity-category:letters",
+          "label": "Write letters",
+          "displayed": "1.03",
+          "value": 1.401298464324817e-45
+        },
+        {
+          "id": "activity-category:fish",
+          "label": "Watch fish",
+          "displayed": "1.97",
+          "value": 1.401298464324817e-45
+        }
+      ]
+    },
+    {
+      "name": "Viewing categories leaves draft exact",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Read category sets all seven routes atomically",
+      "pass": true,
+      "evidence": [
+        {
+          "object": "sofa",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "chair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "long_sofa",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "armchair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "desk_chair",
+          "action": "read",
+          "weight": 1070386381
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1070386381
+        }
+      ]
+    },
+    {
+      "name": "Category Undo restores exact draft",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Personality reset preserves need rates and activities",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Needs reset preserves Personality and restores original dispositions",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Height Review 0",
+      "pass": true,
+      "evidence": "85% of average"
+    },
+    {
+      "name": "Height Review 50",
+      "pass": true,
+      "evidence": "100% of average"
+    },
+    {
+      "name": "Height Review 100",
+      "pass": true,
+      "evidence": "115% of average"
+    },
+    {
+      "name": "Height explains center and endpoints",
+      "pass": true,
+      "evidence": "Height\n50 is average height; 0 and 100 are 15% shorter and taller.\n0 to 100\nRandom\nLock"
+    },
+    {
+      "name": "Body controls accepted: Male neutral",
+      "pass": true,
+      "evidence": {
+        "height": 50,
+        "build": 50,
+        "shoulders": 50,
+        "hips": 50,
+        "torso": 50
+      }
+    },
+    {
+      "name": "Body controls accepted: Male minimum",
+      "pass": true,
+      "evidence": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 0,
+        "hips": 0,
+        "torso": 0
+      }
+    },
+    {
+      "name": "Body controls accepted: Male maximum",
+      "pass": true,
+      "evidence": {
+        "height": 100,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 100,
+        "torso": 100
+      }
+    },
+    {
+      "name": "Body controls accepted: Female neutral",
+      "pass": true,
+      "evidence": {
+        "height": 50,
+        "build": 50,
+        "shoulders": 50,
+        "hips": 50,
+        "torso": 50
+      }
+    },
+    {
+      "name": "Body controls accepted: Female minimum",
+      "pass": true,
+      "evidence": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 0,
+        "hips": 0,
+        "torso": 0
+      }
+    },
+    {
+      "name": "Body controls accepted: Female maximum",
+      "pass": true,
+      "evidence": {
+        "height": 100,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 100,
+        "torso": 100
+      }
+    },
+    {
+      "name": "Standing pause freezes actual pixels",
+      "pass": true,
+      "evidence": {
+        "label": "Standing",
+        "playingDifferent": false,
+        "pausedSame": true
+      }
+    },
+    {
+      "name": "Walking pause freezes actual pixels",
+      "pass": true,
+      "evidence": {
+        "label": "Walking",
+        "playingDifferent": true,
+        "pausedSame": true
+      }
+    },
+    {
+      "name": "Walking plays actual pixels",
+      "pass": true,
+      "evidence": {
+        "label": "Walking",
+        "playingDifferent": true,
+        "pausedSame": true
+      }
+    },
+    {
+      "name": "Reading pause freezes actual pixels",
+      "pass": true,
+      "evidence": {
+        "label": "Reading",
+        "playingDifferent": true,
+        "pausedSame": true
+      }
+    },
+    {
+      "name": "Reading plays actual pixels",
+      "pass": true,
+      "evidence": {
+        "label": "Reading",
+        "playingDifferent": true,
+        "pausedSame": true
+      }
+    },
+    {
+      "name": "Cleaning pause freezes actual pixels",
+      "pass": true,
+      "evidence": {
+        "label": "Cleaning",
+        "playingDifferent": true,
+        "pausedSame": true
+      }
+    },
+    {
+      "name": "Cleaning plays actual pixels",
+      "pass": true,
+      "evidence": {
+        "label": "Cleaning",
+        "playingDifferent": true,
+        "pausedSame": true
+      }
+    },
+    {
+      "name": "Unrelated name and shyness edits keep actual preview and geometry",
+      "pass": true,
+      "evidence": {
+        "actor": true,
+        "small": true,
+        "geometry": true,
+        "deformed": true,
+        "generationBefore": 233,
+        "generationAfter": 233
+      }
+    },
+    {
+      "name": "Narrow navigation false identity",
+      "pass": true,
+      "evidence": {
+        "show": false,
+        "name": "identity",
+        "selected": "identity",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 374.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 13.796875,
+          "y": 174.765625,
+          "width": 64.875,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation false appearance",
+      "pass": true,
+      "evidence": {
+        "show": false,
+        "name": "appearance",
+        "selected": "appearance",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 86.671875,
+          "y": 174.765625,
+          "width": 91.640625,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation false personality",
+      "pass": true,
+      "evidence": {
+        "show": false,
+        "name": "personality",
+        "selected": "personality",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 186.3125,
+          "y": 174.765625,
+          "width": 85,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation false needs",
+      "pass": true,
+      "evidence": {
+        "show": false,
+        "name": "needs",
+        "selected": "needs",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 247.3125,
+          "y": 174.765625,
+          "width": 113.53125,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation false interests",
+      "pass": true,
+      "evidence": {
+        "show": false,
+        "name": "interests",
+        "selected": "interests",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 127.84375,
+          "y": 174.765625,
+          "width": 118.421875,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation false household",
+      "pass": true,
+      "evidence": {
+        "show": false,
+        "name": "household",
+        "selected": "household",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 254.265625,
+          "y": 174.765625,
+          "width": 85.09375,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation false review",
+      "pass": true,
+      "evidence": {
+        "show": false,
+        "name": "review",
+        "selected": "review",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 300.359375,
+          "y": 174.765625,
+          "width": 60.828125,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation true identity",
+      "pass": true,
+      "evidence": {
+        "show": true,
+        "name": "identity",
+        "selected": "identity",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 13.796875,
+          "y": 174.765625,
+          "width": 64.875,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation true appearance",
+      "pass": true,
+      "evidence": {
+        "show": true,
+        "name": "appearance",
+        "selected": "appearance",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 86.671875,
+          "y": 174.765625,
+          "width": 91.640625,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation true personality",
+      "pass": true,
+      "evidence": {
+        "show": true,
+        "name": "personality",
+        "selected": "personality",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 186.3125,
+          "y": 174.765625,
+          "width": 85,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation true needs",
+      "pass": true,
+      "evidence": {
+        "show": true,
+        "name": "needs",
+        "selected": "needs",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 247.3125,
+          "y": 174.765625,
+          "width": 113.53125,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation true interests",
+      "pass": true,
+      "evidence": {
+        "show": true,
+        "name": "interests",
+        "selected": "interests",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 127.84375,
+          "y": 174.765625,
+          "width": 118.421875,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation true household",
+      "pass": true,
+      "evidence": {
+        "show": true,
+        "name": "household",
+        "selected": "household",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 254.265625,
+          "y": 174.765625,
+          "width": 85.09375,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Narrow navigation true review",
+      "pass": true,
+      "evidence": {
+        "show": true,
+        "name": "review",
+        "selected": "review",
+        "nav": {
+          "x": 7.796875,
+          "y": 166.765625,
+          "width": 359.390625,
+          "height": 76
+        },
+        "button": {
+          "x": 300.359375,
+          "y": 174.765625,
+          "width": 60.828125,
+          "height": 44
+        }
+      }
+    },
+    {
+      "name": "Cancel leaves game bytes exact",
+      "pass": true,
+      "evidence": {
+        "before": "305c6f8de55a5b309befd1f52e0eb3815d339503e4ddfde0e0d18dd4121eadf2",
+        "after": "305c6f8de55a5b309befd1f52e0eb3815d339503e4ddfde0e0d18dd4121eadf2"
+      }
+    },
+    {
+      "name": "Viewing saved sparse preferences leaves exact draft",
+      "pass": true,
+      "evidence": null
+    },
+    {
+      "name": "Committed name-only edit preserves all other saved groups exactly",
+      "pass": true,
+      "evidence": {
+        "before": {
+          "version": 1,
+          "name": "Tim",
+          "pronouns": "",
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                62,
+                117,
+                164
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "behavior": {
+            "shyness": 89,
+            "cleanliness": 1063675494,
+            "self_preservation": 57,
+            "chronotype_offset_ticks": -90,
+            "drain": [
+              1065353216,
+              1065353216,
+              1065353216,
+              1065353216,
+              1065353216,
+              1067869798,
+              1060320051
+            ],
+            "recovery": [
+              1065353216,
+              1066611507,
+              1065353216,
+              1065353216,
+              1065353216,
+              1062836634,
+              1065353216
+            ],
+            "dispositions": [
+              {
+                "object": "television",
+                "action": "watch_tv",
+                "weight": 1057803469
+              },
+              {
+                "object": "bookshelf",
+                "action": "read",
+                "weight": 1069128090
+              },
+              {
+                "object": "desk",
+                "action": "attend_correspondence",
+                "weight": 1071225242
+              },
+              {
+                "object": "reading_chair",
+                "action": "settle_in",
+                "weight": 1067702026
+              }
+            ]
+          },
+          "traits": [
+            {
+              "id": "low_spirits",
+              "state": 1058642330
+            },
+            {
+              "id": "bookworm",
+              "state": 0
+            },
+            {
+              "id": "out_of_shape",
+              "state": 1054280253
+            }
+          ],
+          "affinities": [
+            {
+              "id": "plants",
+              "value": 1057653694
+            },
+            {
+              "id": "aquarium",
+              "value": 1056338412
+            },
+            {
+              "id": "television",
+              "value": 1033488800
+            },
+            {
+              "id": "radio",
+              "value": 3210924376
+            }
+          ],
+          "hobbies": [
+            "correspondence",
+            "reading"
+          ],
+          "skills": [
+            {
+              "id": "exercise",
+              "practice": 1054280253
+            }
+          ],
+          "ties": [
+            [
+              1,
+              null
+            ],
+            [
+              2,
+              null
+            ]
+          ]
+        },
+        "after": {
+          "version": 1,
+          "name": "Existing Person Review",
+          "pronouns": "",
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                62,
+                117,
+                164
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          },
+          "behavior": {
+            "shyness": 89,
+            "cleanliness": 1063675494,
+            "self_preservation": 57,
+            "chronotype_offset_ticks": -90,
+            "drain": [
+              1065353216,
+              1065353216,
+              1065353216,
+              1065353216,
+              1065353216,
+              1067869798,
+              1060320051
+            ],
+            "recovery": [
+              1065353216,
+              1066611507,
+              1065353216,
+              1065353216,
+              1065353216,
+              1062836634,
+              1065353216
+            ],
+            "dispositions": [
+              {
+                "object": "television",
+                "action": "watch_tv",
+                "weight": 1057803469
+              },
+              {
+                "object": "bookshelf",
+                "action": "read",
+                "weight": 1069128090
+              },
+              {
+                "object": "desk",
+                "action": "attend_correspondence",
+                "weight": 1071225242
+              },
+              {
+                "object": "reading_chair",
+                "action": "settle_in",
+                "weight": 1067702026
+              }
+            ]
+          },
+          "traits": [
+            {
+              "id": "low_spirits",
+              "state": 1058642330
+            },
+            {
+              "id": "bookworm",
+              "state": 0
+            },
+            {
+              "id": "out_of_shape",
+              "state": 1054280253
+            }
+          ],
+          "affinities": [
+            {
+              "id": "plants",
+              "value": 1057653694
+            },
+            {
+              "id": "aquarium",
+              "value": 1056338412
+            },
+            {
+              "id": "television",
+              "value": 1033488800
+            },
+            {
+              "id": "radio",
+              "value": 3210924376
+            }
+          ],
+          "hobbies": [
+            "correspondence",
+            "reading"
+          ],
+          "skills": [
+            {
+              "id": "exercise",
+              "practice": 1054280253
+            }
+          ],
+          "ties": [
+            [
+              1,
+              null
+            ],
+            [
+              2,
+              null
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "name": "No graphics warnings or application errors",
+      "pass": true,
+      "evidence": []
+    },
+    {
+      "name": "Source remained frozen",
+      "pass": true,
+      "evidence": null
+    }
+  ],
+  "errors": [],
+  "notices": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:5187/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:5187/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "captures": [
+    "01-desktop-first-randomize.png",
+    "02-trait-limit.png",
+    "03-trait-room.png",
+    "04-height-0.png",
+    "04-height-50.png",
+    "04-height-100.png",
+    "reading-male-neutral-0.png",
+    "reading-male-neutral-1.png",
+    "reading-male-neutral-2.png",
+    "reading-male-neutral-3.png",
+    "reading-male-minimum-0.png",
+    "reading-male-minimum-1.png",
+    "reading-male-minimum-2.png",
+    "reading-male-minimum-3.png",
+    "reading-male-maximum-0.png",
+    "reading-male-maximum-1.png",
+    "reading-male-maximum-2.png",
+    "reading-male-maximum-3.png",
+    "reading-female-neutral-0.png",
+    "reading-female-neutral-1.png",
+    "reading-female-neutral-2.png",
+    "reading-female-neutral-3.png",
+    "reading-female-minimum-0.png",
+    "reading-female-minimum-1.png",
+    "reading-female-minimum-2.png",
+    "reading-female-minimum-3.png",
+    "reading-female-maximum-0.png",
+    "reading-female-maximum-1.png",
+    "reading-female-maximum-2.png",
+    "reading-female-maximum-3.png",
+    "05-desktop-preview-spacing.png",
+    "06-narrow-expanded-review.png",
+    "08-narrow-personality.png"
+  ]
+}

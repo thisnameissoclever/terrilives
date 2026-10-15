@@ -68,12 +68,13 @@ up. Completion reaches zero, including new dirt within the active patch. Pausing
 or suspension freezes work. Cancellation preserves the amount already removed.
 Claims and completion credit refer to real work. Build edits revalidate the patch.
 
-Grime mood effects use floor and surface averages separately within the current
-room. Each effect is -(0.3 + cleanliness) times average intensity in 0..1, capped
-at its fully dirty value. There is no minimum visible-grime threshold for mood;
-clean floors do not suppress the surface effect. Daily chore decisions use
-these same mood effects. Active work shows the fitted cleaning poses described
-below.
+Grime mood effects apply the [cleanliness response](2026-10-13-cleanliness.md)
+to each floor tile or surface before averaging separately within the current
+room. Each effect is -(0.3 + cleanliness) times average response in 0..1, capped
+at its fully dirty value. Cleanliness sets a tolerated dirt threshold from 40%
+at zero cleanliness to 5% at full cleanliness. Clean floors do not suppress the
+surface effect. Daily chore decisions use these same mood effects. Active work
+shows the fitted cleaning poses described below.
 
 ## Weekly board
 
@@ -102,9 +103,10 @@ The daily chance is clamp(0.04 + 0.45 responsibility + 0.18 history +
 0.18 cleanliness + 0.14 preference + 0.05 mood, 0.01, 0.98), multiplied by
 needs readiness. Responsibility, history and cleanliness are scaled to 0..1;
 preference and mood to -1..1. Readiness reaches zero at a critical energy,
-hunger or bladder need and reaches one at level 45. Autonomous thresholds are
-any dishes, the dirtiest room tile at 250, surface grime 150 and bin fill 600. Explicit
-orders can clean lower amounts. Assignment estimates walking-independent
+hunger or bladder need and reaches one at level 45. Autonomous floor and surface
+work requires a source above the assigned owner's cleanliness threshold. Dishes
+use the same response with six units as full load; bin fill retains its 600-unit
+threshold. Explicit orders can clean lower amounts. Assignment estimates walking-independent
 workload and weights eligible Sims by 1.2 + preference, using a separately
 saved random stream. It does not consume the activity-duration stream.
 

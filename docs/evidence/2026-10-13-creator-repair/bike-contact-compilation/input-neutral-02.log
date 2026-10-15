@@ -1,0 +1,31 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-bike-contact-input.test.ts -t actual neutral
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-bike-contact-input.test.ts (243 tests | 1 failed | 242 skipped) 46ms
+   × extracts phase-independent actual neutral contact input without invoking a fit 36ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-bike-contact-input.test.ts > extracts phase-independent actual neutral contact input without invoking a fit
+Error: Cold phase 0.25: input.soles.0.source.0: -0.9999999999999947 versus -0.9999998807907104
+ ❯ phaseCheck tests/character-bike-contact-input.test.ts:25:13
+     23|       const error=`Cold phase ${frame}: ${difference(actual,reference)…
+     24|       evidence.push({presentation:appearance.presentation,body:appeara…
+     25|       throw new Error(error);
+       |             ^
+     26|     }
+     27|   }
+ ❯ tests/character-bike-contact-input.test.ts:31:90
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 242 skipped (243)
+   Start at  17:03:46
+   Duration  505ms (transform 134ms, setup 0ms, import 284ms, tests 46ms, environment 0ms)
+

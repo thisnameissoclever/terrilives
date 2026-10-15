@@ -1,0 +1,92 @@
+{
+  "bufferBytes": 19451184,
+  "textureBytes": 7979008,
+  "textureCount": 8,
+  "canvases": [
+    [
+      608,
+      800
+    ],
+    [
+      96,
+      128
+    ]
+  ],
+  "appearance": {
+    "version": 1,
+    "presentation": "feminine",
+    "body": {
+      "height": 1,
+      "build": 87,
+      "shoulders": 11,
+      "hips": 70,
+      "torso": 95
+    },
+    "face": {
+      "shape": "angular",
+      "cheeks": 58,
+      "jaw": 21,
+      "chin": 4,
+      "eyes": "round",
+      "eye_size": 69,
+      "brows": "straight",
+      "brow_thickness": 78,
+      "nose": "button",
+      "nose_width": 75,
+      "mouth": "neutral",
+      "mouth_fullness": 82,
+      "ears": 92
+    },
+    "colors": {
+      "skin": [
+        190,
+        143,
+        107
+      ],
+      "hair": [
+        33,
+        27,
+        25
+      ],
+      "facial_hair": [
+        33,
+        27,
+        25
+      ],
+      "eyes": [
+        116,
+        125,
+        131
+      ],
+      "shirt": [
+        130,
+        77,
+        105
+      ],
+      "trousers": [
+        150,
+        113,
+        79
+      ],
+      "shoes": [
+        76,
+        64,
+        55
+      ]
+    },
+    "undertone": "warm",
+    "hairstyle": "wave",
+    "bald": true,
+    "facial_hair": "moustache",
+    "freckles": false,
+    "freckle_density": 65,
+    "scar": "brow",
+    "top": "overshirt",
+    "sleeves": "rolled",
+    "bottoms": "shorts",
+    "footwear": "trainers",
+    "glasses": true,
+    "glasses_style": "round",
+    "earrings": "hoops"
+  }
+}

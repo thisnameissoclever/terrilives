@@ -1,0 +1,24 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.75s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-d9424414bfa066c7.exe)
+
+running 3 tests
+test appearance::tests::appearance_accepts_all_slider_endpoints_and_rejects_unknown_assets ... FAILED
+test appearance::tests::appearance_is_lossless_data_without_behavior_fields ... ok
+test appearance::tests::exact_float_values_preserve_signed_zero_and_reject_non_finite_inputs ... ok
+
+failures:
+
+---- appearance::tests::appearance_accepts_all_slider_endpoints_and_rejects_unknown_assets stdout ----
+
+thread 'appearance::tests::appearance_accepts_all_slider_endpoints_and_rejects_unknown_assets' (180444) panicked at crates\terri-core\src\appearance.rs:292:9:
+assertion failed: appearance.validate().is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    appearance::tests::appearance_accepts_all_slider_endpoints_and_rejects_unknown_assets
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 139 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-core --lib`

@@ -1,0 +1,81 @@
+Diff in \\?\D:\VIBES\.worktrees\5637\terrilives\crates\terri-core\src\command.rs:303:
+ /// Resolved creator commands append after every published command discriminant.
+ #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+ pub enum CharacterCommand {
+-    Create { request: u32, draft: crate::character::CharacterDraftV1 },
+-    Edit { request: u32, sim: u32, patch: crate::character::CharacterPatchV1 },
++    Create {
++        request: u32,
++        draft: crate::character::CharacterDraftV1,
++    },
++    Edit {
++        request: u32,
++        sim: u32,
++        patch: crate::character::CharacterPatchV1,
++    },
+ }
+ 
+ impl CharacterCommand {
+Diff in \\?\D:\VIBES\.worktrees\5637\terrilives\crates\terri-core\src\command.rs:311:
+     pub fn validate_structure(&self) -> Result<(), &'static str> {
+         match self {
+             Self::Create { draft, .. } => draft.validate_structure(),
+-            Self::Edit { patch, .. } => patch.resolve(&crate::character::CharacterDraftV1::neutral("Validation")).map(|_| ()),
++            Self::Edit { patch, .. } => patch
++                .resolve(&crate::character::CharacterDraftV1::neutral("Validation"))
++                .map(|_| ()),
+         }
+     }
+ }
+Diff in \\?\D:\VIBES\.worktrees\5637\terrilives\crates\terri-core\src\lib.rs:1:
+ //! Pure simulation core. No web dependencies, ever.
+ 
+-pub mod books;
+ pub mod appearance;
++pub mod books;
+ pub mod character;
+-pub mod character_hash;
+ pub mod character_catalog;
+-pub mod clock;
++pub mod character_hash;
+ pub mod cleanliness;
++pub mod clock;
+ pub mod command;
+ pub mod components;
+ pub mod facing;
+Diff in \\?\D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim\src\household.rs:91:
+         worn,
+         skills,
+     ));
+-    spawned.insert((crate::character_draft::legacy_appearance(sim_id.0), terri_core::character::CharacterPronouns::default()));
++    spawned.insert((
++        crate::character_draft::legacy_appearance(sim_id.0),
++        terri_core::character::CharacterPronouns::default(),
++    ));
+     // The job rides only on the employed, the SpriteVariant
+     // pattern: every jobless sim - and every fixture - has no
+     // component rather than a sentinel ([E4]).
+Diff in \\?\D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim\src\save.rs:46:
+ pub(super) mod sleeping_places;
+ pub(crate) mod social;
+ mod table_retirement;
++pub(crate) mod v10;
+ #[cfg(test)]
+ mod v3_tests;
+ pub(crate) mod v6;
+Diff in \\?\D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim\src\save.rs:52:
+-pub(crate) mod v10;
+ #[cfg(test)]
+ mod v6_tests;
+ mod wall_migration;
+Diff in \\?\D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim\src\save.rs:276:
+             preferences: *preferences,
+         },
+         SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
+-        SimCommand::Book(_) | SimCommand::Character(_) => unreachable!("Versioned commands are captured separately"),
++        SimCommand::Book(_) | SimCommand::Character(_) => {
++            unreachable!("Versioned commands are captured separately")
++        }
+         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
+         SimCommand::BuyObjectInColourway {
+             definition,

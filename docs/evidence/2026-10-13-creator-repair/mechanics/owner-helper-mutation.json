@@ -1,0 +1,7 @@
+{
+  "mutation": "Use performer cleanliness for grouped credit",
+  "exitCode": 101,
+  "beforeSHA256": "054C4174F83845BF604E127AD227D41AD839730D1E97061F4D902E9628DA5FB2",
+  "afterSHA256": "054C4174F83845BF604E127AD227D41AD839730D1E97061F4D902E9628DA5FB2",
+  "byteRestored": true
+}

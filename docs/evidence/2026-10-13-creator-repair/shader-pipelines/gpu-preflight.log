@@ -1,0 +1,13 @@
+PASS baseline: 48 pipelines, 3 device-limit rejections
+KILLED duplicate-interstage-location-14: 39 pipeline variants
+KILLED character-recolour-vec3-instead-of-vec4: 4 pipeline variants
+KILLED wgsl-comma-let-declaration: 1 pipeline variants
+KILLED wrong-integer-color-target: 12 pipeline variants
+KILLED storage-buffer-declared-as-uniform: 4 pipeline variants
+{
+  "status": "PASS",
+  "productionUnchanged": true,
+  "killedMutants": 5,
+  "exitCode": 0,
+  "receipt": "D:\\VIBES\\.worktrees\\5637\\terrilives\\docs\\evidence\\2026-10-13-creator-repair\\shader-pipelines\\receipt.json"
+}

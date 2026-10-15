@@ -1,0 +1,78 @@
+
+> test
+> vitest run --maxWorkers=1 --reporter=verbose tests/character-bike-fit-equivalence.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ✓ tests/character-bike-fit-equivalence.test.ts > retains the isolated original fitter after import relocation and checkout line-ending conversion 1ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner +0 505ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 1 368ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 2 445ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 3 424ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 4 359ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 5 368ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 6 538ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 7 549ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 8 433ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 9 498ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 10 571ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 11 506ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 12 460ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 13 473ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 14 538ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 15 562ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 16 9002ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 17 487ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 18 551ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 19 565ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 20 8771ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 21 479ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 22 555ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 23 563ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 24 5127ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 25 449ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 26 554ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 27 457ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 28 5048ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 29 454ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 30 584ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'masculine' body corner 31 521ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner +0 530ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 1 471ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 2 533ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 3 490ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 4 398ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 5 429ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 6 527ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 7 536ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 8 453ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 9 491ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 10 662ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 11 522ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 12 444ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 13 439ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 14 548ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 15 550ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 16 8918ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 17 441ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 18 619ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 19 527ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 20 7813ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 21 512ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 22 685ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 23 586ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 24 5199ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 25 409ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 26 466ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 27 463ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 28 5051ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 29 404ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 30 553ms
+ ✓ tests/character-bike-fit-equivalence.test.ts > preserves every bike fit value for 'feminine' body corner 31 484ms
+
+ Test Files  1 passed (1)
+      Tests  65 passed (65)
+   Start at  14:56:48
+   Duration  83.47s (transform 246ms, setup 0ms, import 368ms, tests 82.96s, environment 0ms)
+

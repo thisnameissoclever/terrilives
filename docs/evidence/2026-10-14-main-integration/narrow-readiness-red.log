@@ -1,0 +1,78 @@
+
+> test
+> vitest run --maxWorkers=1 tests/creator-contact-preview.test.ts tests/creator-view.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/creator-view.test.ts (9 tests | 1 failed) 34ms
+   × allows Review submission after preparation without requiring a visible preview draw 15ms
+ ❯ tests/creator-contact-preview.test.ts (6 tests | 2 failed) 7ms
+   × admits a prepared appearance without drawing a hidden preview 3ms
+   × keeps a new A request ready when the earlier A request rejects after A-B-A edits 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/creator-contact-preview.test.ts > admits a prepared appearance without drawing a hidden preview
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/creator-contact-preview.test.ts:40:32
+     38|   await request();expect(view.appearanceReady).toBe(false);
+     39|   pending[0].resolve();await Promise.resolve();
+     40|   expect(view.appearanceReady).toBe(true);expect(view.previewReady).to…
+       |                                ^
+     41| });
+     42|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/creator-contact-preview.test.ts > keeps a new A request ready when the earlier A request rejects after A-B-A edits
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/creator-contact-preview.test.ts:57:32
+     55|   pending[2].resolve();await Promise.resolve();
+     56|   pending[0].reject(new Error('Old request failed'));pending[1].resolv…
+     57|   expect(view.appearanceReady).toBe(true);expect(view.previewError).to…
+       |                                ^
+     58| });
+     59|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/creator-view.test.ts > allows Review submission after preparation without requiring a visible preview draw
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/creator-view.test.ts:70:46
+     68| it('allows Review submission after preparation without requiring a vis…
+     69|   const {view,fixed}=viewFixture();view.page='review';Reflect.set(view…
+     70|   expect(fixed.get('[data-next]')!.disabled).toBe(false);
+       |                                              ^
+     71|   Reflect.set(view,'appearanceReady',false);view.render();expect(fixed…
+     72|   Reflect.set(view,'appearanceReady',true);Reflect.set(view,'previewEr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 12 passed (15)
+   Start at  15:27:57
+   Duration  4.95s (transform 3.68s, setup 114ms, import 4.59s, tests 41ms, environment 0ms)
+

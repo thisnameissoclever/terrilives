@@ -1,0 +1,6 @@
+page.evaluate: Error: GPU appearance differs from configured surface: {"presentation":"masculine","height":0,"maxError":0.294702410697937,"vertices":58861}
+    at eval (eval at evaluate (:311:30), <anonymous>:12:101)
+    at async <anonymous>:337:30
+    at D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\character-creator\verify_gpu.cjs:6:27 {
+  log: []
+}

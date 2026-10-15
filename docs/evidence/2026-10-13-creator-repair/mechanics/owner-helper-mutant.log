@@ -1,0 +1,34 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.11s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 3 tests
+test chores::cleanliness_tests::cleanliness_group_credit_covers_tolerant_owner_despite_neat_helper ... FAILED
+test chores::cleanliness_tests::cleanliness_group_credit_uses_the_duty_owner_and_keeps_active_dirt_needed ... ok
+test chores::cleanliness_tests::cleanliness_group_credit_waits_for_neat_owner_despite_tolerant_helper ... FAILED
+
+failures:
+
+---- chores::cleanliness_tests::cleanliness_group_credit_covers_tolerant_owner_despite_neat_helper stdout ----
+
+thread 'chores::cleanliness_tests::cleanliness_group_credit_covers_tolerant_owner_despite_neat_helper' (54344) panicked at crates\terri-sim\src\chores\cleanliness_tests.rs:372:5:
+assertion `left == right` failed: owner=0, helper=1
+  left: false
+ right: true
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- chores::cleanliness_tests::cleanliness_group_credit_waits_for_neat_owner_despite_tolerant_helper stdout ----
+
+thread 'chores::cleanliness_tests::cleanliness_group_credit_waits_for_neat_owner_despite_tolerant_helper' (210420) panicked at crates\terri-sim\src\chores\cleanliness_tests.rs:372:5:
+assertion `left == right` failed: owner=1, helper=0
+  left: true
+ right: false
+
+
+failures:
+    chores::cleanliness_tests::cleanliness_group_credit_covers_tolerant_owner_despite_neat_helper
+    chores::cleanliness_tests::cleanliness_group_credit_waits_for_neat_owner_despite_tolerant_helper
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 1317 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

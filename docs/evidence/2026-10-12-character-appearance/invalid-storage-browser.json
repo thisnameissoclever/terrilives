@@ -1,0 +1,26 @@
+[
+  {
+    "rendered": false,
+    "stored": "",
+    "message": "Saved appearance proof cannot load: SyntaxError: Unexpected end of JSON input. Use New random draft to replace it.",
+    "initialQuery": "",
+    "recoveredUrl": "http://127.0.0.1:5187/proofs/character-appearance.html",
+    "recoveredByExplicitNewDraft": true
+  },
+  {
+    "rendered": false,
+    "stored": "{\"draftVersion\":99}",
+    "message": "Saved appearance proof cannot load: Error: Invalid proof draft. Use New random draft to replace it.",
+    "initialQuery": "",
+    "recoveredUrl": "http://127.0.0.1:5187/proofs/character-appearance.html",
+    "recoveredByExplicitNewDraft": true
+  },
+  {
+    "rendered": false,
+    "stored": "",
+    "message": "Saved appearance proof cannot load: SyntaxError: Unexpected end of JSON input. Use New random draft to replace it.",
+    "initialQuery": "?baseline&recovery-test=preserved",
+    "recoveredUrl": "http://127.0.0.1:5187/proofs/character-appearance.html?recovery-test=preserved",
+    "recoveredByExplicitNewDraft": true
+  }
+]

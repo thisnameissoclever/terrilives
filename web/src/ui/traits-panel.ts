@@ -113,7 +113,7 @@ export function traitsPanelState(
   if (cleanliness !== undefined && cleanliness !== null) {
     if (!Number.isFinite(cleanliness) || cleanliness < 0 || cleanliness > 1) return UNAVAILABLE;
     traits.push({ key: -2, label: 'Cleanliness',
-      description: 'Tidier Sims usually clean up and mind other people leaving dirty dishes. Urgent needs can take priority.',
+      description: 'Cleanliness affects tolerance for mess and willingness to clean. Urgent needs can take priority.',
       state: `${percent(cleanliness)}%` });
   }
   for (let at = 0; at < worn.length; at += 2) {

@@ -1,0 +1,5 @@
+{
+  "command": "npm --prefix web test -- --maxWorkers=1",
+  "exitCode": 1,
+  "verdict": "FAIL"
+}

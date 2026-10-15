@@ -1,0 +1,736 @@
+{
+  "status": "PASS",
+  "adapter": {
+    "vendor": "nvidia",
+    "architecture": "lovelace",
+    "device": "",
+    "description": ""
+  },
+  "checks": [
+    {
+      "name": "baseline-production-shader-compilation",
+      "status": "PASS",
+      "modules": 1,
+      "messages": []
+    },
+    {
+      "name": "ordinary-linear-premultiplied-filter",
+      "status": "PASS",
+      "witnesses": [
+        {
+          "pixel": [
+            39,
+            41
+          ],
+          "expected": 0.3000000000000007,
+          "actual": [
+            0.300048828125,
+            0.300048828125,
+            0.300048828125,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            44,
+            48
+          ],
+          "expected": 0.3000000000000007,
+          "actual": [
+            0.300048828125,
+            0.300048828125,
+            0.300048828125,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            51,
+            57
+          ],
+          "expected": 0.6999999999999993,
+          "actual": [
+            0.7001953125,
+            0.7001953125,
+            0.7001953125,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            65,
+            67
+          ],
+          "expected": 0.5,
+          "actual": [
+            0.5,
+            0.5,
+            0.5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "transparent-rgb-does-not-bleed",
+      "status": "PASS",
+      "count": 32,
+      "witnesses": [
+        {
+          "pixel": [
+            40,
+            40
+          ],
+          "actual": [
+            1,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            41,
+            40
+          ],
+          "actual": [
+            1,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            43,
+            40
+          ],
+          "actual": [
+            1,
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            44,
+            40
+          ],
+          "actual": [
+            1,
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quarter-coverage-depth-identity-resolve-pick",
+      "status": "PASS",
+      "subpixelIds": [
+        41,
+        19,
+        19,
+        19
+      ],
+      "subpixelDepths": [
+        0.30000001192092896,
+        0.699999988079071,
+        0.699999988079071,
+        0.699999988079071
+      ],
+      "resolved": [
+        137,
+        0,
+        225,
+        255
+      ],
+      "picked": 41
+    },
+    {
+      "name": "registered-fixture-same-texel",
+      "status": "PASS",
+      "sprite": "offlineToilet",
+      "count": 4579,
+      "record": {
+        "x": 0,
+        "y": 480,
+        "page": 43
+      },
+      "witnesses": [
+        {
+          "pixel": [
+            120,
+            153
+          ],
+          "source": [
+            81,
+            102
+          ],
+          "color": [
+            0.43408203125,
+            0.412353515625,
+            0.381103515625,
+            1
+          ],
+          "depth": 0.5505695939064026
+        },
+        {
+          "pixel": [
+            121,
+            153
+          ],
+          "source": [
+            81,
+            102
+          ],
+          "color": [
+            0.43408203125,
+            0.412353515625,
+            0.381103515625,
+            1
+          ],
+          "depth": 0.5505695939064026
+        },
+        {
+          "pixel": [
+            122,
+            153
+          ],
+          "source": [
+            82,
+            102
+          ],
+          "color": [
+            0.5087890625,
+            0.490966796875,
+            0.45068359375,
+            1
+          ],
+          "depth": 0.5505695939064026
+        },
+        {
+          "pixel": [
+            118,
+            154
+          ],
+          "source": [
+            79,
+            103
+          ],
+          "color": [
+            0.194580078125,
+            0.1778564453125,
+            0.1558837890625,
+            1
+          ],
+          "depth": 0.5487580895423889
+        }
+      ]
+    },
+    {
+      "name": "registered-stock-same-texel",
+      "status": "PASS",
+      "facing": "SE",
+      "presenceMask": 1,
+      "stockCount": 107,
+      "maxColorError": 0.00024192255520921746,
+      "maxDepthError": 3.088283673235992e-8,
+      "witnesses": [
+        {
+          "pixel": [
+            107,
+            227
+          ],
+          "source": [
+            64,
+            167
+          ],
+          "actual": [
+            0.2261962890625,
+            0.12445068359375,
+            0.0628662109375,
+            1
+          ],
+          "expected": [
+            0.22620662927780383,
+            0.12446276386961613,
+            0.0628855175420356,
+            1
+          ],
+          "depth": 0.50151127576828,
+          "expectedDepth": 0.5015112535286488
+        },
+        {
+          "pixel": [
+            105,
+            228
+          ],
+          "source": [
+            62,
+            168
+          ],
+          "actual": [
+            0.0953369140625,
+            0.06268310546875,
+            0.04217529296875,
+            1
+          ],
+          "expected": [
+            0.09536800868868221,
+            0.06270534218839732,
+            0.04220155797886356,
+            1
+          ],
+          "depth": 0.5018872618675232,
+          "expectedDepth": 0.5018872358281834
+        },
+        {
+          "pixel": [
+            106,
+            228
+          ],
+          "source": [
+            63,
+            168
+          ],
+          "actual": [
+            0.2322998046875,
+            0.131103515625,
+            0.06707763671875,
+            1
+          ],
+          "expected": [
+            0.23235147743530996,
+            0.13118479311560954,
+            0.06711309286905505,
+            1
+          ],
+          "depth": 0.50151127576828,
+          "expectedDepth": 0.5015112535286488
+        },
+        {
+          "pixel": [
+            107,
+            228
+          ],
+          "source": [
+            64,
+            168
+          ],
+          "actual": [
+            0.2197265625,
+            0.12371826171875,
+            0.06549072265625,
+            1
+          ],
+          "expected": [
+            0.21974132330889495,
+            0.12375367671208257,
+            0.06550898390032948,
+            1
+          ],
+          "depth": 0.5013403296470642,
+          "expectedDepth": 0.5013403524834058
+        },
+        {
+          "pixel": [
+            108,
+            228
+          ],
+          "source": [
+            65,
+            168
+          ],
+          "actual": [
+            0.2152099609375,
+            0.121826171875,
+            0.0628662109375,
+            1
+          ],
+          "expected": [
+            0.21523650781102047,
+            0.12185387669155782,
+            0.0629131718204252,
+            1
+          ],
+          "depth": 0.5012915134429932,
+          "expectedDepth": 0.5012915236133364
+        },
+        {
+          "pixel": [
+            103,
+            229
+          ],
+          "source": [
+            60,
+            169
+          ],
+          "actual": [
+            0.2197265625,
+            0.10357666015625,
+            0.07611083984375,
+            1
+          ],
+          "expected": [
+            0.21974267313904294,
+            0.10362422091916153,
+            0.07613172843050689,
+            1
+          ],
+          "depth": 0.5002856254577637,
+          "expectedDepth": 0.5002856488899061
+        }
+      ]
+    },
+    {
+      "name": "dynamic-draw-restores-low-wall-bindings",
+      "status": "PASS",
+      "color": [
+        1,
+        0,
+        0,
+        1
+      ],
+      "owner": 19,
+      "restoreCalls": 0
+    },
+    {
+      "name": "restored-linear-filter",
+      "status": "PASS",
+      "witnesses": [
+        {
+          "pixel": [
+            39,
+            41
+          ],
+          "expected": 0.3000000000000007,
+          "actual": [
+            0.300048828125,
+            0.300048828125,
+            0.300048828125,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            44,
+            48
+          ],
+          "expected": 0.3000000000000007,
+          "actual": [
+            0.300048828125,
+            0.300048828125,
+            0.300048828125,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            51,
+            57
+          ],
+          "expected": 0.6999999999999993,
+          "actual": [
+            0.7001953125,
+            0.7001953125,
+            0.7001953125,
+            1
+          ]
+        },
+        {
+          "pixel": [
+            65,
+            67
+          ],
+          "expected": 0.5,
+          "actual": [
+            0.5,
+            0.5,
+            0.5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "restored-quarter-coverage",
+      "status": "PASS",
+      "subpixelIds": [
+        41,
+        19,
+        19,
+        19
+      ],
+      "subpixelDepths": [
+        0.30000001192092896,
+        0.699999988079071,
+        0.699999988079071,
+        0.699999988079071
+      ],
+      "resolved": [
+        137,
+        0,
+        225,
+        255
+      ],
+      "picked": 41
+    },
+    {
+      "name": "restored-registered-stock",
+      "status": "PASS",
+      "facing": "SE",
+      "presenceMask": 1,
+      "stockCount": 107,
+      "maxColorError": 0.00024192255520921746,
+      "maxDepthError": 3.088283673235992e-8,
+      "witnesses": [
+        {
+          "pixel": [
+            107,
+            227
+          ],
+          "source": [
+            64,
+            167
+          ],
+          "actual": [
+            0.2261962890625,
+            0.12445068359375,
+            0.0628662109375,
+            1
+          ],
+          "expected": [
+            0.22620662927780383,
+            0.12446276386961613,
+            0.0628855175420356,
+            1
+          ],
+          "depth": 0.50151127576828,
+          "expectedDepth": 0.5015112535286488
+        },
+        {
+          "pixel": [
+            105,
+            228
+          ],
+          "source": [
+            62,
+            168
+          ],
+          "actual": [
+            0.0953369140625,
+            0.06268310546875,
+            0.04217529296875,
+            1
+          ],
+          "expected": [
+            0.09536800868868221,
+            0.06270534218839732,
+            0.04220155797886356,
+            1
+          ],
+          "depth": 0.5018872618675232,
+          "expectedDepth": 0.5018872358281834
+        },
+        {
+          "pixel": [
+            106,
+            228
+          ],
+          "source": [
+            63,
+            168
+          ],
+          "actual": [
+            0.2322998046875,
+            0.131103515625,
+            0.06707763671875,
+            1
+          ],
+          "expected": [
+            0.23235147743530996,
+            0.13118479311560954,
+            0.06711309286905505,
+            1
+          ],
+          "depth": 0.50151127576828,
+          "expectedDepth": 0.5015112535286488
+        },
+        {
+          "pixel": [
+            107,
+            228
+          ],
+          "source": [
+            64,
+            168
+          ],
+          "actual": [
+            0.2197265625,
+            0.12371826171875,
+            0.06549072265625,
+            1
+          ],
+          "expected": [
+            0.21974132330889495,
+            0.12375367671208257,
+            0.06550898390032948,
+            1
+          ],
+          "depth": 0.5013403296470642,
+          "expectedDepth": 0.5013403524834058
+        },
+        {
+          "pixel": [
+            108,
+            228
+          ],
+          "source": [
+            65,
+            168
+          ],
+          "actual": [
+            0.2152099609375,
+            0.121826171875,
+            0.0628662109375,
+            1
+          ],
+          "expected": [
+            0.21523650781102047,
+            0.12185387669155782,
+            0.0629131718204252,
+            1
+          ],
+          "depth": 0.5012915134429932,
+          "expectedDepth": 0.5012915236133364
+        },
+        {
+          "pixel": [
+            103,
+            229
+          ],
+          "source": [
+            60,
+            169
+          ],
+          "actual": [
+            0.2197265625,
+            0.10357666015625,
+            0.07611083984375,
+            1
+          ],
+          "expected": [
+            0.21974267313904294,
+            0.10362422091916153,
+            0.07613172843050689,
+            1
+          ],
+          "depth": 0.5002856254577637,
+          "expectedDepth": 0.5002856488899061
+        }
+      ]
+    },
+    {
+      "name": "restored-low-wall-bindings",
+      "status": "PASS",
+      "color": [
+        1,
+        0,
+        0,
+        1
+      ],
+      "owner": 19,
+      "restoreCalls": 0
+    }
+  ],
+  "mutants": [
+    {
+      "name": "encoded-straight-filter",
+      "status": "KILLED",
+      "compiled": true,
+      "from": "else{colour=sampleAtlasColor(uv,i32(in.page));}",
+      "to": "else{colour=textureSampleLevel(atlasTexture,atlasSampler,uv,i32(in.page),0.0);}",
+      "failure": "Ordinary linear-light interpolation: actual [0.0736083984375,0.0736083984375,0.0736083984375,1], expected [0.3000000000000007,0.3000000000000007,0.3000000000000007,1], tolerance 0.001",
+      "shaderMethodRestored": true
+    },
+    {
+      "name": "transparent-rgb-straight-filter",
+      "status": "KILLED",
+      "compiled": true,
+      "from": "else{colour=sampleAtlasColor(uv,i32(in.page));}",
+      "to": "else{colour=textureSampleLevel(atlasTexture,atlasSampler,uv,i32(in.page),0.0);}",
+      "failure": "Transparent RGB must not contaminate red: actual [0.2139892578125,0.2139892578125,0.2139892578125,1], expected [1,0,0,1], tolerance 0.001",
+      "shaderMethodRestored": true
+    },
+    {
+      "name": "half-alpha-discard",
+      "status": "KILLED",
+      "compiled": true,
+      "from": "!sceneCovered(visibleAlpha,in.clip.xy)",
+      "to": "visibleAlpha < 0.5",
+      "failure": "Quarter coverage keeps one foreground sample: actual [19,19,19,19], expected [41,19,19,19], tolerance 0",
+      "shaderMethodRestored": true
+    },
+    {
+      "name": "registered-fixture-filtered-color",
+      "status": "KILLED",
+      "compiled": true,
+      "from": "if(registered){colour=textureLoad(atlasTexture,fixturePixel,i32(in.page),0);}",
+      "to": "if(registered){colour=sampleAtlasColor(uv,i32(in.page));}",
+      "failure": "Registered fixture color uses the depth texel: actual [0.438720703125,0.42529296875,0.396728515625,1], expected [0.43415363617474895,0.41254261348390375,0.38132601143253014,1], tolerance 0.001",
+      "shaderMethodRestored": true
+    },
+    {
+      "name": "shelf-independently-filtered-color",
+      "status": "KILLED",
+      "compiled": true,
+      "from": "let point=in.wall.x==SHELF_SURFACE_DEPTH;",
+      "to": "let point=false;",
+      "failure": "Registered stock color uses the depth texel: actual [0.2119140625,0.1190185546875,0.062164306640625,1], expected [0.22620662927780383,0.12446276386961613,0.0628855175420356,1], tolerance 0.001",
+      "shaderMethodRestored": true
+    },
+    {
+      "name": "shelf-ignores-present-stock-depth",
+      "status": "KILLED",
+      "compiled": true,
+      "from": "sum=max(sum,dot(covered.rg,vec2f(65280.,255.))/65535.*4.-2.);",
+      "to": "sum=sum;",
+      "failure": "Present stock determines nearest physical depth: actual [0.5298515558242798], expected [0.5015112535286488], tolerance 0.000001",
+      "shaderMethodRestored": true
+    },
+    {
+      "name": "remove-dynamic-vertex-buffer-restoration",
+      "status": "KILLED",
+      "compiled": true,
+      "failure": "Low wall survives a dynamic draw changing both vertex buffers: actual [0,0,1,1], expected [1,0,0,1], tolerance 0.001",
+      "methodRestored": true
+    },
+    {
+      "name": "pick-last-covered-owner-instead-of-nearest",
+      "status": "KILLED",
+      "compiled": true,
+      "failure": "Nearest visible owner pick was 19, expected 41",
+      "methodRestored": true
+    }
+  ],
+  "errors": [],
+  "scope": "Production SpriteRenderer factory, constructor, draw, shader, SceneTarget resolve and pick; disposable GPU device, canvas, atlas texture, browser storage; no live source mutations.",
+  "productionHashesBefore": {
+    "web/src/render/sprites.ts": "dd98a85d8c70eaf9bd3f0e41450740aa8d2e365ebcbecd644bd507c0780ed27d",
+    "web/src/render/sprites.wgsl": "d4cfdf0dacabf354f95a81dfe287d1618c5998be790846f9f3169862725c45eb",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-sampling.ts": "4734a5701f786778881ba79f9c94f8d8a7acb313345d7c1911ecbd8e9e670331"
+  },
+  "productionHashesAfter": {
+    "web/src/render/sprites.ts": "dd98a85d8c70eaf9bd3f0e41450740aa8d2e365ebcbecd644bd507c0780ed27d",
+    "web/src/render/sprites.wgsl": "d4cfdf0dacabf354f95a81dfe287d1618c5998be790846f9f3169862725c45eb",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-sampling.ts": "4734a5701f786778881ba79f9c94f8d8a7acb313345d7c1911ecbd8e9e670331"
+  },
+  "productionUnchanged": true,
+  "command": "node scripts/character-creator-repair/check-scene-contracts.cjs",
+  "exitCode": 0
+}

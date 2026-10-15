@@ -1,0 +1,36 @@
+
+> test
+> vitest run --maxWorkers=1 tests/creator-contact-preview.test.ts -t clears failed preparation
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/creator-contact-preview.test.ts (8 tests | 1 failed | 7 skipped) 5ms
+   × clears failed preparation when Undo restores the last successfully drawn appearance 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/creator-contact-preview.test.ts > clears failed preparation when Undo restores the last successfully drawn appearance
+AssertionError: expected 'New body failed' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ New body failed
+
+ ❯ tests/creator-contact-preview.test.ts:87:70
+     85|   expect(view.previewError).toBe('New body failed');
+     86|   appearance.body.height=initial;await request();
+     87|   expect(view.appearanceReady).toBe(false);expect(view.previewError).t…
+       |                                                                      ^
+     88|   pending[2].resolve();await Promise.resolve();expect(view.appearanceR…
+     89| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  15:30:01
+   Duration  4.56s (transform 3.67s, setup 31ms, import 4.42s, tests 5ms, environment 0ms)
+

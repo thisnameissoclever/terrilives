@@ -1,0 +1,391 @@
+{
+  "result": {
+    "actors": [
+      {
+        "entity": 34,
+        "sim": 0,
+        "token": 35,
+        "clip": "walk",
+        "sample": 3.9995999999999867,
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              62,
+              117,
+              164
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "x": 9.499949999999998,
+        "y": 2,
+        "angle": 1.5707963267948966,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          9.337317744629724,
+          1.8770837963659734,
+          1.9226204967605036
+        ],
+        "feet": [
+          9.499950008666431,
+          1.9999999925509095,
+          0.13001060191527442
+        ],
+        "fixture": null,
+        "textureBytes": 0,
+        "privateBufferBytes": 7574784
+      },
+      {
+        "entity": 35,
+        "sim": 1,
+        "token": 36,
+        "clip": "walk",
+        "sample": 3.999599999999994,
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "x": 2,
+        "y": 7.500050000000001,
+        "angle": 3.141592653589793,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          2.0090917507567942,
+          7.346602177739811,
+          2.028477068433169
+        ],
+        "feet": [
+          1.9999999925509095,
+          7.500049991333567,
+          0.13001060191527442
+        ],
+        "fixture": null,
+        "textureBytes": 0,
+        "privateBufferBytes": 7574784
+      },
+      {
+        "entity": 36,
+        "sim": 2,
+        "token": 37,
+        "clip": "walk",
+        "sample": 3.999599999999994,
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              168,
+              71,
+              62
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "x": 5.499949999999999,
+        "y": 1,
+        "angle": 1.5707963267948966,
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          5.337317744629725,
+          0.8770837963659734,
+          1.9226204967605036
+        ],
+        "feet": [
+          5.499950008666433,
+          0.9999999925509095,
+          0.13001060191527442
+        ],
+        "fixture": null,
+        "textureBytes": 0,
+        "privateBufferBytes": 7574784
+      }
+    ],
+    "allocation": {
+      "bufferBytes": 32540144,
+      "textureBytes": 0,
+      "textureCount": 0,
+      "sharedGeometryCount": 1
+    },
+    "view": {
+      "originX": 656,
+      "originY": 278.0002193450928,
+      "scale": 1,
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  "errors": [
+    "Error while parsing WGSL: :366:29 error: expected ';' for variable declaration\n  let pixel=vec2i(floor(at)),f=fract(at);\n                            ^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor]).\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid ShaderModule (unlabeled)] is invalid due to a previous error.\n - While validating vertex stage ([Invalid ShaderModule (unlabeled)], entryPoint: \"vs\").\n - While validating vertex state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor]).\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid ShaderModule (unlabeled)] is invalid due to a previous error.\n - While validating vertex stage ([Invalid ShaderModule (unlabeled)], entryPoint: \"vs\").\n - While validating vertex state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor]).\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid ShaderModule (unlabeled)] is invalid due to a previous error.\n - While validating vertex stage ([Invalid ShaderModule (unlabeled)], entryPoint: \"vsGrime\").\n - While validating vertex state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor]).\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While Validating GetBindGroupLayout (0) on [Invalid RenderPipeline (unlabeled)]\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid BindGroupLayout (unlabeled)] is invalid due to a previous error.\n - While validating [BindGroupDescriptor] against [Invalid BindGroupLayout (unlabeled)]\n - While calling [Device].CreateBindGroup([BindGroupDescriptor]).\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid RenderPipeline (unlabeled)] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline (unlabeled)]).\n - While finishing [CommandEncoder (unlabeled)].\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}",
+    "[Invalid CommandBuffer] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer]])\n{\"url\":\"http://127.0.0.1:5187/?stress=0\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}"
+  ],
+  "browserNotices": [
+    "Browser requested an absent favicon; no game resource failed."
+  ]
+}

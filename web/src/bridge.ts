@@ -1,6 +1,9 @@
 function isBookIndex(value: number): boolean { return Number.isInteger(value) && value >= 0 && value < 0xffffffff; }
 
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodeCharacterCatalog, decodeCharacterSnapshot, decodeCharacterResults, decodeCharacterAppearances,
+  encodeCreateCharacter, encodeEditCharacter } from './character/codec.js';
+import type { CharacterDraftV1, CharacterPatchV1 } from './character/schema.js';
 import { decodePurchaseQuote, decodeSaleQuote, decodeAutomaticRead } from './books/commerce-codec.js';
 import { decodeBookCatalogue, decodeBookCopies, decodeBookMemory, decodeBookResults,
   decodeBookShelves, decodeModelFacts, shelfEntity, type ModelFacts, type BookTitle } from './books/codec.js';
@@ -1324,6 +1327,18 @@ export class SimBridge {
    */
   enqueueCommand(bytes: Uint8Array): boolean {
     return this.handle.enqueue_command(bytes);
+  }
+
+  characterCatalog() { return decodeCharacterCatalog(this.handle.character_catalog()); }
+  characterSnapshot(sim: number) { return decodeCharacterSnapshot(this.handle.character_snapshot(sim)); }
+  characterAppearances() { return decodeCharacterAppearances(this.handle.character_appearances()); }
+  characterResults() { return decodeCharacterResults(this.handle.character_results()); }
+  appearanceHash(): bigint { return this.handle.appearance_hash(); }
+  createCharacter(request: number, draft: CharacterDraftV1): boolean {
+    return this.enqueueCommand(encodeCreateCharacter(request, draft));
+  }
+  editCharacter(request: number, sim: number, patch: CharacterPatchV1): boolean {
+    return this.enqueueCommand(encodeEditCharacter(request, sim, patch));
   }
 
   /**

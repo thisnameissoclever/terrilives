@@ -1,0 +1,6 @@
+{
+  "command": "wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "sha256": "e8d66b258174aafeaadcc3cab41f1da8a00dcb71586533f3f842288c7289e22e"
+}

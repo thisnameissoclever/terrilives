@@ -55,7 +55,8 @@ describe('the sky wired into the page', () => {
   const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
 
   it('shades by day only through the tuned shade, and not at all in flat light', () => {
-    expect(MAIN_TS).toContain('lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),');
+    expect(MAIN_TS).toContain('const skyShade = lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient);');
+    expect(MAIN_TS).toMatch(/renderer\.draw\([\s\S]*?skyShade,[\s\S]*?characterWorld\.draw/);
   });
 
   it('passes expanded window lines to exposure and refreshes them after Load and lot edits', () => {
