@@ -1,0 +1,79 @@
+{
+  "id": "local-v9-migration",
+  "fixture": "local-character-0",
+  "status": "PASS",
+  "contextClosed": true,
+  "checks": [
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: fixture is schema 9",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: actual startup preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: explicit disk Load preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: disk Save writes schema 10",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: disk Save preserves exact live bytes",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: V9 recovery backup is byte exact",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: V10 browser reload preserves exact character and social state",
+      "pass": true
+    },
+    {
+      "scenario": "local-v9-migration",
+      "name": "local-character-0: browser reload leaves V9 backup untouched",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

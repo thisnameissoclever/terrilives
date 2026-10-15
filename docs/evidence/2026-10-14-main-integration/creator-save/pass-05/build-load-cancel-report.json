@@ -1,0 +1,180 @@
+{
+  "id": "build-load-cancel",
+  "fixture": "main-social-active",
+  "status": "PASS",
+  "contextClosed": true,
+  "checks": [
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: fixture is schema 9",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Authentic main fixture has an active conversation topic",
+      "pass": true,
+      "evidence": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        19,
+        19,
+        0
+      ]
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: actual startup preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: explicit disk Load preserves native appearance and social state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: disk Save writes schema 10",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: disk Save preserves exact live bytes",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: V9 recovery backup is byte exact",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Startup reports the seeded saved game loaded",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Help pauses startup before inspection",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: V10 browser reload preserves exact character and social state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "main-social-active: browser reload leaves V9 backup untouched",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Pause remains selected after Help closes",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Build begins with live state different from the disk save",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Build mode is active before Load",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Pending Build placement changes live bytes",
+      "pass": true,
+      "evidence": {
+        "id": 0,
+        "from": [
+          0,
+          0
+        ],
+        "to": [
+          7,
+          0
+        ],
+        "facing": 1
+      }
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Load confirmation closes after successful adoption",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Actual Load replaces the pending Build world with disk state",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Build Cancel retains the newly loaded world instead of the old baseline",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Exit Build restores play controls",
+      "pass": true
+    },
+    {
+      "scenario": "build-load-cancel",
+      "name": "Leaving Build retains the newly loaded world",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "source": "bed-repaired-textures.json",
+  "screenshot": "bed-repaired.png",
+  "actorToken": 37,
+  "measuredRegionLogical": [
+    391,
+    435,
+    54,
+    65
+  ],
+  "bubbleDepthWitness": {
+    "logical": [
+      407,
+      462
+    ],
+    "sub": [
+      0,
+      0
+    ],
+    "identity": 0,
+    "surface": 0.7329906225204468,
+    "rgba": [
+      0.05010986328125,
+      0.038543701171875,
+      0.035919189453125,
+      1
+    ]
+  },
+  "bubbleSamples": 3807,
+  "headSamples": 4676,
+  "bubbleBottomEdge": 462.5,
+  "headTopEdge": 470.5,
+  "clearLogicalPixels": 8,
+  "viewScale": 2.0000000724738607,
+  "scope": "One inspected sleeper at the saved camera. Coverage/depth/identity readback supplies the visible edges. This does not establish every character, action, or scale."
+}

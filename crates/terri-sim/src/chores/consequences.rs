@@ -147,7 +147,8 @@ pub(crate) fn moodlets_in(
             };
             let grid = world.resource::<terri_core::TileGrid>();
             let rooms = crate::room_regions::RoomRegions::from_world(world);
-            let mut sum = 0u64;
+            let clean = crate::domestic::cleanliness(world, person).clamp(0.0, 1.0);
+            let mut sum = 0.0;
             let mut count = 0u64;
             for y in 0..grid.height() {
                 for x in 0..grid.width() {
@@ -155,11 +156,14 @@ pub(crate) fn moodlets_in(
                         && rooms.at((x as i32, y as i32)) == Some(key.target)
                     {
                         count += 1;
-                        sum += u64::from(value(&state.floors, (y * grid.width() + x) as u32));
+                        sum += terri_core::cleanliness::response(
+                            clean,
+                            f32::from(value(&state.floors, (y * grid.width() + x) as u32)) / 1000.0,
+                        );
                     }
                 }
             }
-            let floor = sum as f32 / (count.max(1) as f32 * 1000.0);
+            let floor = sum / count.max(1) as f32;
             let mut surfaces = groups::members(
                 world,
                 ChoreKey {
@@ -176,15 +180,19 @@ pub(crate) fn moodlets_in(
             ));
             let surface = surfaces
                 .iter()
-                .map(|id| u32::from(value(&state.surfaces, *id)))
-                .sum::<u32>() as f32
-                / (surfaces.len().max(1) as f32 * 1000.0);
+                .map(|id| {
+                    terri_core::cleanliness::response(
+                        clean,
+                        f32::from(value(&state.surfaces, *id)) / 1000.0,
+                    )
+                })
+                .sum::<f32>()
+                / surfaces.len().max(1) as f32;
             for (label, intensity) in [("Grimy floor", floor), ("Grimy surfaces", surface)] {
                 if intensity > 0.0 {
                     moodlets.push(crate::mood::Moodlet {
                         label: label.into(),
-                        score: -(0.3 + crate::domestic::cleanliness(world, person))
-                            * intensity.clamp(0.0, 1.0),
+                        score: -(0.3 + clean) * intensity.clamp(0.0, 1.0),
                     });
                 }
             }

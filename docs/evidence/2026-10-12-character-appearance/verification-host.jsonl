@@ -1,0 +1,2 @@
+{"cpu":{"PercentProcessorTime":32},"disk":{"CurrentDiskQueueLength":0,"DiskReadBytesPersec":0,"PercentDiskTime":1},"timestamp":"2026-10-12T11:52:09.9961438-07:00","memory":{"AvailableMBytes":18038}}
+{"cpu":{"PercentProcessorTime":52},"disk":{"CurrentDiskQueueLength":1,"DiskReadBytesPersec":0,"PercentDiskTime":335},"memory":{"AvailableMBytes":10611},"timestamp":"2026-10-12T11:57:57.9832487-07:00"}

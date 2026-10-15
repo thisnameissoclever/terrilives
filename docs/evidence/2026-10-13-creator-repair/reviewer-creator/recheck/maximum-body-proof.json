@@ -1,0 +1,22 @@
+[
+  {
+    "gender": "Female",
+    "fields": {
+      "Height": "100",
+      "Build": "100",
+      "Shoulder width": "100",
+      "Hip width": "100",
+      "Torso proportions": "100"
+    }
+  },
+  {
+    "gender": "Male",
+    "fields": {
+      "Height": "100",
+      "Build": "100",
+      "Shoulder width": "100",
+      "Hip width": "100",
+      "Torso proportions": "100"
+    }
+  }
+]

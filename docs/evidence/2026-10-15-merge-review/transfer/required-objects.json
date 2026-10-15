@@ -1,0 +1,242 @@
+[
+  {
+    "oid": "1e8314224ebfa894220ca7e02831a14af89b3f0c",
+    "type": "commit",
+    "bytes": 371,
+    "name": ""
+  },
+  {
+    "oid": "076e6d7d09951f90de30af68806428ccdeebed2f",
+    "type": "tree",
+    "bytes": 760,
+    "name": ""
+  },
+  {
+    "oid": "4e1a052312d3aee884a0dc8910499a67dc8b0dbe",
+    "type": "tree",
+    "bytes": 1261,
+    "name": "docs"
+  },
+  {
+    "oid": "88cd0da677b04acdbe7e114af3b6e3fbce7ad4e1",
+    "type": "tree",
+    "bytes": 1198,
+    "name": "docs/evidence"
+  },
+  {
+    "oid": "ab72fc3ac0e47f92c7d1ed54f3e4998d714cca80",
+    "type": "tree",
+    "bytes": 1068,
+    "name": "docs/evidence/2026-10-13-creator-repair"
+  },
+  {
+    "oid": "a5140d90699b62dcc797c6cd4d4976f0e5f920a7",
+    "type": "tree",
+    "bytes": 590,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity"
+  },
+  {
+    "oid": "67b6d2231e6bde714c268e3d9b5b6192247d9cf7",
+    "type": "tree",
+    "bytes": 1194,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-canonical-raw"
+  },
+  {
+    "oid": "a44fbc8312ba7dde5d6e3330f2d2dd356712728a",
+    "type": "blob",
+    "bytes": 3860411,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-canonical-raw/003-color.rgba16f.gz"
+  },
+  {
+    "oid": "5993a9367b54aa42eb8d43ecf232a84bd4682ed0",
+    "type": "blob",
+    "bytes": 64231,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-canonical-raw/003-identity.bin.gz"
+  },
+  {
+    "oid": "f0f995edf6624abfea4a98438e2872288583a61b",
+    "type": "blob",
+    "bytes": 554101,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-canonical-raw/003-surface.bin.gz"
+  },
+  {
+    "oid": "42319953c0e965b0c1ed4d134894eb3d9c36792c",
+    "type": "blob",
+    "bytes": 77546,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-canonical-raw/receipt.json"
+  },
+  {
+    "oid": "531260b250ca106066d9c3cb98ce3c645e8b8d78",
+    "type": "tree",
+    "bytes": 10424,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-final"
+  },
+  {
+    "oid": "f0ba35e409149bc4fbab48c2cff11b9e422b1a28",
+    "type": "blob",
+    "bytes": 1845117,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-final/receipt.json"
+  },
+  {
+    "oid": "c7c2f0a2cb46eb090ff70d1e685802cd917f466f",
+    "type": "tree",
+    "bytes": 1194,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw"
+  },
+  {
+    "oid": "2dfa70df86608103a5bec821ba580b0da98c1de6",
+    "type": "blob",
+    "bytes": 571990,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw/000-surface.bin.gz"
+  },
+  {
+    "oid": "582bf6bf550ee614890b94d9663158080faf5eac",
+    "type": "blob",
+    "bytes": 570350,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw/001-surface.bin.gz"
+  },
+  {
+    "oid": "0fe6a0574a05fcdd53cf15f3ec671b9e96105050",
+    "type": "blob",
+    "bytes": 3877118,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw/002-color.rgba16f.gz"
+  },
+  {
+    "oid": "8cc9272924b8a2aacf365d7d210028d2cc5ed948",
+    "type": "blob",
+    "bytes": 556689,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw/002-surface.bin.gz"
+  },
+  {
+    "oid": "63cad1c24c21f30aaec661533cf8608899f099b9",
+    "type": "blob",
+    "bytes": 3860411,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw/003-color.rgba16f.gz"
+  },
+  {
+    "oid": "9fd22d13de5024cdd5629ebaf12c0d2ca5beef0e",
+    "type": "blob",
+    "bytes": 554101,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw/003-surface.bin.gz"
+  },
+  {
+    "oid": "d98d55eb2a6c1ae8111fd882854003d6d844b21c",
+    "type": "blob",
+    "bytes": 70144,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-old-raw/receipt.json"
+  },
+  {
+    "oid": "fce065ea83d4a3a7f71cf5ad2c1e3cd65b3b5c49",
+    "type": "blob",
+    "bytes": 37314,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-phase-delta.json"
+  },
+  {
+    "oid": "ee0c5a86ddc111177d68dae9efb0e95f603eaecc",
+    "type": "tree",
+    "bytes": 274,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-phase2-causal"
+  },
+  {
+    "oid": "b8374ad06b2f2230968ef3c628103d8b73fcff84",
+    "type": "blob",
+    "bytes": 87090,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-phase2-causal/receipt.json"
+  },
+  {
+    "oid": "5dbab3dd120d00c0e32594d9e33aeafa01279a3b",
+    "type": "tree",
+    "bytes": 388,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-prepared"
+  },
+  {
+    "oid": "4cc32ff2044c7632acd4935ea7e161f332293218",
+    "type": "blob",
+    "bytes": 117922,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-prepared/receipt.json"
+  },
+  {
+    "oid": "46f1cd792c46bc1df5d9d692ef7b5c063b610736",
+    "type": "tree",
+    "bytes": 356,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves"
+  },
+  {
+    "oid": "4c1f8d6353c801c6aee727597da1923841be1b68",
+    "type": "blob",
+    "bytes": 5831,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-0.sav"
+  },
+  {
+    "oid": "3b6da41988c713bab2936ffc38e8f60e686f2aa3",
+    "type": "blob",
+    "bytes": 5831,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-1.sav"
+  },
+  {
+    "oid": "60586edfb875d647e049a3b7b13c3e60c3e226ca",
+    "type": "blob",
+    "bytes": 5830,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-2.sav"
+  },
+  {
+    "oid": "abe4891962876361c695a3481a0a932859525a35",
+    "type": "blob",
+    "bytes": 5837,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/exercise-3.sav"
+  },
+  {
+    "oid": "37c8a0f646363d02b7f3093096b558275811627a",
+    "type": "blob",
+    "bytes": 5688,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/mop-0.sav"
+  },
+  {
+    "oid": "39306c6b0e143b2bff576f94c4c7cbc53b97fd05",
+    "type": "blob",
+    "bytes": 5734,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/mop-1.sav"
+  },
+  {
+    "oid": "e4a51ebb85bfaf8bda777532ea7c69fff97d7f74",
+    "type": "blob",
+    "bytes": 5734,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/mop-2.sav"
+  },
+  {
+    "oid": "098e9576f177effabc48d723134af96fc5884577",
+    "type": "blob",
+    "bytes": 5734,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/mop-3.sav"
+  },
+  {
+    "oid": "936e351470e6f32b75e3f2d83ee0652ba8d53968",
+    "type": "blob",
+    "bytes": 1982,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/contact-saves/receipt.json"
+  },
+  {
+    "oid": "4b039c5584fa142a2a57779d6b89ba479aa8f8dc",
+    "type": "tree",
+    "bytes": 10424,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/prepared-settled"
+  },
+  {
+    "oid": "de3d635fbe8350a0673e68a73e691565172687bc",
+    "type": "blob",
+    "bytes": 1828394,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/prepared-settled/receipt.json"
+  },
+  {
+    "oid": "9696d150737acc99254235be82206c2fa939126b",
+    "type": "tree",
+    "bytes": 10384,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/prepared"
+  },
+  {
+    "oid": "c7da6984ba70ccf6241cb09f4a2b9c307c9f115a",
+    "type": "blob",
+    "bytes": 984346,
+    "name": "docs/evidence/2026-10-13-creator-repair/prepared-parity/prepared/137-shower-1-active-70.png"
+  }
+]

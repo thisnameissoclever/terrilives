@@ -1,6 +1,7 @@
 import {
   FLOATS_PER_INSTANCE, FOOTPRINT_PROJECTION, SURFACE_DEPTH_PROJECTION, OFFSET_WALL_MASK,
   OFFSET_WALL_DEPTH_STEP, OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X,
+  REGISTERED_SURFACE_DEPTH,
 } from './instances.js';
 import { layeredDepth, LAYER_PROP } from './iso.js';
 import { spriteDrawOffsetX } from './sprite-anchors.js';
@@ -35,4 +36,9 @@ export function writeSceneDepth(out: Float32Array, slot: number, depthSprite: nu
     layeredDepth(0, 0, gridSize, LAYER_PROP) - layeredDepth(1, 0, gridSize, LAYER_PROP);
   out[base + OFFSET_FOOTPRINT_SPAN] = depthSprite;
   out[base + OFFSET_PROJECTION_ANCHOR_X] = 0;
+}
+
+export function writeRegisteredSurfaceDepth(out:Float32Array,slot:number,depthSprite:number,gridSize:number):void {
+  writeSceneDepth(out,slot,depthSprite,gridSize);
+  out[slot*FLOATS_PER_INSTANCE+OFFSET_WALL_MASK]=REGISTERED_SURFACE_DEPTH;
 }

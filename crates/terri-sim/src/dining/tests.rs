@@ -637,7 +637,7 @@ fn tableless_shared_diners_finish_together_and_every_transition_loads() {
             saw_group |= !d.tableless.is_empty();
         }
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v9(sim.save_snapshot_v9()).unwrap();
+        restored.load_snapshot_v10(sim.save_snapshot_v10()).unwrap();
         assert_eq!(restored.world_hash(), sim.world_hash());
         if people.iter().all(|p| {
             sim.world()

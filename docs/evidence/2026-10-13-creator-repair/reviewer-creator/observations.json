@@ -1,0 +1,85 @@
+{
+  "viewportDesktop": [
+    1440,
+    1000
+  ],
+  "viewportNarrow": [
+    390,
+    844
+  ],
+  "appearanceGroups": [
+    "Colors",
+    "Body",
+    "Style",
+    "Face",
+    "Details"
+  ],
+  "femaleNames": [
+    "Imogen",
+    "Eleanor",
+    "Millie",
+    "Casey",
+    "Liora",
+    "Jordan",
+    "Taylor",
+    "Carter"
+  ],
+  "animationProof": [
+    {
+      "label": "Standing",
+      "changed": false,
+      "stableWhenPaused": true
+    },
+    {
+      "label": "Walking",
+      "changed": true,
+      "stableWhenPaused": true
+    },
+    {
+      "label": "Reading",
+      "changed": true,
+      "stableWhenPaused": true
+    },
+    {
+      "label": "Cleaning",
+      "changed": true,
+      "stableWhenPaused": true
+    }
+  ],
+  "turns": [
+    "Emmett\nTurn\nAnimation \nStanding\nWalking\nReading\nCleaning\nPlay\nFront right\nGame-size preview",
+    "Emmett\nTurn\nAnimation \nStanding\nWalking\nReading\nCleaning\nPlay\nBack left\nGame-size preview",
+    "Emmett\nTurn\nAnimation \nStanding\nWalking\nReading\nCleaning\nPlay\nBack right\nGame-size preview",
+    "Emmett\nTurn\nAnimation \nStanding\nWalking\nReading\nCleaning\nPlay\nFront left\nGame-size preview"
+  ],
+  "unrelatedEdits": {
+    "pixelsIdentical": true,
+    "positionBefore": {
+      "x": 931,
+      "y": 201,
+      "width": 389,
+      "height": 485.8125
+    },
+    "positionAfter": {
+      "x": 931,
+      "y": 201,
+      "width": 389,
+      "height": 485.8125
+    }
+  },
+  "cancelByteExact": true,
+  "traitRolls": [
+    "1 of 4 trait slots used. Remove a selected trait to make room.",
+    "1 of 4 trait slots used. Remove a selected trait to make room.",
+    "3 of 4 trait slots used. Remove a selected trait to make room.",
+    "4 of 4 trait slots used. Remove a selected trait to make room.",
+    "1 of 4 trait slots used. Remove a selected trait to make room.",
+    "4 of 4 trait slots used. Remove a selected trait to make room.",
+    "4 of 4 trait slots used. Remove a selected trait to make room.",
+    "2 of 4 trait slots used. Remove a selected trait to make room.",
+    "4 of 4 trait slots used. Remove a selected trait to make room.",
+    "2 of 4 trait slots used. Remove a selected trait to make room.",
+    "2 of 4 trait slots used. Remove a selected trait to make room.",
+    "3 of 4 trait slots used. Remove a selected trait to make room."
+  ]
+}

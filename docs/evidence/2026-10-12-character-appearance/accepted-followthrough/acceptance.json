@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-12",
+  "ownerDecision": "All three demonstrated intersection levels accepted as expected game behavior. All four facings must look good.",
+  "scope": [
+    "Thighs entering seat cushion",
+    "Shirt hem entering chair arms",
+    "Shirt entering back cushion"
+  ],
+  "geometryChanged": false,
+  "numericTolerancesChanged": false,
+  "rawZeroIntersectionResultPreserved": true,
+  "independentVisualReview": {
+    "views": 72,
+    "presentations": 2,
+    "facings": 4,
+    "configurationsPerPresentation": 9,
+    "additionalVisibleBlockers": 0,
+    "scope": "Seated screenshots; no extra claim of zero hidden overlap"
+  },
+  "referenceHashes": {
+    "contacts.json": "82e8944c760868a7c257a70be5aae05e823a6a60ae18a5937dc59e70f69c392b",
+    "intersections\\sections.json": "5ffe84cbc8fe8d7730b2abb87f5e2bff2d0aa431dff630c7d69c03a544f70c7b",
+    "intersections\\arm-evidence.png": "4d9bbddc8d3c040059912a3dfea68910bf79da1af7c470d538cee66bbeddab66",
+    "intersections\\back-evidence.png": "282fe712711b90cf3e843960ee0bb251450dfd219976343901e16223779428cf",
+    "intersections\\seat-evidence.png": "0db091eb3f3179fec5d87da716e968e2be685bf13a5d44567ebe86e9c1b1c831",
+    "four-facings\\feminine-facing-0.png": "b4b2e717505e0d4ac161e2a8fc31b18c5a0509b6fa0feddf98bb9ceb56c1a9f6",
+    "four-facings\\feminine-facing-1.png": "2339888c154d0e02cd505a5744518a688724a23ed5cc4fdb2533cd9a6fa4a5f3",
+    "four-facings\\feminine-facing-2.png": "2f7f5a11cfb058587879c77335c3a3334328551a51630695fa0c0b36c385b17f",
+    "four-facings\\feminine-facing-3.png": "ad3118d8f87f00e27dbeffaa51866970a60f5349ae873700da01c10270630b7b",
+    "four-facings\\height-0-build-100.png": "3e1b0ca055fd879e32753b3adcb886a030a55b87aa016e7a9fda9132cfdb68c1",
+    "four-facings\\height-50-build-100.png": "2db5460d1c149d5a64e3ffe6edb3c8d4f2ef84fce8bd733f3bf5242c8a43f61e",
+    "four-facings\\masculine-facing-0.png": "3f23453e7ddb49c06756fbb161e1cb29a94f68ece615eb62c5a34fb4080436b3",
+    "four-facings\\masculine-facing-1.png": "bf5ba5cec455d27702d47ab2bc494fecce20181dbab17828d007f0c64bf469e2",
+    "four-facings\\masculine-facing-2.png": "ef59a4c3e42aa4156d74d1c2404f03c636b83ee39096734638c9c905f59b3995",
+    "four-facings\\masculine-facing-3.png": "fd2c1c385e0abba77a6cb8fc9ef840d557bdf51da07e354e67d7f3b1c9559a3a"
+  }
+}

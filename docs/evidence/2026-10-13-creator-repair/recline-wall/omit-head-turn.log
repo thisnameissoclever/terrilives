@@ -1,0 +1,94 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web
+
+ ❯ tests/character-recline-fit.test.ts (10 tests | 1 failed | 9 skipped) 6936ms
+   × supports both presentations and all independent body corners without changing limb length 6934ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  13:57:29
+   Duration  7.25s (transform 109ms, setup 0ms, import 205ms, tests 6.94s, environment 0ms)
+
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-recline-fit.test.ts > supports both presentations and all independent body corners without changing limb length
+AssertionError: expected [ …(64) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "masculine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.49696069955825806 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++   "feminine {\"height\":100,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} AssertionError: expected -0.5218223929405212 to be greater than -0.415",
++ ]
+
+ ❯ tests/character-recline-fit.test.ts:89:20
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

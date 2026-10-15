@@ -1,0 +1,14 @@
+{
+  "source": "Actual main-game creator UI",
+  "appearance": {
+    "presentation": "feminine",
+    "height": 75,
+    "build": 35,
+    "shoulders": 50,
+    "hips": 50,
+    "torso": 50,
+    "hairstyle": "bob"
+  },
+  "facings": 4,
+  "errors": []
+}

@@ -29,6 +29,17 @@ pub(crate) fn spawn_member(
     traits: &[terri_data::CompiledTrait],
     member: Member,
 ) -> Entity {
+    spawn_member_with_affinities(world, personalities, traits, member, None)
+}
+
+/// Resolved creator values bypass only the legacy affinity draws.
+pub(crate) fn spawn_member_with_affinities(
+    world: &mut World,
+    personalities: &[terri_data::CompiledPersonality],
+    traits: &[terri_data::CompiledTrait],
+    member: Member,
+    resolved_affinities: Option<terri_core::Affinities>,
+) -> Entity {
     let sim_id = world.resource_mut::<terri_core::SimIdAllocator>().issue();
     let compiled = &personalities[member.personality as usize];
     let personality = personality_from(compiled);
@@ -51,11 +62,11 @@ pub(crate) fn spawn_member(
     );
     // [OA-values]: one draw per affinity kind, directly after the
     // instinct's, whether or not a worn disposition then sets the value.
-    let affinities = {
+    let affinities = resolved_affinities.unwrap_or_else(|| {
         let content = world.resource::<crate::Content>().0;
         let mut rng = world.resource_mut::<terri_core::SimRng>();
         crate::affinity::draw_with_defs(&mut rng, content, traits, Some(&worn))
-    };
+    });
     // Every person carries practice from the start, seeded so each worn
     // capability's start_level is reached as skill mastery ([SK-capability]).
     let mut skills = terri_core::Skills::default();
@@ -79,6 +90,10 @@ pub(crate) fn spawn_member(
         terri_core::Hobbies(member.hobbies),
         worn,
         skills,
+    ));
+    spawned.insert((
+        crate::character_draft::legacy_appearance(sim_id.0),
+        terri_core::character::CharacterPronouns::default(),
     ));
     // The job rides only on the employed, the SpriteVariant
     // pattern: every jobless sim - and every fixture - has no
@@ -271,7 +286,7 @@ pub(crate) fn personality_from(
 /// street's exit when it is open floor the landing can be reached from, else
 /// the front door's tile; a lot with no front door, the first open tile and
 /// no walk.
-fn arrival(world: &World) -> Result<(Position, Vec<(i32, i32)>), HousemateRefusal> {
+pub(crate) fn arrival(world: &World) -> Result<(Position, Vec<(i32, i32)>), HousemateRefusal> {
     let content = world.resource::<Content>().0;
     let grid = world.resource::<TileGrid>();
     let at = |(x, y): (i32, i32)| Position {

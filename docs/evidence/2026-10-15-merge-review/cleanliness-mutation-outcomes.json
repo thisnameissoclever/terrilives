@@ -1,0 +1,1273 @@
+{
+  "outcomes": [
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:5:5: replace response -> f32 with 0.0",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 5,
+              "column": 5
+            },
+            "end": {
+              "line": 6,
+              "column": 61
+            }
+          },
+          "replacement": "0.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_5_col_5.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_5_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 19.4087996,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.055807,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:5:5: replace response -> f32 with 1.0",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 5,
+              "column": 5
+            },
+            "end": {
+              "line": 6,
+              "column": 61
+            }
+          },
+          "replacement": "1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_5_col_5_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_5_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.8647572000000001,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0549674,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:5:5: replace response -> f32 with -1.0",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 5,
+              "column": 5
+            },
+            "end": {
+              "line": 6,
+              "column": 61
+            }
+          },
+          "replacement": "-1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_5_col_5_002.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_5_col_5_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.4694874,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0557872,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:5:26: replace - with + in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 5,
+              "column": 26
+            },
+            "end": {
+              "line": 5,
+              "column": 27
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_5_col_26.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_5_col_26.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.1686714,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0549574,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:5:26: replace - with / in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 5,
+              "column": 26
+            },
+            "end": {
+              "line": 5,
+              "column": 27
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_5_col_26_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_5_col_26_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.7601434,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0551641,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:5:33: replace * with + in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 5,
+              "column": 33
+            },
+            "end": {
+              "line": 5,
+              "column": 34
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_5_col_33.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_5_col_33.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.1015163,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0546826,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:5:33: replace * with / in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 5,
+              "column": 33
+            },
+            "end": {
+              "line": 5,
+              "column": 34
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_5_col_33_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_5_col_33_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.8614947,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0556922,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:6:25: replace / with % in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 25
+            },
+            "end": {
+              "line": 6,
+              "column": 26
+            }
+          },
+          "replacement": "%",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_6_col_25.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_6_col_25.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.7628176,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0546196,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:6:25: replace / with * in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 25
+            },
+            "end": {
+              "line": 6,
+              "column": 26
+            }
+          },
+          "replacement": "*",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_6_col_25_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_6_col_25_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.813186,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0546282,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:6:12: replace - with + in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 12
+            },
+            "end": {
+              "line": 6,
+              "column": 13
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_6_col_12.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_6_col_12.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.7141967999999999,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0546429,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:6:12: replace - with / in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 12
+            },
+            "end": {
+              "line": 6,
+              "column": 13
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_6_col_12_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_6_col_12_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.8683271000000001,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0573361,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:6:32: replace - with + in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 32
+            },
+            "end": {
+              "line": 6,
+              "column": 33
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_6_col_32.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_6_col_32.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.0130962,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0546068,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:6:32: replace - with / in response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 3,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 32
+            },
+            "end": {
+              "line": 6,
+              "column": 33
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_6_col_32_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_6_col_32_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.0123926,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0553817,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:11:5: replace dish_response -> f32 with 0.0",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "dish_response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 12,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 11,
+              "column": 5
+            },
+            "end": {
+              "line": 11,
+              "column": 57
+            }
+          },
+          "replacement": "0.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_11_col_5.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_11_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.1116324,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0547168,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:11:5: replace dish_response -> f32 with 1.0",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "dish_response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 12,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 11,
+              "column": 5
+            },
+            "end": {
+              "line": 11,
+              "column": 57
+            }
+          },
+          "replacement": "1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_11_col_5_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_11_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.0629297,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.055605,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:11:5: replace dish_response -> f32 with -1.0",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "dish_response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 12,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 11,
+              "column": 5
+            },
+            "end": {
+              "line": 11,
+              "column": 57
+            }
+          },
+          "replacement": "-1.0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_11_col_5_002.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_11_col_5_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.8623223,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0545407,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:11:41: replace / with % in dish_response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "dish_response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 12,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 11,
+              "column": 41
+            },
+            "end": {
+              "line": 11,
+              "column": 42
+            }
+          },
+          "replacement": "%",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_11_col_41.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_11_col_41.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.7603496,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0553038,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/cleanliness.rs:11:41: replace / with * in dish_response",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/cleanliness.rs",
+          "function": {
+            "function_name": "dish_response",
+            "return_type": "-> f32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 12,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 11,
+              "column": 41
+            },
+            "end": {
+              "line": 11,
+              "column": 42
+            }
+          },
+          "replacement": "*",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-core__src__cleanliness.rs_line_11_col_41_001.log",
+      "diff_path": "diff/crates__terri-core__src__cleanliness.rs_line_11_col_41_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.9639917,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0560344,
+          "process_status": {
+            "Failure": 1
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--locked",
+            "-j1",
+            "--test-threads=1"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_mutants": 18,
+  "missed": 0,
+  "caught": 18,
+  "timeout": 0,
+  "unviable": 0,
+  "success": 0,
+  "start_time": "2026-10-15T15:54:39.2302932Z",
+  "end_time": "2026-10-15T15:55:32.8340865Z",
+  "cargo_mutants_version": "27.1.0"
+}

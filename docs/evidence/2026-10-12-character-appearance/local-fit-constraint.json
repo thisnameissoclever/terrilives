@@ -1,0 +1,7 @@
+{
+  "part": "Trouser hip bridge",
+  "boneInfluences": [
+    "hips"
+  ],
+  "conclusion": "Knee, ankle, arm and spine articulation cannot change this hips-only surface. This does not prove that hip rotation or a volume-preserving corrective cannot resolve the chair contact."
+}

@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "activeReviewPorts": [
+    {
+      "LocalPort": 5190,
+      "OwningProcess": 174352
+    }
+  ],
+  "acceptedRigSha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "temporaryServersStopped": true
+}

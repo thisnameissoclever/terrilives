@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-clips.test.ts -t fits configured trainers
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 45 skipped (47)
+   Start at  14:55:55
+   Duration  35.43s (transform 1.03s, setup 0ms, import 1.17s, tests 32.86s, environment 0ms)
+

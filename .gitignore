@@ -113,3 +113,17 @@ assets/models/cleaning/contacts/
 
 # Local gate logs and work queue; never published.
 .local-build/
+/.vite/
+
+# Review recordings remain local, including recordings inside trace archives.
+*.webm
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.m4v
+*.gifv
+docs/evidence/**/*.gif
+
+# Reproduced from the tracked, hash-verified bookcase seed archive.
+assets/models/sims/character-creator/source-cache/

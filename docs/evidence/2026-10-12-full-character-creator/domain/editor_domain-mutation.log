@@ -1,0 +1,52 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+warning: unused variable: `value`
+  --> crates\terri-sim\src\character_draft.rs:25:19
+   |
+25 | fn editable_range(value: F32Bits, low: f32, high: f32, original: Option<F32Bits>) -> bool {
+   |                   ^^^^^ help: if this is intentional, prefix it with an underscore: `_value`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `low`
+  --> crates\terri-sim\src\character_draft.rs:25:35
+   |
+25 | fn editable_range(value: F32Bits, low: f32, high: f32, original: Option<F32Bits>) -> bool {
+   |                                   ^^^ help: if this is intentional, prefix it with an underscore: `_low`
+
+warning: unused variable: `high`
+  --> crates\terri-sim\src\character_draft.rs:25:45
+   |
+25 | fn editable_range(value: F32Bits, low: f32, high: f32, original: Option<F32Bits>) -> bool {
+   |                                             ^^^^ help: if this is intentional, prefix it with an underscore: `_high`
+
+warning: unused variable: `original`
+  --> crates\terri-sim\src\character_draft.rs:25:56
+   |
+25 | fn editable_range(value: F32Bits, low: f32, high: f32, original: Option<F32Bits>) -> bool {
+   |                                                        ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_original`
+
+warning: `terri-sim` (lib test) generated 4 warnings (run `cargo fix --lib -p terri-sim --tests` to apply 4 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 37.12s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 2 tests
+test character_draft::tests::creator_checks_content_identifiers_and_explicit_skill_levels ... ok
+test character_draft::tests::creator_domains_preserve_unchanged_custom_values_and_reject_new_outliers ... FAILED
+
+failures:
+
+---- character_draft::tests::creator_domains_preserve_unchanged_custom_values_and_reject_new_outliers stdout ----
+
+thread 'character_draft::tests::creator_domains_preserve_unchanged_custom_values_and_reject_new_outliers' (162220) panicked at crates\terri-sim\src\character_draft.rs:179:9:
+assertion failed: validate_character_values(pack, &changed, None).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    character_draft::tests::creator_domains_preserve_unchanged_custom_values_and_reject_new_outliers
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 1298 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

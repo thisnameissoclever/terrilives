@@ -1,0 +1,31 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web
+
+ ❯ tests/character-recline-fit.test.ts (10 tests | 1 failed | 4 skipped) 6819ms
+   × contains wave with large facial features and glasses on both presentations 180ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed | 4 skipped (10)
+   Start at  13:57:50
+   Duration  7.15s (transform 120ms, setup 0ms, import 221ms, tests 6.82s, environment 0ms)
+
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-recline-fit.test.ts > contains wave with large facial features and glasses on both presentations
+Error: The configured head cannot recline inside the sofa side.
+ ❯ fitRecliningPose src/render/character/recline-fit.ts:73:21
+     71|       angle=high;found=true;break;
+     72|     }
+     73|     if(!found)throw new Error('The configured head cannot recline insi…
+       |                     ^
+     74|   }
+     75|   const c=Math.cos(angle),s=Math.sin(angle);
+ ❯ solveInteraction src/render/character/interaction-pose.ts:87:5
+ ❯ configuredPose src/render/character/pose.ts:43:18
+ ❯ posedPositions src/render/character/geometry-proof.ts:9:17
+ ❯ tests/character-recline-fit.test.ts:36:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

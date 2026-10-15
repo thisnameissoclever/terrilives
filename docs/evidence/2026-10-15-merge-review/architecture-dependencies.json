@@ -1,0 +1,38 @@
+[
+  {
+    "target": "x86_64-unknown-linux-gnu",
+    "exitCode": 0,
+    "crate": "terri-core",
+    "browserDependencies": false
+  },
+  {
+    "target": "wasm32-unknown-unknown",
+    "exitCode": 0,
+    "crate": "terri-core",
+    "browserDependencies": false
+  },
+  {
+    "target": "x86_64-unknown-linux-gnu",
+    "exitCode": 0,
+    "crate": "terri-data",
+    "browserDependencies": false
+  },
+  {
+    "target": "wasm32-unknown-unknown",
+    "exitCode": 0,
+    "crate": "terri-data",
+    "browserDependencies": false
+  },
+  {
+    "target": "x86_64-unknown-linux-gnu",
+    "exitCode": 0,
+    "crate": "terri-sim",
+    "browserDependencies": false
+  },
+  {
+    "target": "wasm32-unknown-unknown",
+    "exitCode": 0,
+    "crate": "terri-sim",
+    "browserDependencies": false
+  }
+]

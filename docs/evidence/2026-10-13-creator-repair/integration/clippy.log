@@ -1,0 +1,33 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+error: large size difference between variants
+   --> crates\terri-core\src\command.rs:35:1
+    |
+ 35 | /  pub enum SimCommand {
+ 36 | |      /// Select an agent, or clear the selection with None.
+ 37 | |      Select(Option<u32>),
+ 38 | |      /// Direct an agent to use one of an object's interactions,
+...   |
+259 | |/     EditHousemate {
+260 | ||         sim: u32,
+261 | ||         name: String,
+262 | ||         personality: Option<u32>,
+263 | ||         traits: Vec<u32>,
+264 | ||         ties: Vec<(u32, Option<crate::layout::Relation>)>,
+265 | ||     },
+    | ||_____- the second-largest variant contains at least 84 bytes
+...   |
+295 | |      Character(CharacterCommand),
+    | |      --------------------------- the largest variant contains at least 712 bytes
+296 | |  }
+    | |__^ the entire enum is at least 712 bytes
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#large_enum_variant
+    = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+    |
+295 -     Character(CharacterCommand),
+295 +     Character(Box<CharacterCommand>),
+    |
+
+error: could not compile `terri-core` (lib) due to 1 previous error

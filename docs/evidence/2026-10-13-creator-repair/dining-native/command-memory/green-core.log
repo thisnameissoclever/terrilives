@@ -1,0 +1,25 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.88s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-d9424414bfa066c7.exe)
+
+running 15 tests
+test command::bed_assignment_wire_tests::set_and_clear_bed_assignment_keep_wire_code_nineteen ... ok
+test command::book_wire_test::owned_book_command_appends_after_all_published_chore_commands ... ok
+test command::character_tests::creator_commands_keep_code_thirty_and_the_unboxed_payload_bytes ... ok
+SimCommand bytes: 88; CharacterCommand bytes: 712
+test command::character_tests::creator_payload_does_not_inflate_every_queued_command ... ok
+test command::edit_wire_tests::edit_housemate_appends_wire_code_22_with_every_field ... ok
+test command::edit_wire_tests::keep_personality_and_no_ties_encode_as_zero_markers ... ok
+test command::instinct_wire_tests::self_preservation_extended_move_in_appends_wire_code_18 ... ok
+test command::targeted_cleanup_wire_tests::cleanup_commands_append_codes_twenty_three_and_twenty_four ... ok
+test command::tests::command_encoding_is_pinned_by_a_golden_byte_vector ... ok
+test command::tests::commands_round_trip_through_postcard ... ok
+test command::tests::the_queue_drains_in_order_and_empties ... ok
+test command::window_wire_tests::chore_commands_append_pinned_tags_without_moving_published_commands ... ok
+test command::window_wire_tests::fit_command_rejects_unknown_stored_model_tag ... ok
+test command::window_wire_tests::later_historical_live_commands_keep_complete_golden_vectors ... ok
+test command::window_wire_tests::window_commands_append_tags_and_preserve_every_required_field ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 131 filtered out; finished in 0.00s
+
+EXIT_CODE=0

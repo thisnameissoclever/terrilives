@@ -1,0 +1,51 @@
+const {chromium}=require('C:/Users/myema/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const label=process.env.STARTUP_RUN||'startup-01',out=path.resolve('docs/evidence/2026-10-14-main-integration',label);
+if(fs.existsSync(out))throw Error('Preserve existing evidence; choose STARTUP_RUN');fs.mkdirSync(out,{recursive:true});
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:false,args:['--mute-audio']}),report={checks:[],errors:[]};let page,release;
+ const check=(name,condition)=>{assert.ok(condition,name);report.checks.push(name);};
+ try{
+  page=await browser.newPage({viewport:{width:1440,height:1000}});
+  page.on('pageerror',error=>report.errors.push(String(error)));page.on('console',message=>{if(['warning','error'].includes(message.type())&&!message.location().url.endsWith('/favicon.ico'))report.errors.push(message.text());});
+  await page.addInitScript(()=>localStorage.setItem('terrilives.help-dismissed.v1','1'));
+  const gate=new Promise(resolve=>release=resolve);await page.route(/\/src\/main\.ts(?:\?|$)/,async route=>{await gate;await route.continue();});
+  await page.goto('http://127.0.0.1:5187/?stress=0',{waitUntil:'commit'});
+  await page.locator('#startup-loading-title').waitFor({state:'visible'});
+  check('Loading cover paints before the game module arrives',await page.locator('#startup-loading-step').textContent()==='Step 1 of 10: Downloading the game');
+  await page.screenshot({path:path.join(out,'01-before-game-script.png')});release();
+  await page.waitForFunction(()=>window.__terriStress,null,{timeout:120000});await page.locator('#startup-loading').waitFor({state:'detached',timeout:120000});
+  check('Loading cover leaves after a drawable scene',await page.locator('#stage').isVisible());await page.locator('label[for="speed-0"]').click();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.screenshot({path:path.join(out,'02-loaded-game.png')});
+  report.before=await page.evaluate(()=>Array.from(__terriStress.sim.saveBytes()));
+  await page.evaluate(async()=>{const url=performance.getEntriesByType('resource').map(r=>r.name).find(url=>/\/ui\/character-creator\/view\.[jt]s(?:\?|$)/.test(url));if(!url)throw Error('Creator module missing');const {CreatorView}=await import(url),render=CreatorView.prototype.render;CreatorView.prototype.render=function(...args){window.integrationView=this;return render.apply(this,args);};});
+  await page.locator('#options-toggle').click();await page.locator('#new-housemate').click();
+  const panel=page.locator('#character-creator-root'),ready=()=>page.waitForFunction(()=>window.integrationView?.previewReady&&!window.integrationView?.previewError,null,{timeout:60000});await ready();
+  check('New creator selects Walking and plays automatically',await panel.locator('[data-action]').inputValue()==='walk'&&await panel.locator('[data-play]').textContent()==='Pause');
+  const first=await panel.locator('.creator-portrait').screenshot();await page.waitForTimeout(250);const second=await panel.locator('.creator-portrait').screenshot();
+  check('Walking changes actual preview pixels',hash(first)!==hash(second));
+  report.initial=await page.evaluate(()=>window.integrationView.session.draft.value);check('New draft has randomized supported traits',report.initial.traits.length>=1&&report.initial.traits.length<=4);
+  await panel.locator('[data-page="needs"]').click();
+  const fields=panel.locator('[data-field^="activity-category:"] input[type=number]');check('Activity categories are visible',await fields.count()===10);
+  await fields.first().fill('1.73');await fields.first().press('Tab');
+  const changed=await page.evaluate(()=>window.integrationView.session.draft.value),rng=await page.evaluate(()=>window.integrationView.session.draft.randomState);
+  await panel.locator('[data-reset]').click();
+  report.resetValues=await fields.evaluateAll(nodes=>nodes.map(node=>Number(node.value)));
+  check('Needs Reset uses 1.0 for every activity category',report.resetValues.every(value=>value===1));
+  check('Reset leaves draft randomness untouched',rng===await page.evaluate(()=>window.integrationView.session.draft.randomState));
+  await panel.screenshot({path:path.join(out,'03-reset-defaults.png')});await panel.locator('[data-undo]').click();
+  check('Undo restores exact pre-Reset values',JSON.stringify(changed)===JSON.stringify(await page.evaluate(()=>window.integrationView.session.draft.value)));
+  await panel.locator('[data-page="review"]').click();await panel.locator('[data-reset]').click();await ready();
+  report.resetAll=await page.evaluate(()=>window.integrationView.session.draft.value);
+  check('Whole Reset restores neutral temperament and appearance',report.resetAll.behavior.shyness===50&&report.resetAll.appearance.body.height===50&&report.resetAll.traits.length===0);
+  check('Editing the draft leaves household bytes unchanged',JSON.stringify(report.before)===JSON.stringify(await page.evaluate(()=>Array.from(__terriStress.sim.saveBytes()))));
+  await panel.locator('[data-cancel]').click();check('Cancel preserves household bytes',JSON.stringify(report.before)===JSON.stringify(await page.evaluate(()=>Array.from(__terriStress.sim.saveBytes()))));
+  const stored=await page.evaluate(()=>{const s=__terriStress.sim,id=s.simIdOf(s.selectedIndex());return s.characterSnapshot(id);});
+  await page.locator('#edit-housemate').click();await ready();report.edit=await page.evaluate(()=>({draft:window.integrationView.session.draft.value,person:window.integrationView.session.sim}));
+  check('Existing character edit preloads the exact stored record',JSON.stringify(stored)===JSON.stringify(report.edit.draft));await panel.locator('[data-cancel]').click();
+  check('No browser or graphics diagnostics',report.errors.length===0);report.status='PASS';console.log(JSON.stringify({status:report.status,checks:report.checks.length}));
+ }catch(error){report.status='FAIL';report.failure=String(error);if(page)await page.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});throw error;}
+ finally{release?.();await browser.close();report.browserClosed=true;fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));}
+})().catch(error=>{console.error(error);process.exitCode=1;});

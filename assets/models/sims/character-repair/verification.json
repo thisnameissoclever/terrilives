@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "checks": [
+    {
+      "bundle": "fixture-depth",
+      "sprites": 140,
+      "pages": 2,
+      "coverage": "all-nonzero-alpha-exact",
+      "sourceHashes": "unchanged"
+    },
+    {
+      "bundle": "aquarium-depth",
+      "sprites": 40,
+      "pages": 1,
+      "coverage": "all-nonzero-alpha-exact",
+      "sourceHashes": "unchanged"
+    },
+    {
+      "bundle": "shelf-depth",
+      "facings": 4,
+      "slots": 96,
+      "pages": 2
+    },
+    {
+      "bundle": "components",
+      "states": 56,
+      "restPixels": "identical-to-published-color",
+      "depthCoverage": "matches-color-exactly"
+    },
+    {
+      "bundle": "dropped-book",
+      "states": 4,
+      "geometry": "retained-canonical-source-at-scale-one",
+      "originalSceneRecovered": false,
+      "originalSurfaceRecovered": false,
+      "colors": "exact-published-rgba",
+      "facings": [
+        {
+          "facing": "SE",
+          "coveredPixels": 660,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.3397088123150642
+        },
+        {
+          "facing": "NW",
+          "coveredPixels": 559,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.4805810107544808
+        },
+        {
+          "facing": "SW",
+          "coveredPixels": 248,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.555295414596922
+        },
+        {
+          "facing": "NE",
+          "coveredPixels": 293,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.456700322972759
+        }
+      ]
+    },
+    {
+      "bundle": "model-catalogue",
+      "models": 30,
+      "missing": []
+    }
+  ]
+}

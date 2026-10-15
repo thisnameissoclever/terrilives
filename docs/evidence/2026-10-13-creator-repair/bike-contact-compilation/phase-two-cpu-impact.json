@@ -1,0 +1,707 @@
+{
+  "appearance": {
+    "version": 1,
+    "presentation": "masculine",
+    "body": {
+      "height": 50,
+      "build": 50,
+      "shoulders": 50,
+      "hips": 50,
+      "torso": 50
+    },
+    "face": {
+      "shape": "oval",
+      "cheeks": 50,
+      "jaw": 50,
+      "chin": 50,
+      "eyes": "almond",
+      "eye_size": 50,
+      "brows": "soft",
+      "brow_thickness": 50,
+      "nose": "straight",
+      "nose_width": 50,
+      "mouth": "neutral",
+      "mouth_fullness": 50,
+      "ears": 50
+    },
+    "colors": {
+      "skin": [
+        190,
+        143,
+        107
+      ],
+      "hair": [
+        101,
+        69,
+        46
+      ],
+      "facial_hair": [
+        101,
+        69,
+        46
+      ],
+      "eyes": [
+        102,
+        91,
+        69
+      ],
+      "shirt": [
+        107,
+        159,
+        155
+      ],
+      "trousers": [
+        57,
+        70,
+        80
+      ],
+      "shoes": [
+        76,
+        64,
+        55
+      ]
+    },
+    "undertone": "neutral",
+    "hairstyle": "curl",
+    "bald": false,
+    "facial_hair": "none",
+    "freckles": false,
+    "freckle_density": 50,
+    "scar": "none",
+    "top": "overshirt",
+    "sleeves": "rolled",
+    "bottoms": "trousers",
+    "footwear": "loafers",
+    "glasses": false,
+    "glasses_style": "round",
+    "earrings": "none"
+  },
+  "fit0": {
+    "hip": [
+      0,
+      0.1599999964237213,
+      0.9316122731719727
+    ],
+    "pelvisRotation": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      {
+        "negativeZero": true
+      },
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "pitch": 0,
+    "feet": [
+      {
+        "rotation": [
+          -0.9999998807907104,
+          5.960464477539063e-8,
+          5.960464477539063e-8,
+          0,
+          -2.9802322387695312e-8,
+          -0.9999998807907104,
+          -5.960464477539063e-8,
+          0,
+          1.1920928955078125e-7,
+          5.960464477539063e-8,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "offset": [
+          0.000024986292090943552,
+          -0.04121154727235501,
+          -0.11085188074832508
+        ],
+        "contact": [
+          {
+            "negativeZero": true
+          },
+          0.06,
+          0.0175
+        ]
+      },
+      {
+        "rotation": [
+          -1,
+          -3.725290298461914e-9,
+          1.043081283569336e-7,
+          0,
+          0,
+          -0.9999998807907104,
+          -1.4901161193847656e-8,
+          0,
+          4.470348358154297e-8,
+          4.470348358154297e-8,
+          0.9999999403953552,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "offset": [
+          -0.000024976182484633957,
+          -0.04121154562448238,
+          -0.11085187230477819
+        ],
+        "contact": [
+          0,
+          0.06,
+          0.0175
+        ]
+      }
+    ],
+    "reachMargin": 0.03576859744716032,
+    "supportSamples": 28
+  },
+  "fit2": {
+    "hip": [
+      0,
+      0.1599999964237213,
+      0.9316122731719727
+    ],
+    "pelvisRotation": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      {
+        "negativeZero": true
+      },
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "pitch": 0,
+    "feet": [
+      {
+        "rotation": [
+          -1,
+          3.725290298461914e-8,
+          1.1920928955078125e-7,
+          0,
+          2.9802322387695312e-8,
+          -1,
+          -1.4901161193847656e-8,
+          0,
+          1.4901161193847656e-7,
+          -2.9802322387695312e-8,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "offset": [
+          0.00002498545851976314,
+          -0.04121154230574218,
+          -0.11085187891328398
+        ],
+        "contact": [
+          {
+            "negativeZero": true
+          },
+          0.06,
+          0.0175
+        ]
+      },
+      {
+        "rotation": [
+          -0.9999999403953552,
+          -5.960464477539063e-8,
+          1.1175870895385742e-7,
+          0,
+          -1.4901161193847656e-8,
+          -1.0000001192092896,
+          -5.960464477539063e-8,
+          0,
+          2.9802322387695312e-8,
+          -2.9802322387695312e-8,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "offset": [
+          -0.000024975148620600405,
+          -0.04121154721909831,
+          -0.11085188074841278
+        ],
+        "contact": [
+          0,
+          0.06,
+          0.0175
+        ]
+      }
+    ],
+    "reachMargin": 0.03576860023055484,
+    "supportSamples": 28
+  },
+  "rows": [
+    {
+      "phase": 2,
+      "bones": [
+        {
+          "name": "thigh.L",
+          "changed": 4,
+          "maxDelta": 1.862645149230957e-9
+        },
+        {
+          "name": "shin.L",
+          "changed": 4,
+          "maxDelta": 2.9802322387695312e-8
+        },
+        {
+          "name": "foot.L",
+          "changed": 8,
+          "maxDelta": 1.1920928955078125e-7
+        },
+        {
+          "name": "thigh.R",
+          "changed": 2,
+          "maxDelta": 5.960464477539063e-8
+        },
+        {
+          "name": "foot.R",
+          "changed": 9,
+          "maxDelta": 2.384185791015625e-7
+        }
+      ],
+      "vertices": 58861,
+      "changedVertices": 6976,
+      "maxAxisDelta": [
+        8.940696716308594e-8,
+        8.940696716308594e-8,
+        2.384185791015625e-7
+      ],
+      "maxDistance": 2.421152116249788e-7,
+      "parts": [
+        {
+          "name": "Fitted rounded shoe sole",
+          "changed": 1018,
+          "total": 1346
+        },
+        {
+          "name": "Fitted rounded shoe sole.001",
+          "changed": 1179,
+          "total": 1346
+        },
+        {
+          "name": "Shaped shoe",
+          "changed": 1435,
+          "total": 1730
+        },
+        {
+          "name": "Shaped shoe.001",
+          "changed": 1498,
+          "total": 1730
+        },
+        {
+          "name": "Shoe apron stitch",
+          "changed": 396,
+          "total": 396
+        },
+        {
+          "name": "Shoe apron stitch.001",
+          "changed": 396,
+          "total": 396
+        },
+        {
+          "name": "Tailored trouser leg",
+          "changed": 483,
+          "total": 2498
+        },
+        {
+          "name": "Tailored trouser leg.001",
+          "changed": 523,
+          "total": 2498
+        },
+        {
+          "name": "Trouser hem",
+          "changed": 48,
+          "total": 338
+        }
+      ],
+      "projectedAtUnitScale": [
+        {
+          "facing": 0,
+          "maxX": 0.000003814697265625,
+          "maxY": 0.000008141217746240556
+        },
+        {
+          "facing": 1,
+          "maxX": 0.000003814697265625,
+          "maxY": 0.000008141217746240556
+        },
+        {
+          "facing": 2,
+          "maxX": 0.000003814697265625,
+          "maxY": 0.000008141217746240556
+        },
+        {
+          "facing": 3,
+          "maxX": 0.000003814697265625,
+          "maxY": 0.000009392915286523759
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "bones": [
+        {
+          "name": "thigh.L",
+          "changed": 1,
+          "maxDelta": 3.725290298461914e-9
+        },
+        {
+          "name": "shin.L",
+          "changed": 3,
+          "maxDelta": 1.4901161193847656e-8
+        },
+        {
+          "name": "foot.L",
+          "changed": 10,
+          "maxDelta": 1.1920928955078125e-7
+        },
+        {
+          "name": "thigh.R",
+          "changed": 2,
+          "maxDelta": 3.725290298461914e-9
+        },
+        {
+          "name": "shin.R",
+          "changed": 2,
+          "maxDelta": 2.9802322387695312e-8
+        },
+        {
+          "name": "foot.R",
+          "changed": 9,
+          "maxDelta": 2.384185791015625e-7
+        }
+      ],
+      "vertices": 58861,
+      "changedVertices": 8403,
+      "maxAxisDelta": [
+        8.940696716308594e-8,
+        5.960464477539063e-8,
+        1.7881393432617188e-7
+      ],
+      "maxDistance": 1.8907453925087333e-7,
+      "parts": [
+        {
+          "name": "Fitted rounded shoe sole",
+          "changed": 1010,
+          "total": 1346
+        },
+        {
+          "name": "Fitted rounded shoe sole.001",
+          "changed": 1180,
+          "total": 1346
+        },
+        {
+          "name": "Shaped shoe",
+          "changed": 1233,
+          "total": 1730
+        },
+        {
+          "name": "Shaped shoe.001",
+          "changed": 1541,
+          "total": 1730
+        },
+        {
+          "name": "Shoe apron stitch",
+          "changed": 291,
+          "total": 396
+        },
+        {
+          "name": "Shoe apron stitch.001",
+          "changed": 396,
+          "total": 396
+        },
+        {
+          "name": "Tailored trouser leg",
+          "changed": 613,
+          "total": 2498
+        },
+        {
+          "name": "Tailored trouser leg.001",
+          "changed": 1711,
+          "total": 2498
+        },
+        {
+          "name": "Trouser hem",
+          "changed": 90,
+          "total": 338
+        },
+        {
+          "name": "Trouser hem.001",
+          "changed": 338,
+          "total": 338
+        }
+      ],
+      "projectedAtUnitScale": [
+        {
+          "facing": 0,
+          "maxX": 0.0000032186508178710938,
+          "maxY": 0.000007044686464892819
+        },
+        {
+          "facing": 1,
+          "maxX": 0.000003337860107421875,
+          "maxY": 0.000005323602347003415
+        },
+        {
+          "facing": 2,
+          "maxX": 0.0000032186508178710938,
+          "maxY": 0.0000056365267320742155
+        },
+        {
+          "facing": 3,
+          "maxX": 0.000003337860107421875,
+          "maxY": 0.00000767053523503442
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "bones": [
+        {
+          "name": "shin.L",
+          "changed": 5,
+          "maxDelta": 1.4901161193847656e-8
+        },
+        {
+          "name": "foot.L",
+          "changed": 9,
+          "maxDelta": 1.1920928955078125e-7
+        },
+        {
+          "name": "thigh.R",
+          "changed": 3,
+          "maxDelta": 5.960464477539063e-8
+        },
+        {
+          "name": "shin.R",
+          "changed": 1,
+          "maxDelta": 3.725290298461914e-9
+        },
+        {
+          "name": "foot.R",
+          "changed": 10,
+          "maxDelta": 2.384185791015625e-7
+        }
+      ],
+      "vertices": 58861,
+      "changedVertices": 9703,
+      "maxAxisDelta": [
+        8.940696716308594e-8,
+        5.960464477539063e-8,
+        2.086162567138672e-7
+      ],
+      "maxDistance": 2.1103037950796704e-7,
+      "parts": [
+        {
+          "name": "Fitted rounded shoe sole",
+          "changed": 1276,
+          "total": 1346
+        },
+        {
+          "name": "Fitted rounded shoe sole.001",
+          "changed": 1276,
+          "total": 1346
+        },
+        {
+          "name": "Shaped shoe",
+          "changed": 1608,
+          "total": 1730
+        },
+        {
+          "name": "Shaped shoe.001",
+          "changed": 1691,
+          "total": 1730
+        },
+        {
+          "name": "Shoe apron stitch",
+          "changed": 396,
+          "total": 396
+        },
+        {
+          "name": "Shoe apron stitch.001",
+          "changed": 396,
+          "total": 396
+        },
+        {
+          "name": "Tailored trouser leg",
+          "changed": 1025,
+          "total": 2498
+        },
+        {
+          "name": "Tailored trouser leg.001",
+          "changed": 1486,
+          "total": 2498
+        },
+        {
+          "name": "Trouser hem",
+          "changed": 293,
+          "total": 338
+        },
+        {
+          "name": "Trouser hem.001",
+          "changed": 256,
+          "total": 338
+        }
+      ],
+      "projectedAtUnitScale": [
+        {
+          "facing": 0,
+          "maxX": 0.000003337860107421875,
+          "maxY": 0.000007984107586905188
+        },
+        {
+          "facing": 1,
+          "maxX": 0.0000027418136596679688,
+          "maxY": 0.0000072800277204958865
+        },
+        {
+          "facing": 2,
+          "maxX": 0.000003337860107421875,
+          "maxY": 0.000007123565527960486
+        },
+        {
+          "facing": 3,
+          "maxX": 0.0000027418136596679688,
+          "maxY": 0.000007514721009298987
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "bones": [
+        {
+          "name": "shin.L",
+          "changed": 1,
+          "maxDelta": 5.960464477539063e-8
+        },
+        {
+          "name": "foot.L",
+          "changed": 10,
+          "maxDelta": 1.1920928955078125e-7
+        },
+        {
+          "name": "thigh.R",
+          "changed": 6,
+          "maxDelta": 5.960464477539063e-8
+        },
+        {
+          "name": "foot.R",
+          "changed": 9,
+          "maxDelta": 2.384185791015625e-7
+        }
+      ],
+      "vertices": 58861,
+      "changedVertices": 7622,
+      "maxAxisDelta": [
+        8.940696716308594e-8,
+        8.940696716308594e-8,
+        1.7881393432617188e-7
+      ],
+      "maxDistance": 1.9082797281243946e-7,
+      "parts": [
+        {
+          "name": "Fitted rounded shoe sole",
+          "changed": 1225,
+          "total": 1346
+        },
+        {
+          "name": "Fitted rounded shoe sole.001",
+          "changed": 1061,
+          "total": 1346
+        },
+        {
+          "name": "Shaped shoe",
+          "changed": 1387,
+          "total": 1730
+        },
+        {
+          "name": "Shaped shoe.001",
+          "changed": 1491,
+          "total": 1730
+        },
+        {
+          "name": "Shoe apron stitch",
+          "changed": 396,
+          "total": 396
+        },
+        {
+          "name": "Shoe apron stitch.001",
+          "changed": 396,
+          "total": 396
+        },
+        {
+          "name": "Tailored trouser leg",
+          "changed": 113,
+          "total": 2498
+        },
+        {
+          "name": "Tailored trouser leg.001",
+          "changed": 1530,
+          "total": 2498
+        },
+        {
+          "name": "Trouser hem",
+          "changed": 23,
+          "total": 338
+        }
+      ],
+      "projectedAtUnitScale": [
+        {
+          "facing": 0,
+          "maxX": 0.000003814697265625,
+          "maxY": 0.000006731762079822018
+        },
+        {
+          "facing": 1,
+          "maxX": 0.00000286102294921875,
+          "maxY": 0.000005167140154468014
+        },
+        {
+          "facing": 2,
+          "maxX": 0.000003814697265625,
+          "maxY": 0.000005792988924609616
+        },
+        {
+          "facing": 3,
+          "maxX": 0.0000028610229492187504,
+          "maxY": 0.000007983459620105221
+        }
+      ]
+    }
+  ]
+}

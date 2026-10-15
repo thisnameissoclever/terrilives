@@ -1,0 +1,5 @@
+{
+  "command": "npm --prefix web run typecheck",
+  "exitCode": 0,
+  "verdict": "PASS"
+}

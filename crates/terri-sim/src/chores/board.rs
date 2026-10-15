@@ -17,6 +17,30 @@ fn people(world: &World) -> Vec<(u32, Entity)> {
     people.sort_by_key(|p| p.0);
     people
 }
+
+pub(crate) fn work_needed(world: &World, state: &SavedChores, key: ChoreKey, owner: u32) -> bool {
+    let clean = people(world)
+        .into_iter()
+        .find(|(id, _)| *id == owner)
+        .map_or(0.5, |(_, person)| {
+            crate::domestic::cleanliness(world, person)
+        });
+    match key.kind {
+        ChoreKind::Bins => dirt_in(world, state, key) >= 600,
+        ChoreKind::Dishes => {
+            let units = world
+                .get_resource::<terri_core::save::SavedDomestic>()
+                .map_or(0, |domestic| {
+                    domestic.dishes.iter().map(|dish| dish.units).sum()
+                });
+            terri_core::cleanliness::dish_response(clean, units) > 0.0
+        }
+        _ => {
+            terri_core::cleanliness::response(clean, dirt_in(world, state, key) as f32 / 1000.0)
+                > 0.0
+        }
+    }
+}
 pub(crate) fn readiness(world: &World, person: Entity) -> f32 {
     let Some(needs) = world.get::<Needs>(person) else {
         return 0.0;
@@ -104,7 +128,7 @@ pub(crate) fn reconcile(world: &World, state: &mut SavedChores) {
                 && e.needed
                 && e.key.kind.grouped()
                 && !state.tasks.iter().any(|t| t.key == e.key)
-                && dirt_in(world, state, e.key) < 150
+                && !work_needed(world, state, e.key, e.owner)
         })
         .map(|e| e.id)
         .collect();
@@ -357,14 +381,7 @@ pub(crate) fn tick(world: &mut World, state: &mut SavedChores) {
             }
             continue;
         }
-        let amount = dirt_in(world, state, key);
-        let threshold = match key.kind {
-            ChoreKind::Dishes => 1,
-            ChoreKind::Floors => 250,
-            ChoreKind::Surfaces | ChoreKind::CounterSurfaces | ChoreKind::TableSurfaces => 150,
-            ChoreKind::Bins => 600,
-        };
-        if amount < threshold && !state.episodes[i].needed {
+        if !work_needed(world, state, key, owner) && !state.episodes[i].needed {
             state.episodes[i].outcome = DutyOutcome::NoWork;
             continue;
         }

@@ -1,0 +1,71 @@
+{
+  "source": "docs/evidence/2026-10-13-creator-repair/final-game-review/dining-before-cooking.sav",
+  "sourceSha256": "2e30aed38e2ad50342ed2c8ce3d1d94310a60f13d0f8008eaeb86a1751cdf01e",
+  "wasmSha256": "efbd90129fe4a1005b2280e469553bd3a866f11e305514d9529e59b4561da1a0",
+  "rows": [
+    {
+      "action": "mop",
+      "file": "mop-0.sav",
+      "person": 35,
+      "tick": 179,
+      "progress": 41,
+      "sha256": "7934098e6cdeed756eaa30702f61511a9dc2f3a9a286a3ac8d89309c526a0653"
+    },
+    {
+      "action": "mop",
+      "file": "mop-1.sav",
+      "person": 35,
+      "tick": 181,
+      "progress": 125,
+      "sha256": "a937382fa1b112dab07d4d9fd52647b2a5a54201440f9288f9192405404f13d5"
+    },
+    {
+      "action": "mop",
+      "file": "mop-2.sav",
+      "person": 35,
+      "tick": 183,
+      "progress": 208,
+      "sha256": "50be2968785dc8cec7f66d84455375fe5dc2c53702b6b1451c0448cd30900409"
+    },
+    {
+      "action": "mop",
+      "file": "mop-3.sav",
+      "person": 35,
+      "tick": 185,
+      "progress": 291,
+      "sha256": "5dc74bc5b01aa7e5d0523b2bdf242b2fd45de8833d1c301f49f5d8b6ee657f3a"
+    },
+    {
+      "action": "exercise",
+      "file": "exercise-0.sav",
+      "person": 36,
+      "tick": 192,
+      "progress": 0,
+      "sha256": "a766b00ebfe39efff5de32fd1c341bfa0f5374a028cae4adedc3a20369036200"
+    },
+    {
+      "action": "exercise",
+      "file": "exercise-1.sav",
+      "person": 36,
+      "tick": 194,
+      "progress": 0,
+      "sha256": "46ef82e6be6f07631dc72d99990b12808086ccb73c15d429f3b3a2adbd1143cc"
+    },
+    {
+      "action": "exercise",
+      "file": "exercise-2.sav",
+      "person": 36,
+      "tick": 196,
+      "progress": 0,
+      "sha256": "c3aa9380c94b73e3a2afbe91871da9c0cc5ba371d8f315e2f7faa5b69ce5cf92"
+    },
+    {
+      "action": "exercise",
+      "file": "exercise-3.sav",
+      "person": 36,
+      "tick": 198,
+      "progress": 0,
+      "sha256": "bc5759f9e3547949e6ccba5c9106a0fe3259e54dda29973e0e17442609c55203"
+    }
+  ]
+}

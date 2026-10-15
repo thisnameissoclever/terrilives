@@ -1,0 +1,38 @@
+[
+  {
+    "name": "web",
+    "command": "npm --prefix web test -- --maxWorkers=1 character- tests/input.test.ts tests/frame.test.ts tests/floor-finish-resources.test.ts tests/save-worker.test.ts tests/save-store.test.ts tests/persistence-controller.test.ts tests/legacy-save.test.ts",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "typecheck",
+    "command": "npm --prefix web run typecheck",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "python",
+    "command": "python -m unittest discover -s assets/models/sims/appearance-proof -p \"test_*.py\"",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "rust-character",
+    "command": "cargo test --locked -j 1 -p terri-sim character_draft -- --test-threads=1",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "rust-save",
+    "command": "cargo test --locked -j 1 -p terri-sim save::v9 -- --test-threads=1",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "build",
+    "command": "npm --prefix web run build",
+    "exitCode": 0,
+    "verdict": "PASS"
+  }
+]

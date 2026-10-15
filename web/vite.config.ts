@@ -47,10 +47,14 @@ export default defineConfig(({ mode }) => ({
   // tests read the same committed file from disk instead.
   test: { setupFiles: ['./tests/setup/coverage-payload.ts'] },
   server: {
-    // The isolated GPU proof reads only this candidate evidence directory.
-    // Trial textures do not enter public/ or the production atlas.
+    // Development proofs read these isolated asset exports.
+    // Trial assets do not enter public/ or the production atlas.
     fs: { allow: [searchForWorkspaceRoot(__dirname),
-      path.resolve(__dirname, '../docs/assets/review-evidence/architecture/room-01/trial')] },
+      path.resolve(__dirname, '../docs/assets/review-evidence/architecture/room-01/trial'),
+      path.resolve(__dirname, '../assets/models/sims/appearance-proof/export'),
+      path.resolve(__dirname, '../assets/models/sims/appearance-proof/export-v2'),
+      path.resolve(__dirname, '../assets/models/sims/character-creator/export'),
+      path.resolve(__dirname, '../assets/models/sims/character-repair')] },
     // Bind every interface, not only localhost, so the dev build is
     // reachable from other machines and phones on the same network at
     // port 5174. Windows will ask once to

@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 character- tests/input.test.ts tests/frame.test.ts tests/floor-finish-resources.test.ts tests/save-worker.test.ts tests/save-store.test.ts tests/persistence-controller.test.ts tests/legacy-save.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  30 passed (30)
+      Tests  410 passed (410)
+   Start at  23:37:09
+   Duration  134.01s (transform 7.19s, setup 0ms, import 26.71s, tests 104.25s, environment 2ms)
+

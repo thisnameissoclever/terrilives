@@ -1,0 +1,430 @@
+{
+  "errors": [],
+  "checks": [
+    {
+      "name": "Existing pending input survives GPU replacement without new preparation",
+      "pass": true,
+      "additionalCompiles": 1
+    },
+    {
+      "name": "Full draft and exact live bytes survive recovery and Cancel",
+      "pass": true
+    }
+  ],
+  "scope": "Pending creator preparation across real GPU-device replacement; no performance conclusion.",
+  "before": {
+    "generation": 0,
+    "contacts": {
+      "roster": {
+        "live": 3,
+        "queued": 0,
+        "staging": false
+      },
+      "service": {
+        "owners": 4,
+        "entries": 2,
+        "queued": 0,
+        "inFlight": 1,
+        "ready": 1,
+        "workerAlive": true,
+        "generations": 12,
+        "inputPreparations": 6,
+        "compilations": 5,
+        "discardedResults": 3,
+        "lastError": null,
+        "disposed": false
+      }
+    },
+    "draft": {
+      "version": 1,
+      "name": "Pending recovery draft",
+      "pronouns": "",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            62,
+            117,
+            164
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "behavior": {
+        "shyness": 89,
+        "cleanliness": 1063675494,
+        "self_preservation": 16,
+        "chronotype_offset_ticks": -90,
+        "drain": [
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1067869798,
+          1060320051
+        ],
+        "recovery": [
+          1065353216,
+          1066611507,
+          1065353216,
+          1065353216,
+          1065353216,
+          1062836634,
+          1065353216
+        ],
+        "dispositions": [
+          {
+            "object": "television",
+            "action": "watch_tv",
+            "weight": 1057803469
+          },
+          {
+            "object": "bookshelf",
+            "action": "read",
+            "weight": 1069128090
+          },
+          {
+            "object": "desk",
+            "action": "attend_correspondence",
+            "weight": 1071225242
+          },
+          {
+            "object": "reading_chair",
+            "action": "settle_in",
+            "weight": 1067702026
+          }
+        ]
+      },
+      "traits": [
+        {
+          "id": "low_spirits",
+          "state": 1058642330
+        },
+        {
+          "id": "bookworm",
+          "state": 0
+        },
+        {
+          "id": "out_of_shape",
+          "state": 1054280253
+        }
+      ],
+      "affinities": [
+        {
+          "id": "plants",
+          "value": 3196210072
+        },
+        {
+          "id": "aquarium",
+          "value": 1055227304
+        },
+        {
+          "id": "television",
+          "value": 3210828120
+        },
+        {
+          "id": "radio",
+          "value": 3176728320
+        }
+      ],
+      "hobbies": [
+        "correspondence",
+        "reading"
+      ],
+      "skills": [
+        {
+          "id": "exercise",
+          "practice": 1054280253
+        }
+      ],
+      "ties": [
+        [
+          1,
+          null
+        ],
+        [
+          2,
+          null
+        ]
+      ]
+    }
+  },
+  "after": {
+    "generation": 1,
+    "contacts": {
+      "roster": {
+        "live": 3,
+        "queued": 0,
+        "staging": false
+      },
+      "service": {
+        "owners": 4,
+        "entries": 2,
+        "queued": 0,
+        "inFlight": 0,
+        "ready": 2,
+        "workerAlive": true,
+        "generations": 12,
+        "inputPreparations": 6,
+        "compilations": 6,
+        "discardedResults": 3,
+        "lastError": null,
+        "disposed": false
+      }
+    },
+    "draft": {
+      "version": 1,
+      "name": "Pending recovery draft",
+      "pronouns": "",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "body": {
+          "height": 0,
+          "build": 0,
+          "shoulders": 0,
+          "hips": 0,
+          "torso": 100
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            62,
+            117,
+            164
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "behavior": {
+        "shyness": 89,
+        "cleanliness": 1063675494,
+        "self_preservation": 16,
+        "chronotype_offset_ticks": -90,
+        "drain": [
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1067869798,
+          1060320051
+        ],
+        "recovery": [
+          1065353216,
+          1066611507,
+          1065353216,
+          1065353216,
+          1065353216,
+          1062836634,
+          1065353216
+        ],
+        "dispositions": [
+          {
+            "object": "television",
+            "action": "watch_tv",
+            "weight": 1057803469
+          },
+          {
+            "object": "bookshelf",
+            "action": "read",
+            "weight": 1069128090
+          },
+          {
+            "object": "desk",
+            "action": "attend_correspondence",
+            "weight": 1071225242
+          },
+          {
+            "object": "reading_chair",
+            "action": "settle_in",
+            "weight": 1067702026
+          }
+        ]
+      },
+      "traits": [
+        {
+          "id": "low_spirits",
+          "state": 1058642330
+        },
+        {
+          "id": "bookworm",
+          "state": 0
+        },
+        {
+          "id": "out_of_shape",
+          "state": 1054280253
+        }
+      ],
+      "affinities": [
+        {
+          "id": "plants",
+          "value": 3196210072
+        },
+        {
+          "id": "aquarium",
+          "value": 1055227304
+        },
+        {
+          "id": "television",
+          "value": 3210828120
+        },
+        {
+          "id": "radio",
+          "value": 3176728320
+        }
+      ],
+      "hobbies": [
+        "correspondence",
+        "reading"
+      ],
+      "skills": [
+        {
+          "id": "exercise",
+          "practice": 1054280253
+        }
+      ],
+      "ties": [
+        [
+          1,
+          null
+        ],
+        [
+          2,
+          null
+        ]
+      ]
+    }
+  },
+  "saveSha256": "1d2aa236d3cfbf4724b1a0b370691dadd5abc18a858d676f09b783ea7b29972a",
+  "pass": true,
+  "cleanup": {
+    "contextClosed": true,
+    "browserClosed": true,
+    "serverUntouched": true
+  }
+}

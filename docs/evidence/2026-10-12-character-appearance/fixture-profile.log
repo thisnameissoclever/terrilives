@@ -1,0 +1,5 @@
+
+> test
+> vitest run --maxWorkers=1 architecture-resources.test.ts -t keeps browser fixture pattern bytes identical --reporter=json --outputFile=../docs/evidence/2026-10-12-character-appearance/fixture-profile-test.json
+
+JSON report written to D:/VIBES/.worktrees/5637/terrilives/docs/evidence/2026-10-12-character-appearance/fixture-profile-test.json

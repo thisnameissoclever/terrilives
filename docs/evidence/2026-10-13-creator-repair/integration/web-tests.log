@@ -1,0 +1,12 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-clips.test.ts (47 tests | 2 failed) 222163ms
+   × fits configured trainers and shorts on the bike: masculine 51009ms
+   × fits configured trainers and shorts on the bike: feminine 35871ms
+ ❯ tests/door-audio-bridge.test.ts (1 test | 1 failed) 5838ms
+   × real household crossings emit physical door events after WASM growth without changing saves 5708ms

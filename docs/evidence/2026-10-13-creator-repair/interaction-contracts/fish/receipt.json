@@ -1,0 +1,5124 @@
+{
+  "expected": 4,
+  "cases": [
+    {
+      "id": "fish",
+      "facing": 0,
+      "phases": [
+        {
+          "phase": "unused",
+          "tick": 0,
+          "state": null,
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "idle",
+            "sample": 0.3326500000000123,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 2,
+            "y": 8,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              1.8890131795961496,
+              7.892469173310664,
+              1.7378222503674443
+            ],
+            "feet": [
+              2,
+              8,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-unused-0.png"
+        },
+        {
+          "phase": "approach",
+          "tick": 19,
+          "state": {
+            "action": 0,
+            "activity": 1,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": false
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "idle",
+            "sample": 0.33265000000001166,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 5.916325000000006,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.805338179596156,
+              8.892469173310664,
+              1.7378222503674443
+            ],
+            "feet": [
+              5.916325000000006,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-approach-19.png"
+        },
+        {
+          "phase": "entry",
+          "tick": 20,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-0-active-20.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 2.7221083333333347,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835684504,
+              8.996446251682444,
+              1.6922762122112125
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-entry-20.png"
+        },
+        {
+          "phase": "active",
+          "tick": 20,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-0-active-20.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 2.7221083333333347,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835684504,
+              8.996446251682444,
+              1.6922762122112125
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-active-20.png"
+        },
+        {
+          "phase": "active",
+          "tick": 23,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-0-active-23.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 2.9721083333333347,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.844191192823718,
+              8.99703174668875,
+              1.7001680377802564
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-active-23.png"
+        },
+        {
+          "phase": "active",
+          "tick": 28,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-0-active-28.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 3.3887750000000025,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835738894,
+              9.000805834850539,
+              1.692372790367532
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-active-28.png"
+        },
+        {
+          "phase": "active",
+          "tick": 38,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-0-active-38.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 0.22210833333333557,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835734758,
+              9.033583232576351,
+              1.6923229660015477
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-active-38.png"
+        },
+        {
+          "phase": "exit",
+          "tick": 102,
+          "state": {
+            "action": 0,
+            "activity": 0,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": false,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": true
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "idle",
+            "sample": 0.8326500000000152,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.88901317959615,
+              8.892469173310664,
+              1.7378222503674443
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600388566741,
+            "originY": 159.6800024196612,
+            "scale": 1.370000003216029,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-0-exit-102.png"
+        }
+      ],
+      "status": "CAPTURED",
+      "setup": {
+        "fixture": 27,
+        "person": {
+          "entity": 35,
+          "sim": 1,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                107,
+                159,
+                155
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          }
+        },
+        "label": "Watch the fish: Aquarium",
+        "appearance": {
+          "version": 1,
+          "presentation": "feminine",
+          "body": {
+            "height": 0,
+            "build": 100,
+            "shoulders": 100,
+            "hips": 0,
+            "torso": 100
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "bob",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "spot": {
+          "x": 6,
+          "y": 10
+        },
+        "attempts": [
+          {
+            "spot": {
+              "x": 6,
+              "y": 10
+            },
+            "entered": true,
+            "exited": true,
+            "tick": 102,
+            "last": {
+              "action": 0,
+              "activity": 0,
+              "support": 4294967295,
+              "sound": 0,
+              "soundSource": 4294967295,
+              "current": "",
+              "position": [
+                6,
+                9
+              ],
+              "ownsOrder": false,
+              "usingExpectedActivity": false,
+              "presentationValid": false,
+              "expectedClip": "watch_fish",
+              "expectedFixture": null,
+              "active": false,
+              "released": true
+            }
+          }
+        ],
+        "firstActive": 20
+      }
+    },
+    {
+      "id": "fish",
+      "facing": 1,
+      "phases": [
+        {
+          "phase": "unused",
+          "tick": 0,
+          "state": null,
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "idle",
+            "sample": 0.3326500000000123,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 5,
+            "y": 1,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              4.871049382617862,
+              0.8913772831520506,
+              2.3329897860722104
+            ],
+            "feet": [
+              5,
+              1,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-unused-0.png"
+        },
+        {
+          "phase": "approach",
+          "tick": 51,
+          "state": {
+            "action": 0,
+            "activity": 1,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": false
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "idle",
+            "sample": 0.33265000000001166,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 5.916325000000006,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.787374382617868,
+              8.891377283152051,
+              2.3329897860722104
+            ],
+            "feet": [
+              5.916325000000006,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-approach-51.png"
+        },
+        {
+          "phase": "entry",
+          "tick": 52,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-1-active-52.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 1.4721083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.886933040032637,
+              9.03859733759699,
+              2.3083858316541748
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-entry-52.png"
+        },
+        {
+          "phase": "active",
+          "tick": 52,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-1-active-52.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 1.4721083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.886933040032637,
+              9.03859733759699,
+              2.3083858316541748
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-active-52.png"
+        },
+        {
+          "phase": "active",
+          "tick": 55,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-1-active-55.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 1.7221083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.886933040059614,
+              9.027845272341386,
+              2.308504816624804
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-active-55.png"
+        },
+        {
+          "phase": "active",
+          "tick": 60,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-1-active-60.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 2.1387750000000025,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.887678787847874,
+              9.012902095644598,
+              2.3107700869538847
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-active-60.png"
+        },
+        {
+          "phase": "active",
+          "tick": 70,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-1-active-70.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 2.9721083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.887678787802911,
+              8.97699579129524,
+              2.309625449714031
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-active-70.png"
+        },
+        {
+          "phase": "exit",
+          "tick": 94,
+          "state": {
+            "action": 0,
+            "activity": 0,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": false,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": true
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "idle",
+            "sample": 0.8326500000000152,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.871049382617862,
+              8.891377283152051,
+              2.3329897860722104
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380437,
+            "scale": 1.3699999999999999,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-1-exit-94.png"
+        }
+      ],
+      "status": "CAPTURED",
+      "setup": {
+        "fixture": 27,
+        "person": {
+          "entity": 36,
+          "sim": 2,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                168,
+                71,
+                62
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          }
+        },
+        "label": "Watch the fish: Aquarium",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 100,
+            "build": 0,
+            "shoulders": 0,
+            "hips": 100,
+            "torso": 0
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "spot": {
+          "x": 6,
+          "y": 10
+        },
+        "attempts": [
+          {
+            "spot": {
+              "x": 6,
+              "y": 10
+            },
+            "entered": true,
+            "exited": true,
+            "tick": 94,
+            "last": {
+              "action": 0,
+              "activity": 0,
+              "support": 4294967295,
+              "sound": 0,
+              "soundSource": 4294967295,
+              "current": "",
+              "position": [
+                6,
+                9
+              ],
+              "ownsOrder": false,
+              "usingExpectedActivity": false,
+              "presentationValid": false,
+              "expectedClip": "watch_fish",
+              "expectedFixture": null,
+              "active": false,
+              "released": true
+            }
+          }
+        ],
+        "firstActive": 52
+      }
+    },
+    {
+      "id": "fish",
+      "facing": 2,
+      "phases": [
+        {
+          "phase": "unused",
+          "tick": 0,
+          "state": null,
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "idle",
+            "sample": 0.3326500000000123,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 2,
+            "y": 8,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              1.8890131795961496,
+              7.892469173310664,
+              1.7378222503674443
+            ],
+            "feet": [
+              2,
+              8,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-unused-0.png"
+        },
+        {
+          "phase": "approach",
+          "tick": 19,
+          "state": {
+            "action": 0,
+            "activity": 1,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": false
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "idle",
+            "sample": 0.33265000000001166,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 5.916325000000006,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.805338179596156,
+              8.892469173310664,
+              1.7378222503674443
+            ],
+            "feet": [
+              5.916325000000006,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-approach-19.png"
+        },
+        {
+          "phase": "entry",
+          "tick": 20,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-2-active-20.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 2.7221083333333347,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835684504,
+              8.996446251682444,
+              1.6922762122112125
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-entry-20.png"
+        },
+        {
+          "phase": "active",
+          "tick": 20,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-2-active-20.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 2.7221083333333347,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835684504,
+              8.996446251682444,
+              1.6922762122112125
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-active-20.png"
+        },
+        {
+          "phase": "active",
+          "tick": 23,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-2-active-23.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 2.9721083333333347,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.844191192823718,
+              8.99703174668875,
+              1.7001680377802564
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-active-23.png"
+        },
+        {
+          "phase": "active",
+          "tick": 28,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-2-active-28.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 3.3887750000000025,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835738894,
+              9.000805834850539,
+              1.692372790367532
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-active-28.png"
+        },
+        {
+          "phase": "active",
+          "tick": 38,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-2-active-38.sav"
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "watch_fish",
+            "sample": 0.22210833333333557,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.841336835734758,
+              9.033583232576351,
+              1.6923229660015477
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-active-38.png"
+        },
+        {
+          "phase": "exit",
+          "tick": 102,
+          "state": {
+            "action": 0,
+            "activity": 0,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": false,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": true
+          },
+          "actor": {
+            "entity": 35,
+            "sim": 1,
+            "token": 36,
+            "clip": "idle",
+            "sample": 0.8326500000000152,
+            "appearance": {
+              "version": 1,
+              "presentation": "feminine",
+              "body": {
+                "height": 0,
+                "build": 100,
+                "shoulders": 100,
+                "hips": 0,
+                "torso": 100
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "bob",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.88901317959615,
+              8.892469173310664,
+              1.7378222503674443
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 5350320
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-2-exit-102.png"
+        }
+      ],
+      "status": "CAPTURED",
+      "setup": {
+        "fixture": 27,
+        "person": {
+          "entity": 35,
+          "sim": 1,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                107,
+                159,
+                155
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          }
+        },
+        "label": "Watch the fish: Aquarium",
+        "appearance": {
+          "version": 1,
+          "presentation": "feminine",
+          "body": {
+            "height": 0,
+            "build": 100,
+            "shoulders": 100,
+            "hips": 0,
+            "torso": 100
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "bob",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "spot": {
+          "x": 6,
+          "y": 10
+        },
+        "attempts": [
+          {
+            "spot": {
+              "x": 6,
+              "y": 10
+            },
+            "entered": true,
+            "exited": true,
+            "tick": 102,
+            "last": {
+              "action": 0,
+              "activity": 0,
+              "support": 4294967295,
+              "sound": 0,
+              "soundSource": 4294967295,
+              "current": "",
+              "position": [
+                6,
+                9
+              ],
+              "ownsOrder": false,
+              "usingExpectedActivity": false,
+              "presentationValid": false,
+              "expectedClip": "watch_fish",
+              "expectedFixture": null,
+              "active": false,
+              "released": true
+            }
+          }
+        ],
+        "firstActive": 20
+      }
+    },
+    {
+      "id": "fish",
+      "facing": 3,
+      "phases": [
+        {
+          "phase": "unused",
+          "tick": 0,
+          "state": null,
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "idle",
+            "sample": 0.3326500000000123,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 5,
+            "y": 1,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              4.871049382617862,
+              0.8913772831520506,
+              2.3329897860722104
+            ],
+            "feet": [
+              5,
+              1,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-unused-0.png"
+        },
+        {
+          "phase": "approach",
+          "tick": 51,
+          "state": {
+            "action": 0,
+            "activity": 1,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": false
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "idle",
+            "sample": 0.33265000000001166,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 5.916325000000006,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.787374382617868,
+              8.891377283152051,
+              2.3329897860722104
+            ],
+            "feet": [
+              5.916325000000006,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-approach-51.png"
+        },
+        {
+          "phase": "entry",
+          "tick": 52,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-3-active-52.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 1.4721083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.886933040032637,
+              9.03859733759699,
+              2.3083858316541748
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-entry-52.png"
+        },
+        {
+          "phase": "active",
+          "tick": 52,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-3-active-52.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 1.4721083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.886933040032637,
+              9.03859733759699,
+              2.3083858316541748
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-active-52.png"
+        },
+        {
+          "phase": "active",
+          "tick": 55,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-3-active-55.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 1.7221083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.886933040059614,
+              9.027845272341386,
+              2.308504816624804
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-active-55.png"
+        },
+        {
+          "phase": "active",
+          "tick": 60,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-3-active-60.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 2.1387750000000025,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.887678787847874,
+              9.012902095644598,
+              2.3107700869538847
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-active-60.png"
+        },
+        {
+          "phase": "active",
+          "tick": 70,
+          "state": {
+            "action": 7,
+            "activity": 10,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "Watch the fish: Aquarium",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": true,
+            "usingExpectedActivity": true,
+            "presentationValid": true,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": true,
+            "released": false,
+            "saveFile": "fish-3-active-70.sav"
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "watch_fish",
+            "sample": 2.9721083333333356,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.887678787802911,
+              8.97699579129524,
+              2.309625449714031
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-active-70.png"
+        },
+        {
+          "phase": "exit",
+          "tick": 94,
+          "state": {
+            "action": 0,
+            "activity": 0,
+            "support": 4294967295,
+            "sound": 0,
+            "soundSource": 4294967295,
+            "current": "",
+            "position": [
+              6,
+              9
+            ],
+            "ownsOrder": false,
+            "usingExpectedActivity": false,
+            "presentationValid": false,
+            "expectedClip": "watch_fish",
+            "expectedFixture": null,
+            "active": false,
+            "released": true
+          },
+          "actor": {
+            "entity": 36,
+            "sim": 2,
+            "token": 37,
+            "clip": "idle",
+            "sample": 0.8326500000000152,
+            "appearance": {
+              "version": 1,
+              "presentation": "masculine",
+              "body": {
+                "height": 100,
+                "build": 0,
+                "shoulders": 0,
+                "hips": 100,
+                "torso": 0
+              },
+              "face": {
+                "shape": "oval",
+                "cheeks": 50,
+                "jaw": 50,
+                "chin": 50,
+                "eyes": "almond",
+                "eye_size": 50,
+                "brows": "soft",
+                "brow_thickness": 50,
+                "nose": "straight",
+                "nose_width": 50,
+                "mouth": "neutral",
+                "mouth_fullness": 50,
+                "ears": 50
+              },
+              "colors": {
+                "skin": [
+                  190,
+                  143,
+                  107
+                ],
+                "hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "facial_hair": [
+                  101,
+                  69,
+                  46
+                ],
+                "eyes": [
+                  102,
+                  91,
+                  69
+                ],
+                "shirt": [
+                  107,
+                  159,
+                  155
+                ],
+                "trousers": [
+                  57,
+                  70,
+                  80
+                ],
+                "shoes": [
+                  76,
+                  64,
+                  55
+                ]
+              },
+              "undertone": "neutral",
+              "hairstyle": "curl",
+              "bald": false,
+              "facial_hair": "none",
+              "freckles": false,
+              "freckle_density": 50,
+              "scar": "none",
+              "top": "overshirt",
+              "sleeves": "rolled",
+              "bottoms": "trousers",
+              "footwear": "loafers",
+              "glasses": false,
+              "glasses_style": "round",
+              "earrings": "none"
+            },
+            "x": 6,
+            "y": 9,
+            "angle": 0,
+            "offset": [
+              0,
+              0,
+              0
+            ],
+            "head": [
+              5.871049382617862,
+              8.891377283152051,
+              2.3329897860722104
+            ],
+            "feet": [
+              6,
+              9,
+              0.12999999523162842
+            ],
+            "fixture": null,
+            "textureBytes": 0,
+            "privateBufferBytes": 7574784
+          },
+          "camera": {
+            "originX": 975.3600384450223,
+            "originY": 159.68000298380431,
+            "scale": 1.37,
+            "width": 1600,
+            "height": 1100
+          },
+          "file": "fish-3-exit-94.png"
+        }
+      ],
+      "status": "CAPTURED",
+      "setup": {
+        "fixture": 27,
+        "person": {
+          "entity": 36,
+          "sim": 2,
+          "appearance": {
+            "version": 1,
+            "presentation": "masculine",
+            "body": {
+              "height": 50,
+              "build": 50,
+              "shoulders": 50,
+              "hips": 50,
+              "torso": 50
+            },
+            "face": {
+              "shape": "oval",
+              "cheeks": 50,
+              "jaw": 50,
+              "chin": 50,
+              "eyes": "almond",
+              "eye_size": 50,
+              "brows": "soft",
+              "brow_thickness": 50,
+              "nose": "straight",
+              "nose_width": 50,
+              "mouth": "neutral",
+              "mouth_fullness": 50,
+              "ears": 50
+            },
+            "colors": {
+              "skin": [
+                190,
+                143,
+                107
+              ],
+              "hair": [
+                101,
+                69,
+                46
+              ],
+              "facial_hair": [
+                101,
+                69,
+                46
+              ],
+              "eyes": [
+                102,
+                91,
+                69
+              ],
+              "shirt": [
+                168,
+                71,
+                62
+              ],
+              "trousers": [
+                57,
+                70,
+                80
+              ],
+              "shoes": [
+                76,
+                64,
+                55
+              ]
+            },
+            "undertone": "neutral",
+            "hairstyle": "curl",
+            "bald": false,
+            "facial_hair": "none",
+            "freckles": false,
+            "freckle_density": 50,
+            "scar": "none",
+            "top": "overshirt",
+            "sleeves": "rolled",
+            "bottoms": "trousers",
+            "footwear": "loafers",
+            "glasses": false,
+            "glasses_style": "round",
+            "earrings": "none"
+          }
+        },
+        "label": "Watch the fish: Aquarium",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 100,
+            "build": 0,
+            "shoulders": 0,
+            "hips": 100,
+            "torso": 0
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "spot": {
+          "x": 6,
+          "y": 10
+        },
+        "attempts": [
+          {
+            "spot": {
+              "x": 6,
+              "y": 10
+            },
+            "entered": true,
+            "exited": true,
+            "tick": 94,
+            "last": {
+              "action": 0,
+              "activity": 0,
+              "support": 4294967295,
+              "sound": 0,
+              "soundSource": 4294967295,
+              "current": "",
+              "position": [
+                6,
+                9
+              ],
+              "ownsOrder": false,
+              "usingExpectedActivity": false,
+              "presentationValid": false,
+              "expectedClip": "watch_fish",
+              "expectedFixture": null,
+              "active": false,
+              "released": true
+            }
+          }
+        ],
+        "firstActive": 52
+      }
+    }
+  ],
+  "diagnostics": [],
+  "failures": [],
+  "status": "CAPTURED"
+}

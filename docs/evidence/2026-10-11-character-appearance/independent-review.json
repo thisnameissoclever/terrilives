@@ -1,0 +1,37 @@
+{
+  "reviewType": "Independent read-only technical review",
+  "findings": [
+    {
+      "finding": "Source skinning/subdivision order reversed",
+      "status": "Fixed; Blender and CPU/GPU position comparisons pass"
+    },
+    {
+      "finding": "Rest-space discontinuities and posed-translation deformation",
+      "status": "Fixed; continuous field and configured hierarchy"
+    },
+    {
+      "finding": "Single source-color flag changes unrelated colors",
+      "status": "Fixed per region; pixel test changes 7572 skin pixels and zero unrelated pixels"
+    },
+    {
+      "finding": "Contact receipt omitted math and binary dependencies",
+      "status": "Fixed; final receipt validates 15 source/asset inputs, all current"
+    },
+    {
+      "finding": "Invalid edit overwrites source-color undo",
+      "status": "Fixed validation ordering; browser rejection/undo check passes"
+    },
+    {
+      "finding": "Seated collision and incomplete supported pose",
+      "status": "Failed; no capacity conclusion; returned for owner decision"
+    }
+  ],
+  "notApproved": [
+    "Artwork",
+    "Complete furniture fit",
+    "World picking through occluders",
+    "Full creator",
+    "Phone performance",
+    "Publication"
+  ]
+}

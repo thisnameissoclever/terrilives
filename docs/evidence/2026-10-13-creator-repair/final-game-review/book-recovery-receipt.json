@@ -1,0 +1,114 @@
+{
+  "command": "node scripts/character-creator-repair/final-game-chores.cjs",
+  "rows": [],
+  "diagnostics": [
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "error",
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "hashesBefore": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1",
+    "web/src/wasm/terri_wasm_bg.wasm": "a1620ce5d599909fa8b3bc6be14957a6320de74f6297d2580948e7dacc75e8a5",
+    "assets/models/sims/character-repair/dropped-book/manifest.json": "42eaf0889278bfb31e6148ca53f4851929ccb3441b172baf8208da02b80579a3"
+  },
+  "bookRecovery": {
+    "before": {
+      "copies": [
+        {
+          "id": 0,
+          "titleId": "the_locked_laundry",
+          "location": {
+            "kind": "lot",
+            "x": 12.75,
+            "y": 1
+          },
+          "home": {
+            "shelf": {
+              "$bigint": "10"
+            },
+            "slot": 0
+          },
+          "borrowerSimId": null
+        }
+      ],
+      "funds": 994,
+      "position": [
+        12.75,
+        1
+      ],
+      "count": 1
+    },
+    "pick": {
+      "token": 37,
+      "point": [
+        790,
+        524
+      ],
+      "interiorPixels": 510,
+      "actual": {
+        "entity": 4294967295,
+        "sim": null,
+        "kind": "fixture",
+        "bookCopy": 0
+      },
+      "expected": {
+        "entity": 4294967295,
+        "sim": null,
+        "kind": "fixture",
+        "bookCopy": 0
+      }
+    },
+    "after": {
+      "copies": [
+        {
+          "id": 0,
+          "titleId": "the_locked_laundry",
+          "location": {
+            "kind": "shelf",
+            "home": {
+              "shelf": {
+                "$bigint": "10"
+              },
+              "slot": 0
+            }
+          },
+          "home": {
+            "shelf": {
+              "$bigint": "10"
+            },
+            "slot": 0
+          },
+          "borrowerSimId": null
+        }
+      ],
+      "funds": 994,
+      "count": 0
+    },
+    "interaction": "Actual game click, then Recover book button",
+    "status": "PASS"
+  },
+  "status": "PASS",
+  "hashesAfter": {
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "web/src/render/character/sleep-cover.ts": "504fbfae8f6e356cba6265cc7308699b7ee2a21fd63f7b20c454c324c4b78976",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "assets/models/sims/character-creator/surface-policy.json": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1",
+    "web/src/wasm/terri_wasm_bg.wasm": "a1620ce5d599909fa8b3bc6be14957a6320de74f6297d2580948e7dacc75e8a5",
+    "assets/models/sims/character-repair/dropped-book/manifest.json": "42eaf0889278bfb31e6148ca53f4851929ccb3441b172baf8208da02b80579a3"
+  },
+  "unchanged": true
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "label": "Standing",
+    "changed": false,
+    "pausedStable": true
+  },
+  {
+    "label": "Walking",
+    "changed": true,
+    "pausedStable": true
+  },
+  {
+    "label": "Reading",
+    "changed": true,
+    "pausedStable": true
+  },
+  {
+    "label": "Cleaning",
+    "changed": true,
+    "pausedStable": true
+  }
+]

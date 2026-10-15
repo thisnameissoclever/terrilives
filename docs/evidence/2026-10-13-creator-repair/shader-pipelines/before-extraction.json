@@ -1,0 +1,17 @@
+{
+  "capturedAt": "2026-10-13T19:36:01.385369+00:00",
+  "files": {
+    "web/src/render/sprites.ts": "762ce1d672155da9a46e1cca9a87070af84cba5e5e33b0a820b23314861ce19f",
+    "web/src/render/sprites.wgsl": "a725253009b43861314b55f7e77a6db94ff53fa3fc39098b2aa793bafa3f86a4",
+    "web/src/render/character/renderer.ts": "3706f9ce0616ebaadd3a95eb38227182f816a1f78dfa00e84ddc22d3c69bf54a",
+    "web/src/render/character/mesh.wgsl": "e27896ba13134764f2cc01f1a5a3fb591972bb29fe812b2f6dc471b80cdbd0ac",
+    "web/src/render/character/compositor.ts": "11b46cefc1340c88a6e6a5bf3f73a52b06b103e324f3d37c75ceca2b9cb43d42",
+    "web/src/render/character/world-picking.ts": "1745022fe7fa5659485a759f709f6a3f5e4b3f5469736434f72967b212e02069",
+    "web/src/render/character/preview-fixture.ts": "69426f4c729d91f00bd7b4f643bed58b2ef865933eeeec76034bb3a69c6cfcaa",
+    "web/src/render/character/subdivision-gpu.ts": "34c508639877c80fba00d796209820a706358df9b632775a25bca5a00c84c848",
+    "web/src/render/scene-target.ts": "b2d21bbbeda538be3886f008ad1f1f596ba3fbc909101513931f1ac3ef868568",
+    "web/src/render/scene-sampling.ts": "4734a5701f786778881ba79f9c94f8d8a7acb313345d7c1911ecbd8e9e670331",
+    "web/src/render/architecture-finishes.ts": "beeba079dedb23bda7cb91b5a63d1540fbec9aab84c4888800d32c92fee175b8",
+    "web/src/render/architecture-atlas.ts": "b9693f016a0120a7d42d1587e3449b8b65d9dc4c5b28f82408cd56246697a307"
+  }
+}

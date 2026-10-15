@@ -1,0 +1,10 @@
+{"case":"final-bath-0","firstActive":56,"spot":{"x":14,"y":9},"captures":["unused","t000","t055","t056","t059","t064","t074","t146","t147","t178","t179","end"]}
+{"case":"final-bath-1","firstActive":64,"spot":{"x":14,"y":9},"captures":["unused","t000","t063","t064","t067","t072","t082","t113","t114","t167","t168","t169","end"]}
+{"case":"final-bath-2","firstActive":56,"spot":{"x":14,"y":9},"captures":["unused","t000","t055","t056","t059","t064","t074","t146","t147","t178","t179","end"]}
+{"case":"final-bath-3","firstActive":64,"spot":{"x":14,"y":9},"captures":["unused","t000","t063","t064","t067","t072","t082","t113","t114","t167","t168","t169","end"]}
+page.evaluate: Error: No active placement [{"spot":{"x":14,"y":6},"active":false,"t":170},{"spot":{"x":14,"y":5},"active":false,"t":170},{"spot":{"x":13,"y":6},"active":false,"t":170},{"spot":{"x":15,"y":6},"active":false,"t":170},{"spot":{"x":14,"y":7},"active":false,"t":170},{"spot":{"x":13,"y":5},"active":false,"t":170},{"spot":{"x":15,"y":5},"active":false,"t":170},{"spot":{"x":13,"y":7},"active":false,"t":170},{"spot":{"x":15,"y":7},"active":false,"t":170},{"spot":{"x":14,"y":4},"active":false,"t":170},{"spot":{"x":14,"y":8},"active":false,"t":170},{"spot":{"x":13,"y":4},"active":false,"t":170},{"spot":{"x":15,"y":4},"active":false,"t":170},{"spot":{"x":12,"y":5},"active":false,"t":170},{"spot":{"x":12,"y":7},"active":false,"t":170},{"spot":{"x":13,"y":8},"active":false,"t":170},{"spot":{"x":15,"y":8},"active":false,"t":170},{"spot":{"x":12,"y":4},"active":false,"t":170},{"spot":{"x":12,"y":8},"active":false,"t":170},{"spot":{"x":14,"y":3},"active":false,"t":170}]
+    at eval (eval at evaluate (:311:30), <anonymous>:2:1075)
+    at async <anonymous>:337:30
+    at D:\VIBES\.worktrees\5637\terrilives\scripts\character-creator-repair\final-activities.cjs:9:21 {
+  log: []
+}

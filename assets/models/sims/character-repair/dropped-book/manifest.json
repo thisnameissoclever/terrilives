@@ -1,0 +1,512 @@
+{
+  "version": 1,
+  "state": "complete",
+  "representation": "reconstructed-source-geometry",
+  "colorPreservation": "exact-published-rgba",
+  "originalSurfaceRecovered": false,
+  "reconstructionReason": "Published dropped-book scene is absent from the worktree and reachable Git source history.",
+  "unavailableOriginalSceneSha256": "5bda1d0a696babbea3e30ed71137deb9942230a9f9226649db14586d00101fb9",
+  "source": {
+    "path": "assets/models/sims/sim-01/sim-01-rigged.blend",
+    "sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+  },
+  "comparison": {
+    "path": "assets/models/reading/dropped/export/manifest.json",
+    "sha256": "222858656ed3096e83f8f8b4bd7aa8ca933d88ab6ca5f7d2425792c9ac7dcc53"
+  },
+  "physicalReceipt": {
+    "path": "assets/models/reading/dropped/pose-complete-dropped-renders-01/physical-proof.json",
+    "sha256": "9346fa0f0a6d581d666925045b3a9a73e9b12d9814b88e27055fc72b0a08c8cf"
+  },
+  "encoding": "rg-u16-unorm-x-minus-y-range-minus2-plus2",
+  "states": [
+    {
+      "id": "dropped-book-SE",
+      "family": "dropped-book",
+      "facing": "SE",
+      "atlasIndex": 30595,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        41.5,
+        81.0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 0,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "replacementColor": false,
+      "actorFree": true,
+      "publishedColor": {
+        "path": "assets/models/reading/dropped/export/textures/25x32-e89f515862f5fd83acdd7f0113f002de53b529dc177274cc5e3413a9c0c800f1.png",
+        "sha256": "b9c77fa722f108506e4cd3633d46e7cc019e8414c49d10a876dbf94e9d900c42",
+        "pixelsSha256": "e89f515862f5fd83acdd7f0113f002de53b529dc177274cc5e3413a9c0c800f1",
+        "rawCrop": [
+          83,
+          162,
+          108,
+          194
+        ]
+      },
+      "publishedColorMaxDifference": 0,
+      "opaquePixels": 660,
+      "outlineSamples": 116,
+      "maxOutlineDistancePixels": 1.3397088123150642,
+      "minSum": -0.04934634268283844,
+      "maxSum": 0.06574296951293945,
+      "vertices": 112,
+      "triangles": 168
+    },
+    {
+      "id": "dropped-book-NW",
+      "family": "dropped-book",
+      "facing": "NW",
+      "atlasIndex": 30596,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        42.0,
+        82.0
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 192,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "replacementColor": false,
+      "actorFree": true,
+      "publishedColor": {
+        "path": "assets/models/reading/dropped/export/textures/25x28-7d3ed052a12427438ce980d3c585c179ed85c32a5e287656ebbf3731561860da.png",
+        "sha256": "838a6b9f62db69603ca53f849c9046bdc23e6351380b9d51e6f151122fada6c8",
+        "pixelsSha256": "7d3ed052a12427438ce980d3c585c179ed85c32a5e287656ebbf3731561860da",
+        "rawCrop": [
+          84,
+          164,
+          109,
+          192
+        ]
+      },
+      "publishedColorMaxDifference": 0,
+      "opaquePixels": 559,
+      "outlineSamples": 109,
+      "maxOutlineDistancePixels": 1.4805810107544808,
+      "minSum": -0.043725598603487015,
+      "maxSum": 0.06013774871826172,
+      "vertices": 112,
+      "triangles": 168
+    },
+    {
+      "id": "dropped-book-SW",
+      "family": "dropped-book",
+      "facing": "SW",
+      "atlasIndex": 30597,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        45.0,
+        78.5
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 384,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "replacementColor": false,
+      "actorFree": true,
+      "publishedColor": {
+        "path": "assets/models/reading/dropped/export/textures/12x42-b44558fc39df7cabd4e5ec92ce6aa033f3bbb6d0c5448185df495a7d1a35ad9c.png",
+        "sha256": "e9f9824387e5f77540a5dda1da78ec436d7777624e838d38e8d45558b798c4ee",
+        "pixelsSha256": "b44558fc39df7cabd4e5ec92ce6aa033f3bbb6d0c5448185df495a7d1a35ad9c",
+        "rawCrop": [
+          90,
+          157,
+          102,
+          199
+        ]
+      },
+      "publishedColorMaxDifference": 0,
+      "opaquePixels": 248,
+      "outlineSamples": 106,
+      "maxOutlineDistancePixels": 1.555295414596922,
+      "minSum": -0.1633345008402035,
+      "maxSum": 0.16088247299194336,
+      "vertices": 112,
+      "triangles": 168
+    },
+    {
+      "id": "dropped-book-NE",
+      "family": "dropped-book",
+      "facing": "NE",
+      "atlasIndex": 30598,
+      "pixelDensity": 2,
+      "anchorOffset": [
+        45.0,
+        78.5
+      ],
+      "color": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "depth": {
+        "pageIndex": 0,
+        "x": 576,
+        "y": 0,
+        "w": 192,
+        "h": 240
+      },
+      "replacementColor": false,
+      "actorFree": true,
+      "publishedColor": {
+        "path": "assets/models/reading/dropped/export/textures/12x42-80b0188fd5ba2d46673c94f24035490803693b4ecc0c3c4682b087bebfbd472e.png",
+        "sha256": "5ece4ff987d9efa6e5cf4a95611c2072790e963afb6a5737598b6c56431dea70",
+        "pixelsSha256": "80b0188fd5ba2d46673c94f24035490803693b4ecc0c3c4682b087bebfbd472e",
+        "rawCrop": [
+          90,
+          157,
+          102,
+          199
+        ]
+      },
+      "publishedColorMaxDifference": 0,
+      "opaquePixels": 293,
+      "outlineSamples": 95,
+      "maxOutlineDistancePixels": 1.456700322972759,
+      "minSum": -0.1616625413298607,
+      "maxSum": 0.16349565982818604,
+      "vertices": 112,
+      "triangles": 168
+    }
+  ],
+  "producerHashes": {
+    "export_dropped_book.py": "af016ac51f6520c9c9d1799ac26316ee36c21cd6d65d98a8b46c571dd27277ac",
+    "fit_dropped_book.py": "fe26af3e8ccd0031f7e62793df8cc336c25bdce0f216f93c483c99d35559ec8a",
+    "depth_geometry.py": "6a76cc2dcc44d00a29acd8c6dedf382ae306bcfcd365e82fa22257fcf3d7f365",
+    "color_pixels.py": "a912c009a6de163d2a440399481d14dd984242e10a01b208563423e14f49268e"
+  },
+  "cameraSource": {
+    "path": "assets/models/living/owner-review-pending/armchair/candidate-03/proof.json",
+    "sha256": "1bfbad9b2c611628f1510af61f231ff634b49e1542d854e39d84d7cecaeddc88"
+  },
+  "fitGeometry": {
+    "path": "fit-geometry.json",
+    "sha256": "30505def88ca2863153cc15159c7efd199ede41d049a18509bdd95fdff0ab04e"
+  },
+  "fitResult": {
+    "path": "fit-result.json",
+    "sha256": "0c6d497f0c7f56cde549dda4be9bd577f6e12c2d16461c087caf347f91aa6068"
+  },
+  "placement": {
+    "yawDegrees": 218.8,
+    "floorGap": 0.0005,
+    "supportPart": "Reading book cover",
+    "supportTriangle": 0,
+    "twiceSupportArea": 0.003599999045617571,
+    "scale": 1.0,
+    "maximumShapeError": 7.312861657893244e-08,
+    "minimumFloorGap": 0.0004999935626983643,
+    "maximumHeight": 0.35059934854507446
+  },
+  "fit": {
+    "yawDegrees": 218.8,
+    "alphaAbsoluteDifference": 97.24705882352941,
+    "differenceByFacing": {
+      "SE": 16.258823529411767,
+      "NW": 17.301960784313728,
+      "SW": 30.870588235294115,
+      "NE": 32.8156862745098
+    },
+    "method": "all-four-complete-alpha-masks",
+    "coarse": [
+      [
+        121.15686274509802,
+        218
+      ],
+      [
+        125.87843137254902,
+        220
+      ],
+      [
+        135.23529411764707,
+        222
+      ],
+      [
+        138.1921568627451,
+        224
+      ],
+      [
+        178.12549019607843,
+        216
+      ],
+      [
+        181.12549019607843,
+        226
+      ],
+      [
+        212.47058823529414,
+        214
+      ],
+      [
+        217.8,
+        228
+      ]
+    ],
+    "fine": [
+      [
+        97.24705882352941,
+        218.8
+      ],
+      [
+        99.83137254901959,
+        220.4
+      ],
+      [
+        100.03137254901961,
+        219.3
+      ],
+      [
+        100.39607843137256,
+        219.1
+      ],
+      [
+        100.47058823529412,
+        219.2
+      ],
+      [
+        100.65098039215687,
+        219.6
+      ],
+      [
+        100.82745098039217,
+        219.0
+      ],
+      [
+        101.2156862745098,
+        218.9
+      ]
+    ],
+    "priorWidthHeightFit": {
+      "yawDegrees": 233,
+      "alphaAbsoluteDifference": 337.4039215686274
+    },
+    "scale": 1,
+    "translationOptimized": false,
+    "sourceOutlineHalfWidthPixels": 0.5,
+    "rasterization": "source-triangle-union-with-fixed-source-stroke-and-Lanczos3",
+    "originalSurfaceRecovered": false
+  },
+  "outlineSupport": {
+    "sourceStrokeWidth": 4.0,
+    "sourceLineThickness": 1.0,
+    "sourceDensity": 4.0,
+    "halfStrokePixels": 0.5,
+    "lanczosRadiusPixels": 3,
+    "pixelCenterRadius": 0.7071067811865476,
+    "maximumDistancePixels": 4.207106781186548
+  },
+  "camera": {
+    "matrix": [
+      [
+        0.7071067094802856,
+        -0.4640388786792755,
+        0.5335429310798645,
+        5.335428714752197
+      ],
+      [
+        0.70710688829422,
+        0.4640387296676636,
+        -0.533542811870575,
+        -5.335428714752197
+      ],
+      [
+        1.198451826667224e-08,
+        0.7545435428619385,
+        0.65625,
+        7.587500095367432
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "orthoScale": 2.6516504287719727,
+    "originPixels": [
+      96.0000228881836,
+      190.0008738040924
+    ],
+    "canvas": [
+      192,
+      240
+    ]
+  },
+  "environment": {
+    "blenderVersion": "4.5.14 LTS",
+    "background": true,
+    "threads": 2
+  },
+  "sourceParts": [
+    {
+      "name": "Printed book line",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.001",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.002",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.003",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.004",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.005",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.006",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.007",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.008",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Printed book line.009",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP printed lines"
+      ]
+    },
+    {
+      "name": "Reading book cover",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP oxblood book cover"
+      ]
+    },
+    {
+      "name": "Reading book cover.001",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP oxblood book cover"
+      ]
+    },
+    {
+      "name": "Reading book pages",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP warm paper"
+      ]
+    },
+    {
+      "name": "Reading book pages.001",
+      "vertices": 8,
+      "polygons": 6,
+      "materials": [
+        "SIM_PROP warm paper"
+      ]
+    }
+  ],
+  "model": {
+    "path": "reconstructed-dropped-book.blend",
+    "sha256": "6a9038b908f19936d87f7796fff4c5bc7432769c597b42c5e1532dd4aceb0723"
+  },
+  "colorPages": [
+    {
+      "pageIndex": 0,
+      "path": "color-309123079f75fc699fd261e054bf4036d0ab1d4552621889af6c60217d319085.rgba",
+      "sha256": "309123079f75fc699fd261e054bf4036d0ab1d4552621889af6c60217d319085",
+      "width": 2048,
+      "height": 2048
+    }
+  ],
+  "depthPages": [
+    {
+      "pageIndex": 0,
+      "path": "depth-686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7.rgba",
+      "sha256": "686b6b21da82337055556a30b34575c771a47ceec98de76fa2920a56c59077f7",
+      "width": 2048,
+      "height": 2048
+    }
+  ]
+}

@@ -47,6 +47,10 @@ pub fn drain_commands(world: &mut World) {
                 crate::books::commit(world, command);
                 crate::reading::reconcile(world);
             }
+            SimCommand::Character(command) => {
+                flush_ordinary(world);
+                crate::character_draft::commit(world, &command);
+            }
             SimCommand::SetDeathEnabled(enabled) => {
                 flush_ordinary(world);
                 world

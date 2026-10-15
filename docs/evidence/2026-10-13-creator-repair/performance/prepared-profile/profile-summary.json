@@ -1,0 +1,426 @@
+{
+  "self": [
+    {
+      "name": "(idle)",
+      "url": "",
+      "line": 0,
+      "selfMs": 13203.754999999936,
+      "inclusiveMs": 13203.754999999936
+    },
+    {
+      "name": "(program)",
+      "url": "",
+      "line": 0,
+      "selfMs": 4887.334000000006,
+      "inclusiveMs": 4887.334000000006
+    },
+    {
+      "name": "pose",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 115,
+      "selfMs": 2452.172000000001,
+      "inclusiveMs": 2452.172000000001
+    },
+    {
+      "name": "top",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 188,
+      "selfMs": 1631.7270000000012,
+      "inclusiveMs": 1677.9880000000014
+    },
+    {
+      "name": "height",
+      "url": "http://127.0.0.1:5187/src/render/character/support-surface.ts",
+      "line": 35,
+      "selfMs": 100.37299999999999,
+      "inclusiveMs": 103.881
+    },
+    {
+      "name": "diagnostics",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791931128514",
+      "line": 213,
+      "selfMs": 75.003,
+      "inclusiveMs": 78.682
+    },
+    {
+      "name": "submit",
+      "url": "",
+      "line": 0,
+      "selfMs": 62.760000000000005,
+      "inclusiveMs": 62.760000000000005
+    },
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "line": 0,
+      "selfMs": 54.25899999999999,
+      "inclusiveMs": 54.25899999999999
+    },
+    {
+      "name": "wasm-function[2385]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 47.292,
+      "inclusiveMs": 55.50299999999999
+    },
+    {
+      "name": "normal",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 148,
+      "selfMs": 46.261,
+      "inclusiveMs": 46.261
+    },
+    {
+      "name": "configuredPose",
+      "url": "http://127.0.0.1:5187/src/render/character/pose.ts?t=1791930579839",
+      "line": 24,
+      "selfMs": 42.425999999999995,
+      "inclusiveMs": 537.5060000000002
+    },
+    {
+      "name": "shapeVertices",
+      "url": "http://127.0.0.1:5187/src/render/character/shape.ts",
+      "line": 80,
+      "selfMs": 41.793000000000006,
+      "inclusiveMs": 64.902
+    },
+    {
+      "name": "multiply",
+      "url": "http://127.0.0.1:5187/src/render/character/math.ts",
+      "line": 22,
+      "selfMs": 37.625,
+      "inclusiveMs": 37.625
+    },
+    {
+      "name": "writeBuffer",
+      "url": "",
+      "line": 0,
+      "selfMs": 36.415000000000006,
+      "inclusiveMs": 36.415000000000006
+    },
+    {
+      "name": "preparePose",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791931128512",
+      "line": 258,
+      "selfMs": 32.074999999999996,
+      "inclusiveMs": 607.5160000000001
+    },
+    {
+      "name": "prepare",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791931128514",
+      "line": 70,
+      "selfMs": 31.822999999999997,
+      "inclusiveMs": 5147.047999999991
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/render/character/interaction-pose.ts?t=1791930579839",
+      "line": 478,
+      "selfMs": 31.734999999999996,
+      "inclusiveMs": 36.492000000000004
+    },
+    {
+      "name": "update",
+      "url": "http://127.0.0.1:5187/src/ui/action-queue.ts",
+      "line": 21,
+      "selfMs": 29.926000000000002,
+      "inclusiveMs": 36.107
+    },
+    {
+      "name": "buildInstanceBatch",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 804,
+      "selfMs": 28.434,
+      "inclusiveMs": 5358.47199999999
+    },
+    {
+      "name": "wasm-function[42]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 27.665000000000006,
+      "inclusiveMs": 71.801
+    },
+    {
+      "name": "beginComputePass",
+      "url": "",
+      "line": 0,
+      "selfMs": 23.371,
+      "inclusiveMs": 23.371
+    },
+    {
+      "name": "wasm-function[154]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 21.826000000000004,
+      "inclusiveMs": 80.524
+    },
+    {
+      "name": "draw",
+      "url": "http://127.0.0.1:5187/src/render/sprites.ts?t=1791924616566",
+      "line": 612,
+      "selfMs": 20.781,
+      "inclusiveMs": 127.526
+    },
+    {
+      "name": "validateAppearance",
+      "url": "http://127.0.0.1:5187/src/character/schema.ts",
+      "line": 253,
+      "selfMs": 20.516000000000002,
+      "inclusiveMs": 33.913000000000004
+    },
+    {
+      "name": "loop",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791931128516",
+      "line": 1955,
+      "selfMs": 20.381999999999998,
+      "inclusiveMs": 6223.372999999991
+    }
+  ],
+  "application": [
+    {
+      "name": "loop",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791931128516",
+      "line": 1955,
+      "selfMs": 20.381999999999998,
+      "inclusiveMs": 6223.372999999991
+    },
+    {
+      "name": "frame",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791931128516",
+      "line": 1672,
+      "selfMs": 18.461000000000002,
+      "inclusiveMs": 6198.501999999991
+    },
+    {
+      "name": "buildInstanceBatch",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 804,
+      "selfMs": 28.434,
+      "inclusiveMs": 5358.47199999999
+    },
+    {
+      "name": "update",
+      "url": "http://127.0.0.1:5187/src/render/character/scene-plan.ts?t=1791927310071",
+      "line": 84,
+      "selfMs": 15.606,
+      "inclusiveMs": 5188.101999999988
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791931128514",
+      "line": 33,
+      "selfMs": 8.624,
+      "inclusiveMs": 5158.776999999989
+    },
+    {
+      "name": "prepare",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791931128514",
+      "line": 70,
+      "selfMs": 31.822999999999997,
+      "inclusiveMs": 5147.047999999991
+    },
+    {
+      "name": "anchors",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791931128512",
+      "line": 202,
+      "selfMs": 4.669,
+      "inclusiveMs": 4168.572999999996
+    },
+    {
+      "name": "pose",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 115,
+      "selfMs": 2452.172000000001,
+      "inclusiveMs": 2452.172000000001
+    },
+    {
+      "name": "top",
+      "url": "http://127.0.0.1:5187/src/render/character/head-envelope.ts?t=1791930410899",
+      "line": 188,
+      "selfMs": 1631.7270000000012,
+      "inclusiveMs": 1677.9880000000014
+    },
+    {
+      "name": "prepareScene",
+      "url": "http://127.0.0.1:5187/src/render/character/prepared-character.ts",
+      "line": 107,
+      "selfMs": 2.624,
+      "inclusiveMs": 740.6599999999997
+    },
+    {
+      "name": "prepareScene",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791931128512",
+      "line": 297,
+      "selfMs": 10.902000000000001,
+      "inclusiveMs": 738.0359999999997
+    },
+    {
+      "name": "preparePose",
+      "url": "http://127.0.0.1:5187/src/render/character/renderer.ts?t=1791931128512",
+      "line": 258,
+      "selfMs": 32.074999999999996,
+      "inclusiveMs": 607.5160000000001
+    },
+    {
+      "name": "configuredPose",
+      "url": "http://127.0.0.1:5187/src/render/character/pose.ts?t=1791930579839",
+      "line": 24,
+      "selfMs": 42.425999999999995,
+      "inclusiveMs": 537.5060000000002
+    },
+    {
+      "name": "advanceFrameWithCommandFeedback",
+      "url": "http://127.0.0.1:5187/src/ui/command-feedback.ts",
+      "line": 55,
+      "selfMs": 1.559,
+      "inclusiveMs": 399.9380000000002
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791931128516",
+      "line": 1683,
+      "selfMs": 0,
+      "inclusiveMs": 389.4490000000003
+    },
+    {
+      "name": "advanceSimulationFrame",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 719,
+      "selfMs": 0,
+      "inclusiveMs": 387.7260000000003
+    },
+    {
+      "name": "(anonymous)",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 721,
+      "selfMs": 2.7190000000000003,
+      "inclusiveMs": 384.5580000000003
+    },
+    {
+      "name": "advance",
+      "url": "http://127.0.0.1:5187/src/frame.ts?t=1791927310071",
+      "line": 682,
+      "selfMs": 0,
+      "inclusiveMs": 384.5580000000003
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:5187/src/main.ts?t=1791931128516",
+      "line": 280,
+      "selfMs": 0,
+      "inclusiveMs": 381.8390000000003
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:5187/src/bridge.ts",
+      "line": 571,
+      "selfMs": 0,
+      "inclusiveMs": 348.2530000000001
+    },
+    {
+      "name": "tick",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm.js?t=1791928350920",
+      "line": 2605,
+      "selfMs": 0,
+      "inclusiveMs": 348.2530000000001
+    },
+    {
+      "name": "js-to-wasm::",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 348.2530000000001
+    },
+    {
+      "name": "wasm-function[2534]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 348.2530000000001
+    },
+    {
+      "name": "wasm-function[1764]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 338.9550000000001
+    },
+    {
+      "name": "wasm-function[376]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 6.301,
+      "inclusiveMs": 337.3980000000001
+    },
+    {
+      "name": "solveInteraction",
+      "url": "http://127.0.0.1:5187/src/render/character/interaction-pose.ts?t=1791930579839",
+      "line": 52,
+      "selfMs": 20.345999999999997,
+      "inclusiveMs": 271.953
+    },
+    {
+      "name": "select",
+      "url": "http://127.0.0.1:5187/src/render/character/prepared-character.ts",
+      "line": 63,
+      "selfMs": 15.046,
+      "inclusiveMs": 182.50499999999997
+    },
+    {
+      "name": "draw",
+      "url": "http://127.0.0.1:5187/src/ui/character-creator/preview.ts",
+      "line": 42,
+      "selfMs": 7.282,
+      "inclusiveMs": 168.282
+    },
+    {
+      "name": "fitBike",
+      "url": "http://127.0.0.1:5187/src/render/character/bike-fit.ts?t=1791930579833",
+      "line": 63,
+      "selfMs": 1.562,
+      "inclusiveMs": 134.42999999999998
+    },
+    {
+      "name": "draw",
+      "url": "http://127.0.0.1:5187/src/render/sprites.ts?t=1791924616566",
+      "line": 612,
+      "selfMs": 20.781,
+      "inclusiveMs": 127.526
+    },
+    {
+      "name": "wasm-function[788]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 3.056,
+      "inclusiveMs": 125.631
+    },
+    {
+      "name": "wasm-function[2733]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 125.631
+    },
+    {
+      "name": "beginFrame",
+      "url": "http://127.0.0.1:5187/src/render/character/world.ts?t=1791931128514",
+      "line": 64,
+      "selfMs": 2.572,
+      "inclusiveMs": 122.74099999999999
+    },
+    {
+      "name": "wasm-function[24]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 6.2090000000000005,
+      "inclusiveMs": 122.57499999999999
+    },
+    {
+      "name": "wasm-function[1996]",
+      "url": "http://127.0.0.1:5187/src/wasm/terri_wasm_bg.wasm",
+      "line": 1,
+      "selfMs": 0,
+      "inclusiveMs": 122.57499999999999
+    }
+  ]
+}

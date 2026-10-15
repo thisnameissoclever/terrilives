@@ -1,0 +1,42 @@
+proofs/character-creator.ts(8,54): error TS2305: Module '"../src/render/character/contact-admission.js"' has no exported member 'sharedBikeContacts'.
+tests/character-contact-admission.test.ts(27,78): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-contact-admission.test.ts(28,40): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-contact-admission.test.ts(39,78): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-contact-admission.test.ts(49,78): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-contact-admission.test.ts(51,43): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-contact-admission.test.ts(63,78): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-session.test.ts(27,88): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-session.test.ts(39,88): error TS2345: Argument of type 'AdmissionTestService' is not assignable to parameter of type 'ContactService'.
+  The types returned by 'acquire(...)' are incompatible between these types.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/character-sleep-contact.test.ts(125,39): error TS2352: Conversion of type 'readonly SleepingCoverContribution[]' to type '{ offsetX: number; }[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The type 'readonly SleepingCoverContribution[]' is 'readonly' and cannot be assigned to the mutable type '{ offsetX: number; }[]'.
+tests/fixtures/contact-admission-service.ts(14,3): error TS2416: Property 'acquire' in type 'AdmissionTestService' is not assignable to the same property in base type 'ContactService'.
+  Type '(owner: string, appearance: CharacterAppearanceV1) => BikeContactLease' is not assignable to type '(owner: string, appearance: CharacterAppearanceV1) => CharacterPreparationLease'.
+    Type 'BikeContactLease' is not assignable to type 'CharacterPreparationLease'.
+      Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep
+tests/fixtures/contact-admission-service.ts(25,3): error TS2416: Property 'require' in type 'AdmissionTestService' is not assignable to the same property in base type 'ContactService'.
+  Type '(owner: string, appearance: CharacterAppearanceV1) => BikeContactArtifactV1' is not assignable to type '(owner: string, appearance: CharacterAppearanceV1) => CharacterPreparation'.
+    Type 'BikeContactArtifactV1' is missing the following properties from type 'CharacterPreparation': bike, sleep

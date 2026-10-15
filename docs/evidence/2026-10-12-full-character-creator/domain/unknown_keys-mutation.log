@@ -1,0 +1,37 @@
+
+> test
+> vitest run --maxWorkers=1 character-schema.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-schema.test.ts (3 tests | 1 failed) 7ms
+   × validates actual named appearance fields and rejects unknown keys and assets 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-schema.test.ts > validates actual named appearance fields and rejects unknown keys and assets
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/character-schema.test.ts:12:56
+     10|   expect(()=>validateAppearance({...a,hairstyle:'unbuilt'})).toThrow('…
+     11|   expect(()=>validateAppearance({...a,body:{...a.body,height:101}})).t…
+     12|   expect(()=>validateAppearance({...a,invented:true})).toThrow('invent…
+       |                                                        ^
+     13|   expect(()=>validateAppearance({...a,colors:{...a.colors,skin:[1,2,Na…
+     14| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  16:48:37
+   Duration  147ms (transform 22ms, setup 0ms, import 30ms, tests 7ms, environment 0ms)
+

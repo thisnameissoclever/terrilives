@@ -16,6 +16,18 @@ function fixture() {
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
 
 describe('active floor resource replacement', () => {
+  it('rebuilds unchanged starter finishes on a replacement graphics device',async()=>{
+    const f=fixture(),ready=f.manager.invalidate();
+    expect(f.pending[0].keys).toEqual([]);f.pending[0].resolve('new device');await ready;
+    expect(f.published).toEqual(['new device']);
+  });
+  it('discards an old-device preparation even when restoration returns to starter finishes',async()=>{
+    const f=fixture();f.manager.request(['old']);const ready=f.manager.invalidate();f.manager.request([]);
+    f.pending[0].resolve('old device');await flush();
+    expect(f.pending).toHaveLength(2);expect(f.pending[1].keys).toEqual([]);
+    f.pending[1].resolve('new device');await ready;
+    expect(f.disposed).toEqual(['old device']);expect(f.published).toEqual(['new device']);
+  });
   it('retains starter resources, canonicalizes sets and publishes only once', async () => {
     const f = fixture();
     expect(f.pending).toHaveLength(0);

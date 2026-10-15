@@ -285,11 +285,11 @@ pub(crate) fn mood_penalty(world: &World, person: Entity) -> Option<f32> {
         return None;
     }
     let units: u32 = piles.iter().map(|dish| dish.units).sum();
-    Some(
-        (tuning.mood_penalty_min + tuning.mood_penalty_bonus * cleanliness(world, person))
-            * ((units as f32 / tuning.mood_units).min(tuning.mood_max_load)
-                + if obstructed { 0.5 } else { 0.0 }),
-    )
+    let clean = cleanliness(world, person).clamp(0.0, 1.0);
+    let response = terri_core::cleanliness::dish_response(clean, units);
+    let penalty = (tuning.mood_penalty_min + tuning.mood_penalty_bonus * clean)
+        * (tuning.mood_max_load * response + if obstructed { 0.5 } else { 0.0 });
+    (penalty > 0.0).then_some(penalty)
 }
 
 fn chain_index(world: &World, id: &str) -> Option<u32> {
@@ -519,6 +519,12 @@ pub(crate) fn tick(world: &mut World) {
         let room = room_at(width, &labels, &position).unwrap_or(u32::MAX);
         let state = world.resource::<SavedDomestic>();
         let piles = annoying(world, person, state, width, &labels);
+        let clean = cleanliness(world, person).clamp(0.0, 1.0);
+        let units = room_piles(world, person, state, width, &labels)
+            .iter()
+            .map(|pile| pile.units)
+            .sum();
+        let response = terri_core::cleanliness::dish_response(clean, units);
         let previous = state
             .visits
             .iter()
@@ -532,19 +538,19 @@ pub(crate) fn tick(world: &mut World) {
         let mut seen_now = seen.clone();
         let mut owners = BTreeSet::new();
         for pile in &piles {
-            if !seen.contains(&pile.id) {
+            if response > 0.0 && !seen.contains(&pile.id) {
                 owners.insert(pile.owner);
                 seen_now.push(pile.id);
             }
         }
         seen_now.sort_unstable();
         seen_now.dedup();
-        let clean = cleanliness(world, person);
         for owner in owners {
             if world.get::<Relationships>(person).is_none() {
                 world.entity_mut(person).insert(Relationships::default());
             }
-            let requested = -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean);
+            let requested =
+                -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean) * response;
             let before = world
                 .get::<Relationships>(person)
                 .unwrap()
@@ -942,12 +948,14 @@ fn add_dishes(world: &mut World, surface: u32, owner: u32, units: u32) {
 }
 
 /// Called once after a station completes, after its chain counter is advanced.
+/// The caller captures the exact dining setting before reservation and recipe teardown.
 pub(crate) fn completed(
     world: &mut World,
     person: Entity,
     chain: u32,
     step: u32,
     station: Option<Entity>,
+    dining_setting: Option<u8>,
 ) {
     let pack = world.resource::<Content>().0;
     let Some(tuning) = pack.tuning.domestic else {
@@ -1098,7 +1106,7 @@ pub(crate) fn completed(
         return;
     }
     if def.id == "cook_dinner" || def.id == SNACK || def.id == SHARED {
-        let diner = crate::dining::release(world, person.index_u32());
+        crate::dining::release(world, person.index_u32());
         let obstructing = world
             .get_resource::<SavedDining>()
             .and_then(|s| s.complaints.iter().find(|(p, _)| *p == person.index_u32()))
@@ -1111,14 +1119,12 @@ pub(crate) fn completed(
         }
         add_dishes(world, station.index_u32(), id.0, 1);
         let dish = world.resource::<SavedDomestic>().next_dish - 1;
-        if let Some(diner) = &diner {
-            if let Some(setting) = diner.setting {
-                world
-                    .resource_mut::<SavedDining>()
-                    .settings
-                    .push((dish, setting));
-                world.resource_mut::<SavedDining>().settings.sort_unstable();
-            }
+        if let Some(setting) = dining_setting {
+            world
+                .resource_mut::<SavedDining>()
+                .settings
+                .push((dish, setting));
+            world.resource_mut::<SavedDining>().settings.sort_unstable();
         }
         if def.id == SHARED {
             let mut state = world.resource_mut::<SavedDomestic>();

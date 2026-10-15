@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "path": "assets/models/sims/character-creator/surface-policy.json",
+      "workingSha256": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1",
+      "stagedSha256": "804084fed6fe2c06ef3f765b86873b7a97c5e41e8c45871a394a2a5661a9d2f1"
+    },
+    {
+      "path": "assets/models/sims/appearance-proof/bob.py",
+      "workingSha256": "53194cd13c2785618674456736bcd669b87e4278c65c7e1113130d6e41635f4a",
+      "stagedSha256": "53194cd13c2785618674456736bcd669b87e4278c65c7e1113130d6e41635f4a"
+    },
+    {
+      "path": "assets/models/sims/character-repair/dropped-book/fit-result.json",
+      "workingSha256": "0c6d497f0c7f56cde549dda4be9bd577f6e12c2d16461c087caf347f91aa6068",
+      "stagedSha256": "0c6d497f0c7f56cde549dda4be9bd577f6e12c2d16461c087caf347f91aa6068"
+    },
+    {
+      "path": "assets/models/sims/character-repair/components/manifest.json",
+      "workingSha256": "42a6821e661c2d43098c8e5ceadfc5dc65c53ab54a82112d2a518ff1726a6c88",
+      "stagedSha256": "42a6821e661c2d43098c8e5ceadfc5dc65c53ab54a82112d2a518ff1726a6c88"
+    },
+    {
+      "path": "assets/models/sims/character-repair/shelf-depth/manifest.json",
+      "workingSha256": "41627a71562aec38cc4a36fe457879e64603c8e1652d2428905e1e34573f93ff",
+      "stagedSha256": "41627a71562aec38cc4a36fe457879e64603c8e1652d2428905e1e34573f93ff"
+    }
+  ]
+}

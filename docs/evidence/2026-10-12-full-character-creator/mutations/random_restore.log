@@ -1,0 +1,37 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-draft.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-draft.test.ts (9 tests | 1 failed) 280ms
+   × protects locks, preserves a locked condition severity and restores random state on undo 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-draft.test.ts > protects locks, preserves a locked condition severity and restores random state on undo
+AssertionError: expected 3647979103 to be 1192153920 // Object.is equality
+
+- Expected
++ Received
+
+- 1192153920
++ 3647979103
+
+ ❯ tests/character-draft.test.ts:35:82
+     33|   expect(changed.appearance.body.height).toBe(before.appearance.body.h…
+     34|   expect(changed.traits.find(t=>t.id==='trait0')?.state).toBe(floatBit…
+     35|   draft.undo();expect(draft.resolve()).toEqual(before);expect(draft.ra…
+       |                                                                                  ^
+     36|   draft.randomize('all');expect(draft.resolve()).toEqual(changed);
+     37| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  23:22:49
+   Duration  436ms (transform 43ms, setup 0ms, import 56ms, tests 280ms, environment 0ms)
+

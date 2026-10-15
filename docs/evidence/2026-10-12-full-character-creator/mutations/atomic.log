@@ -1,0 +1,24 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 25.42s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test character_draft::application::tests::invalid_request_changes_neither_person_nor_world ... FAILED
+
+failures:
+
+---- character_draft::application::tests::invalid_request_changes_neither_person_nor_world stdout ----
+
+thread 'character_draft::application::tests::invalid_request_changes_neither_person_nor_world' (30496) panicked at crates\terri-sim\src\character_draft\application.rs:462:9:
+assertion `left == right` failed
+  left: Ok(3)
+ right: Err(InvalidTies)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    character_draft::application::tests::invalid_request_changes_neither_person_nor_world
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1307 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

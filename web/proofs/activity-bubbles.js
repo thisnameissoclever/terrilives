@@ -39,7 +39,7 @@ export async function activityBubbleProof() {
   ];
   try {
     for (const [target, expected, label] of ordinary) {
-      if (!sim.loadBytes(base)) throw Error('Review restore failed');
+      if (!(await harness.characters.loadBytes(base))) throw Error('Review restore failed');
       sim.useObjectFirst(34,target,0);
       let found = false;
       for (let tick=0; tick<600; tick++) {
@@ -51,7 +51,7 @@ export async function activityBubbleProof() {
       if (!found) throw Error(`${label}: activity never started`);
       await capture(label,34,expected,target);
     }
-    if (!sim.loadBytes(base)) throw Error('Review restore failed');
+    if (!(await harness.characters.loadBytes(base))) throw Error('Review restore failed');
     sim.useObjectFirst(34,0,1);
     let next=0;
     const stages=[[21,'Get ingredients'],[22,'Prepare food'],[23,'Cook'],[3,'Eat dinner']];
@@ -61,10 +61,10 @@ export async function activityBubbleProof() {
       await capture(stages[next][1],34,stages[next][0],'cook_dinner'); next++;
     }
     if (next !== stages.length) throw Error('Dinner stages incomplete');
-    if (!sim.loadBytes(base)) throw Error('Review restore failed');
+    if (!(await harness.characters.loadBytes(base))) throw Error('Review restore failed');
     sim.useObjectFirst(34,27,0); sim.tick();
     await capture('Walking to fish',34,1,27);
-    if (!sim.loadBytes(base)) throw Error('Review restore failed');
+    if (!(await harness.characters.loadBytes(base))) throw Error('Review restore failed');
     sim.talkToFirst(34,35,0);
     let waiting = false, talking = false;
     for (let tick=0;tick<600&&(!waiting||!talking);tick++) {
@@ -75,7 +75,7 @@ export async function activityBubbleProof() {
     if (!waiting || !talking) throw Error('Conversation stages incomplete');
     return records;
   } finally {
-    sim.loadBytes(base);
+    (await harness.characters.loadBytes(base));
     harness.step(performance.now() + 250);
   }
 }

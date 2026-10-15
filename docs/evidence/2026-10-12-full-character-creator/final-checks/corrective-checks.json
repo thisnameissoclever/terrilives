@@ -1,0 +1,11 @@
+{
+  "commandGroup": "npm --prefix web test -- --maxWorkers=1 tests/floor-scene-presentation.test.ts; npm --prefix web run typecheck; npm --prefix web run build",
+  "commandGroupExitCode": 0,
+  "observed": [
+    "1 test file passed; 4 tests passed",
+    "TypeScript completed without diagnostics",
+    "Vite built successfully in 16.89s"
+  ],
+  "priorFailure": "The floor wiring test searched for the old exact rendering guard. Its production-block boundary and fixture context now include graphics recovery and configured characters.",
+  "verdict": "PASS"
+}

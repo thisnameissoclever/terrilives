@@ -1,0 +1,32 @@
+[
+  {
+    "name": "creator-final",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-choice-influences.test.ts tests/character-session.test.ts tests/character-draft.test.ts tests/character-fields.test.ts tests/housemate-form.test.ts",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "typecheck-delivery",
+    "command": "npm --prefix web run typecheck",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "build-delivery",
+    "command": "npm --prefix web run build",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "capture-delivery",
+    "command": "node assets/models/sims/character-creator/capture_delivery.cjs",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "lifecycle-delivery",
+    "command": "node assets/models/sims/character-creator/verify_lifecycle.cjs",
+    "exitCode": 0,
+    "verdict": "PASS"
+  }
+]

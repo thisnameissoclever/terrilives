@@ -1,0 +1,26 @@
+{
+  "slowCombinedFrames": [
+    {
+      "index": 690,
+      "combinedMs": 19.735000023840257,
+      "elapsedMs": 11514.720000019075,
+      "frame": {
+        "rafStamp": 22894.24,
+        "began": 22896.039999961853,
+        "ended": 22913.975000023842
+      }
+    },
+    {
+      "index": 1124,
+      "combinedMs": 27.504999990462238,
+      "elapsedMs": 18764.735000019075,
+      "frame": {
+        "rafStamp": 30144.255,
+        "began": 30164.93499994278,
+        "ended": 30171.759999990463
+      }
+    }
+  ],
+  "programEventsDuringMeasurement": [],
+  "note": "Unprofiled measurements; temporal proximity does not establish a cause."
+}

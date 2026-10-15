@@ -1,0 +1,36 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.72s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 13 tests
+test chores::cleanliness_tests::cleanliness_daily_dishes_wait_for_the_same_load_and_urgent_needs_preserve_the_draw ... ok
+test chores::cleanliness_tests::cleanliness_daily_floor_and_surface_work_waits_for_owner_threshold_without_a_draw ... ok
+test chores::cleanliness_tests::cleanliness_does_not_change_bin_threshold_or_explicit_small_cleanup_orders ... ok
+test chores::cleanliness_tests::cleanliness_group_credit_uses_the_duty_owner_and_keeps_active_dirt_needed ... ok
+test chores::cleanliness_tests::cleanliness_room_mood_thresholds_each_source_before_averaging ... ok
+test chores::grime_tests::cleanliness_scales_rolls_and_surface_probability_is_doubled ... ok
+test domestic::tests::average_cleanliness_has_stronger_own_cleanup_and_thirty_percent_blocker_response ... ok
+test domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once ... ok
+test domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap ... ok
+test domestic::tests::cleanliness_same_pile_crossing_and_visit_memory_survive_save_load ... FAILED
+test domestic::tests::cleanliness_tolerance_keeps_small_directed_dish_orders_available ... ok
+test edit::tests::a_changed_cleanliness_score_breaks_the_match_until_an_explicit_edit ... ok
+test edit::tests::an_explicit_personality_change_creates_a_missing_cleanliness_row_in_index_order ... ok
+
+failures:
+
+---- domestic::tests::cleanliness_same_pile_crossing_and_visit_memory_survive_save_load stdout ----
+
+thread 'domestic::tests::cleanliness_same_pile_crossing_and_visit_memory_survive_save_load' (65808) panicked at crates\terri-sim\src\domestic\tests.rs:1132:53:
+called `Result::unwrap()` on an `Err` value: InvalidValue
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    domestic::tests::cleanliness_same_pile_crossing_and_visit_memory_survive_save_load
+
+test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 1304 filtered out; finished in 0.17s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

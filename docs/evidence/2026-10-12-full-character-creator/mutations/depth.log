@@ -1,0 +1,6 @@
+page.evaluate: Error: Depth partition failed: near=47855, far=12952, mismatches=47855
+    at verifyDepthPartition (http://127.0.0.1:5187/src/render/character/gpu-proof.ts:160:58)
+    at async <anonymous>:337:30
+    at run (D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\appearance-proof\verify-browser.cjs:73:29) {
+  log: []
+}

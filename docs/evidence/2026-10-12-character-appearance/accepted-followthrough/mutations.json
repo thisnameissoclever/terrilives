@@ -1,0 +1,37 @@
+[
+  {
+    "name": "capture_failure",
+    "exitCode": 1,
+    "rejected": true,
+    "exactRestoration": true,
+    "sourceSha256": "57d5f3481192fb3a5b4320fb59cecfc275afb4d9d7f6bf77822983bde6389e09"
+  },
+  {
+    "name": "outline_gap",
+    "exitCode": 1,
+    "rejected": true,
+    "exactRestoration": true,
+    "sourceSha256": "e8329e887d8d427621c20e8b64a2ca1304050a6050d93a8a97795241ffe5799b"
+  },
+  {
+    "name": "simulation_distance",
+    "rejected": true,
+    "exitCode": 1,
+    "exactRestoration": true,
+    "sourceSha256": "7ec619db9b2585250b6572bfe2b4c2cb024f87973af5c8a3139e48c9350c0c6d"
+  },
+  {
+    "name": "reading_cadence",
+    "rejected": true,
+    "exitCode": 1,
+    "exactRestoration": true,
+    "sourceSha256": "7ec619db9b2585250b6572bfe2b4c2cb024f87973af5c8a3139e48c9350c0c6d"
+  },
+  {
+    "name": "step_accumulator",
+    "rejected": true,
+    "exitCode": 1,
+    "exactRestoration": true,
+    "sourceSha256": "7ec619db9b2585250b6572bfe2b4c2cb024f87973af5c8a3139e48c9350c0c6d"
+  }
+]

@@ -1,0 +1,517 @@
+{
+  "checks": [
+    "Saved severity is displayed as 73.1235",
+    "1440/Lock: full value fits",
+    "1440/Lock: controls separate and labels fit",
+    "1440/Locked: full value fits",
+    "1440/Locked: controls separate and labels fit",
+    "761/Lock: full value fits",
+    "761/Lock: controls separate and labels fit",
+    "761/Locked: full value fits",
+    "761/Locked: controls separate and labels fit",
+    "320/Lock: full value fits",
+    "320/Lock: controls separate and labels fit",
+    "320/Locked: full value fits",
+    "320/Locked: controls separate and labels fit",
+    "320px identity navigation works",
+    "320px appearance navigation works",
+    "320px personality navigation works",
+    "320px needs navigation works",
+    "320px interests navigation works",
+    "320px household navigation works",
+    "320px review navigation works",
+    "Review retains full saved percentage",
+    "Apply changes edits name and preserves complete saved character including exact condition bits",
+    "Reopened edited character retains complete percentage",
+    "No browser or graphics warnings/errors",
+    "Actual browser loaded final container build stylesheet"
+  ],
+  "errors": [],
+  "captures": [
+    "width-1440-lock.png",
+    "width-1440-locked.png",
+    "width-761-lock.png",
+    "width-761-locked.png",
+    "width-320-lock.png",
+    "width-320-locked.png",
+    "narrow-review.png",
+    "narrow-needs.png",
+    "desktop-review.png",
+    "reopened-condition.png"
+  ],
+  "status": "PASS",
+  "widths": [
+    {
+      "width": 1440,
+      "value": "73.1235",
+      "text": 48.31640625,
+      "available": 86,
+      "collisions": 0,
+      "buttons": [
+        {
+          "text": "Random",
+          "clipped": false
+        },
+        {
+          "text": "Lock",
+          "clipped": false
+        }
+      ],
+      "editorOverflow": false,
+      "documentOverflow": false,
+      "state": "Lock"
+    },
+    {
+      "width": 1440,
+      "value": "73.1235",
+      "text": 48.31640625,
+      "available": 86,
+      "collisions": 0,
+      "buttons": [
+        {
+          "text": "Random",
+          "clipped": false
+        },
+        {
+          "text": "Locked",
+          "clipped": false
+        }
+      ],
+      "editorOverflow": false,
+      "documentOverflow": false,
+      "state": "Locked"
+    },
+    {
+      "width": 761,
+      "value": "73.1235",
+      "text": 48.31640625,
+      "available": 86,
+      "collisions": 0,
+      "buttons": [
+        {
+          "text": "Random",
+          "clipped": false
+        },
+        {
+          "text": "Lock",
+          "clipped": false
+        }
+      ],
+      "editorOverflow": false,
+      "documentOverflow": false,
+      "state": "Lock"
+    },
+    {
+      "width": 761,
+      "value": "73.1235",
+      "text": 48.31640625,
+      "available": 86,
+      "collisions": 0,
+      "buttons": [
+        {
+          "text": "Random",
+          "clipped": false
+        },
+        {
+          "text": "Locked",
+          "clipped": false
+        }
+      ],
+      "editorOverflow": false,
+      "documentOverflow": false,
+      "state": "Locked"
+    },
+    {
+      "width": 320,
+      "value": "73.1235",
+      "text": 48.31640625,
+      "available": 86,
+      "collisions": 0,
+      "buttons": [
+        {
+          "text": "Random",
+          "clipped": false
+        },
+        {
+          "text": "Lock",
+          "clipped": false
+        }
+      ],
+      "editorOverflow": false,
+      "documentOverflow": false,
+      "state": "Lock"
+    },
+    {
+      "width": 320,
+      "value": "73.1235",
+      "text": 48.31640625,
+      "available": 86,
+      "collisions": 0,
+      "buttons": [
+        {
+          "text": "Random",
+          "clipped": false
+        },
+        {
+          "text": "Locked",
+          "clipped": false
+        }
+      ],
+      "editorOverflow": false,
+      "documentOverflow": false,
+      "state": "Locked"
+    }
+  ],
+  "fixture": {
+    "condition": "low_spirits",
+    "snapshot": {
+      "version": 1,
+      "name": "Tim",
+      "pronouns": "",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            62,
+            117,
+            164
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "behavior": {
+        "shyness": 89,
+        "cleanliness": 1063675494,
+        "self_preservation": 40,
+        "chronotype_offset_ticks": -90,
+        "drain": [
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1067869798,
+          1060320051
+        ],
+        "recovery": [
+          1065353216,
+          1066611507,
+          1065353216,
+          1065353216,
+          1065353216,
+          1062836634,
+          1065353216
+        ],
+        "dispositions": [
+          {
+            "object": "television",
+            "action": "watch_tv",
+            "weight": 1057803469
+          },
+          {
+            "object": "bookshelf",
+            "action": "read",
+            "weight": 1069128090
+          },
+          {
+            "object": "desk",
+            "action": "attend_correspondence",
+            "weight": 1071225242
+          },
+          {
+            "object": "reading_chair",
+            "action": "settle_in",
+            "weight": 1067702026
+          }
+        ]
+      },
+      "traits": [
+        {
+          "id": "low_spirits",
+          "state": 1060844080
+        }
+      ],
+      "affinities": [
+        {
+          "id": "plants",
+          "value": 1057409678
+        },
+        {
+          "id": "aquarium",
+          "value": 1057785780
+        },
+        {
+          "id": "television",
+          "value": 1060816058
+        },
+        {
+          "id": "radio",
+          "value": 3208989446
+        }
+      ],
+      "hobbies": [
+        "correspondence",
+        "reading"
+      ],
+      "skills": [
+        {
+          "id": "exercise",
+          "practice": 1054280253
+        }
+      ],
+      "ties": [
+        [
+          1,
+          null
+        ],
+        [
+          2,
+          null
+        ]
+      ]
+    }
+  },
+  "after": {
+    "version": 1,
+    "name": "Independent Width Review",
+    "pronouns": "",
+    "appearance": {
+      "version": 1,
+      "presentation": "masculine",
+      "body": {
+        "height": 50,
+        "build": 50,
+        "shoulders": 50,
+        "hips": 50,
+        "torso": 50
+      },
+      "face": {
+        "shape": "oval",
+        "cheeks": 50,
+        "jaw": 50,
+        "chin": 50,
+        "eyes": "almond",
+        "eye_size": 50,
+        "brows": "soft",
+        "brow_thickness": 50,
+        "nose": "straight",
+        "nose_width": 50,
+        "mouth": "neutral",
+        "mouth_fullness": 50,
+        "ears": 50
+      },
+      "colors": {
+        "skin": [
+          190,
+          143,
+          107
+        ],
+        "hair": [
+          101,
+          69,
+          46
+        ],
+        "facial_hair": [
+          101,
+          69,
+          46
+        ],
+        "eyes": [
+          102,
+          91,
+          69
+        ],
+        "shirt": [
+          62,
+          117,
+          164
+        ],
+        "trousers": [
+          57,
+          70,
+          80
+        ],
+        "shoes": [
+          76,
+          64,
+          55
+        ]
+      },
+      "undertone": "neutral",
+      "hairstyle": "curl",
+      "bald": false,
+      "facial_hair": "none",
+      "freckles": false,
+      "freckle_density": 50,
+      "scar": "none",
+      "top": "overshirt",
+      "sleeves": "rolled",
+      "bottoms": "trousers",
+      "footwear": "loafers",
+      "glasses": false,
+      "glasses_style": "round",
+      "earrings": "none"
+    },
+    "behavior": {
+      "shyness": 89,
+      "cleanliness": 1063675494,
+      "self_preservation": 40,
+      "chronotype_offset_ticks": -90,
+      "drain": [
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1065353216,
+        1067869798,
+        1060320051
+      ],
+      "recovery": [
+        1065353216,
+        1066611507,
+        1065353216,
+        1065353216,
+        1065353216,
+        1062836634,
+        1065353216
+      ],
+      "dispositions": [
+        {
+          "object": "television",
+          "action": "watch_tv",
+          "weight": 1057803469
+        },
+        {
+          "object": "bookshelf",
+          "action": "read",
+          "weight": 1069128090
+        },
+        {
+          "object": "desk",
+          "action": "attend_correspondence",
+          "weight": 1071225242
+        },
+        {
+          "object": "reading_chair",
+          "action": "settle_in",
+          "weight": 1067702026
+        }
+      ]
+    },
+    "traits": [
+      {
+        "id": "low_spirits",
+        "state": 1060844080
+      }
+    ],
+    "affinities": [
+      {
+        "id": "plants",
+        "value": 1057409678
+      },
+      {
+        "id": "aquarium",
+        "value": 1057785780
+      },
+      {
+        "id": "television",
+        "value": 1060816058
+      },
+      {
+        "id": "radio",
+        "value": 3208989446
+      }
+    ],
+    "hobbies": [
+      "correspondence",
+      "reading"
+    ],
+    "skills": [
+      {
+        "id": "exercise",
+        "practice": 1054280253
+      }
+    ],
+    "ties": [
+      [
+        1,
+        null
+      ],
+      [
+        2,
+        null
+      ]
+    ]
+  },
+  "loadedStyles": [
+    "http://127.0.0.1:5193/assets/index-B1WNKcup.css"
+  ],
+  "browserClosed": true,
+  "ownedPreviewClosed": true
+}

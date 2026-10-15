@@ -1,0 +1,32 @@
+{
+  "result": "No blocking screenshot or geometry-evidence defect found in independent adversarial review",
+  "checks": [
+    "17 source inputs match current files",
+    "Fixture topology closed and positive signed volume",
+    "Frame 0 shared by screenshot and geometry sections",
+    "Location marker projection matches renderer",
+    "White measured lines lie in section planes",
+    "Open overshirt neckline remains open; red line is surface inside cushion, not filled volume"
+  ],
+  "modelChanges": false,
+  "ownerDecision": "Accepted all demonstrated intersection levels; all four facings required and independently reviewed",
+  "sha256": {
+    "arm-0.png": "d06f6a45735c5dfb7ae4de7ae0217fa4ba777d0f674629a7adaa8286c4f1acbb",
+    "arm-1.png": "dbbcb1a4de16f89854c55f106efb0bd8bef12a3f6dfbdfb1009e396e72f7f769",
+    "arm-2.png": "7845baa38cee4b0232b96c58a55cafbe5a800c1dfe11707d79f518339385bc53",
+    "arm-3.png": "b6745d2c334ae8ddd57fab67a511b79aa2a6c0128ecd4d191f02885fa11916fa",
+    "arm-evidence.png": "4d9bbddc8d3c040059912a3dfea68910bf79da1af7c470d538cee66bbeddab66",
+    "back-0.png": "d6f594aa7decdc9d95594da99069e8f2c708a5b213cb9daad2d59ab62e0a6832",
+    "back-1.png": "6e5c62420c88490052010d01a562f5aef2f5e0465842d72d70fb6f23aa96dadd",
+    "back-2.png": "5462fc52879fbf0c700f2940f4704bff45510cf4dd4a585e807c9bb7afffbb68",
+    "back-3.png": "5ac8e354539a05f0185141cee2562ff7cf6230ca06682ea36e3882dfe6bd4ddc",
+    "back-evidence.png": "282fe712711b90cf3e843960ee0bb251450dfd219976343901e16223779428cf",
+    "seat-0.png": "d06f6a45735c5dfb7ae4de7ae0217fa4ba777d0f674629a7adaa8286c4f1acbb",
+    "seat-1.png": "dbbcb1a4de16f89854c55f106efb0bd8bef12a3f6dfbdfb1009e396e72f7f769",
+    "seat-2.png": "7845baa38cee4b0232b96c58a55cafbe5a800c1dfe11707d79f518339385bc53",
+    "seat-3.png": "b6745d2c334ae8ddd57fab67a511b79aa2a6c0128ecd4d191f02885fa11916fa",
+    "seat-evidence.png": "0db091eb3f3179fec5d87da716e968e2be685bf13a5d44567ebe86e9c1b1c831",
+    "sections.json": "5ffe84cbc8fe8d7730b2abb87f5e2bff2d0aa431dff630c7d69c03a544f70c7b",
+    "capture.json": "9ba9a6fdc25062aaa7342edb3d04060781c2c2dc34d0b8ba697a85be2d2210b5"
+  }
+}

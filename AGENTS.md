@@ -25,3 +25,11 @@ After merging, verify the PR state, synchronize this checkout with remote main, 
 ## Clean up browser verification
 
 Close task-owned game pages in a finally block after browser verification. Stop task-owned preview servers when finished. Do not leave audible game instances running during CI waits or after reporting completion, and do not close another task's pages or servers.
+
+## Verify visible results before claiming completion
+
+For changes to rendering, animation, assets, or interface layout, follow the visual evidence requirements in [Testing Protocol, section 9](docs/testing-protocol.md#9-every-milestone-ends-with-a-played-visual-pass). Inspect the actual captured images yourself and obtain a fresh independent visual review. Keep automated checks and visual judgments separate. For a reported visual regression, demonstrate that the review rejects the known defective result before accepting the repair.
+
+## Keep review videos out of the repository
+
+Never commit or upload review videos to this repository, including recordings embedded in trace archives or converted into animated GIF loops. Use selected screenshots, measurements, and written findings as retained evidence. Watch animations in the actual game; a video file is not required to prove that review happened. Keep any temporary recording in ignored local scratch storage and exclude it from publication.

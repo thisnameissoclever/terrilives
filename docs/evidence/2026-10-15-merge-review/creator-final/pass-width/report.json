@@ -1,0 +1,274 @@
+{
+  "gameUrl": "http://127.0.0.1:5193",
+  "checks": [
+    "Existing creator opens with Walking playing",
+    "Reselected condition displays its exact previous severity",
+    "Unapplied toggles preserve the live native record",
+    "Loaded percentage is readable without overflow at 1440px",
+    "Loaded percentage is readable without overflow at 768px",
+    "Loaded percentage is readable without overflow at 390px"
+  ],
+  "errors": [],
+  "captures": [
+    "01-condition-before.png",
+    "02-condition-reselected.png",
+    "02-condition-width-1440.png",
+    "02-condition-width-768.png",
+    "02-condition-width-390.png"
+  ],
+  "status": "FAIL",
+  "fixture": {
+    "condition": {
+      "id": "low_spirits",
+      "label": "Low spirits",
+      "description": "Less activity satisfaction; correspondence helps; starts 6 points lower.",
+      "kind": "condition",
+      "initial_state": 1058642330,
+      "weights": []
+    },
+    "other": [
+      {
+        "id": "television_devotee",
+        "label": "Television devotee",
+        "description": "Loves watching television.",
+        "kind": "disposition",
+        "initial_state": 0,
+        "weights": [
+          {
+            "tag": "television",
+            "value": 1069547520
+          }
+        ]
+      },
+      {
+        "id": "cannot_cook",
+        "label": "Can't cook",
+        "description": "Ruins most meals at first, and gets better with every attempt.",
+        "kind": "capability",
+        "initial_state": 1048576000,
+        "weights": []
+      }
+    ],
+    "snapshot": {
+      "version": 1,
+      "name": "Tim",
+      "pronouns": "",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "body": {
+          "height": 50,
+          "build": 50,
+          "shoulders": 50,
+          "hips": 50,
+          "torso": 50
+        },
+        "face": {
+          "shape": "oval",
+          "cheeks": 50,
+          "jaw": 50,
+          "chin": 50,
+          "eyes": "almond",
+          "eye_size": 50,
+          "brows": "soft",
+          "brow_thickness": 50,
+          "nose": "straight",
+          "nose_width": 50,
+          "mouth": "neutral",
+          "mouth_fullness": 50,
+          "ears": 50
+        },
+        "colors": {
+          "skin": [
+            190,
+            143,
+            107
+          ],
+          "hair": [
+            101,
+            69,
+            46
+          ],
+          "facial_hair": [
+            101,
+            69,
+            46
+          ],
+          "eyes": [
+            102,
+            91,
+            69
+          ],
+          "shirt": [
+            62,
+            117,
+            164
+          ],
+          "trousers": [
+            57,
+            70,
+            80
+          ],
+          "shoes": [
+            76,
+            64,
+            55
+          ]
+        },
+        "undertone": "neutral",
+        "hairstyle": "curl",
+        "bald": false,
+        "facial_hair": "none",
+        "freckles": false,
+        "freckle_density": 50,
+        "scar": "none",
+        "top": "overshirt",
+        "sleeves": "rolled",
+        "bottoms": "trousers",
+        "footwear": "loafers",
+        "glasses": false,
+        "glasses_style": "round",
+        "earrings": "none"
+      },
+      "behavior": {
+        "shyness": 89,
+        "cleanliness": 1063675494,
+        "self_preservation": 83,
+        "chronotype_offset_ticks": -90,
+        "drain": [
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1065353216,
+          1067869798,
+          1060320051
+        ],
+        "recovery": [
+          1065353216,
+          1066611507,
+          1065353216,
+          1065353216,
+          1065353216,
+          1062836634,
+          1065353216
+        ],
+        "dispositions": [
+          {
+            "object": "television",
+            "action": "watch_tv",
+            "weight": 1057803469
+          },
+          {
+            "object": "bookshelf",
+            "action": "read",
+            "weight": 1069128090
+          },
+          {
+            "object": "desk",
+            "action": "attend_correspondence",
+            "weight": 1071225242
+          },
+          {
+            "object": "reading_chair",
+            "action": "settle_in",
+            "weight": 1067702026
+          }
+        ]
+      },
+      "traits": [
+        {
+          "id": "television_devotee",
+          "state": 0
+        },
+        {
+          "id": "cannot_cook",
+          "state": 1048576000
+        },
+        {
+          "id": "low_spirits",
+          "state": 1060844080
+        }
+      ],
+      "affinities": [
+        {
+          "id": "plants",
+          "value": 1057216394
+        },
+        {
+          "id": "aquarium",
+          "value": 3197248956
+        },
+        {
+          "id": "television",
+          "value": 3198806684
+        },
+        {
+          "id": "radio",
+          "value": 1060630660
+        }
+      ],
+      "hobbies": [
+        "correspondence",
+        "reading"
+      ],
+      "skills": [
+        {
+          "id": "exercise",
+          "practice": 1054280253
+        }
+      ],
+      "ties": [
+        [
+          1,
+          null
+        ],
+        [
+          2,
+          null
+        ]
+      ]
+    },
+    "severityBits": 1060844080
+  },
+  "percentageLayouts": [
+    {
+      "width": 1440,
+      "value": "73.1235",
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 768,
+      "value": "73.1235",
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 390,
+      "value": "73.1235",
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 320,
+      "value": "73.1235",
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "fits": true,
+      "controlOverflow": true,
+      "documentOverflow": false
+    }
+  ],
+  "failure": "AssertionError [ERR_ASSERTION]: Loaded percentage is readable without overflow at 320px",
+  "browserClosed": true
+}

@@ -1,0 +1,10 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.54s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 2 tests
+test character_draft::tests::creator_checks_content_identifiers_and_explicit_skill_levels ... ok
+test character_draft::tests::creator_domains_preserve_unchanged_custom_values_and_reject_new_outliers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 1298 filtered out; finished in 0.00s
+

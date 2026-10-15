@@ -1,0 +1,6 @@
+page.evaluate: Error: Owned GPU resources remain: 6
+    at eval (eval at evaluate (:311:30), <anonymous>:9:510)
+    at async <anonymous>:337:30
+    at D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\appearance-proof\verify_motion.cjs:32:28 {
+  log: []
+}

@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-device-pipelines.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  15:23:18
+   Duration  168ms (transform 40ms, setup 0ms, import 54ms, tests 4ms, environment 0ms)
+

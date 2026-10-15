@@ -1,0 +1,87 @@
+{
+  "liveBefore": {
+    "src/character/draft.ts": "7e23e4509674f3137e75741f6317354b771b943ace3761af05f06bac8fe06f0c",
+    "src/character/schema.ts": "56638e8e6b7628454ba68e6e7a0aa1a35920b6e28f694302319c833d47414b46",
+    "src/character/random.ts": "c81278a670148f0171e33d0ff3a185f6cdc7a77c4ecc0e2f64c4a18cbf936545"
+  },
+  "mutants": [
+    {
+      "name": "field-lock",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/creator-repair.test.ts"
+      ],
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "undo-random-state",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/character-draft.test.ts"
+      ],
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "unchanged-save-groups",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/character-draft.test.ts"
+      ],
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "seeded-draw-progression",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/character-random.test.ts"
+      ],
+      "exitCode": 1,
+      "killed": true
+    }
+  ],
+  "baseline": {
+    "command": [
+      "npx.cmd",
+      "vitest",
+      "run",
+      "--maxWorkers=1",
+      "tests/character-draft.test.ts",
+      "tests/character-random.test.ts",
+      "tests/creator-repair.test.ts"
+    ],
+    "exitCode": 0
+  },
+  "restored": {
+    "command": [
+      "npx.cmd",
+      "vitest",
+      "run",
+      "--maxWorkers=1",
+      "tests/character-draft.test.ts",
+      "tests/character-random.test.ts",
+      "tests/creator-repair.test.ts"
+    ],
+    "exitCode": 0
+  },
+  "liveAfter": {
+    "src/character/draft.ts": "7e23e4509674f3137e75741f6317354b771b943ace3761af05f06bac8fe06f0c",
+    "src/character/schema.ts": "56638e8e6b7628454ba68e6e7a0aa1a35920b6e28f694302319c833d47414b46",
+    "src/character/random.ts": "c81278a670148f0171e33d0ff3a185f6cdc7a77c4ecc0e2f64c4a18cbf936545"
+  },
+  "status": "PASS"
+}

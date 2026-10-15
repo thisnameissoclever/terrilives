@@ -1,0 +1,134 @@
+[
+  {
+    "presentation": "masculine",
+    "faceShape": "oval",
+    "sliderValue": 0,
+    "head": {
+      "minX": -0.41399991512298584,
+      "maxX": 0.13568051159381866,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 25.448168128392332
+  },
+  {
+    "presentation": "masculine",
+    "faceShape": "oval",
+    "sliderValue": 100,
+    "head": {
+      "minX": -0.4140000641345978,
+      "maxX": 0.1823214888572693,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 40.17482110553684
+  },
+  {
+    "presentation": "masculine",
+    "faceShape": "round",
+    "sliderValue": 0,
+    "head": {
+      "minX": -0.4139999449253082,
+      "maxX": 0.1540890634059906,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 30.262254021873698
+  },
+  {
+    "presentation": "masculine",
+    "faceShape": "round",
+    "sliderValue": 100,
+    "head": {
+      "minX": -0.4140000343322754,
+      "maxX": 0.1884250044822693,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 42.89108322622579
+  },
+  {
+    "presentation": "masculine",
+    "faceShape": "angular",
+    "sliderValue": 0,
+    "head": {
+      "minX": -0.414000004529953,
+      "maxX": 0.157263845205307,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 31.337922853146008
+  },
+  {
+    "presentation": "masculine",
+    "faceShape": "angular",
+    "sliderValue": 100,
+    "head": {
+      "minX": -0.41399991512298584,
+      "maxX": 0.19144660234451294,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 44.700609384111836
+  },
+  {
+    "presentation": "feminine",
+    "faceShape": "oval",
+    "sliderValue": 0,
+    "head": {
+      "minX": -0.41399991512298584,
+      "maxX": 0.13568051159381866,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 25.448168128392332
+  },
+  {
+    "presentation": "feminine",
+    "faceShape": "oval",
+    "sliderValue": 100,
+    "head": {
+      "minX": -0.4140000641345978,
+      "maxX": 0.1823214888572693,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 40.17482110553684
+  },
+  {
+    "presentation": "feminine",
+    "faceShape": "round",
+    "sliderValue": 0,
+    "head": {
+      "minX": -0.4139999449253082,
+      "maxX": 0.1540890634059906,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 30.262254021873698
+  },
+  {
+    "presentation": "feminine",
+    "faceShape": "round",
+    "sliderValue": 100,
+    "head": {
+      "minX": -0.4140000343322754,
+      "maxX": 0.1884250044822693,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 42.89108322622579
+  },
+  {
+    "presentation": "feminine",
+    "faceShape": "angular",
+    "sliderValue": 0,
+    "head": {
+      "minX": -0.414000004529953,
+      "maxX": 0.157263845205307,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 31.337922853146008
+  },
+  {
+    "presentation": "feminine",
+    "faceShape": "angular",
+    "sliderValue": 100,
+    "head": {
+      "minX": -0.41399991512298584,
+      "maxX": 0.19144660234451294,
+      "maxY": 0.9239999651908875
+    },
+    "neckTurnDegrees": 44.700609384111836
+  }
+]

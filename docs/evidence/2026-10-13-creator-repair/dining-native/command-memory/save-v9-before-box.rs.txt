@@ -1,0 +1,218 @@
+//! Transactional appearance envelope and creator command ordering.
+use super::SaveError;
+use crate::{character_draft, portals::ActivePortals, Sim};
+use terri_core::{
+    character::CharacterPronouns, save_v9::SavedCharacterAppearance, Agent, CommandQueue,
+    SaveSnapshotV9, SimCommand, SimId,
+};
+
+pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV9 {
+    SaveSnapshotV9 {
+        legacy: super::v6::capture(sim),
+        characters: characters(sim),
+        command_order: sim
+            .world()
+            .resource::<CommandQueue>()
+            .as_slice()
+            .iter()
+            .map(|command| match command {
+                SimCommand::Character(command) => Some(command.clone()),
+                _ => None,
+            })
+            .collect(),
+    }
+}
+
+fn characters(sim: &Sim) -> Vec<SavedCharacterAppearance> {
+    let world = sim.world();
+    let mut characters =
+        world
+            .try_query::<(&Agent, &SimId)>()
+            .map_or_else(Vec::new, |mut query| {
+                query
+                    .iter(world)
+                    .map(|(_, id)| {
+                        let draft = character_draft::snapshot(world, id.0)
+                            .expect("living person has a valid character snapshot");
+                        SavedCharacterAppearance {
+                            sim: id.0,
+                            appearance: draft.appearance,
+                            pronouns: draft.pronouns,
+                        }
+                    })
+                    .collect()
+            });
+    characters.sort_by_key(|row| row.sim);
+    characters
+}
+
+pub(crate) fn restore(
+    snapshot: SaveSnapshotV9,
+    content: &'static terri_data::ContentPack,
+    portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    if snapshot.characters.len() > super::MAX_ENTITIES
+        || snapshot.command_order.len() > content.tuning.max_queued_commands as usize
+        || snapshot
+            .characters
+            .windows(2)
+            .any(|rows| rows[0].sim >= rows[1].sim)
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    for row in &snapshot.characters {
+        row.appearance
+            .validate()
+            .map_err(|_| SaveError::InvalidValue)?;
+        if row.pronouns.chars().count() > 64 {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    for command in snapshot.command_order.iter().flatten() {
+        command
+            .validate_structure()
+            .map_err(|_| SaveError::InvalidValue)?;
+    }
+    let mut candidate = super::v6::restore(snapshot.legacy, content, portals)?;
+    if crate::household::household_size(candidate.world()) != snapshot.characters.len() {
+        return Err(SaveError::InvalidValue);
+    }
+    for row in snapshot.characters {
+        let entity = crate::edit::living_entity(candidate.world(), row.sim)
+            .ok_or(SaveError::InvalidValue)?;
+        candidate
+            .world_mut()
+            .entity_mut(entity)
+            .insert((row.appearance, CharacterPronouns(row.pronouns)));
+    }
+    let ordinary: Vec<_> = candidate
+        .world_mut()
+        .resource_mut::<CommandQueue>()
+        .drain()
+        .collect();
+    if snapshot
+        .command_order
+        .iter()
+        .filter(|row| row.is_none())
+        .count()
+        != ordinary.len()
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    let mut ordinary = ordinary.into_iter();
+    for row in snapshot.command_order {
+        let command = match row {
+            Some(command) => SimCommand::Character(command),
+            None => ordinary.next().ok_or(SaveError::InvalidValue)?,
+        };
+        candidate
+            .world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(command);
+    }
+    Ok(candidate)
+}
+
+/// Cosmetic evidence is separate from the autonomous-choice state hash.
+pub(crate) fn appearance_hash(sim: &Sim) -> u64 {
+    let mut hash = terri_core::FnvHasher::default();
+    for row in characters(sim) {
+        hash.write_u64(u64::from(row.sim));
+        terri_core::character_hash::appearance(&mut hash, &row.appearance);
+        hash.write_u64(row.pronouns.len() as u64);
+        hash.write_bytes(row.pronouns.as_bytes());
+    }
+    hash.finish()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use terri_core::appearance::CharacterAppearanceV1;
+    use terri_core::{character::CharacterPatchV1, command::CharacterCommand};
+
+    #[test]
+    fn appearance_and_interleaved_queued_edits_survive_exact_round_trip() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut appearance = CharacterAppearanceV1::default();
+        appearance.body.height = 87;
+        appearance.hairstyle = "wave".into();
+        let patch = CharacterPatchV1 {
+            appearance: Some(appearance),
+            pronouns: Some("they/them".into()),
+            ..Default::default()
+        };
+        character_draft::edit_character(sim.world_mut(), 0, &patch).unwrap();
+        let commands = vec![
+            SimCommand::Select(None),
+            SimCommand::Character(CharacterCommand::Edit {
+                request: 7,
+                sim: 0,
+                patch: CharacterPatchV1 {
+                    name: Some("Renamed".into()),
+                    ..Default::default()
+                },
+            }),
+            SimCommand::Select(None),
+        ];
+        for command in &commands {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(command.clone());
+        }
+        let before = capture(&sim);
+        let hash = sim.world_hash();
+        let art = appearance_hash(&sim);
+        let mut restored = restore(before.clone(), terri_data::pack(), None).unwrap();
+        assert_eq!(capture(&restored), before);
+        assert_eq!(restored.world_hash(), hash);
+        assert_eq!(appearance_hash(&restored), art);
+        assert_eq!(
+            restored.world().resource::<CommandQueue>().as_slice(),
+            commands
+        );
+        sim.flush_commands();
+        restored.flush_commands();
+        assert_eq!(capture(&restored), capture(&sim));
+    }
+
+    #[test]
+    fn malformed_appearance_and_missing_people_are_refused() {
+        let sim = Sim::new_from_shipped_lot();
+        let mut bad = capture(&sim);
+        bad.characters[0].appearance.body.height = 101;
+        assert!(restore(bad, terri_data::pack(), None).is_err());
+        let mut bad = capture(&sim);
+        bad.characters.pop();
+        assert!(restore(bad, terri_data::pack(), None).is_err());
+        let mut bad = capture(&sim);
+        bad.command_order.push(None);
+        assert!(restore(bad, terri_data::pack(), None).is_err());
+    }
+
+    #[test]
+    fn historical_appearance_mapping_is_deterministic_without_rng_changes() {
+        let sim = Sim::new_from_shipped_lot();
+        let before = sim.world().resource::<terri_core::SimRng>().clone();
+        let rows = capture(&sim).characters;
+        assert_eq!(
+            rows.iter()
+                .find(|row| row.sim == 0)
+                .unwrap()
+                .appearance
+                .colors
+                .shirt,
+            [62, 117, 164]
+        );
+        assert_eq!(
+            rows.iter()
+                .find(|row| row.sim == 2)
+                .unwrap()
+                .appearance
+                .colors
+                .shirt,
+            [168, 71, 62]
+        );
+        assert_eq!(&before, sim.world().resource::<terri_core::SimRng>());
+    }
+}

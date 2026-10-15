@@ -33,6 +33,25 @@ import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
 
+it.each(['escape','camera','mode','replaced world','current'])('guards deferred displayed picks: %s',async change=>{
+  const listeners=new Map<string,(event:any)=>void>(),documentListeners=new Map<string,(event:any)=>void>();
+  const canvas={width:1280,height:720,focus:vi.fn(),setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,width:1280,height:720}),
+    addEventListener:(name:string,listener:(event:any)=>void)=>listeners.set(name,listener),ownerDocument:{addEventListener:(name:string,listener:(event:any)=>void)=>documentListeners.set(name,listener)}};
+  const action=vi.fn(()=>true),target={...source([[15,KIND_OBJECT,3,3]]),selectedIndex:()=>8,select:action,useObject:action,useObjectFirst:action,
+    cancelIntents:action,talkTo:action,talkToFirst:action,entityName:()=> 'Lamp',interactionLabels:()=>['Use'],socialLabels:()=>[]};
+  const menu={close:vi.fn(),open:vi.fn(),handleKey:vi.fn(()=>false),pointerDown:vi.fn()},camera={originX:100,originY:100,scale:1};
+  let editing=true,finish!:(pick:Pick|null|undefined)=>void;
+  const pending=new Promise<Pick|null|undefined>(resolve=>{finish=resolve;}),click=vi.fn();
+  attachPointerInput(canvas as unknown as HTMLCanvasElement,target,menu,{} as Node,camera,{panBy:vi.fn(),zoomAt:vi.fn()},
+    undefined,undefined,undefined,undefined,undefined,{active:()=>editing,click},undefined,()=>pending);
+  const event={clientX:196,clientY:226,ctrlKey:false,metaKey:false,preventDefault:vi.fn(),pointerId:1,pointerType:'mouse',button:0};
+  listeners.get(change==='escape'?'contextmenu':'click')!(event);
+  if(change==='escape')documentListeners.get('keydown')!({key:'Escape',defaultPrevented:false,preventDefault:vi.fn(),stopPropagation:vi.fn()});
+  if(change==='camera')camera.originX+=20;if(change==='mode')editing=false;
+  finish(change==='replaced world'?undefined:{entity:15,isAgent:false});await pending;await Promise.resolve();
+  expect(menu.open).not.toHaveBeenCalled();expect(action).not.toHaveBeenCalled();expect(click).toHaveBeenCalledTimes(change==='current'?1:0);
+});
+
 it('routes editing clicks and pan while allowing object menus', () => {
   vi.useFakeTimers();
   const listeners = new Map<string, (event: any) => void>();

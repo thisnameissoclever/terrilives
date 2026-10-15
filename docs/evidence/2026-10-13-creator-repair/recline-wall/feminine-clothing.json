@@ -1,0 +1,344 @@
+[
+  {
+    "top": "overshirt",
+    "bottoms": "trousers",
+    "footwear": "loafers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "overshirt",
+    "bottoms": "trousers",
+    "footwear": "laceups",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "overshirt",
+    "bottoms": "trousers",
+    "footwear": "trainers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.0039429589556478906,
+        "contactArea": 0.00032918128618827924
+      },
+      "footR": {
+        "minGap": 0.0014575719833374023,
+        "contactArea": 0.002348443558829849
+      }
+    }
+  },
+  {
+    "top": "overshirt",
+    "bottoms": "shorts",
+    "footwear": "loafers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "overshirt",
+    "bottoms": "shorts",
+    "footwear": "laceups",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "overshirt",
+    "bottoms": "shorts",
+    "footwear": "trainers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.0039429589556478906,
+        "contactArea": 0.00032918128618827924
+      },
+      "footR": {
+        "minGap": 0.0014575719833374023,
+        "contactArea": 0.002348443558829849
+      }
+    }
+  },
+  {
+    "top": "tshirt",
+    "bottoms": "trousers",
+    "footwear": "loafers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "tshirt",
+    "bottoms": "trousers",
+    "footwear": "laceups",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "tshirt",
+    "bottoms": "trousers",
+    "footwear": "trainers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.0039429589556478906,
+        "contactArea": 0.00032918128618827924
+      },
+      "footR": {
+        "minGap": 0.0014575719833374023,
+        "contactArea": 0.002348443558829849
+      }
+    }
+  },
+  {
+    "top": "tshirt",
+    "bottoms": "shorts",
+    "footwear": "loafers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "tshirt",
+    "bottoms": "shorts",
+    "footwear": "laceups",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "tshirt",
+    "bottoms": "shorts",
+    "footwear": "trainers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.0039429589556478906,
+        "contactArea": 0.00032918128618827924
+      },
+      "footR": {
+        "minGap": 0.0014575719833374023,
+        "contactArea": 0.002348443558829849
+      }
+    }
+  },
+  {
+    "top": "jacket",
+    "bottoms": "trousers",
+    "footwear": "loafers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "jacket",
+    "bottoms": "trousers",
+    "footwear": "laceups",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "jacket",
+    "bottoms": "trousers",
+    "footwear": "trainers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.0039429589556478906,
+        "contactArea": 0.00032918128618827924
+      },
+      "footR": {
+        "minGap": 0.0014575719833374023,
+        "contactArea": 0.002348443558829849
+      }
+    }
+  },
+  {
+    "top": "jacket",
+    "bottoms": "shorts",
+    "footwear": "loafers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "jacket",
+    "bottoms": "shorts",
+    "footwear": "laceups",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    }
+  },
+  {
+    "top": "jacket",
+    "bottoms": "shorts",
+    "footwear": "trainers",
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.0039429589556478906,
+        "contactArea": 0.00032918128618827924
+      },
+      "footR": {
+        "minGap": 0.0014575719833374023,
+        "contactArea": 0.002348443558829849
+      }
+    }
+  }
+]

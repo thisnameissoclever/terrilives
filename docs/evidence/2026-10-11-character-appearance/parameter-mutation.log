@@ -1,0 +1,9 @@
+AssertionError [ERR_ASSERTION]: GPU must apply height to rendered geometry
+    at run (D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\appearance-proof\verify-browser.cjs:63:12) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

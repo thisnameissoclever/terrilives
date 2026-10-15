@@ -1,0 +1,37 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/measurement-v2-fault
+
+ ❯ tests/character-measurement.test.ts (2 tests | 1 failed) 6ms
+   × keeps callback delay, execution, and graphics completion separate without discarding latency 5ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  19:10:56
+   Duration  130ms (transform 17ms, setup 0ms, import 24ms, tests 6ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-measurement.test.ts > keeps callback delay, execution, and graphics completion separate without discarding latency
+AssertionError: expected [ 10, 16 ] to deeply equal [ 2, 6 ]
+
+- Expected
++ Received
+
+  [
+-   2,
+-   6,
++   10,
++   16,
+  ]
+
+ ❯ tests/character-measurement.test.ts:17:24
+     15|   const report=await result;
+     16|   expect(report.timingVersion).toBe(2);
+     17|   expect(report.cpuMs).toEqual([2,6]);
+       |                        ^
+     18|   expect(report.callbackDelayMs).toEqual([8,10]);
+     19|   expect(report.frameLatencyMs).toEqual([10,16]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

@@ -1,0 +1,26 @@
+const {chromium}=require('C:/Users/myema/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('node:fs'),path=require('node:path');
+(async()=>{const out=path.resolve('docs/evidence/2026-10-12-full-character-creator/lifecycle');fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),errors=[];
+ try{const page=await browser.newPage({viewport:{width:1440,height:1100}});page.on('pageerror',e=>errors.push(String(e)));
+ await page.goto('http://127.0.0.1:5187/?stress=0');await page.waitForFunction(()=>window.__terriStress,null,{timeout:120000});
+ if(await page.locator('#help-panel').evaluate(el=>el.open))await page.locator('#close-help').click();await page.getByText('Pause',{exact:true}).click();
+ await page.locator('#household-roster-members button').first().click();await page.waitForFunction(()=>window.__terriStress.sim.selectedIndex()!==null);
+ const before=await page.evaluate(()=>{const sim=window.__terriStress.sim;return sim.characterSnapshot(sim.simIdOf(sim.selectedIndex()));});
+ await page.locator('#edit-housemate').click();await page.waitForFunction(()=>document.querySelector('.creator-status')?.textContent==='');
+ await page.getByRole('button',{name:'Identity',exact:true}).click();await page.getByLabel('Name',{exact:true}).fill('Draft survives graphics');await page.getByLabel('Name',{exact:true}).press('Tab');
+ await page.getByRole('button',{name:'Appearance',exact:true}).click();await page.getByRole('button',{name:'Height: protect from randomization'}).click();
+ await page.evaluate(()=>window.__terriStress.loseGraphics());await page.waitForFunction(()=>window.__terriStress.graphicsGeneration===1&&document.querySelector('.creator-status')?.textContent==='',null,{timeout:90000});
+ if(await page.getByRole('button',{name:'Height: protect from randomization'}).getAttribute('aria-pressed')!=='true')throw Error('Recovery lost a draft lock.');
+ await page.getByRole('button',{name:'Identity',exact:true}).click();if(await page.getByLabel('Name',{exact:true}).inputValue()!=='Draft survives graphics')throw Error('Recovery lost the unsaved draft.');
+ const after=await page.evaluate(()=>{const sim=window.__terriStress.sim;return sim.characterSnapshot(sim.simIdOf(sim.selectedIndex()));});if(JSON.stringify(before)!==JSON.stringify(after))throw Error('Graphics recovery changed saved character state.');
+ await page.screenshot({path:path.join(out,'recovered-draft.png')});await page.getByRole('button',{name:'Cancel',exact:true}).click();
+ await page.setViewportSize({width:390,height:844});await page.locator('#options-toggle').click();await page.locator('#new-housemate').click();await page.waitForFunction(()=>document.querySelector('.creator-status')?.textContent==='');
+ if(await page.locator('.creator-preview').isVisible())throw Error('Narrow preview should begin collapsed.');
+ await page.getByRole('button',{name:'Show preview',exact:true}).click();if(!await page.locator('.creator-preview').isVisible())throw Error('Narrow preview did not expand.');
+ await page.screenshot({path:path.join(out,'narrow-preview.png')});await page.getByRole('button',{name:'Hide preview',exact:true}).click();
+ const overflow=await page.locator('.creator-editor').evaluate(el=>el.scrollWidth>el.clientWidth+1);if(overflow)throw Error('Narrow editor overflows horizontally.');
+ const touchTargets=await page.locator('.creator-shell button,.creator-shell input,.creator-shell select').evaluateAll(elements=>elements.filter(el=>el.getClientRects().length).map(el=>({label:el.getAttribute('aria-label')||el.textContent||el.type,height:el.getBoundingClientRect().height})));if(touchTargets.some(row=>row.height<44))throw Error('Narrow creator has a touch target below44pixels.');
+ for(let i=0;i<20;i++){await page.keyboard.press('Tab');if(!await page.evaluate(()=>document.querySelector('#housemate-dialog').contains(document.activeElement)))throw Error('Keyboard focus escaped the modal.');}
+ await page.screenshot({path:path.join(out,'narrow-controls.png')});await page.keyboard.press('Escape');
+ fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({graphicsRecovery:true,unsavedDraftPreserved:true,lockPreserved:true,savedCharacterPreserved:true,narrowViewport:[390,844],phonePerformance:'not measured',focusContained:true,touchTargets,errors},null,2));console.log(JSON.stringify({graphicsRecovery:true,narrowControls:true,errors}));if(errors.length)process.exitCode=1;
+ }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});

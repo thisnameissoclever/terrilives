@@ -1,0 +1,17 @@
+[
+  {
+    "height": 0,
+    "description": "Height\n50 is average height; 0 and 100 are 15% shorter and taller.\n0 to 100\nRandom\nLock",
+    "shown": "85% of average"
+  },
+  {
+    "height": 50,
+    "description": "Height\n50 is average height; 0 and 100 are 15% shorter and taller.\n0 to 100\nRandom\nLock",
+    "shown": "100% of average"
+  },
+  {
+    "height": 100,
+    "description": "Height\n50 is average height; 0 and 100 are 15% shorter and taller.\n0 to 100\nRandom\nLock",
+    "shown": "115% of average"
+  }
+]

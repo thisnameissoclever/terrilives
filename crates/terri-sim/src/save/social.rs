@@ -8,7 +8,7 @@ use bevy_ecs::prelude::World;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{save_v9::*, FnvHasher, SavedTarget, SimId, Socialising, Target};
 
-fn capture(world: &World) -> SavedSocialEpisodes {
+pub(super) fn capture(world: &World) -> SavedSocialEpisodes {
     let state = world.resource::<SocialEpisodes>();
     let mut saved = SavedSocialEpisodes {
         rendezvous: state
@@ -53,6 +53,7 @@ fn capture(world: &World) -> SavedSocialEpisodes {
 }
 
 impl Sim {
+    /// Frozen published social envelope; use V10 for current character persistence.
     pub fn save_snapshot_v9(&self) -> SaveSnapshotV9 {
         SaveSnapshotV9 {
             legacy: self.save_snapshot_v6(),
@@ -464,10 +465,10 @@ mod tests {
             .resource_mut::<SocialEpisodes>()
             .rendezvous
             .insert(initiator, waiter);
-        let saved = source.save_snapshot_v9();
+        let saved = source.save_snapshot_v10();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v9(saved.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v9(), saved);
+        restored.load_snapshot_v10(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v10(), saved);
         let mut cyclic = saved;
         cyclic
             .social
@@ -485,24 +486,64 @@ mod tests {
             object: waiter.index_u32(),
             interaction: 0,
         });
-        assert!(restored.load_snapshot_v9(cyclic).is_err());
+        assert!(restored.load_snapshot_v10(cyclic).is_err());
     }
 
     #[test]
     fn current_social_records_round_trip_without_drawing_rng() {
         let source = populated();
-        let saved = source.save_snapshot_v9();
+        let saved = source.save_snapshot_v10();
         let mut restored = Sim::new_from_shipped_lot();
-        restored.load_snapshot_v9(saved.clone()).unwrap();
-        assert_eq!(restored.save_snapshot_v9(), saved);
+        restored.load_snapshot_v10(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v10(), saved);
+    }
+
+    #[test]
+    fn combined_save_keeps_active_social_episodes_appearance_and_queued_character_edits() {
+        let mut source = populated();
+        let entity = crate::edit::living_entity(source.world(), 0).unwrap();
+        let mut appearance = terri_core::appearance::CharacterAppearanceV1::default();
+        appearance.body.height = 83;
+        source.world_mut().entity_mut(entity).insert((
+            appearance,
+            terri_core::character::CharacterPronouns("they/them".into()),
+        ));
+        source
+            .world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::Character(Box::new(
+                terri_core::command::CharacterCommand::Edit {
+                    request: 77,
+                    sim: 0,
+                    patch: terri_core::character::CharacterPatchV1 {
+                        name: Some("Ann".into()),
+                        ..Default::default()
+                    },
+                },
+            )));
+        let saved = source.save_snapshot_v10();
+        assert!(!saved.social.topics.is_empty());
+        assert!(!saved.social.communal.is_empty());
+        assert!(!saved.social.rendezvous.is_empty());
+        let mut restored = Sim::new_from_shipped_lot();
+        restored.load_snapshot_v10(saved.clone()).unwrap();
+        assert_eq!(restored.save_snapshot_v10(), saved);
+        source.flush_commands();
+        restored.flush_commands();
+        assert_eq!(restored.save_snapshot_v10(), source.save_snapshot_v10());
+        for _ in 0..40 {
+            source.tick();
+            restored.tick();
+        }
+        assert_eq!(restored.save_snapshot_v10(), source.save_snapshot_v10());
     }
 
     #[test]
     fn invalid_social_records_leave_live_world_unchanged() {
         let source = populated();
-        let original = source.save_snapshot_v9();
+        let original = source.save_snapshot_v10();
         let mut live = Sim::new_from_shipped_lot();
-        let before = live.save_snapshot_v9();
+        let before = live.save_snapshot_v10();
         for mode in 0..6 {
             let mut invalid = original.clone();
             match mode {
@@ -516,8 +557,8 @@ mod tests {
                 }
                 _ => invalid.social.rendezvous.push(invalid.social.rendezvous[0]),
             }
-            assert!(live.load_snapshot_v9(invalid).is_err());
-            assert_eq!(live.save_snapshot_v9(), before);
+            assert!(live.load_snapshot_v10(invalid).is_err());
+            assert_eq!(live.save_snapshot_v10(), before);
         }
     }
 
@@ -670,16 +711,16 @@ mod tests {
         change: impl FnOnce(&mut terri_core::save_v9::SavedSocialEpisodes),
     ) {
         let source = populated();
-        let mut invalid = source.save_snapshot_v9();
+        let mut invalid = source.save_snapshot_v10();
         change(&mut invalid.social);
         let mut live = Sim::new_from_shipped_lot();
-        let before = live.save_snapshot_v9();
+        let before = live.save_snapshot_v10();
         assert!(
-            live.load_snapshot_v9(invalid).is_err(),
+            live.load_snapshot_v10(invalid).is_err(),
             "invalid social state was accepted"
         );
         assert_eq!(
-            live.save_snapshot_v9(),
+            live.save_snapshot_v10(),
             before,
             "failed restore changed the live world"
         );

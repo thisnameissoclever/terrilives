@@ -1,0 +1,64 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "spinnerAllowance": 16,
+      "textFits": true,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 1024,
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "spinnerAllowance": 16,
+      "textFits": true,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 768,
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "spinnerAllowance": 16,
+      "textFits": true,
+      "controlOverflow": true,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 390,
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "spinnerAllowance": 16,
+      "textFits": true,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 320,
+      "inputWidth": 104,
+      "textWidth": 48.31640625,
+      "contentWidth": 86,
+      "spinnerAllowance": 16,
+      "textFits": true,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Controls must fit at 768px"
+  ],
+  "status": "FAIL",
+  "browserClosed": true
+}

@@ -32,7 +32,7 @@ export const EDIT_TITLE = 'Edit housemate';
 export const CONFIRM_CHANGES = 'Confirm changes';
 export const SAVING_CHANGES = 'Making the changes…';
 export const KEEP_PERSONALITY = 'Keep current personality';
-export const REMOVAL_NOTE = 'Removing a condition forgets its severity. Skills are kept.';
+export const REMOVAL_NOTE = '';
 
 /** The form's two pages: who they are, then their traits. */
 export type HousematePage = 'personality' | 'traits';
@@ -633,7 +633,7 @@ export class HousemateFormView {
     this.instinctGroup.hidden = editing;
     this.family.hidden = editing;
     this.tieList.hidden = !editing;
-    this.removalNote.hidden = !editing;
+    this.removalNote.hidden = true;
     if (editing) this.renderTies();
     // [FM-choose]: the relation and who it is to, kept in step with the form.
     if (this.relationSelect.value !== String(form.relation)) {

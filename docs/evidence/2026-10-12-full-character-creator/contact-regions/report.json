@@ -1,0 +1,293 @@
+{
+  "rows": [
+    {
+      "file": "0-bath-0.png",
+      "action": "bath",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 0
+    },
+    {
+      "file": "0-bath-1.png",
+      "action": "bath",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 1
+    },
+    {
+      "file": "0-bath-2.png",
+      "action": "bath",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 2
+    },
+    {
+      "file": "0-bath-3.png",
+      "action": "bath",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 3
+    },
+    {
+      "file": "1-bath-0.png",
+      "action": "bath",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 0,
+      "facing": 0
+    },
+    {
+      "file": "1-bath-1.png",
+      "action": "bath",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 0,
+      "facing": 1
+    },
+    {
+      "file": "1-bath-2.png",
+      "action": "bath",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 0,
+      "facing": 2
+    },
+    {
+      "file": "1-bath-3.png",
+      "action": "bath",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 0,
+      "facing": 3
+    },
+    {
+      "file": "2-seated_eat-0.png",
+      "action": "seated_eat",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 4,
+      "facing": 0
+    },
+    {
+      "file": "2-seated_eat-1.png",
+      "action": "seated_eat",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 4,
+      "facing": 1
+    },
+    {
+      "file": "2-seated_eat-2.png",
+      "action": "seated_eat",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 4,
+      "facing": 2
+    },
+    {
+      "file": "2-seated_eat-3.png",
+      "action": "seated_eat",
+      "presentation": "feminine",
+      "body": null,
+      "frame": 4,
+      "facing": 3
+    },
+    {
+      "file": "3-exercise-0.png",
+      "action": "exercise",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 0
+    },
+    {
+      "file": "3-exercise-1.png",
+      "action": "exercise",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 1
+    },
+    {
+      "file": "3-exercise-2.png",
+      "action": "exercise",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 2
+    },
+    {
+      "file": "3-exercise-3.png",
+      "action": "exercise",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 100,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 0,
+      "facing": 3
+    },
+    {
+      "file": "4-exercise-0.png",
+      "action": "exercise",
+      "presentation": "feminine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 0,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 4,
+      "facing": 0
+    },
+    {
+      "file": "4-exercise-1.png",
+      "action": "exercise",
+      "presentation": "feminine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 0,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 4,
+      "facing": 1
+    },
+    {
+      "file": "4-exercise-2.png",
+      "action": "exercise",
+      "presentation": "feminine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 0,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 4,
+      "facing": 2
+    },
+    {
+      "file": "4-exercise-3.png",
+      "action": "exercise",
+      "presentation": "feminine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 0,
+        "hips": 0,
+        "torso": 100
+      },
+      "frame": 4,
+      "facing": 3
+    },
+    {
+      "file": "5-wipe_counter-0.png",
+      "action": "wipe_counter",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 0
+      },
+      "frame": 4,
+      "facing": 0
+    },
+    {
+      "file": "5-wipe_counter-1.png",
+      "action": "wipe_counter",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 0
+      },
+      "frame": 4,
+      "facing": 1
+    },
+    {
+      "file": "5-wipe_counter-2.png",
+      "action": "wipe_counter",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 0
+      },
+      "frame": 4,
+      "facing": 2
+    },
+    {
+      "file": "5-wipe_counter-3.png",
+      "action": "wipe_counter",
+      "presentation": "masculine",
+      "body": {
+        "height": 0,
+        "build": 0,
+        "shoulders": 100,
+        "hips": 0,
+        "torso": 0
+      },
+      "frame": 4,
+      "facing": 3
+    }
+  ],
+  "errors": []
+}

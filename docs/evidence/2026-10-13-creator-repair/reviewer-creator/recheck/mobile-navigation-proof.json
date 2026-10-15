@@ -1,0 +1,240 @@
+[
+  {
+    "scenario": "expanded-review",
+    "label": "Identity",
+    "heading": "Identity",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 374.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 13.796875,
+      "y": 174.765625,
+      "width": 64.875,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "expanded-review",
+    "label": "Appearance",
+    "heading": "Appearance",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 86.671875,
+      "y": 174.765625,
+      "width": 91.640625,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "expanded-review",
+    "label": "Personality",
+    "heading": "Personality",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 186.3125,
+      "y": 174.765625,
+      "width": 85,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "expanded-review",
+    "label": "Needs & habits",
+    "heading": "Needs & habits",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 247.3125,
+      "y": 174.765625,
+      "width": 113.53125,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "expanded-review",
+    "label": "Interests & skills",
+    "heading": "Interests & skills",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 127.84375,
+      "y": 174.765625,
+      "width": 118.421875,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "expanded-review",
+    "label": "Household",
+    "heading": "Household",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 254.265625,
+      "y": 174.765625,
+      "width": 85.09375,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "expanded-review",
+    "label": "Review",
+    "heading": "Review",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 300.359375,
+      "y": 174.765625,
+      "width": 60.828125,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "preview-visible",
+    "label": "Identity",
+    "heading": "Identity",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 13.796875,
+      "y": 174.765625,
+      "width": 64.875,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "preview-visible",
+    "label": "Appearance",
+    "heading": "Appearance",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 86.671875,
+      "y": 174.765625,
+      "width": 91.640625,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "preview-visible",
+    "label": "Personality",
+    "heading": "Personality",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 186.3125,
+      "y": 174.765625,
+      "width": 85,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "preview-visible",
+    "label": "Needs & habits",
+    "heading": "Needs & habits",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 247.3125,
+      "y": 174.765625,
+      "width": 113.53125,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "preview-visible",
+    "label": "Interests & skills",
+    "heading": "Interests & skills",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 127.84375,
+      "y": 174.765625,
+      "width": 118.421875,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "preview-visible",
+    "label": "Household",
+    "heading": "Household",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 254.265625,
+      "y": 174.765625,
+      "width": 85.09375,
+      "height": 44
+    }
+  },
+  {
+    "scenario": "preview-visible",
+    "label": "Review",
+    "heading": "Review",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 300.359375,
+      "y": 174.765625,
+      "width": 60.828125,
+      "height": 44
+    }
+  }
+]

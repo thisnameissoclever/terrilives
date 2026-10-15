@@ -165,6 +165,18 @@ describe('authored wall geometry', () => {
 });
 
 describe('finish catalogue and registered source coordinates', () => {
+  it('rejects a twelfth resident pattern on a sixteen-texture device before loading artwork', () => {
+    const keys=Array.from({length:12},(_,index)=>`pattern.${index}`);
+    const catalogue:FinishCatalogue={
+      patterns:Object.fromEntries(keys.map(key=>[key,{role:'wall',period:[1,1],resource:key}])),
+      palettes:{plain:{multiply:[1,1,1]}},
+      finishes:Object.fromEntries(keys.map(key=>[key,{patternKey:key,paletteKey:'plain'}])),coverings:{},
+    };
+    const resources=Object.fromEntries(keys.map(key=>[key,{url:`${key}.png`,width:1,height:1}]));
+    expect(prepareArchitectureFinishes(keys.slice(0,11),limits,catalogue,resources).resources).toHaveLength(11);
+    expect(()=>prepareArchitectureFinishes(keys,limits,catalogue,resources)).toThrow(/sampled/);
+    expect(prepareArchitectureFinishes(keys,{...limits,maxSampledTexturesPerShaderStage:17},catalogue,resources).resources).toHaveLength(12);
+  });
   it('classifies the same f32 witnesses used by the production shader compute proof', () => {
     for (const vector of architectureModeVectors) {
       const mode = Math.fround(vector.mode);

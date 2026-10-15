@@ -1,0 +1,66 @@
+[
+  {
+    "name": "atomic",
+    "command": "cargo test --locked -j 1 -p terri-sim invalid_request_changes_neither_person_nor_world -- --test-threads=1",
+    "exitCode": 101,
+    "rejected": true,
+    "sourceSha256": "f9b2dcd5ea82b1eb5efcaee7299e8bc65ebc6f2bc70bb3d335da1a34247ecde2",
+    "exactRestoration": true
+  },
+  {
+    "name": "edit_preservation",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-draft.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "56638e8e6b7628454ba68e6e7a0aa1a35920b6e28f694302319c833d47414b46",
+    "exactRestoration": true
+  },
+  {
+    "name": "private_random_state",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-random.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "c81278a670148f0171e33d0ff3a185f6cdc7a77c4ecc0e2f64c4a18cbf936545",
+    "exactRestoration": true
+  },
+  {
+    "name": "random_restore",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-draft.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "4d6e1b212dd0b789d491d179b8e0e7ada40f3fe24c4a00d33239ced14a8dba88",
+    "exactRestoration": true
+  },
+  {
+    "name": "locks",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-draft.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "4d6e1b212dd0b789d491d179b8e0e7ada40f3fe24c4a00d33239ced14a8dba88",
+    "exactRestoration": true
+  },
+  {
+    "name": "appearance",
+    "command": "node assets/models/sims/character-creator/verify_gpu.cjs",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "51efd1b518395515e017e0437f8fc4c90f5e472d07f1b4fb40732e81bd2101f5",
+    "exactRestoration": true
+  },
+  {
+    "name": "depth",
+    "command": "node assets/models/sims/appearance-proof/verify-browser.cjs --quick --output=docs/evidence/2026-10-12-full-character-creator/mutations/depth",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "c3dc56bd72cbc7d964b46d1280af66e62243f8d93956646c602f59b9fd762d2e",
+    "exactRestoration": true
+  },
+  {
+    "name": "reload",
+    "command": "cargo test --locked -j 1 -p terri-sim appearance_and_interleaved_queued_edits_survive_exact_round_trip -- --test-threads=1",
+    "exitCode": 101,
+    "rejected": true,
+    "sourceSha256": "5400afe11d20565cec048e69f2fa67d2b279b6a0a27219cc63ddbc2142222340",
+    "exactRestoration": true
+  }
+]

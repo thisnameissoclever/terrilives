@@ -192,7 +192,7 @@ fn main() {
         restored.load_snapshot_v5(snapshot.clone()).unwrap();
         let mut bytes = SAVE_MAGIC.to_vec();
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
-        bytes.extend(postcard::to_allocvec(&snapshot).unwrap());
+        bytes.extend(postcard::to_allocvec(&restored.save_snapshot_v10()).unwrap());
         std::fs::write(
             std::path::Path::new(&output).join(format!("{scenario}.save")),
             bytes,

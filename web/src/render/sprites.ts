@@ -1,4 +1,7 @@
 /// <reference types="vite/client" />
+import {loadIndicatorCoverage} from './indicator-coverage.js';
+import {SceneTarget} from './scene-target.js';
+import {spriteShaderSource,spriteBindGroupLayoutEntries,spritePipelineDescriptors} from './sprite-pipelines.js';
 import { packPresentationLayers } from './visible-scene-layers.js';
 import { countResponseBytes, type LoadProgress } from '../load-progress.js';
 import { uploadJointAlpha } from './joint-alpha.js';
@@ -12,6 +15,7 @@ export { FLOATS_PER_SPRITE } from './sprite-table-layout.js';
 import { loadDishCoverage } from './dish-coverage.js';
 import { loadBodyCoverage } from './body-coverage.js';
 import { GRIME_SPRITE_COUNT, grimeSpriteTable, uploadGrimePage } from './grime-decals.js';
+import {FIXTURE_DEPTH_PAGE_COUNT,FIXTURE_DEPTH_COUNT,fixtureDepthTable,uploadFixtureDepth} from './fixture-depth.js';
 import {
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
@@ -35,20 +39,14 @@ import type { GpuContext } from './device.js';
 import {
   BYTES_PER_INSTANCE,
   FLOATS_PER_INSTANCE,
-  COLOURWAY_ATTRIBUTE_OFFSET,
-  TINT_ATTRIBUTE_OFFSET,
-  WALL_ATTRIBUTE_OFFSET,
   VERTICES_PER_QUAD,
   growCapacity,
   decodeArchitectureMode,
-  MAX_ARCHITECTURE_FINISH_SLOT,
   type InstanceArray,
 } from './instances.js';
 import { TILE_HALF_HEIGHT } from './iso.js';
 import { AMBIENT_NEUTRAL, type Ambient } from './daylight.js';
-import shaderSource from './sprites.wgsl?raw';
 import { validateArchitectureAtlas, validateArchitectureDevice, type ArchitectureAtlas } from './architecture-atlas.js';
-import { architecturePatternShader } from './architecture-finishes.js';
 
 const INITIAL_CAPACITY = 4096;
 
@@ -166,17 +164,16 @@ const ATLAS_PREFETCH_PAGES = 4;
  *
  * `createImageBitmap` rather than an `Image` element, because
  * `copyExternalImageToTexture` wants a decoded source and an `Image`'s
- * `onload` does not guarantee one. `premultiplyAlpha: 'none'` because
- * the blend mode configured below is straight alpha, not premultiplied;
- * getting that pair wrong darkens every antialiased edge in the game by
- * an amount too small to notice and too consistent to explain.
+ * `onload` does not guarantee one. Decode straight encoded RGB so the
+ * shader can linearize each texel before premultiplying and filtering.
+ * The scene attachment receives linear premultiplied color.
  */
 export async function loadAtlasTexture(
   device: GPUDevice,
   progress?: LoadProgress,
 ): Promise<GPUTexture> {
   validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
-  validateAtlasPageCount(ATLAS_PAGE_FILES.length+1, device.limits.maxTextureArrayLayers);
+  validateAtlasPageCount(ATLAS_PAGE_FILES.length+1+FIXTURE_DEPTH_PAGE_COUNT, device.limits.maxTextureArrayLayers);
   const total = ATLAS_PAGE_FILES.length;
   // Downloads run a few pages ahead of decoding. One page at a time left the
   // network idle during every decode and upload, and a phone pays a round
@@ -231,11 +228,12 @@ export async function loadAtlasTexture(
         }
         loadDishCoverage(bitmap, page);
         loadBodyCoverage(bitmap, page);
+        loadIndicatorCoverage(bitmap,page);
         texture ??= device.createTexture({
           size: {
             width: bitmap.width,
             height: bitmap.height,
-            depthOrArrayLayers: ATLAS_PAGE_FILES.length+1,
+            depthOrArrayLayers: ATLAS_PAGE_FILES.length+1+FIXTURE_DEPTH_PAGE_COUNT,
           },
           format: 'rgba8unorm',
           usage: GPUTextureUsage.TEXTURE_BINDING |
@@ -252,6 +250,7 @@ export async function loadAtlasTexture(
       progress?.files?.(page + 1, total);
     }
     await uploadGrimePage(device,texture!);
+    await uploadFixtureDepth(device,texture!);
     return texture!;
   } catch (error) {
     texture?.destroy();
@@ -275,6 +274,7 @@ export class SpriteRenderer {
   private readonly pipeline: GPURenderPipeline;
   private readonly lowWallPipeline: GPURenderPipeline;
   private readonly grimePipeline: GPURenderPipeline;
+  private readonly annotationPipeline:GPURenderPipeline;
   private grimeOpacity = new Float32Array();
   private grimeOpacityBuffer: GPUBuffer | null = null;
   private grimeOpacityCapacity = 0;
@@ -286,7 +286,10 @@ export class SpriteRenderer {
   private readonly bindGroup: GPUBindGroup;
   private capacity = INITIAL_CAPACITY;
   private instanceBuffer: GPUBuffer;
+  private ownerBuffer:GPUBuffer;
+  private ownerData=new Uint32Array(INITIAL_CAPACITY);
   private depthTexture: GPUTexture | null = null;
+  private sceneTarget:SceneTarget|null=null;
   private readonly ownedTextures: GPUTexture[];
   private readonly ownedBuffers: GPUBuffer[];
   private readonly finishCount: number;
@@ -308,6 +311,7 @@ export class SpriteRenderer {
   private lowWalls: InstanceArray = new Float32Array();
   private lowWallCount = 0;
   readonly grimeSpriteBase:number;
+  readonly fixtureDepthBase:number;
   private grimeInstances:InstanceArray=new Float32Array();
   private grimeCount=0;
 
@@ -415,112 +419,20 @@ export class SpriteRenderer {
     const joint = uploadJointAlpha(gpu.device, JOINT_SCENE_ALPHA_IDS, BED_COVERAGE);
     textures.push(joint.texture);
     const jointBinding = 11 + patternCount;
-    const module = gpu.device.createShaderModule({ code: shaderSource.replace(
-      '// ARCHITECTURE_PATTERN_BINDINGS', architecturePatternShader(patternCount)).replace(
-      '// JOINT_ALPHA_BINDING', `@group(0) @binding(${jointBinding}) var jointAlpha: texture_2d_array<f32>;
-struct JointRegistration { records: array<vec4f> };
-@group(0) @binding(${jointBinding + 1}) var<storage, read> jointRegistration: JointRegistration;`) });
-    const bindGroupLayout = gpu.device.createBindGroupLayout({ entries: [
-      { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
-      { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
-      { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
-      { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
-      { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float' } },
-      { binding: 5, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
-      { binding: 6, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'uint' } },
-      { binding: 7, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
-      { binding: 8, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
-      ...Array.from({ length: patternCount }, (_, index): GPUBindGroupLayoutEntry => ({
-        binding: 11 + index, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' },
-      })),
-      { binding: 9, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
-      { binding: 10, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
-      { binding: jointBinding, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
-      { binding: jointBinding + 1, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
-    ] });
+    const module = gpu.device.createShaderModule({code:spriteShaderSource(patternCount)});
+    const bindGroupLayout = gpu.device.createBindGroupLayout({entries:spriteBindGroupLayoutEntries(patternCount)});
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
-
-    const descriptor: GPURenderPipelineDescriptor = {
-      layout,
-      vertex: {
-        module,
-        entryPoint: 'vs',
-        constants: { maxArchitectureFinishSlot: MAX_ARCHITECTURE_FINISH_SLOT },
-        buffers: [
-          {
-            arrayStride: BYTES_PER_INSTANCE,
-            stepMode: 'instance',
-            attributes: [
-              { shaderLocation: 0, offset: 0, format: 'float32x4' },
-              // [ML-tint]. One buffer with interleaved attributes -
-              // not a second vertex buffer. Both halves belong to the
-              // same instance and are written together by
-              // `writeInstance`, so splitting them across buffers would
-              // mean two uploads and two chances for the counts to
-              // disagree, for nothing.
-              {
-                shaderLocation: 1,
-                offset: TINT_ATTRIBUTE_OFFSET,
-                format: 'float32x4',
-              },
-              { shaderLocation: 2, offset: WALL_ATTRIBUTE_OFFSET, format: 'float32x4' },
-              // [RC-render]: the colourway shift, all zero for the art as drawn.
-              { shaderLocation: 3, offset: COLOURWAY_ATTRIBUTE_OFFSET, format: 'float32x4' },
-            ],
-          },
-        ],
-      },
-      fragment: {
-        module,
-        entryPoint: 'fs',
-        constants: { maxArchitectureFinishSlot: MAX_ARCHITECTURE_FINISH_SLOT },
-        targets: [
-          {
-            format: gpu.format,
-            // Straight (non-premultiplied) alpha, matching the
-            // `premultiplyAlpha: 'none'` the atlas is decoded with. Only
-            // the antialiased fringe of each sprite reaches this: the
-            // shader discards anything below half alpha, so the interior
-            // is opaque and the depth buffer still decides what covers
-            // what.
-            blend: {
-              color: {
-                srcFactor: 'src-alpha',
-                dstFactor: 'one-minus-src-alpha',
-                operation: 'add',
-              },
-              alpha: {
-                srcFactor: 'one',
-                dstFactor: 'one-minus-src-alpha',
-                operation: 'add',
-              },
-            },
-          },
-        ],
-      },
-      primitive: { topology: 'triangle-list' },
-      depthStencil: {
-        format: 'depth24plus',
-        depthWriteEnabled: true,
-        depthCompare: 'less',
-      },
-    };
-    this.pipeline = gpu.device.createRenderPipeline(descriptor);
-    this.lowWallPipeline = gpu.device.createRenderPipeline({ ...descriptor,
-      depthStencil: { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less' },
-    });
-
-    this.grimePipeline = gpu.device.createRenderPipeline({ ...descriptor,
-      vertex: { ...descriptor.vertex, entryPoint: 'vsGrime', buffers: [
-        ...descriptor.vertex.buffers!, {arrayStride:4,stepMode:'instance',attributes:[{shaderLocation:4,offset:0,format:'float32'}]}]},
-      fragment: { ...descriptor.fragment!, constants: { ...descriptor.fragment!.constants, grimePass: 1 } },
-      depthStencil: {format:'depth24plus',depthWriteEnabled:false,depthCompare:'less'},
-    });
+    const descriptors=spritePipelineDescriptors(module,layout);
+    this.pipeline=gpu.device.createRenderPipeline(descriptors.opaque);
+    this.lowWallPipeline=gpu.device.createRenderPipeline(descriptors.lowWall);
+    this.grimePipeline=gpu.device.createRenderPipeline(descriptors.grime);
+    this.annotationPipeline=gpu.device.createRenderPipeline(descriptors.annotation);
     this.instanceBuffer = gpu.device.createBuffer({
       size: this.capacity * BYTES_PER_INSTANCE,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     buffers.push(this.instanceBuffer);
+    this.ownerBuffer=gpu.device.createBuffer({size:this.capacity*4,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
 
     this.uniformBuffer = gpu.device.createBuffer({
       // 64: viewport, anchor, the camera scale padded to the 16-byte
@@ -537,10 +449,12 @@ struct JointRegistration { records: array<vec4f> };
     const historical = packSpriteTable();
     const extra = architecture ? packSpriteTable(architecture.sprites, architecture.width, architecture.height, {}, {}) : new Float32Array();
     this.grimeSpriteBase=SPRITES.length+(architecture?.sprites.length??0);
-    const grime=grimeSpriteTable();
-    const spriteTable = new Float32Array(historical.length + extra.length + grime.length);
+    const grime=grimeSpriteTable(),fixtureDepth=fixtureDepthTable();
+    this.fixtureDepthBase=this.grimeSpriteBase+GRIME_SPRITE_COUNT;
+    const spriteTable = new Float32Array(historical.length + extra.length + grime.length+fixtureDepth.length);
     spriteTable.set(historical); spriteTable.set(extra, historical.length);
     spriteTable.set(grime,historical.length+extra.length);
+    spriteTable.set(fixtureDepth,historical.length+extra.length+grime.length);
     this.spriteBuffer = gpu.device.createBuffer({
       size: spriteTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
@@ -586,7 +500,7 @@ struct JointRegistration { records: array<vec4f> };
         { width: bitmap.width, height: bitmap.height });
       return texture;
     });
-    const sceneCount = this.grimeSpriteBase + GRIME_SPRITE_COUNT;
+    const sceneCount = this.fixtureDepthBase+FIXTURE_DEPTH_COUNT;
     const bedTable = packBookReachShelves(packShelfLayers(packPresentationLayers(sceneCount,
       { ...BED_LAYERS, ...SEATING_LAYERS, ...BATHROOM_LAYERS }, SHARED_SEAT_LAYERS, joint.layers), sceneCount, SHELF_PROFILES),
       sceneCount, BOOK_REACH_SHELVES);
@@ -594,7 +508,7 @@ struct JointRegistration { records: array<vec4f> };
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.bedBuffer);
     gpu.device.queue.writeBuffer(this.bedBuffer, 0, bedTable);
-    const diningTable = packDiningSupport(this.grimeSpriteBase+GRIME_SPRITE_COUNT, SPRITE_DINING_SUPPORT);
+    const diningTable = packDiningSupport(sceneCount, SPRITE_DINING_SUPPORT);
     this.diningBuffer = gpu.device.createBuffer({ size: diningTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     buffers.push(this.diningBuffer);
@@ -676,9 +590,10 @@ struct JointRegistration { records: array<vec4f> };
   destroy(): void {
     if (this.destroyed) return;
     this.destroyed = true;
-    this.depthTexture?.destroy();
+    this.sceneTarget?.destroy();
     this.grimeOpacityBuffer?.destroy();
     this.instanceBuffer.destroy();
+    this.ownerBuffer.destroy();
     for (const resource of this.ownedTextures) resource.destroy();
     for (const resource of this.ownedBuffers) resource.destroy();
   }
@@ -705,30 +620,30 @@ struct JointRegistration { records: array<vec4f> };
     if (grown === this.capacity) return;
     this.capacity = grown;
     this.instanceBuffer.destroy();
+    this.ownerBuffer.destroy();
     this.instanceBuffer = this.gpu.device.createBuffer({
       size: this.capacity * BYTES_PER_INSTANCE,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
+    this.ownerBuffer=this.gpu.device.createBuffer({size:this.capacity*4,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
+    this.ownerData=new Uint32Array(this.capacity);
     // A destroyed buffer takes the static block with it. Re-uploading is
     // what keeps the floor and the walls on screen after the first frame
     // that pushes the entity count past a power of two.
     this.uploadStatic();
   }
 
-  private ensureDepth(width: number, height: number): GPUTexture {
-    if (
-      this.depthTexture &&
-      this.depthTexture.width === width &&
-      this.depthTexture.height === height
-    ) {
-      return this.depthTexture;
+  private ensureDepth(width:number,height:number):GPUTexture {
+    if(!this.sceneTarget||this.sceneTarget.logicalWidth!==width||this.sceneTarget.logicalHeight!==height){
+      this.sceneTarget?.destroy();this.sceneTarget=new SceneTarget(this.gpu.device,width,height,this.gpu.format);
+      this.depthTexture=this.sceneTarget.depth;
     }
-    this.depthTexture?.destroy();
-    this.depthTexture = this.gpu.device.createTexture({
-      size: { width, height },
-      format: 'depth24plus',
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    });
+    return this.depthTexture!;
+  }
+  get sceneForPicking():SceneTarget {if(!this.sceneTarget)throw new Error('Draw the scene before picking');return this.sceneTarget;}
+
+  get depthForPicking(): GPUTexture {
+    if (!this.depthTexture) throw new Error('Draw the scene before picking');
     return this.depthTexture;
   }
 
@@ -746,11 +661,20 @@ struct JointRegistration { records: array<vec4f> };
     scale = 1,
     ambient: Ambient = AMBIENT_NEUTRAL,
     skyShade = 0,
+    drawDynamicScene?: (pass: GPURenderPassEncoder) => void,
+    owners?:Uint32Array,
+    annotations:Readonly<{start:number;count:number}>={start:count,count:0},
   ): void {
+    if(!Number.isInteger(annotations.start)||!Number.isInteger(annotations.count)||annotations.start<0||annotations.count<0||annotations.start+annotations.count>count)
+      throw new Error('Invalid activity annotation range.');
+    if(annotations.count&&!owners)throw new Error('Activity annotations need displayed owners.');
     const total = this.staticCount + count + this.grimeCount;
-    if (total + this.lowWallCount === 0) return;
+    if (total + this.lowWallCount === 0 && !drawDynamicScene) return;
     this.ensureCapacity(total + this.lowWallCount);
 
+    this.ownerData.fill(0);
+    if(owners)this.ownerData.set(owners.subarray(0,count),this.staticCount);
+    this.gpu.device.queue.writeBuffer(this.ownerBuffer,0,this.ownerData,0,total+this.lowWallCount);
     const canvas = this.gpu.context.canvas as HTMLCanvasElement;
     this.uniformData[0] = canvas.width;
     this.uniformData[1] = canvas.height;
@@ -790,40 +714,42 @@ struct JointRegistration { records: array<vec4f> };
     }
     const depth = this.ensureDepth(canvas.width, canvas.height);
     const encoder = this.gpu.device.createCommandEncoder();
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [
-        {
-          view: this.gpu.context.getCurrentTexture().createView(),
-          clearValue: { r: 0.09, g: 0.09, b: 0.11, a: 1 },
-          loadOp: 'clear',
-          storeOp: 'store',
-        },
-      ],
-      depthStencilAttachment: {
-        view: depth.createView(),
-        depthClearValue: 1.0,
-        depthLoadOp: 'clear',
-        depthStoreOp: 'store',
-      },
-    });
+    const pass = this.sceneTarget!.begin(encoder);
 
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.bindGroup);
     pass.setVertexBuffer(0, this.instanceBuffer);
+    pass.setVertexBuffer(1,this.ownerBuffer);
     // Opaque floor, rear walls, objects and Sims establish depth first.
-    pass.draw(VERTICES_PER_QUAD, this.staticCount + count);
+    pass.draw(VERTICES_PER_QUAD,this.staticCount+annotations.start);
+    const afterAnnotations=annotations.start+annotations.count;
+    if(count>afterAnnotations)pass.draw(VERTICES_PER_QUAD,count-afterAnnotations,0,this.staticCount+afterAnnotations);
+    if (drawDynamicScene) {
+      drawDynamicScene(pass);
+      pass.setBindGroup(0, this.bindGroup);
+      pass.setVertexBuffer(0,this.instanceBuffer);
+      pass.setVertexBuffer(1,this.ownerBuffer);
+    }
     if (this.grimeCount > 0) {
       pass.setPipeline(this.grimePipeline);
       pass.setVertexBuffer(0,this.instanceBuffer,(this.staticCount+count)*BYTES_PER_INSTANCE);
-      pass.setVertexBuffer(1,this.grimeOpacityBuffer!);
+      pass.setVertexBuffer(1,this.ownerBuffer,(this.staticCount+count)*4);
+      pass.setVertexBuffer(2,this.grimeOpacityBuffer!);
       pass.draw(VERTICES_PER_QUAD,this.grimeCount);
-      pass.setVertexBuffer(0,this.instanceBuffer);
+      pass.setVertexBuffer(0,this.instanceBuffer);pass.setVertexBuffer(1,this.ownerBuffer);
     }
     if (this.lowWallCount > 0) {
       pass.setPipeline(this.lowWallPipeline);
       pass.draw(VERTICES_PER_QUAD, this.lowWallCount, 0, total);
     }
     pass.end();
+    if(annotations.count){
+      const annotationPass=this.sceneTarget!.beginAnnotations(encoder,owners!.subarray(annotations.start,afterAnnotations));
+      annotationPass.setPipeline(this.annotationPipeline);annotationPass.setBindGroup(0,this.bindGroup);
+      annotationPass.setVertexBuffer(0,this.instanceBuffer);annotationPass.setVertexBuffer(1,this.ownerBuffer);
+      annotationPass.draw(VERTICES_PER_QUAD,annotations.count,0,this.staticCount+annotations.start);annotationPass.end();
+    }
+    this.sceneTarget!.resolve(encoder,this.gpu.context.getCurrentTexture());
 
     this.gpu.device.queue.submit([encoder.finish()]);
   }

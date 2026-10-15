@@ -1,0 +1,56 @@
+[
+  {
+    "command": "npm run typecheck",
+    "cwd": "web",
+    "exitCode": 0,
+    "status": "PASS",
+    "relevantOutput": "> typecheck\n> tsc --noEmit",
+    "sourceHashes": {
+      "web/src/render/sprites.ts": "dd98a85d8c70eaf9bd3f0e41450740aa8d2e365ebcbecd644bd507c0780ed27d",
+      "web/src/render/sprite-pipelines.ts": "f30480b069520812dbcab1c853a5620c360977665033e4ae47f4815612cb1378",
+      "web/src/render/sprites.wgsl": "d4cfdf0dacabf354f95a81dfe287d1618c5998be790846f9f3169862725c45eb",
+      "web/src/render/instances.ts": "b5f7b2843f61ff33c76fa661231d510320aaed87b5e3e8293ff541f9021cbdfc",
+      "web/src/render/architecture-finishes.ts": "7a123021d77b7164c05a577360962916d556fb63bf272b4843503e4927d09939",
+      "web/src/render/architecture-atlas.ts": "e2e90ef13090bc814199c89a3052d4ae81622806609659983a7800c6cc9dc4b0",
+      "web/src/render/architecture-data.ts": "f5a4901ad410329e452fd3acdf8b48c5edaa20e3f70c627ca15b69a990675989",
+      "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+      "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+      "web/src/render/scene-sampling.ts": "4734a5701f786778881ba79f9c94f8d8a7acb313345d7c1911ecbd8e9e670331",
+      "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+      "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+      "web/src/render/character/mesh.wgsl": "e27896ba13134764f2cc01f1a5a3fb591972bb29fe812b2f6dc471b80cdbd0ac",
+      "web/src/render/character/shared-colourway.ts": "a66d5da763ce3323680edf96b539dcb9fba72254c2abc3148d92f0272a8ba044",
+      "web/src/render/character/compositor.ts": "159b28720bebe56ab4b7ff235f5779bf6c80d0a77264032683e28b1eadf8e89f",
+      "web/src/render/character/world-picking.ts": "013cb476c6d47469c0fd1d81a2a11f8f84c2d0d569bec7b1a4da9994faf0495c",
+      "web/src/render/character/preview-fixture.ts": "672eb62dc095c5b373fbd3c62d22edd3c975b0ee415ed0e1720b5dd7b9efe929",
+      "web/src/render/character/subdivision-gpu.ts": "ed6e3fdfd130f2b6253cb9b47907199360e0cc3ea4f719015b6843ddb224f547",
+      "web/src/render/character/skin-cage.wgsl": "3743d4db18413c101e0adc5cc43c39c7ddbfa4cf3190269b170a5dbf3b012c0a",
+      "web/src/render/character/subdivide.wgsl": "f275fb1366660a5f20eb5a9f77b268657c3cf681d00c1c6ff9607a4834db97c2",
+      "web/src/render/character/surface-normals.wgsl": "755a7067b4b47fa7ed3bc1fb5a217407f9b823804fd9d1e87dce0d32da53ad87"
+    },
+    "log": "typecheck.log"
+  },
+  {
+    "command": "npx vitest run tests/architecture.test.ts tests/architecture-resources.test.ts --maxWorkers=1 -t 'reserves all five|twelfth resident'",
+    "cwd": "web",
+    "exitCode": 1,
+    "status": "EXPECTED_FAIL",
+    "relevantOutput": "2 failed | 21 skipped (23). Both twelve-pattern assertions expected a throw but received undefined. This was run before reserving the fifth fixed texture."
+  },
+  {
+    "command": "npx vitest run tests/architecture.test.ts tests/architecture-resources.test.ts tests/iso.test.ts tests/instances.test.ts --maxWorkers=1",
+    "cwd": "web",
+    "exitCode": 0,
+    "status": "PASS",
+    "relevantOutput": "Test Files 4 passed (4); Tests 76 passed (76).",
+    "log": "unit-tests.log"
+  },
+  {
+    "command": "npx vitest run tests/character-device-lifetime.test.ts tests/preview-fixture.test.ts tests/character-world-contract.test.ts tests/character-resources.test.ts --maxWorkers=1",
+    "cwd": "web",
+    "exitCode": 0,
+    "status": "PASS",
+    "relevantOutput": "Test Files 4 passed (4); Tests 8 passed (8).",
+    "log": "character-tests.log"
+  }
+]

@@ -1,0 +1,2050 @@
+[
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014541149139404297,
+        "contactArea": 0.0365725513793493
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572538730848791
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.0017248420930280686
+      }
+    },
+    "boneLengthError": 1.8879912050406844e-8,
+    "jointGap": 1.5140556751074034e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001367150878533896,
+        "contactArea": 0.04827795470038668
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572538053123416
+      },
+      "footR": {
+        "minGap": 0.0014492273330688477,
+        "contactArea": 0.0017248454919414416
+      }
+    },
+    "boneLengthError": 2.8889694303479985e-8,
+    "jointGap": 1.3557795420274993e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001414477825164795,
+        "contactArea": 0.012161234966586875
+      },
+      "footL": {
+        "minGap": 0.0013999342918395996,
+        "contactArea": 0.001157251080803362
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.0017248420930280686
+      }
+    },
+    "boneLengthError": 1.8065738904837758e-8,
+    "jointGap": 1.254423893190193e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013694974875102517,
+        "contactArea": 0.01513445807706952
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572538053123416
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.001724841895682519
+      }
+    },
+    "boneLengthError": 1.3722723235520817e-8,
+    "jointGap": 1.42162806205592e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014563798904418945,
+        "contactArea": 0.04560396482407582
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572538730848791
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.0017248420930280686
+      }
+    },
+    "boneLengthError": 1.8879912050406844e-8,
+    "jointGap": 1.258796899190246e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013693978019618802,
+        "contactArea": 0.05505809328653341
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572538053123416
+      },
+      "footR": {
+        "minGap": 0.0014492273330688477,
+        "contactArea": 0.0017248454919414416
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.3557795420274993e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001418471336364746,
+        "contactArea": 0.01721296951465226
+      },
+      "footL": {
+        "minGap": 0.0013999342918395996,
+        "contactArea": 0.001157251080803362
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.0017248420930280686
+      }
+    },
+    "boneLengthError": 1.8065738849326607e-8,
+    "jointGap": 1.7111632140572313e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001372918450694205,
+        "contactArea": 0.018563324141030076
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572538053123416
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.001724841895682519
+      }
+    },
+    "boneLengthError": 1.6138505809504267e-8,
+    "jointGap": 1.3557795420274993e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014541149139404297,
+        "contactArea": 0.044319792697898805
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484190128099116
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237915898676
+      }
+    },
+    "boneLengthError": 1.8879912050406844e-8,
+    "jointGap": 1.5140556751074034e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001367150878533896,
+        "contactArea": 0.06167057909177506
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.000384841797591462
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.0020882376628224703
+      }
+    },
+    "boneLengthError": 2.8889694303479985e-8,
+    "jointGap": 1.3557795420274993e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001414477825164795,
+        "contactArea": 0.012535178184967726
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484190128099116
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237915898676
+      }
+    },
+    "boneLengthError": 1.8065738904837758e-8,
+    "jointGap": 1.254423893190193e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013694974875102517,
+        "contactArea": 0.017175255639170953
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.000384841797591462
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.0020882376628224703
+      }
+    },
+    "boneLengthError": 1.724657000545804e-8,
+    "jointGap": 1.42162806205592e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014563798904418945,
+        "contactArea": 0.05334851687726332
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484190128099116
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237915898676
+      }
+    },
+    "boneLengthError": 1.8879912050406844e-8,
+    "jointGap": 1.258796899190246e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013693978019618802,
+        "contactArea": 0.06844645842862579
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.000384841797591462
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.0020882376628224703
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.3557795420274993e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399991512298584,
+      "right": 0.14389842748641968,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001418471336364746,
+        "contactArea": 0.017582927167529957
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484190128099116
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237915898676
+      }
+    },
+    "boneLengthError": 1.8065738849326607e-8,
+    "jointGap": 1.7111632140572313e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.41399985551834106,
+      "right": 0.14389847218990326,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121049258640415
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001372918450694205,
+        "contactArea": 0.020599075104992124
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.000384841797591462
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.0020882376628224703
+      }
+    },
+    "boneLengthError": 1.372272334654312e-8,
+    "jointGap": 1.3557795420274993e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001476287841796875,
+        "contactArea": 0.036809928450847226
+      },
+      "footL": {
+        "minGap": 0.0013999342918395996,
+        "contactArea": 0.0011572507986198632
+      },
+      "footR": {
+        "minGap": 0.0014493465423583984,
+        "contactArea": 0.001724834404626903
+      }
+    },
+    "boneLengthError": 1.8879911911628966e-8,
+    "jointGap": 1.555589570182952e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014863497350673383,
+        "contactArea": 0.054613575316871985
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.001157253600759578
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.0017248414419495234
+      }
+    },
+    "boneLengthError": 2.8889694303479985e-8,
+    "jointGap": 1.3760658350993304e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001455843448638916,
+        "contactArea": 0.013950957088103205
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572535909373516
+      },
+      "footR": {
+        "minGap": 0.0014492273330688477,
+        "contactArea": 0.0017248449326340495
+      }
+    },
+    "boneLengthError": 1.8065739043615636e-8,
+    "jointGap": 1.721615031440507e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014747820441796122,
+        "contactArea": 0.015567009405292058
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.001157253600759578
+      },
+      "footR": {
+        "minGap": 0.0014492273330688477,
+        "contactArea": 0.0017248450381926045
+      }
+    },
+    "boneLengthError": 1.372272334654312e-8,
+    "jointGap": 1.3760658350993304e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014786124229431152,
+        "contactArea": 0.04766716554940198
+      },
+      "footL": {
+        "minGap": 0.0013999342918395996,
+        "contactArea": 0.0011572507986198632
+      },
+      "footR": {
+        "minGap": 0.0014493465423583984,
+        "contactArea": 0.001724834404626903
+      }
+    },
+    "boneLengthError": 1.887991193938454e-8,
+    "jointGap": 1.3792838714622943e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001488614711568803,
+        "contactArea": 0.06459738546314836
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.001157253600759578
+      },
+      "footR": {
+        "minGap": 0.001449286937713623,
+        "contactArea": 0.0017248414419495234
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.4781441568778556e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014600157737731934,
+        "contactArea": 0.02000938178951856
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.0011572535909373516
+      },
+      "footR": {
+        "minGap": 0.0014492273330688477,
+        "contactArea": 0.0017248449326340495
+      }
+    },
+    "boneLengthError": 1.8065738904837758e-8,
+    "jointGap": 1.3289084962900376e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014788351600243388,
+        "contactArea": 0.021154506622531783
+      },
+      "footL": {
+        "minGap": 0.0013998746871948242,
+        "contactArea": 0.001157253600759578
+      },
+      "footR": {
+        "minGap": 0.0014492273330688477,
+        "contactArea": 0.0017248450381926045
+      }
+    },
+    "boneLengthError": 1.3722723457565422e-8,
+    "jointGap": 1.592368499797124e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001476287841796875,
+        "contactArea": 0.04211441311912585
+      },
+      "footL": {
+        "minGap": 0.0031017568377119664,
+        "contactArea": 0.000384845203395795
+      },
+      "footR": {
+        "minGap": 0.0014488697052001953,
+        "contactArea": 0.0020882210882305317
+      }
+    },
+    "boneLengthError": 1.8879911911628966e-8,
+    "jointGap": 1.555589570182952e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014863497350673383,
+        "contactArea": 0.06635088690771007
+      },
+      "footL": {
+        "minGap": 0.0031017568377119664,
+        "contactArea": 0.00038484512931954984
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237111038116
+      }
+    },
+    "boneLengthError": 2.8889694303479985e-8,
+    "jointGap": 1.3760658350993304e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001455843448638916,
+        "contactArea": 0.014044023947616769
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484156794818536
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088236966779601
+      }
+    },
+    "boneLengthError": 1.8065739043615636e-8,
+    "jointGap": 1.721615031440507e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014747820441796122,
+        "contactArea": 0.015699953278719963
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484149386699973
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237111038116
+      }
+    },
+    "boneLengthError": 1.372272334654312e-8,
+    "jointGap": 1.3760658350993304e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014786124229431152,
+        "contactArea": 0.05296962865762183
+      },
+      "footL": {
+        "minGap": 0.0031017568377119664,
+        "contactArea": 0.000384845203395795
+      },
+      "footR": {
+        "minGap": 0.0014488697052001953,
+        "contactArea": 0.0020882210882305317
+      }
+    },
+    "boneLengthError": 1.887991193938454e-8,
+    "jointGap": 1.3792838714622943e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001488614711568803,
+        "contactArea": 0.07633076824233873
+      },
+      "footL": {
+        "minGap": 0.0031017568377119664,
+        "contactArea": 0.00038484512931954984
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237111038116
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.4781441568778556e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.414000004529953,
+      "right": 0.14389833807945251,
+      "rear": 0.7071598768234253,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014600157737731934,
+        "contactArea": 0.020101173723633244
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484156794818536
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088236966779601
+      }
+    },
+    "boneLengthError": 1.8065738904837758e-8,
+    "jointGap": 1.3289084962900376e-7
+  },
+  {
+    "presentation": "masculine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.1438983976840973,
+      "rear": 0.9240000247955322,
+      "neckTurnDegrees": 22.121034338730354
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014788351600243388,
+        "contactArea": 0.021285977916958774
+      },
+      "footL": {
+        "minGap": 0.003101817289124842,
+        "contactArea": 0.00038484149386699973
+      },
+      "footR": {
+        "minGap": 0.0014486908912658691,
+        "contactArea": 0.002088237111038116
+      }
+    },
+    "boneLengthError": 1.3722723457565422e-8,
+    "jointGap": 1.592368499797124e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014535188674926758,
+        "contactArea": 0.03401199670312335
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064694892356173
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100227127835905
+      }
+    },
+    "boneLengthError": 1.887991188387339e-8,
+    "jointGap": 1.3306910448432626e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013680204096609971,
+        "contactArea": 0.04589460154305293
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064694186318167
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100225060602368
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.4442962384042904e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001413583755493164,
+        "contactArea": 0.01105246613457721
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064657560839129
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100227127835905
+      }
+    },
+    "boneLengthError": 1.8065738849326607e-8,
+    "jointGap": 1.3128627794139229e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013619271638599662,
+        "contactArea": 0.014415137136632387
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064694186318167
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100225060602368
+      }
+    },
+    "boneLengthError": 1.3722723235520817e-8,
+    "jointGap": 1.4442962384042904e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014560818672180176,
+        "contactArea": 0.042436624050802674
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064694892356173
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100227127835905
+      }
+    },
+    "boneLengthError": 1.887991188387339e-8,
+    "jointGap": 1.299069254720894e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013704312417158748,
+        "contactArea": 0.05225752978853056
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064694186318167
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100225060602368
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 2.480024485433415e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014178752899169922,
+        "contactArea": 0.015747110059155113
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064657560839129
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100227127835905
+      }
+    },
+    "boneLengthError": 1.8065738793815456e-8,
+    "jointGap": 1.9267354489553123e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01746568113749223
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064694186318167
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100225060602368
+      }
+    },
+    "boneLengthError": 1.372272334654312e-8,
+    "jointGap": 1.6655981734993422e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014535188674926758,
+        "contactArea": 0.04149410337925523
+      },
+      "footL": {
+        "minGap": 0.004800788675997425,
+        "contactArea": 0.00024785104518501577
+      },
+      "footR": {
+        "minGap": 0.0013951659202575684,
+        "contactArea": 0.0022135417345081516
+      }
+    },
+    "boneLengthError": 1.887991188387339e-8,
+    "jointGap": 1.3306910448432626e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013680204096609971,
+        "contactArea": 0.05922087948981792
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.00024785451705766626
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.4442962384042904e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.001413583755493164,
+        "contactArea": 0.011398301310778998
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.00024785451482400855
+      },
+      "footR": {
+        "minGap": 0.0013951659202575684,
+        "contactArea": 0.0022135417345081516
+      }
+    },
+    "boneLengthError": 1.8065738849326607e-8,
+    "jointGap": 1.3128627794139229e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013619271638599662,
+        "contactArea": 0.016712031985200704
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    },
+    "boneLengthError": 1.3722723235520817e-8,
+    "jointGap": 1.4442962384042904e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014560818672180176,
+        "contactArea": 0.04991585367664074
+      },
+      "footL": {
+        "minGap": 0.004800788675997425,
+        "contactArea": 0.00024785104518501577
+      },
+      "footR": {
+        "minGap": 0.0013951659202575684,
+        "contactArea": 0.0022135417345081516
+      }
+    },
+    "boneLengthError": 1.887991188387339e-8,
+    "jointGap": 1.299069254720894e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013704312417158748,
+        "contactArea": 0.0655792489138054
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.00024785451705766626
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 2.480024485433415e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014178752899169922,
+        "contactArea": 0.01608901084748758
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.00024785451482400855
+      },
+      "footR": {
+        "minGap": 0.0013951659202575684,
+        "contactArea": 0.0022135417345081516
+      }
+    },
+    "boneLengthError": 1.8065738793815456e-8,
+    "jointGap": 1.9267354489553123e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 0
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0013657748194811914,
+        "contactArea": 0.01975718181475737
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.00024785705194044216
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135496017797428
+      }
+    },
+    "boneLengthError": 1.372272334654312e-8,
+    "jointGap": 1.6655981734993422e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014758110046386719,
+        "contactArea": 0.033833708489169334
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064654611189993
+      },
+      "footR": {
+        "minGap": 0.00141829252243042,
+        "contactArea": 0.001810014705666274
+      }
+    },
+    "boneLengthError": 1.8879911772851088e-8,
+    "jointGap": 1.6382500877635083e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014860542123094067,
+        "contactArea": 0.05094944496346485
+      },
+      "footL": {
+        "minGap": 0.0013653039932250977,
+        "contactArea": 0.0009064726650360455
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100220380952992
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.4442962384042904e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014550089836120605,
+        "contactArea": 0.012672731674342292
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064691942664016
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100219271187101
+      }
+    },
+    "boneLengthError": 1.806573896034891e-8,
+    "jointGap": 1.3323824108140748e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014745286455554174,
+        "contactArea": 0.013721078507291436
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.000906469206596261
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100220380952992
+      }
+    },
+    "boneLengthError": 1.372272334654312e-8,
+    "jointGap": 1.485371266822568e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014783143997192383,
+        "contactArea": 0.04395852399639913
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064654611189993
+      },
+      "footR": {
+        "minGap": 0.00141829252243042,
+        "contactArea": 0.001810014705666274
+      }
+    },
+    "boneLengthError": 1.887991182836224e-8,
+    "jointGap": 1.3128627794139229e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014885576073899731,
+        "contactArea": 0.05986379524842577
+      },
+      "footL": {
+        "minGap": 0.0013653039932250977,
+        "contactArea": 0.0009064726650360455
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100220380952992
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 2.5809603251742767e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014594197273254395,
+        "contactArea": 0.018303184127117067
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.0009064691942664016
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100219271187101
+      }
+    },
+    "boneLengthError": 1.806573896034891e-8,
+    "jointGap": 1.3480691114494678e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 0,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014788201799792455,
+        "contactArea": 0.018651556656050196
+      },
+      "footL": {
+        "minGap": 0.001365363597869873,
+        "contactArea": 0.000906469206596261
+      },
+      "footR": {
+        "minGap": 0.0014182329177856445,
+        "contactArea": 0.0018100220380952992
+      }
+    },
+    "boneLengthError": 1.3722723457565422e-8,
+    "jointGap": 1.340358962990874e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014758110046386719,
+        "contactArea": 0.03892141677436138
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.0002478539132279023
+      },
+      "footR": {
+        "minGap": 0.0013952255249023438,
+        "contactArea": 0.00221353252012251
+      }
+    },
+    "boneLengthError": 1.8879911772851088e-8,
+    "jointGap": 1.6382500877635083e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014860542123094067,
+        "contactArea": 0.06278014851523914
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.0002478539434731253
+      },
+      "footR": {
+        "minGap": 0.0013951659202575684,
+        "contactArea": 0.0022135409031510574
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 1.4442962384042904e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014550089836120605,
+        "contactArea": 0.012758465739998255
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.0002478539132279023
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135488851407637
+      }
+    },
+    "boneLengthError": 1.806573896034891e-8,
+    "jointGap": 1.3323824108140748e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 0,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014745286455554174,
+        "contactArea": 0.01390657479246064
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.0002478564783422732
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135490341787956
+      }
+    },
+    "boneLengthError": 1.372272334654312e-8,
+    "jointGap": 1.485371266822568e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014783143997192383,
+        "contactArea": 0.04904411328872717
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.0002478539132279023
+      },
+      "footR": {
+        "minGap": 0.0013952255249023438,
+        "contactArea": 0.00221353252012251
+      }
+    },
+    "boneLengthError": 1.887991182836224e-8,
+    "jointGap": 1.3128627794139229e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 0,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014885576073899731,
+        "contactArea": 0.07169028977541012
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.0002478539434731253
+      },
+      "footR": {
+        "minGap": 0.0013951659202575684,
+        "contactArea": 0.0022135409031510574
+      }
+    },
+    "boneLengthError": 2.8889694192457682e-8,
+    "jointGap": 2.5809603251742767e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 0,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999747276306,
+      "right": 0.15764610469341278,
+      "rear": 0.7021138668060303,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014594197273254395,
+        "contactArea": 0.018387647213500002
+      },
+      "footL": {
+        "minGap": 0.00480072907135265,
+        "contactArea": 0.0002478539132279023
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135488851407637
+      }
+    },
+    "boneLengthError": 1.806573896034891e-8,
+    "jointGap": 1.3480691114494678e-7
+  },
+  {
+    "presentation": "feminine",
+    "body": {
+      "height": 100,
+      "build": 100,
+      "shoulders": 100,
+      "hips": 100,
+      "torso": 100
+    },
+    "head": {
+      "left": -0.4139999449253082,
+      "right": 0.15764610469341278,
+      "rear": 0.9239999651908875,
+      "neckTurnDegrees": 25.369904775684244
+    },
+    "contacts": {
+      "torso": {
+        "minGap": 0.0014788201799792455,
+        "contactArea": 0.018834717634830106
+      },
+      "footL": {
+        "minGap": 0.00480064108994005,
+        "contactArea": 0.0002478564783422732
+      },
+      "footR": {
+        "minGap": 0.001395106315612793,
+        "contactArea": 0.0022135490341787956
+      }
+    },
+    "boneLengthError": 1.3722723457565422e-8,
+    "jointGap": 1.340358962990874e-7
+  }
+]

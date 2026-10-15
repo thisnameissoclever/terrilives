@@ -24,16 +24,18 @@ it('uploads the floor-tool highlight through the actual main packing and draw st
   const pack = vi.fn(frame.buildInstanceBatch);
   const bindings = { ...frame, buildInstanceBatch: pack, instanceCount: recount, sim, alpha: 1,
     camera: { originX: 100, originY: 50, scale: 2 }, depthScale: 16,
+    stage:{width:500,height:400},characterWorld:{beginFrame:vi.fn(),plan:null,draw:vi.fn()},
     reducedMotion: { matches: true }, lightingMode: { isFlat: () => true },
     lighting: null, builder: { active: false, preview: null },
     buyTool: { ghost: () => null }, wallTool: { highlight: () => null },
     roomTool: { highlight: () => null }, floorTool: { highlight: () => highlight },
     sky: { width: 0, height: 0, values: floats }, AMBIENT_NEUTRAL: 1,
-    wallFade: { update: vi.fn() }, deltaMs: 16, renderer: { draw },
+    wallFade: { update: vi.fn() }, deltaMs: 16, renderer: { draw,fixtureDepthBase:0 },
     interiorDaylightShade: 0 };
   new Function(...Object.keys(bindings), code)(...Object.values(bindings));
   expect(pack).toHaveBeenCalledExactlyOnceWith(sim, 1, 100, 50, 16, null, 2,
-    true, 37, null, undefined, null, highlight, 0, bindings.sky);
+    true, 37, null, undefined, null, highlight, 0, bindings.sky,null);
+  expect(bindings.characterWorld.beginFrame).toHaveBeenCalledTimes(1);
   expect(draw).toHaveBeenCalledTimes(1);
   const [instances, count, scale] = draw.mock.calls[0];
   expect(count).toBe(2);

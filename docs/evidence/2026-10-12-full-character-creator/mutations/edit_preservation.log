@@ -1,0 +1,152 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-draft.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-draft.test.ts (9 tests | 1 failed) 281ms
+   × randomizes complete new drafts reproducibly and edits without consuming a draw 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-draft.test.ts > randomizes complete new drafts reproducibly and edits without consuming a draw
+AssertionError: expected { version: 1, name: 'Custom', …(8) } to deeply equal { version: 1 }
+
+- Expected
++ Received
+
+  {
++   "affinities": [
++     {
++       "id": "plants",
++       "value": 1039980254,
++     },
++   ],
++   "appearance": {
++     "bald": false,
++     "body": {
++       "build": 50,
++       "height": 50,
++       "hips": 50,
++       "shoulders": 50,
++       "torso": 50,
++     },
++     "bottoms": "trousers",
++     "colors": {
++       "eyes": [
++         102,
++         91,
++         69,
++       ],
++       "facial_hair": [
++         101,
++         69,
++         46,
++       ],
++       "hair": [
++         101,
++         69,
++         46,
++       ],
++       "shirt": [
++         107,
++         159,
++         155,
++       ],
++       "shoes": [
++         76,
++         64,
++         55,
++       ],
++       "skin": [
++         190,
++         143,
++         107,
++       ],
++       "trousers": [
++         57,
++         70,
++         80,
++       ],
++     },
++     "earrings": "none",
++     "face": {
++       "brow_thickness": 50,
++       "brows": "soft",
++       "cheeks": 50,
++       "chin": 50,
++       "ears": 50,
++       "eye_size": 50,
++       "eyes": "almond",
++       "jaw": 50,
++       "mouth": "neutral",
++       "mouth_fullness": 50,
++       "nose": "straight",
++       "nose_width": 50,
++       "shape": "oval",
++     },
++     "facial_hair": "none",
++     "footwear": "loafers",
++     "freckle_density": 50,
++     "freckles": false,
++     "glasses": false,
++     "glasses_style": "round",
++     "hairstyle": "curl",
++     "presentation": "masculine",
++     "scar": "none",
++     "sleeves": "rolled",
++     "top": "overshirt",
++     "undertone": "neutral",
++     "version": 1,
++   },
++   "behavior": {
++     "chronotype_offset_ticks": 0,
++     "cleanliness": 1056964608,
++     "dispositions": [],
++     "drain": [
++       1047540369,
++       1065353216,
++       1065353216,
++       1065353216,
++       1065353216,
++       1065353216,
++       1065353216,
++     ],
++     "recovery": [
++       1065353216,
++       1065353216,
++       1065353216,
++       1065353216,
++       1065353216,
++       1065353216,
++       1065353216,
++     ],
++     "self_preservation": 50,
++     "shyness": 50,
++   },
++   "hobbies": [],
++   "name": "Custom",
++   "pronouns": "",
++   "skills": [],
++   "ties": [],
++   "traits": [],
+    "version": 1,
+  }
+
+ ❯ tests/character-draft.test.ts:23:98
+     21|   const source=neutralDraft('Custom');source.affinities=[{id:'plants',…
+     22|   const edit=CharacterDraft.edit(source,123,catalog,household);
+     23|   expect(edit.resolve()).toEqual(source);expect(edit.randomState).toBe…
+       |                                                                                                  ^
+     24|   edit.set('name','Changed');expect(edit.patch()).toEqual({version:1,n…
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  23:22:47
+   Duration  440ms (transform 44ms, setup 0ms, import 56ms, tests 281ms, environment 0ms)
+

@@ -153,7 +153,7 @@ fn main() {
     sim.tick();
     let mut bytes = Vec::from(SAVE_MAGIC);
     bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
-    bytes.extend(postcard::to_allocvec(&sim.save_snapshot_v5()).unwrap());
+    bytes.extend(postcard::to_allocvec(&sim.save_snapshot_v10()).unwrap());
     std::fs::write(&path, bytes).unwrap();
     println!("Saved a plated meal with three hungry friends ready to collect it to {path}");
 }

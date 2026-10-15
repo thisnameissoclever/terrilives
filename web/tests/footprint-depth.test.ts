@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildInstances, instanceCount, type RenderSource } from '../src/frame.js';
+import { buildInstanceBatch, buildInstances, instanceCount, type RenderSource } from '../src/frame.js';
 import { FLOATS_PER_INSTANCE, OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
   OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X, OFFSET_COLOURWAY_HUE } from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
@@ -35,7 +35,8 @@ describe('footprint projection at the frame boundary', () => {
 
   it('uses the occupied furniture footprint, not the one-tile Sim, and clears the suppressed owner', () => {
     const source = fixture(2, 1, true);
-    const out = buildInstances(source, 1, 0, 0, 16);
+    const batch = buildInstanceBatch(source, 1, 0, 0, 16);
+    const out = batch.instances;
     expect(Array.from(out.subarray(8, 12))).toEqual([0, 0, 0, 0]);
     const body = FLOATS_PER_INSTANCE;
     expect(out[body + OFFSET_WALL_MASK]).toBe(-1);
@@ -43,12 +44,11 @@ describe('footprint projection at the frame boundary', () => {
     const sprite = out[body + 3];
     expect(sprite).not.toBe(spriteIndex('sim'));
     expect(out[body + OFFSET_PROJECTION_ANCHOR_X]).toBe(spriteDrawOffsetX(sprite));
-    for (let row = 2; row < instanceCount(source, null); row++) {
-      const base = row * FLOATS_PER_INSTANCE;
-      expect(out[base + OFFSET_WALL_MASK]).toBe(-1);
-      expect(out[base + OFFSET_FOOTPRINT_SPAN]).toBe(0.5);
-      expect(out[base + 2]).toBeLessThan(out[body + 2]);
-    }
+    expect(batch.annotations).toEqual({start:2,count:1});
+    const annotation=2*FLOATS_PER_INSTANCE;
+    expect(out[annotation+3]).toBe(spriteIndex('activityEat'));
+    expect(batch.owners[2]).toBe(2);
+    expect(Array.from(out.subarray(annotation+8,annotation+12))).toEqual([0,0,0,0]);
   });
 
   it('keeps foreground depth aligned and clears projection when a reused row becomes square', () => {

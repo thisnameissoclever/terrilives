@@ -1,0 +1,34 @@
+[
+  {
+    "name": "parameter",
+    "command": "node assets/models/sims/appearance-proof/verify-browser.cjs --quick",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "c951fe72d9032c8708961eea56d6c6b3a96807aa6f552ac9dfffcc581c1f40b0",
+    "exactRestoration": true
+  },
+  {
+    "name": "locks",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-appearance.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "850ab15ecc037c574c635e61178cc999283a37ff09aa5ea842b8fccf9e998ae7",
+    "exactRestoration": true
+  },
+  {
+    "name": "reload",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-appearance.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "850ab15ecc037c574c635e61178cc999283a37ff09aa5ea842b8fccf9e998ae7",
+    "exactRestoration": true
+  },
+  {
+    "name": "depth",
+    "command": "node assets/models/sims/appearance-proof/verify-browser.cjs --quick",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "82c6f3d7e2c76120e8d27fb642195939988bb6037ac5de0b34f40de8cf0b4e8e",
+    "exactRestoration": true
+  }
+]

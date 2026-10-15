@@ -1,0 +1,33 @@
+
+> test
+> vitest run --maxWorkers=1 tests/character-bike-contact-input.test.ts -t actual neutral
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-bike-contact-input.test.ts (243 tests | 1 failed | 242 skipped) 7ms
+   × extracts phase-independent actual neutral contact input without invoking a fit 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-bike-contact-input.test.ts > extracts phase-independent actual neutral contact input without invoking a fit
+Error: Missing character asset for clip: exercise
+ ❯ selectParts src/render/character/variants.ts:48:48
+     46|     if (context.wear === 'bare' && ['top', 'sleeves', 'bottoms', 'foot…
+     47|     if (value === defaults[key] || value === 'none' || value === false…
+     48|     if (!supported.get(key)?.has(value)) throw new Error(`Missing char…
+       |                                                ^
+     49|   }
+     50|   const selected = program.parts.filter(({part,clauses}) =>
+ ❯ bikeGeometry tests/bike-contact-fixture.ts:22:119
+ ❯ phaseCheck tests/character-bike-contact-input.test.ts:18:42
+ ❯ tests/character-bike-contact-input.test.ts:31:90
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 242 skipped (243)
+   Start at  17:03:22
+   Duration  573ms (transform 186ms, setup 0ms, import 372ms, tests 7ms, environment 0ms)
+

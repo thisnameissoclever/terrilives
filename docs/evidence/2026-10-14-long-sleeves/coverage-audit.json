@@ -1,0 +1,163 @@
+{
+  "acceptedSourceSha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "firstRepairManifestSha256": "7594a70a3e0c884b9b9d38e06866b026d89212e928adeae9a9b95634bd4b3573",
+  "finalManifestSha256": "c28286c84370a5b4c1c2923ca22ad9290e1c27a40431fff188c41981435bb126",
+  "identicalGeometryBuffers": [
+    {
+      "quality": "original",
+      "buffer": "vertices",
+      "identical": true
+    },
+    {
+      "quality": "original",
+      "buffer": "indices",
+      "identical": true
+    },
+    {
+      "quality": "original",
+      "buffer": "cage",
+      "identical": true
+    },
+    {
+      "quality": "original",
+      "buffer": "stencilRanges",
+      "identical": true
+    },
+    {
+      "quality": "original",
+      "buffer": "stencilWeights",
+      "identical": true
+    },
+    {
+      "quality": "original",
+      "buffer": "normalRanges",
+      "identical": true
+    },
+    {
+      "quality": "original",
+      "buffer": "normalTriangles",
+      "identical": true
+    },
+    {
+      "quality": "runtime",
+      "buffer": "vertices",
+      "identical": true
+    },
+    {
+      "quality": "runtime",
+      "buffer": "indices",
+      "identical": true
+    },
+    {
+      "quality": "runtime",
+      "buffer": "cage",
+      "identical": true
+    },
+    {
+      "quality": "runtime",
+      "buffer": "stencilRanges",
+      "identical": true
+    },
+    {
+      "quality": "runtime",
+      "buffer": "stencilWeights",
+      "identical": true
+    },
+    {
+      "quality": "runtime",
+      "buffer": "normalRanges",
+      "identical": true
+    },
+    {
+      "quality": "runtime",
+      "buffer": "normalTriangles",
+      "identical": true
+    }
+  ],
+  "changedPartMetadata": [
+    {
+      "quality": "original",
+      "name": "Forearm with elbow and wrist sections",
+      "beforeConditions": [],
+      "currentConditions": [
+        {
+          "wear": [
+            "bare"
+          ]
+        },
+        {
+          "wear": [
+            "clothed"
+          ],
+          "sleeves": [
+            "rolled",
+            "short"
+          ]
+        }
+      ]
+    },
+    {
+      "quality": "original",
+      "name": "Forearm with elbow and wrist sections.001",
+      "beforeConditions": [],
+      "currentConditions": [
+        {
+          "wear": [
+            "bare"
+          ]
+        },
+        {
+          "wear": [
+            "clothed"
+          ],
+          "sleeves": [
+            "rolled",
+            "short"
+          ]
+        }
+      ]
+    },
+    {
+      "quality": "runtime",
+      "name": "Forearm with elbow and wrist sections",
+      "beforeConditions": [],
+      "currentConditions": [
+        {
+          "wear": [
+            "bare"
+          ]
+        },
+        {
+          "wear": [
+            "clothed"
+          ],
+          "sleeves": [
+            "rolled",
+            "short"
+          ]
+        }
+      ]
+    },
+    {
+      "quality": "runtime",
+      "name": "Forearm with elbow and wrist sections.001",
+      "beforeConditions": [],
+      "currentConditions": [
+        {
+          "wear": [
+            "bare"
+          ]
+        },
+        {
+          "wear": [
+            "clothed"
+          ],
+          "sleeves": [
+            "rolled",
+            "short"
+          ]
+        }
+      ]
+    }
+  ]
+}

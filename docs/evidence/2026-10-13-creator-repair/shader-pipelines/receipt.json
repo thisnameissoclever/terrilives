@@ -1,0 +1,320 @@
+{
+  "command": "node scripts/character-creator-repair/check-shader-pipelines.cjs",
+  "harnessSha256": "58f4722b9ee43989e9f62da5d3fa527b203319cbecdcc3d450797da0eb3e76a5",
+  "frozenAt": "2026-10-13T19:45:22.571Z",
+  "productionHashesBefore": {
+    "web/src/render/sprites.ts": "dd98a85d8c70eaf9bd3f0e41450740aa8d2e365ebcbecd644bd507c0780ed27d",
+    "web/src/render/sprite-pipelines.ts": "f30480b069520812dbcab1c853a5620c360977665033e4ae47f4815612cb1378",
+    "web/src/render/sprites.wgsl": "d4cfdf0dacabf354f95a81dfe287d1618c5998be790846f9f3169862725c45eb",
+    "web/src/render/instances.ts": "b5f7b2843f61ff33c76fa661231d510320aaed87b5e3e8293ff541f9021cbdfc",
+    "web/src/render/architecture-finishes.ts": "7a123021d77b7164c05a577360962916d556fb63bf272b4843503e4927d09939",
+    "web/src/render/architecture-atlas.ts": "e2e90ef13090bc814199c89a3052d4ae81622806609659983a7800c6cc9dc4b0",
+    "web/src/render/architecture-data.ts": "f5a4901ad410329e452fd3acdf8b48c5edaa20e3f70c627ca15b69a990675989",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "web/src/render/scene-sampling.ts": "4734a5701f786778881ba79f9c94f8d8a7acb313345d7c1911ecbd8e9e670331",
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/mesh.wgsl": "e27896ba13134764f2cc01f1a5a3fb591972bb29fe812b2f6dc471b80cdbd0ac",
+    "web/src/render/character/shared-colourway.ts": "a66d5da763ce3323680edf96b539dcb9fba72254c2abc3148d92f0272a8ba044",
+    "web/src/render/character/compositor.ts": "159b28720bebe56ab4b7ff235f5779bf6c80d0a77264032683e28b1eadf8e89f",
+    "web/src/render/character/world-picking.ts": "013cb476c6d47469c0fd1d81a2a11f8f84c2d0d569bec7b1a4da9994faf0495c",
+    "web/src/render/character/preview-fixture.ts": "672eb62dc095c5b373fbd3c62d22edd3c975b0ee415ed0e1720b5dd7b9efe929",
+    "web/src/render/character/subdivision-gpu.ts": "ed6e3fdfd130f2b6253cb9b47907199360e0cc3ea4f719015b6843ddb224f547",
+    "web/src/render/character/skin-cage.wgsl": "3743d4db18413c101e0adc5cc43c39c7ddbfa4cf3190269b170a5dbf3b012c0a",
+    "web/src/render/character/subdivide.wgsl": "f275fb1366660a5f20eb5a9f77b268657c3cf681d00c1c6ff9607a4834db97c2",
+    "web/src/render/character/surface-normals.wgsl": "755a7067b4b47fa7ed3bc1fb5a217407f9b823804fd9d1e87dce0d32da53ad87"
+  },
+  "isolatedSource": "D:\\VIBES\\.worktrees\\5637\\terrilives\\.scratch\\creator-repair-validation\\shader-pipelines-xvIYmo",
+  "mutants": [
+    {
+      "name": "duplicate-interstage-location-14",
+      "file": "web/src/render/sprites.wgsl",
+      "from": "@location(0) uv: vec2<f32>,",
+      "to": "@location(14) uv: vec2<f32>,",
+      "expect": "compilation",
+      "status": "KILLED",
+      "sourceBefore": "d4cfdf0dacabf354f95a81dfe287d1618c5998be790846f9f3169862725c45eb",
+      "sourceMutated": "4b8a54afbe0a94b0b7cc2ca91350c8d7549e4e7ee46c66d26dd73f7ecc2e9a9f",
+      "sourceRestored": "d4cfdf0dacabf354f95a81dfe287d1618c5998be790846f9f3169862725c45eb",
+      "failedPipelines": [
+        "sprite/0/opaque",
+        "sprite/0/lowWall",
+        "sprite/0/grime",
+        "sprite/1/opaque",
+        "sprite/1/lowWall",
+        "sprite/1/grime",
+        "sprite/2/opaque",
+        "sprite/2/lowWall",
+        "sprite/2/grime",
+        "sprite/3/opaque",
+        "sprite/3/lowWall",
+        "sprite/3/grime",
+        "sprite/4/opaque",
+        "sprite/4/lowWall",
+        "sprite/4/grime",
+        "sprite/5/opaque",
+        "sprite/5/lowWall",
+        "sprite/5/grime",
+        "sprite/6/opaque",
+        "sprite/6/lowWall",
+        "sprite/6/grime",
+        "sprite/7/opaque",
+        "sprite/7/lowWall",
+        "sprite/7/grime",
+        "sprite/8/opaque",
+        "sprite/8/lowWall",
+        "sprite/8/grime",
+        "sprite/9/opaque",
+        "sprite/9/lowWall",
+        "sprite/9/grime",
+        "sprite/10/opaque",
+        "sprite/10/lowWall",
+        "sprite/10/grime",
+        "sprite/11/opaque",
+        "sprite/11/lowWall",
+        "sprite/11/grime",
+        "sprite/12/opaque",
+        "sprite/12/lowWall",
+        "sprite/12/grime"
+      ],
+      "compilationFailure": true,
+      "pipelineFailure": false
+    },
+    {
+      "name": "character-recolour-vec3-instead-of-vec4",
+      "file": "web/src/render/character/mesh.wgsl",
+      "from": "recolour(encoded,vec4f(view.fixture.yzw,0.))",
+      "to": "recolour(encoded,view.fixture.yzw)",
+      "expect": "compilation",
+      "status": "KILLED",
+      "sourceBefore": "e27896ba13134764f2cc01f1a5a3fb591972bb29fe812b2f6dc471b80cdbd0ac",
+      "sourceMutated": "60fa5c30fef588da6e20b9cbc9dd5c8672dc807a3e5314baa57b11797acfe037",
+      "sourceRestored": "e27896ba13134764f2cc01f1a5a3fb591972bb29fe812b2f6dc471b80cdbd0ac",
+      "failedPipelines": [
+        "character/inspection/fill",
+        "character/inspection/outline",
+        "character/scene/fill",
+        "character/scene/outline"
+      ],
+      "compilationFailure": true,
+      "pipelineFailure": false
+    },
+    {
+      "name": "wgsl-comma-let-declaration",
+      "file": "web/src/render/character/pipelines.ts",
+      "from": "let sample=first+vec2i(x,y);let logical=(vec2f(sample)+.5)/ratio;",
+      "to": "let sample=first+vec2i(x,y),logical=(vec2f(sample)+.5)/ratio;",
+      "expect": "compilation",
+      "status": "KILLED",
+      "sourceBefore": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+      "sourceMutated": "b3dbbc1267c0e25a2a28b262e56aa90bf99ce144b4549c4db9f5b7bf046689e9",
+      "sourceRestored": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+      "failedPipelines": [
+        "character/world-picking"
+      ],
+      "compilationFailure": true,
+      "pipelineFailure": false
+    },
+    {
+      "name": "wrong-integer-color-target",
+      "file": "web/src/render/sprite-pipelines.ts",
+      "from": "{format:'r32float'}, {format:'r32uint'},",
+      "to": "{format:'r32uint'}, {format:'r32uint'},",
+      "expect": "pipeline",
+      "status": "KILLED",
+      "sourceBefore": "f30480b069520812dbcab1c853a5620c360977665033e4ae47f4815612cb1378",
+      "sourceMutated": "2cf6aea4ad1bcb51c2f4b4fede52507b440861fcb3f9c17257b7df7e71d0b80a",
+      "sourceRestored": "f30480b069520812dbcab1c853a5620c360977665033e4ae47f4815612cb1378",
+      "failedPipelines": [
+        "sprite/0/opaque",
+        "sprite/1/opaque",
+        "sprite/2/opaque",
+        "sprite/3/opaque",
+        "sprite/4/opaque",
+        "sprite/5/opaque",
+        "sprite/6/opaque",
+        "sprite/7/opaque",
+        "sprite/8/opaque",
+        "sprite/9/opaque",
+        "sprite/10/opaque",
+        "sprite/11/opaque"
+      ],
+      "compilationFailure": false,
+      "pipelineFailure": true
+    },
+    {
+      "name": "storage-buffer-declared-as-uniform",
+      "file": "web/src/render/character/pipelines.ts",
+      "from": "{ binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },",
+      "to": "{ binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },",
+      "expect": "pipeline",
+      "status": "KILLED",
+      "sourceBefore": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+      "sourceMutated": "5cf5084ce5449929e62d03245bef20b43389860446e4f9ae5e2f94c1df545fbb",
+      "sourceRestored": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+      "failedPipelines": [
+        "character/inspection/fill",
+        "character/inspection/outline",
+        "character/scene/fill",
+        "character/scene/outline"
+      ],
+      "compilationFailure": false,
+      "pipelineFailure": true
+    }
+  ],
+  "scope": "Compilation and pipeline validation only. No atlas images, character geometry, game state, pixels or visual acceptance.",
+  "baseline": {
+    "status": "PASS",
+    "records": 51,
+    "passed": 48,
+    "expectedRejections": 3,
+    "patternCoverage": {
+      "declaredCounts": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "supportedCounts": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "assemblyBoundary": {
+        "count": 13,
+        "message": "Invalid pattern binding count"
+      },
+      "fixedSampledTextures": 5,
+      "deviceLimit": 16,
+      "preparationChecks": [
+        {
+          "count": 0,
+          "accepted": true
+        },
+        {
+          "count": 1,
+          "accepted": true
+        },
+        {
+          "count": 2,
+          "accepted": true
+        },
+        {
+          "count": 3,
+          "accepted": true
+        },
+        {
+          "count": 4,
+          "accepted": true
+        },
+        {
+          "count": 5,
+          "accepted": true
+        },
+        {
+          "count": 6,
+          "accepted": true
+        },
+        {
+          "count": 7,
+          "accepted": true
+        },
+        {
+          "count": 8,
+          "accepted": true
+        },
+        {
+          "count": 9,
+          "accepted": true
+        },
+        {
+          "count": 10,
+          "accepted": true
+        },
+        {
+          "count": 11,
+          "accepted": true
+        },
+        {
+          "count": 12,
+          "accepted": false,
+          "message": "Active architecture patterns exceed device sampled texture limits"
+        }
+      ],
+      "catalogueResources": [
+        "plaster",
+        "boards",
+        "tiles",
+        "carpet",
+        "neutral",
+        "grass",
+        "street"
+      ],
+      "allCatalogueFinishSelection": [
+        "plaster",
+        "boards",
+        "tiles",
+        "carpet",
+        "neutral",
+        "grass",
+        "street"
+      ],
+      "basis": "Every source-accepted count is compiled. Counts exceeding the exact fragment layout texture limit must reject. Current catalogue resource counts are included; custom catalogue calls have the same bounded range."
+    },
+    "adapter": {
+      "vendor": "nvidia",
+      "architecture": "lovelace",
+      "device": "",
+      "description": ""
+    }
+  },
+  "restored": {
+    "status": "PASS",
+    "identicalSignatures": true
+  },
+  "status": "PASS",
+  "productionHashesAfter": {
+    "web/src/render/sprites.ts": "dd98a85d8c70eaf9bd3f0e41450740aa8d2e365ebcbecd644bd507c0780ed27d",
+    "web/src/render/sprite-pipelines.ts": "f30480b069520812dbcab1c853a5620c360977665033e4ae47f4815612cb1378",
+    "web/src/render/sprites.wgsl": "d4cfdf0dacabf354f95a81dfe287d1618c5998be790846f9f3169862725c45eb",
+    "web/src/render/instances.ts": "b5f7b2843f61ff33c76fa661231d510320aaed87b5e3e8293ff541f9021cbdfc",
+    "web/src/render/architecture-finishes.ts": "7a123021d77b7164c05a577360962916d556fb63bf272b4843503e4927d09939",
+    "web/src/render/architecture-atlas.ts": "e2e90ef13090bc814199c89a3052d4ae81622806609659983a7800c6cc9dc4b0",
+    "web/src/render/architecture-data.ts": "f5a4901ad410329e452fd3acdf8b48c5edaa20e3f70c627ca15b69a990675989",
+    "web/src/render/scene-target.ts": "03eef4cf3389451cea1b18de657bf848cdd5e7a71bc0a4858b02910a54b16f0e",
+    "web/src/render/scene-pipeline.ts": "239fb443d676038759d4a9c598d3773c2c7a1b9306cf06998341c2ac3cdaf00a",
+    "web/src/render/scene-sampling.ts": "4734a5701f786778881ba79f9c94f8d8a7acb313345d7c1911ecbd8e9e670331",
+    "web/src/render/character/renderer.ts": "bba582696a2e78e9a02383429f8f6c643da8e55b8b2cb1a1688d08a2a7d37be6",
+    "web/src/render/character/pipelines.ts": "f64b60815f4073baa4fc710d95d90dcdb7131ab3c85b101ced1dc7383f197ab9",
+    "web/src/render/character/mesh.wgsl": "e27896ba13134764f2cc01f1a5a3fb591972bb29fe812b2f6dc471b80cdbd0ac",
+    "web/src/render/character/shared-colourway.ts": "a66d5da763ce3323680edf96b539dcb9fba72254c2abc3148d92f0272a8ba044",
+    "web/src/render/character/compositor.ts": "159b28720bebe56ab4b7ff235f5779bf6c80d0a77264032683e28b1eadf8e89f",
+    "web/src/render/character/world-picking.ts": "013cb476c6d47469c0fd1d81a2a11f8f84c2d0d569bec7b1a4da9994faf0495c",
+    "web/src/render/character/preview-fixture.ts": "672eb62dc095c5b373fbd3c62d22edd3c975b0ee415ed0e1720b5dd7b9efe929",
+    "web/src/render/character/subdivision-gpu.ts": "ed6e3fdfd130f2b6253cb9b47907199360e0cc3ea4f719015b6843ddb224f547",
+    "web/src/render/character/skin-cage.wgsl": "3743d4db18413c101e0adc5cc43c39c7ddbfa4cf3190269b170a5dbf3b012c0a",
+    "web/src/render/character/subdivide.wgsl": "f275fb1366660a5f20eb5a9f77b268657c3cf681d00c1c6ff9607a4834db97c2",
+    "web/src/render/character/surface-normals.wgsl": "755a7067b4b47fa7ed3bc1fb5a217407f9b823804fd9d1e87dce0d32da53ad87"
+  },
+  "productionUnchanged": true,
+  "exitCode": 0
+}

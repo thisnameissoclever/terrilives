@@ -60,7 +60,7 @@ fn main() {
             sim.load_snapshot_v5(saved).unwrap();
             let mut bytes = SAVE_MAGIC.to_vec();
             bytes.extend(SAVE_SCHEMA_VERSION.to_le_bytes());
-            bytes.extend(postcard::to_allocvec(&sim.save_snapshot_v5()).unwrap());
+            bytes.extend(postcard::to_allocvec(&sim.save_snapshot_v10()).unwrap());
             std::fs::write(
                 directory.join(format!("cleaning-{name}-{facing}.sav")),
                 bytes,

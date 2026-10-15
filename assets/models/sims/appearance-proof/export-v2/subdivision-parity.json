@@ -1,0 +1,487 @@
+{
+  "state": "complete",
+  "rows": [
+    {
+      "part": "Collar stand",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.738148291503626e-07
+    },
+    {
+      "part": "Collar stand",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 5.710338397649561e-07
+    },
+    {
+      "part": "Collar stand",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.3594593351786232e-06
+    },
+    {
+      "part": "Fitted rounded shoe sole",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.623742249208017e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 7.529917201002586e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.1534409917183763e-07
+    },
+    {
+      "part": "Fitted rounded shoe sole.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 9.633658823572837e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 8.60422906728327e-08
+    },
+    {
+      "part": "Fitted rounded shoe sole.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.270363493112167e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 7.029620336840923e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.6824936206079716e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.524101337331157e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 7.014696046798429e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 2.7711486312861167e-07
+    },
+    {
+      "part": "Forearm with elbow and wrist sections.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.393002718058702e-07
+    },
+    {
+      "part": "Natural neck",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.1016284227141048e-06
+    },
+    {
+      "part": "Natural neck",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.219059064643082e-06
+    },
+    {
+      "part": "Natural neck",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.7570034530952785e-07
+    },
+    {
+      "part": "Overshirt body",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 6.309098011547284e-07
+    },
+    {
+      "part": "Overshirt body",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.1065329310320315e-07
+    },
+    {
+      "part": "Overshirt body",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.93935777556511e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.330906737272198e-06
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.1100248915582097e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.485993400392598e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.3309200361371394e-06
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.832980309088916e-07
+    },
+    {
+      "part": "Relaxed shirt sleeve.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.8197629233582684e-07
+    },
+    {
+      "part": "Sculpted head",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.393499851203075e-06
+    },
+    {
+      "part": "Sculpted head",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.9999763217537953e-06
+    },
+    {
+      "part": "Sculpted head",
+      "action": "read",
+      "frame": 1,
+      "maxError": 7.126901510889225e-07
+    },
+    {
+      "part": "Shaped shoe",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.1750474866159543e-07
+    },
+    {
+      "part": "Shaped shoe",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.2168683903175542e-07
+    },
+    {
+      "part": "Shaped shoe",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.2598935129575286e-07
+    },
+    {
+      "part": "Shaped shoe.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.1770701235074778e-07
+    },
+    {
+      "part": "Shaped shoe.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 1.0466390740561279e-07
+    },
+    {
+      "part": "Shaped shoe.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.4116854982152541e-07
+    },
+    {
+      "part": "Shirt lower hem",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 5.263485674557713e-07
+    },
+    {
+      "part": "Shirt lower hem",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 5.169607863771881e-07
+    },
+    {
+      "part": "Shirt lower hem",
+      "action": "read",
+      "frame": 1,
+      "maxError": 5.328669945008949e-07
+    },
+    {
+      "part": "Tailored trouser leg",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.2812834126052253e-07
+    },
+    {
+      "part": "Tailored trouser leg",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 2.1684754330263155e-07
+    },
+    {
+      "part": "Tailored trouser leg",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.2594085350875117e-07
+    },
+    {
+      "part": "Tailored trouser leg.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.2799904555863665e-07
+    },
+    {
+      "part": "Tailored trouser leg.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.1848029747245613e-07
+    },
+    {
+      "part": "Tailored trouser leg.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.2410414751553497e-07
+    },
+    {
+      "part": "Trouser hem",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.5704013856358092e-07
+    },
+    {
+      "part": "Trouser hem",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 5.7758248752451064e-08
+    },
+    {
+      "part": "Trouser hem",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.9230297552889273e-07
+    },
+    {
+      "part": "Trouser hem.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.569357943109369e-07
+    },
+    {
+      "part": "Trouser hem.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 7.014200711050141e-08
+    },
+    {
+      "part": "Trouser hem.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 1.8340820258068782e-07
+    },
+    {
+      "part": "Trouser hip bridge",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 4.560853918692213e-07
+    },
+    {
+      "part": "Trouser hip bridge",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 4.879227254550917e-07
+    },
+    {
+      "part": "Trouser hip bridge",
+      "action": "read",
+      "frame": 1,
+      "maxError": 3.927534506969831e-07
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.2795877717359865e-06
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.32647294584367e-07
+    },
+    {
+      "part": "Turned sleeve cuff",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.3837902997203594e-07
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "action": "idle",
+      "frame": 1,
+      "maxError": 1.27950889665036e-06
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "action": "walk",
+      "frame": 4,
+      "maxError": 3.318456266559187e-07
+    },
+    {
+      "part": "Turned sleeve cuff.001",
+      "action": "read",
+      "frame": 1,
+      "maxError": 2.7049497823571565e-07
+    }
+  ],
+  "operators": {
+    "Collar stand": {
+      "restError": 9.5367431640625e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 72,
+      "surfaceVertices": 241
+    },
+    "Fitted rounded shoe sole": {
+      "restError": 8.195638656616211e-08,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 1346
+    },
+    "Fitted rounded shoe sole.001": {
+      "restError": 8.195638656616211e-08,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 1346
+    },
+    "Forearm with elbow and wrist sections": {
+      "restError": 1.3113021850585938e-06,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 120,
+      "surfaceVertices": 1730
+    },
+    "Forearm with elbow and wrist sections.001": {
+      "restError": 1.3113021850585938e-06,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 120,
+      "surfaceVertices": 1730
+    },
+    "Natural neck": {
+      "restError": 1.5497207641601562e-06,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 72,
+      "surfaceVertices": 962
+    },
+    "Overshirt body": {
+      "restError": 6.556510925292969e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 216,
+      "surfaceVertices": 3217
+    },
+    "Relaxed shirt sleeve": {
+      "restError": 1.3113021850585938e-06,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 120,
+      "surfaceVertices": 1730
+    },
+    "Relaxed shirt sleeve.001": {
+      "restError": 1.3113021850585938e-06,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 120,
+      "surfaceVertices": 1730
+    },
+    "Sculpted head": {
+      "restError": 1.6689300537109375e-06,
+      "rowSumError": 7.152557373046875e-07,
+      "cageVertices": 400,
+      "surfaceVertices": 6082
+    },
+    "Shaped shoe": {
+      "restError": 1.9371509552001953e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 120,
+      "surfaceVertices": 1730
+    },
+    "Shaped shoe.001": {
+      "restError": 1.9371509552001953e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 120,
+      "surfaceVertices": 1730
+    },
+    "Shirt lower hem": {
+      "restError": 5.960464477539062e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 338
+    },
+    "Tailored trouser leg": {
+      "restError": 6.556510925292969e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 168,
+      "surfaceVertices": 2498
+    },
+    "Tailored trouser leg.001": {
+      "restError": 6.556510925292969e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 168,
+      "surfaceVertices": 2498
+    },
+    "Trouser hem": {
+      "restError": 1.4901161193847656e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 338
+    },
+    "Trouser hem.001": {
+      "restError": 1.4901161193847656e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 338
+    },
+    "Trouser hip bridge": {
+      "restError": 5.960464477539062e-07,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 1346
+    },
+    "Turned sleeve cuff": {
+      "restError": 1.0728836059570312e-06,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 338
+    },
+    "Turned sleeve cuff.001": {
+      "restError": 1.0728836059570312e-06,
+      "rowSumError": 2.384185791015625e-07,
+      "cageVertices": 96,
+      "surfaceVertices": 338
+    }
+  }
+}

@@ -1,0 +1,165 @@
+
+> build
+> vite build
+
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 353 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/save-worker-BUAmGpzQ.js                     2.20 kB
+dist/assets/parts-CxynVTK1.json                         5.24 kB │ gzip:     1.53 kB
+dist/assets/parts-Cb07Tv8m.json                         6.13 kB │ gzip:     1.59 kB
+dist/assets/parts-pkTYKsUi.json                         6.21 kB │ gzip:     1.51 kB
+dist/assets/parts-lOikkpb8.json                         6.50 kB │ gzip:     1.55 kB
+dist/assets/runtime.normalRanges-C1P354iI.bin           6.74 kB
+dist/assets/runtime.stencilWeights-BrL8SpGq.bin         6.74 kB
+dist/assets/parts-CUuVVtLo.json                         6.90 kB │ gzip:     1.45 kB
+dist/assets/parts-CmZJAJxK.json                         7.02 kB │ gzip:     1.58 kB
+dist/assets/parts-DAptVVcs.json                         7.36 kB │ gzip:     1.59 kB
+dist/assets/parts-DMwK_aN7.json                         7.55 kB │ gzip:     1.75 kB
+dist/assets/parts-eQgHqltV.json                         7.78 kB │ gzip:     1.79 kB
+dist/assets/parts-JZ7HBr7H.json                         8.75 kB │ gzip:     1.89 kB
+dist/assets/parts-Czuh4jCg.json                         9.98 kB │ gzip:     1.87 kB
+dist/assets/parts-DxG5SUrm.json                        10.55 kB │ gzip:     2.18 kB
+dist/assets/runtime.normalRanges-DIWRHGbb.bin          12.16 kB
+dist/assets/runtime.stencilWeights-DQuALifC.bin        12.16 kB
+dist/assets/parts-BDAc8Ltn.json                        13.32 kB │ gzip:     2.12 kB
+dist/assets/runtime.stencilRanges-iOuvvzgK.bin         13.48 kB
+dist/assets/parts-ClfaDekF.json                        14.97 kB │ gzip:     2.24 kB
+dist/assets/runtime.normalRanges-BnodGIfh.bin          15.50 kB
+dist/assets/runtime.stencilWeights-Pew3Sgnb.bin        15.50 kB
+dist/assets/parts-cCL_T-zt.json                        15.73 kB │ gzip:     2.56 kB
+dist/assets/runtime.normalRanges-Bx9jZ4QM.bin          15.80 kB
+dist/assets/runtime.stencilWeights-ca7isEso.bin        15.80 kB
+dist/assets/parts-DuP2qlxG.json                        16.10 kB │ gzip:     2.78 kB
+dist/assets/runtime.normalRanges-CXTcR62j.bin          17.02 kB
+dist/assets/runtime.stencilWeights-D_8ro98k.bin        17.02 kB
+dist/assets/parts-BkPICVK0.json                        18.47 kB │ gzip:     2.84 kB
+dist/assets/runtime.indices-DUsEwddA.bin               18.51 kB
+dist/assets/runtime.normalTriangles-B8pzrtCi.bin       18.51 kB
+dist/assets/runtime.normalRanges-C1g9wwz_.bin          24.06 kB
+dist/assets/runtime.stencilWeights-DuzRWlu_.bin        24.06 kB
+dist/assets/runtime.stencilRanges-BMZKf7OG.bin         24.32 kB
+dist/assets/parts-CTiZoJOF.json                        30.44 kB │ gzip:     2.73 kB
+dist/assets/runtime.stencilRanges-BCyLCC3h.bin         31.00 kB
+dist/assets/runtime.normalRanges-ChQIuyJx.bin          31.26 kB
+dist/assets/runtime.stencilWeights--8l-QbYp.bin        31.26 kB
+dist/assets/runtime.stencilRanges-DiK6Fjty.bin         31.61 kB
+dist/assets/runtime.normalRanges-CZrnanYJ.bin          32.52 kB
+dist/assets/runtime.stencilWeights-CmJWShKC.bin        32.52 kB
+dist/assets/runtime.stencilRanges-WeWVHPaV.bin         34.04 kB
+dist/assets/runtime.indices-BYhcgm-x.bin               36.00 kB
+dist/assets/runtime.normalTriangles-DwDBBy-g.bin       36.00 kB
+dist/assets/runtime.indices-CkbMqlEL.bin               38.78 kB
+dist/assets/runtime.normalTriangles-C--27M86.bin       38.78 kB
+dist/assets/runtime.normalRanges-Bb-7_DYL.bin          38.91 kB
+dist/assets/runtime.stencilWeights-DMvdqcMw.bin        38.91 kB
+dist/assets/runtime.indices-8esNp-vO.bin               46.80 kB
+dist/assets/runtime.normalTriangles-BDqOakhW.bin       46.80 kB
+dist/assets/runtime.stencilRanges-BUk_CR2R.bin         48.12 kB
+dist/assets/runtime.normalRanges-2FNzC--n.bin          49.84 kB
+dist/assets/runtime.stencilWeights-Ct6iNRWl.bin        49.84 kB
+dist/assets/runtime.indices-DmkjeUP4.bin               50.40 kB
+dist/assets/runtime.normalTriangles-D7eIhXJJ.bin       50.40 kB
+dist/assets/runtime.normalRanges-BEgxdkDu.bin          50.64 kB
+dist/assets/runtime.stencilWeights-CkPSn_cq.bin        50.64 kB
+dist/assets/runtime.cage-BPNX_Bs6.bin                  53.95 kB
+dist/assets/runtime.vertices-h9NIsCvS.bin              53.95 kB
+dist/assets/runtime.normalRanges-Ds1snF1A.bin          55.42 kB
+dist/assets/runtime.stencilWeights-DHaB4SBu.bin        55.42 kB
+dist/index.html                                        60.19 kB │ gzip:    14.07 kB
+dist/assets/runtime.stencilRanges-BjO_Eyqp.bin         62.52 kB
+dist/assets/runtime.stencilRanges-10QvEBqa.bin         65.05 kB
+dist/changelog/index.html                              66.75 kB │ gzip:    16.89 kB
+dist/assets/runtime.normalRanges-B7v4_hOh.bin          71.36 kB
+dist/assets/runtime.stencilWeights-DvTM8vUd.bin        71.36 kB
+dist/assets/runtime.indices-CLhDfo7T.bin               71.85 kB
+dist/assets/runtime.normalTriangles-BnXgPeLz.bin       71.85 kB
+dist/assets/runtime.stencilRanges-qZqO4ceo.bin         77.82 kB
+dist/assets/runtime.indices-CtwjjPIo.bin               89.18 kB
+dist/assets/runtime.normalTriangles-k585Bh2Y.bin       89.18 kB
+dist/assets/runtime.indices-DIamPoj0.bin               91.58 kB
+dist/assets/runtime.normalTriangles-SkzUPkwL.bin       91.58 kB
+dist/assets/runtime.cage-Cdv2_ypI.bin                  97.28 kB
+dist/assets/runtime.vertices-BIVHVyjw.bin              97.28 kB
+dist/assets/runtime.stencilRanges-sdk9fCQL.bin         99.68 kB
+dist/assets/runtime.stencilRanges-DEi5eStW.bin        101.28 kB
+dist/assets/runtime.stencilRanges-CadKfBAx.bin        110.84 kB
+dist/assets/runtime.indices-BMZpZR5E.bin              115.20 kB
+dist/assets/runtime.normalTriangles-DxhbkTaK.bin      115.20 kB
+dist/assets/runtime.cage-0P_SAPZI.bin                 124.03 kB
+dist/assets/runtime.vertices-Ban4dnXu.bin             124.03 kB
+dist/assets/runtime.normalRanges-CtIovlCN.bin         124.86 kB
+dist/assets/runtime.stencilWeights-f9Df20FO.bin       124.86 kB
+dist/assets/runtime.cage-D6hvoSmf.bin                 126.46 kB
+dist/assets/runtime.vertices-BWkMOQwJ.bin             126.46 kB
+dist/assets/runtime.normalRanges-C4Ip9rMq.bin         134.96 kB
+dist/assets/runtime.stencilWeights-CMasaypd.bin       134.96 kB
+dist/assets/runtime.cage-CVooRTz8.bin                 136.19 kB
+dist/assets/runtime.cage-DdSoq6qq.bin                 136.19 kB
+dist/assets/runtime.vertices-CI5sqHnX.bin             136.19 kB
+dist/assets/runtime.vertices-DtvG45Fx.bin             136.19 kB
+dist/assets/runtime.stencilRanges-CUnfWUaX.bin        142.72 kB
+dist/assets/runtime.indices-D6VYAKjc.bin              147.81 kB
+dist/assets/runtime.normalTriangles-DitPThSI.bin      147.81 kB
+dist/assets/runtime.indices-ZzgU-J9B.bin              150.57 kB
+dist/assets/runtime.normalTriangles-BoRaOARq.bin      150.57 kB
+dist/assets/runtime.indices-Br89ELVp.bin              164.85 kB
+dist/assets/runtime.normalTriangles-DgdlMwhn.bin      164.85 kB
+dist/assets/runtime.cage-DBS31bmG.bin                 192.51 kB
+dist/assets/runtime.vertices-BKHOXhnk.bin             192.51 kB
+dist/assets/runtime.indices-BfQyzCr4.bin              212.40 kB
+dist/assets/runtime.normalTriangles-BxL9CjJc.bin      212.40 kB
+dist/assets/runtime.stencilRanges-BpZiAt6E.bin        249.72 kB
+dist/assets/runtime.cage-B1qnV-tt.bin                 250.11 kB
+dist/assets/runtime.vertices-Dr73xjjh.bin             250.11 kB
+dist/assets/runtime.cage-Dhw79FRU.bin                 260.22 kB
+dist/assets/runtime.vertices-7tLkIoXl.bin             260.22 kB
+dist/assets/runtime.stencilRanges-CED-sOmU.bin        269.92 kB
+dist/assets/runtime.cage-B0-m5cBW.bin                 311.29 kB
+dist/assets/runtime.cage-BuGovt_O.bin                 311.29 kB
+dist/assets/runtime.vertices-CXYLGymF.bin             311.29 kB
+dist/assets/runtime.vertices-nxHb3Efm.bin             311.29 kB
+dist/assets/runtime.indices-BPGl_lvZ.bin              372.96 kB
+dist/assets/runtime.normalTriangles-BpVGSOHo.bin      372.96 kB
+dist/assets/runtime.indices-C_ut2vX_.bin              392.59 kB
+dist/assets/runtime.normalTriangles-DUvI4NDY.bin      392.59 kB
+dist/assets/runtime.cage-C_TDWAls.bin                 398.72 kB
+dist/assets/runtime.vertices-DJACI6Dj.bin             398.72 kB
+dist/assets/runtime.cage-Dmg8HxPN.bin                 405.12 kB
+dist/assets/runtime.vertices-CVQ-pyiw.bin             405.12 kB
+dist/assets/runtime.cage-DXuPMack.bin                 443.39 kB
+dist/assets/runtime.vertices-CRaRh20a.bin             443.39 kB
+dist/assets/runtime.normalRanges-DnOG-25j.bin         506.75 kB
+dist/assets/runtime.stencilWeights-Dz7KAPG7.bin       506.75 kB
+dist/assets/runtime.cage-w92svHoF.bin                 570.88 kB
+dist/assets/runtime.vertices-CKDbJG4_.bin             570.88 kB
+dist/assets/runtime.normalRanges-DcmvsV0u.bin         972.28 kB
+dist/assets/runtime.cage-CVLC8BYl.bin                 998.91 kB
+dist/assets/runtime.vertices-DbVfunKo.bin             998.91 kB
+dist/assets/runtime.stencilRanges-rTBGQ8fV.bin      1,013.50 kB
+dist/assets/runtime.cage-B_6tkHWt.bin               1,058.17 kB
+dist/assets/runtime.vertices-CrUP1KLt.bin           1,079.68 kB
+dist/assets/runtime.indices-Cj6kXsJw.bin            1,498.89 kB
+dist/assets/runtime.normalTriangles-DgxvESjS.bin    1,498.89 kB
+dist/assets/runtime.stencilRanges-DBUpC0XY.bin      1,944.57 kB
+dist/assets/runtime.indices-Doj0POSU.bin            2,764.70 kB
+dist/assets/runtime.normalTriangles-BrWmeRJp.bin    2,764.70 kB
+dist/assets/runtime.cage-BBxUCCwR.bin               3,954.11 kB
+dist/assets/runtime.cage-BGf54hXF.bin               4,054.01 kB
+dist/assets/runtime.vertices-BJzLd4Sd.bin           4,054.01 kB
+dist/assets/surface-depth-C6ho27Ui.rgba             4,849.66 kB
+dist/assets/terri_wasm_bg-CxGuA6y4.wasm             5,079.21 kB │ gzip: 1,671.08 kB
+dist/assets/runtime.vertices-CrH32YQT.bin           7,778.30 kB
+dist/assets/runtime.stencilWeights-DaNu8TK8.bin    11,993.84 kB
+dist/assets/index-DBUvhK7l.css                         27.30 kB │ gzip:     5.86 kB
+dist/assets/index-pjF9n0Ig.js                     107,987.58 kB │ gzip: 5,337.45 kB
+
+[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugin `vite:asset`. See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 17.14s

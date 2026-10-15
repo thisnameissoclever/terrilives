@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/frame.test.ts -t separates eligible person annotations
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 112 skipped (113)
+   Start at  14:02:55
+   Duration  18.33s (transform 11.35s, setup 0ms, import 18.21s, tests 6ms, environment 0ms)
+

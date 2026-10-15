@@ -493,7 +493,8 @@ describe('sampleSimAudioAfterTick', () => {
   });
 
   it('uses the aligned stable-id column without a rebuild or identity query', () => {
-    expect(MAIN).not.toMatch(/footstepIdentities|simIdOf/);
+    expect(MAIN).not.toMatch(/footstepIdentities/);
+    // Stable identity checks in input and editing are separate from per-tick audio sampling.
     expect(SOURCE).toMatch(/const simIds = source\.simIds\(\)/);
     expect(SOURCE).not.toMatch(/simIdOf|FootstepIdentityLookup/);
   });

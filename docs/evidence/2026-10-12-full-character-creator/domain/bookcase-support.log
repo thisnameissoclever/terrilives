@@ -1,0 +1,158 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-clips.test.ts (23 tests | 1 failed | 22 skipped) 5549ms
+   × solves bookcase clips at proof endpoints and independent body corners 5548ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-clips.test.ts > solves bookcase clips at proof endpoints and independent body corners
+AssertionError: expected [ …(124) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "fetch_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_18.",
++   "fetch_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "fetch_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f0: Error: Configured contacts are unreachable for fetch_23.",
++   "shelve_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_18 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_18.",
++   "shelve_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 masculine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":0} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":0,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":100,\"shoulders\":0,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":100} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":0,\"shoulders\":0,\"hips\":0,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":50,\"shoulders\":50,\"hips\":50,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_23.",
++   "shelve_23 feminine {\"height\":0,\"build\":100,\"shoulders\":100,\"hips\":100,\"torso\":50} f2: Error: Configured contacts are unreachable for shelve_23.",
++ ]
+
+ ❯ tests/character-clips.test.ts:46:20
+     44|       }
+     45|     }
+     46|   expect(failures).toEqual([]);
+       |                    ^
+     47| },60000);
+     48|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 skipped (23)
+   Start at  21:53:41
+   Duration  5.80s (transform 114ms, setup 0ms, import 150ms, tests 5.55s, environment 0ms)
+

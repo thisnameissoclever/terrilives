@@ -1,7 +1,7 @@
 import { initDevice } from '../src/render/device.js';
 import { SpriteRenderer } from '../src/render/sprites.js';
 import { spriteIndex } from '../src/render/atlas.js';
-import { buildInstances, instanceCount, type RenderSource } from '../src/frame.js';
+import { buildInstanceBatch, type RenderSource } from '../src/frame.js';
 import { InteractionSelection } from '../src/render/interaction-sprites.js';
 import type { TileLighting } from '../src/render/lighting.js';
 
@@ -39,8 +39,8 @@ function draw() {
   };
   const selection = new InteractionSelection();
   const lighting: TileLighting = {width:64,height:64,stride:66,values:new Float32Array(66*66).fill(.35)};
-  const instances = buildInstances(source,1,640,0,64,null,scale,false,0,lighting,selection);
-  renderer.draw(instances,instanceCount(source,null),scale,night ? [.3,.35,.5,1] : [1,1,1,1]);
+  const batch = buildInstanceBatch(source,1,640,0,64,null,scale,false,0,lighting,selection);
+  renderer.draw(batch.instances,batch.count,scale,night ? [.3,.35,.5,1] : [1,1,1,1],0,undefined,batch.owners,batch.annotations);
   document.querySelector('#status')!.textContent = `${scale}x; SE / NW / SW / NE; snack / prep + 3 meals / 4 used plates`;
 }
 document.querySelector('#zoom')!.addEventListener('click',()=>{scale=scale===1?2:1;draw();});

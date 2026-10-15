@@ -99,10 +99,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
                 assert_eq!(fun, previous, "completed book work supplies no further Fun");
             }
             held_fun = Some(fun);
-            let snapshot = sim.save_snapshot_v9();
+            let snapshot = sim.save_snapshot_v10();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v9(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v9(), snapshot);
+            loaded.load_snapshot_v10(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v10(), snapshot);
             assert_eq!(loaded.world_hash(), sim.world_hash());
         }
         if stage(&sim, person) == Some(ReadingStage::Read)
@@ -118,10 +118,10 @@ fn communal_reading_keeps_completed_book_company_without_repeating_earnings() {
             );
         }
         if saw_completed_hold && stage(&sim, person) == Some(ReadingStage::Return) {
-            let snapshot = sim.save_snapshot_v9();
+            let snapshot = sim.save_snapshot_v10();
             let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-            loaded.load_snapshot_v9(snapshot.clone()).unwrap();
-            assert_eq!(loaded.save_snapshot_v9(), snapshot);
+            loaded.load_snapshot_v10(snapshot.clone()).unwrap();
+            assert_eq!(loaded.save_snapshot_v10(), snapshot);
             break;
         }
     }
@@ -204,10 +204,10 @@ fn paused_cancellation_of_incoming_reader_finishes_held_company_and_keeps_a_vali
     );
     sim.flush_commands();
     assert_ne!(stage(&sim, person), Some(ReadingStage::Read));
-    let saved = sim.save_snapshot_v9();
+    let saved = sim.save_snapshot_v10();
     let mut loaded = Sim::new_with_lot_and_content(20, 20, Content(pack));
-    loaded.load_snapshot_v9(saved.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v9(), saved);
+    loaded.load_snapshot_v10(saved.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v10(), saved);
     assert_eq!(
         sim.reading_progress(person.index_u32(), &title)
             .unwrap()
@@ -465,25 +465,25 @@ fn reading_journey_each_stage_roundtrips_and_bad_state_rolls_back() {
         ReadingStage::Shelve,
     ] {
         until(&mut sim, p, stage);
-        let saved = sim.save_snapshot_v9();
+        let saved = sim.save_snapshot_v10();
         let hash = sim.world_hash();
-        sim.load_snapshot_v9(saved.clone())
+        sim.load_snapshot_v10(saved.clone())
             .unwrap_or_else(|e| panic!("{stage:?}: {e:?}"));
-        assert_eq!(sim.save_snapshot_v9(), saved);
+        assert_eq!(sim.save_snapshot_v10(), saved);
         assert_eq!(sim.world_hash(), hash);
         let mut bad = saved.clone();
         bad.legacy.reading[0].copy = BookCopyId(999);
-        assert!(sim.load_snapshot_v9(bad).is_err());
-        assert_eq!(sim.save_snapshot_v9(), saved);
+        assert!(sim.load_snapshot_v10(bad).is_err());
+        assert_eq!(sim.save_snapshot_v10(), saved);
         assert_eq!(sim.world_hash(), hash);
         let mut unearned = saved.clone();
         unearned.legacy.reading[0].earned_satisfaction = 10.0;
-        assert!(sim.load_snapshot_v9(unearned).is_err());
-        assert_eq!(sim.save_snapshot_v9(), saved);
+        assert!(sim.load_snapshot_v10(unearned).is_err());
+        assert_eq!(sim.save_snapshot_v10(), saved);
         let mut bad = saved.clone();
         bad.legacy.reading.clear();
-        assert!(sim.load_snapshot_v9(bad).is_err());
-        assert_eq!(sim.save_snapshot_v9(), saved);
+        assert!(sim.load_snapshot_v10(bad).is_err());
+        assert_eq!(sim.save_snapshot_v10(), saved);
     }
 }
 #[test]

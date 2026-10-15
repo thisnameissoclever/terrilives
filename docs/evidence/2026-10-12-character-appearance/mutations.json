@@ -1,0 +1,82 @@
+[
+  {
+    "name": "parameter",
+    "command": "node assets/models/sims/appearance-proof/verify-browser.cjs --quick",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "029a76c6cd118ad1d5fee6e9b915a08b4495057102da90dbe36b32b59efe3408",
+    "exactRestoration": true
+  },
+  {
+    "name": "locks",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-appearance.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "850ab15ecc037c574c635e61178cc999283a37ff09aa5ea842b8fccf9e998ae7",
+    "exactRestoration": true
+  },
+  {
+    "name": "depth",
+    "command": "node assets/models/sims/appearance-proof/verify-browser.cjs --quick",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "365d6677b4ce9a625df0347664d93850547973ee72bee3bfa2511993c7076e37",
+    "exactRestoration": true
+  },
+  {
+    "name": "reload",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/character-appearance.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "850ab15ecc037c574c635e61178cc999283a37ff09aa5ea842b8fccf9e998ae7",
+    "exactRestoration": true
+  },
+  {
+    "name": "world_picking",
+    "command": "node assets/models/sims/appearance-proof/verify_motion.cjs --quick",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "2c354c52df12649dd18011128fe4c8bddabd8dc6fd42e59c05c3314348d00429",
+    "exactRestoration": true
+  },
+  {
+    "name": "standing_endpoint",
+    "command": "npm --prefix web test -- --maxWorkers=1 character-motion.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "69078d57ab3b2499b3b2d7386eebb1674a59674f87f21f8379bc85e1da2e19e4",
+    "exactRestoration": true
+  },
+  {
+    "name": "continuous_walk",
+    "command": "npm --prefix web test -- --maxWorkers=1 character-motion.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "69078d57ab3b2499b3b2d7386eebb1674a59674f87f21f8379bc85e1da2e19e4",
+    "exactRestoration": true
+  },
+  {
+    "name": "cleanup",
+    "command": "node assets/models/sims/appearance-proof/verify_motion.cjs --quick",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "029a76c6cd118ad1d5fee6e9b915a08b4495057102da90dbe36b32b59efe3408",
+    "exactRestoration": true
+  },
+  {
+    "name": "book_grip",
+    "command": "npm --prefix web test -- --maxWorkers=1 character-motion.test.ts -t \"keeps both wrist grips\"",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "2c0e6ac55fc19ab18ed2aff40ca04ad02761e8722df82288f0637c1f9f5a94ff",
+    "exactRestoration": true
+  },
+  {
+    "name": "invalid_storage",
+    "command": "npm --prefix web test -- --maxWorkers=1 character-draft-storage.test.ts",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "53e6a49cc7b1c862dcab27a7aef5f37ae7f83b7b5556fd8ed9e7dccadbd1a928",
+    "exactRestoration": true
+  }
+]

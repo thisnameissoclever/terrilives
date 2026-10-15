@@ -1,0 +1,120 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/fixture-depth.test.ts (65 tests | 2 failed) 8749ms
+   × verifies immutable source web/public/atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png 3ms
+   × verifies immutable source web/public/atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png 0ms
+ ❯ tests/bridge.test.ts (55 tests | 3 failed) 3364ms
+     × loads the published V8 game save and continues through a current save 156ms
+     × saves, restores and continues through the release wasm bridge 163ms
+     × restores the explicit empty edge layout without falling back to current or legacy walls 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > loads the published V8 game save and continues through a current save
+AssertionError: expected 10 to be 9 // Object.is equality
+
+- Expected
++ Received
+
+- 9
++ 10
+
+ ❯ tests/bridge.test.ts:44:26
+     42|       for (let tick = 0; tick < 60; tick++) first.tick();
+     43|       const current = first.saveBytes();
+     44|       expect(current[8]).toBe(9);
+       |                          ^
+     45|       expect(restored.loadBytes(current)).toBe(true);
+     46|       expect(restored.worldHash()).toBe(first.worldHash());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > saves, restores and continues through the release wasm bridge
+AssertionError: expected [ Array(10) ] to deeply equal [ Array(10) ]
+
+- Expected
++ Received
+
+@@ -5,8 +5,8 @@
+    82,
+    73,
+    83,
+    65,
+    86,
+-   9,
++   10,
+    0,
+  ]
+
+ ❯ tests/bridge.test.ts:918:44
+    916|     const before = original.worldHash();
+    917|     const bytes = original.saveBytes();
+    918|     expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73…
+       |                                            ^
+    919|     const expectedEdges = original.wallEdges()!.slice();
+    920|     expect(expectedEdges).toHaveLength((34 + 28) * 4);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/bridge.test.ts > SimBridge > restores the explicit empty edge layout without falling back to current or legacy walls
+AssertionError: expected [ Array(10) ] to deeply equal [ Array(10) ]
+
+- Expected
++ Received
+
+@@ -5,8 +5,8 @@
+    82,
+    73,
+    83,
+    65,
+    86,
+-   9,
++   10,
+    0,
+  ]
+
+ ❯ tests/bridge.test.ts:940:50
+    938|     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    939|     const legacyCells = blank.saveBytes();
+    940|     expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, …
+       |                                                  ^
+    941|     // The current V5 prefix contains SavedLayout, the empty facing li…
+    942|     // retired-index list ([SL-save]) and the empty colourway list
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/fixture-depth.test.ts > verifies immutable source web/public/atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png
+Error: ENOENT: no such file or directory, open 'D:\VIBES\.worktrees\5637\terrilives\web\public\atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png'
+ ❯ tests/fixture-depth.test.ts:35:16
+     33| it.each(pageCases)('verifies immutable $folder/$record.path bytes',({f…
+     34| it.each([...sourceHashes])('verifies immutable source %s',(path,sha)=>{
+     35|  expect(digest(readFileSync(new URL('../../'+path,import.meta.url)))).…
+       |                ^
+     36| });
+     37| it('binds all completed companion pages to valid appended atlas record…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/fixture-depth.test.ts > verifies immutable source web/public/atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png
+Error: ENOENT: no such file or directory, open 'D:\VIBES\.worktrees\5637\terrilives\web\public\atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png'
+ ❯ tests/fixture-depth.test.ts:35:16
+     33| it.each(pageCases)('verifies immutable $folder/$record.path bytes',({f…
+     34| it.each([...sourceHashes])('verifies immutable source %s',(path,sha)=>{
+     35|  expect(digest(readFileSync(new URL('../../'+path,import.meta.url)))).…
+       |                ^
+     36| });
+     37| it('binds all completed companion pages to valid appended atlas record…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed | 245 passed (247)
+      Tests  5 failed | 3244 passed (3249)
+   Start at  15:11:58
+   Duration  478.97s (transform 22.29s, setup 1.37s, import 76.65s, tests 372.86s, environment 13ms)
+

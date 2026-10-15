@@ -1,0 +1,156 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.07s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-d9424414bfa066c7.exe)
+
+running 142 tests
+test appearance::tests::appearance_accepts_all_slider_endpoints_and_rejects_unknown_assets ... ok
+test appearance::tests::appearance_is_lossless_data_without_behavior_fields ... ok
+test appearance::tests::exact_float_values_preserve_signed_zero_and_reject_non_finite_inputs ... ok
+test books::tests::saving_preserves_copy_home_claims_and_title_memory_separately ... ok
+test character::tests::draft_rejects_duplicate_routes_and_non_finite_behavior_before_application ... ok
+test character::tests::wire_round_trip_keeps_custom_values_and_distinguishes_omitted_fields ... ok
+test clock::tests::clock_starts_at_zero ... ok
+test clock::tests::hour_boundary_is_true_only_on_multiples_of_the_sim_hour ... ok
+test clock::tests::sixty_ticks_is_one_sim_hour ... ok
+test clock::tests::weekday_counts_whole_days_of_any_length ... ok
+test command::bed_assignment_wire_tests::set_and_clear_bed_assignment_keep_wire_code_nineteen ... ok
+test command::book_wire_test::owned_book_command_appends_after_all_published_chore_commands ... ok
+test command::edit_wire_tests::edit_housemate_appends_wire_code_22_with_every_field ... ok
+test command::edit_wire_tests::keep_personality_and_no_ties_encode_as_zero_markers ... ok
+test command::instinct_wire_tests::self_preservation_extended_move_in_appends_wire_code_18 ... ok
+test command::targeted_cleanup_wire_tests::cleanup_commands_append_codes_twenty_three_and_twenty_four ... ok
+test command::tests::command_encoding_is_pinned_by_a_golden_byte_vector ... ok
+test command::tests::commands_round_trip_through_postcard ... ok
+test command::tests::the_queue_drains_in_order_and_empties ... ok
+test command::window_wire_tests::chore_commands_append_pinned_tags_without_moving_published_commands ... ok
+test command::window_wire_tests::fit_command_rejects_unknown_stored_model_tag ... ok
+test command::window_wire_tests::later_historical_live_commands_keep_complete_golden_vectors ... ok
+test command::window_wire_tests::window_commands_append_tags_and_preserve_every_required_field ... ok
+test components::identity_tests::a_disposition_reads_back_by_its_own_key_and_unlisted_reads_neutral ... ok
+test components::identity_tests::a_neutral_personality_is_all_ones_everywhere ... ok
+test components::identity_tests::a_resumed_allocator_matches_one_that_issued_as_many ... ok
+test components::identity_tests::a_stranger_reads_zero_and_bumps_clamp_at_both_ends ... ok
+test components::identity_tests::relationship_entries_are_key_sorted_regardless_of_meeting_order ... ok
+test components::identity_tests::relationships_decay_toward_zero_from_both_sides_and_spent_entries_drop ... ok
+test components::identity_tests::sim_ids_are_issued_in_order_and_never_repeat ... ok
+test components::intent_queue_tests::an_empty_queue_pops_nothing_rather_than_panicking ... ok
+test components::intent_queue_tests::an_intent_carries_its_own_interaction_index_rather_than_a_shared_one ... ok
+test components::intent_queue_tests::clear_empties_a_queue_that_was_not_empty ... ok
+test components::intent_queue_tests::from_intents_preserves_the_order_it_was_given ... ok
+test components::intent_queue_tests::pop_back_removes_the_last_intent_and_leaves_the_front_alone ... ok
+test components::intent_queue_tests::pop_removes_the_front_so_intents_are_served_in_the_order_issued ... ok
+test components::intent_queue_tests::push_front_makes_the_new_intent_the_next_one_served_and_keeps_the_rest_in_order ... ok
+test components::intent_queue_tests::remove_first_takes_the_matching_intent_wherever_it_sits_and_only_one_copy ... ok
+test components::order_identity_tests::all_mutators_keep_remaining_metadata_and_allocator ... ok
+test components::order_identity_tests::exact_title_orders_survive_mutators_and_never_reuse_ids ... ok
+test components::order_identity_tests::exhausted_allocator_refuses_without_mutation ... ok
+test components::satisfaction_tests::clamps_both_ends ... ok
+test components::satisfaction_tests::converts_authored_reward_units ... ok
+test components::satisfaction_tests::restores_exact_values_and_saturates_historical_totals_idempotently ... ok
+test components::satisfaction_tests::starts_neutral ... ok
+test facing::tests::a_code_round_trips_and_a_code_past_the_last_facing_is_refused ... ok
+test facing::tests::an_axis_rotates_exactly_as_an_offset_does ... ok
+test facing::tests::an_offset_rotates_a_quarter_turn_per_facing_step ... ok
+test facing::tests::facing_codes_are_pinned ... ok
+test facing::tests::four_quarter_turns_visit_every_facing_in_order_and_return ... ok
+test facing::tests::only_the_two_side_facings_swap_a_footprint ... ok
+test facing::tests::suffixes_are_the_authored_spellings_and_round_trip ... ok
+test grid::distance_tests::exact_distance_rejects_blocked_unreachable_and_outside_tiles ... ok
+test grid::edge_tests::adjacent_astar_and_fields_reject_contact_through_a_solid_boundary ... ok
+test grid::edge_tests::crossings_ignore_occupancy_but_steps_and_interaction_approaches_do_not ... ok
+test grid::edge_tests::distance_fields_match_adjacent_astar_for_every_small_boundary_layout ... ok
+test grid::edge_tests::edge_barriers_are_symmetric_and_leave_both_cells_walkable ... ok
+test grid::edge_tests::edge_slots_reject_negative_coordinates_independently_of_unsigned_bounds ... ok
+test grid::edge_tests::edge_snapshots_are_canonical_and_distance_fields_retain_their_boundaries ... ok
+test grid::edge_tests::invalid_boundary_pairs_are_not_crossable_and_cannot_be_set ... ok
+test grid::edge_tests::legacy_off_lot_contact_is_not_allowed_when_any_solid_barrier_exists ... ok
+test grid::edge_tests::legacy_off_lot_contact_preserves_adjacent_paths_without_solid_barriers ... ok
+test grid::edge_tests::legacy_off_lot_contact_preserves_distance_fields_without_solid_barriers ... ok
+test grid::edge_tests::rectangular_interactions_use_the_boundary_beside_the_contact_cell ... ok
+test grid::edge_tests::solid_dividers_seal_routes_and_an_open_door_restores_both_directions ... ok
+test grid::segment_tests::a_fractional_replan_returns_to_its_grid_center_before_turning ... ok
+test grid::segment_tests::collinear_segments_cannot_slide_along_the_upper_half_of_a_wall ... ok
+test grid::segment_tests::fractional_replans_require_a_walkable_center_and_an_open_segment_independently ... ok
+test grid::segment_tests::fractional_segments_cannot_cross_solid_edges_or_clip_their_endpoints ... ok
+test grid::tests::a_diagonal_neighbour_is_not_adjacent_enough ... ok
+test grid::tests::a_path_that_starts_on_an_unwalkable_tile_is_none ... ok
+test grid::tests::a_target_with_no_reachable_neighbour_returns_none ... ok
+test grid::tests::adjacent_path_stops_one_step_short_of_the_target ... ok
+test grid::tests::an_agent_already_adjacent_has_an_empty_path ... ok
+test grid::tests::an_agent_on_a_blocked_tile_cannot_path_to_a_neighbour ... ok
+test grid::tests::an_agent_standing_anywhere_on_a_wide_footprint_is_moved_off_it ... ok
+test grid::tests::an_agent_standing_on_the_target_is_moved_off_it ... ok
+test grid::tests::exact_contact_requires_a_reachable_tile_and_an_open_cardinal_boundary ... ok
+test grid::tests::find_path_adjacent_to_tile_targets_one_tile_and_not_a_wider_default ... ok
+test grid::tests::one_distance_field_matches_every_adjacent_astar_length ... ok
+test grid::tests::out_of_bounds_is_not_walkable ... ok
+test grid::tests::path_routes_around_a_wall ... ok
+test grid::tests::path_to_self_is_empty ... ok
+test grid::tests::pathfinding_is_deterministic ... ok
+test grid::tests::set_blocked_rejects_out_of_bounds - should panic ... ok
+test grid::tests::straight_path_on_open_grid ... ok
+test grid::tests::the_adjacent_path_is_stable_across_repeated_queries ... ok
+test grid::tests::the_adjacent_path_is_the_shortest_one_and_not_merely_a_valid_one ... ok
+test grid::tests::the_adjacent_route_among_equally_short_ones_is_pinned ... ok
+test grid::tests::the_chosen_approach_to_a_wide_footprint_is_the_cheapest_to_reach_not_the_nearest_to_its_origin ... ok
+test grid::tests::the_chosen_neighbour_is_the_cheapest_one_to_actually_reach ... ok
+test grid::tests::the_default_footprint_is_one_tile_rather_than_no_tiles ... ok
+test grid::tests::the_heuristic_equals_the_true_cost_on_an_open_grid ... ok
+test grid::tests::the_rectangle_distance_is_zero_inside_the_footprint_and_the_true_cost_outside_it ... ok
+test grid::tests::the_target_itself_need_not_be_walkable ... ok
+test grid::tests::tie_breaking_pins_one_specific_path_among_equals ... ok
+test grid::tests::unreachable_target_returns_none ... ok
+test grid::tests::width_and_height_report_the_constructor_arguments_in_that_order ... ok
+test hash::tests::empty_input_is_the_offset_basis ... ok
+test hash::tests::known_vector_pins_the_fnv1a_constants ... ok
+test hash::tests::non_finite_values_get_distinct_digests ... ok
+test hash::tests::quantization_absorbs_sub_threshold_float_noise ... ok
+test hash::tests::quantization_still_catches_a_visible_difference ... ok
+test hash::tests::write_order_changes_the_digest ... ok
+test layout::tests::a_layout_saved_before_windows_still_decodes ... ok
+test layout::tests::a_line_with_no_record_is_open_and_a_record_is_a_wall_or_a_doorway ... ok
+test layout::tests::a_saved_family_is_refused_when_it_cannot_be_true ... ok
+test layout::tests::a_saved_floor_list_is_refused_when_it_cannot_be_true ... ok
+test layout::tests::a_tie_reads_the_same_from_both_sides ... ok
+test layout::tests::a_window_stops_a_person_and_passes_the_sky ... ok
+test layout::tests::axis_and_state_codes_are_pinned_and_round_trip ... ok
+test layout::tests::edge_coordinates_are_boundaries_with_two_interior_neighbors ... ok
+test layout::tests::family_labels_name_each_relation_from_both_sides ... ok
+test layout::tests::old_layout_vectors_remain_exact_and_v2_projection_does_not_rewrite_storage ... ok
+test layout::tests::the_layout_reads_walls_doorways_and_windows_through_one_door ... ok
+test layout::tests::the_painted_tiles_stay_sorted_and_sparse ... ok
+test layout::tests::typed_layout_tag_fields_and_wall_precedence_are_pinned ... ok
+test needs::tests::all_lists_every_variant_in_index_order ... ok
+test needs::tests::deficit_is_inverse_of_level ... ok
+test needs::tests::each_need_is_independent ... ok
+test needs::tests::names_round_trip_for_every_variant ... ok
+test needs::tests::needs_clamp_to_range ... ok
+test needs::tests::with_sets_one_need_and_leaves_every_other_satisfied ... ok
+test rng::tests::a_frozen_generator_panics_instead_of_spinning_forever - should panic ... ok
+test rng::tests::a_golden_sequence_pins_the_algorithm ... ok
+test rng::tests::a_resumed_rng_continues_the_same_sequence ... ok
+test rng::tests::different_seeds_diverge ... ok
+test rng::tests::next_f32_stays_in_the_unit_interval_and_is_not_constant ... ok
+test rng::tests::range_covers_every_index_and_never_exceeds_the_bound ... ok
+test rng::tests::range_is_uniform_at_a_bound_that_divides_badly_into_2_32 ... ok
+test rng::tests::the_rejection_loop_returns_in_range_on_draws_a_real_generator_produces ... ok
+test rng::tests::the_same_seed_produces_the_same_sequence ... ok
+test save::wire_tests::every_historical_saved_command_keeps_its_golden_vector ... ok
+test save::wire_tests::public_v1_world_record_is_frozen_byte_for_byte ... ok
+test save::wire_tests::public_v2_architecture_record_is_frozen_byte_for_byte ... ok
+test save_v7::tests::old_command_tags_stay_exact_and_new_commands_cannot_decode_as_old ... ok
+test shyness::tests::shyness_bounds_and_modest_boundary_response_are_pinned ... ok
+test shyness::tests::shyness_initial_values_are_stable_varied_and_bounded ... ok
+test windows::tests::checked_span_rejects_overflow_and_deserialization_never_panics ... ok
+test windows::tests::every_model_expands_along_its_axis_with_one_owner ... ok
+test windows::tests::placement_requires_every_field_and_known_model ... ok
+test windows::tests::window_model_ids_widths_and_stored_tags_are_pinned ... ok
+
+test result: ok. 142 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+   Doc-tests terri_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,185 @@
+{
+  "checks": [
+    {
+      "name": "Observer attached to actual application module",
+      "pass": true,
+      "evidence": "http://127.0.0.1:5187/src/ui/character-creator/view.ts?t=1791920161667"
+    },
+    {
+      "name": "First draft traits are between one and four",
+      "pass": true,
+      "evidence": [
+        {
+          "id": "fish_watcher",
+          "state": 0
+        },
+        {
+          "id": "television_averse",
+          "state": 0
+        },
+        {
+          "id": "television_devotee",
+          "state": 0
+        },
+        {
+          "id": "slow_reader",
+          "state": 1058306785
+        }
+      ]
+    },
+    {
+      "name": "Appearance groups start collapsed",
+      "pass": true,
+      "evidence": [
+        {
+          "label": "Colors",
+          "open": false
+        },
+        {
+          "label": "Body",
+          "open": false
+        },
+        {
+          "label": "Style",
+          "open": false
+        },
+        {
+          "label": "Face",
+          "open": false
+        },
+        {
+          "label": "Details",
+          "open": false
+        }
+      ]
+    },
+    {
+      "name": "First Randomize traits are between one and four",
+      "pass": true,
+      "evidence": [
+        {
+          "id": "cooped_up",
+          "state": 1049582633
+        },
+        {
+          "id": "slow_reader",
+          "state": 1058306785
+        },
+        {
+          "id": "television_devotee",
+          "state": 0
+        },
+        {
+          "id": "fish_watcher",
+          "state": 0
+        }
+      ]
+    },
+    {
+      "name": "Trait cap count 0",
+      "pass": true,
+      "evidence": {
+        "note": "0 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 0,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 1",
+      "pass": true,
+      "evidence": {
+        "note": "1 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 1,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 2",
+      "pass": true,
+      "evidence": {
+        "note": "2 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 2,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 3",
+      "pass": true,
+      "evidence": {
+        "note": "3 of 4 traits selected.",
+        "occurrences": 0,
+        "checked": 3,
+        "disabled": 0
+      }
+    },
+    {
+      "name": "Trait cap count 4",
+      "pass": true,
+      "evidence": {
+        "note": "4 of 4 traits selected. Remove a selected trait to make room.",
+        "occurrences": 1,
+        "checked": 4,
+        "disabled": 11
+      }
+    },
+    {
+      "name": "Selected trait remains removable",
+      "pass": true,
+      "evidence": 3
+    },
+    {
+      "name": "Locked field Random is disabled",
+      "pass": true,
+      "evidence": true
+    },
+    {
+      "name": "Section random respects Shyness lock",
+      "pass": true,
+      "evidence": 73
+    },
+    {
+      "name": "Manual gender change keeps name",
+      "pass": true,
+      "evidence": "Ethan"
+    },
+    {
+      "name": "Harness completed",
+      "pass": false,
+      "error": "Error: page.evaluate: TypeError: Failed to resolve module specifier 'undefined'\n    at eval (eval at evaluate (:311:30), <anonymous>:1:170)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "stack": "page.evaluate: TypeError: Failed to resolve module specifier 'undefined'\n    at eval (eval at evaluate (:311:30), <anonymous>:1:170)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at D:\\VIBES\\.worktrees\\5637\\terrilives\\scripts\\character-creator-repair\\final-creator-review.cjs:103:29"
+    }
+  ],
+  "errors": [],
+  "notices": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:5187/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:5187/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "captures": [
+    "01-desktop-first-randomize.png",
+    "02-trait-limit.png",
+    "03-trait-room.png"
+  ]
+}

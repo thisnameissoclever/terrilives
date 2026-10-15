@@ -30,6 +30,17 @@ it('rejects device limits before allocating or fetching any architecture resourc
   expect(fetch).not.toHaveBeenCalled();
 });
 
+it('reserves all five fixed sprite textures before accepting resident pattern textures', () => {
+  const atlas = { color: { width: 2048, height: 3037 }, sprites: ARCHITECTURE.sprites,
+    patterns: Array.from({length:11},()=>({width:1,height:1})) } as unknown as ArchitectureAtlas;
+  expect(() => validateArchitectureDevice(atlas, limits, 1700)).not.toThrow();
+  const twelve = {...atlas,patterns:[...atlas.patterns!,{width:1,height:1} as ImageBitmap]};
+  expect(() => validateArchitectureDevice(twelve, limits, 1700)).toThrow(/sampled/);
+  expect(() => validateArchitectureDevice(twelve, {...limits,maxSampledTexturesPerShaderStage:17},1700)).not.toThrow();
+  const thirteen = {...twelve,patterns:[...twelve.patterns,{width:1,height:1} as ImageBitmap]};
+  expect(() => validateArchitectureDevice(thirteen,{...limits,maxSampledTexturesPerShaderStage:32},1700)).toThrow(/sampled/);
+});
+
 it('closes each decoded image when a later resource fails', async () => {
   const close = vi.fn(); vi.stubGlobal('location', { href: 'http://proof.invalid/' });
   vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 2048, height: 3037, close })));

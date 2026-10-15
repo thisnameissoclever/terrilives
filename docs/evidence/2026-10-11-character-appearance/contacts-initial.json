@@ -1,0 +1,3060 @@
+{
+  "state": "complete",
+  "cases": 72,
+  "passed": 32,
+  "checks": "Runtime triangle crossing/containment, hip-seat minimum gap 0..0.003, inherited sole clearance 0.018..0.020; no tolerance increase",
+  "results": [
+    {
+      "file": "masculine-0-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022494792938232422,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022494792938232422,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022494792938232422,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022494792938232422,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 84
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 187
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 56
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 26
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 84
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 187
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 56
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 26
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 84
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 187
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 56
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 26
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-0-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 82
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 84
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 44
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 187
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 24
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 56
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 26
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022470951080322266,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029855966567993164,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813742041588,
+        "Fitted rounded shoe sole.001": 0.019148098304867744
+      }
+    },
+    {
+      "file": "masculine-50-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029855966567993164,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813742041588,
+        "Fitted rounded shoe sole.001": 0.019148098304867744
+      }
+    },
+    {
+      "file": "masculine-50-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029855966567993164,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813742041588,
+        "Fitted rounded shoe sole.001": 0.019148098304867744
+      }
+    },
+    {
+      "file": "masculine-50-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029855966567993164,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813742041588,
+        "Fitted rounded shoe sole.001": 0.019148098304867744
+      }
+    },
+    {
+      "file": "masculine-50-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 58
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 58
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 58
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-50-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 60
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 38
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 50
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 58
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 38
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003727078437805176,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003727078437805176,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003727078437805176,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003727078437805176,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 45
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 45
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 45
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "masculine-100-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "masculine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "curl",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 45
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 48
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.000372469425201416,
+        "rayHits": 1305
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002257823944091797,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002257823944091797,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002257823944091797,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 160
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 162
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.0002257823944091797,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 170
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 172
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 191
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 18
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 123
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 20
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 28
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 191
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 18
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 123
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 20
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 28
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 191
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 18
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 123
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 20
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 28
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-0-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 0,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm left",
+          "trianglePairs": 40
+        },
+        {
+          "body": "Overshirt body",
+          "fixture": "Arm right",
+          "trianglePairs": 42
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 22
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 191
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Upholstered base",
+          "trianglePairs": 18
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 123
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 186
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Upholstered base",
+          "trianglePairs": 20
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 28
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00022554397583007812,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0002988278865814209,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 109
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 121
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 109
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 121
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 109
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 121
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-50-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 50,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm left",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Shirt lower hem",
+          "fixture": "Arm right",
+          "trianglePairs": 8
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 109
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 114
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 121
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 118
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 104
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 30
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00029858946800231934,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-0-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003718435764312744,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-0-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003718435764312744,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-0-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003718435764312744,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-0-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 0,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.0003718435764312744,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-50-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-50-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-50-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-50-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 50,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": true,
+      "overlaps": [],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1346
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-100-0.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 0,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 100
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 110
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 18
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-100-1.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 1,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 100
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 110
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 18
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-100-2.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 2,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 100
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 110
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 18
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    },
+    {
+      "file": "feminine-100-100-3.bin",
+      "appearance": {
+        "version": 1,
+        "presentation": "feminine",
+        "height": 100,
+        "build": 100,
+        "hairstyle": "bob",
+        "skin": "#be8f6b",
+        "hair": "#65452e",
+        "shirt": "#6b9f9b",
+        "trousers": "#394650",
+        "shoes": "#4c4037"
+      },
+      "frame": 3,
+      "passed": false,
+      "overlaps": [
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Arm right",
+          "trianglePairs": 100
+        },
+        {
+          "body": "Tailored trouser leg",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Arm left",
+          "trianglePairs": 110
+        },
+        {
+          "body": "Tailored trouser leg.001",
+          "fixture": "Seat cushion",
+          "trianglePairs": 6
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm left",
+          "trianglePairs": 98
+        },
+        {
+          "body": "Trouser hip bridge",
+          "fixture": "Arm right",
+          "trianglePairs": 18
+        }
+      ],
+      "hipSupport": {
+        "minGap": 0.00037160515785217285,
+        "rayHits": 1215
+      },
+      "soleHeights": {
+        "Fitted rounded shoe sole": 0.01914813369512558,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      }
+    }
+  ]
+}

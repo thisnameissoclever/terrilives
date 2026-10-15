@@ -7,6 +7,7 @@ import { buildStaticInstances } from '../src/render/tiles.js';
 import { ARCHITECTURE } from '../src/render/architecture-data.js';
 import { activeFloorFinishKeys } from '../src/render/floor-materials.js';
 import { prepareArchitectureFinishes } from '../src/render/architecture-finishes.js';
+import { sceneFramebufferSize } from '../src/render/scene-sampling.js';
 
 const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 function section(start: string, end: string): string {
@@ -17,7 +18,7 @@ function section(start: string, end: string): string {
 // Execute the production wiring, including its gate and complete camera method.
 const cameraCode = section('  function applyCamera(): void {', '  // Flagged rather than applied:')
   .replace('(): void', '()');
-const drawCode = section('    if (floorScene.visible) {', '    // Inside the sample below');
+const drawCode = section('    if (floorScene.visible', '    // Inside the sample below');
 const publishCode = section('    publish: next => {', '    dispose: next =>').replace('    publish: next => {', '').replace(/\},\s*$/, '');
 const stateCode = section('    state: (ready, error) => {', '  }, residentFinishKeys);\n  syncFloorResources =').replace('    state: (ready, error) => {', '').replace(/\},\s*$/, '');
 const applyMainCamera = new Function('ctx', `with(ctx) { ${cameraCode}; applyCamera(); }`);
@@ -40,19 +41,22 @@ function fixture() {
   const overlayPause = new OverlayPauseController({ setSpeed: speed => speeds.push(speed) }, () => {}, 2);
   const renderer = () => ({ disposed: false, rows: new Float32Array(),
     setArchitectureCamera() {},
-    setGrimeInstances() {},grimeSpriteBase:0,
+    setGrimeInstances() {},grimeSpriteBase:0,fixtureDepthBase:0,
     setStaticGeometry(rows: Float32Array, count: number) { this.rows = rows.slice(0, count * 16); },
     draw(instances: Float32Array, _count: number, scale: number) {
       // Static and dynamic positions must belong to the same camera and loaded world.
       draws.push([this.rows[0], this.rows[1], instances[0], instances[1], scale, this.rows[3]]);
     }, destroy() { this.disposed = true; } });
   const ctx = {
+    sceneFramebufferSize,gpu:{device:{limits}},
     console: { warn: (...details: unknown[]) => diagnostics.push(details) },
     lot: { width: 2, height: 1, walls: new Uint32Array(), edges: new Uint32Array(), floors,
       coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]),
       architecture: { windows: [], catalogue: [], floorCatalogue: catalogue,
         finishes: prepareArchitectureFinishes([], limits, catalogue) } },
     floorResourceError: null as string | null,
+    graphicsRecovering:false,
+    characterWorld:{beginFrame(){},plan:null,draw(){}},
     camera: { originX: 100, originY: 200, scale: 1 }, cameraDirty: true, cameraInitialised: true,
     stage: { width: 500, height: 400, clientWidth: 500, clientHeight: 400 }, window: { devicePixelRatio: 1 },
     lightingDirty: false, lighting: null, sky: { width: 0, height: 0, values: new Float32Array() },
@@ -87,6 +91,12 @@ function fixture() {
 }
 
 describe('main floor scene presentation', () => {
+  it('retains the current scene while graphics are recovering and resumes coherent drawing',()=>{
+    const f=fixture();f.frame();expect(f.draws).toHaveLength(1);
+    f.ctx.graphicsRecovering=true;f.frame();expect(f.draws).toHaveLength(1);
+    f.ctx.graphicsRecovering=false;f.frame();expect(f.draws).toHaveLength(2);
+    expect(f.draws[1]).toEqual(f.draws[0]);
+  });
   it('keeps camera/static/dynamic rendering coherent during a delayed or rejected preview load', async () => {
     const f = fixture();
     f.frame();

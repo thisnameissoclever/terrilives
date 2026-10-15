@@ -1,0 +1,30 @@
+
+> test
+> vitest run --maxWorkers=1 character-motion.test.ts -t keeps both wrist grips
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-motion.test.ts (4 tests | 1 failed | 3 skipped) 4ms
+     × keeps both wrist grips attached to the book through standing and seating transitions 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-motion.test.ts > continuous character motion > keeps both wrist grips attached to the book through standing and seating transitions
+AssertionError: expected 0.2729939903897551 to be less than 0.00002
+ ❯ tests/character-motion.test.ts:36:70
+     34|           const expected=transform(inverseAffine(source[book]),[source…
+     35|           const wrist=transform(pose.subarray(hand*16,hand*16+16),shap…
+     36|           expect(length(sub(transform(bookInverse,wrist),expected))).t…
+       |                                                                      ^
+     37|         }
+     38|       }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 skipped (4)
+   Start at  12:15:49
+   Duration  188ms (transform 41ms, setup 0ms, import 58ms, tests 4ms, environment 0ms)
+

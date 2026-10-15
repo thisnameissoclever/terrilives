@@ -1,0 +1,30 @@
+
+> test
+> vitest run --maxWorkers=1 character-motion.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-motion.test.ts (3 tests | 1 failed) 386ms
+     × joins both transition endpoints exactly and keeps configured limbs reachable 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-motion.test.ts > continuous character motion > joins both transition endpoints exactly and keeps configured limbs reachable
+AssertionError: expected +0 to be close to -0.355, received difference is 0.355, but expected 0.000005
+ ❯ tests/character-motion.test.ts:71:30
+     69|       const standingHip=transform(pose('standing_read',0).subarray(hip…
+     70|       const seatedHip=transform(pose('read',0).subarray(hip*16,hip*16+…
+     71|       expect(standingHip[1]).toBeCloseTo(-.355,5);
+       |                              ^
+     72|       expect(standingHip[2]-seatedHip[2]).toBeGreaterThan(.1);
+     73|       expect(pose('sit_down',0)).toEqual(pose('standing_read',0));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  12:10:14
+   Duration  540ms (transform 38ms, setup 0ms, import 53ms, tests 386ms, environment 0ms)
+

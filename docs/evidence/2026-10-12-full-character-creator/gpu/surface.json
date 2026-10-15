@@ -1,0 +1,41 @@
+{
+  "samples": [
+    {
+      "presentation": "masculine",
+      "height": 0,
+      "maxError": 5.364418029785156e-7,
+      "vertices": 58861
+    },
+    {
+      "presentation": "masculine",
+      "height": 50,
+      "maxError": 0.000002384185791015625,
+      "vertices": 58861
+    },
+    {
+      "presentation": "masculine",
+      "height": 100,
+      "maxError": 4.76837158203125e-7,
+      "vertices": 58861
+    },
+    {
+      "presentation": "feminine",
+      "height": 0,
+      "maxError": 5.364418029785156e-7,
+      "vertices": 46222
+    },
+    {
+      "presentation": "feminine",
+      "height": 50,
+      "maxError": 0.000002384185791015625,
+      "vertices": 46222
+    },
+    {
+      "presentation": "feminine",
+      "height": 100,
+      "maxError": 4.76837158203125e-7,
+      "vertices": 46222
+    }
+  ],
+  "errors": []
+}

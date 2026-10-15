@@ -1,0 +1,165 @@
+Review
+Identity
+Name
+Sebastian
+Appearance
+Gender
+Male
+Face shape
+Round
+Eye shape
+Round
+Eyebrow shape
+Straight
+Nose shape
+Broad
+Mouth shape
+Upturned
+Skin undertone
+Warm
+Hairstyle
+Bald
+Facial hair
+None
+Scar
+None
+Top
+T-shirt
+Sleeves
+Rolled
+Bottoms
+Trousers
+Shoes
+Trainers
+Glasses style
+Rectangular
+Earrings
+Hoops
+Height
+90
+Build
+100
+Shoulder width
+100
+Hip width
+100
+Torso proportions
+100
+Cheek fullness
+100
+Jaw width
+76
+Chin length
+84
+Eye size
+79
+Eyebrow thickness
+26
+Nose width
+60
+Mouth fullness
+27
+Ear size
+4
+Freckles
+No
+Glasses
+No
+Skin color
+Light peach
+Hair color
+Copper
+Facial hair color
+Blond
+Eyes color
+Grey
+Top color
+Blue
+Bottoms color
+Stone
+Shoes color
+Brown
+Personality
+Shyness
+69
+Cleanliness
+83%
+Self-preservation
+22
+Selected traits
+Television devotee, Can't cook, Bookworm, Keen cyclist
+Needs & habits
+Sleep timing
+-0.5 hours
+Hunger drain
+118%
+Energy drain
+60%
+Hygiene drain
+60%
+Bladder drain
+138%
+Social drain
+77%
+Fun drain
+105%
+Comfort drain
+145%
+Hunger recovery
+121%
+Energy recovery
+120%
+Hygiene recovery
+66%
+Bladder recovery
+90%
+Social recovery
+100%
+Fun recovery
+139%
+Comfort recovery
+59%
+Eat & cook
+1.6×
+Sleep
+0.46×
+Wash & bathroom
+1.35×
+Relax
+0.74×
+Read
+1.69×
+Watch TV
+0.91×
+Listen to music
+1.81×
+Exercise
+1.25×
+Write letters
+0.99×
+Watch fish
+1.72×
+Interests & skills
+Plants
+Dislikes (-0.23)
+Aquarium
+Likes (0.39)
+Television
+Dislikes (-0.62)
+Radio
+Dislikes (-0.22)
+Cooking
+Level 8; 0% to level 9
+Fitness
+Level 5; 0% to level 6
+Reading
+Level 5; 0% to level 6
+Selected hobbies
+Aquarium, Bathroom privacy, Cooking, Reading, Sleep, Socialising, Television
+Household
+Relationship to Tim
+None
+Relationship to Bill
+Parent
+Relationship to Casey
+Sibling

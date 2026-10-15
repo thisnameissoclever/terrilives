@@ -1,0 +1,13 @@
+{
+  "route": {
+    "object": "television",
+    "action": "watch_tv",
+    "label": "Watch TV (Walnut Vision)",
+    "tags": [
+      "television"
+    ]
+  },
+  "text": "Selected traits multiply matching activity weights. These values are not chances: needs, habits and relationships also affect choices. Room preferences are separate.Watch TV (Walnut Vision)Activity 0.5 × traits 1.5 ≈ 0.75Television devotee",
+  "worldUnchanged": true,
+  "errors": []
+}

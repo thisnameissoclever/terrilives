@@ -1,0 +1,6 @@
+page.evaluate: Error: Registered surface depth mismatch {"sprite":"offlineCounter","scale":1.0968034557305308,"failures":[{"point":[719,460],"eligibleDepths":[null],"actual":0.7000488042831421},{"point":[720,460],"eligibleDepths":[null],"actual":0.7000488042831421},{"point":[718,461],"eligibleDepths":[0.7236977944752802],"actual":0.7000488042831421},{"point":[721,461],"eligibleDepths":[0.7236977944752802],"actual":0.7000488042831421},{"point":[716,462],"eligibleDepths":[0.7225026554274431],"actual":0.7000488042831421},{"point":[723,462],"eligibleDepths":[0.7225026554274431],"actual":0.7000488042831421}],"count":107}
+    at eval (eval at evaluate (:311:30), <anonymous>:25:32)
+    at async <anonymous>:337:30
+    at D:\VIBES\.worktrees\5637\terrilives\assets\models\sims\character-creator\verify_fixture_depth.cjs:13:29 {
+  log: []
+}

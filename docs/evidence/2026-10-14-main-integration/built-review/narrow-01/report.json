@@ -1,0 +1,131 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "errors": [],
+  "navigation": [
+    {
+      "name": "identity",
+      "selected": "identity",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "appearance",
+      "selected": "appearance",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "personality",
+      "selected": "personality",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "needs",
+      "selected": "needs",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "interests",
+      "selected": "interests",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "household",
+      "selected": "household",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    },
+    {
+      "name": "review",
+      "selected": "review",
+      "navHeight": 76,
+      "buttonHeight": 44,
+      "viewportOverflow": false
+    }
+  ],
+  "keyboard": [
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Random",
+      "id": "creator-field-0-random"
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Lock",
+      "id": "creator-field-0-lock"
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Cancel",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Reset section",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Continue",
+      "id": ""
+    },
+    {
+      "inside": false,
+      "tag": "BODY",
+      "text": "\n    \n    \n    \n    \n      \n        \n          Time\n        ",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Show preview",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Randomize",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Identity",
+      "id": ""
+    },
+    {
+      "inside": true,
+      "tag": "BUTTON",
+      "text": "Appearance",
+      "id": ""
+    }
+  ],
+  "hiddenPreviewCanSubmit": false,
+  "beforePreview": {
+    "expanded": "false",
+    "status": "",
+    "disabled": true,
+    "action": "walk"
+  },
+  "shownPreviewCanSubmit": true,
+  "escapeCloses": true,
+  "status": "FINDING",
+  "browserClosed": true
+}

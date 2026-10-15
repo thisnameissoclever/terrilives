@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "path": "web/tests/fixtures/support-surface/bike-fit-golden.json",
+  "stagedSha256": "bcf8cad384b6b53734e7e6cc72c20b9bd3609ce40f11f6e03b7b48d88e033b94",
+  "restagingCommand": "git add --renormalize -- web/tests/fixtures/support-surface/bike-fit-golden.json"
+}

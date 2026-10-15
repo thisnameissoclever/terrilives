@@ -42,3 +42,11 @@ export function surfaceItemSprite(layout: SurfaceLayout, dirty: number, item: nu
   if (dirty === 0 || item > 0) return layout.props[4];
   return layout.props[dirty >= 6 ? 3 : dirty >= 3 ? 2 : dirty >= 2 ? 1 : 0];
 }
+
+/** Match stable dish identities to the exact stack represented by one rendered item. */
+export function surfaceItemDishIds(layout:SurfaceLayout,surface:number,dirty:number,item:number,piles:Uint32Array|undefined,settings?:number):number[] {
+  if(!piles||layout.kind==='stove'||layout.kind==='counter'&&(dirty===0||item!==0))return [];
+  const visualSlot=layout.kind==='counter'?4:surfacePointIndex(layout,dirty,item,settings),dishes:number[]=[];
+  for(let i=0;i+2<piles.length;i+=3)if(piles[i]===surface&&piles[i+1]===visualSlot)dishes.push(piles[i+2]);
+  return dishes;
+}

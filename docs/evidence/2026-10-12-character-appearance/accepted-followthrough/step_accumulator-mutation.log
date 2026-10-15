@@ -1,0 +1,30 @@
+
+> test
+> vitest run --maxWorkers=1 character-simulation.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-simulation.test.ts (3 tests | 1 failed) 487ms
+   × resumes from an explicit step without retaining an older fractional tick 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-simulation.test.ts > resumes from an explicit step without retaining an older fractional tick
+AssertionError: expected 0.6 to be close to 0.1, received difference is 0.5, but expected 5e-11
+ ❯ tests/character-simulation.test.ts:66:34
+     64|     study.step();const stepped=study.sample();expect(stepped.alpha).to…
+     65|     study.play(true);study.advance(10);
+     66|     expect(study.sample().alpha).toBeCloseTo(.1,10);
+       |                                  ^
+     67|     expect(study.sample().simulationTick).toBe(stepped.simulationTick);
+     68|   }finally{study.destroy();}
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  13:51:37
+   Duration  11.63s (transform 6.54s, setup 0ms, import 11.03s, tests 487ms, environment 0ms)
+

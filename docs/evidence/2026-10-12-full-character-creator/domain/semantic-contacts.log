@@ -1,0 +1,27 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-clips.test.ts (3 tests | 1 failed) 37851ms
+   × solves production clips at proof endpoints and independent body corners 37765ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-clips.test.ts > solves production clips at proof endpoints and independent body corners
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/character-clips.test.ts:25:1
+     23|   expect(interpolateAffine(left,right,.5)[5]).toBe(2);
+     24| });
+     25| it('solves production clips at proof endpoints and independent body co…
+       | ^
+     26|   const base=readGeometry(manifest.runtime,'export'),top=anatomicalHei…
+     27|   for(const family of Object.keys(library.sources)){
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  21:16:42
+   Duration  38.05s (transform 75ms, setup 0ms, import 99ms, tests 37.85s, environment 0ms)
+

@@ -1,0 +1,17 @@
+{
+  "expected_sha": "e7b62169d4adb9e74cb8d25cced20f453f2ebb68",
+  "returned_sha": "e7b62169d4adb9e74cb8d25cced20f453f2ebb68",
+  "same_sha": true,
+  "request_author_date": "2026-10-15T09:52:42-07:00",
+  "message_byte_count": 121,
+  "message_crlf_count": 5,
+  "message_lf_count": 5,
+  "before": {
+    "head": "20c4a32d996e99f0af7702e0c53e69766b0f97a0",
+    "index_sha256": "2bbbe558868c2e3c59d1a7c2defebca837880750a0eb87947a8a86025cbd068e"
+  },
+  "after": {
+    "head": "20c4a32d996e99f0af7702e0c53e69766b0f97a0",
+    "index_sha256": "2bbbe558868c2e3c59d1a7c2defebca837880750a0eb87947a8a86025cbd068e"
+  }
+}

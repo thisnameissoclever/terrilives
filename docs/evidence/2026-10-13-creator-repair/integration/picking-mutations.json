@@ -1,0 +1,64 @@
+{
+  "results": [
+    {
+      "name": "actor-only picking",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/scene-picks.test.ts",
+        "-t",
+        "resolves fixture and person"
+      ],
+      "exit": 1,
+      "output": "\n RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web\n\n \u276f tests/scene-picks.test.ts (7 tests | 1 failed | 6 skipped) 6ms\n   \u00d7 resolves fixture and person identities from the shared scene rather than actor-only meshes 5ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 6 skipped (7)\n   Start at  12:19:13\n   Duration  11.90s (transform 7.12s, setup 0ms, import 11.79s, tests 6ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/scene-picks.test.ts > resolves fixture and person identities from the shared scene rather than actor-only meshes\nAssertionError: expected null to deeply equal { entity: 900, sim: null, \u2026(1) }\n\n- Expected:\n{\n  \"entity\": 900,\n  \"kind\": \"fixture\",\n  \"sim\": null,\n}\n\n+ Received:\nnull\n\n \u276f tests/scene-picks.test.ts:27:34\n     25| it('resolves fixture and person identities from the shared scene rathe\u2026\n     26|  let token=2;const {world}=worldWithPick(async()=>token);\n     27|  expect(await world.pick(50,50)).toEqual({entity:900,sim:null,kind:'fi\u2026\n       |                                  ^\n     28|  token=1;expect(await world.pick(50,50)).toEqual({entity:80,sim:7,kind\u2026\n     29|  token=0;expect(await world.pick(50,50)).toBeNull();\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    },
+    {
+      "name": "post-await identity reuse",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/scene-picks.test.ts",
+        "-t",
+        "snapshots row and auxiliary"
+      ],
+      "exit": 1,
+      "output": "\n RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web\n\n \u276f tests/scene-picks.test.ts (7 tests | 1 failed | 6 skipped) 6ms\n   \u00d7 snapshots row and auxiliary identities before the asynchronous readback 5ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 6 skipped (7)\n   Start at  12:19:26\n   Duration  12.22s (transform 7.39s, setup 0ms, import 12.11s, tests 6ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/scene-picks.test.ts > snapshots row and auxiliary identities before the asynchronous readback\nAssertionError: expected { entity: 4294967295, sim: null, \u2026(2) } to deeply equal { entity: 900, sim: null, \u2026(2) }\n\n- Expected\n+ Received\n\n  {\n-   \"cleanup\": {\n-     \"dishes\": [\n-       601,\n-       605,\n-     ],\n-     \"surface\": 900,\n-   },\n-   \"entity\": 900,\n+   \"bookCopy\": 1234,\n+   \"entity\": 4294967295,\n    \"kind\": \"fixture\",\n    \"sim\": null,\n  }\n\n \u276f tests/scene-picks.test.ts:40:24\n     38|  world.plan.pickOwners.begin(new Uint32Array([999,888]),new Uint32Arra\u2026\n     39|  world.plan.pickOwners.book(1234);finish(token);\n     40|  expect(await pending).toEqual({entity:900,sim:null,kind:'fixture',cle\u2026\n       |                        ^\n     41|  const primary=world.pick(50,50);world.plan.pickOwners.begin(new Uint3\u2026\n     42|  expect(await primary).toEqual({entity:888,sim:null,kind:'fixture'});\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    },
+    {
+      "name": "lost cleanup identities",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/frame.test.ts",
+        "-t",
+        "assigns separate picking tokens"
+      ],
+      "exit": 1,
+      "output": "\n RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web\n\n \u276f tests/frame.test.ts (112 tests | 1 failed | 111 skipped) 9ms\n     \u00d7 assigns separate picking tokens to the exact rendered dirty table stacks 8ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 111 skipped (112)\n   Start at  12:19:39\n   Duration  11.14s (transform 6.71s, setup 0ms, import 11.01s, tests 9ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/frame.test.ts > domestic surface clutter > assigns separate picking tokens to the exact rendered dirty table stacks\nAssertionError: expected [ 1, 1, 1 ] to deeply equal [ 1, 2, 3 ]\n\n- Expected\n+ Received\n\n  [\n    1,\n-   2,\n-   3,\n+   1,\n+   1,\n  ]\n\n \u276f tests/frame.test.ts:325:59\n    323|     const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.f\u2026\n    324|     const batch=buildInstanceBatch(source,1,0,0,GRID,null,1,false,0,nu\u2026\n    325|     expect(Array.from(batch.owners.slice(0,batch.count))).toEqual([1,2\u2026\n       |                                                           ^\n    326|     expect(owners.get(2)?.cleanup).toEqual({surface:100,dishes:[601]})\u2026\n    327|   });\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    },
+    {
+      "name": "unowned dropped books",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "--maxWorkers=1",
+        "tests/frame.test.ts",
+        "-t",
+        "uses the reconstructed dropped book"
+      ],
+      "exit": 1,
+      "output": "\n RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web\n\n \u276f tests/frame.test.ts (112 tests | 1 failed | 111 skipped) 9ms\n     \u00d7 uses the reconstructed dropped book color and depth as one registered draw 8ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 111 skipped (112)\n   Start at  12:19:51\n   Duration  10.53s (transform 6.11s, setup 0ms, import 10.42s, tests 9ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/frame.test.ts > domestic surface clutter > uses the reconstructed dropped book color and depth as one registered draw\nAssertionError: expected undefined to deeply equal { entity: 4294967295, sim: null, \u2026(2) }\n\n- Expected:\n{\n  \"bookCopy\": 0,\n  \"entity\": 4294967295,\n  \"kind\": \"fixture\",\n  \"sim\": null,\n}\n\n+ Received:\nundefined\n\n \u276f tests/frame.test.ts:358:61\n    356|     expect(batch.count).toBe(1);expect(batch.instances[3]).toBe(record\u2026\n    357|     expect(batch.instances[0]).toBeCloseTo(screenX(2,3,0,1.25)+record.\u2026\n    358|     expect(plan.pickOwners.snapshot().get(batch.owners[0])).toEqual({e\u2026\n       |                                                             ^\n    359|   });\n    360|   it('draws cooking clutter and separate waiting meals, and removes th\u2026\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n"
+    }
+  ],
+  "liveHashes": {
+    "src/render/character/world.ts": "635951f67df9bf5247693359ed4cdaf32fcd0648d5fb2348bb3c93981825cbdd",
+    "src/frame.ts": "b777990045b9ddecc652e43db325272be7a9c22e280a1ee0d1c83a19d476a3f2"
+  }
+}

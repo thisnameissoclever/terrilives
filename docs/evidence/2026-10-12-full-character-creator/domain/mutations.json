@@ -1,0 +1,30 @@
+[
+  {
+    "name": "appearance_version",
+    "rejected": true,
+    "exitCode": 101,
+    "exactRestoration": true,
+    "sourceSha256": "202ebebe5b9d6fa6068922c93fa7ef27d603d07a0f02281edcddfa2fc081e98c"
+  },
+  {
+    "name": "finite_float",
+    "rejected": true,
+    "exitCode": 101,
+    "exactRestoration": true,
+    "sourceSha256": "202ebebe5b9d6fa6068922c93fa7ef27d603d07a0f02281edcddfa2fc081e98c"
+  },
+  {
+    "name": "editor_domain",
+    "rejected": true,
+    "exitCode": 101,
+    "exactRestoration": true,
+    "sourceSha256": "3315287a598d96350035ba8c836ed7926821f5acd81834e1dcef311a68d67a79"
+  },
+  {
+    "name": "unknown_keys",
+    "rejected": true,
+    "exitCode": 1,
+    "exactRestoration": true,
+    "sourceSha256": "d529118db375c046a6166c6edb368794d8dbca6ba25d7fbec0ecbd28410fa39e"
+  }
+]

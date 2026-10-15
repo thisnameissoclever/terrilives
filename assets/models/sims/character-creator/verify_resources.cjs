@@ -1,0 +1,18 @@
+const {chromium}=require('C:/Users/myema/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+(async()=>{const out=path.resolve('docs/evidence/2026-10-12-full-character-creator/resources');fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({channel:'chrome',headless:true}),errors=[];
+ try{const page=await browser.newPage({viewport:{width:1440,height:1100}});page.on('pageerror',e=>errors.push(String(e)));
+  await page.goto('http://127.0.0.1:5187/?stress=0');await page.waitForFunction(()=>window.__terriStress,null,{timeout:120000});if(await page.locator('#help-panel').evaluate(el=>el.open))await page.locator('#close-help').click();await page.getByText('Pause',{exact:true}).click();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.evaluate(()=>{const device=window.__terriStress.graphicsDevice,buffers=new Set(),textures=new Set(),createBuffer=device.createBuffer.bind(device),createTexture=device.createTexture.bind(device);window.resourceStudy={buffers,textures,restore:()=>{device.createBuffer=createBuffer;device.createTexture=createTexture;}};
+   for(const [method,original,live] of [['createBuffer',createBuffer,buffers],['createTexture',createTexture,textures]])device[method]=function(descriptor){const resource=original(descriptor);live.add(resource);const destroy=resource.destroy.bind(resource);resource.destroy=()=>{live.delete(resource);destroy();};return resource;};});
+  const cycles=[];
+  for(let cycle=0;cycle<5;cycle++){
+   await page.locator('#options-toggle').click();await page.locator('#new-housemate').click();await page.waitForFunction(()=>document.querySelector('.creator-status')?.textContent==='');
+   const edits=await page.evaluate(async()=>{const rows=[];for(const value of [0,25,50,75,100,33]){const input=document.querySelector('[data-field="appearance.body.height"] input[type=number]'),start=performance.now();input.value=String(value);input.dispatchEvent(new Event('change',{bubbles:true}));while(document.querySelector('.creator-status').textContent!==''){const status=document.querySelector('.creator-status').textContent;if(status!=='Rendering appearance.'||performance.now()-start>15000)throw Error('Preview did not complete: '+status);await new Promise(requestAnimationFrame);}rows.push({height:value,elapsedMs:performance.now()-start});}return rows;});
+   const alive=await page.evaluate(()=>({buffers:window.resourceStudy.buffers.size,textures:window.resourceStudy.textures.size,bufferBytes:[...window.resourceStudy.buffers].reduce((n,b)=>n+b.size,0)}));
+   await page.getByRole('button',{name:'Cancel',exact:true}).click();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   const after=await page.evaluate(()=>({buffers:window.resourceStudy.buffers.size,textures:window.resourceStudy.textures.size}));assert.deepEqual(after,{buffers:0,textures:0});cycles.push({cycle,edits,alive,after});
+  }
+  await page.evaluate(()=>window.resourceStudy.restore());assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({cycles,errors,scope:'Explicit creator buffers and textures; physical driver reclamation is not measured.'},null,2));console.log(JSON.stringify({cycles:cycles.length,edits:30,maxEditMs:Math.max(...cycles.flatMap(c=>c.edits.map(e=>e.elapsedMs))),remaining:cycles.at(-1).after,errors}));
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1});

@@ -1,0 +1,23 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-data)
+    Checking terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+error: casting to the same type is unnecessary (`u32` -> `u32`)
+  --> crates\terri-sim\src\character_draft\catalog.rs:18:21
+   |
+18 |         name_limit: pack.tuning.housemate_name_max_chars as u32,
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `pack.tuning.housemate_name_max_chars`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#unnecessary_cast
+   = note: `-D clippy::unnecessary-cast` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_cast)]`
+
+error: casting to the same type is unnecessary (`u32` -> `u32`)
+  --> crates\terri-sim\src\character_draft\catalog.rs:19:21
+   |
+19 |         max_traits: pack.tuning.housemate_max_traits as u32,
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `pack.tuning.housemate_max_traits`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#unnecessary_cast
+
+error: could not compile `terri-sim` (lib) due to 2 previous errors
+EXIT_CODE=101

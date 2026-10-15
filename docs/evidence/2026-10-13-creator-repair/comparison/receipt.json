@@ -1,0 +1,467 @@
+{
+  "records": [
+    {
+      "version": "published",
+      "url": "https://thisnameissoclever.github.io/terrilives/",
+      "model": "toilet",
+      "setup": {
+        "fixture": 29,
+        "person": 34,
+        "x": 12,
+        "y": 6,
+        "origin": {
+          "x": 671.999995361673,
+          "y": 106.00042260100435
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 415.999995361673,
+          "y": -136.0000046450894
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 30,
+        "action": 18,
+        "activity": 13,
+        "target": 29
+      }
+    },
+    {
+      "version": "published",
+      "url": "https://thisnameissoclever.github.io/terrilives/",
+      "model": "reading_chair",
+      "setup": {
+        "fixture": 26,
+        "person": 34,
+        "x": 9,
+        "y": 9,
+        "origin": {
+          "x": 415.999995361673,
+          "y": -136.0000046450894
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 799.999995361673,
+          "y": -136.0000046450894
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 83,
+        "action": 3,
+        "activity": 8,
+        "target": 26
+      }
+    },
+    {
+      "version": "published",
+      "url": "https://thisnameissoclever.github.io/terrilives/",
+      "model": "bookshelf",
+      "setup": {
+        "fixture": 10,
+        "person": 34,
+        "x": 8,
+        "y": 0,
+        "origin": {
+          "x": 799.999995361673,
+          "y": -136.0000046450894
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 287.999995361673,
+          "y": 283.9999953549106
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 14,
+        "action": 0,
+        "activity": 0,
+        "target": 10
+      }
+    },
+    {
+      "version": "published",
+      "url": "https://thisnameissoclever.github.io/terrilives/",
+      "model": "stove",
+      "setup": {
+        "fixture": 2,
+        "person": 34,
+        "x": 2,
+        "y": 0,
+        "origin": {
+          "x": 287.999995361673,
+          "y": 283.9999953549106
+        },
+        "facing": 1
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 671.999995361673,
+          "y": 535.9999953549107
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat"
+    },
+    {
+      "version": "before",
+      "url": "http://127.0.0.1:5188/",
+      "model": "toilet",
+      "setup": {
+        "fixture": 29,
+        "person": 34,
+        "x": 12,
+        "y": 6,
+        "origin": {
+          "x": 671.999995361673,
+          "y": 106.00042260100435
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 415.999995361673,
+          "y": -136.0000046450894
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 30,
+        "action": 18,
+        "activity": 13,
+        "target": 29
+      }
+    },
+    {
+      "version": "before",
+      "url": "http://127.0.0.1:5188/",
+      "model": "reading_chair",
+      "setup": {
+        "fixture": 26,
+        "person": 34,
+        "x": 9,
+        "y": 9,
+        "origin": {
+          "x": 415.999995361673,
+          "y": -136.0000046450894
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 799.999995361673,
+          "y": -136.0000046450894
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 119,
+        "action": 3,
+        "activity": 8,
+        "target": 26
+      }
+    },
+    {
+      "version": "before",
+      "url": "http://127.0.0.1:5188/",
+      "model": "bookshelf",
+      "setup": {
+        "fixture": 10,
+        "person": 34,
+        "x": 8,
+        "y": 0,
+        "origin": {
+          "x": 799.999995361673,
+          "y": -136.0000046450894
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 287.999995361673,
+          "y": 283.9999953549106
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 50,
+        "action": 0,
+        "activity": 0,
+        "target": 10
+      }
+    },
+    {
+      "version": "before",
+      "url": "http://127.0.0.1:5188/",
+      "model": "stove",
+      "setup": {
+        "fixture": 2,
+        "person": 34,
+        "x": 2,
+        "y": 0,
+        "origin": {
+          "x": 287.999995361673,
+          "y": 283.9999953549106
+        },
+        "facing": 1
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 671.999995361673,
+          "y": 535.9999953549107
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat"
+    },
+    {
+      "version": "repaired",
+      "url": "http://127.0.0.1:5187/",
+      "model": "toilet",
+      "setup": {
+        "fixture": 29,
+        "person": 34,
+        "x": 12,
+        "y": 6,
+        "origin": {
+          "x": 671.999995361673,
+          "y": 106.00042260100435
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 415.999995361673,
+          "y": -136.0000046450894
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 42,
+        "action": 18,
+        "activity": 13,
+        "target": 29
+      }
+    },
+    {
+      "version": "repaired",
+      "url": "http://127.0.0.1:5187/",
+      "model": "reading_chair",
+      "setup": {
+        "fixture": 26,
+        "person": 34,
+        "x": 9,
+        "y": 9,
+        "origin": {
+          "x": 415.999995361673,
+          "y": -136.0000046450894
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 799.999995361673,
+          "y": -136.0000046450894
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 87,
+        "action": 3,
+        "activity": 8,
+        "target": 26
+      }
+    },
+    {
+      "version": "repaired",
+      "url": "http://127.0.0.1:5187/",
+      "model": "bookshelf",
+      "setup": {
+        "fixture": 10,
+        "person": 34,
+        "x": 8,
+        "y": 0,
+        "origin": {
+          "x": 799.999995361673,
+          "y": -136.0000046450894
+        },
+        "facing": 0
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 287.999995361673,
+          "y": 283.9999953549106
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat",
+      "active": {
+        "tick": 18,
+        "action": 0,
+        "activity": 0,
+        "target": 10
+      }
+    },
+    {
+      "version": "repaired",
+      "url": "http://127.0.0.1:5187/",
+      "model": "stove",
+      "setup": {
+        "fixture": 2,
+        "person": 34,
+        "x": 2,
+        "y": 0,
+        "origin": {
+          "x": 287.999995361673,
+          "y": 283.9999953549106
+        },
+        "facing": 1
+      },
+      "camera": {
+        "scale": 2,
+        "origin": {
+          "x": 671.999995361673,
+          "y": 535.9999953549107
+        },
+        "viewport": [
+          1600,
+          1100
+        ],
+        "crop": {
+          "x": 450,
+          "y": 260,
+          "width": 700,
+          "height": 640
+        }
+      },
+      "light": "flat"
+    }
+  ],
+  "errors": []
+}

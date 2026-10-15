@@ -1,0 +1,6 @@
+{
+  "command": "python -B -m unittest discover -s assets/models/sims/appearance-proof -p \"test_*.py\" -v",
+  "exitCode": 0,
+  "tests": 5,
+  "verdict": "PASS"
+}

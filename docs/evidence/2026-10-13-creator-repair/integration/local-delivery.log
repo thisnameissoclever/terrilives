@@ -1,0 +1,38 @@
+locator.selectOption: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator('#character-creator-root').locator('[data-field="appearance.presentation"]').locator('select')
+    - locator resolved to <select id="creator-field-1" aria-describedby="creator-field-1-description">…</select>
+  - attempting select option action
+    2 × waiting for element to be visible and enabled
+      - did not find some options
+    - retrying select option action
+    - waiting 20ms
+    2 × waiting for element to be visible and enabled
+      - did not find some options
+    - retrying select option action
+      - waiting 100ms
+    59 × waiting for element to be visible and enabled
+       - did not find some options
+     - retrying select option action
+       - waiting 500ms
+
+    at D:\VIBES\.worktrees\5637\terrilives\scripts\character-creator-repair\check-local-delivery.cjs:22:104 {
+  log: [
+    `  - waiting for locator('#character-creator-root').locator('[data-field="appearance.presentation"]').locator('select')`,
+    '    - locator resolved to <select id="creator-field-1" aria-describedby="creator-field-1-description">…</select>',
+    '  - attempting select option action',
+    '    2 × waiting for element to be visible and enabled',
+    '      - did not find some options',
+    '    - retrying select option action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible and enabled',
+    '      - did not find some options',
+    '    - retrying select option action',
+    '      - waiting 100ms',
+    '    59 × waiting for element to be visible and enabled',
+    '       - did not find some options',
+    '     - retrying select option action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}

@@ -221,7 +221,7 @@ fn patch_contact_rejects_partial_walls_and_diagonal_corners() {
 }
 
 #[test]
-fn grime_mood_scales_with_opacity_even_without_dirty_floors() {
+fn grime_mood_scales_above_tolerance_even_without_dirty_floors() {
     let mut sim = crate::Sim::new_from_shipped_lot();
     ensure(sim.world_mut());
     let person = actor(&mut sim);
@@ -235,18 +235,23 @@ fn grime_mood_scales_with_opacity_even_without_dirty_floors() {
     sim.world_mut()
         .entity_mut(person)
         .insert(Position { x: 1.0, y: 1.0 });
+    sim.world_mut()
+        .insert_resource(terri_core::save::SavedDomestic {
+            cleanliness: vec![(person.index_u32(), 0.0)],
+            ..Default::default()
+        });
     let mut scores = vec![];
-    for amount in [100, 500, 1000] {
+    for amount in [400, 700, 1000] {
         sim.world_mut().resource_mut::<SavedChores>().surfaces = vec![(counter, amount)];
         let score = moodlets(sim.world(), person)
             .into_iter()
             .find(|m| m.label == "Grimy surfaces")
-            .expect("dirty surfaces matter with a clean floor")
-            .score;
+            .map_or(0.0, |m| m.score);
         scores.push(score);
     }
-    assert!((scores[1] - scores[0] * 5.0).abs() < 0.000001);
-    assert!((scores[2] - scores[0] * 10.0).abs() < 0.000001);
+    assert_eq!(scores[0], 0.0);
+    assert!(scores[1] < 0.0, "dirty surfaces matter with a clean floor");
+    assert!((scores[2] - scores[1] * 2.0).abs() < 0.000001);
 }
 
 #[test]

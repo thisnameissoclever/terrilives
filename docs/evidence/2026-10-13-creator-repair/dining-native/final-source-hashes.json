@@ -1,0 +1,22 @@
+[
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\systems\\chain.rs",
+    "Hash": "AF1A80A035C0A6B3AFD28A79186811D9798E77A57A99C00AF0ACCCFB8D4B49B2"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\domestic.rs",
+    "Hash": "C80BB207F5C36DBC90F0980D7DC07C86199E93C36423A2890BAD4A34B887B502"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\domestic\\tests.rs",
+    "Hash": "8909D5357D30025AA4506B067B4CD8930B5AFD2BB5B3FC7C51C75CEB89C165EF"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\dining.rs",
+    "Hash": "76CB57F4348761F9F6DC370DD8A514A4E8AC98B0A70D7BAE5D1322D46BB1DDD2"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\crates\\terri-sim\\src\\dining\\completion_tests.rs",
+    "Hash": "9D0D3129798E2AF20C94B417FA40905963F43DFBCDFCBBF796B7D9361A4E83CC"
+  }
+]

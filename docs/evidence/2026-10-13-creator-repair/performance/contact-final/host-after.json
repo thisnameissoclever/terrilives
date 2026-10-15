@@ -1,0 +1,62 @@
+[
+  {
+    "Name": "helldivers2",
+    "IDProcess": 228876,
+    "PercentProcessorTime": 513
+  },
+  {
+    "Name": "WmiPrvSE",
+    "IDProcess": 8600,
+    "PercentProcessorTime": 146
+  },
+  {
+    "Name": "node#51",
+    "IDProcess": 191648,
+    "PercentProcessorTime": 111
+  },
+  {
+    "Name": "chrome#70",
+    "IDProcess": 49164,
+    "PercentProcessorTime": 105
+  },
+  {
+    "Name": "GameMon.des",
+    "IDProcess": 65496,
+    "PercentProcessorTime": 82
+  },
+  {
+    "Name": "lghub_agent",
+    "IDProcess": 10836,
+    "PercentProcessorTime": 66
+  },
+  {
+    "Name": "bambu-studio#1",
+    "IDProcess": 229172,
+    "PercentProcessorTime": 51
+  },
+  {
+    "Name": "WmiPrvSE#2",
+    "IDProcess": 70412,
+    "PercentProcessorTime": 44
+  },
+  {
+    "Name": "chrome#64",
+    "IDProcess": 190676,
+    "PercentProcessorTime": 41
+  },
+  {
+    "Name": "chrome",
+    "IDProcess": 119344,
+    "PercentProcessorTime": 35
+  },
+  {
+    "Name": "GameMon64.des",
+    "IDProcess": 130864,
+    "PercentProcessorTime": 31
+  },
+  {
+    "Name": "System",
+    "IDProcess": 4,
+    "PercentProcessorTime": 31
+  }
+]

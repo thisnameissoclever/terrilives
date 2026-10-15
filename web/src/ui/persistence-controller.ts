@@ -102,6 +102,7 @@ export class PersistenceController {
     private readonly sim: PersistableSim,
     private readonly status: SaveStatusTarget,
     private readonly reportError: (error: unknown) => void = () => {},
+    private readonly loadPrepared:(bytes:Uint8Array)=>boolean|Promise<boolean>=bytes=>this.sim.loadBytes(bytes),
   ) {}
 
   async restoreAtStartup(): Promise<StartupRestore> {
@@ -113,7 +114,7 @@ export class PersistenceController {
         this.show('No save yet');
         return 'new';
       }
-      if (!this.sim.loadBytes(bytes)) {
+      if (!await this.loadPrepared(bytes)) {
         this.savedGameAvailable = false;
         this.protectSavedGame(bytes);
         return 'invalid';
@@ -164,7 +165,7 @@ export class PersistenceController {
         else this.show('No saved game found', true);
         return false;
       }
-      if (!this.sim.loadBytes(bytes)) {
+      if (!await this.loadPrepared(bytes)) {
         this.savedGameAvailable = false;
         this.protectSavedGame(bytes);
         return false;

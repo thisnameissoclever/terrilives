@@ -1,0 +1,7 @@
+{
+  "command": "npm --prefix web test -- --maxWorkers=1 bridge.test.ts",
+  "exitCode": 0,
+  "tests": 94,
+  "files": 11,
+  "verdict": "PASS"
+}

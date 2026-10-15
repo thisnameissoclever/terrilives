@@ -1,0 +1,6 @@
+page.evaluate: TypeError: Cannot read properties of undefined (reading 'samples')
+    at eval (eval at evaluate (:311:30), <anonymous>:7:84)
+    at async <anonymous>:337:30
+    at D:\VIBES\.worktrees\5637\terrilives\scripts\character-creator-repair\measure-world.cjs:58:14 {
+  log: []
+}

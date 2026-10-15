@@ -1,0 +1,129 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 29s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 114 tests
+test dining::completion_tests::queued_meal_cancel_releases_each_physical_setting_without_a_finished_dish ... ok
+test dining::completion_tests::queued_meal_completion_does_not_borrow_another_person_or_tables_setting ... ok
+test dining::completion_tests::queued_meal_completion_retains_each_physical_setting_in_every_facing ... ok
+test dining::table_actions::tests::empty_table_offers_sitting_only_when_physical_chairs_exist ... ok
+test dining::table_actions::tests::ordinary_sitting_claims_a_real_chair_without_food_and_saves_at_each_tick ... ok
+test dining::table_actions::tests::prepared_food_order_claims_a_real_portion_and_survives_queued_and_active_saves ... ok
+test dining::tests::all_stove_facings_route_cooks_to_the_actual_front_and_project_there ... ok
+test dining::tests::cancelling_the_last_tableless_guest_while_paused_clears_the_batch_marker ... ok
+test dining::tests::claimed_chairs_refuse_move_rotation_and_sale_until_released ... ok
+test dining::tests::completing_a_meal_pays_only_the_social_minutes_actually_shared ... ok
+test dining::tests::critical_comfort_relationship_help_recognizes_actual_meal_seating ... ok
+test dining::tests::current_dining_records_cannot_omit_a_claim_or_a_dirty_setting ... ok
+test dining::tests::dining_hash_observes_endpoint_setting_and_pending_decision ... ok
+test dining::tests::dirty_settings_force_standing_and_complain_only_once_across_interruptions ... ok
+test dining::tests::endpoint_meal_and_media_admission_and_restore_are_symmetric ... ok
+test dining::tests::endpoint_migration_defers_a_diner_without_stealing_the_active_peers_contact ... ok
+test dining::tests::forged_endpoint_and_duplicate_chair_fail_transactionally ... ok
+test dining::tests::hash_observes_every_future_dining_decision_field ... ok
+test dining::tests::historical_in_flight_diners_adopt_standing_claims_before_resaving ... ok
+test dining::tests::meal_social_requires_liked_simultaneous_seated_diners_at_the_same_table ... ok
+test dining::tests::missing_or_wrong_facing_chairs_cannot_supply_a_seat ... ok
+test dining::tests::needs_correction_meals_gain_chair_comfort_or_pay_a_small_standing_cost ... ok
+test dining::tests::one_dirty_chair_setting_leaves_the_other_physical_seat_available ... ok
+test dining::tests::paused_cancel_clears_complaints_and_round_trips_before_another_tick ... ok
+test dining::tests::physical_dining_and_ordinary_sitting_cannot_share_a_chair ... ok
+test dining::tests::physical_dining_role_accepts_another_model_without_a_chair_name_check ... ok
+test dining::tests::physical_frozen_meal_leases_migrate_into_current_claims ... ok
+test dining::tests::privacy_routes_preserve_exact_seated_and_standing_claims_and_reload ... ok
+test dining::tests::regression_dining_wall_contact_live_and_current_rollback ... ok
+test dining::tests::regression_dining_wall_contact_published_meal_migration ... ok
+test dining::tests::seated_art_targets_the_claimed_chair_while_food_keeps_the_table_target ... ok
+test dining::tests::simultaneous_diners_claim_two_real_chairs_and_the_third_stands ... ok
+test dining::tests::tableless_shared_diners_finish_together_and_every_transition_loads ... ok
+test dining::tests::washing_a_blocking_pile_while_someone_dines_clears_annoyance_and_remains_loadable ... ok
+test domestic::tests::a_cleanup_order_takes_over_an_autonomous_cleanup ... ok
+test domestic::tests::a_later_solo_meal_does_not_inherit_an_older_shared_table ... ok
+test domestic::tests::a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions ... ok
+test domestic::tests::a_visitor_draws_once_per_entry_at_the_tuned_fraction_of_own_willingness ... ok
+test domestic::tests::abandoned_shared_plate_becomes_a_counter_dish_and_reservation_has_multiple_owners ... ok
+test domestic::tests::average_cleanliness_has_stronger_own_cleanup_and_thirty_percent_blocker_response ... ok
+test domestic::tests::busy_room_entry_defers_one_cleanup_draw_and_own_old_mess_can_trigger_it ... ok
+test domestic::tests::buying_facts_use_active_roles_and_keep_counter_dining_fallback_optional ... ok
+test domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once ... ok
+test domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap ... ok
+test domestic::tests::cleanliness_same_pile_crossing_and_visit_memory_survive_save_load ... ok
+test domestic::tests::cleanliness_tolerance_keeps_small_directed_dish_orders_available ... ok
+test domestic::tests::cleanliness_tolerates_one_dish_but_keeps_its_real_seat_obstruction_penalty ... ok
+test domestic::tests::cleanup_collects_each_surface_and_washes_only_its_claimed_dishes ... ok
+test domestic::tests::complaints_are_directional_once_per_visit_and_stronger_for_neat_people ... ok
+test domestic::tests::current_meal_identity_survives_saves_and_rejects_invalid_references ... ok
+test domestic::tests::gathering_preserves_the_full_eating_interval_and_replays_after_loading ... ok
+test domestic::tests::gathering_yields_to_critical_needs_player_interruptions_and_table_capacity ... ok
+test domestic::tests::guests_stand_to_eat_when_the_table_is_busy_and_the_cook_has_left ... ok
+test domestic::tests::interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes ... ok
+test domestic::tests::malformed_domestic_claims_are_rejected_without_replacing_the_live_world ... ok
+test domestic::tests::meal_names_follow_the_clock_boundaries ... ok
+test domestic::tests::mess_diagnostics_survive_full_tick_and_report_clamping ... ok
+test domestic::tests::needs_override_tidiness_and_slobs_rarely_clean ... ok
+test domestic::tests::own_old_dishes_lower_mood_without_self_resentment ... ok
+test domestic::tests::paused_cancel_reissue_and_furniture_sales_preserve_valid_claims ... ok
+test domestic::tests::plating_hands_idle_guests_to_shared_food_before_ordinary_autonomy ... ok
+test domestic::tests::prepared_food_does_not_replace_player_orders_or_critical_rest ... ok
+test domestic::tests::privacy_station_routes_preserve_owned_counter_and_unique_dining_seats ... ok
+test domestic::tests::privacy_substitution_suspends_collected_cleanup_and_replays ... ok
+test domestic::tests::queued_snack_orders_run_one_after_another ... ok
+test domestic::tests::recipe_station_facts_preserve_raw_roles_and_match_preparation_and_cleanup_admission ... ok
+test domestic::tests::runtime_snack_mapping_is_shared_by_model_facts_and_ignores_unrelated_actions ... ok
+test domestic::tests::selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_mess ... ok
+test domestic::tests::snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips ... ok
+test domestic::tests::table_binding_changes_only_the_current_cooks_batch_or_active_guests_plate ... ok
+test domestic::tests::targeted_cancel_while_paused_releases_queued_request_at_the_command_boundary ... ok
+test domestic::tests::targeted_first_preserves_generic_orders_waiting_behind_it ... ok
+test domestic::tests::targeted_generic_order_waits_for_a_first_floor_chore ... ok
+test domestic::tests::targeted_hash_changes_causally_with_scope_selection_allocator_and_queue_order ... ok
+test domestic::tests::targeted_legacy_multiset_piles_keep_distinct_visible_settings_and_conserve_units ... ok
+test domestic::tests::targeted_mixed_orders_preserve_scope_and_generic_ownership ... ok
+test domestic::tests::targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued ... ok
+test domestic::tests::targeted_pile_skips_removed_identities_without_cleaning_replacements ... ok
+test domestic::tests::targeted_queued_surface_waits_through_repeat_collection_and_stale_first ... ok
+test domestic::tests::targeted_stale_pile_does_not_interrupt_an_existing_meal ... ok
+test domestic::tests::targeted_surface_returns_for_new_dishes_and_preserves_other_surfaces_through_every_save ... ok
+test domestic::tests::targeted_surface_waits_for_claimed_dishes_without_stealing_them ... ok
+test domestic::tests::the_hash_observes_domestic_identity_memory_claims_and_quality ... ok
+test domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load ... ok
+test reservations::tests::a_replacement_on_another_object_does_not_hold_the_old_marker ... ok
+test reservations::tests::earlier_claim_keeps_marker_when_previous_owner_leaves ... ok
+test reservations::tests::later_claim_restores_the_marker_after_last_owner_leaves ... ok
+test reservations::tests::one_departure_preserves_the_other_owner_and_last_departure_frees_object ... ok
+test reservations::tests::simultaneous_deferred_departures_observe_earlier_target_removal ... ok
+test reservations::tests::stale_release_preserves_replacement_on_the_same_object ... ok
+test reservations::tests::vanished_owner_and_object_are_safe_to_release ... ok
+test systems::chain::tests::a_booked_station_is_waited_for ... ok
+test systems::chain::tests::a_cancel_abandons_the_chain_whole ... ok
+test systems::chain::tests::a_chain_runs_both_stations_and_pays_only_at_the_end ... ok
+test systems::chain::tests::a_chain_walks_to_the_oriented_rectangle_of_a_turned_station ... ok
+test systems::chain::tests::a_condition_taxes_the_terminal_payout ... ok
+test systems::chain::tests::a_fumbled_step_ruins_the_terminal_delivery ... ok
+test systems::chain::tests::a_missing_future_station_abandons_the_recipe_without_payout ... ok
+test systems::chain::tests::a_plain_order_interrupts_the_directed_chain_and_it_resumes ... ok
+test systems::chain::tests::a_player_command_interrupts_and_the_chain_resumes ... ok
+test systems::chain::tests::a_roleless_world_abandons_instead_of_waiting ... ok
+test systems::chain::tests::a_use_object_row_starts_the_advertisers_chain_not_the_decoys ... ok
+test systems::chain::tests::an_abandoned_chain_takes_its_order_with_it ... ok
+test systems::chain::tests::an_appended_order_waits_for_the_directed_chain_to_finish ... ok
+test systems::chain::tests::an_unreachable_booked_station_does_not_lower_mood_as_waiting ... ok
+test systems::chain::tests::autonomy_skips_recipes_with_a_missing_station ... ok
+test systems::chain::tests::autonomy_waits_for_the_meals_advertised_needs_at_a_booked_advertiser ... ok
+test systems::chain::tests::chain_position_counts_only_the_same_advertisers_earlier_chains ... ok
+test systems::chain::tests::chain_scores_remain_eligible_around_the_old_threshold ... ok
+test systems::chain::tests::chain_tags_unions_step_tags_once_in_first_appearance_order ... ok
+test systems::chain::tests::completion_habituates_the_advertiser_under_the_flyout_row ... ok
+test systems::chain::tests::critical_chain_replaces_the_old_stroll_immediately ... ok
+test systems::chain::tests::steps_run_their_declared_durations ... ok
+test systems::chain::tests::the_nearest_free_station_is_picked_over_an_earlier_far_one ... ok
+
+test result: ok. 114 passed; 0 failed; 0 ignored; 0 measured; 1209 filtered out; finished in 433.78s
+
+   Doc-tests terri_sim
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+EXIT_CODE=0

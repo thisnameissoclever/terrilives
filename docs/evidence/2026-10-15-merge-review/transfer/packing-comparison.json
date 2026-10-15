@@ -1,0 +1,90 @@
+[
+  {
+    "name": "default",
+    "bytes": 181155937,
+    "objects": 220,
+    "exit": 0,
+    "seconds": 0.647,
+    "stderr": "",
+    "command": [
+      "git",
+      "-c",
+      "pack.threads=2",
+      "-c",
+      "pack.windowMemory=64m",
+      "pack-objects",
+      "--stdout",
+      "--revs",
+      "--thin",
+      "--delta-base-offset"
+    ]
+  },
+  {
+    "name": "no-pack-reuse",
+    "bytes": 181155937,
+    "objects": 220,
+    "exit": 0,
+    "seconds": 0.569,
+    "stderr": "",
+    "command": [
+      "git",
+      "-c",
+      "pack.threads=2",
+      "-c",
+      "pack.windowMemory=64m",
+      "-c",
+      "pack.allowPackReuse=false",
+      "pack-objects",
+      "--stdout",
+      "--revs",
+      "--thin",
+      "--delta-base-offset"
+    ]
+  },
+  {
+    "name": "no-bitmap",
+    "bytes": 181155937,
+    "objects": 220,
+    "exit": 0,
+    "seconds": 0.556,
+    "stderr": "",
+    "command": [
+      "git",
+      "-c",
+      "pack.threads=2",
+      "-c",
+      "pack.windowMemory=64m",
+      "-c",
+      "pack.useBitmaps=false",
+      "pack-objects",
+      "--stdout",
+      "--revs",
+      "--thin",
+      "--delta-base-offset",
+      "--no-use-bitmap-index"
+    ]
+  },
+  {
+    "name": "no-sparse",
+    "bytes": 10881164,
+    "objects": 40,
+    "exit": 0,
+    "seconds": 0.218,
+    "stderr": "",
+    "command": [
+      "git",
+      "-c",
+      "pack.threads=2",
+      "-c",
+      "pack.windowMemory=64m",
+      "-c",
+      "pack.useSparse=false",
+      "pack-objects",
+      "--stdout",
+      "--revs",
+      "--thin",
+      "--delta-base-offset",
+      "--no-sparse"
+    ]
+  }
+]

@@ -114,6 +114,7 @@ impl Placement {
             | SimCommand::CleanDishesFirst { .. }
             | SimCommand::CleanChoreFirst { .. } => Self::Front,
             SimCommand::Book(_)
+            | SimCommand::Character(_)
             | SimCommand::Select(_)
             | SimCommand::UseObject { .. }
             | SimCommand::CleanDishes { .. }
@@ -459,6 +460,7 @@ pub(crate) fn drain_ordinary_commands(
                 );
             }
             SimCommand::Book(_)
+            | SimCommand::Character(_)
             | SimCommand::PlaceObject { .. }
             | SimCommand::SetWallEdge { .. }
             | SimCommand::FitWindow { .. }

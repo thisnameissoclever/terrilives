@@ -1,0 +1,745 @@
+{
+  "tick": 49,
+  "characters": [
+    {
+      "sim": 0,
+      "snapshot": {
+        "version": 1,
+        "name": "Tim",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              62,
+              117,
+              164
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 89,
+          "cleanliness": 1063675494,
+          "self_preservation": 55,
+          "chronotype_offset_ticks": -90,
+          "drain": [
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1067869798,
+            1060320051
+          ],
+          "recovery": [
+            1065353216,
+            1066611507,
+            1065353216,
+            1065353216,
+            1065353216,
+            1062836634,
+            1065353216
+          ],
+          "dispositions": [
+            {
+              "object": "television",
+              "action": "watch_tv",
+              "weight": 1057803469
+            },
+            {
+              "object": "bookshelf",
+              "action": "read",
+              "weight": 1069128090
+            },
+            {
+              "object": "desk",
+              "action": "attend_correspondence",
+              "weight": 1071225242
+            },
+            {
+              "object": "reading_chair",
+              "action": "settle_in",
+              "weight": 1067702026
+            }
+          ]
+        },
+        "traits": [
+          {
+            "id": "low_spirits",
+            "state": 1058642330
+          },
+          {
+            "id": "bookworm",
+            "state": 0
+          },
+          {
+            "id": "out_of_shape",
+            "state": 1054280253
+          }
+        ],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 3205206584
+          },
+          {
+            "id": "aquarium",
+            "value": 1033883952
+          },
+          {
+            "id": "television",
+            "value": 1058063034
+          },
+          {
+            "id": "radio",
+            "value": 1045710968
+          }
+        ],
+        "hobbies": [
+          "correspondence",
+          "reading"
+        ],
+        "skills": [
+          {
+            "id": "exercise",
+            "practice": 1054280253
+          }
+        ],
+        "ties": [
+          [
+            1,
+            null
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      }
+    },
+    {
+      "sim": 1,
+      "snapshot": {
+        "version": 1,
+        "name": "Bill",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              107,
+              159,
+              155
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 22,
+          "cleanliness": 1034147594,
+          "self_preservation": 71,
+          "chronotype_offset_ticks": 0,
+          "drain": [
+            1065353216,
+            1061997773,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1069547520
+          ],
+          "recovery": [
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1065353216,
+            1067450368
+          ],
+          "dispositions": [
+            {
+              "object": "long_sofa",
+              "action": "stretch_out",
+              "weight": 1068289229
+            },
+            {
+              "object": "armchair",
+              "action": "take_the_chair",
+              "weight": 1072483533
+            },
+            {
+              "object": "desk",
+              "action": "attend_correspondence",
+              "weight": 1055286886
+            }
+          ]
+        },
+        "traits": [
+          {
+            "id": "television_devotee",
+            "state": 0
+          },
+          {
+            "id": "exercise_averse",
+            "state": 0
+          },
+          {
+            "id": "fish_watcher",
+            "state": 0
+          },
+          {
+            "id": "private_person",
+            "state": 0
+          }
+        ],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 1052782696
+          },
+          {
+            "id": "aquarium",
+            "value": 1053609165
+          },
+          {
+            "id": "television",
+            "value": 1061997773
+          },
+          {
+            "id": "radio",
+            "value": 3180604464
+          }
+        ],
+        "hobbies": [
+          "television",
+          "cooking"
+        ],
+        "skills": [],
+        "ties": [
+          [
+            0,
+            null
+          ],
+          [
+            2,
+            null
+          ]
+        ]
+      }
+    },
+    {
+      "sim": 2,
+      "snapshot": {
+        "version": 1,
+        "name": "Casey",
+        "pronouns": "",
+        "appearance": {
+          "version": 1,
+          "presentation": "masculine",
+          "body": {
+            "height": 50,
+            "build": 50,
+            "shoulders": 50,
+            "hips": 50,
+            "torso": 50
+          },
+          "face": {
+            "shape": "oval",
+            "cheeks": 50,
+            "jaw": 50,
+            "chin": 50,
+            "eyes": "almond",
+            "eye_size": 50,
+            "brows": "soft",
+            "brow_thickness": 50,
+            "nose": "straight",
+            "nose_width": 50,
+            "mouth": "neutral",
+            "mouth_fullness": 50,
+            "ears": 50
+          },
+          "colors": {
+            "skin": [
+              190,
+              143,
+              107
+            ],
+            "hair": [
+              101,
+              69,
+              46
+            ],
+            "facial_hair": [
+              101,
+              69,
+              46
+            ],
+            "eyes": [
+              102,
+              91,
+              69
+            ],
+            "shirt": [
+              168,
+              71,
+              62
+            ],
+            "trousers": [
+              57,
+              70,
+              80
+            ],
+            "shoes": [
+              76,
+              64,
+              55
+            ]
+          },
+          "undertone": "neutral",
+          "hairstyle": "curl",
+          "bald": false,
+          "facial_hair": "none",
+          "freckles": false,
+          "freckle_density": 50,
+          "scar": "none",
+          "top": "overshirt",
+          "sleeves": "rolled",
+          "bottoms": "trousers",
+          "footwear": "loafers",
+          "glasses": false,
+          "glasses_style": "round",
+          "earrings": "none"
+        },
+        "behavior": {
+          "shyness": 30,
+          "cleanliness": 1057803469,
+          "self_preservation": 29,
+          "chronotype_offset_ticks": 180,
+          "drain": [
+            1065353216,
+            1065353216,
+            1063675494,
+            1065353216,
+            1068708659,
+            1065353216,
+            1065353216
+          ],
+          "recovery": [
+            1066192077,
+            1065353216,
+            1065353216,
+            1065353216,
+            1061158912,
+            1065353216,
+            1065353216
+          ],
+          "dispositions": [
+            {
+              "object": "television",
+              "action": "watch_tv",
+              "weight": 1067030938
+            },
+            {
+              "object": "dining_table",
+              "action": "sit_properly",
+              "weight": 1065772646
+            },
+            {
+              "object": "radio",
+              "action": "listen",
+              "weight": 1070386381
+            }
+          ]
+        },
+        "traits": [
+          {
+            "id": "cannot_cook",
+            "state": 1048576000
+          },
+          {
+            "id": "keen_cyclist",
+            "state": 0
+          },
+          {
+            "id": "chatterbox",
+            "state": 0
+          },
+          {
+            "id": "slow_reader",
+            "state": 1058306785
+          }
+        ],
+        "affinities": [
+          {
+            "id": "plants",
+            "value": 3211585826
+          },
+          {
+            "id": "aquarium",
+            "value": 3192984136
+          },
+          {
+            "id": "television",
+            "value": 3189707464
+          },
+          {
+            "id": "radio",
+            "value": 1025306688
+          }
+        ],
+        "hobbies": [
+          "socialising"
+        ],
+        "skills": [
+          {
+            "id": "cooking",
+            "practice": 1048576000
+          },
+          {
+            "id": "reading",
+            "practice": 1058306785
+          }
+        ],
+        "ties": [
+          [
+            0,
+            null
+          ],
+          [
+            1,
+            null
+          ]
+        ]
+      }
+    }
+  ],
+  "topics": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    19,
+    19,
+    0
+  ],
+  "preferences": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    -0.550000011920929,
+    0
+  ],
+  "owners": [
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    4294967295,
+    0,
+    0,
+    4294967295
+  ],
+  "endLow": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    115,
+    115,
+    0
+  ],
+  "endHigh": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "cycles": [
+    {
+      "cycle": 0,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 20,
+        "textures": 10,
+        "bufferBytes": 26065488
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      },
+      "contacts": {
+        "roster": {
+          "live": 3,
+          "queued": 0,
+          "staging": false
+        },
+        "service": {
+          "owners": 3,
+          "entries": 1,
+          "queued": 0,
+          "inFlight": 0,
+          "ready": 1,
+          "workerAlive": true,
+          "generations": 9,
+          "inputPreparations": 6,
+          "compilations": 6,
+          "discardedResults": 0,
+          "lastError": null,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 20,
+        "textures": 10,
+        "bufferBytes": 26495024
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      },
+      "contacts": {
+        "roster": {
+          "live": 3,
+          "queued": 0,
+          "staging": false
+        },
+        "service": {
+          "owners": 3,
+          "entries": 1,
+          "queued": 0,
+          "inFlight": 0,
+          "ready": 1,
+          "workerAlive": true,
+          "generations": 14,
+          "inputPreparations": 11,
+          "compilations": 11,
+          "discardedResults": 0,
+          "lastError": null,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 20,
+        "textures": 10,
+        "bufferBytes": 27338456
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      },
+      "contacts": {
+        "roster": {
+          "live": 3,
+          "queued": 0,
+          "staging": false
+        },
+        "service": {
+          "owners": 3,
+          "entries": 1,
+          "queued": 0,
+          "inFlight": 0,
+          "ready": 1,
+          "workerAlive": true,
+          "generations": 19,
+          "inputPreparations": 16,
+          "compilations": 16,
+          "discardedResults": 0,
+          "lastError": null,
+          "disposed": false
+        }
+      }
+    },
+    {
+      "cycle": 3,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 20,
+        "textures": 10,
+        "bufferBytes": 29283224
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      },
+      "contacts": {
+        "roster": {
+          "live": 3,
+          "queued": 0,
+          "staging": false
+        },
+        "service": {
+          "owners": 3,
+          "entries": 1,
+          "queued": 0,
+          "inFlight": 0,
+          "ready": 1,
+          "workerAlive": true,
+          "generations": 24,
+          "inputPreparations": 21,
+          "compilations": 21,
+          "discardedResults": 0,
+          "lastError": null,
+          "disposed": false
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "notices": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:5187/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "scope": "Counts explicit buffers and textures allocated after startup; physical driver reclamation is not measured.",
+  "contactBaseline": {
+    "roster": {
+      "live": 3,
+      "queued": 0,
+      "staging": false
+    },
+    "service": {
+      "owners": 3,
+      "entries": 1,
+      "queued": 0,
+      "inFlight": 0,
+      "ready": 1,
+      "workerAlive": true,
+      "generations": 4,
+      "inputPreparations": 1,
+      "compilations": 1,
+      "discardedResults": 0,
+      "lastError": null,
+      "disposed": false
+    }
+  },
+  "recovery": {
+    "generationBefore": 0,
+    "generationAfter": 1,
+    "contactsBeforeLoss": {
+      "roster": {
+        "live": 3,
+        "queued": 0,
+        "staging": false
+      },
+      "service": {
+        "owners": 4,
+        "entries": 1,
+        "queued": 0,
+        "inFlight": 0,
+        "ready": 1,
+        "workerAlive": true,
+        "generations": 25,
+        "inputPreparations": 21,
+        "compilations": 21,
+        "discardedResults": 0,
+        "lastError": null,
+        "disposed": false
+      }
+    },
+    "contactsAfterLoss": {
+      "roster": {
+        "live": 3,
+        "queued": 0,
+        "staging": false
+      },
+      "service": {
+        "owners": 4,
+        "entries": 1,
+        "queued": 0,
+        "inFlight": 0,
+        "ready": 1,
+        "workerAlive": true,
+        "generations": 25,
+        "inputPreparations": 21,
+        "compilations": 21,
+        "discardedResults": 0,
+        "lastError": null,
+        "disposed": false
+      }
+    },
+    "unsavedNamePreserved": true,
+    "lockPreserved": true,
+    "lockRandomDisabled": true,
+    "bytesBefore": "5c4531ce5b79bf17da7c5946bae8aee37dc21bc94f03957b5aa474e3b85ee490",
+    "bytesRecovered": "5c4531ce5b79bf17da7c5946bae8aee37dc21bc94f03957b5aa474e3b85ee490",
+    "bytesAfterCancel": "5c4531ce5b79bf17da7c5946bae8aee37dc21bc94f03957b5aa474e3b85ee490"
+  },
+  "pass": true,
+  "cleanup": {
+    "contextClosed": true,
+    "browserClosed": true,
+    "serverUntouched": true
+  }
+}

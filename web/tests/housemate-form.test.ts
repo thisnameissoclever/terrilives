@@ -12,6 +12,9 @@ import { householdMembers } from '../src/ui/household-roster.js';
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
 const COMPACT_HUD_CSS = readFileSync(new URL('../src/ui/compact-hud.css', import.meta.url), 'utf8');
+const CREATOR_VIEW = readFileSync(new URL('../src/ui/character-creator/view.ts', import.meta.url), 'utf8');
+const CREATOR_SESSION = readFileSync(new URL('../src/ui/character-creator/session.ts', import.meta.url), 'utf8');
+const CREATOR_CSS = readFileSync(new URL('../src/ui/character-creator/creator.css', import.meta.url), 'utf8');
 
 let wasmMemory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -628,7 +631,7 @@ describe('HousemateFormView', () => {
     expect(selects[0].children.map((choice) => choice.textContent))
       .toEqual(['Nobody', 'partner', 'parent', 'child', 'sibling']);
     expect([element('housemate-removal-note').hidden, element('housemate-removal-note').textContent])
-      .toEqual([false, REMOVAL_NOTE]);
+      .toEqual([true, REMOVAL_NOTE]);
     expect(element('housemate-count').textContent).toBe('3 of 6 live here.');
   });
 
@@ -690,54 +693,53 @@ describe('HousemateFormView', () => {
     expect(row('housemate-personality-list', 0).control.checked).toBe(true);
   });
 
-  it('is wired into the page, with no button that submits the form', () => {
-    for (const id of ['new-housemate', 'housemate-dialog', 'housemate-page-personality', 'housemate-page-traits',
-      'housemate-name', 'housemate-personality', 'housemate-personality-list', 'housemate-traits',
-      'housemate-traits-legend', 'housemate-count', 'housemate-status', 'housemate-cancel', 'housemate-next',
-      'housemate-back', 'housemate-confirm', 'housemate-form']) {
+  it('wires the creator into the native dialog without an implicit form submission', () => {
+    for (const id of ['new-housemate', 'housemate-dialog', 'character-creator-root']) {
       expect(INDEX_HTML).toContain(`id="${id}"`);
     }
     const dialog = INDEX_HTML.slice(INDEX_HTML.indexOf('<dialog id="housemate-dialog"'));
     const markup = dialog.slice(0, dialog.indexOf('</dialog>'));
-    const buttons = markup.match(/<button[^>]*>/g) ?? [];
-    expect(buttons).toHaveLength(4);
+    expect(markup).not.toContain('<form');
+    const buttons = CREATOR_VIEW.match(/<button[^>]*>/g) ?? [];
+    expect(buttons.length).toBeGreaterThan(0);
     for (const button of buttons) expect(button).toContain('type="button"');
-    expect(markup).toContain('<div id="housemate-page-traits" hidden>');
+    expect(CREATOR_VIEW).toMatch(/button\.type\s*=\s*'button'/);
     expect(MAIN_TS).toContain("overlayPause.suspend('housemate')");
     expect(MAIN_TS).toContain("overlayPause.resume('housemate')");
-    expect(MAIN_TS).toContain('housemateForm.afterCommands();');
+    expect(MAIN_TS).toContain('housemateView?.afterCommands();');
+    expect(MAIN_TS).toContain('new CreatorSession(');
+    expect(MAIN_TS).toContain('new CreatorView(');
   });
 
-  it('puts the Edit button beside the selected person and the edit rows on the traits page', () => {
+  it('keeps Edit beside the selected person and preserves personality, household, and touch controls', () => {
     const header = INDEX_HTML.slice(INDEX_HTML.indexOf('<div id="sim-dock-header">'));
     const identityEnd = header.indexOf('</div>', header.indexOf('<div id="sim-identity">')) + '</div>'.length;
     expect(header.slice(identityEnd).trimStart())
       .toMatch(/^<button id="edit-housemate" class="hud-button" type="button" disabled>Edit<\/button>/);
-    const dialog = INDEX_HTML.slice(INDEX_HTML.indexOf('<dialog id="housemate-dialog"'));
-    const markup = dialog.slice(0, dialog.indexOf('</dialog>'));
-    expect(markup.indexOf('id="housemate-keep-personality"')).toBeGreaterThan(-1);
-    expect(markup.indexOf('id="housemate-keep-personality"')).toBeLessThan(markup.indexOf('id="housemate-personality-list"'));
-    const traitsPage = markup.slice(markup.indexOf('<div id="housemate-page-traits"'));
-    expect(traitsPage.indexOf('<div id="housemate-ties" hidden></div>')).toBeGreaterThan(traitsPage.indexOf('id="housemate-family"'));
-    expect(traitsPage).toContain('<p id="housemate-removal-note" hidden>Removing a condition forgets its severity. Skills are kept.</p>');
-    expect(REMOVAL_NOTE).toBe('Removing a condition forgets its severity. Skills are kept.');
-    // Phone layout: the header's buttons, Edit among them, and the tie selects reach 44 px.
+    expect(CREATOR_SESSION).toContain('CharacterDraft.edit(snapshot');
+    expect(CREATOR_VIEW).toContain("['personality','Personality']");
+    expect(CREATOR_VIEW).toContain("['household','Household']");
+    expect(CREATOR_VIEW).not.toContain('Removing a condition forgets its severity. Skills are kept.');
+    expect(REMOVAL_NOTE).toBe('');
     const phone = COMPACT_HUD_CSS.slice(COMPACT_HUD_CSS.indexOf('@media (max-width: 600px), (max-height: 480px)'));
     expect(phone).toMatch(/#sim-dock-header > \.hud-button \{ min-height: 44px;/);
-    expect(INDEX_HTML).toMatch(/#housemate-ties select \{[^}]*min-height: 44px;/);
-    // The family row's display: contents would outrank a bare hidden attribute.
-    expect(INDEX_HTML).toContain('#housemate-family[hidden] { display: none; }');
+    const creatorPhone=CREATOR_CSS.slice(CREATOR_CSS.lastIndexOf('@media(max-width:760px)'));
+    expect(creatorPhone).toContain('min-height:44px');
+    expect(creatorPhone).toContain('.creator-shell select');
   });
 
-  it('wires the Edit button, its focus return and the Load path in main.ts', () => {
-    expect(MAIN_TS).toContain('editTargetOf(sim, selected, members)');
-    expect(MAIN_TS).toContain('housemateForm.beginEdit(target, members)');
-    expect(MAIN_TS).toContain('editHousemateButton.disabled = buildSession.active || housemateForm.pending || sim.selectedIndex() === null;');
+  it('edits by stable identity, restores focus and discards drafts on Load', () => {
+    expect(MAIN_TS).toContain('const person = sim.simIdOf(selected);');
+    expect(MAIN_TS).toContain('openCreator(person);');
+    expect(MAIN_TS).toContain('editHousemateButton.disabled = buildSession.active || graphicsRecovering || !!creatorSession?.pending || sim.selectedIndex() === null;');
     expect(MAIN_TS).toContain('restorePersistenceFocus(document, housemateDialog, housemateOpener');
     const loaded = MAIN_TS.slice(MAIN_TS.indexOf('if (loaded) {'));
-    const loadBranch = loaded.slice(0, loaded.indexOf('housemateForm.resetAfterLoad();'));
+    const loadBranch = loaded.slice(0, loaded.indexOf('wallTool.resetAfterLoad('));
     expect(loadBranch).toContain("if (housemateDialog.open) housemateDialog.close('cancel');");
-    expect(loaded.slice(0, loaded.indexOf('wallTool.resetAfterLoad('))).toContain('syncEditHousemateButton();');
+    expect(loadBranch).toContain('housemateView?.destroy();');
+    expect(loadBranch).toContain('creatorSession=undefined;');
+    expect(loadBranch).toContain('characterWorld.reset();');
+    expect(loadBranch).toContain('syncEditHousemateButton();');
     const frame = MAIN_TS.slice(MAIN_TS.indexOf('function frame('));
     expect(frame).toContain('syncEditHousemateButton();');
   });

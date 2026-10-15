@@ -1,0 +1,8 @@
+{
+  "errors": [
+    "Natural Causes failed to start: Error: Maximum call stack size exceeded\n    at CharacterPreparationService.compile (http://127.0.0.1:5187/src/render/character/character-preparation-service.ts:73:28)\n    at async Object.prepare (http://127.0.0.1:5187/src/render/character/character-preparation-service.ts:56:49)\n    at async PreparationQueue.run (http://127.0.0.1:5187/src/render/character/preparation-queue.ts:107:21)"
+  ],
+  "checks": [],
+  "pass": false,
+  "failure": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded."
+}

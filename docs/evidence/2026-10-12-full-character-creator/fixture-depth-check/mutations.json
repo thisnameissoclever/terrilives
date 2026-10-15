@@ -1,0 +1,18 @@
+[
+  {
+    "name": "missing-depth",
+    "command": "node assets/models/sims/character-creator/verify_fixture_depth.cjs",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "76d699b58351ae3358f70a1272b45fc2e40b21a8b347275dfb964f9a0fc84968",
+    "exactRestoration": true
+  },
+  {
+    "name": "wrong-owner",
+    "command": "node assets/models/sims/character-creator/verify_fixture_depth.cjs",
+    "exitCode": 1,
+    "rejected": true,
+    "sourceSha256": "5841fe2698630e1c927a8c508a3e10ac51c726c101ae39490c2324a0d72058b2",
+    "exactRestoration": true
+  }
+]

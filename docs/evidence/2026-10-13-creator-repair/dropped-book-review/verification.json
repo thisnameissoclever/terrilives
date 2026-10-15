@@ -1,0 +1,51 @@
+{
+  "state": "complete",
+  "checks": [
+    {
+      "bundle": "dropped-book",
+      "states": 4,
+      "geometry": "retained-canonical-source-at-scale-one",
+      "originalSceneRecovered": false,
+      "originalSurfaceRecovered": false,
+      "colors": "exact-published-rgba",
+      "facings": [
+        {
+          "facing": "SE",
+          "coveredPixels": 660,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.3397088123150642
+        },
+        {
+          "facing": "NW",
+          "coveredPixels": 559,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.4805810107544808
+        },
+        {
+          "facing": "SW",
+          "coveredPixels": 248,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.555295414596922
+        },
+        {
+          "facing": "NE",
+          "coveredPixels": 293,
+          "exactPublishedRgba": true,
+          "exactAtlasRgba": true,
+          "exactRegistration": true,
+          "exactDepthCoverage": true,
+          "maxGeometryDistancePixels": 1.456700322972759
+        }
+      ]
+    }
+  ]
+}

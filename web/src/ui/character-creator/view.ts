@@ -1,0 +1,279 @@
+import './creator.css';
+import type { CharacterField, Section } from '../../character/fields.js';
+import { fieldControl, traitLimitDescriptionId } from './field.js';
+import { CreatorPreview } from './preview.js';
+import type { CreatorSession } from './session.js';
+import { categoryInfluence } from '../../character/choice-influences.js';
+import { unsupportedActivityRoutes } from '../../character/activity-categories.js';
+import { readableNumber, reviewValue } from '../../character/presentation.js';
+import { CreatorClock } from './clock.js';
+import { previewAnimationTiming } from './animation-metadata.js';
+
+export const creatorPages=[['identity','Identity'],['appearance','Appearance'],['personality','Personality'],
+  ['needs','Needs & habits'],['interests','Interests & skills'],['household','Household'],['review','Review']] as const;
+type Page=Section|'review';
+const appearanceGroups=['Colors','Body','Style','Face','Details'];
+const appearanceOrder=['colors.skin','colors.hair','colors.facial_hair','colors.eyes','undertone','presentation',
+  'hairstyle','facial_hair','top','colors.shirt','sleeves','bottoms','colors.trousers','footwear','colors.shoes',
+  'freckles','freckle_density','glasses','glasses_style','earrings','scar'];
+
+export class CreatorView {
+  private page:Page='appearance';
+  private renderedPage:Page|null=null;
+  private readonly openGroups=new Map<Page,Set<string>>();
+  private facing=0;
+  private action='walk';
+  private frame=0;
+  private paused=false;
+  private readonly clock=new CreatorClock();
+  private animationRequest:number|null=null;
+  private readonly preview:CreatorPreview;
+  private readonly document:Document;
+  private readonly window:Window;
+  private readonly abort=new AbortController();
+  private readonly motion:MediaQueryList;
+  private readonly visibilityObserver:MutationObserver;
+  private destroyed=false;
+  private previewInFlight=false;
+  private queuedDraw=false;
+  private previewReady=false;
+  private appearanceReady=false;
+  private preparationKey='';
+  private preparationGeneration=0;
+  private previewError='';
+  private previewKey='';
+  private lastAppearance='';
+  constructor(private readonly root:HTMLElement, readonly session:CreatorSession, device:GPUDevice, format:GPUTextureFormat,
+    private readonly cancel:()=>void) {
+    this.document=root.ownerDocument;this.window=this.document.defaultView!;root.classList.add('creator-shell');
+    this.motion=this.window.matchMedia('(prefers-reduced-motion: reduce)');this.paused=this.motion.matches;this.clock.setPaused(this.paused);
+    root.dataset.previewExpanded='false';
+    root.innerHTML=`<header class="creator-header"><div><h1></h1><p class="creator-subtitle"></p></div><button type="button" class="creator-preview-toggle" data-preview-toggle aria-expanded="false">Show preview</button><button type="button" class="primary" data-global-random>Randomize</button></header>
+      <div class="creator-content"><nav class="creator-nav" aria-label="Character sections"></nav><section class="creator-editor" aria-label="Character settings"></section>
+      <aside class="creator-preview"><div class="creator-preview-heading"><h2 data-name></h2><button type="button" data-turn>Turn</button></div>
+      <canvas class="creator-portrait" width="608" height="800" aria-label="Character appearance preview"></canvas>
+      <div class="creator-preview-controls"><label>Animation <select data-action><option value="idle">Standing</option><option value="walk">Walking</option><option value="read">Reading</option><option value="mop">Cleaning</option></select></label><button type="button" data-play>Pause</button><span data-facing></span></div>
+      <div class="creator-world-sample"><canvas width="96" height="128" aria-label="Character at game size"></canvas><span>Game-size preview</span></div></aside></div>
+      <footer class="creator-footer"><button type="button" data-cancel>Cancel</button><button type="button" data-undo>Undo</button><button type="button" data-reset>Reset section</button><p class="creator-status" role="status"></p><button type="button" class="primary" data-next></button></footer>`;
+    this.element<HTMLSelectElement>('[data-action]').value=this.action;
+    this.preview=new CreatorPreview(device,format,this.element<HTMLCanvasElement>('.creator-portrait'),this.element<HTMLCanvasElement>('.creator-world-sample canvas'),{prepare:appearance=>session.prepareAppearance(appearance)});
+    const listen=(selector:string,event:string,handler:EventListener)=>this.element(selector).addEventListener(event,handler,{signal:this.abort.signal});
+    listen('[data-global-random]','click',()=>this.change(()=>session.draft.randomize('all')));
+    listen('[data-preview-toggle]','click',()=>{
+      const expanded=root.dataset.previewExpanded!=='true';root.dataset.previewExpanded=String(expanded);
+      const button=this.element('[data-preview-toggle]');button.setAttribute('aria-expanded',String(expanded));button.textContent=expanded?'Hide preview':'Show preview';
+      this.refreshAnimation();if(expanded)void this.drawPreview();
+    });
+    listen('[data-undo]','click',()=>this.change(()=>session.draft.undo()));
+    listen('[data-reset]','click',()=>this.change(()=>session.draft.reset(this.page==='review'?'all':this.page)));
+    listen('[data-cancel]','click',()=>{if(!session.pending)this.cancel();});
+    listen('[data-next]','click',()=>{
+      if(this.page==='review'){if(!this.appearanceReady||this.previewError)return;session.submit();this.render();}
+      else {this.page=creatorPages[creatorPages.findIndex(([id])=>id===this.page)+1][0];this.render();}
+    });
+    listen('[data-turn]','click',()=>{this.facing=(this.facing+1)%4;void this.drawPreview();});
+    listen('[data-play]','click',()=>{this.paused=!this.paused;this.clock.setPaused(this.paused);this.refreshAnimation();});
+    listen('[data-action]','change',()=>{this.action=this.element<HTMLSelectElement>('[data-action]').value;this.frame=0;this.clock.reset();this.refreshAnimation();void this.drawPreview();});
+    const nav=this.element('.creator-nav');
+    for(const [id,label] of creatorPages){const button=this.document.createElement('button');button.type='button';button.textContent=label;button.dataset.page=id;
+      button.addEventListener('click',()=>{this.page=id;this.render();},{signal:this.abort.signal});nav.append(button);}
+    this.document.addEventListener('visibilitychange',()=>this.refreshAnimation(),{signal:this.abort.signal});
+    this.window.addEventListener('resize',()=>this.refreshAnimation(),{signal:this.abort.signal});
+    this.motion.addEventListener('change',()=>{if(this.motion.matches){this.paused=true;this.clock.setPaused(true);}this.refreshAnimation();},{signal:this.abort.signal});
+    this.visibilityObserver=new MutationObserver(()=>this.refreshAnimation());
+    for(let node:HTMLElement|null=root;node;node=node.parentElement)this.visibilityObserver.observe(node,{attributes:true,attributeFilter:['open','hidden','style','class']});
+    this.render();
+  }
+  private element<T extends HTMLElement=HTMLElement>(selector:string):T {return this.root.querySelector<T>(selector)!;}
+  private fail(error:unknown):void {this.session.error=error instanceof Error?error.message:String(error);this.syncStatus();}
+  private change(operation:()=>void):void {if(this.session.pending)return;try{operation();this.session.error='';this.render();}catch(error){this.fail(error);}}
+  private visible():boolean {
+    const dialog=this.root.closest('dialog');
+    return !this.destroyed&&!this.document.hidden&&(!dialog||dialog.open)&&this.element('.creator-preview').getClientRects().length>0;
+  }
+  private refreshAnimation():void {
+    if(this.destroyed)return;
+    if(this.visible()&&this.queuedDraw&&!this.previewInFlight){this.queuedDraw=false;void this.drawPreview();}
+    const active=this.visible()&&!this.paused&&!this.previewError&&this.action!=='idle';this.clock.setActive(active);
+    const play=this.element<HTMLButtonElement>('[data-play]');play.textContent=this.paused?'Play':'Pause';play.setAttribute('aria-label',this.paused?'Play animation':'Pause animation');
+    if(!active&&this.animationRequest!==null){this.window.cancelAnimationFrame(this.animationRequest);this.animationRequest=null;}
+    if(active&&this.animationRequest===null)this.animationRequest=this.window.requestAnimationFrame(now=>this.animate(now));
+  }
+  private animate(now:number):void {
+    this.animationRequest=null;if(this.destroyed)return;
+    if(this.visible()&&!this.paused&&!this.previewError){
+      const timing=previewAnimationTiming(this.action);this.frame=this.clock.tick(now,timing.frames,timing.seconds);void this.drawPreview();
+    }
+    this.refreshAnimation();
+  }
+  private syncStatus():void {
+    this.element('.creator-status').textContent=this.session.pending?'Applying character changes.':this.session.error||this.previewError;
+    this.element<HTMLButtonElement>('[data-undo]').disabled=this.session.pending||!this.session.draft.canUndo;
+    for(const selector of ['[data-global-random]','[data-reset]','[data-cancel]','[data-next]'])this.element<HTMLButtonElement>(selector).disabled=this.session.pending;
+    if(this.page==='review'&&(!this.appearanceReady||this.previewError))this.element<HTMLButtonElement>('[data-next]').disabled=true;
+    this.element('[data-name]').textContent=this.session.draft.value.name;
+  }
+  private async drawPreview():Promise<void> {
+    if(this.destroyed)return;
+    const appearance=this.session.draft.value.appearance,key=JSON.stringify([appearance,this.facing,this.action]);
+    const preparationKey=JSON.stringify(appearance);
+    const appearanceChanged=preparationKey!==this.preparationKey;
+    if(appearanceChanged){this.preparationKey=preparationKey;++this.preparationGeneration;this.appearanceReady=false;}
+    const preparationGeneration=this.preparationGeneration;
+    void this.preview.prepare(appearance,this.facing*Math.PI/2,this.action).then(()=>{
+      if(this.destroyed||preparationGeneration!==this.preparationGeneration||this.appearanceReady)return;
+      this.appearanceReady=true;this.syncStatus();
+    },error=>{
+      if(this.destroyed||preparationGeneration!==this.preparationGeneration||error instanceof Error&&error.name==='AbortError')return;
+      this.appearanceReady=false;this.previewReady=false;this.previewError=error instanceof Error?error.message:String(error);this.queuedDraw=false;this.syncStatus();this.refreshAnimation();
+    });
+    const changed=appearanceChanged||key!==this.previewKey;
+    if(changed){this.previewReady=false;this.previewError='';this.syncStatus();}
+    if(!this.visible()){this.queuedDraw=true;return;}
+    if(this.previewInFlight){this.queuedDraw=true;return;}
+    this.queuedDraw=false;
+    this.previewInFlight=true;
+    this.element('[data-facing]').textContent=['Front left','Front right','Back left','Back right'][this.facing];
+    try{const drawn=await this.preview.draw(appearance,this.facing*Math.PI/2,this.action,this.frame,()=>this.frame);
+      if(drawn){this.previewKey=key;this.previewReady=key===JSON.stringify([this.session.draft.value.appearance,this.facing,this.action]);}}
+    catch(error){
+      if(preparationGeneration===this.preparationGeneration&&!(error instanceof Error&&error.name==='AbortError')&&key===JSON.stringify([this.session.draft.value.appearance,this.facing,this.action])){
+        this.previewReady=false;
+        this.queuedDraw=false;this.previewError=error instanceof Error?error.message:String(error);
+      }}
+    finally{
+      this.previewInFlight=false;
+      if(!this.destroyed){if(changed||this.previewError)this.syncStatus();this.refreshAnimation();
+        if(this.queuedDraw&&this.visible()){this.queuedDraw=false;void this.drawPreview();}}
+    }
+  }
+  private rememberGroups():void {
+    if(this.renderedPage!==null)this.openGroups.set(this.renderedPage,new Set([...this.root.querySelectorAll<HTMLDetailsElement>('.creator-editor details[open]')].map(node=>node.dataset.group!)));
+  }
+  private disclosure(editor:HTMLElement,name:string,initiallyOpen=false):HTMLElement {
+    const details=this.document.createElement('details'),summary=this.document.createElement('summary');
+    details.dataset.group=name;details.open=this.openGroups.get(this.page)?.has(name)??initiallyOpen;summary.textContent=name;details.append(summary);editor.append(details);return details;
+  }
+  render():void {
+    if(this.destroyed)return;
+    const focused=this.root.contains(this.document.activeElement)?this.document.activeElement?.id:undefined;
+    this.rememberGroups();this.renderedPage=this.page;
+    const editing=this.session.sim!==null;
+    this.element('h1').textContent=editing?'Edit housemate':'Create a housemate';
+    this.element('.creator-subtitle').textContent=editing?'Loaded from this housemate.':'New character: randomized';
+    for(const button of this.root.querySelectorAll<HTMLButtonElement>('[data-page]')){
+      if(button.dataset.page===this.page)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
+    }
+    this.element('[data-next]').textContent=this.page==='review'?(editing?'Apply changes':'Move in'):'Continue';
+    this.element('[data-reset]').textContent=this.page==='review'?'Reset character':'Reset section';
+    const editor=this.element('.creator-editor');editor.replaceChildren();
+    const header=this.document.createElement('div');header.className='creator-section-header';
+    const title=this.document.createElement('h2');title.textContent=creatorPages.find(([id])=>id===this.page)![1];header.append(title);
+    if(this.page!=='review')header.append(this.button('Randomize section',()=>this.change(()=>this.session.draft.randomize(this.page))));
+    editor.append(header);
+    if(this.page==='review')this.renderReview(editor);else this.renderFields(editor);
+    this.updateCategorySummaries();this.syncStatus();
+    const appearance=JSON.stringify(this.session.draft.value.appearance);
+    if(appearance!==this.lastAppearance){this.lastAppearance=appearance;void this.drawPreview();}
+    this.refreshAnimation();if(focused)this.document.getElementById(focused)?.focus();
+  }
+  private renderFields(editor:HTMLElement):void {
+    if(this.page==='personality'){
+      const note=this.document.createElement('p');note.className='creator-note';
+      const count=this.session.draft.value.traits.length,limit=this.session.draft.catalog.max_traits;
+      note.textContent=`${count} of ${limit} traits selected.`;
+      if(count>=limit){note.id=traitLimitDescriptionId;note.textContent+=' Remove a selected trait to make room.';}
+      editor.append(note);
+      editor.append(this.button('Randomize traits',()=>this.change(()=>this.session.draft.randomize('traits'))));
+    }
+    if(this.page==='needs'){
+      this.renderPresets(this.disclosure(editor,'Presets'));
+      const unsupported=unsupportedActivityRoutes(this.session.draft.catalog);
+      if(unsupported.length){const warning=this.document.createElement('p');warning.className='creator-note';warning.setAttribute('role','status');
+        warning.textContent='Activity settings are unavailable for these unsupported routes: '+unsupported.map(row=>row.object+'/'+row.action).join(', ')+'. Saved values are preserved.';editor.append(warning);}
+    }
+    if(this.page==='appearance')editor.append(this.button('Reset appearance to preset',()=>this.change(()=>this.session.draft.resetAppearanceToPreset())));
+    const groups=new Map<string,HTMLFieldSetElement>();
+    const ordered=this.session.draft.fields.map((field,index)=>({field,index})).filter(({field})=>field.section===this.page);
+    if(this.page==='appearance')ordered.sort((a,b)=>{
+      const difference=appearanceGroups.indexOf(a.field.group)-appearanceGroups.indexOf(b.field.group);if(difference)return difference;
+      const rank=(field:CharacterField)=>{const index=appearanceOrder.indexOf(field.id.slice('appearance.'.length));return index<0?100:index;};
+      return rank(a.field)-rank(b.field);
+    });
+    for(const {field,index} of ordered){
+      if(field.applicable&&!field.applicable(this.session.draft.value))continue;
+      let group=groups.get(field.group);
+      if(!group){group=this.document.createElement('fieldset');group.className='creator-group';group.disabled=this.session.pending;
+        const disclosed=this.page==='appearance'||['Conditions','Advanced need rates','Skills','Activity preferences'].includes(field.group);
+        const parent=disclosed?this.disclosure(editor,field.group,field.group==='Activity preferences'):editor;
+        const pageTitle=creatorPages.find(([id])=>id===this.page)![1];
+        const singleField=ordered.filter(row=>row.field.group===field.group).length===1;
+        if(!disclosed&&field.group!==pageTitle&&!(singleField&&field.group===field.label)){
+          const legend=this.document.createElement('legend');legend.textContent=field.group;group.append(legend);
+        }else group.setAttribute('aria-label',field.group);
+        parent.append(group);groups.set(field.group,group);
+        if(['Traits','Conditions'].includes(field.group)&&this.session.draft.value.traits.length>=this.session.draft.catalog.max_traits)group.setAttribute('aria-describedby',traitLimitDescriptionId);
+        if(field.group==='Activity preferences'){const note=this.document.createElement('p');note.className='creator-note';note.textContent='1× is ordinary. Higher values encourage the activity; urgent needs can still take priority.';group.append(note);}
+        if(field.group==='Hobbies'){const note=this.document.createElement('p');note.className='creator-note';note.textContent='Completing a selected hobby successfully adds to life satisfaction.';group.append(note);}
+        if(field.group==='Skills'){const note=this.document.createElement('p');note.className='creator-note';note.textContent='Completed attempts add practice, including failed attempts. Higher levels reduce trait-related mishaps; they do not make activities faster.';group.append(note);}
+      }
+      const control=fieldControl(this.document,field,this.session.draft,index,rebuild=>{
+        this.session.error='';if(rebuild)this.render();else{
+          this.updateCategorySummaries();this.syncStatus();
+          const preset=this.root.querySelector<HTMLSelectElement>('#creator-personality-preset');
+          if(preset){preset.value=this.session.draft.personalityPreset??'';const apply=preset.parentElement?.querySelector<HTMLButtonElement>('button');if(apply)apply.disabled=!preset.value||this.session.pending;}
+          if(field.section==='appearance'){this.lastAppearance=JSON.stringify(this.session.draft.value.appearance);void this.drawPreview();}
+        }
+      },error=>this.fail(error));
+      if(field.id.startsWith('activity-category:')){const summary=this.document.createElement('small');summary.className='creator-category-influence';summary.dataset.category=field.id.slice('activity-category:'.length);control.append(summary);}
+      group.append(control);
+    }
+    if(this.page==='interests')this.retainedInterests(editor);
+    if(this.page==='household'&&!groups.size){const note=this.document.createElement('p');note.textContent='There are no other housemates to choose a relationship with.';editor.append(note);}
+  }
+  private button(label:string,action:()=>void):HTMLButtonElement {
+    const button=this.document.createElement('button');button.type='button';button.textContent=label;button.disabled=this.session.pending;button.addEventListener('click',action);return button;
+  }
+  private updateCategorySummaries():void {
+    for(const content of this.root.querySelectorAll<HTMLElement>('[data-category]')){
+      const row=categoryInfluence(this.session.draft.value,this.session.draft.catalog,content.dataset.category!);
+      content.textContent=row.contributors.length?`With selected traits: ${readableNumber(row.combined)}× average (${row.contributors.join(', ')}).`:'';
+    }
+  }
+  private renderPresets(editor:HTMLElement):void {
+    const row=this.document.createElement('div');row.className='creator-presets';
+    const label=this.document.createElement('label');label.textContent='Preset';label.htmlFor='creator-personality-preset';
+    const select=this.document.createElement('select');select.id=label.htmlFor;
+    const custom=this.document.createElement('option');custom.value='';custom.textContent='Custom values';select.append(custom);
+    for(const preset of this.session.draft.catalog.personalities){const option=this.document.createElement('option');option.value=preset.id;option.textContent=preset.label;select.append(option);}
+    select.value=this.session.draft.personalityPreset??'';
+    const apply=this.button('Apply preset',()=>{if(select.value)this.change(()=>this.session.draft.applyPersonalityPreset(select.value));});
+    apply.disabled=!select.value||this.session.pending;select.addEventListener('change',()=>{apply.disabled=!select.value||this.session.pending;});row.append(label,select,apply);editor.append(row);
+    const note=this.document.createElement('p');note.className='creator-note';note.textContent='Changes need rates, activity preferences, sleep timing, and cleanliness.';editor.append(note);
+  }
+  private renderReview(editor:HTMLElement):void {
+    const draft=this.session.draft.value;
+    for(const [section,label] of creatorPages){if(section==='review')continue;
+      const parent=this.disclosure(editor,label),list=this.document.createElement('dl');list.className='creator-review';
+      const add=(label:string,value:string)=>{const term=this.document.createElement('dt'),description=this.document.createElement('dd');term.textContent=label;description.textContent=value;list.append(term,description);};
+      for(const field of this.session.draft.fields.filter(field=>field.section===section)){
+        if(field.applicable&&!field.applicable(draft))continue;
+        if(field.id.startsWith('["trait",')||field.id.startsWith('["hobby",'))continue;
+        add(field.label,reviewValue(field,draft,this.session.draft.catalog));
+      }
+      if(section==='personality')add('Selected traits',draft.traits.map(row=>this.session.draft.catalog.traits.find(trait=>trait.id===row.id)?.label??row.id).join(', ')||'None');
+      if(section==='interests')add('Selected hobbies',draft.hobbies.map(id=>this.session.draft.catalog.hobbies.find(hobby=>hobby.id===id)?.label??id).join(', ')||'None');
+      parent.append(list);
+    }
+  }
+  private retainedInterests(editor:HTMLElement):void {
+    const saved=this.session.draft.value.hobbies.filter(id=>!this.session.draft.catalog.hobbies.some(hobby=>hobby.id===id));
+    if(saved.length){const note=this.document.createElement('p');note.className='creator-note';note.textContent='Other saved interests: '+saved.join(', ')+'. These values are preserved.';editor.append(note);}
+  }
+  afterCommands():void {if(this.session.afterCommands())this.render();}
+  destroy():void {
+    if(this.destroyed)return;this.destroyed=true;this.clock.setActive(false);
+    if(this.animationRequest!==null)this.window.cancelAnimationFrame(this.animationRequest);
+    this.visibilityObserver.disconnect();this.abort.abort();this.preview.destroy();this.root.replaceChildren();this.root.classList.remove('creator-shell');
+  }
+}

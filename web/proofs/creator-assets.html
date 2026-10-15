@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creator asset inspection</title><link rel="icon" href="data:,">
+<style>body{background:#17171c;color:#eee;font:15px system-ui;margin:24px}main{display:flex;gap:24px}canvas{width:456px;height:600px}textarea{width:460px;height:490px;background:#242630;color:#eee}button,select{padding:9px;margin:5px}#status{white-space:pre-wrap}</style>
+<h1>Creator asset inspection</h1><p id="status">Loading character assets.</p>
+<main><canvas id="preview" width="608" height="800" aria-label="Actual configured character"></canvas><section>
+<label for="record">Appearance record</label><br><textarea id="record"></textarea><br>
+<button id="apply">Apply appearance</button><button id="turn">Turn</button>
+<select id="action" aria-label="Action"><option>idle</option><option>walk</option><option>read</option><option>sleep</option></select>
+<button id="step">Next frame</button><label><input id="bare" type="checkbox">Bathing body</label>
+</section></main><script type="module" src="./creator-assets.ts"></script></html>

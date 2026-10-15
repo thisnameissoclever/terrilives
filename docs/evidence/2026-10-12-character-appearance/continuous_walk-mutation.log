@@ -1,0 +1,30 @@
+
+> test
+> vitest run --maxWorkers=1 character-motion.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ❯ tests/character-motion.test.ts (3 tests | 1 failed) 653ms
+     × keeps the planted shoe point fixed as world travel advances 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-motion.test.ts > continuous character motion > keeps the planted shoe point fixed as world travel advances
+AssertionError: expected 0.03125 to be less than 0.00002
+ ❯ tests/character-motion.test.ts:57:65
+     55|           const world=[point[0],-point[1]+frame/8,point[2]];
+     56|           if(!anchor)anchor=world;
+     57|           expect(Math.hypot(...world.map((v,i)=>v-anchor![i]))).toBeLe…
+       |                                                                 ^
+     58|         }
+     59|         }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  12:10:15
+   Duration  816ms (transform 38ms, setup 0ms, import 53ms, tests 653ms, environment 0ms)
+

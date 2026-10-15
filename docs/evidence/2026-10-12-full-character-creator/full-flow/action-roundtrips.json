@@ -1,0 +1,36 @@
+{
+  "rows": [
+    {
+      "phase": "walking",
+      "tick": 1,
+      "stage": 1,
+      "action": 5,
+      "continuedTicks": 30,
+      "bytes": 5695
+    },
+    {
+      "phase": "fetching",
+      "tick": 61,
+      "stage": 6,
+      "action": 0,
+      "continuedTicks": 30,
+      "bytes": 5726
+    },
+    {
+      "phase": "reading",
+      "tick": 86,
+      "stage": 3,
+      "action": 3,
+      "continuedTicks": 30,
+      "bytes": 5710
+    },
+    {
+      "phase": "shelving",
+      "tick": 167,
+      "stage": 7,
+      "action": 0,
+      "continuedTicks": 30,
+      "bytes": 5775
+    }
+  ]
+}

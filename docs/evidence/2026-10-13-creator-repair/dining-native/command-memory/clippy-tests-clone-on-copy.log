@@ -1,0 +1,26 @@
+    Checking terri-wasm v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-wasm)
+    Checking terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+error: using `clone` on type `Needs` which implements the `Copy` trait
+   --> crates\terri-sim\src\character_draft\application.rs:485:21
+    |
+485 |           let needs = sim
+    |  _____________________^
+486 | |             .world()
+487 | |             .get::<terri_core::Needs>(entity)
+488 | |             .unwrap()
+489 | |             .clone();
+    | |____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.94.0/index.html#clone_on_copy
+    = note: `-D clippy::clone-on-copy` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::clone_on_copy)]`
+help: try dereferencing it
+    |
+485 ~         let needs = *sim
+486 +             .world()
+487 +             .get::<terri_core::Needs>(entity)
+488 ~             .unwrap();
+    |
+
+error: could not compile `terri-sim` (lib test) due to 1 previous error
+EXIT_CODE=101

@@ -1,0 +1,22 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 57s
+     Running unittests src\lib.rs (target\debug\deps\terri_core-d9424414bfa066c7.exe)
+
+running 2 tests
+test command::character_tests::creator_commands_keep_code_thirty_and_the_unboxed_payload_bytes ... ok
+SimCommand bytes: 712; CharacterCommand bytes: 712
+
+thread 'command::character_tests::creator_payload_does_not_inflate_every_queued_command' (212440) panicked at crates\terri-core\src\command\character_tests.rs:11:5:
+Selections and other small commands must not carry an inline creator payload: 712 bytes
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test command::character_tests::creator_payload_does_not_inflate_every_queued_command ... FAILED
+
+failures:
+
+failures:
+    command::character_tests::creator_payload_does_not_inflate_every_queued_command
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 144 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-core --lib`
+EXIT_CODE=101

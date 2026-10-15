@@ -1,0 +1,26 @@
+[
+  {
+    "name": "fixture-depth-final",
+    "command": "node assets/models/sims/character-creator/verify_fixture_depth.cjs",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "wiping-final",
+    "command": "node assets/models/sims/character-creator/capture_wiping_contact.cjs",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "recovery-final",
+    "command": "node assets/models/sims/character-creator/verify_lifecycle.cjs",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "depth-regressions",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/fixture-depth.test.ts tests/grime.test.ts tests/frame.test.ts tests/sprite-density.test.ts tests/instances.test.ts tests/dining-table-support.test.ts tests/fridge-reach-production.test.ts tests/character-world-contract.test.ts tests/character-device-lifetime.test.ts tests/floor-finish-resources.test.ts tests/floor-scene-presentation.test.ts",
+    "exitCode": 1,
+    "verdict": "FAIL"
+  }
+]

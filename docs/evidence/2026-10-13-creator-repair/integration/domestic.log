@@ -1,0 +1,57 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.78s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 49 tests
+test domestic::tests::a_cleanup_order_takes_over_an_autonomous_cleanup ... ok
+test domestic::tests::a_later_solo_meal_does_not_inherit_an_older_shared_table ... ok
+test domestic::tests::a_shared_meal_feeds_only_three_hungry_friends_at_distinct_table_positions ... ok
+test domestic::tests::a_visitor_draws_once_per_entry_at_the_tuned_fraction_of_own_willingness ... ok
+test domestic::tests::abandoned_shared_plate_becomes_a_counter_dish_and_reservation_has_multiple_owners ... ok
+test domestic::tests::average_cleanliness_has_stronger_own_cleanup_and_thirty_percent_blocker_response ... ok
+test domestic::tests::busy_room_entry_defers_one_cleanup_draw_and_own_old_mess_can_trigger_it ... ok
+test domestic::tests::buying_facts_use_active_roles_and_keep_counter_dining_fallback_optional ... ok
+test domestic::tests::cleanliness_annoyance_waits_for_combined_room_load_then_charges_only_real_owners_once ... ok
+test domestic::tests::cleanliness_dish_mood_uses_threshold_and_keeps_the_full_pile_cap ... ok
+test domestic::tests::cleanliness_same_pile_crossing_and_visit_memory_survive_save_load ... ok
+test domestic::tests::cleanliness_tolerance_keeps_small_directed_dish_orders_available ... ok
+test domestic::tests::cleanup_collects_each_surface_and_washes_only_its_claimed_dishes ... ok
+test domestic::tests::complaints_are_directional_once_per_visit_and_stronger_for_neat_people ... ok
+test domestic::tests::current_meal_identity_survives_saves_and_rejects_invalid_references ... ok
+test domestic::tests::gathering_preserves_the_full_eating_interval_and_replays_after_loading ... ok
+test domestic::tests::gathering_yields_to_critical_needs_player_interruptions_and_table_capacity ... ok
+test domestic::tests::guests_stand_to_eat_when_the_table_is_busy_and_the_cook_has_left ... ok
+test domestic::tests::interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes ... ok
+test domestic::tests::malformed_domestic_claims_are_rejected_without_replacing_the_live_world ... ok
+test domestic::tests::meal_names_follow_the_clock_boundaries ... ok
+test domestic::tests::mess_diagnostics_survive_full_tick_and_report_clamping ... ok
+test domestic::tests::needs_override_tidiness_and_slobs_rarely_clean ... ok
+test domestic::tests::own_old_dishes_lower_mood_without_self_resentment ... ok
+test domestic::tests::paused_cancel_reissue_and_furniture_sales_preserve_valid_claims ... ok
+test domestic::tests::plating_hands_idle_guests_to_shared_food_before_ordinary_autonomy ... ok
+test domestic::tests::prepared_food_does_not_replace_player_orders_or_critical_rest ... ok
+test domestic::tests::privacy_station_routes_preserve_owned_counter_and_unique_dining_seats ... ok
+test domestic::tests::privacy_substitution_suspends_collected_cleanup_and_replays ... ok
+test domestic::tests::queued_snack_orders_run_one_after_another ... ok
+test domestic::tests::recipe_station_facts_preserve_raw_roles_and_match_preparation_and_cleanup_admission ... ok
+test domestic::tests::runtime_snack_mapping_is_shared_by_model_facts_and_ignores_unrelated_actions ... ok
+test domestic::tests::selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_mess ... ok
+test domestic::tests::snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips ... ok
+test domestic::tests::table_binding_changes_only_the_current_cooks_batch_or_active_guests_plate ... ok
+test domestic::tests::targeted_cancel_while_paused_releases_queued_request_at_the_command_boundary ... ok
+test domestic::tests::targeted_first_preserves_generic_orders_waiting_behind_it ... ok
+test domestic::tests::targeted_generic_order_waits_for_a_first_floor_chore ... ok
+test domestic::tests::targeted_hash_changes_causally_with_scope_selection_allocator_and_queue_order ... ok
+test domestic::tests::targeted_legacy_multiset_piles_keep_distinct_visible_settings_and_conserve_units ... ok
+test domestic::tests::targeted_mixed_orders_preserve_scope_and_generic_ownership ... ok
+test domestic::tests::targeted_pile_claims_only_its_snapshot_and_round_trips_while_queued ... ok
+test domestic::tests::targeted_pile_skips_removed_identities_without_cleaning_replacements ... ok
+test domestic::tests::targeted_queued_surface_waits_through_repeat_collection_and_stale_first ... ok
+test domestic::tests::targeted_stale_pile_does_not_interrupt_an_existing_meal ... ok
+test domestic::tests::targeted_surface_returns_for_new_dishes_and_preserves_other_surfaces_through_every_save ... ok
+test domestic::tests::targeted_surface_waits_for_claimed_dishes_without_stealing_them ... ok
+test domestic::tests::the_hash_observes_domestic_identity_memory_claims_and_quality ... ok
+test domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load ... ok
+
+test result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 1268 filtered out; finished in 128.10s
+

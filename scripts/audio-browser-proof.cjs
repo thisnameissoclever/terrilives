@@ -407,16 +407,16 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition, options = {
     const bundleEvidence = (await Promise.all(loadedBundles)).sort((a, b) => a.url.localeCompare(b.url));
     const fixture = options.fixture ?? {};
     if (fixture.bytes === undefined) fixture.bytes = await page.evaluate(() => Array.from(globalThis.__terriStress.sim.saveBytes()));
-    await page.evaluate(bytes => {
-      if (!globalThis.__terriStress.sim.loadBytes(Uint8Array.from(bytes))) throw new Error('Memory fixture load rejected');
+    await page.evaluate(async bytes => {
+      if (!(await globalThis.__terriStress.characters.loadBytes(Uint8Array.from(bytes)))) throw new Error('Memory fixture load rejected');
     }, fixture.bytes);
     const fixtureSha256 = createHash('sha256').update(Uint8Array.from(fixture.bytes)).digest('hex');
     await closeHelpAndSetThreeTimes(page);
     const toiletWarmup = await warmToiletLifecycle(page, audioEnabled);
     // Asset/player preparation must not choose the measured world's needs,
     // actions or clock. Restore the same public save before timed warmup.
-    await page.evaluate(bytes => {
-      if (!globalThis.__terriStress.sim.loadBytes(Uint8Array.from(bytes))) throw new Error('Post-lifecycle fixture load rejected');
+    await page.evaluate(async bytes => {
+      if (!(await globalThis.__terriStress.characters.loadBytes(Uint8Array.from(bytes)))) throw new Error('Post-lifecycle fixture load rejected');
     }, fixture.bytes);
     await setSpeed(page, 3);
 
@@ -432,8 +432,8 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition, options = {
     // Wall-clock polling can overshoot warmup by a tick. Pin the paused
     // baseline itself, not merely the random seed used before warmup.
     if (fixture.measurementBytes === undefined) fixture.measurementBytes = await page.evaluate(() => Array.from(globalThis.__terriStress.sim.saveBytes()));
-    await page.evaluate(bytes => {
-      if (!globalThis.__terriStress.sim.loadBytes(Uint8Array.from(bytes))) throw new Error('Measurement fixture load rejected');
+    await page.evaluate(async bytes => {
+      if (!(await globalThis.__terriStress.characters.loadBytes(Uint8Array.from(bytes)))) throw new Error('Measurement fixture load rejected');
     }, fixture.measurementBytes);
     const selected = await normalizeMemoryHud(page);
     await waitForAudioDrain(page);

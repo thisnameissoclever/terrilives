@@ -1,7 +1,13 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
+import {loadIndicatorCoverage} from '../src/render/indicator-coverage.js';
 import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
+import { CharacterScenePlan, type PlannedActor } from '../src/render/character/scene-plan.js';
+import { defaultAppearance } from '../src/character/schema.js';
+import {fixtureDepthSprite,fixtureDrawRecord,shelfDepthSprite,surfacePropDepthOffset} from '../src/render/fixture-depth.js';
+import {SURFACE_LAYOUTS,DROPPED_BOOK_SPRITES} from '../src/render/atlas.js';
+import { buildInstanceBatch } from '../src/frame.js';
 import {
   FixedStepDriver,
   AQUARIUM_FRAME_TICKS,
@@ -305,6 +311,56 @@ class FakeEntities implements RenderSource {
 }
 
 describe('domestic surface clutter', () => {
+  it('keeps the visible moving fridge state owned by its original simulation row',()=>{
+    const source=new FakeEntities(),fridge=spriteIndex('offlineFridge');source.set([[2,3,2,3,1,fridge]]);
+    const plan=new CharacterScenePlan(()=>8);plan.update=()=>{};plan.fixtureDepthBase=40000;
+    plan.actors.push({row:1,entity:101,sim:0,token:2,appearance:defaultAppearance(),x:2,y:3,angle:0,offset:[0,0,0],fixtureRow:0,fixtureEntity:100,fixtureModel:'fridge',
+      includeFixture:true,stockMask:0,head:[2,3,2],feet:[2,3,0],hand:[2,3,1],action:{clip:'fridge',sample:3,fixture:true}});
+    const batch=buildInstanceBatch(source,1,0,0,GRID,null,1,false,0,null,undefined,null,null,0,undefined,plan);
+    expect(batch.instances[3]).toBe(fixtureDrawRecord(fridge,40000,'fridge',3)!.sprite);
+    expect(batch.owners[0]).toBe(1);expect(plan.pickOwners.snapshot().get(batch.owners[0])).toEqual({entity:100,sim:null,kind:'fixture'});
+  });
+  it('assigns separate picking tokens to the exact rendered dirty table stacks',()=>{
+    const source=new FakeEntities() as FakeEntities&{dirtyDishes():Uint32Array;dirtySettings():Uint32Array;dishPiles():Uint32Array};
+    source.set([[2,3,2,3,1,spriteIndex('offlineDiningTable')]]);source.dirtyDishes=()=>new Uint32Array([3]);source.dirtySettings=()=>new Uint32Array([1|(2<<8)]);
+    source.dishPiles=()=>new Uint32Array([100,0,601,100,2,605,101,2,606,100,2,607]);
+    const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.fixtureDepthBase=40000;
+    const batch=buildInstanceBatch(source,1,0,0,GRID,null,1,false,0,null,undefined,null,null,0,undefined,plan),owners=plan.pickOwners.snapshot();
+    expect(Array.from(batch.owners.slice(0,batch.count))).toEqual([1,2,3]);
+    expect(owners.get(2)?.cleanup).toEqual({surface:100,dishes:[601]});expect(owners.get(3)?.cleanup).toEqual({surface:100,dishes:[605,607]});
+  });
+  it('keeps dish artwork in place while assigning its physical support depth and fixture owner',()=>{
+    const source=new FakeEntities() as FakeEntities&{dirtyDishes():Uint32Array};
+    const counter=spriteIndex('offlineCounter');source.set([[2,3,2,3,1,counter]]);source.dirtyDishes=()=>new Uint32Array([3]);
+    const previous=buildInstanceBatch(source,1,ORIGIN_X,ORIGIN_Y,GRID,100);const xy=Array.from(previous.instances.slice(FLOATS_PER_INSTANCE,FLOATS_PER_INSTANCE+2));
+    const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.fixtureDepthBase=40000;
+    const batch=buildInstanceBatch(source,1,ORIGIN_X,ORIGIN_Y,GRID,100,1,false,0,null,undefined,null,null,0,undefined,plan);
+    const prop=FLOATS_PER_INSTANCE,step=layeredDepth(0,0,GRID,LAYER_PROP)-layeredDepth(1,0,GRID,LAYER_PROP);
+    expect(Array.from(batch.instances.slice(prop,prop+2))).toEqual(xy);
+    expect(batch.instances[prop+8]).toBe(-8);expect(batch.instances[prop+10]).toBe(fixtureDepthSprite(spriteIndex('dirtyPrep'),40000));
+    // This source counter point is local (-.22,-.22), rotated SE, with sum +.44.
+    expect(surfacePropDepthOffset(counter,SURFACE_LAYOUTS[counter].points[0][1])).toBeCloseTo(.44,5);
+    expect(batch.instances[prop+2]).toBeCloseTo(layeredDepth(2,3,GRID,LAYER_FOREGROUND)-.44*step,7);
+    expect(Array.from(batch.owners.slice(0,batch.count))).toEqual([1,1,0]);
+  });
+  it('selects shelf shell depth with the complete 24-bit inventory mask',()=>{
+    const source=new FakeEntities() as FakeEntities&{shelfBookOffsets():Uint32Array;shelfBookCounts():Uint32Array;shelfBookMasks():Uint32Array};
+    const shelf=spriteIndex('offlineBookcase');source.set([[2,3,2,3,1,shelf]]);
+    source.shelfBookOffsets=()=>new Uint32Array([0]);source.shelfBookCounts=()=>new Uint32Array([1]);source.shelfBookMasks=()=>new Uint32Array([0x800001]);
+    const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.fixtureDepthBase=40000;
+    const batch=buildInstanceBatch(source,1,0,0,GRID,null,1,false,0,null,undefined,null,null,0,undefined,plan);
+    expect(batch.instances[3]).toBe(shelf);expect(batch.instances[8]).toBe(-9);expect(batch.instances[10]).toBe(shelfDepthSprite(shelf,40000));expect(batch.instances[11]).toBe(0x800001);
+  });
+  it('uses the reconstructed dropped book color and depth as one registered draw',()=>{
+    const source=new FakeEntities() as FakeEntities&{droppedBookCount:number;droppedBookIds():Uint32Array;droppedBookPositions():Float32Array};
+    source.set([]);source.droppedBookCount=1;source.droppedBookIds=()=>new Uint32Array([0]);source.droppedBookPositions=()=>new Float32Array([2,3]);
+    const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.fixtureDepthBase=40000;
+    const record=fixtureDrawRecord(DROPPED_BOOK_SPRITES[0].sprite,40000)!;
+    const batch=buildInstanceBatch(source,1,0,0,GRID,null,1.25,false,0,null,undefined,null,null,0,undefined,plan);
+    expect(batch.count).toBe(1);expect(batch.instances[3]).toBe(record.sprite);expect(batch.instances[8]).toBe(-8);expect(batch.instances[10]).toBe(record.depth);
+    expect(batch.instances[0]).toBeCloseTo(screenX(2,3,0,1.25)+record.offsetX*1.25);expect(batch.instances[1]).toBeCloseTo(screenY(2,3,0,1.25)+record.offsetY*1.25);
+    expect(plan.pickOwners.snapshot().get(batch.owners[0])).toEqual({entity:0xffffffff,sim:null,kind:'fixture',bookCopy:0});
+  });
   it('draws cooking clutter and separate waiting meals, and removes them when the live columns clear', () => {
     const source = new FakeEntities() as FakeEntities & { dirtyDishes(): Uint32Array; mealPortions(): Uint32Array };
     source.set([[2, 3, 2, 3, 1, spriteIndex('offlineCounter')]]);
@@ -1278,6 +1334,16 @@ describe('ambient aquarium animation', () => {
 });
 
 describe('buildInstances', () => {
+  it('separates eligible person annotations from physical rows and resets the borrowed range',()=>{
+    const source=new FakeEntities();
+    source.set([[2,3,2,3,0,0,3],[3,3,3,3,1,spriteIndex('table'),8],[4,3,4,3,0,0,8],[5,3,5,3,0,0,1]]);
+    const result=buildInstanceBatch(source,1,0,0,GRID,null);
+    expect(result.annotations).toEqual({start:4,count:2});
+    expect(Array.from(result.owners.slice(4,6))).toEqual([1,3]);
+    expect(result.instances[4*FLOATS_PER_INSTANCE+OFFSET_SPRITE]).toBe(spriteIndex('activityEat'));
+    source.set([[2,3,2,3,0,0,0]]);
+    expect(buildInstanceBatch(source,1,0,0,GRID,null).annotations).toEqual({start:1,count:0});
+  });
   it('swaps only the aquarium object quad and pins it under reduced motion', () => {
     const source = new FakeEntities();
     const aquarium = spriteIndex('bookcaseClosedWide');
@@ -2041,6 +2107,34 @@ describe('activity indicator bubbles', () => {
       5 * FLOATS_PER_INSTANCE + OFFSET_TINT_B + 1))).toEqual([1, 1, 1]);
   });
 
+  it('uses registered counter surface depth beside configured people', () => {
+    src.set([[1,1,1,1,1,spriteIndex('offlineCounter'),0]]);
+    const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.fixtureDepthBase=40000;
+    const batch=buildInstanceBatch(src,1,0,0,GRID,null,1,false,0,null,undefined,null,null,0,undefined,plan);
+    expect(batch.instances[8]).toBe(-8);
+    expect(batch.instances[10]).toBe(fixtureDepthSprite(spriteIndex('offlineCounter'),40000));
+  });
+
+  it('preserves conversation topic tint and person ownership for configured characters',()=>{
+    vi.stubGlobal('OffscreenCanvas',class {
+      constructor(public width:number,public height:number){}
+      getContext(){return {drawImage(){},getImageData:()=>({data:new Uint8ClampedArray(this.width*this.height*4).fill(255)})};}
+    });
+    try {
+      for(const page of new Set(SPRITES.filter(sprite=>sprite.name.startsWith('conversation')).map(sprite=>sprite.page??0)))loadIndicatorCoverage({} as ImageBitmap,page);
+      const talking=Object.assign(new FakeEntities(),{conversationTopics:()=>new Uint32Array([8]),conversationPreferences:()=>new Float32Array([-1])});
+      talking.set([[1,1,1,1,KIND_AGENT,3,4]]);
+      const plan=new CharacterScenePlan(()=>4);plan.update=()=>{};plan.replacedRows=new Uint8Array([1]);
+      plan.actors.push({row:0,entity:100,sim:0,token:1,appearance:defaultAppearance(),x:1,y:1,angle:0,offset:[0,0,0],fixtureRow:-1,fixtureEntity:null,fixtureModel:null,
+        includeFixture:false,stockMask:0,head:[1,1,2],feet:[1,1,0],hand:[1,1,.8],action:{clip:'talk',sample:0,fixture:false}});
+      const batch=buildInstanceBatch(talking,1,0,0,GRID,null,1,false,0,null,undefined,null,null,0,undefined,plan);
+      expect(batch.annotations.count).toBe(1);const base=batch.annotations.start*FLOATS_PER_INSTANCE;
+      expect(batch.instances[base+OFFSET_SPRITE]).toBe(spriteIndex('conversationReadingDislike'));
+      expect(batch.instances[base+OFFSET_TINT_R]).toBeCloseTo(.99);expect(batch.instances[base+OFFSET_TINT_G]).toBeCloseTo(.78);
+      expect(batch.instances[base+OFFSET_TINT_B]).toBeCloseTo(.76);expect(batch.owners[batch.annotations.start]).toBe(1);
+    } finally {vi.unstubAllGlobals();}
+  });
+
   it('floats a bubble over the activity, and none over walkers or idlers', () => {
     src.set([
       [1, 1, 1, 1, KIND_AGENT, 3, 4], // talking
@@ -2162,6 +2256,25 @@ describe('the carried badge', () => {
   // carried_<kind> atlas convention, and the transform is visible
   // because kind 0 and kind 1 resolve to different sprites.
   const src = new FakeEntities();
+
+  it('retains ingredients for a configured walker and suppresses a rendered dinner prop', () => {
+    src.set([[0, 0, 1, 0, KIND_AGENT, 3, 1, 0, VISUAL_ACTION_WALK, FACING_POSITIVE_X]]);
+    const plan = new CharacterScenePlan(() => 4);
+    plan.update = () => {};
+    plan.replacedRows = new Uint8Array([1]);
+    const actor: PlannedActor = { row: 0, entity: 100, sim: 0, token: 1, appearance: defaultAppearance(),
+      x: 1, y: 0, angle: 0, offset: [0,0,0], fixtureRow: -1, fixtureEntity: null, fixtureModel: null,
+      includeFixture: false, stockMask: 0, head: [1,0,2], feet: [1,0,0], hand: [1,0,.8],
+      action: { clip: 'walk', sample: 0, fixture: false } };
+    plan.actors.push(actor);
+    const batch = () => buildInstanceBatch(src, 1, 0, 0, GRID, null, 1, false, 0, null, undefined, null, null, 0, undefined, plan);
+    const ingredients = batch();
+    expect(ingredients.count).toBe(2);
+    expect(ingredients.instances[FLOATS_PER_INSTANCE+OFFSET_SPRITE]).toBe(spriteIndex('carried_ingredients'));
+    actor.action.clip = 'food_walk';
+    src.set([[0, 0, 1, 0, KIND_AGENT, 3, 1, 1, VISUAL_ACTION_WALK, FACING_POSITIVE_X]]);
+    expect(batch().count).toBe(1);
+  });
 
   it('floats the kind-matched badge under the carrier, and counts it', () => {
     src.set([

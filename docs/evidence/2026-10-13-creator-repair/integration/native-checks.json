@@ -1,0 +1,20 @@
+[
+  {
+    "name": "core-cleanliness",
+    "command": "cargo test --locked -j 1 -p terri-core cleanliness -- --test-threads=1",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "domestic",
+    "command": "cargo test --locked -j 1 -p terri-sim domestic::tests -- --test-threads=1",
+    "exitCode": 0,
+    "verdict": "PASS"
+  },
+  {
+    "name": "chores",
+    "command": "cargo test --locked -j 1 -p terri-sim chores:: -- --test-threads=1",
+    "exitCode": 0,
+    "verdict": "PASS"
+  }
+]

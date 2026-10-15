@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Built loading cover appears before game scripts arrive",
+    "Built loading cover clears for the rendered game",
+    "Built creator opens with Walking playing",
+    "Activity preferences starts expanded with ten categories",
+    "Built Reset restores every activity to 1.0x",
+    "Built Undo restores the prior activity values",
+    "Preview controls have at least 16 pixels above and below",
+    "Trait limit has one group notice and no repeated field descriptions",
+    "Unapplied creator keeps live save exact",
+    "Built creator creates the fourth household member",
+    "Created household reloads through required preparation",
+    "Reload preserves exact saved bytes",
+    "No browser or graphics errors"
+  ],
+  "spacing": {
+    "previewToControls": 20,
+    "controlsToSample": 20
+  },
+  "note": {
+    "total": 1,
+    "fields": 0
+  },
+  "gameUrl": "http://127.0.0.1:5193",
+  "saveSha256": "48e4e1b8b3cd6e7df320bd3c16b2e98d34fbeac2359dc1db78df5b152e3421aa",
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "bundleFiles": {
+    "index-9APnBMNI.js": "e81911a6e9bd41fb6e4dffb95758904c12830441cb5b87db3e3a33a6d65e456d",
+    "preparation-worker-DdKXMRR3.js": "1e6929d4da910caaa4d11c10ff8f2e17be24288f9c5ec5aff5089403236b1a56",
+    "save-worker-Ddp7uOL0.js": "08c8a225a3862854688422a74d5bd9cbb9a96c34a8f16aa7a199add9f8249689",
+    "terri_wasm_bg-BPvXwH75.wasm": "4231efe627fd8c55cfb3fa1de244f8723155910d5f9e9959aa80088580a9dacf"
+  }
+}

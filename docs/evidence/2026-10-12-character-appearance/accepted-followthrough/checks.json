@@ -1,0 +1,12 @@
+{
+  "captureContractTests": 2,
+  "finalTargetedTests": 12,
+  "frameIntegrationCheckpointTests": 116,
+  "typecheckExitCode": 0,
+  "buildExitCode": 0,
+  "simulationBrowserExitCode": 0,
+  "appearanceBrowserExitCode": 0,
+  "mutations": 5,
+  "protectedFiles": 1504,
+  "taskServerListenersAfterCleanup": 0
+}

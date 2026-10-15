@@ -1,0 +1,240 @@
+[
+  {
+    "show": false,
+    "name": "identity",
+    "selected": "identity",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 374.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 13.796875,
+      "y": 174.765625,
+      "width": 64.875,
+      "height": 44
+    }
+  },
+  {
+    "show": false,
+    "name": "appearance",
+    "selected": "appearance",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 86.671875,
+      "y": 174.765625,
+      "width": 91.640625,
+      "height": 44
+    }
+  },
+  {
+    "show": false,
+    "name": "personality",
+    "selected": "personality",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 186.3125,
+      "y": 174.765625,
+      "width": 85,
+      "height": 44
+    }
+  },
+  {
+    "show": false,
+    "name": "needs",
+    "selected": "needs",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 247.3125,
+      "y": 174.765625,
+      "width": 113.53125,
+      "height": 44
+    }
+  },
+  {
+    "show": false,
+    "name": "interests",
+    "selected": "interests",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 127.84375,
+      "y": 174.765625,
+      "width": 118.421875,
+      "height": 44
+    }
+  },
+  {
+    "show": false,
+    "name": "household",
+    "selected": "household",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 254.265625,
+      "y": 174.765625,
+      "width": 85.09375,
+      "height": 44
+    }
+  },
+  {
+    "show": false,
+    "name": "review",
+    "selected": "review",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 300.359375,
+      "y": 174.765625,
+      "width": 60.828125,
+      "height": 44
+    }
+  },
+  {
+    "show": true,
+    "name": "identity",
+    "selected": "identity",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 13.796875,
+      "y": 174.765625,
+      "width": 64.875,
+      "height": 44
+    }
+  },
+  {
+    "show": true,
+    "name": "appearance",
+    "selected": "appearance",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 86.671875,
+      "y": 174.765625,
+      "width": 91.640625,
+      "height": 44
+    }
+  },
+  {
+    "show": true,
+    "name": "personality",
+    "selected": "personality",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 186.3125,
+      "y": 174.765625,
+      "width": 85,
+      "height": 44
+    }
+  },
+  {
+    "show": true,
+    "name": "needs",
+    "selected": "needs",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 247.3125,
+      "y": 174.765625,
+      "width": 113.53125,
+      "height": 44
+    }
+  },
+  {
+    "show": true,
+    "name": "interests",
+    "selected": "interests",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 127.84375,
+      "y": 174.765625,
+      "width": 118.421875,
+      "height": 44
+    }
+  },
+  {
+    "show": true,
+    "name": "household",
+    "selected": "household",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 254.265625,
+      "y": 174.765625,
+      "width": 85.09375,
+      "height": 44
+    }
+  },
+  {
+    "show": true,
+    "name": "review",
+    "selected": "review",
+    "nav": {
+      "x": 7.796875,
+      "y": 166.765625,
+      "width": 359.390625,
+      "height": 76
+    },
+    "button": {
+      "x": 300.359375,
+      "y": 174.765625,
+      "width": 60.828125,
+      "height": 44
+    }
+  }
+]

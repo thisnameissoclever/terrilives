@@ -1,0 +1,1414 @@
+{
+  "expected": 64,
+  "observed": 64,
+  "cases": [
+    {
+      "presentation": "masculine",
+      "bits": 0,
+      "compileMs": 234.22919999999988,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "77eff6a87f5d2a269d1409ba1ee0ed22f44d37d71354790c1a74ae2740261e7f"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "25e422c7ff2d843d9ba1a0e9deec5274b19e4736b18d11474a3a742500855b83"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "0f71343c2294e10be33443d275ecd6126e0978ab6dfb4b7b6718002d82388382"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 1,
+      "compileMs": 196.8114999999998,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "fae1cccdc41d31f7bc1a78ededa104ed3de9d01ec96fac0f3d70ccf802e3a5c7"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "f32f97ab8726f7be7b8280e6f5648514cec54c63fd3e63c19bc82beae676c74b"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "e7bb698f1495bf3faa00080b04f1eec3a899befb3aafc04a35a0dc278ffbed58"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 2,
+      "compileMs": 195.41990000000033,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "e4c5a8d452d1e2f639c0805c002871c4e831696e407a339244602f99f22e9970"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "bdb3eae8ce57c607ffab1f1c8f1ebe857d0804a7f3f2d6e8d389fd1aad51c1ba"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "55faa56bb514ef7fa5182eecdef6766f92340dbd9bf18c588acfa80b3981bdcd"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 3,
+      "compileMs": 270.4853000000003,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "444c16aee81aa11a20fe0dbcf82fc863881ff044d421a5e258b7ab4adf3ff54a"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "37451e367c5bfe0bd6c96ba3ce240f843f22b3576eb80ad3c5d4fa9483ecb09a"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d598f0e6a951903b8ebac87fa8dff0947c5a63ab1ddd68e46e659d5d3645616c"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 4,
+      "compileMs": 315.77739999999994,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "23c81a7a6c1b898e2aeef5525ebf310c76b7cee4dfef8cbcddfeadd43079da25"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "7b1605b505d7929372041213135ec19563d91104fb117e454e96aba7f1fabc40"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "31170ec50c4ade88b04d15de719cc8c05f10037f8c42984ba2c54840e84f9fa5"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 5,
+      "compileMs": 283.47659999999996,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "c978fb568c2182fcf0797ad54026d6d2421fb8bfbcf10513e3da9edcc275ecf3"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "a394a9eea9f690f1286c3578bfcfbc22e5cadf53ec4634bccb8ff91ab752737a"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "b2ef011f555c1d1ce35bd4af709b2858d4cf7b7c8486d4f9c63921ee2c712d8d"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 6,
+      "compileMs": 343.22569999999996,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "884e91a0ec29e4356f2f1842d9194351ffe1740cd570964792fbd584cfdf7699"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "603d0e88790ab5ff67a94dc3a0284f456ff3045111e51c831306bf43cb291926"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "7decf210b097642550569ca85cd73b00dd55f72d0ef98b349ce343db242e9b47"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 7,
+      "compileMs": 287.58950000000004,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "7691a4d10a63efe79e5128066133bae1366d556f721e045de4ac258383859ef1"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "de7cbd5efb04d02159eb75355bcb7d12293c0babf2e8eedf5b92d5c2d06ebaac"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d5feaaa2ba0e5abe3b855a1d8222d9ebaa9a555657c10b0efb2642b405870192"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 8,
+      "compileMs": 339.2489999999998,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "976a657411238b2806243bc51a9c396aa87a88cd9391640c305843c3395a0ff5"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "21eaf858fb8399ef817fdbc4c86ea9be1ace05863fc45b2a04362189cbac40a1"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "c362ce5e5939f459be92e440c268cec22e4652ac218a56a7622a1f684ecd99a9"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 9,
+      "compileMs": 296.39890000000014,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "17d5c42e38011e245ff06a1ad5ec7db02dd7abd8061395576220b3d2860a40d5"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "59697300a60be9827d3f361fb234de23dbe64a073d2abdcea9a0f4b3e2c4be01"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "8d80e8ba7be880fb14e3164ca5de6ba661cce56814eeaf6a8b7b5c5e2a9ef7e7"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 10,
+      "compileMs": 278.3225000000002,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ef282ec48c79f5b532fee943c15de06770162a2313dd4e2682689f5e6d9c5fda"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "e8b478e582adb475cb7b283e998da7b91a76d9f384e1c208622bcbd0096eb887"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "5151bd2ee77b6f6bc5ef20bb0b615cac3663160ebdf70660f84328e79653507f"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 11,
+      "compileMs": 389.4357999999993,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "a04840f1b514e7ee0b6b86f62d14dfa7a8f121f2c29ff22276ed3e63069b08db"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "44135dad873a51bea0f57909b595b02799388bb7c09c521fa837b96881f03ada"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d0aa288e3d5cd75c13d0a0b598b99f2f3372d1bfa72098b4ebc0ee315ae84fbd"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 12,
+      "compileMs": 359.4231,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "fdd5369947d5202047c4fbe57485586dfba43ac5f8bd83efe0557b443851f2cc"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "872bb2bac3a4a85cc7257ebbe8870a9236a68e13b3393a8b848f2ae6a7b1022f"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "3b666b8c50e0cfb33846147f98dd9f958440a7409d5f7c6011e68b02c08d75c7"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 13,
+      "compileMs": 344.6396999999997,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "4d9f0224e987989470e72b8dc0b18e9d8f375172b0b9c452abd53a8f06759cfb"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "3aa86627c8286f7e927274cac7e6c9cc32d9b0234492baf52c650d0dce3462c7"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "fd468d66ee0eb3fc5437b1c2136a8214dc980d17a62dacf36712772c398744cb"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 14,
+      "compileMs": 357.4372000000003,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "eb508344443c7355174f3651bf76ed58688fbfde6d0adf78b40d1ba77cba3a37"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "7e5f73cb8a17fb1a6ced57f34caa0625f497d82df9682b095b044c79b1e0086d"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "6f76f8006035191cc9f02b3d18ff2de1d5fbeea9e78ec8cef5f130707c2d2957"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 15,
+      "compileMs": 288.03039999999964,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "9ff6894bf9c6c4f4228d2dbfd300f5fe494f8a8a351e98eeccbdf4b72ebe6396"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "db616fc608a21508eb897a9cbf362b66f65f2e4d6862945d50915aa5df189681"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "aa5b39f80035dc15585c7ca9a527f2b74db12ea74e5033af121310653d6f9d36"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 16,
+      "compileMs": 356.8961999999992,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "cfe9695ce67af0fe66ce5fa2d66f3970ab07d4c67cfaa49c15c6b10eabb4c1a1"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "3278bcf62ef5fc5ce8db5d03541b9ba915d8f3c8892fd1024750016281b83e68"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "49182c2b5b49deb0d51da656294385584d2a80a9641c03e3246179a8ee9f40d2"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 17,
+      "compileMs": 336.0679999999993,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "7314705302a841e55a14a091a99931164866afedb07a3483349b87b91a86720c"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "ac09847cf1b42920c4ee0847e31c9daae6edd9a198c40ac7b6c293a6a0da2ef0"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ded08879718ab60d213929ad91479edc8a422ab9b1196fb71e301e93f2ebcd8e"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 18,
+      "compileMs": 326.2697999999982,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "5f941e74daffcfe907eadbe1ff0cd3208ea25e605143448a916e73d07148b59a"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "0860abea7950b1afa33500248f2f043821c0f724f2cc87bd3c493db630886cde"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "1f541ab79f6a9bf8ae0b59b266a83798b26f38401fcf748748db79330b90945a"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 19,
+      "compileMs": 285.0164999999979,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "af92a7d5b70e7fc0bbff8eadf27537b902c8e1b1715518b2f74b6303e0e144d8"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "498cdcf718765852b63dcde7c7ce10264264011a81fb4dfc0fd33bb896d1c0c2"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "2cf7438bab5def3927be46c8683e33af39f355b783c5f85180342406d96d10f3"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 20,
+      "compileMs": 276.72450000000026,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "eaeaffc7f71f81ae7e013d30773b8fc3a1c4f890229d0072329fc32f36e8934f"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "065c4a0c9442d95cd94a9407b314daafe3e2ab44822572943b89eb40232ef449"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "2f58f684943b37ea3857192a4c38d706387a76acabca828e82eec75d43da2ffd"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 21,
+      "compileMs": 277.6273000000001,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ac4e2a4ffe70442cbf81609659f9078237fde96e5a33b07910fd8194db4687f2"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "991b58bd637c1f46f98baff47009bcafc898f8cb759e046a9ddef14c71fee9d1"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "03251d20d50f3d562655ca22ee46a1844f2d02a892f175e37eeba018807b365f"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 22,
+      "compileMs": 285.2534999999989,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d9b2fb46163d77d9e4c1c09117c7baa99984c2edea4f2d1ba753725456409297"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "06e1bcbb0680a2ae831158d84293dfde03d6b8fbd9005eb85596cf22aae546dc"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "50c47e3bcc9578284b85adf28eb83e1469fed192a88f8f7ea974fa6e456d3e84"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 23,
+      "compileMs": 338.5030000000006,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "2abf8234e7fbc593fab5ad1fdd512bb4e688fea2cc1ce32aa898ea6a4f4755ae"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "2ce7dd60a50eb219fffaf8557f5a7fe39b4c3f4bfe32d5345f6d3c61e16ad57b"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "2b365b7ca9b5033660a86224a964e68382897e8c213d8d2976f9b2b94dab5432"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 24,
+      "compileMs": 281.04719999999725,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "7acc29c4d949ab0cfd32d38a0226807d78414c7bb8342ff51a0823b2afbeb926"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "68d1a72eb8f51c56ddb8d5a7771e99ab2358b1dd25851026fc7e0e5405c62d9b"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "316cf54f68fd72da31ae00bc79ab1db3595c5f028ed8231e4f4830e369aca5d6"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 25,
+      "compileMs": 369.90989999999874,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "3571fa75f2e47fad1b46ca68428f2ca3ab84fee8a724c11f6b4c19ae8f18981f"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "c4c344c7ab14adc477b87ec738f607c632336c3fac984866cec1c074d3a0421d"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "1f27e83744b272ecad39a86848a40fb4074b457c629d588cb6eb41416ad0b69d"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 26,
+      "compileMs": 279.196100000001,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "f681fd5b737f68b2aad7e0ccf5e002ad473a9652502a51b3c4cabe112565f968"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "4913c825f14b686c3496afed325a759de3d69fdbc1c74747fe0a4c89b397f3e0"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "18b718e6dca268d8cb3bd6830c55a7a363da4a7eb5a45a050c3baf936d140ba1"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 27,
+      "compileMs": 295.85150000000067,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "fae5c02354aa43709fbf8a93cebdf8e83ad25d36132d76a21505fa1287a4e61a"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "86d46c0481318db6f4d9c2465bee81925459c4b077098f53b0a84922d77a41fc"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ba5df1cba4c7f39e487d3705c92c267f3f2bda204a260fc9f2eb6466ee273283"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 28,
+      "compileMs": 344.6381000000001,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "60a803b1186537855a2fa59446bb83509a3ea1af8065c08c2d25528f203318c3"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "e183a617931e1fb93bbf992dcfb5ee2d03c28871c204c392dc5b0d0b3afbdfe1"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "1f6e6787bcf849ddff788ced163b679b94e0947a2219a98bbee06036b2275baf"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 29,
+      "compileMs": 288.22869999999966,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "07331210e1e88a55f3390e9b7105f8821c9b77d2d882fdabb49d5989778f29bf"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "f40ccc65e19809f39b6a5bd6cc1543a84563c849275c73f2f269f6c7506c2aec"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ba0bdd4fe712b77ea97286a98fe73c88a6d2c25590bfb9f703f220498ba5c760"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 30,
+      "compileMs": 341.77089999999953,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "83354adcb83b04954abb8d566caabcd15240d47110850e09d54de663f287e2e5"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "6aa39318473d9919bef1c08e5047c0904cb63702ee6c33007462ce1eb1d80e4f"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "2deb8a7a57a54a33f57dbb6b0b31b58605921d39275b8886e377529f9fedd0d9"
+        }
+      ]
+    },
+    {
+      "presentation": "masculine",
+      "bits": 31,
+      "compileMs": 350.0652000000009,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "af60d11e6e4432dce14b8a13fe555f16d19640acdfd93bcc3f0d02e9701abde0"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "9269ead195a40e1114f57f4dd0326f4a710b7306cf4bcc71dbce51f7cb8268aa"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "02e806b680d8c9bbb417e913c86cdbe5d2500a6215c335bbdd5e99ca837eb52b"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 0,
+      "compileMs": 232.97729999999865,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d0fca07f04503c85100b7c1426f50cf9a2669184d6025e564a883fe1af2067bb"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "0cab9bd8f22ee05bd609bd33711f2f2b49a75fb35aa4f75ec4d842574e736e67"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "2f3fc87834d9de32f0bd895e2d6df9ec3cf9f7789dc53efe3fb19cd46b2c153a"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 1,
+      "compileMs": 228.55980000000272,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "69810225df52ccb329d2bafcaff3c9d6229ea698a99a23f7d2b6d6d213c6f6dc"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "b14db95a6235dd795a45f6dabea00844fe644e3f62bda02319dbadd325730be6"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "4575a8e5ba8c24a8360b9f4e8953f41fbada58bed4d8ed9432feb297b90fbb4f"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 2,
+      "compileMs": 290.7754999999961,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d98ac734aaef7efa03de5c2894298752aed19e4aff0e6f0f7cee30c5895300ef"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "48781d86a667af475b9690d4cad44aa0316f7d5fa922b44a309cc2b587ca5d22"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d6441be75d98351b39c1ed857525c783a3d031cfe273596131f71eb7808f261c"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 3,
+      "compileMs": 241.1088000000018,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "a29a3bc1fbcfc7d7036b50f75d488ebbfe98bc4e1f8b58670564794574ebf7ae"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "0c69e78202a3eac268f4c473c214a1959730fbfc97c0efea0026cc885f550ae0"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "de74fe4bc70895c3c4d5e08ae15f03746eb39c904f8b64866fe48bad18a616bd"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 4,
+      "compileMs": 266.1776000000027,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "25a947e3d603984f40da9de2667d759aeb166d6d5d565f5a98ebb1c65c53ee33"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "7daf1e29e279b41e13aa9faf2d6ad7eb88c56849aa42f9aa2309e1fb19c5cdef"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "932738489e1620eca590aaf462eb23ecc1a9ce4092f95c3a8fbd542d5cfd0237"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 5,
+      "compileMs": 232.90290000000095,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "034c02fc2632078c39056b064337b47ee82e15e8b8bc100aed1ad23c5b623054"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "ff52953f9c02364c86cee6a6f716cd3a8d994f6e582e330623633f5d20e7bc99"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "139cfcab3b6b64dc5796a72f6c68a1c8a874b343065800aca1392c61a3d5bf61"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 6,
+      "compileMs": 253.74199999999837,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d9f02212c5d9a1540cf22ca0fcc3eb820e63d2d718d381af38d5ab4d61085ddb"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "48fd3fcbb769fab879fcb42dd732dd8526f6406178203eabe67c9d3544677912"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "cab970fe6d97dfefb9a587f1e029668895115e9b4a9f4a177fe0e0127d9912eb"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 7,
+      "compileMs": 262.51980000000185,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "c083f3b6b2e9455ecb4d82a485d3a241138bc5411c1a8efbf41608d87ca41b75"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "ccbb41a8d2dbe0c02b69e02ff69612f894c383dee37c5beb5eea7048dbc5812d"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "81c11f3cfe1e9796cc0750a84733f0dbad61ce2f8056e18fe30d10344f40742a"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 8,
+      "compileMs": 235.76209999999992,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "4ba0ab7b5def70eb47547723816dd2c0314f35e3e4e0620f67fb391beb4713e6"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "63342228019d73a45b08503e0f169a9b5e4947fb76a69da9b6da20cb15486672"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ee5c918bf3ce033e64d2b2e1e8bc4a863644d35113bac4e89607a1d7380f477c"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 9,
+      "compileMs": 242.26190000000497,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "53debbd7ac2b3a639d8ee9e159423117d3f677f257b663a44b8eeef78638a9df"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "25a7c39d35629863d7ede38bfa2641ba42df41d8e8dbb084b80b7174e4fa0fbf"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "046cf1fb240d7a3dad11539760c5777f5a03363c92fe9eee10ebc9c90d7141d8"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 10,
+      "compileMs": 220.38440000000264,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "2c4fca60c9c6b006b120c304b1a8fd7e20ca6d79df0f123478e574e34ec10dc8"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "799b11093c91c1f2905a6a3209c7de7b96aab3f7573b699bb124135b83b2e268"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "033c85a28600160f85c88039c1168cc1819ad4d3f7c1cbd0dfd621dab42be67b"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 11,
+      "compileMs": 237.9887000000017,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ed30fe4b53e581b7327ed1d998aa759a7f0c37feaa4ef303027d3dfdfdaaf066"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "bbb0db8f3fa0787bb80c8518ab91a65f2da4447d40d6e77bfba0d216e74cf27f"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "09fdb753ad5a7143c9cd4ad7e3edfd9805407631b3eef0cc74863c7db581fe2e"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 12,
+      "compileMs": 215.9872000000032,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "cf5c71e40ed6edd2f71068490f50fcc024ff8b4f67658f7f557553bc1fe6ae2e"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "2502eef0c2b4cc5d34f13f75b2760bca3f788dd3a11d1b2f6878434ebc483cde"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "ef8140ffc74aa1c1fee09ee237160d11470ae46f658b821b74ab8be528825b6a"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 13,
+      "compileMs": 271.09010000000126,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "fd8a75d3a0b457aa6cc573c1d260fd536eca8d3c86173794824e401851781b61"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "5e0c28a35bbf853732160b6ba1be63855c76ad7ee5616690318656ed4882ed53"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "4177b3e82ca5f056a00d7ba7800f298e08a93df92fb18b1f7115146d337a4f0a"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 14,
+      "compileMs": 248.7511999999988,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "e5ff3df698a216b5e883b426f7c442399828cef4fda37a5546ac0d7bcb3511ee"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "a38a286c2543f76747b24f9ea7983d5948a8f45ca2680885d8b8801975bdb875"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "aefb45b53c49c8e017c33f3a7e347c99e98eb556c7f5d95841e9fd5ea0a6f83e"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 15,
+      "compileMs": 244.6748000000007,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "a8375803621d8d04233b69bfb083634342f212d3c150fb3ecf26963f6372cc3a"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "a934125b528ec50b17fc062d11ee9ce47dcbf7b53baba7e6a4be64c888df2504"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "6559233ba0530915db8bc49e89dcdefb35741f19591119c884a3a204e0d92a00"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 16,
+      "compileMs": 283.8464000000022,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "a9cc1595bb9ab09e319dcad8dc900ed82618f503818f339d1954ed008894bc28"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "57051f59537fd98c83544423957910a5f56d07b152de5fca34722656fc317ac0"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "5a61249bff3f804d2f55a6d4a221133e487ba434102833aba0cfc491fc62fc13"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 17,
+      "compileMs": 214.55520000000251,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "336f517009a5b3fe6615bb8762f4a9f17833b1bc84b24cce555d0b5c290718b8"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "df4c95362f24fab2c45bda1fad4e89dd25328249def798f63154687bcd40488a"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "7468ebafe53b494bb759d985f4340d78df76ee9211a555adc6925b477d1adc4c"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 18,
+      "compileMs": 221.44170000000304,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "1052d644082903a5b856469ad9eda76cb577cf41719900ad1af92236a5a93ccc"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "94e315d9961e6336a0430397daa13a14c6369fbc8e9658006334d48956fb15c9"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "59092d0586abab2a6dcd703a5cc3656ffd13a1cce2390715ec3367c98f2c1eec"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 19,
+      "compileMs": 234.00480000000243,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "17e19157fb45ef2792f39959be3576b7978ec2d6050d01a769a304fa82bb1a2d"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "5baaf36cee6f3da5061702176a5448f9f0007ab7c98e1c3cb0ebbcce29166975"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "7bb7fd06f61f644ab0099981a262aab6baad6a04702afb7ffb2bbf63dc623eca"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 20,
+      "compileMs": 221.68589999999676,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "4873bd6bdaf207a02b5156da2bfc536b2c991d1aa793ee67ae8241bd255cccd7"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "bb35d6e332561bc50160d9ba9c9e8eb5497a66dd3774f91981f74d10e3b8e9d1"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "3c62c6f3cd32b42e339aac636751e543ad33ccbbd96850d689c88c4ceb1dd8ce"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 21,
+      "compileMs": 243.13179999999556,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "b733a56329294153b78e281ab2fb89f32a7bae101fc0f9e00e45d5d144ab96c7"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "e8df06a301060671752e653eb3207e52bc92277cfb08a2fba6880ae841194088"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "bdc4296433dacfee02ee8d7f64f0a4baf4737936e3bfa538968448488f6cf345"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 22,
+      "compileMs": 260.78609999999753,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "853cac1fbb1244311a052b04df23e523cdf60cfba9c283659e415f119faa2d95"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "0e2dd8fe3feb1e913a629a5730eb36a3269aedc5307cb19e482a560e505f9b32"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "8a95331ddd12c1bfaaba56ec0681931b65d4c0e40dbbc21cbb2881cf1e6e7508"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 23,
+      "compileMs": 253.78289999999834,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "336aedd71318fd33bad370bb57bfcc8f9e318afa7e47534ac6035740c563120e"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "a7c31ec38846c8b8c28427af02afe281a6015060158d197b716dab42e98c2322"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "52e06bd1aa0b35a0fde36d34db8bb031d755d893b45f27a81753116f0687d19b"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 24,
+      "compileMs": 243.21880000000237,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "4015685faaaf74007ab944171004e9f9b9002939cfad50d91fc502ed9ed1075c"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "6aedf33c0e835fd8e2ecbae0f89b4aa192ddb7b0f18bcd939cd5d9dd631b94b1"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "d7e6008d1629bf5dfd7eef26c99c186f92b725f41cefcbbda1c137e30f8484e7"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 25,
+      "compileMs": 250.4076000000059,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "12bad4778ba68adca3e6efa0065517d334890071fb289e7bc59235eb0f3256a7"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "7089cb9fadf3c1f1eeb17690e7bc6ce1d137a5f3f9720212dabe03248f4b602f"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "deddfb9168667be5ab808f2c7f4a9edf1820abd888c945f86c9cc73457a41219"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 26,
+      "compileMs": 221.9007999999958,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "195fff275f80c063fd1331fa2c318b04a0d8aa7b09ecc93b7b0d217bf03af078"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "596886ce11bf9a013d911a6747e52aac6029a86bcd06cd15f8cad3f75a12dfce"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "faca5076d31bd02d33ded4e4c253b358394ea8cc6e5600ac8cf3491676b50212"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 27,
+      "compileMs": 229.97839999999997,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "0ae09dccae044bd97b7a4dfb739efea54affd224b36defa74cdbaa18092f1ad7"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "61f00de76e96ab77bdd5e4ebeb1e7a034396177040c2a12287f8354af0e00c2f"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "1c936422f86cbc011f6cd89a53ee8d2d7f9ce34943dbe985c00225cfae4bbdbd"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 28,
+      "compileMs": 232.32050000000163,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "b6a54dad79b7f0f74f80c30c525ca45dfb4be4683ee52a66bb5a3fcde04ab18a"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "51f3c7a085650db25fa0bd6e1dfa679ad45e322f4c169b48238c496806c86292"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "b5ee50c76bc47e7369d4e5015ff9fe64d4bdd03ae3ad67b3fb0d611ba35303eb"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 29,
+      "compileMs": 269.3006999999998,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "c960081e19236ccc9822007eded56e7841c85c6716c7904be61b2a3edb0e0dc9"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "6b32e9db9b480add947e24d836db41bec8f72a1d40e1b87da7eba2400a028766"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "f7cdcd4b24e8eb87d114adb38129be39c8fc946436ba919aacd4b8ac51611823"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 30,
+      "compileMs": 291.13260000000446,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "a189442e8b9c1c1a37186608c5dd390779793fec14b7cbbcaacebe62da62523b"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "40e1276fbb09a12493fd8a941e73bfc098adfb78c5b5c75bfc264e7f8129dbae"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "f8f943449386dc0ccea51700d046d67b1960a267b7f8c167876c79ca6a10f490"
+        }
+      ]
+    },
+    {
+      "presentation": "feminine",
+      "bits": 31,
+      "compileMs": 273.80630000000383,
+      "rows": [
+        {
+          "action": "bed_sleep",
+          "offsetX": 0,
+          "vertexSha256": "fbbd152d03337a38b799d038c7689f33f39bb50b536ff85c3c6b2b240a5a5c4b"
+        },
+        {
+          "action": "bed_sleep",
+          "offsetX": -0.77,
+          "vertexSha256": "c43ace96c3f993106f8f1eedbaf345ef34b498fdbdcf4d281b0185f4fa6f5516"
+        },
+        {
+          "action": "bunk_sleep",
+          "offsetX": 0,
+          "vertexSha256": "9160e053d213986b088aa760fcac83781ec6e4c275892fb2f3dab723a9406fc4"
+        }
+      ]
+    }
+  ]
+}

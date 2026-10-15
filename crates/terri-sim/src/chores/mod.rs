@@ -18,6 +18,8 @@ pub(crate) use work::{activate, cancel, issue, key_valid, soil};
 #[cfg(test)]
 mod board_tests;
 #[cfg(test)]
+mod cleanliness_tests;
+#[cfg(test)]
 mod grime_tests;
 #[cfg(test)]
 mod integration_tests;
@@ -346,7 +348,12 @@ pub(crate) fn completed(
         if let Some(group) =
             crate::dining::entity(world, key.target).and_then(|e| groups::key_for(world, e))
         {
-            if dirt_in(world, state, group) < 150 {
+            let owner = state
+                .episodes
+                .iter()
+                .rfind(|e| e.key == group && e.day == day)
+                .map(|episode| episode.owner);
+            if owner.is_some_and(|owner| !board::work_needed(world, state, group, owner)) {
                 board::credit(world, state, person, group, day, units);
             }
         }

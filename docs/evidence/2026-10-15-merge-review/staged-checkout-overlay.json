@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "baseTree": "8cb472f993f4b1c1a0086adb421d52971254433e",
+  "updatedTree": "e47e146d66d36606e7dd30cabb7eda6b6527032a",
+  "overlaidPaths": [
+    ".gitattributes",
+    "docs/lessons-learned.md",
+    "docs/specs/2026-09-30-edit-sims.md",
+    "web/tests/fixtures/support-surface/bike-fit-golden.json"
+  ],
+  "goldenSha256": "bcf8cad384b6b53734e7e6cc72c20b9bd3609ce40f11f6e03b7b48d88e033b94"
+}

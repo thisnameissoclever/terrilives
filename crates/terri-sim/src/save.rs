@@ -46,6 +46,7 @@ pub(super) mod skills;
 pub(super) mod sleeping_places;
 pub(crate) mod social;
 mod table_retirement;
+pub(crate) mod v10;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
@@ -128,7 +129,7 @@ pub(crate) fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
             .resource::<CommandQueue>()
             .as_slice()
             .iter()
-            .filter(|command| !matches!(command, SimCommand::Book(_)))
+            .filter(|command| !matches!(command, SimCommand::Book(_) | SimCommand::Character(_)))
             .map(|command| capture_command(command, pack))
             .collect(),
     }
@@ -275,7 +276,9 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             preferences: *preferences,
         },
         SimCommand::SetChoreBoard { enabled } => SavedCommand::SetChoreBoard { enabled: *enabled },
-        SimCommand::Book(_) => unreachable!("V6 commands are captured separately"),
+        SimCommand::Book(_) | SimCommand::Character(_) => {
+            unreachable!("Versioned commands are captured separately")
+        }
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
         SimCommand::BuyObjectInColourway {
             definition,

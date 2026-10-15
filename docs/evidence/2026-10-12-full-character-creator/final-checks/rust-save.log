@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 3 tests
+test save::v9::tests::appearance_and_interleaved_queued_edits_survive_exact_round_trip ... ok
+test save::v9::tests::historical_appearance_mapping_is_deterministic_without_rng_changes ... ok
+test save::v9::tests::malformed_appearance_and_missing_people_are_refused ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 1305 filtered out; finished in 0.03s
+

@@ -1,0 +1,43 @@
+
+> test
+> vitest run --maxWorkers=1 --reporter=verbose tests/character-head-envelope-equivalence.test.ts tests/character-surfaces.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/web
+
+ ✓ tests/character-head-envelope-equivalence.test.ts > retains the isolated original head envelope and covers every exported animation 2ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'curl' at endpoint +0 2262ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'curl' at endpoint 100 2558ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bob' at endpoint +0 1773ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bob' at endpoint 100 1914ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'wave' at endpoint +0 1599ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'wave' at endpoint 100 1223ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'crop' at endpoint +0 1234ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'crop' at endpoint 100 1197ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'quiff' at endpoint +0 1528ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'quiff' at endpoint 100 1343ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bald' at endpoint +0 2144ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'masculine' 'bald' at endpoint 100 1400ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'curl' at endpoint +0 2642ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'curl' at endpoint 100 3355ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bob' at endpoint +0 1611ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bob' at endpoint 100 1925ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'wave' at endpoint +0 2107ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'wave' at endpoint 100 1506ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'crop' at endpoint +0 1285ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'crop' at endpoint 100 1337ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'quiff' at endpoint +0 1388ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'quiff' at endpoint 100 1594ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bald' at endpoint +0 1408ms
+ ✓ tests/character-head-envelope-equivalence.test.ts > preserves head top and bubble clearance for 'feminine' 'bald' at endpoint 100 1320ms
+ ✓ tests/character-surfaces.test.ts > requires explicit outline ownership and leaves seams and recessed surfaces uninflated 6ms
+ ✓ tests/character-surfaces.test.ts > keeps freckles on the head and nose surfaces without sphere geometry or density steps 1693ms
+ ✓ tests/character-surfaces.test.ts > anchors above the posed projected head surface for every facing and body extreme 393ms
+ ✓ tests/character-surfaces.test.ts > applies all skin weights before subdivision when locating the head 0ms
+ ✓ tests/character-surfaces.test.ts > accounts for and destroys surface coordinates and avoids subdivision writes for density edits 31ms
+
+ Test Files  2 passed (2)
+      Tests  30 passed (30)
+   Start at  15:10:51
+   Duration  44.79s (transform 324ms, setup 0ms, import 513ms, tests 43.83s, environment 0ms)
+

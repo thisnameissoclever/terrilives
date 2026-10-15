@@ -1,0 +1,7 @@
+{
+  "helperPid": 92684,
+  "commandLine": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/character-creator-repair/final-creator-legacy.cjs",
+  "children": 0,
+  "observedAt": "2026-10-13T12:55:17.2107728-07:00",
+  "reason": "Supplemental checks reached their final capture; Playwright shutdown did not settle after more than four minutes. No task browser process remained. Stopped only the verified task helper."
+}

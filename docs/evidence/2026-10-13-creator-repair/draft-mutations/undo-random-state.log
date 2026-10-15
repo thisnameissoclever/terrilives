@@ -1,0 +1,33 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/5637/terrilives/.scratch/creator-repair-validation/web
+
+ ❯ tests/character-draft.test.ts (9 tests | 1 failed) 290ms
+   × protects locks, preserves a locked condition severity and restores random state on undo 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/character-draft.test.ts > protects locks, preserves a locked condition severity and restores random state on undo
+AssertionError: expected 1248518817 to be 4287391073 // Object.is equality
+
+- Expected
++ Received
+
+- 4287391073
++ 1248518817
+
+ ❯ tests/character-draft.test.ts:35:82
+     33|   expect(changed.appearance.body.height).toBe(before.appearance.body.h…
+     34|   expect(changed.traits.find(t=>t.id==='trait0')?.state).toBe(floatBit…
+     35|   draft.undo();expect(draft.resolve()).toEqual(before);expect(draft.ra…
+       |                                                                                  ^
+     36|   draft.randomize('all');expect(draft.resolve()).toEqual(changed);
+     37| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  13:37:13
+   Duration  495ms (transform 48ms, setup 0ms, import 61ms, tests 290ms, environment 0ms)
+

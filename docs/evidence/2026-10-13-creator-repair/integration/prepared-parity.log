@@ -1,0 +1,10 @@
+{"captured":1,"expected":178,"mismatches":0}
+{"captured":21,"expected":178,"mismatches":0}
+{"captured":41,"expected":178,"mismatches":0}
+{"captured":61,"expected":178,"mismatches":5}
+{"captured":81,"expected":178,"mismatches":9}
+{"captured":101,"expected":178,"mismatches":15}
+{"captured":121,"expected":178,"mismatches":17}
+{"captured":141,"expected":178,"mismatches":21}
+{"captured":161,"expected":178,"mismatches":23}
+{"status":"FAIL","cases":178,"mismatches":25,"errors":[]}

@@ -1,0 +1,62 @@
+[
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-fit.ts",
+    "Hash": "D7BF3165CA0EEDA814D1A58FC03FC757CBE3BDC82B036AE8F520011472C58FA1"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-types.ts",
+    "Hash": "26CE65A6725F1E2C6AEFE4591B8C1964EF28D736191BEC48627BC17A583E5230"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-input.ts",
+    "Hash": "6BD96AB0AB964D153B4C295BAF1BF81FAD6EF1D00EF3024A3B78CB81D5F8FA5D"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-compile.ts",
+    "Hash": "AFAEB762D954CD25FA9488F3C69D06BAFDEE6CD963623C5B26C5313037FFE6B9"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-protocol.ts",
+    "Hash": "AFBDC052E139F4E8A56DDC30B0412D91345E6CBFE92A766836A2E3376E8AF80D"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-sample.ts",
+    "Hash": "4B6BB599964BAD584C7C1AB44F18EF95B44FEEEAC62CF36A83B09FC432CF9CC9"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-preparation.ts",
+    "Hash": "F02E96BC0BF9D652CD5A19076242EBA2D71D19D4BB281628E90B0DB690CA3468"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-worker.ts",
+    "Hash": "9AF506E34EFAAAAD81294AA38706291D536D40CEC69F86BBBCBDF402CA3C6463"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-transport.ts",
+    "Hash": "FB34E7EE0D31F017EDC3F418B2C01133D19DD9F6BBAAFF4D4E4568A3E62E70A5"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\bike-contact-service.ts",
+    "Hash": "7D351F18F377EDB1C6F3AA56D02EB527FC9E10FFBDC6AD9B64145A7F09E7822A"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\pose-joints.ts",
+    "Hash": "E76F8FB41388903EC44AF88BC9007A9BEAAFFBD15E4702E89330FE0114D9AC08"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\contact-landmark.ts",
+    "Hash": "0DCAA30F6CCA2709E8A0838CBFF8CE8155D02AEDEC88B8419E101E50D5CA155E"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\pose.ts",
+    "Hash": "DB6B944902CDCF42F44634C35BC4699AA5910E93313FC61746D549DD0AD3ED91"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\interaction-pose.ts",
+    "Hash": "92ED226F70883B5F338ED15FCBA07C8FED72380CF7EA4373DF42DFC7FBF9A567"
+  },
+  {
+    "Path": "D:\\VIBES\\.worktrees\\5637\\terrilives\\web\\src\\render\\character\\geometry-proof.ts",
+    "Hash": "0741EE37A42613F9BBE181FC2F4357DD23896E598C6F72FD39F88EC6A7E3D3D4"
+  }
+]

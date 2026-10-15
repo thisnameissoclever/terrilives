@@ -1,0 +1,29 @@
+{
+  "console": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Natural Causes failed to start: Error: Maximum call stack size exceeded\n    at CharacterPreparationService.compile (http://127.0.0.1:5187/src/render/character/character-preparation-service.ts?t=1791945331121:74:19)\n    at async Object.prepare (http://127.0.0.1:5187/src/render/character/character-preparation-service.ts?t=1791945331121:56:49)\n    at async PreparationQueue.run (http://127.0.0.1:5187/src/render/character/preparation-queue.ts?t=1791945331121:108:21)"
+  ],
+  "errors": [],
+  "worker": [
+    {
+      "id": 1,
+      "ok": true
+    },
+    {
+      "version": 1,
+      "id": 1,
+      "kind": "bike",
+      "ok": true
+    },
+    {
+      "version": 1,
+      "id": 2,
+      "kind": "sleep",
+      "ok": false,
+      "error": "Maximum call stack size exceeded",
+      "errorName": "RangeError",
+      "workerStack": "RangeError: Maximum call stack size exceeded\n    at new SupportSurface (http://127.0.0.1:5187/src/render/character/support-surface.ts?t=1791933722840:9:24)\n    at supportSurface (http://127.0.0.1:5187/src/render/character/sleep-cover.ts?t=1791945014541:23:9)\n    at prepareSleepingCoverContribution (http://127.0.0.1:5187/src/render/character/sleep-cover.ts?t=1791945014541:39:18)\n    at http://127.0.0.1:5187/src/render/character/sleep-contact-compile.ts:46:25\n    at Array.map (<anonymous>)\n    at compileSleepContact (http://127.0.0.1:5187/src/render/character/sleep-contact-compile.ts:44:20)\n    at prepareSleepContact (http://127.0.0.1:5187/src/render/character/sleep-contact-preparation.ts:55:9)\n    at async worker.onmessage (http://127.0.0.1:5187/src/render/character/preparation-worker.ts?worker_file&type=module:22:21)"
+    }
+  ],
+  "ready": false
+}

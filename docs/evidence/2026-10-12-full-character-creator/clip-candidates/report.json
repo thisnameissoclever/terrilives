@@ -1,0 +1,325 @@
+{
+  "rows": [
+    {
+      "action": "exercise",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "exercise",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "exercise",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "exercise",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "prepare",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "prepare",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "prepare",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "prepare",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "cook_v2",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "cook_v2",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "cook_v2",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "cook_v2",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "food_idle",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "food_idle",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "food_idle",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "food_idle",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "food_walk",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "food_walk",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "food_walk",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "food_walk",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "seated_eat",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "seated_eat",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "seated_eat",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "seated_eat",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "carry_idle",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "carry_idle",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "carry_idle",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "carry_idle",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "carry_walk",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "carry_walk",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "carry_walk",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "carry_walk",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "wash",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "wash",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "wash",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "wash",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "mop",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "mop",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "mop",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "mop",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "wipe_counter",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "wipe_counter",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "wipe_counter",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "wipe_counter",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "wipe_table",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "wipe_table",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "wipe_table",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "wipe_table",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "empty_bin",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "empty_bin",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "empty_bin",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "empty_bin",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "toilet",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "toilet",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "toilet",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "toilet",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "bath",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "bath",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "bath",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "bath",
+      "facing": 3,
+      "pass": true
+    },
+    {
+      "action": "sofa_recline",
+      "facing": 0,
+      "pass": true
+    },
+    {
+      "action": "sofa_recline",
+      "facing": 1,
+      "pass": true
+    },
+    {
+      "action": "sofa_recline",
+      "facing": 2,
+      "pass": true
+    },
+    {
+      "action": "sofa_recline",
+      "facing": 3,
+      "pass": true
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,15 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\5637\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.16s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 7 tests
+test character_draft::application::tests::appearance_changes_do_not_reorder_simulation_updates ... ok
+test character_draft::application::tests::invalid_request_changes_neither_person_nor_world ... ok
+test character_draft::application::tests::name_and_appearance_edits_preserve_dynamic_and_custom_values_exactly ... ok
+test character_draft::application::tests::resolved_creation_preserves_all_choices_and_spends_no_world_randomness ... ok
+test character_draft::application::tests::sparse_relationship_clear_removes_only_the_submitted_pair ... ok
+test character_draft::application::tests::sparse_relationship_patch_preserves_unsubmitted_pairs_and_inverse_direction ... ok
+test character_draft::application::tests::sparse_relationship_patch_with_an_absent_relative_rejects_every_change ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 1384 filtered out; finished in 5.11s
+

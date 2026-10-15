@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "comparisonSha256": "d69b256418a53d256a35c52e62608c1ec8584f75d78f02d2444989e34547c08d",
+  "atlasSha256": "8d6d8bbd75b695f7a11c8bbc25f0e53b5589e662e2d876bf8b3da458b25bcc00",
+  "changes": [
+    {
+      "path": "assets/models/sims/character-repair/fixture-depth/manifest.json",
+      "beforeSha256": "4b9322a25f321f6f3f1273111aeade1625310b6ab6f10477e3f108dbb84c114e",
+      "afterSha256": "5d402c0983a72cc4acd0a7cca5a647bc1de487baadda819a5098d0b53d10528a",
+      "coverageSources": [
+        {
+          "old": "web/public/atlas-07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c.png",
+          "oldSha256": "07ddff9af239320fabb2b8981a021f00b948d165add92fc15422e0c43579f38c",
+          "current": "web/public/atlas-5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57.png",
+          "currentSha256": "5c5c28673773212166442f22a415b16746c6a344a3a339154fa4726901abea57"
+        },
+        {
+          "old": "web/public/atlas-46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80.png",
+          "oldSha256": "46baa25eec4ac518023109de3dfc78c019f5342ec44e6f6663287d0883f23d80",
+          "current": "web/public/atlas-dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b.png",
+          "currentSha256": "dc0223d4d99d03c1017a6bcd5d71deafb4f54f1eacc204dcb1a5bfc8c198dc6b"
+        }
+      ]
+    },
+    {
+      "path": "assets/models/sims/character-repair/aquarium-depth/manifest.json",
+      "beforeSha256": "6f402794fe1e0be7aeffc4ddb65a19256bc90c7661ab6718ee4e54e25c0167e4",
+      "afterSha256": "9b9a62c8987af5a91edae8e6261fafd8512e9ed0e619a285e7f1093eef9d3923",
+      "coverageSources": []
+    }
+  ],
+  "companionPagesUnchanged": true
+}

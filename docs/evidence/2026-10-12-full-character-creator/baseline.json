@@ -1,0 +1,9 @@
+{
+  "sourceUnchanged": true,
+  "bufferChanges": [],
+  "parityState": "complete",
+  "paritySamples": 60,
+  "originalTriangles": 286626,
+  "runtimeTriangles": 117740,
+  "acceptedRestShapeGoldens": 18
+}

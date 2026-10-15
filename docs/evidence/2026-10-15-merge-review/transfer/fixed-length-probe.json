@@ -1,0 +1,32 @@
+{
+  "command": [
+    "git",
+    "-c",
+    "pack.threads=2",
+    "-c",
+    "pack.windowMemory=64m",
+    "-c",
+    "pack.useSparse=false",
+    "-c",
+    "http.version=HTTP/1.1",
+    "-c",
+    "http.postBuffer=67108864",
+    "push",
+    "--verbose",
+    "--verbose",
+    "--progress",
+    "origin",
+    "ddf13fff6076017ceafae7d2fc85fe04d4e5cbe0:refs/heads/twcx/character-appearance-proof"
+  ],
+  "commandExitCode": 0,
+  "target": "ddf13fff6076017ceafae7d2fc85fe04d4e5cbe0",
+  "previousRemote": "e7b62169d4adb9e74cb8d25cced20f453f2ebb68",
+  "verifiedRemote": "ddf13fff6076017ceafae7d2fc85fe04d4e5cbe0",
+  "headUnchanged": true,
+  "liveIndexUnchanged": true,
+  "fixedPostBytes": [
+    12999230
+  ],
+  "chunked": false,
+  "status": "PASS"
+}

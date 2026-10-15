@@ -1,0 +1,14 @@
+{
+  "capturedAt": "2026-10-14T21-51-11-749Z",
+  "output": "D:\\VIBES\\.worktrees\\5637\\terrilives\\docs\\evidence\\2026-10-14-long-sleeves\\motion-2026-10-14T21-51-11-749Z",
+  "rows": [],
+  "cycles": [],
+  "errors": [],
+  "producerHashes": {
+    "web/src/ui/character-creator/view.ts": "61674302b236da852ab049b00b0b52d6fcaaee49596b1e9bd32ab28daf7bf241",
+    "web/src/ui/character-creator/preview.ts": "c92cf92ab71aef42ab929fd28ecd9aae288a4547b9e46f739135bcd47e3135dc",
+    "web/src/ui/character-creator/clock.ts": "0dfae14bcceb79daedbc8b45bba97127e8c8af8d688007cae3b0418cb703c8ab",
+    "web/src/ui/character-creator/animation-metadata.ts": "6c2fb8840f561dea740acf6c46826a5f49cede4ae914e5098f501ada836f8c0b",
+    "assets/models/sims/character-creator/export/manifest.json": "c28286c84370a5b4c1c2923ca22ad9290e1c27a40431fff188c41981435bb126"
+  }
+}

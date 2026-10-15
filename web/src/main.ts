@@ -1,17 +1,16 @@
+import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
 import {ChoresBoard} from './ui/chores-board.js';
 import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 import { afterPaint, startupLoading } from './ui/startup-loading.js';
 import { countAlongside } from './load-progress.js';
-// Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
-// crosses into JavaScript through the zero-copy bridge, and the renderer
-// draws every entity in one instanced call at display refresh rate,
-// interpolating between the two most recent ticks.
+// The simulation runs in WASM at a fixed 10 Hz. The bridge exposes its state
+// without copying, and the shared scene combines sprite batches with configured
+// character meshes at display refresh rate. Movement interpolates between ticks.
 //
-// Everything with any arithmetic in it lives in `frame.ts`, `iso.ts` and
-// `instances.ts`, where it can be tested in Node. This file is the wiring
-// that cannot be: a device, a canvas, and a requestAnimationFrame loop.
+// Focused modules own simulation, rendering, and input calculations. This entry
+// point connects them to the graphics device, canvas, controls, and frame loop.
 
 import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
@@ -36,6 +35,12 @@ import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
+import {CharacterWorld,type CharacterFrameProbe} from './render/character/world.js';
+import {CharacterFrameMeasurement,type CharacterFrameReport} from './render/character/measurement.js';
+import {DeviceLifetime} from './render/character/device-lifetime.js';
+import {CharacterContactOwner,CharacterContactRoster,sharedCharacterPreparation} from './render/character/contact-admission.js';
+import {loadPreparedCharacterState} from './render/character/prepared-character-load.js';
+import {StressCharacterAdmission,guardedCharacterStressSource,type StressCharacterActions} from './render/character/stress-admission.js';
 import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
 import { activeFloorFinishKeys } from './render/floor-materials.js';
 import { FloorFinishResources, canonicalFloorFinishKeys } from './render/floor-finish-resources.js';
@@ -51,9 +56,13 @@ import {
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
-import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
+import { CreatorSession } from './ui/character-creator/session.js';
+import { CreatorView } from './ui/character-creator/view.js';
+import { CreatorPreview } from './ui/character-creator/preview.js';
+import { CharacterDraft } from './character/draft.js';
+import type { CharacterDraftV1 } from './character/schema.js';
+import { previewAnimationTiming } from './ui/character-creator/animation-metadata.js';
 import { householdMembers } from './ui/household-roster.js';
-import { editTargetOf } from './ui/edit-target.js';
 import { WallFade } from './render/wall-fade.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
@@ -73,10 +82,8 @@ import { AffinitiesPanel, createAffinitiesPanelSurface } from './ui/affinities-p
 import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
-  describeGraphicsLost,
   describeStartupFailure,
   renderStartupFailure,
-  type GraphicsLostSave,
 } from './ui/startup-failure.js';
 import { showDesktopSiteNotice } from './ui/desktop-site-notice.js';
 import { buildTimeControls } from './ui/time-controls.js';
@@ -169,6 +176,24 @@ const REPORT_INTERVAL_MS = 2000;
  * carries no extra surface.
  */
 export interface StressHandle {
+  readonly characters:StressCharacterActions&{
+    snapshot():ReturnType<CharacterWorld['diagnostics']>;
+    probeFrame(target:CharacterFrameProbe):void;
+    pick(x:number,y:number):ReturnType<CharacterWorld['pick']>;
+    readiness():unknown;
+    createDraft(seed:number):CharacterDraftV1;
+    createPreview(large:HTMLCanvasElement,small:HTMLCanvasElement,animation:string):{preview:CreatorPreview;samples:number};
+  };
+  readonly graphicsGeneration:number;
+  loseGraphics():void;
+  measureCharacters(durationMs:number):Promise<CharacterFrameReport>;
+  readonly graphicsDevice:GPUDevice;
+  readonly sceneDepthTexture:GPUTexture;
+  readonly sceneColorTexture:GPUTexture;
+  readonly sceneIdentityTexture:GPUTexture;
+  readonly sceneSurfaceTexture:GPUTexture;
+  readonly sceneAnnotationIdentityTexture:GPUTexture|null;
+  readonly sceneSampleScale:number;
   readonly timer: FrameTimer;
   /** Sampler-only timings. A 540-sample ring discards 60 warm-up ticks. */
   readonly footstepSampler: FrameTimer;
@@ -291,10 +316,9 @@ async function main(): Promise<void> {
   // they are declared here: reading a later `let` from an early callback
   // throws instead of returning false.
   //
-  // `graphicsLost` stops the game for good once the GPU device is gone (see
-  // the device.lost handler); `startingNewGame` keeps any save from writing
-  // the old household back while a new game reloads the page.
-  let graphicsLost = false;
+  // Graphics recovery pauses sound while retaining the household and draft.
+  // New game prevents a save from writing the old household during reload.
+  let graphicsRecovering = false;
   let startingNewGame = false;
   void audio.setBackgrounded(document.visibilityState === 'hidden');
   armAudioUnlock(document, audio);
@@ -304,7 +328,7 @@ async function main(): Promise<void> {
   // them too. A tab that loads hidden and is shown during the load would
   // otherwise stay marked backgrounded, and refuse every gesture, for good.
   document.addEventListener('visibilitychange', () => {
-    void audio.setBackgrounded(document.visibilityState === 'hidden' || graphicsLost);
+    void audio.setBackgrounded(document.visibilityState === 'hidden' || graphicsRecovering);
   });
 
   // init() resolves to the instance exports, whose `memory` is the
@@ -320,6 +344,8 @@ async function main(): Promise<void> {
   const wasm = await init({ module_or_path: fetch(new URL('./wasm/terri_wasm_bg.wasm', import.meta.url))
     .then(response => countAlongside(response, count => loading.bytes(count),
       () => loading.step('Starting the simulation'))) });
+  const characterContacts=sharedCharacterPreparation(),contactRoster=new CharacterContactRoster(characterContacts);
+  let graphicsClosed=false,graphicsGeneration=0;
 
   // The lot, its walls and all eight authored objects come out of
   // content/lot.toml through the compiled pack. Nothing here names a
@@ -339,6 +365,15 @@ async function main(): Promise<void> {
     settled: () => settleBuildControllers(),
     restored: () => restoreBuildPresentation(),
   });
+  let contactAppearanceHash:bigint|null=null;
+  const loadCharacters=async(bytes:Uint8Array):Promise<boolean>=>{
+    const loaded=await loadPreparedCharacterState(bytes,buildSession,()=>{
+      const candidate=SimHandle.from_lot(),source=new SimBridge(candidate,wasm.memory);
+      return {loadBytes:(bytes:Uint8Array)=>source.loadBytes(bytes),characterAppearances:()=>source.characterAppearances(),
+        flushCommands:()=>source.flushCommands(),free:()=>candidate.free()};
+    },contactRoster);
+    if(loaded)contactAppearanceHash=null;return loaded;
+  };
   // The names of the conversation recordings come from the compiled content
   // pack, so this is the first moment they exist. The controller decides WHEN
   // to fetch them: decoding needs an audio context, and a context needs a
@@ -355,6 +390,7 @@ async function main(): Promise<void> {
     buildSession,
     saveStatus,
     (error) => console.error('save storage failed:', error),
+    loadCharacters,
   );
   loading.step('Loading the household');
   await persistence.restoreAtStartup();
@@ -366,34 +402,6 @@ async function main(): Promise<void> {
 
   loading.step('Starting graphics');
   const gpu = await initDevice(canvas);
-  // A lost device used to freeze the picture with no word of why. The
-  // simulation runs outside the GPU, so the household can still be saved
-  // before the card explains what happened. A deliberate destroy() is not
-  // news to anyone, so only the other reasons reach the player.
-  //
-  // The `?stress=` harness keeps running instead: the headless sandbox loses
-  // its device after the first present (docs/headless-sandbox.md), and its
-  // behavioural checks drive the simulation and HUD, which still work.
-  const harnessRun = new URLSearchParams(location.search).has('stress');
-  //
-  // The game stops for good first: the frame loop ends, so the simulation,
-  // its autosave and its sounds stop behind the card instead of the household
-  // living on unseen and overwriting the save the card reports.
-  void gpu.device.lost.then(async (info) => {
-    if (info.reason === 'destroyed') return;
-    console.error('Graphics device lost:', info.reason, info.message);
-    if (harnessRun) return;
-    graphicsLost = true;
-    void audio.setBackgrounded(true);
-    let save: GraphicsLostSave = 'failed';
-    if (startingNewGame) save = 'failed';
-    else if (persistence.isSavingPaused()) save = 'paused';
-    else {
-      try { save = await persistence.save() ? 'saved' : 'failed'; } catch { save = 'failed'; }
-    }
-    loading.finish();
-    renderStartupFailure(describeGraphicsLost(info.message, save), document.body);
-  });
   // Awaited: the atlas is a PNG and decoding it is asynchronous, so the
   // renderer is only usable once its texture is on the GPU. Constructing
   // it synchronously and uploading later would let the first frames
@@ -438,8 +446,11 @@ async function main(): Promise<void> {
       bytes: startupProgress.bytes,
     });
   } finally { closeArchitectureAtlas(architectureAtlas); }
-  // Everything from here to the first frame is synchronous, so the step is
-  // only drawn if startup yields to the browser before starting it.
+  loading.note('Loading character models');
+  await afterPaint();
+  let characterWorld=await CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
+  window.addEventListener('pagehide',event=>{if(!event.persisted){graphicsClosed=true;characterWorld.destroy();contactRoster.dispose();}});
+  // Let the cover paint before assembling the controls and character resources.
   loading.step('Setting up the game');
   await afterPaint();
 
@@ -519,6 +530,14 @@ async function main(): Promise<void> {
   // refuses furniture cells; count actual additions rather than attempts.
   // Hunger 100 leaves selection autonomous without immediate hunger pressure.
   spawnStressAgents(sim, lotWidth, lotHeight, stress);
+  loading.note('Preparing characters');
+  await afterPaint();
+  await contactRoster.prepareCurrent(sim.characterAppearances());characterWorld.prepareFixtures(sim);contactAppearanceHash=sim.appearanceHash();
+  loading.step('Setting up the game');
+  const syncCharacterContacts=()=>{
+    const hash=sim.appearanceHash();if(hash===contactAppearanceHash&&!contactRoster.hasQueued)return;
+    contactRoster.afterCommands(sim.characterAppearances());contactAppearanceHash=hash;
+  };
   if (stress > 0) {
     // Startup, not steady state, and it is superlinear: `spawn_agent`
     // calls `sync_render_buffer`, which sorts and clones on every
@@ -1091,7 +1110,8 @@ async function main(): Promise<void> {
           // [ES-form]: a draft names a person of the replaced world, so
           // close it before the form returns to create mode.
           if (housemateDialog.open) housemateDialog.close('cancel');
-          housemateForm.resetAfterLoad();
+          housemateView?.destroy(); housemateView=undefined; creatorSession?.destroy();creatorSession=undefined;
+          characterWorld.reset();characterWorld.prepareFixtures(sim);
           bedAssignmentPanel.resetAfterLoad();
           syncNewHousemateButton();
           syncEditHousemateButton();
@@ -1124,23 +1144,22 @@ async function main(): Promise<void> {
         overlayPause.resume('load-game');
       });
   });
-  // [CS-command]: the New housemate form. The dialog pauses the game as
-  // Load does; Move in stages one command, and the form closes once the
-  // drain has moved the newcomer in and selected them. [ES-form]: the Edit
-  // button opens the same dialog on the selected person, and Confirm
-  // changes closes it once the drain has applied the edit.
-  /** Where focus returns when the dialog closes: the button that opened it. */
   let housemateOpener: HTMLButtonElement = optionsToggle;
-  let housemateView: HousemateFormView | undefined;
-  const housemateForm = new HousemateForm(sim, {
-    changed: () => housemateView?.render(),
-    movedIn: () => {
+  let housemateView: CreatorView | undefined;
+  let creatorSession: CreatorSession | undefined;
+  const syncNewHousemateButton = (): void => {
+    const [current, limit] = sim.householdSize();
+    newHousemateButton.disabled = buildSession.active || graphicsRecovering || current >= limit;
+  };
+  const syncEditHousemateButton = (): void => {
+    editHousemateButton.disabled = buildSession.active || graphicsRecovering || !!creatorSession?.pending || sim.selectedIndex() === null;
+  };
+  const openCreator = (person: number | null): void => {
+    const members = householdMembers(sim).map(member => ({ sim_id: member.simId, name: member.name }));
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0];
+    creatorSession = new CreatorSession(sim, seed, members, person, entity => {
+      sim.select(entity);
       housemateDialog.close('confirm');
-      householdRoster.update(performance.now(), true);
-    },
-    edited: () => {
-      housemateDialog.close('confirm');
-      // A new name shows in the roster, the dock and the panels at once.
       const nowMs = performance.now();
       householdRoster.update(nowMs, true);
       if (needsPanel.update(nowMs, sim)) syncDockSummary();
@@ -1149,15 +1168,13 @@ async function main(): Promise<void> {
       personalDetailsPanel.update(nowMs, true);
       skillsPanel.update(nowMs, true);
       affinitiesPanel.update(nowMs, true);
-    },
-  });
-  housemateView = new HousemateFormView(document, housemateForm);
-  const syncNewHousemateButton = (): void => {
-    newHousemateButton.disabled = buildSession.active || !housemateForm.roomForOne();
-  };
-  // Off while a move-in or edit is on its way, and with nobody selected.
-  const syncEditHousemateButton = (): void => {
-    editHousemateButton.disabled = buildSession.active || housemateForm.pending || sim.selectedIndex() === null;
+    },new CharacterContactOwner(characterContacts,contactRoster));
+    housemateView?.destroy();
+    housemateView = new CreatorView(housemateDialog.querySelector<HTMLElement>('#character-creator-root')!,
+      creatorSession, gpu.device, gpu.format, () => housemateDialog.close('cancel'));
+    menu.close();
+    overlayPause.suspend('housemate');
+    housemateDialog.showModal();
   };
   syncNewHousemateButton();
   syncEditHousemateButton();
@@ -1165,32 +1182,35 @@ async function main(): Promise<void> {
     if (buildSession.active) return;
     const selected = sim.selectedIndex();
     if (selected === null) return;
-    const members = householdMembers(sim);
-    const target = editTargetOf(sim, selected, members);
-    if (target === null) return;
-    housemateForm.beginEdit(target, members);
-    housemateView?.setHousehold(members);
+    const person = sim.simIdOf(selected);
+    if (person === null) return;
     housemateOpener = editHousemateButton;
-    menu.close(); overlayPause.suspend('housemate');
-    housemateDialog.showModal();
+    openCreator(person);
   });
   newHousemateButton.addEventListener('click', () => {
     optionsMenu.close();
     if (buildSession.active) return;
-    housemateForm.reset();
     housemateOpener = optionsToggle;
-    // [FM-choose]: the household as it stands right now, since it changes
-    // between one opening of this dialog and the next.
-    housemateView?.setHousehold(householdMembers(sim));
-    menu.close(); overlayPause.suspend('housemate');
-    housemateDialog.showModal();
+    openCreator(null);
+  });
+  housemateDialog.addEventListener('cancel', event => {
+    if (creatorSession?.pending) event.preventDefault();
   });
   housemateDialog.addEventListener('close', () => {
+    housemateView?.destroy();
+    housemateView = undefined;
+    creatorSession?.destroy();
+    creatorSession = undefined;
     overlayPause.resume('housemate');
     syncNewHousemateButton();
     syncEditHousemateButton();
     restorePersistenceFocus(document, housemateDialog, housemateOpener, persistenceFocusFallbacks);
+    if (graphicsRecovering) {
+      const status = document.getElementById('graphics-recovery');
+      if (status) document.body.append(status);
+    }
   });
+  window.addEventListener('pagehide', event => { if (!event.persisted) {housemateView?.destroy();creatorSession?.destroy();} });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
     optionsMenu.close();
@@ -1395,8 +1415,7 @@ async function main(): Promise<void> {
       lightingDirty = false;
     }
     const ratio = window.devicePixelRatio || 1;
-    const width = Math.max(1, Math.round(stage.clientWidth * ratio));
-    const height = Math.max(1, Math.round(stage.clientHeight * ratio));
+    const [width,height]=sceneFramebufferSize(stage.clientWidth,stage.clientHeight,ratio,gpu.device.limits.maxTextureDimension2D);
     if (stage.width !== width || stage.height !== height) {
       const dx = (width - stage.width) / 2;
       const dy = (height - stage.height) / 2;
@@ -1704,7 +1723,7 @@ async function main(): Promise<void> {
   function settleBuildControllers(): boolean {
     wallTool.afterCommands(); windowTool.afterCommands(); roomTool.afterCommands();
     floorTool.afterCommands(); buyTool.afterCommands();
-    housemateForm.afterCommands(); bedAssignmentPanel.afterCommands(); bookResults.drain();
+    housemateView?.afterCommands(); bedAssignmentPanel.afterCommands(); bookResults.drain();
     if (builder.afterCommands()) refreshBuildArchitecture();
     return !builder.pending && wallTool.pending === null && windowTool.pending === null
       && !roomTool.pending && !buyTool.pending && floorTool.pending === null
@@ -1989,6 +2008,14 @@ async function main(): Promise<void> {
       },
     },
     openBookCopy,
+    async point=>{
+      if(graphicsRecovering)return undefined;
+      const revision=sim.lotRevision(),generation=graphicsGeneration;
+      const hit=await characterWorld.pick(Math.floor(point.x),Math.floor(point.y));
+      if(hit===undefined||graphicsRecovering||graphicsGeneration!==generation||sim.lotRevision()!==revision)return undefined;
+      if(hit?.kind==='person'&&sim.simIdOf(hit.entity)!==hit.sim)return undefined;
+      return hit?{entity:hit.entity,isAgent:hit.kind==='person',cleanup:hit.cleanup,bookCopy:hit.bookCopy}:null;
+    },
   );
   function openBookCopy(copy: number): void {
     const rect = stage.getBoundingClientRect();
@@ -2005,17 +2032,50 @@ async function main(): Promise<void> {
   });
 
   const timer = new FrameTimer(FRAME_WINDOW);
+  const characterMeasurement=stressParam===null?null:new CharacterFrameMeasurement(()=>gpu.device.queue);
   let previousFrameMs = performance.now();
+  window.addEventListener('pageshow',event=>{if(event.persisted)previousFrameMs=performance.now();});
+  const graphicsStatus=document.createElement('div');graphicsStatus.id='graphics-recovery';graphicsStatus.hidden=true;graphicsStatus.setAttribute('role','status');
+  graphicsStatus.style.cssText='position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);padding:20px;background:#202630;color:white;z-index:5';
+  const graphicsText=document.createElement('p'),graphicsRetry=document.createElement('button');graphicsRetry.textContent='Retry graphics';
+  graphicsStatus.append(graphicsText,graphicsRetry);document.body.append(graphicsStatus);
+  let recoveryPending=false;
+  const deviceLifetime=new DeviceLifetime();
+  const recoverGraphics=async()=>{
+    if(graphicsClosed||recoveryPending)return;recoveryPending=true;graphicsRecovering=true;
+    void audio.setBackgrounded(true);
+    overlayPause.suspend('graphics');menu.close();housemateView?.destroy();characterWorld.destroy();
+    graphicsStatus.hidden=false;graphicsRetry.hidden=true;graphicsText.textContent='Restoring graphics. Your game and character draft are kept.';
+    if(housemateDialog.open)housemateDialog.append(graphicsStatus);else document.body.append(graphicsStatus);
+    try{
+      Object.assign(gpu,await initDevice(stage));
+      watchGraphics(gpu.device);
+      const replacement=CharacterWorld.create(gpu.device,gpu.format,()=>renderer.sceneForPicking,contactRoster);
+      try{await floorResources.invalidate();characterWorld=await replacement;characterWorld.prepareFixtures(sim);}
+      catch(error){void replacement.then(world=>world.destroy(),()=>{});throw error;}
+      if(graphicsClosed){characterWorld.destroy();return;}
+      deviceLifetime.assertAvailable(gpu.device);
+      if(creatorSession&&housemateDialog.open)housemateView=new CreatorView(housemateDialog.querySelector<HTMLElement>('#character-creator-root')!,creatorSession,gpu.device,gpu.format,()=>housemateDialog.close('cancel'));
+      graphicsGeneration++;graphicsRecovering=false;graphicsStatus.hidden=true;document.body.append(graphicsStatus);
+      previousFrameMs=performance.now();cameraDirty=true;overlayPause.resume('graphics');
+      void audio.setBackgrounded(document.visibilityState === 'hidden');
+    }catch(error){console.error('Graphics recovery failed',error);graphicsText.textContent='Graphics could not restart. Your game is still available to save. Try again.';graphicsRetry.hidden=false;}
+    finally{recoveryPending=false;}
+  };
+  function watchGraphics(device:GPUDevice):void {deviceLifetime.watch(device,()=>{if(!graphicsClosed&&device===gpu.device)void recoverGraphics();});}
+  graphicsRetry.addEventListener('click',()=>void recoverGraphics());watchGraphics(gpu.device);
   let lastReportMs = performance.now();
 
   /**
-   * One frame's work. `nowMs` is when the frame began, so the sample below
-   * covers simulation, bridge reads, instance packing and draw submission -
-   * everything inside the 16.6 ms budget and nothing outside it.
+   * One frame's work. `nowMs` is the browser's animation timestamp;
+   * `frameEntered` records when this callback actually starts. Measurements
+   * retain callback delay separately from simulation, bridge reads, instance
+   * packing, and draw submission.
    */
   let lastBookRefreshMs = -Infinity;
   let firstSceneDrawn = false;
   function frame(nowMs: number): void {
+    const frameEntered=performance.now();
     const deltaMs = nowMs - previousFrameMs;
     previousFrameMs = nowMs;
 
@@ -2048,7 +2108,8 @@ async function main(): Promise<void> {
     roomTool.afterCommands();
     floorTool.afterCommands();
     buyTool.afterCommands();
-    housemateForm.afterCommands();
+    housemateView?.afterCommands();
+    syncCharacterContacts();
     bedAssignmentPanel.afterCommands();
     if(choresDialog.open)choresBoard.update();
     if (builder.afterCommands()) {
@@ -2060,7 +2121,7 @@ async function main(): Promise<void> {
     if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
-    if (floorScene.visible) {
+    if (floorScene.visible&&!graphicsRecovering) {
       if (cameraDirty) applyCamera();
       renderer.setGrimeInstances(buildGrimeInstances(sim,lot.width,depthScale,camera.originX,camera.originY,camera.scale,renderer.grimeSpriteBase));
 
@@ -2069,6 +2130,10 @@ async function main(): Promise<void> {
       placementButtons.frame(camera, stage.width, stage.height);
       // Editing marks the original furniture; play mode marks the selected Sim.
       const selected = builder.active ? builder.selected : sim.selectedIndex();
+      const ambient=lightingMode.isFlat()?AMBIENT_NEUTRAL:ambientFor(sim.clockTick(),sim.dayTicks());
+      const skyShade = lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient);
+      characterWorld.beginFrame(sim,{originX:camera.originX,originY:camera.originY,scale:camera.scale,width:stage.width,height:stage.height,
+        gridSize:depthScale,ambient,skyShade,lighting:lightingMode.isFlat()?null:lighting,sky,fixtureDepthBase:renderer.fixtureDepthBase});
       const batch = buildInstanceBatch(
         sim,
         alpha,
@@ -2086,14 +2151,12 @@ async function main(): Promise<void> {
         // A purchase in the Buy tool's colourway; a moved object in its own.
         buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
         sky,
+        characterWorld.plan,
       );
       // The day/night cycle. `LightingMode` combines the player's saved flat
       // choice with reduced motion's temporary constraint, so one effective
       // state governs ambient light, pools, and the button without rewriting
       // the player's preference.
-      const ambient = lightingMode.isFlat()
-        ? AMBIENT_NEUTRAL
-        : ambientFor(sim.clockTick(), sim.dayTicks());
       wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
       renderer.draw(
         batch.instances,
@@ -2101,7 +2164,10 @@ async function main(): Promise<void> {
         camera.scale,
         ambient,
         // [OS-daylight]: the sky shades the house by day; flat light is even.
-        lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),
+        skyShade,
+        characterWorld.draw,
+        batch.owners,
+        batch.annotations,
       );
     }
 
@@ -2139,6 +2205,7 @@ async function main(): Promise<void> {
     }
 
     timer.sample(performance.now() - nowMs);
+    characterMeasurement?.frame(nowMs,frameEntered,performance.now());
     if (nowMs - lastReportMs > REPORT_INTERVAL_MS) {
       lastReportMs = nowMs;
       console.log(`entities ${sim.count}  ${timer.report()}`);
@@ -2149,7 +2216,28 @@ async function main(): Promise<void> {
     if (footstepSamplerTimer === null) {
       throw new Error('stress footstep timer was not created');
     }
+    const admission=new StressCharacterAdmission(sim,characterContacts,contactRoster,async bytes=>{
+      const loaded=await loadCharacters(bytes);if(loaded){characterWorld.reset();characterWorld.prepareFixtures(sim);}return loaded;
+    });
+    window.addEventListener('pagehide',event=>{if(!event.persisted)admission.dispose();});
     globalThis.__terriStress = {
+      characters:{snapshot:()=>characterWorld.diagnostics(),probeFrame:target=>characterWorld.probeFrame(target),pick:(x,y)=>characterWorld.pick(x,y),
+        loadBytes:bytes=>admission.loadBytes(bytes),create:(request,draft)=>admission.create(request,draft),edit:(request,person,patch)=>admission.edit(request,person,patch),
+        prepareCurrent:()=>admission.prepareCurrent(),readiness:()=>({roster:contactRoster.diagnostics(),service:characterContacts.diagnostics()}),
+        createDraft:seed=>CharacterDraft.create(seed,sim.characterCatalog(),sim.characterAppearances().map(person=>({sim_id:person.sim,name:sim.characterSnapshot(person.sim)!.name}))).resolve(),
+        createPreview:(large,small,animation)=>{
+          const {frames}=previewAnimationTiming(animation);
+          return {preview:new CreatorPreview(gpu.device,gpu.format,large,small),samples:frames};
+        }},
+      get graphicsGeneration(){return graphicsGeneration;},loseGraphics:()=>gpu.device.destroy(),
+      measureCharacters:durationMs=>characterMeasurement!.start(durationMs),
+      get graphicsDevice(){return gpu.device;},
+      get sceneDepthTexture(){return renderer.depthForPicking;},
+      get sceneColorTexture(){return renderer.sceneForPicking.color;},
+      get sceneIdentityTexture(){return renderer.sceneForPicking.identity;},
+      get sceneSurfaceTexture(){return renderer.sceneForPicking.surface;},
+      get sceneAnnotationIdentityTexture(){return renderer.sceneForPicking.annotationIdentity;},
+      sceneSampleScale:2,
       timer,
       footstepSampler: footstepSamplerTimer,
       footstepSampling,
@@ -2245,7 +2333,7 @@ async function main(): Promise<void> {
         return result;
       },
       step: (nowMs = performance.now()) => frame(nowMs),
-      sim,
+      sim:guardedCharacterStressSource(sim),
       // Getters over the live camera rather than a copy: the origin now
       // changes with zoom and resize, and a harness computing a click
       // from a stale origin would fail for a reason that is not in the
@@ -2262,7 +2350,7 @@ async function main(): Promise<void> {
   }
 
   function loop(nowMs: number): void {
-    if (graphicsLost) return;
+    if (graphicsClosed) return;
     try {
       frame(nowMs);
     } catch (error) {

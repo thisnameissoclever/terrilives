@@ -1,4 +1,6 @@
 //! Exact chair and setting claims for meal chains, including standing fallback.
+#[cfg(test)]
+mod completion_tests;
 mod table_actions;
 #[cfg(test)]
 mod tests;

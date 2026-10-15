@@ -20,6 +20,7 @@ const V4_BACKUP_FILE = 'terri-save-1.v4-backup.bin';
 const V5_BACKUP_FILE = 'terri-save-1.v5-backup.bin';
 const V6_BACKUP_FILE = 'terri-save-1.v6-backup.bin';
 const V7_BACKUP_FILE = 'terri-save-1.v7-backup.bin';
+const V9_BACKUP_FILE = 'terri-save-1.v9-backup.bin';
 const V8_BACKUP_FILE = 'terri-save-1.v8-backup.bin';
 /** The recovery file for each older version a current write may replace. */
 const HISTORICAL_BACKUP_FILES: Readonly<Record<number, string>> = {
@@ -27,6 +28,7 @@ const HISTORICAL_BACKUP_FILES: Readonly<Record<number, string>> = {
   6: V6_BACKUP_FILE,
   7: V7_BACKUP_FILE,
   8: V8_BACKUP_FILE,
+  9: V9_BACKUP_FILE,
 };
 
 type SaveRequest =

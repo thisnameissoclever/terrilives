@@ -1,0 +1,64 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "inputWidth": 69,
+      "textWidth": 48.31640625,
+      "contentWidth": 51,
+      "spinnerAllowance": 16,
+      "textFits": false,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 1024,
+      "inputWidth": 69,
+      "textWidth": 48.31640625,
+      "contentWidth": 51,
+      "spinnerAllowance": 16,
+      "textFits": false,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 768,
+      "inputWidth": 69,
+      "textWidth": 48.31640625,
+      "contentWidth": 51,
+      "spinnerAllowance": 16,
+      "textFits": false,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 390,
+      "inputWidth": 69,
+      "textWidth": 48.31640625,
+      "contentWidth": 51,
+      "spinnerAllowance": 16,
+      "textFits": false,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    },
+    {
+      "width": 320,
+      "inputWidth": 69,
+      "textWidth": 48.31640625,
+      "contentWidth": 51,
+      "spinnerAllowance": 16,
+      "textFits": false,
+      "controlOverflow": false,
+      "editorOverflow": false,
+      "documentOverflow": false
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Complete percentage must fit at 1440px"
+  ],
+  "status": "FAIL",
+  "browserClosed": true
+}
