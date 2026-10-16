@@ -10,10 +10,13 @@ import {requireBikeContact,sampleBikeContact} from './bike-contact-sample.js';
 import type {BikeContactArtifactV1,BikeFitResolver} from './bike-contact-types.js';
 import type {SleepContactArtifactV1} from './sleep-contact-types.js';
 import {requireSleepPose} from './sleep-contact-sample.js';
+import {fitSeatedPose} from './seat-fit.js';
+import {seatContactResolver} from './seat-contact-sample.js';
+import type {SeatContactArtifactV1,SeatFitResolver} from './seat-contact-types.js';
 export {composeSkeletonPose} from './pose-joints.js';
 
 /** Production pose sampling never constructs a contact fit. */
-export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1):Float32Array<ArrayBuffer> {
+export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,bikeContact?:BikeContactArtifactV1,sleepContact?:SleepContactArtifactV1,seatContact?:SeatContactArtifactV1):Float32Array<ArrayBuffer> {
   if(action==='bed_sleep'||action==='bunk_sleep'){
     if(!Number.isFinite(frame)||frame<0)throw new Error('Unknown character pose');
     if(audit){audit.contacts=[];audit.assemblies={};}
@@ -21,15 +24,16 @@ export function configuredPose(bundle:Bundle,a:ShapeParameters,action:string,fra
     return requireSleepPose(sleepContact,geometry,a,top,action);
   }
   const resolve:BikeFitResolver=(geometry,shape,top,_rest,_pose,_source,_dimensions,_lengths,angle)=>sampleBikeContact(requireBikeContact(bikeContact,geometry,shape,top),angle);
-  return configuredPoseWithBike(bundle,a,action,frame,top,audit,geometry,resolve);
+  const seatFit=seatContactResolver(seatContact,action);
+  return configuredPoseWithBike(bundle,a,action,frame,top,audit,geometry,resolve,seatFit);
 }
 
 /** CPU asset and contact tests opt into synchronous construction explicitly. */
-export function configuredPoseForProof(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry):Float32Array<ArrayBuffer> {
-  return configuredPoseWithBike(bundle,a,action,frame,top,audit,geometry,fitBike);
+export function configuredPoseForProof(bundle:Bundle,a:ShapeParameters,action:string,frame:number,top:number,audit?:PoseDiagnostics,geometry?:Geometry,seatFit:SeatFitResolver=fitSeatedPose):Float32Array<ArrayBuffer> {
+  return configuredPoseWithBike(bundle,a,action,frame,top,audit,geometry,fitBike,seatFit);
 }
 
-function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: string, frame: number, top: number, audit:PoseDiagnostics|undefined, geometry:Geometry|undefined, bikeFit:BikeFitResolver): Float32Array<ArrayBuffer> {
+function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: string, frame: number, top: number, audit:PoseDiagnostics|undefined, geometry:Geometry|undefined, bikeFit:BikeFitResolver,seatFit:SeatFitResolver): Float32Array<ArrayBuffer> {
   if(audit){audit.contacts=[];audit.assemblies={};}
   const {sample,source,heads,tails,rest,inverse,matrices}=configuredJointSetup(bundle,a,action,frame,top);
   const clip = bundle.clipMetadata?.[action];
@@ -37,7 +41,7 @@ function configuredPoseWithBike(bundle: Bundle, a: ShapeParameters, action: stri
     const found = bones.findIndex(b => b.name === name); if (found < 0) throw new Error(`Missing bone ${name}`); return found;
   };
   const result = new Float32Array(bones.length * 16);
-  if(clip)return solveInteraction({bundle,appearance:a,action,frame,top,source,rest,matrices,audit,geometry,bikeFit});
+  if(clip)return solveInteraction({bundle,appearance:a,action,frame,top,source,rest,matrices,audit,geometry,bikeFit,seatFit});
   const positions = matrices.map(m=>[m[12],m[13],m[14]] as [number,number,number]);
   // The authored foot path is a physical ground/contact target, not a scaled pose translation.
   for(let i=0;i<bones.length;i++) if(bones[i].name.startsWith('foot')) {

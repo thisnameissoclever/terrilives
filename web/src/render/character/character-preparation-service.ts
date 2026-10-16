@@ -5,13 +5,16 @@ import {freezeBikeContactArtifact,validateBikeContactInput} from './bike-contact
 import {freezeSleepContactArtifact,validateSleepContactInput} from './sleep-contact-protocol.js';
 import type {BikeContactArtifactV1,BikeContactInputV1} from './bike-contact-types.js';
 import type {SleepContactArtifactV1,SleepContactInputV1} from './sleep-contact-types.js';
+import {createSeatContactInput,seatContactAppearanceKey} from './seat-contact-preparation.js';
+import {freezeSeatContactArtifact,validateSeatContactInput} from './seat-contact-protocol.js';
+import type {SeatContactArtifactV1,SeatContactInputV1} from './seat-contact-types.js';
 import {PreparationQueue,preparationCancelled,type PreparationLease,type PreparationDefinition} from './preparation-queue.js';
 import {WorkerPreparationTransport,type PreparationTransport} from './preparation-transport.js';
 import {validatePreparationResponse,type PreparationArtifact,type PreparationRequest} from './preparation-protocol.js';
 
-export interface CharacterPreparation {readonly bike:BikeContactArtifactV1;readonly sleep:SleepContactArtifactV1}
+export interface CharacterPreparation {readonly bike:BikeContactArtifactV1;readonly sleep:SleepContactArtifactV1;readonly seat:SeatContactArtifactV1}
 export type CharacterPreparationLease=PreparationLease<CharacterPreparation>;
-export const characterPreparationKey=(appearance:CharacterAppearanceV1)=>JSON.stringify([bikeContactAppearanceKey(appearance),sleepContactAppearanceKey(appearance)]);
+export const characterPreparationKey=(appearance:CharacterAppearanceV1)=>JSON.stringify([bikeContactAppearanceKey(appearance),sleepContactAppearanceKey(appearance),seatContactAppearanceKey(appearance)]);
 export class CharacterPreparationNotReadyError extends Error {
   constructor(){super('Character support must be prepared before admitting this appearance.');this.name='CharacterPreparationNotReadyError';}
 }
@@ -19,6 +22,7 @@ interface Owner {lease:CharacterPreparationLease;parts:PreparationLease<Preparat
 export interface CharacterPreparationServiceOptions {
   bikeInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<BikeContactInputV1>;
   sleepInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<SleepContactInputV1>;
+  seatInputFactory?:(appearance:CharacterAppearanceV1)=>Promise<SeatContactInputV1>;
   transportFactory?:()=>PreparationTransport;
 }
 
@@ -28,6 +32,7 @@ export class CharacterPreparationService {
   private readonly owners=new Map<string,Owner>();
   private readonly bike:PreparationDefinition<PreparationArtifact>;
   private readonly sleep:PreparationDefinition<PreparationArtifact>;
+  private readonly seat:PreparationDefinition<PreparationArtifact>;
   private transport:PreparationTransport|undefined;
   private sequence=0;private generation=0;private disposed=false;
   constructor(private readonly options:CharacterPreparationServiceOptions={}){
@@ -47,6 +52,14 @@ export class CharacterPreparationService {
         ||Object.keys(input.revisions).some(name=>artifact.revisions[name as keyof typeof input.revisions]!==input.revisions[name as keyof typeof input.revisions]))
         throw new Error('Sleeping support artifact does not match its input.');return artifact;
     }};
+    this.seat={key:a=>'seat:'+seatContactAppearanceKey(a),prepare:async(a,work)=>{
+      work.inputPrepared();const input=await(options.seatInputFactory??createSeatContactInput)(a);validateSeatContactInput(input);
+      const saved=work.findReady(input.key);if(saved)return saved;
+      work.compiled();const artifact=freezeSeatContactArtifact(await this.compile({version:1,id:++this.sequence,kind:'seat',input}) as SeatContactArtifactV1);
+      if(artifact.key!==input.key||artifact.appearanceKey!==input.appearanceKey
+        ||Object.keys(input.revisions).some(name=>artifact.revisions[name as keyof typeof input.revisions]!==input.revisions[name as keyof typeof input.revisions]))
+        throw new Error('Seated support artifact does not match its input.');return artifact;
+    }};
   }
   private async compile(request:PreparationRequest):Promise<PreparationArtifact>{
     this.transport??=(this.options.transportFactory??(()=>new WorkerPreparationTransport()))();
@@ -61,7 +74,7 @@ export class CharacterPreparationService {
     const key=characterPreparationKey(appearance),previous=this.owners.get(owner);
     if(previous&&!previous.closed&&previous.failure===undefined&&previous.lease.appearanceKey===key)return previous.lease;
     const requested=structuredClone(appearance);
-    const parts=[this.queue.acquire(owner+':bike',requested,this.bike),this.queue.acquire(owner+':sleep',requested,this.sleep)];
+    const parts=[this.queue.acquire(owner+':bike',requested,this.bike),this.queue.acquire(owner+':sleep',requested,this.sleep),this.queue.acquire(owner+':seat',requested,this.seat)];
     let resolve!:(value:CharacterPreparation)=>void,reject!:(error:unknown)=>void;
     const ready=new Promise<CharacterPreparation>((yes,no)=>{resolve=yes;reject=no;});void ready.catch(()=>{});
     let record:Owner;
@@ -78,7 +91,8 @@ export class CharacterPreparationService {
   private lookup(owner:string,appearance:CharacterAppearanceV1):CharacterPreparation|undefined {
     const bike=this.queue.require(owner+':bike',this.bike.key(appearance)) as BikeContactArtifactV1|undefined;
     const sleep=this.queue.require(owner+':sleep',this.sleep.key(appearance)) as SleepContactArtifactV1|undefined;
-    return bike&&sleep?Object.freeze({bike,sleep}):undefined;
+    const seat=this.queue.require(owner+':seat',this.seat.key(appearance)) as SeatContactArtifactV1|undefined;
+    return bike&&sleep&&seat?Object.freeze({bike,sleep,seat}):undefined;
   }
   require(owner:string,appearance:CharacterAppearanceV1):CharacterPreparation {
     const record=this.owners.get(owner);

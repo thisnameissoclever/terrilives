@@ -8,6 +8,7 @@ import {characterActionPlan,type CharacterActionPlan} from './action-plan.js';
 import type {Vec3} from './math.js';
 import {fixtureDepthSprite,fixtureDrawRecord,shelfDepthSprite,type FixtureDrawRecord} from '../fixture-depth.js';
 import {ScenePickRegistry} from '../scene-picks.js';
+import {fixtureRegistration} from '../fixture-registration.js';
 
 export interface PlannedActor {
   entity:number;sim:number;row:number;token:number;appearance:CharacterAppearanceV1;action:CharacterActionPlan;
@@ -42,6 +43,7 @@ export class CharacterScenePlan {
 
   /** Read string-bearing metadata before the frame borrows any WebAssembly array views. */
   sync(source:Source):void {
+    fixtureRegistration(source);
     const hash=source.appearanceHash();
     if(hash!==this.appearanceHash){this.appearances.clear();for(const row of source.characterAppearances())this.appearances.set(row.entity,row);this.appearanceHash=hash;}
     const revision=source.lotRevision();
@@ -55,6 +57,7 @@ export class CharacterScenePlan {
   reset():void {this.appearanceHash=null;this.revision=-1;this.actors.length=0;this.appearances.clear();this.models.clear();this.pickOwners.reset();}
 
   update(source:RenderSource,interactions:InteractionSelection,alpha:number,tick:number,reducedMotion:boolean):void {
+    const fixtureOffsets=fixtureRegistration(source).offsets;
     const count=source.count;if(this.replacedRows.length<count)this.replacedRows=new Uint8Array(count);this.replacedRows.fill(0);
     this.actors.length=0;
     const ids=source.ids(),kinds=source.kinds(),actions=source.visualActions(),activities=source.activities(),facings=source.facings();
@@ -92,13 +95,14 @@ export class CharacterScenePlan {
         const place=sleepingPlaces?.[row];if(place!==0&&place!==1)throw new Error('Double-bed sleeper has no valid place.');offset=[place===1?-.77:0,0,0];
       }else if(action.clip.startsWith('seat_sofa_')){
         const stable=model!.places[seatedPlaces?.[row]??-1],place=['seat_1','seat_2','seat_3'].indexOf(stable);
-        if(place<0)throw new Error('Sofa occupant has no stable seat.');offset=[0,(place-1)*.58,0];
+        // Native stable places run along increasing game X; the authored sofa's local Y runs backward.
+        if(place<0)throw new Error('Sofa occupant has no stable seat.');offset=[0,(1-place)*.52,0];
       }
       const includeFixture=fixture>=0&&!drawnFixtures.has(fixture);if(fixture>=0)drawnFixtures.add(fixture);
       this.replacedRows[row]=1;
       this.actors.push({entity:ids[row],sim:record.sim,row,token:row+1,appearance:record.appearance,action,
-        x:fixture>=0?previous[fixture*2]+(current[fixture*2]-previous[fixture*2])*alpha:x,
-        y:fixture>=0?previous[fixture*2+1]+(current[fixture*2+1]-previous[fixture*2+1])*alpha:y,
+        x:fixture>=0?previous[fixture*2]+(current[fixture*2]-previous[fixture*2])*alpha+fixtureOffsets[fixture*2]:x,
+        y:fixture>=0?previous[fixture*2+1]+(current[fixture*2+1]-previous[fixture*2+1])*alpha+fixtureOffsets[fixture*2+1]:y,
         angle:fixture>=0?fixtureAngles[model!.facing]:bodyAngles[facing]??0,offset,fixtureRow:fixture,fixtureEntity:fixture>=0?ids[fixture]:null,
         fixtureModel:fixture>=0?model!.id:null,includeFixture,stockMask:fixture>=0?interactions.shelfMask(fixture,shelfPresence(fixture,shelfOffsets,shelfCounts,shelfMasks)):0,head:[x,y,0],feet:[x,y,0],hand:[x,y,0]});
     }

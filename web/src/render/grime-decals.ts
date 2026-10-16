@@ -8,6 +8,7 @@ import { spriteDrawOffsetY } from './sprite-anchors.js';
 import { spriteHeight } from './sprite-size.js';
 import {fixtureSurfaceHeight} from './fixture-depth.js';
 import {SURFACE_PLANE_PROJECTION} from './instances.js';
+import {fixtureRegistration,type FixtureRegistrationSource} from './fixture-registration.js';
 
 export const GRIME_SPRITE_COUNT = 12;
 export const GRIME_PAGE = ATLAS_PAGE_FILES.length;
@@ -35,7 +36,7 @@ export async function uploadGrimePage(device:GPUDevice,texture:GPUTexture):Promi
   }finally{bitmap.close();}
 }
 
-export interface GrimeSource {
+export interface GrimeSource extends FixtureRegistrationSource {
   floorGrime():Uint32Array; surfaceGrime():Uint32Array; binWaste():Uint32Array;
   positions():Float32Array;sprites():Uint32Array;ids():Uint32Array;
   footprintWidths():Uint32Array;footprintDepths():Uint32Array;count:number;
@@ -48,6 +49,7 @@ let opacity=new Float32Array();
 /** Stains have their own depth and leave the underlying material colors intact. */
 export function buildGrimeInstances(source:GrimeSource,width:number,gridSize:number,
   originX:number,originY:number,scale:number,spriteBase:number):{instances:Float32Array<ArrayBuffer>;opacity:Float32Array<ArrayBuffer>;count:number} {
+  const fixtureOffsets=fixtureRegistration(source).offsets;
   const floors=source.floorGrime(),surfaces=source.surfaceGrime(),bins=source.binWaste();
   const positions=source.positions(),sprites=source.sprites(),ids=source.ids();
   const widths=source.footprintWidths(),depths=source.footprintDepths();
@@ -71,7 +73,7 @@ export function buildGrimeInstances(source:GrimeSource,width:number,gridSize:num
   }
   for(let row=0;row<source.count;row++){
     if(!(surfaces[row]??0)&&!(bins[row]??0))continue;
-    const layout=surfaceLayout(sprites[row]),x=positions[row*2],y=positions[row*2+1];
+    const layout=surfaceLayout(sprites[row]),x=positions[row*2]+fixtureOffsets[row*2],y=positions[row*2+1]+fixtureOffsets[row*2+1];
     if(layout && layout.kind!=='stove'){
       const prop=layout.props[0],bounds=SPRITE_CONTENT_BOUNDS[prop];
       const lift=spriteDrawOffsetY(prop)+TILE_HALF_HEIGHT-spriteHeight(prop)+(bounds[1]+bounds[3])/2+2;

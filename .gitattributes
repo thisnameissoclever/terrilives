@@ -145,3 +145,5 @@ docs/evidence/2026-10-15-merge-review/**/*.log -text whitespace=-blank-at-eol,-b
 assets/models/sims/character-creator/verify_action_roundtrips.cjs -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
 assets/models/sims/character-creator/verify_choice_influences.cjs -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
 assets/models/sims/character-repair/color_pixels.py -text whitespace=blank-at-eol,-blank-at-eof,space-before-tab,cr-at-eol
+assets/models/kitchen/export_wall_registration.py -text
+assets/models/kitchen/wall-registration.json -text

@@ -12,6 +12,8 @@ import { BATHROOM_SPRITES, BATHROOM_LAYERS, BATHROOM_COVERAGE, BATHROOM_MASKS, F
   SPRITE_ANCHORS, SPRITES, spriteIndex } from '../src/render/atlas.js';
 import { sampleBedCoverage } from '../src/render/bed-sprites.js';
 import { fetchFrame, FETCH_VISUAL_ACTION } from '../src/render/fetch-animation.js';
+import kitchenGeometry from '../../assets/models/kitchen/wall-registration.json';
+import architecture from '../../assets/models/architecture-depth.json';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -19,6 +21,9 @@ beforeAll(async () => {
 });
 
 const none = 0xffffffff;
+const fridgeGeometry=kitchenGeometry.fixtures.find(fixture=>fixture.sprite==='offlineFridge')!;
+const roomFace=-.5+architecture.wallAndDoorDepth/2+.01;
+const kitchenShift=[roomFace-fridgeGeometry.minimum[0],roomFace+fridgeGeometry.maximum[1]] as const;
 
 function fetchingSource(empty: number, simId: number, progress: number): RenderSource {
   const fridge = 41, agent = 99;
@@ -191,12 +196,12 @@ function checkMarkerAndBubble(source: SimBridge, person: number, scene: number, 
   expect(ringRow).toBeDefined();
   expect(bubbleRow).toBeDefined();
   const [fx, fy] = tileScreen(feet[0], feet[1]);
-  const fridgeX = screenX(0, 0, 0), fridgeY = screenY(0, 0, 0);
+  const fridgeX = screenX(...kitchenShift,0), fridgeY = screenY(...kitchenShift,0);
   expect(data[ringRow * FLOATS_PER_INSTANCE]).toBeCloseTo(fridgeX + fx, 4);
   expect(data[ringRow * FLOATS_PER_INSTANCE + 1]).toBeCloseTo(fridgeY + fy, 4);
   expect(data[bubbleRow * FLOATS_PER_INSTANCE]).toBeCloseTo(fridgeX + fx, 4);
   expect(data[bubbleRow * FLOATS_PER_INSTANCE + OFFSET_DEPTH])
-    .toBe(Math.fround(layeredDepth(feet[0], feet[1], 64, LAYER_FOREGROUND)));
+    .toBe(Math.fround(layeredDepth(feet[0]+kitchenShift[0], feet[1]+kitchenShift[1], 64, LAYER_FOREGROUND)));
   expect(bubbleRow).toBeGreaterThanOrEqual(batch.annotations.start);
   expect(bubbleRow).toBeLessThan(batch.annotations.start+batch.annotations.count);
   expect(batch.owners[bubbleRow]).toBe(Array.from(source.ids()).indexOf(person)+1);
@@ -232,7 +237,7 @@ function playFetch(source: SimBridge, fridge: number, person: number, frames: re
       // Per-pixel depth from the scene's own depth sprite, measured from the fridge.
       expect(data[base + OFFSET_WALL_MASK]).toBe(SURFACE_DEPTH_PROJECTION);
       expect(data[base + OFFSET_FOOTPRINT_SPAN]).toBe(FIXTURE_SCENE_DEPTHS[scene]);
-      expect(data[base + OFFSET_DEPTH]).toBeCloseTo(layeredDepth(0, 0, 64, LAYER_SIM), 6);
+      expect(data[base + OFFSET_DEPTH]).toBeCloseTo(layeredDepth(...kitchenShift, 64, LAYER_SIM), 6);
       const sample = frames.indexOf(scene);
       checkMarkerAndBubble(source, person, scene, sample);
       if (seen[seen.length - 1] !== sample) seen.push(sample);

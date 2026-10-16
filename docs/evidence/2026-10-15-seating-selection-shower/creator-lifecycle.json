@@ -1,0 +1,187 @@
+{
+  "cycles": [
+    {
+      "cycle": 0,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 20,
+        "textures": 10,
+        "bufferBytes": 27001800
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      },
+      "contacts": {
+        "roster": {
+          "live": 3,
+          "queued": 0,
+          "staging": false
+        },
+        "service": {
+          "owners": 3,
+          "entries": 3,
+          "queued": 0,
+          "inFlight": 0,
+          "ready": 3,
+          "generations": 27,
+          "inputPreparations": 18,
+          "compilations": 18,
+          "discardedResults": 0,
+          "lastError": null,
+          "lastWorkerError": null,
+          "disposed": false,
+          "resourceOwners": 9,
+          "workerAlive": true
+        }
+      }
+    },
+    {
+      "cycle": 1,
+      "values": [
+        "0",
+        "50",
+        "100",
+        "33"
+      ],
+      "alive": {
+        "buffers": 19,
+        "textures": 10,
+        "bufferBytes": 27753360
+      },
+      "after": {
+        "buffers": 0,
+        "textures": 0,
+        "bufferBytes": 0
+      },
+      "contacts": {
+        "roster": {
+          "live": 3,
+          "queued": 0,
+          "staging": false
+        },
+        "service": {
+          "owners": 3,
+          "entries": 3,
+          "queued": 0,
+          "inFlight": 0,
+          "ready": 3,
+          "generations": 42,
+          "inputPreparations": 33,
+          "compilations": 33,
+          "discardedResults": 0,
+          "lastError": null,
+          "lastWorkerError": null,
+          "disposed": false,
+          "resourceOwners": 9,
+          "workerAlive": true
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "notices": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:5200/favicon.ico",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "scope": "Counts explicit buffers and textures allocated after startup; physical driver reclamation is not measured.",
+  "contactBaseline": {
+    "roster": {
+      "live": 3,
+      "queued": 0,
+      "staging": false
+    },
+    "service": {
+      "owners": 3,
+      "entries": 3,
+      "queued": 0,
+      "inFlight": 0,
+      "ready": 3,
+      "generations": 12,
+      "inputPreparations": 3,
+      "compilations": 3,
+      "discardedResults": 0,
+      "lastError": null,
+      "lastWorkerError": null,
+      "disposed": false,
+      "resourceOwners": 9,
+      "workerAlive": true
+    }
+  },
+  "recovery": {
+    "generationBefore": 0,
+    "generationAfter": 1,
+    "contactsBeforeLoss": {
+      "roster": {
+        "live": 3,
+        "queued": 0,
+        "staging": false
+      },
+      "service": {
+        "owners": 4,
+        "entries": 3,
+        "queued": 0,
+        "inFlight": 0,
+        "ready": 3,
+        "generations": 45,
+        "inputPreparations": 33,
+        "compilations": 33,
+        "discardedResults": 0,
+        "lastError": null,
+        "lastWorkerError": null,
+        "disposed": false,
+        "resourceOwners": 12,
+        "workerAlive": true
+      }
+    },
+    "contactsAfterLoss": {
+      "roster": {
+        "live": 3,
+        "queued": 0,
+        "staging": false
+      },
+      "service": {
+        "owners": 4,
+        "entries": 3,
+        "queued": 0,
+        "inFlight": 0,
+        "ready": 3,
+        "generations": 45,
+        "inputPreparations": 33,
+        "compilations": 33,
+        "discardedResults": 0,
+        "lastError": null,
+        "lastWorkerError": null,
+        "disposed": false,
+        "resourceOwners": 12,
+        "workerAlive": true
+      }
+    },
+    "unsavedNamePreserved": true,
+    "lockPreserved": true,
+    "lockRandomDisabled": true,
+    "bytesBefore": "cfc0dec34f065e83567d6a25cb32cbae3b9f7f734e4d29460d8928eba3a55b49",
+    "bytesRecovered": "cfc0dec34f065e83567d6a25cb32cbae3b9f7f734e4d29460d8928eba3a55b49",
+    "bytesAfterCancel": "cfc0dec34f065e83567d6a25cb32cbae3b9f7f734e4d29460d8928eba3a55b49"
+  },
+  "pass": true,
+  "cleanup": {
+    "contextClosed": true,
+    "browserClosed": true,
+    "serverUntouched": true
+  }
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "filename": "sofa-before.png",
+    "source": "seats-large/extra-sofa-read-0.png",
+    "sha256": "ab14aacd78e208b3b5565bed5383a767c56dc6b5cdb116c1e2730a8902e51142",
+    "bytes": 225020
+  },
+  {
+    "filename": "sofa-after.png",
+    "source": "seats-large-final/extra-sofa-read-0.png",
+    "sha256": "e88822437d676f2f5ed7483ce9b0278f58dee1770042d5fc77104944ffa8c594",
+    "bytes": 224462
+  },
+  {
+    "filename": "bed-marker-before.png",
+    "source": "blind-review/view-C.png",
+    "sha256": "0502fc45e012100030fcc0fe54f776c6549a8c5668becb0d97e8aff947272b91",
+    "bytes": 325637
+  },
+  {
+    "filename": "bed-marker-after.png",
+    "source": "blind-review/view-D.png",
+    "sha256": "b638296f9c32b2bcbb6acd8de4f5d58f9dd44e0ccee312405eac05a1bcdecf63",
+    "bytes": 326634
+  },
+  {
+    "filename": "shower-after.png",
+    "source": "shower-final48-large/feminine-1-quarters.png",
+    "sha256": "89084e2200b3451d173d2cda47b8ec19a5b1114dfb15bb0489b3f97bace0c83a",
+    "bytes": 452169
+  },
+  {
+    "filename": "kitchen-after.png",
+    "source": "kitchen-wall/kitchen-facing-0-2.75.png",
+    "sha256": "96aa0214d019f6542dca77f07aa2454b26a8a600a1508ba55ec4ca3385dd3460",
+    "bytes": 509545
+  }
+]

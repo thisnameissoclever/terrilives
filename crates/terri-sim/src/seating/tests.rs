@@ -1253,6 +1253,9 @@ fn desk_work_seats_on_the_desk_chair_entered_from_a_free_side() {
             );
             assert_eq!(buffer.interaction_targets[row], chair.index_u32());
             assert_eq!(buffer.facings[row], 2, "seated facing the desk along -x");
+            assert_eq!(buffer.seated_furniture[row], chair.index_u32());
+            assert_eq!(buffer.seated_places[row], 0);
+            assert_eq!(buffer.seated_whole[row], 0);
             assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
             assert_eq!(
                 crate::need_interactions::seat_rate(sim.world(), person),
@@ -1312,6 +1315,7 @@ fn desk_work_ignores_a_facing_chair_that_does_not_touch_the_desk() {
                 buffer.visual_actions[row],
                 crate::render_buffer::visual_action::NONE
             );
+            assert_eq!(buffer.seated_furniture[row], u32::MAX);
             assert_eq!(sim.world().get::<Target>(person).unwrap().object, device);
             return;
         }

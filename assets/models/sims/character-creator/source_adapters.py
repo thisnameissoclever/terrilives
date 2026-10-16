@@ -9,6 +9,7 @@ import bpy
 from mathutils import Matrix
 
 MODELS=Path(__file__).resolve().parents[2]
+SHOWER_SAMPLES=16
 
 def fridge():
     sys.path.insert(0,str(MODELS/'kitchen/actions'))
@@ -92,7 +93,7 @@ def shower():
     root.rotation_euler.z=0;rig.rotation_euler.z=0;rig.animation_data.action=None
     receipt=MODELS/'bathroom/actions/review/shower/prototype-09/proof.json'
     ankle=json.loads(receipt.read_text())['fitted_ankle_z']
-    def sample(index,action):apply(rig,index/4,ankle_z=ankle)
+    def sample(index,action):apply(rig,index/SHOWER_SAMPLES,ankle_z=ankle)
     return source,rig,root,sample,receipt
 
 

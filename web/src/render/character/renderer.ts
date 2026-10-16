@@ -138,7 +138,7 @@ export class CharacterRenderer {
     const metadata=this.geometry.manifest.clipMetadata?.[action];
     if(metadata?.playback==='static')frame=0;else if(metadata?.stepSamples)frame=Math.floor(frame);
     const key=action+':'+frame,changed=this.mesh.poseSource?this.mesh.lastMatrices!==this.mesh.poseSource:this.mesh.lastPoseKey!==key||!this.mesh.lastMatrices;
-    const matrices = this.mesh.poseSource??(!changed?this.mesh.lastMatrices! : this.mesh.configured ? configuredPose(this.geometry.manifest, this.mesh.shape, action, frame, this.mesh.top, undefined, this.geometry,this.mesh.bikeContact,this.mesh.sleepContact) : new Float32Array(this.geometry.manifest.bones.length * 16));
+    const matrices = this.mesh.poseSource??(!changed?this.mesh.lastMatrices! : this.mesh.configured ? configuredPose(this.geometry.manifest, this.mesh.shape, action, frame, this.mesh.top, undefined, this.geometry,this.mesh.bikeContact,this.mesh.sleepContact,this.mesh.seatContact) : new Float32Array(this.geometry.manifest.bones.length * 16));
     if (changed&&!this.mesh.configured&&!this.mesh.poseSource) {
       const poses=sampleMotion(this.geometry.manifest,action,frame).source;
       this.geometry.manifest.bones.forEach((bone, i) => matrices.set(multiply(poses[i], bone.inverseRest), i * 16));

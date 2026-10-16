@@ -38,6 +38,7 @@ export class CharacterMeshResources {
   surfaceDirty=true;
   bikeContact:BikeContactArtifactV1|undefined;
   sleepContact:SleepContactArtifactV1|undefined;
+  seatContact:import('./seat-contact-types.js').SeatContactArtifactV1|undefined;
   outlineRanges:{start:number;count:number}[]=[];
   fillRanges:{start:number;count:number}[]=[];
   private references=0;

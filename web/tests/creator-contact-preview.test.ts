@@ -8,7 +8,7 @@ it('invalidates a pending draw immediately when a newer appearance is requested'
   let finish!:(artifact:CharacterPreparation)=>void;const ready=new Promise<CharacterPreparation>(resolve=>{finish=resolve;});
   const oldActor={retained:true},preview=Object.assign(Object.create(CreatorPreview.prototype),{actor:oldActor,generation:0,closed:false,requested:'',preparation:null,contacts:{prepare:()=>ready}}) as CreatorPreview;
   const a=defaultAppearance(),b=structuredClone(a);b.body.height=100;
-  const draw=preview.draw(a,0);preview.prepare(b,0);finish({bike:{key:'old'},sleep:{key:'old'}} as CharacterPreparation);
+  const draw=preview.draw(a,0);preview.prepare(b,0);finish({bike:{key:'old'},sleep:{key:'old'},seat:{key:'old'}} as CharacterPreparation);
   expect(await draw).toBe(false);expect(Reflect.get(preview,'actor')).toBe(oldActor);
 });
 

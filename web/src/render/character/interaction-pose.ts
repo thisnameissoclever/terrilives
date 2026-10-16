@@ -10,8 +10,11 @@ import {shapePoint,type ShapeParameters} from './shape.js';
 import {thighContactPatches,nearestReachableContact} from './resting-contact.js';
 import {fitSleepingPose} from './sleep-fit.js';
 import {fitRecliningPose} from './recline-fit.js';
+import {fitSeatedPose} from './seat-fit.js';
+import {fitDiningGrip} from './dining-contact.js';
+import type {SeatFitResolver} from './seat-contact-types.js';
 
-interface Context {bundle:Bundle;appearance:ShapeParameters;action:string;frame:number;top:number;source:number[][];rest:number[][];matrices:number[][];audit?:PoseDiagnostics;geometry?:Geometry;bikeFit:BikeFitResolver}
+interface Context {bundle:Bundle;appearance:ShapeParameters;action:string;frame:number;top:number;source:number[][];rest:number[][];matrices:number[][];audit?:PoseDiagnostics;geometry?:Geometry;bikeFit:BikeFitResolver;seatFit?:SeatFitResolver}
 type Matrices=number[][];
 type Targets={wrists:[Vec3,Vec3];grips:[Vec3,Vec3];references:[Vec3,Vec3];hands:[number[],number[]];assemblies:Record<string,number[]>};
 const sides=['L','R'] as const;
@@ -60,6 +63,11 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
     }
     applyShift(shift);
   }
+  let seatedFit=false;
+  if(contacts.policy==='seat'||contacts.policy==='seat_book'||contacts.policy==='dining'){
+    if(!context.geometry)throw new Error('Seating requires its actual support geometry.');
+    if(contacts.feet)seatedFit=(context.seatFit??fitSeatedPose)(context.geometry,appearance,top,clip.family,matrices,rest,rig,source,contacts.feet.forwardRange);
+  }
   const boneLength=(id:number)=>length(sub(shapePoint(bones[id].tail,bones[id].name.startsWith('shin')?6:3,appearance,top),shapePoint(bones[id].head,3,appearance,top)));
   let bikeFit:BikeFit|undefined;
   if(contacts.policy==='exercise'){
@@ -85,7 +93,7 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
     if(!context.geometry)throw new Error('Reclining requires the actual sofa and body surfaces.');
     fitRecliningPose(context.geometry,appearance,top,matrices,rest,rig,source);
   }
-  if(contacts.policy!=='recline'&&contacts.policy!=='sleep'){
+  if(contacts.policy!=='recline'&&contacts.policy!=='sleep'&&!seatedFit){
     if(!supported){
       let lowering=0;
       for(const side of sides){const thigh=index('thigh.'+side),shin=index('shin.'+side),foot=index('foot.'+side),hip=point(matrices[thigh]),ankle=point(source[foot]),reach=boneLength(thigh)+boneLength(shin)-.001;
@@ -178,7 +186,11 @@ export function solveInteraction(context:Context):Float32Array<ArrayBuffer> {
       const radius=Math.sqrt(square),angle=.35+(Math.PI-.35)*raised;
       grips[1]=[x+offsets[1][0],bowl[1]+radius*Math.cos(angle),bowl[2]+radius*Math.sin(angle)];
       const original=contactFrame.assemblies[dining.spoon];if(!original)throw new Error('Eating spoon assembly is missing.');
-      assemblies[dining.spoon]=boneFrame(grips[1],bowl,original);
+      const preferred=boneFrame(grips[1],bowl,original),shoulder=point(pose[index('upper_arm.R')]);
+      const fit=fitDiningGrip(sub(grips[1],offsets[1]),bowl,shoulder,Math.abs(armLengths[1][0]-armLengths[1][1])+.001,armLengths[1][0]+armLengths[1][1]-.001);
+      if(!fit)return null;
+      hands[1]=multiply(fit.rotation,hands[1]);offsets[1]=transform(fit.rotation,offsets[1]);
+      grips[1]=add(fit.wrist,offsets[1]);assemblies[dining.spoon]=multiply(fit.transform,preferred);
     }else if(contacts.policy==='mop'){
       const mop=contacts.mop!,shaft=contactFrame.shaft;if(!shaft)throw new Error('Mop shaft contacts are missing.');
       const direction=sub(shaft.top,shaft.bottom),wristStart=sub(shaft.bottom,offsets[0]);

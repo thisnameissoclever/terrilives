@@ -3957,3 +3957,15 @@ mutation receipts and evidence limits are recorded in
 `docs/specs/2026-10-01-solid-door-verification.md`. The owner approved the visuals
 and authorized delivery on 2026-10-01. This is a door presentation pass,
 not a full household activity playthrough or a deployment claim.
+
+## [A-seated-selection-shower-repair] Seating, floor markers, and shower motion, 2026-10-15
+
+The displayed game was exercised with every supported seat model and facing, dining settings, shared sofa places, seated media use, and correspondence. An initial fit matched its source pose but buried short legs in cushions. Fitting pelvis support, grounded feet, and calf clearance together corrects that defect. The specifically accepted minor body contact remains within the reviewed limits.
+
+The selected housemate now has a smooth blue floor ellipse. Actual scene-depth comparisons reject markers painted over people, furniture, shower trays, or blankets. Source geometry supplies kitchen-wall registration, and the same translation follows contacting characters, contents, and overlays. Correspondence now reports its occupied chair separately from its desk target.
+
+Showering uses a longer sampled duration, visible washing movement, and translucent chest and pelvis vapor. Fresh review rejected clothing-like and nearly absent vapor before accepting the repaired images and native playback. Opaque rear panels correctly hide the body.
+
+Moving gameplay exposed repeated head-envelope work that steady images concealed. Prepared numeric scans and exact matrix-dependency caching preserve the measured head geometry while reducing that work. Initial configuration pauses and occasional slow frames remain reported, rather than being omitted from the performance record.
+
+The screenshots, source bindings, executed checks, review coverage, and desktop measurements are in [the dated repair evidence](evidence/2026-10-15-seating-selection-shower/report.md). This focused repair pass does not claim exhaustive inspection of every animation pixel or performance on phones.

@@ -1,0 +1,44 @@
+{
+  "verdict": "ACCEPT_OBSERVED_SCOPE",
+  "reviewType": "Fresh independent final displayed-game sanity review",
+  "newActionableDefects": [],
+  "resourceDiagnostics": "The two visual contexts logged four generic resource 404 console messages without URL metadata. A third isolated startup, saved-seat load and creator-open probe reproduced only favicon.ico 404, recorded with its URL in resource-diagnostics.json. No pageerror or graphics validation diagnostic occurred. The original four messages cannot each be attributed from their retained metadata.",
+  "inspectedExistingImages": [
+    {"file": "../local-delivery/final/loading-before-scripts.png", "finding": "Centered loading label and progress description are legible; no exposed unfinished scene."},
+    {"file": "../local-delivery/final/creator-reading.png", "finding": "Body controls, numeric fields, buttons, large reading preview and game-size preview have clear spacing. Chair supports the seated body; lower legs and shoes are visible."},
+    {"file": "../local-delivery/final/game-after-creation.png", "finding": "Whole lot is readable. New actor and floor ring are visible outside the lot; ring does not paint over the actor. No obvious kitchen wall overhang at this scale."},
+    {"file": "../performance/head-flat-moving/six-characters-preview.png", "finding": "Six-person lot and enlarged reading preview remain readable. Activity bubbles clear the visible heads. Preview chair contact and lower legs are coherent. This still does not establish a frame-time result."}
+  ],
+  "inspectedLiveImages": [
+    {"files": ["extra-sofa-sit-0-active.png", "extra-sofa-sit-0-motion-4.png", "extra-sofa-sit-0-exit.png"], "finding": "Short broad actor sits at the sofa cushion with visible knees, lower legs and shoes. Second actor shares the sofa during motion; neither torso is cut by the sofa shell. Both stand clear after the activity. Activity bubbles clear the heads."},
+    {"files": ["extra-armchair-read-1-active.png", "extra-armchair-read-1-motion-4.png", "extra-armchair-read-1-exit.png"], "finding": "Tall narrow actor reads behind the rear-facing chair shell, then exits into standing reading. Rear chair shell naturally occludes lower body from this view; no torso cutting or displaced head is apparent. Book and bubble remain readable."},
+    {"files": ["creator-walking.png", "creator-reading.png", "creator-reading-turn.png", "creator-cancelled.png"], "finding": "Creator body fields and preview controls remain readable. Reading body contact is supported in front-left and front-right views; lower legs and shoes are visible. Cancel closes the creator. These first preview captures were paused; active preview motion was checked separately."},
+    {"files": ["selected-motion/extra-sofa-sit-0-selected.png", "selected-motion/extra-armchair-read-0-selected.png"], "finding": "Actual seated actor selection is confirmed by zero-based sim ID in selected-motion/live.json. Floor ellipse lies below shoes and is occluded by opaque seat geometry; no blue paint over body or chair is visible. Front-facing reading chair preserves visible lower legs."},
+    {"files": ["selected-motion/creator-walk-moving-1.png", "selected-motion/creator-walk-moving-2.png", "selected-motion/creator-read-moving-1.png", "selected-motion/creator-read-moving-2.png", "selected-motion/creator-cancelled.png"], "finding": "Creator animation remains running, confirmed by Pause control and different walking phases. Head, limbs, clothes, book, chair contact, and control spacing remain readable. Reading preview shows visible lower legs and shoes. Cancel returns to the paused game."}
+  ],
+  "liveCoverage": {
+    "url": "http://127.0.0.1:5200/?stress=0",
+    "viewport": [1600, 1100],
+    "seatCameraScale": 2,
+    "nativeActivitySequences": ["extra-sofa-sit-0", "extra-armchair-read-1"],
+    "nativeTiming": "UI 1x; loaded authentic active save, observed native activity and automatic exit without manually advancing ticks.",
+    "additionalSelectedStates": ["extra-sofa-sit-0", "extra-armchair-read-0"],
+    "creator": "Walking, Reading, Turn, Cancel; second pass left initially running preview running.",
+    "buildScriptsReceipt": "selected-motion/live.json",
+    "nativeStateAndCameraReceipt": "live.json"
+  },
+  "limits": [
+    "Focused final sanity pass does not repeat the prior full seat/facing/body matrix or eight shower cycles.",
+    "No new shower wash or steam playback was reviewed in this pass; the six-person still only provides a small scene-context sample.",
+    "Native activities were reviewed from displayed live execution with personally inspected sampled screenshots. Retained stills only prove their captured phases.",
+    "No fresh defective-state mutation or blind comparator was run; earlier independent defect rejection remains separate evidence.",
+    "No claim about head-envelope byte equivalence or frame-time budget follows from this visual review.",
+    "Responsive coverage here is desktop 1600 by 1100 and the supplied 1240 by 900 creator capture; narrow layouts were not repeated."
+  ],
+  "harnessCorrections": [
+    "Persistent Node tool setup lacked require and process; stopped after two setup errors and used standalone existing common.cjs.",
+    "First roster lookup used sim ID minus one; corrected selected-actor coverage in selected-motion pass using zero-based sim ID.",
+    "First creator control click paused an initially running preview; second pass left preview running and captured separate phases."
+  ],
+  "cleanup": {"bothVisualContextsClosed": true, "bothVisualBrowsersClosed": true, "diagnosticContextAndBrowserClosed": true, "owner5190Untouched": true, "review5200ServerUntouched": true, "noVideoOrGif": true, "productionFilesEdited": false}
+}

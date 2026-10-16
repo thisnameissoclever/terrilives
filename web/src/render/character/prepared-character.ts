@@ -10,6 +10,7 @@ import type {CharacterBodyVariant} from './body-variants.js';
 import type {BikeContactArtifactV1} from './bike-contact-types.js';
 import type {CharacterPreparation} from './character-preparation-service.js';
 import type {PreparedSleepingCover} from './prepared-sleeping-cover.js';
+import {bindSeatContacts} from './seat-contact-sample.js';
 
 type Placement=Parameters<CharacterRenderer['prepareScene']>[4];
 type SceneOptions=Parameters<CharacterRenderer['prepareScene']>[5];
@@ -55,8 +56,9 @@ export class PreparedCharacter {
     mesh.bikeContact=contact;mesh.lastPoseKey='';mesh.lastMatrices=null;
   }
   setContacts(contact:CharacterPreparation|undefined):void {
-    this.setBikeContact(contact?.bike);const mesh=this.renderer.resources;if(mesh.sleepContact===contact?.sleep)return;
-    mesh.sleepContact=contact?.sleep;mesh.lastPoseKey='';mesh.lastMatrices=null;
+    this.setBikeContact(contact?.bike);const mesh=this.renderer.resources;if(mesh.sleepContact===contact?.sleep&&mesh.seatContact===contact?.seat)return;
+    mesh.sleepContact=contact?.sleep;mesh.seatContact=contact?.seat;mesh.lastPoseKey='';mesh.lastMatrices=null;
+    bindSeatContacts(mesh.seatContact,this.geometry,mesh.shape,mesh.top);
   }
   select(rig:CharacterRig,appearance:CharacterAppearanceV1,context:AppearanceContext):void {
     if(this.closed)throw new Error('Prepared character is closed.');
@@ -64,10 +66,12 @@ export class PreparedCharacter {
     this.appearance=appearance;this.current=this.prepared.select(rig,appearance,context);
     if(this.current.variants.some(variant=>!this.views[0].variants.has(variant)))throw new Error('Character body variant was not prepared with this person.');
     const shapeKey=JSON.stringify([appearance.presentation,appearance.body,appearance.face]);
-    if(shapeKey!==this.shapeKey){this.metrics.bodyShapeChanges++;this.shapeKey=shapeKey;}
+    const changingShape=shapeKey!==this.shapeKey;
+    if(changingShape){this.metrics.bodyShapeChanges++;this.shapeKey=shapeKey;}
     this.renderer.setGeometry(this.current.body);
     this.replaceAttachment('extra',this.current.extra);
     for(const view of this.views)for(const renderer of renderers(view))renderer.setCharacterAppearance(appearance);
+    const mesh=this.renderer.resources;if(!changingShape)bindSeatContacts(mesh.seatContact,this.geometry,mesh.shape,mesh.top);
   }
   setCover(cover:Geometry|null):void {this.replaceAttachment('cover',cover);}
   setCoverResource(cover:PreparedSleepingCover|null):void {

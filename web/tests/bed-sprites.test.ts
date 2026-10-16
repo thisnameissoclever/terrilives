@@ -8,6 +8,7 @@ import { InteractionSelection } from '../src/render/interaction-sprites.js';
 import { buildInstanceBatch, simShirtVariant } from '../src/frame.js';
 import { pickSprite } from '../src/input.js';
 import { FLOATS_PER_INSTANCE } from '../src/render/instances.js';
+import {FLOOR_DEPTH,screenX,screenY} from '../src/render/iso.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.js';
 import { spriteWidth, spriteHeight } from '../src/render/sprite-size.js';
 
@@ -144,6 +145,7 @@ describe('covered double-bed scenes and owner coverage', () => {
 
   it('draws one scene and retains distinct bubbles and visible owner rings', () => {
     const rows = source();
+    rows.positions().set([-.3,.4,0,0,-1,.2]);
     const selection = new InteractionSelection({}, simShirtVariant, BED_CATALOG);
     const batch = buildInstanceBatch(rows, 1, 200, 180, 32, 13, 1, false, 0, null, selection);
     const data = batch.instances;
@@ -151,9 +153,10 @@ describe('covered double-bed scenes and owner coverage', () => {
     expect(data[2 * FLOATS_PER_INSTANCE]).toBe(-1e6);
     expect(data[3 * FLOATS_PER_INSTANCE]).not.toBe(data[4 * FLOATS_PER_INSTANCE]);
     const ring = (batch.count - 1) * FLOATS_PER_INSTANCE;
-    const marker = selection.bedScenes[2]!.owners[1]!.marker;
-    expect(data[ring + 1]).toBeCloseTo(180 + marker[1] + 21, 4);
-    expect(data[ring + 2]).toBeLessThan(data[2]);
+    expect(data[ring]).toBeCloseTo(screenX(-1,.2,200),4);
+    expect(data[ring + 1]).toBeCloseTo(screenY(-1,.2,180),4);
+    expect(data[ring + 2]).toBeGreaterThan(data[2]);
+    expect(data[ring + 2]).toBeLessThan(FLOOR_DEPTH);
     const first = Array.from(data.slice(ring, ring + 3));
     const other = buildInstanceBatch(rows, 1, 200, 180, 32, 91, 1, false, 0, null, selection);
     expect(Array.from(other.instances.slice(ring, ring + 2))).not.toEqual(first.slice(0, 2));

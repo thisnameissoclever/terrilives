@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "producerSha256": "8d9576f3981241732bc03678c88805c0e90b517ad90bf178c4589c78d16c0b24",
+  "coordinateSystem": "unrotated Blender fixture-local XYZ",
+  "fixtures": [
+    {
+      "sprite": "offlineFridge",
+      "source": "assets/models/kitchen/owner-review-pending/refrigerator/candidate-03/refrigerator-authoring.blend",
+      "sourceSha256": "4bed8dfb3fb968725c99c8345ac5e17a4c75b45b5e487d867655ed17163a7b82",
+      "minimum": [
+        -0.4560000002384186,
+        -0.61080002784729,
+        0.0
+      ],
+      "maximum": [
+        0.4560000002384186,
+        0.4764000177383423,
+        1.9440001249313354
+      ]
+    },
+    {
+      "sprite": "offlineStove",
+      "source": "assets/models/kitchen/owner-review-pending/stove/candidate-02/stove-authoring.blend",
+      "sourceSha256": "3dc8810212253cdcabf68e02a92bbf89c313bfcce52b6f1ac47fa66ca779e7ac",
+      "minimum": [
+        -0.5,
+        -0.5720000267028809,
+        0.0
+      ],
+      "maximum": [
+        0.5,
+        0.5,
+        1.0145000219345093
+      ]
+    },
+    {
+      "sprite": "offlineCounter",
+      "source": "assets/models/kitchen/owner-review-pending/counter/candidate-01/counter-authoring.blend",
+      "sourceSha256": "29e7a67c5d8b855b4b61eb956c3564dd5d2fd8e0e13c5d62d109c53eadfbccde",
+      "minimum": [
+        -0.5,
+        -0.5320000052452087,
+        0.0
+      ],
+      "maximum": [
+        0.5,
+        0.5,
+        0.8600000143051147
+      ]
+    },
+    {
+      "sprite": "offlineSink",
+      "source": "assets/models/kitchen/owner-review-pending/kitchen-sink/candidate-01/sink-authoring.blend",
+      "sourceSha256": "daa3cae408a52088bdc8576fc6688a3283ec1810f2d3025c0491fe30f29e1528",
+      "minimum": [
+        -0.5,
+        -0.5320000052452087,
+        0.0
+      ],
+      "maximum": [
+        0.5,
+        0.5,
+        0.9619200229644775
+      ]
+    }
+  ]
+}

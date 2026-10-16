@@ -1,0 +1,70 @@
+{
+  "status": "ACCEPT_SHOWN_PHASES",
+  "reviewedImages": [
+    {
+      "file": "correspondence-final/letters-0-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-0-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-0-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-1-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-1-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-1-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-2-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-2-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-2-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-3-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-3-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    },
+    {
+      "file": "correspondence-final/letters-3-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor visibly seated on the office chair beside the desk. Chair back and desk naturally occlude rear/lower body without severe obstruction or displacement. Upper body and outlines remain intact. Blue floor ellipse remains behind opaque actor, chair and desk. Desk and caster base remain grounded."
+    }
+  ],
+  "limits": [
+    "Read-only review of 12 current correspondence images; no browser opened.",
+    "This replaces only missing correspondence visual coverage. Earlier activity-context report FAIL remains preserved.",
+    "Static poses establish seated placement in these phases, not continuous writing animation, entry/exit or complete correspondence behavior."
+  ]
+}

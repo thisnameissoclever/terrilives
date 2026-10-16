@@ -83,6 +83,15 @@ fn washing_hands_stops_at_partial_hygiene_without_charging_comfort() {
         let mut sim = crate::Sim::new_with_lot(8, 8);
         let pack = sim.world().resource::<Content>().0;
         let definition = pack.find(kind).unwrap();
+        let action = &pack.object(definition).interactions[0];
+        let hygiene_delta = action
+            .advertises
+            .iter()
+            .find(|(need, delta)| *need == NeedId::Hygiene as u8 && *delta > 0.)
+            .expect("washing advertises positive hygiene")
+            .1;
+        let saturation_ticks =
+            (100. * action.duration_ticks as f32 / hygiene_delta).ceil() as u32 + 1;
         let object = sim.spawn_object(terri_core::Position { x: 2., y: 2. }, definition);
         let mut needs = Needs::all_at(50.);
         needs.set(NeedId::Hygiene, initial);
@@ -99,13 +108,13 @@ fn washing_hands_stops_at_partial_hygiene_without_charging_comfort() {
                 Eating {
                     object: definition,
                     interaction: 0,
-                    remaining_ticks: 1000,
+                    remaining_ticks: saturation_ticks + 1,
                 },
             ))
             .id();
         let mut schedule = Schedule::default();
         schedule.add_systems(tick_interactions);
-        for _ in 0..100 {
+        for _ in 0..saturation_ticks {
             schedule.run(sim.world_mut());
         }
         let needs = sim.world().get::<Needs>(person).unwrap();

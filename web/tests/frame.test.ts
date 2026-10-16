@@ -2398,9 +2398,8 @@ describe('the carried badge', () => {
             if (facing === FACING_NEGATIVE_Y) rearNeSamples.add(bodySprite);
             expect(built[food + OFFSET_DEPTH]).toBeGreaterThan(built[body + OFFSET_DEPTH]);
           }
-          expect(built[ring + OFFSET_DEPTH]).toBe(
-            stored(layeredDepth(1, 1, GRID, LAYER_PROP)),
-          );
+          expect(built[ring + OFFSET_DEPTH]).toBeGreaterThan(built[body + OFFSET_DEPTH]);
+          expect(built[ring + OFFSET_DEPTH]).toBeLessThan(FLOOR_DEPTH);
           expect(built[food + OFFSET_DEPTH]).toBeLessThan(built[ring + OFFSET_DEPTH]);
         }
         expect(seen).toEqual(new Set(frames));

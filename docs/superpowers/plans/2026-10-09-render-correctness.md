@@ -81,10 +81,10 @@ Sim at the fridge's depth (known limit from PR 235).
 
 ## Remaining animation scope from the 2026-10-06 handoff
 
-Owner decisions of 2026-10-07: the long sofa's Lie down needs a fitted
-lying pose (never an upright seated substitute); the shower uses thin
-translucent falling water in front of the body with the bath's skin
-appearance and no steam (render code 20 is reserved for it). Both should
-start after Tasks 1 and 3 so they ship with per-pixel depth and pass the
-gate. Recovery material for the earlier shower attempts is at commit
+The long sofa's Lie down needs a fitted lying pose, never an upright seated
+substitute. Showering uses the bath's skin appearance, visible washing
+movements, and localized translucent steam around the chest and pelvis.
+The owner's updated shower request requires a longer activity and moving
+vapor; render code 20 identifies showering. Both activities must use physical
+depth and pass actual gameplay review. Recovery material for the earlier shower attempts is at commit
 ba38c907 under `docs/handoffs/animation-resume/`.

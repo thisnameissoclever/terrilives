@@ -18,6 +18,7 @@ from inspect_clips import SOURCES, matrix
 sys.path.insert(0,str(BASE.parent/'appearance-proof'))
 import export_bundle as mesh_exporter
 import contact_metadata
+from source_adapters import SHOWER_SAMPLES
 from author_surface_policy import annotate, policy_sha256
 
 def export_parts(family, props, rig, bones, used):
@@ -78,7 +79,7 @@ CLIPS={
     'bed':[('bed_sleep',None,1,'static')],
     'bunk':[('bunk_sleep',None,1,'static')],
     'books':[('book_idle',None,4,'loop'),('book_walk',None,8,'loop'),('owned_stand_read',None,4,'loop')],
-    'shower':[('shower',None,4,'loop')],
+    'shower':[('shower',None,SHOWER_SAMPLES,'loop')],
 }
 for seat_kind in ['armchair','reading','dining','office','ottoman','sofa']:
     CLIPS['seat_'+seat_kind]=[('seat_'+seat_kind+'_'+action,None,4,'static' if action=='read' or seat_kind=='sofa' else 'loop') for action in ['sit','read']]

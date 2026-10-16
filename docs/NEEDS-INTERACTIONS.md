@@ -37,7 +37,7 @@ only during active eating or shared use.
 | Collect and eat a prepared shared meal | 25 collecting and 90 eating minutes, plus travel | Same meal rewards and contextual costs as dinner | The portion supplies the same food benefit, whether the diner cooked it or collected it. |
 | Bunk bed: sleep | 180 minutes | Energy +100, Comfort +5 | Sleep restores Energy. A bunk is a real resting place, with half the double bed's nominal Comfort. |
 | Double bed: sleep | 210 minutes | Energy +108, Comfort +10 | A longer sleep and a more comfortable bed provide greater total relief. |
-| Shower | 45 minutes | Hygiene +70, Energy -12 | Whole-body washing restores cleanliness. Standing and washing require effort. |
+| Shower | 90 minutes | Hygiene +70, Energy -12 | Whole-body washing restores cleanliness. Standing and washing require effort. |
 | Bathtub: soak | 78 minutes | Hygiene +58, Comfort +31, Energy -3 | Bathing washes the body; a seated soak relaxes it with less effort than a shower. |
 | Toilet | 24 minutes | Bladder +95 | Toilet use directly relieves Bladder. It does not wash hands automatically. |
 | Bathroom sink: wash hands | 21 minutes | Hygiene +32, capped at 40; no Comfort cost | Washing hands is useful partial cleaning. It cannot substitute for bathing. |
