@@ -2830,6 +2830,7 @@ impl Sim {
                         | render_buffer::activity::EATING
                         | render_buffer::activity::WATCHING_TV
                         | render_buffer::activity::LISTENING_RADIO
+                        | render_buffer::activity::CORRESPONDENCE
                         | render_buffer::activity::LOUNGING
                 );
             let physical = seated

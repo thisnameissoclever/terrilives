@@ -12006,3 +12006,38 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: evidence preservation was treated as permission to commit every capture output. A recording was retained even when reviewers had inspected sampled screenshots instead.
 3. Prevention: never commit or upload review videos, including videos embedded in trace archives or converted into animated GIF loops. Disable recording in routine capture scripts. Retain selected screenshots, measurements, reproduction settings, and written findings; keep temporary recordings in ignored local scratch storage.
 4. Verification: inspect the complete candidate tree and archive contents before publication. Require no review video files, no broken recording links, and no claim that retaining a recording establishes continuous visual review. Use a squash merge so rejected artifact commits do not enter main history.
+
+## [L-activity-surface-support] Verify finite support and floor indicators during actual activities
+
+1. What happened: a seated pose matched its authored source yet perched at a cushion's edge. Selection markers followed raised ankle height and used object depth, so they painted over people, shower trays, and bed covers. Kitchen artwork also crossed the wall's physical room face.
+2. Root cause: source alignment and a single contact landmark were treated as proof of supported body placement. Marker placement reused pose height without a floor contract. Fixture checks did not include the thickness of neighboring walls.
+3. Prevention: jointly fit a connected underside contact patch, reachable grounded feet, and leg clearance against actual furniture geometry. Complete garment containment can bury short legs inside a seat; projected overlap alone does not establish contact. Prepare expensive fits before drawing. Keep stable seat identifiers consistent with visible cushions. Project floor indicators onto the floor and resolve their visibility against opaque scene depth without changing identity. Use the same physical fixture registration for artwork, depth, contents, and contacting characters.
+4. Verification: reject the known defective captures before reviewing repairs. Inspect every supported seat and animation in all four facings, including shared sofa places, body extremes, and table reach. Compare actual GPU samples with selection on and off to detect color changes on opaque people or objects. Include wall-adjacent fixtures and raised sleeping and shower poses in actual gameplay review.
+
+## [L-duration-test-contracts] Assert timing contracts rather than incidental household schedules
+
+1. What happened: increasing an activity's duration left a need-delivery test short of saturation and changed the snack at which a seeded household reached a sickness threshold.
+2. Root cause: one test used a fixed wait instead of the resolved delivery rate. Another treated a whole-world random sequence as invariant while changing the timing of a participating activity.
+3. Prevention: derive delivery waits from the authored duration and advertised benefit. Predict threshold crossings from independently measured durations and the specified recurrence. Keep explicit design requirements, and do not replace one incidental count with another or alter random-number consumption to preserve a fixture.
+4. Verification: compare otherwise identical content with only the intended duration changed. Retain exact threshold, benefit, side-effect, save-continuation, and deterministic-replay assertions. Attribute a particular background actor's random draw only when that draw was instrumented.
+
+## [L-translucent-volume-appearance] Measure vapor separately from its background
+
+1. What happened: mathematically valid translucent vapor looked like pale clothing. Bright panels hid its outer shape while darker skin made its uniform whitening conspicuous.
+2. Root cause: broad smooth density and constant bright scattering did not produce a recognizable cloud. Passing depth and ownership checks did not establish the requested appearance.
+3. Prevention: inspect the effect over the actual scene, with the effect disabled, and in isolation while retaining physical depth. Reconstruct actual uploaded inputs before changing projection math. Design density structure, movement, and shading for ordinary display size and contrasting backgrounds.
+4. Verification: compare measured sample opacity with an independent calculation, and compare integration quality after display reduction. Reject known clothing-like and nearly invisible results in blinded review. Inspect every facing, supported body extremes, nighttime lighting, and live movement separately from depth and picking invariants.
+
+## [L-seated-render-ownership] Report the visible seat for every seated activity
+
+1. What happened: correspondence displayed a seated pose while the shared render columns reported no occupied chair.
+2. Root cause: a duplicated activity whitelist omitted correspondence, although its physical claim and ordinary action path already supported seating. A check that required the correct shared metadata exposed the omission.
+3. Prevention: keep visible seat ownership consistent with the winning seated pose and validated physical claim. Preserve the device as the gameplay target; chair ownership is separate. Do not relax a capture predicate when it exposes an inconsistent runtime contract.
+4. Verification: assert the chair, place, and whole-seat columns for seated correspondence, and no chair for its standing fallback. Verify the rebuilt game in all four facings.
+
+## [L-head-envelope-dependencies] Cache geometry from the values that actually move it
+
+1. What happened: activity bubbles repeatedly transformed and scanned the entire prepared head inventory when unrelated limbs moved. A steady scene passed its rendering budget while the moving workload exceeded it.
+2. Root cause: the envelope cache compared the identity of a newly allocated pose array rather than the matrix values used by the head. Steady captures concealed the cost.
+3. Prevention: collect all position, normal, and visibility dependencies during configuration, then compare their exact values against a retained snapshot. Preserve signed zero, detect in-place edits, and invalidate configured geometry and visible-part selections. Keep the original envelope arithmetic and vertex order.
+4. Verification: compare complete posed-point bytes and projected tops with the frozen reference across supported heads and exported animations. Make unrelated-limb reuse fail against the old implementation. Measure actual moving gameplay alongside animated previews, including slow frames and initial configuration costs.

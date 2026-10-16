@@ -538,6 +538,7 @@ fn shipped_migration_scopes_retirement_balance_and_seating_changes() {
                     _ => (),
                 }
                 match actual.id.as_str() {
+                    "shower" => intended.duration_ticks = 90,
                     "sink" => intended.advertises = vec![(2, 22.0)],
                     "moving_box" => {
                         intended

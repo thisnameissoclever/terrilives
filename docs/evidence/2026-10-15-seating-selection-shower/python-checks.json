@@ -1,0 +1,66 @@
+[
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/kitchen",
+      "-p",
+      "test_*.py"
+    ],
+    "exitCode": 0,
+    "seconds": 0.4821671999525279,
+    "output": "PASS: four hashed, padded source views; review sheet uses only resampling and layout.\nPASS: four hashed, padded source views; review sheet uses only resampling and layout.\n...............\n----------------------------------------------------------------------\nRan 15 tests in 0.278s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/kitchen/actions",
+      "-p",
+      "test_*.py"
+    ],
+    "exitCode": 0,
+    "seconds": 20.902121699997224,
+    "output": ".......................\n----------------------------------------------------------------------\nRan 23 tests in 20.547s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bathroom",
+      "-p",
+      "test_*.py"
+    ],
+    "exitCode": 0,
+    "seconds": 0.1415417999960482,
+    "output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.006s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bathroom/actions",
+      "-p",
+      "test_*.py"
+    ],
+    "exitCode": 0,
+    "seconds": 14.116489300038666,
+    "output": "..............................................D:\\VIBES\\.worktrees\\5637\\terrilives\\assets\\models\\bedroom\\double_bed_linear.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for parts in zip(*(image.getdata() for image in layers)):\nD:\\VIBES\\.worktrees\\5637\\terrilives\\assets\\models\\seating\\seat_export_contract.py:157: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for red, green, blue, coverage in zip(*(band.getdata() for band in filtered)):\nD:\\VIBES\\.worktrees\\5637\\terrilives\\assets\\models\\bedroom\\double_bed_layers.py:29: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for expected, result, *parts in zip(reference.getdata(), actual.getdata(),\nD:\\VIBES\\.worktrees\\5637\\terrilives\\assets\\models\\bedroom\\double_bed_layers.py:30: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  *(owner.getdata() for owner in owners)):\n..................................................................................\n----------------------------------------------------------------------\nRan 128 tests in 13.626s\n\nOK\n"
+  }
+]

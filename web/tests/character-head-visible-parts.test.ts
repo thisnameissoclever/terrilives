@@ -121,3 +121,31 @@ it('uses selected region metadata and still respects hidden bone flags',()=>{
   envelope.setVisibleParts([b,a]);expect(envelope.top(0)).toStrictEqual(originalFor(geometry,[b,a],pose,8).top(0));
   const hidden=pose.slice();hidden[15]=-1;envelope.pose(hidden);expect(()=>envelope.top(0)).toThrow('no visible head');
 });
+
+it('reuses exact head results when only unrelated limb matrices change',()=>{
+  const geometry=fixture([[0,0,1],[-1,0,0],[0,-1,0]],[0,1,2],[part('Sculpted head',0)]);
+  const envelope=new HeadEnvelope(geometry),pose=matrices();envelope.pose(pose);const first=envelope.top(0);
+  const limbs=pose.slice();limbs[16+12]=4;envelope.pose(limbs);
+  expect(envelope.top(0)).toBe(first);
+  limbs[14]+=1;envelope.pose(limbs);
+  expect(envelope.top(0)[2]).toBe(first[2]+1);
+});
+
+it('invalidates head results for visibility, direct-normal dependencies, and signed zero',()=>{
+  const geometry=fixture([[0,0,1],[-1,0,0],[0,-1,0]],[0,1,2],[part('Sculpted head',0)]);
+  for(let i=0;i<3;i++){geometry.vertices[i*16+6]=1;geometry.cage[i*16+7]=1;}
+  const envelope=new HeadEnvelope(geometry),pose=matrices();envelope.pose(pose);const first=envelope.top(0);
+  const normalOnly=pose.slice();normalOnly[16+1]=.25;envelope.pose(normalOnly);const second=envelope.top(0);
+  expect(second).toEqual(first);expect(second).not.toBe(first);
+  const negativeZero=normalOnly.slice();negativeZero[1]=-0;envelope.pose(negativeZero);const third=envelope.top(0);
+  expect(third).toEqual(second);expect(third).not.toBe(second);
+  negativeZero[16+15]=-1;envelope.pose(negativeZero);
+  expect(()=>envelope.top(0)).toThrow('no visible head');
+});
+
+it('invalidates prepared head dependencies when the configured surface changes',()=>{
+  const geometry=fixture([[0,0,1],[-1,0,0],[0,-1,0]],[0,1,2],[part('Sculpted head',0)]);
+  const envelope=new HeadEnvelope(geometry),pose=matrices();envelope.pose(pose);const first=envelope.top(0);
+  const cage=geometry.cage.slice();for(let i=0;i<3;i++)cage[i*16+2]+=2;
+  envelope.configure(cage);envelope.pose(pose);expect(envelope.top(0)[2]).toBe(first[2]+2);
+});

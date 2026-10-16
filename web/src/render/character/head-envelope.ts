@@ -7,7 +7,14 @@ const projectionLength=Math.hypot(21,21,vertical);
 interface Contribution {bone:number;x:number;y:number;z:number;weight:number}
 interface HeadVertexView {index:number;outline:boolean;region:number}
 interface HeadVertex extends HeadVertexView {contributions:Contribution[]}
-interface HeadSelection {vertices:readonly HeadVertexView[];indices:ReadonlySet<number>;normalTriangles:ReadonlyMap<number,readonly number[]>}
+interface HeadScan {indices:Uint32Array;positions:Uint32Array;visibility:Uint32Array;regions:Uint8Array;outlines:Uint8Array}
+interface HeadSelection {vertices:readonly HeadVertexView[];scan:HeadScan;indices:ReadonlySet<number>;normalTriangles:ReadonlyMap<number,readonly number[]>}
+
+function headScan(vertices:readonly HeadVertexView[],geometry:Geometry):HeadScan {
+  return {indices:Uint32Array.from(vertices,v=>v.index),positions:Uint32Array.from(vertices,v=>v.index*3),
+    visibility:Uint32Array.from(vertices,v=>geometry.vertices[v.index*16+6]*16+15),
+    regions:Uint8Array.from(vertices,v=>v.region),outlines:Uint8Array.from(vertices,v=>Number(v.outline))};
+}
 
 export function projectedHeadHeight(point:Vec3,facing:number):number {
   const c=Math.cos(facing),s=Math.sin(facing),x=c*point[0]-s*point[1],y=s*point[0]+c*point[1];
@@ -18,8 +25,15 @@ export function projectedHeadHeight(point:Vec3,facing:number):number {
 export class HeadEnvelope {
   private readonly vertices:HeadVertex[]=[];
   private readonly points:Float64Array;
+  private readonly scan:HeadScan;
+  private contributionRanges=new Uint32Array(0);
+  private contributionBones=new Uint32Array(0);
+  private contributionValues=new Float64Array(0);
   private cage:Float32Array<ArrayBuffer>;
   private matrices:Float32Array<ArrayBuffer>|null=null;
+  private poseDependencies=new Uint32Array(0);
+  private dependencyValues=new Float32Array(0);
+  private hasPose=false;
   private readonly cache=new Map<number,Vec3>();
   private readonly selections=new WeakMap<readonly MeshPart[],HeadSelection>();
   private visibleParts:readonly MeshPart[]|undefined;
@@ -33,6 +47,7 @@ export class HeadEnvelope {
       selected.set(index,{index,outline:authoredOutline(part.name),region:part.region,contributions:[]});
     }
     this.vertices=[...selected.values()];this.points=new Float64Array(geometry.description.vertexCount*3);
+    this.scan=headScan(this.vertices,geometry);
     this.cage=geometry.cage;this.configure(this.cage);
   }
 
@@ -53,7 +68,8 @@ export class HeadEnvelope {
           let rows=normalTriangles.get(index);if(!rows){rows=[];normalTriangles.set(index,rows);}
           rows.push(part.start+Math.floor((at-part.start)/3)*3);
         }
-        selection={vertices:[...selected.values()],indices:new Set(selected.keys()),normalTriangles};
+        const vertices=[...selected.values()];
+        selection={vertices,scan:headScan(vertices,this.geometry),indices:new Set(selected.keys()),normalTriangles};
         this.selections.set(parts,selection);
       }
     }
@@ -61,8 +77,9 @@ export class HeadEnvelope {
   }
 
   configure(cage:Float32Array<ArrayBuffer>,hairRegion:number|null=null):void {
-    this.cage=cage;this.hairRegion=hairRegion;this.matrices=null;this.cache.clear();
+    this.cage=cage;this.hairRegion=hairRegion;this.matrices=null;this.hasPose=false;this.cache.clear();
     const ids=new Uint32Array(this.geometry.stencilWeights),weights=new Float32Array(this.geometry.stencilWeights);
+    const bones=new Set<number>();
     for(const vertex of this.vertices){
       const contributions=new Map<number,Contribution>(),offset=vertex.index*4;
       const start=this.geometry.stencilRanges[offset],count=this.geometry.stencilRanges[offset+1];
@@ -76,16 +93,45 @@ export class HeadEnvelope {
         }
       }
       vertex.contributions=[...contributions.values()];
+      for(const contribution of vertex.contributions)bones.add(contribution.bone);
+      bones.add(this.geometry.vertices[vertex.index*16+6]);
+      if(this.geometry.stencilRanges[vertex.index*4+3]===1){
+        const base=this.geometry.stencilRanges[vertex.index*4+2]*16;
+        for(let j=0;j<4;j++)bones.add(cage[base+6+j]);
+      }
     }
+    this.poseDependencies=Uint32Array.from([...bones].flatMap(bone=>Array.from({length:16},(_,axis)=>bone*16+axis)));
+    this.dependencyValues=new Float32Array(this.poseDependencies.length);
+    let count=0;for(const vertex of this.vertices)count+=vertex.contributions.length;
+    this.contributionRanges=new Uint32Array(this.vertices.length+1);
+    this.contributionBones=new Uint32Array(count);this.contributionValues=new Float64Array(count*4);
+    let at=0;
+    for(let i=0;i<this.vertices.length;i++){
+      this.contributionRanges[i]=at;
+      for(const contribution of this.vertices[i].contributions){
+        this.contributionBones[at]=contribution.bone*16;
+        const v=at*4;this.contributionValues[v]=contribution.x;this.contributionValues[v+1]=contribution.y;
+        this.contributionValues[v+2]=contribution.z;this.contributionValues[v+3]=contribution.weight;at++;
+      }
+    }
+    this.contributionRanges[this.vertices.length]=at;
   }
 
   pose(matrices:Float32Array<ArrayBuffer>):void {
-    if(this.matrices===matrices)return;
-    this.matrices=matrices;this.cache.clear();
-    for(const vertex of this.vertices){
-      const at=vertex.index*3;let px=0,py=0,pz=0;
-      for(const contribution of vertex.contributions){
-        const b=contribution.bone*16,{x,y,z,weight}=contribution;
+    let changed=!this.hasPose;
+    for(let i=0;!changed&&i<this.poseDependencies.length;i++){
+      // Object.is preserves signed zero without allocating a per-frame buffer view.
+      if(!Object.is(this.dependencyValues[i],matrices[this.poseDependencies[i]]))changed=true;
+    }
+    this.matrices=matrices;
+    if(!changed)return;
+    for(let i=0;i<this.poseDependencies.length;i++)this.dependencyValues[i]=matrices[this.poseDependencies[i]];
+    this.hasPose=true;this.cache.clear();
+    const ranges=this.contributionRanges,bones=this.contributionBones,values=this.contributionValues,positions=this.scan.positions;
+    for(let i=0;i<positions.length;i++){
+      const at=positions[i];let px=0,py=0,pz=0;
+      for(let j=ranges[i];j<ranges[i+1];j++){
+        const b=bones[j],v=j*4,x=values[v],y=values[v+1],z=values[v+2],weight=values[v+3];
         px+=matrices[b]*x+matrices[b+4]*y+matrices[b+8]*z+matrices[b+12]*weight;
         py+=matrices[b+1]*x+matrices[b+5]*y+matrices[b+9]*z+matrices[b+13]*weight;
         pz+=matrices[b+2]*x+matrices[b+6]*y+matrices[b+10]*z+matrices[b+14]*weight;
@@ -127,25 +173,29 @@ export class HeadEnvelope {
   top(facing:number):Vec3 {
     const cached=this.cache.get(facing);if(cached)return cached;
     if(!this.matrices)throw new Error('Pose the character before reading the head envelope.');
-    const c=Math.cos(facing),s=Math.sin(facing),points=this.points;
-    const heightAt=(x:number,y:number,z:number)=>{
-      const rotatedX=c*x-s*y,rotatedY=s*x+c*y;
-      return -(rotatedX-rotatedY)*21+z*vertical;
-    };
+    const c=Math.cos(facing),s=Math.sin(facing),points=this.points,matrices=this.matrices;
     let highest=-Infinity,point:Vec3=[0,0,0];
-    const vertices=this.selection?.vertices??this.vertices;
-    const visible=(vertex:HeadVertexView)=>!(this.hairRegion!==null&&[8,9].includes(vertex.region)&&vertex.region!==this.hairRegion)
-      &&this.matrices![this.geometry.vertices[vertex.index*16+6]*16+15]>=0;
-    for(const vertex of vertices)if(visible(vertex)){
-      const at=vertex.index*3,x=points[at],y=points[at+1],z=points[at+2],height=heightAt(x,y,z);
+    const scan=this.selection?.scan??this.scan,hair=this.hairRegion;
+    for(let i=0;i<scan.indices.length;i++){
+      const region=scan.regions[i];
+      if(hair!==null&&(region===8||region===9)&&region!==hair)continue;
+      if(!(matrices[scan.visibility[i]]>=0))continue;
+      const at=scan.positions[i],x=points[at],y=points[at+1],z=points[at+2];
+      const rotatedX=c*x-s*y,rotatedY=s*x+c*y,height=-(rotatedX-rotatedY)*21+z*vertical;
       if(height>highest){highest=height;point=[x,y,z];}
     }
     const fillTop=highest;
-    for(const vertex of vertices)if(vertex.outline&&visible(vertex)){
-      const at=vertex.index*3,x=points[at],y=points[at+1],z=points[at+2];
-      if(heightAt(x,y,z)+outlineWidth*projectionLength<fillTop)continue;
-      const normal=this.normal(vertex.index),ex=x+normal[0]*outlineWidth,ey=y+normal[1]*outlineWidth,ez=z+normal[2]*outlineWidth;
-      const height=heightAt(ex,ey,ez);if(height>highest){highest=height;point=[ex,ey,ez];}
+    for(let i=0;i<scan.indices.length;i++){
+      const region=scan.regions[i];
+      if(!scan.outlines[i])continue;
+      if(hair!==null&&(region===8||region===9)&&region!==hair)continue;
+      if(!(matrices[scan.visibility[i]]>=0))continue;
+      const at=scan.positions[i],x=points[at],y=points[at+1],z=points[at+2];
+      const rotatedX=c*x-s*y,rotatedY=s*x+c*y;
+      if(-(rotatedX-rotatedY)*21+z*vertical+outlineWidth*projectionLength<fillTop)continue;
+      const normal=this.normal(scan.indices[i]),ex=x+normal[0]*outlineWidth,ey=y+normal[1]*outlineWidth,ez=z+normal[2]*outlineWidth;
+      const exRotated=c*ex-s*ey,eyRotated=s*ex+c*ey,height=-(exRotated-eyRotated)*21+ez*vertical;
+      if(height>highest){highest=height;point=[ex,ey,ez];}
     }
     if(!Number.isFinite(highest))throw new Error('Character has no visible head envelope.');
     const rotated:Vec3=[c*point[0]-s*point[1],s*point[0]+c*point[1],point[2]];

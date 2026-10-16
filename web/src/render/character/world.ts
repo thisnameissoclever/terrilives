@@ -18,6 +18,8 @@ import {WORLD_CHARACTER_FRAME} from './camera.js';
 import type {SceneHit} from '../scene-picks.js';
 import type {CharacterContactRoster} from './contact-admission.js';
 import type {CharacterAppearanceV1} from '../../character/schema.js';
+import {ShowerSteam} from './shower-steam.js';
+import {showerSteamEnvelopes,showerSteamCabin} from './steam-envelope.js';
 
 interface ActorResources {geometry:Geometry;renderer:PreparedCharacter;resourceId:number;appearance?:CharacterAppearanceV1}
 let nextResourceId=1;
@@ -36,12 +38,14 @@ export class CharacterWorld {
   private generation=0;
   private currentSource:SimBridge|null=null;
   private currentView:CharacterSceneView|null=null;
+  private readonly steam:ShowerSteam;
   private constructor(private readonly device:GPUDevice,private readonly format:GPUTextureFormat,
     private readonly geometries:ReadonlyMap<string,CharacterRig>,private readonly sceneTarget:()=>SceneTarget,private readonly contacts?:Pick<CharacterContactRoster,'require'>){
     this.plan=new CharacterScenePlan(action=>{
       const geometry=geometries.get(action);if(!geometry)throw new Error('Configured character clip is unavailable: '+action);
       return geometry.manifest.actions[action].length;
     },()=>{if(this.currentSource&&this.currentView)this.prepare(this.currentSource,this.currentView);});
+    this.steam=new ShowerSteam(device);
   }
   static async create(device:GPUDevice,format:GPUTextureFormat,sceneTarget:()=>SceneTarget,contacts?:Pick<CharacterContactRoster,'require'>):Promise<CharacterWorld>{
     const base=await loadCreatorGeometry(),baseRig=await loadCreatorRig('idle'),geometries=new Map<string,CharacterRig>();
@@ -51,8 +55,8 @@ export class CharacterWorld {
     return new CharacterWorld(device,format,geometries,sceneTarget,contacts);
   }
   private destroyActor(actor:ActorResources):void {actor.renderer.destroy();}
-  reset():void {this.generation++;for(const actor of this.actors.values())this.destroyActor(actor);this.actors.clear();for(const cover of this.covers.values())cover.destroy();this.covers.clear();this.fixtureRevision=-1;this.displayed.length=0;this.plan.reset();}
-  destroy():void {if(this.closed)return;this.closed=true;this.reset();}
+  reset():void {this.generation++;for(const actor of this.actors.values())this.destroyActor(actor);this.actors.clear();for(const cover of this.covers.values())cover.destroy();this.covers.clear();this.fixtureRevision=-1;this.displayed.length=0;this.plan.reset();this.steam.begin();}
+  destroy():void {if(this.closed)return;this.closed=true;this.reset();this.steam.destroy();}
   prepareFixtures(source:SimBridge):void {
     const revision=source.lotRevision();if(revision===this.fixtureRevision)return;
     const ids=Array.from(source.ids()),kinds=Array.from(source.kinds()),active=new Set<number>(),frame=WORLD_CHARACTER_FRAME;
@@ -91,7 +95,7 @@ export class CharacterWorld {
         requireSleepingCoverContribution(this.actors.get(other.entity)!.renderer.renderer.resources.sleepContact,action,other.offset[0]));
       cover.update(contributions);
     }
-    const active=new Set<number>();this.displayed.length=0;
+    const active=new Set<number>();this.displayed.length=0;this.steam.begin();
     const colourways=source.colourways(),shifts=source.colourwayShifts();
     for(const actor of this.plan.actors){
       active.add(actor.entity);const resources=this.actors.get(actor.entity)!,{renderer}=resources;
@@ -109,6 +113,13 @@ export class CharacterWorld {
          scale:view.scale,depth,step:depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),light},
         {offset:actor.offset,includeFixture:includeCover,fixtureToken:includeCover?actor.fixtureRow+1:0,fixtureColourway});
       const anchors=renderer.renderer.anchors(actor.angle,actor.offset);
+      if(actor.action.clip==='shower'){
+        const body=renderer.renderer,mesh=body.resources;
+        this.steam.add(showerSteamEnvelopes(body.geometry,mesh.deformed,body.poseMatrices,actor.angle,actor.offset),
+          screenX(actor.x,actor.y,view.originX,view.scale),screenY(actor.x,actor.y,view.originY,view.scale),view.scale,
+          depth,depth-layeredDepth(actor.x+1,actor.y,view.gridSize,LAYER_SIM),actor.action.sample/creatorClips.clips.shower.samples.length*Math.PI*2,light,
+          showerSteamCabin(body.geometry,body.poseMatrices),actor.angle);
+      }
       actor.head=[actor.x+anchors.head[0],actor.y-anchors.head[1],anchors.head[2]];actor.feet=[actor.x+anchors.feet[0],actor.y-anchors.feet[1],anchors.feet[2]];
       actor.hand=[actor.x+anchors.hand[0],actor.y-anchors.hand[1],anchors.hand[2]];
       this.displayed.push({actor,resources});
@@ -116,6 +127,7 @@ export class CharacterWorld {
     for(const [entity,resources] of this.actors)if(!active.has(entity)){this.destroyActor(resources);this.actors.delete(entity);}
   }
   draw=(pass:GPURenderPassEncoder):void=>{for(const {resources} of this.displayed)resources.renderer.drawScene(pass);};
+  drawEffects=(encoder:GPUCommandEncoder,target:SceneTarget):void=>{this.steam.draw(encoder,target);};
   async pick(x:number,y:number):Promise<CharacterHit|null|undefined>{
     const generation=this.generation,source=this.currentSource;
     if(this.closed||!source||!this.currentView)return undefined;
@@ -138,7 +150,7 @@ export class CharacterWorld {
     }
   }
   diagnostics(){
-    const geometries=new Set<object>();let bufferBytes=0,textureBytes=0;
+    const geometries=new Set<object>();let bufferBytes=this.steam.allocatedBufferBytes,textureBytes=0;
     for(const {resources} of this.displayed){bufferBytes+=resources.renderer.allocatedPrivateBufferBytes;textureBytes+=resources.renderer.renderer.allocatedTextureBytes;
       for(const resource of resources.renderer.sharedResourceAllocations)if(!geometries.has(resource.identity)){geometries.add(resource.identity);bufferBytes+=resource.bytes;}}
     for(const cover of this.covers.values()){

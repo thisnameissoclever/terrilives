@@ -1,0 +1,34 @@
+{
+  "seat": [
+    {
+      "mutation": "calf-solid-clearance",
+      "exitCode": 1,
+      "beforeSha256": "dd81586c59464d5e722e5d8f49d16d551930d44e8f5c1762f0d0f8e8ef72c034",
+      "restoredSha256": "dd81586c59464d5e722e5d8f49d16d551930d44e8f5c1762f0d0f8e8ef72c034"
+    },
+    {
+      "mutation": "pelvis-contact-area",
+      "exitCode": 1,
+      "beforeSha256": "dd81586c59464d5e722e5d8f49d16d551930d44e8f5c1762f0d0f8e8ef72c034",
+      "restoredSha256": "dd81586c59464d5e722e5d8f49d16d551930d44e8f5c1762f0d0f8e8ef72c034"
+    },
+    {
+      "mutation": "rigid-utensil-fit",
+      "exitCode": 1,
+      "beforeSha256": "8a862db4c512be8e2cf76192196bc5761b53d02751e30b5952f3922422f91e25",
+      "restoredSha256": "8a862db4c512be8e2cf76192196bc5761b53d02751e30b5952f3922422f91e25"
+    },
+    {
+      "mutation": "stable-sofa-place",
+      "exitCode": 1,
+      "beforeSha256": "d5906e344c11660100e32d332a0865ed0d288b8043e048117fc800089fdd4a15",
+      "restoredSha256": "d5906e344c11660100e32d332a0865ed0d288b8043e048117fc800089fdd4a15"
+    }
+  ],
+  "marker": {
+    "status": "PASS",
+    "changedBytes": 139341,
+    "restorationChangedBytes": 0,
+    "scope": "Same frame, shared explicit pipeline layout; disable depth test then restore; restored PNG exactly matches original."
+  }
+}

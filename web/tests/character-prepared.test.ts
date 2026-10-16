@@ -65,6 +65,15 @@ function recordingDevice(){
   return {device,buffers,writes,counts,lose:()=>lose({reason:'destroyed',message:'Test complete'} as GPUDeviceLostInfo)};
 }
 
+it('installs changed seated contacts even when the sleeping resource is unchanged',()=>{
+  const gpu=recordingDevice(),appearance=defaultAppearance(),rig={base,manifest:base.manifest,supplemental:null,family:''};
+  const actor=new PreparedCharacter(gpu.device,rig,appearance,{wear:'clothed',prop:'none',fixture:'none',eyes_closed:false,includeFixture:false,clip:'idle'},256,256);
+  const first={seat:{key:'first'}},second={seat:{key:'second'}};
+  actor.setContacts(first as Parameters<PreparedCharacter['setContacts']>[0]);const mesh=actor.renderer.resources;mesh.lastPoseKey='idle:0';mesh.lastMatrices=new Float32Array(17*16);
+  actor.setContacts(second as Parameters<PreparedCharacter['setContacts']>[0]);expect(mesh.seatContact).toBe(second.seat);expect(mesh.lastPoseKey).toBe('');expect(mesh.lastMatrices).toBeNull();
+  actor.destroy();
+});
+
 it('keeps body work out of first clip entry and shares pose across independent preview views',async()=>{
   const gpu=recordingDevice(),shape=vi.spyOn(shapes,'shapeVertices'),compact=vi.spyOn(variants,'compactGeometry');
   const appearance=defaultAppearance(),rig={base,manifest:base.manifest,supplemental:null,family:''};

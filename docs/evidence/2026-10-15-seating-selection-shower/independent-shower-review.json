@@ -1,0 +1,406 @@
+{
+  "url": "http://127.0.0.1:5200/?stress=0",
+  "sources": {
+    "web/src/render/character/shower-steam.ts": "ab6cc787acde477abfc4312f2a13b9fcc1b6e5bfcf57d1c934fa8bca1a7280c6",
+    "web/src/render/character/steam-envelope.ts": "fe45763bb528595a21823a5598b20a0375eace764426dc4394ed01f7ec8da98e",
+    "web/src/render/character/world.ts": "701731f1ae8a830b66d3810a28ba1c56bf0d6a7a008b01936423a4d56d2c3125",
+    "assets/models/bathroom/actions/shower_pose.py": "7a04d5bae15fbaa7a478d26729113e98031b18d42e38d6eb943b240edf7a7e4f",
+    "assets/models/sims/character-creator/clips/clips.json": "f397530720ce20115dfbffbc8d5eef283e65be9d44fb38147330e77f07cff10c"
+  },
+  "nativeSummary": [
+    {
+      "case": "masculine-1",
+      "started": "2026-10-16T01:09:27.822Z",
+      "ended": "2026-10-16T01:09:35.889Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 29,
+      "pauseSample": 10.888666666666662,
+      "exitTick": 65,
+      "exitAction": [
+        "Fetching: A Second Cup"
+      ],
+      "exitClip": "walk",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    },
+    {
+      "case": "masculine-0",
+      "started": "2026-10-16T01:09:37.422Z",
+      "ended": "2026-10-16T01:09:45.573Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 29,
+      "pauseSample": 10.888666666666662,
+      "exitTick": 65,
+      "exitAction": [
+        "Fetching: A Second Cup"
+      ],
+      "exitClip": "walk",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    },
+    {
+      "case": "masculine-2",
+      "started": "2026-10-16T01:09:47.055Z",
+      "ended": "2026-10-16T01:09:55.084Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 29,
+      "pauseSample": 10.77733333333332,
+      "exitTick": 64,
+      "exitAction": [
+        "Fetching: A Second Cup"
+      ],
+      "exitClip": "walk",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    },
+    {
+      "case": "masculine-3",
+      "started": "2026-10-16T01:09:56.589Z",
+      "ended": "2026-10-16T01:10:04.617Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 29,
+      "pauseSample": 10.998666666666637,
+      "exitTick": 65,
+      "exitAction": [
+        "Fetching: A Second Cup"
+      ],
+      "exitClip": "walk",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    },
+    {
+      "case": "feminine-1",
+      "started": "2026-10-16T01:10:06.105Z",
+      "ended": "2026-10-16T01:10:14.441Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 29,
+      "pauseSample": 10.887333333333327,
+      "exitTick": 67,
+      "exitAction": [
+        "Fetching: A Second Cup"
+      ],
+      "exitClip": "walk",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    },
+    {
+      "case": "feminine-0",
+      "started": "2026-10-16T01:10:16.495Z",
+      "ended": "2026-10-16T01:10:24.699Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 30,
+      "pauseSample": 11.665333333333304,
+      "exitTick": 66,
+      "exitAction": [
+        "Fetching: A Second Cup"
+      ],
+      "exitClip": "walk",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    },
+    {
+      "case": "feminine-2",
+      "started": "2026-10-16T01:10:26.105Z",
+      "ended": "2026-10-16T01:10:34.079Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 29,
+      "pauseSample": 10.886666666666667,
+      "exitTick": 64,
+      "exitAction": [
+        "Fetching: A Second Cup"
+      ],
+      "exitClip": "walk",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    },
+    {
+      "case": "feminine-3",
+      "started": "2026-10-16T01:10:35.505Z",
+      "ended": "2026-10-16T01:10:43.445Z",
+      "entryTick": 9,
+      "lastShowerTick": 62,
+      "sampledDuration": 54,
+      "clipSampleBins": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "pauseTick": 28,
+      "pauseSample": 10.442000000000018,
+      "exitTick": 63,
+      "exitAction": [
+        ""
+      ],
+      "exitClip": "idle",
+      "entryAction": [
+        "Take a shower: Shower"
+      ],
+      "allVisible": true,
+      "pausedPixelsExact": true
+    }
+  ],
+  "verdict": "ACCEPT inspected live samples and static matrix; no blocking visual finding",
+  "actualPlayback": "Eight complete native1x action runs. Per-render-frame observer captured native action label, activity, source, target, rendered clip/sample and document visibility. All sixteen sample bins occurred in each run.",
+  "inspectedPixels": "192 live screenshots inspected in sixteen native-resolution half-sheets. All 72 provided static phase images inspected in eighteen native-resolution quarter sheets. Screenshot inspection covers recorded pixels, not every intermediate displayed frame.",
+  "findings": [
+    {
+      "case": "masculine-1",
+      "inspected": [
+        "masculine-1-live-samples-half0.png",
+        "masculine-1-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Arms, hands, head and torso visibly change across the sampled cycle while feet remain planted. Wisps extend beyond the body and change around chest/pelvis; skin remains partly visible, face stays clear, and no rigid white garment persists. Exit restores clothing and removes vapor."
+    },
+    {
+      "case": "masculine-0",
+      "inspected": [
+        "masculine-0-live-samples-half0.png",
+        "masculine-0-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Arms, hands, head and torso visibly change across the sampled cycle while feet remain planted. Wisps extend beyond the body and change around chest/pelvis; skin remains partly visible, face stays clear, and no rigid white garment persists. Exit restores clothing and removes vapor."
+    },
+    {
+      "case": "masculine-2",
+      "inspected": [
+        "masculine-2-live-samples-half0.png",
+        "masculine-2-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Rear-view wisps change shape beyond shoulders and pelvis. Head and outer arm stay identifiable; foot support remains stable. Front sensitive surfaces are body/panel occluded. Exit restores clothing and removes vapor."
+    },
+    {
+      "case": "masculine-3",
+      "inspected": [
+        "masculine-3-live-samples-half0.png",
+        "masculine-3-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Opaque shower panels hide torso/pelvis and most short character head. Visible hair/head movement remains plausible. Vapor does not cross opaque panel fronts. Exit restores clothed character beside enclosure."
+    },
+    {
+      "case": "feminine-1",
+      "inspected": [
+        "feminine-1-live-samples-half0.png",
+        "feminine-1-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Arms, hands, head and torso visibly change across the sampled cycle while feet remain planted. Wisps extend beyond the body and change around chest/pelvis; skin remains partly visible, face stays clear, and no rigid white garment persists. Exit restores clothing and removes vapor."
+    },
+    {
+      "case": "feminine-0",
+      "inspected": [
+        "feminine-0-live-samples-half0.png",
+        "feminine-0-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Arms, hands, head and torso visibly change across the sampled cycle while feet remain planted. Wisps extend beyond the body and change around chest/pelvis; skin remains partly visible, face stays clear, and no rigid white garment persists. Exit restores clothing and removes vapor."
+    },
+    {
+      "case": "feminine-2",
+      "inspected": [
+        "feminine-2-live-samples-half0.png",
+        "feminine-2-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Rear-view wisps change shape beyond shoulders and pelvis. Head and outer arm stay identifiable; foot support remains stable. Front sensitive surfaces are body/panel occluded. Exit restores clothing and removes vapor."
+    },
+    {
+      "case": "feminine-3",
+      "inspected": [
+        "feminine-3-live-samples-half0.png",
+        "feminine-3-live-samples-half1.png"
+      ],
+      "samples": 24,
+      "finding": "Opaque shower panels hide torso/pelvis and most short character head. Visible hair/head movement remains plausible. Vapor does not cross opaque panel fronts. Exit restores clothed character beside enclosure."
+    }
+  ],
+  "pause": "All eight checks retain identical PNG bytes, unchanged native tick and animation sample across1250ms pause; Pause radio checked. Native action queue retained until resumed.",
+  "knownDefectCheck": "Existing P/R vapor accepted, Q pale garment and S absent vapor rejected. Mapping was already supplied, so this is not a new blind review.",
+  "limits": [
+    "Visual inspection samples the continuous native playback; unseen intermediate pixels are not claimed as personally inspected.",
+    "Entry first-active frame and exit pixels inspected; approach-to-entry transition pixels were not exhaustively captured.",
+    "Facing3 is an opaque-panel occlusion view, not evidence of chest/pelvis visibility.",
+    "Only requested opposite height/build/gender extremes were played; other body sliders remained50.",
+    "Nighttime was inspected in supplied still matrix, not additional continuous nighttime action runs.",
+    "Observer clones diagnostics on each render frame; this run supplies no production performance claim.",
+    "Initial exact90duration assertion was a harness mistake; authored90 is the center of supported54..126sampling. The original failure receipt is retained.",
+    "Initial browser/REPL setup errors preceded playback and did not establish game defects."
+  ],
+  "browserClosed": true
+}

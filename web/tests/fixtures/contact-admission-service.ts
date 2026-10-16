@@ -34,8 +34,8 @@ export class AdmissionTestService implements ContactService {
   }
   finish(appearance:CharacterAppearanceV1):void {
     const key=characterPreparationKey(appearance),entry=this.entries.get(key);if(!entry)throw new Error('No requested configuration.');
-    entry.artifact={bike:{key},sleep:{key}} as CharacterPreparation;entry.resolve(entry.artifact);
+    entry.artifact={bike:{key},sleep:{key},seat:{key}} as CharacterPreparation;entry.resolve(entry.artifact);
   }
-  finishAll():void {for(const entry of this.entries.values())if(!entry.artifact){entry.artifact={bike:{key:entry.key},sleep:{key:entry.key}} as CharacterPreparation;entry.resolve(entry.artifact);}}
+  finishAll():void {for(const entry of this.entries.values())if(!entry.artifact){entry.artifact={bike:{key:entry.key},sleep:{key:entry.key},seat:{key:entry.key}} as CharacterPreparation;entry.resolve(entry.artifact);}}
   fail(appearance:CharacterAppearanceV1):void {this.entries.get(characterPreparationKey(appearance))!.reject(new Error('Contact preparation failed.'));}
 }

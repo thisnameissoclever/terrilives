@@ -13,6 +13,8 @@ Build a new housemate or edit an existing one with animated previews and separat
 
 ## Improved
 
+- Movement is smoother with several housemates on screen.
+
 - Cleanliness affects tolerance for mess on floors, surfaces, and dishes, as well as willingness to clean.
 - Activity preferences use familiar categories such as Read and Exercise instead of lists of individual books and furniture.
 - Existing saved games remain loadable. Saving keeps an untouched recovery copy of the previous save format. New saves require this update or a newer version of the game.
@@ -21,7 +23,11 @@ Build a new housemate or edit an existing one with animated previews and separat
 
 - Customized characters use the same appearance in the creator and the house, with fitted clothing and continuous long sleeves.
 - Furniture keeps its artwork and colors during interactions. Character and object edges stay smoother when zoomed, and activity bubbles follow the character's head.
+- A smooth blue ellipse marks the selected housemate, with a translucent fill that is easier to spot when zoomed out.
 
 ## Fixed
 
 - Dishes stay at the table setting where the meal was eaten.
+- Seated housemates fit their chairs and sofa cushions. Selection markers stay on the floor beneath furniture, including beds and showers.
+- Kitchen fixtures sit clear of adjacent walls.
+- Showering lasts longer and includes washing movements with translucent steam around the body.

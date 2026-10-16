@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import {loadIndicatorCoverage} from './indicator-coverage.js';
 import {SceneTarget} from './scene-target.js';
+import {GroundSelectionRenderer,selectionCommand} from './ground-selection.js';
 import {spriteShaderSource,spriteBindGroupLayoutEntries,spritePipelineDescriptors} from './sprite-pipelines.js';
 import { packPresentationLayers } from './visible-scene-layers.js';
 import { countResponseBytes, type LoadProgress } from '../load-progress.js';
@@ -290,6 +291,7 @@ export class SpriteRenderer {
   private ownerData=new Uint32Array(INITIAL_CAPACITY);
   private depthTexture: GPUTexture | null = null;
   private sceneTarget:SceneTarget|null=null;
+  private readonly groundSelection:GroundSelectionRenderer;
   private readonly ownedTextures: GPUTexture[];
   private readonly ownedBuffers: GPUBuffer[];
   private readonly finishCount: number;
@@ -545,6 +547,7 @@ export class SpriteRenderer {
         { binding: jointBinding + 1, resource: { buffer: jointRegistration } },
       ],
     });
+    this.groundSelection=new GroundSelectionRenderer(gpu.device);
   }
 
   /**
@@ -591,6 +594,7 @@ export class SpriteRenderer {
     if (this.destroyed) return;
     this.destroyed = true;
     this.sceneTarget?.destroy();
+    this.groundSelection.destroy();
     this.grimeOpacityBuffer?.destroy();
     this.instanceBuffer.destroy();
     this.ownerBuffer.destroy();
@@ -647,6 +651,13 @@ export class SpriteRenderer {
     return this.depthTexture;
   }
 
+  private drawOpaqueRange(pass:GPURenderPassEncoder,start:number,count:number,selection:number):void {
+    if(selection<start||selection>=start+count){pass.draw(VERTICES_PER_QUAD,count,0,start);return;}
+    if(selection>start)pass.draw(VERTICES_PER_QUAD,selection-start,0,start);
+    const after=selection+1;
+    if(after<start+count)pass.draw(VERTICES_PER_QUAD,start+count-after,0,after);
+  }
+
   /**
    * @param ambient The hour of day as an rgba multiplier, from
    *   `ambientFor` in daylight.ts. Defaults to neutral, so a caller that
@@ -664,6 +675,7 @@ export class SpriteRenderer {
     drawDynamicScene?: (pass: GPURenderPassEncoder) => void,
     owners?:Uint32Array,
     annotations:Readonly<{start:number;count:number}>={start:count,count:0},
+    drawEffects?: (encoder:GPUCommandEncoder,target:SceneTarget)=>void,
   ): void {
     if(!Number.isInteger(annotations.start)||!Number.isInteger(annotations.count)||annotations.start<0||annotations.count<0||annotations.start+annotations.count>count)
       throw new Error('Invalid activity annotation range.');
@@ -715,15 +727,17 @@ export class SpriteRenderer {
     const depth = this.ensureDepth(canvas.width, canvas.height);
     const encoder = this.gpu.device.createCommandEncoder();
     const pass = this.sceneTarget!.begin(encoder);
+    const selection=selectionCommand(instances,count);
+    const selectionSlot=selection<0?-1:this.staticCount+selection;
 
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.bindGroup);
     pass.setVertexBuffer(0, this.instanceBuffer);
     pass.setVertexBuffer(1,this.ownerBuffer);
     // Opaque floor, rear walls, objects and Sims establish depth first.
-    pass.draw(VERTICES_PER_QUAD,this.staticCount+annotations.start);
+    this.drawOpaqueRange(pass,0,this.staticCount+annotations.start,selectionSlot);
     const afterAnnotations=annotations.start+annotations.count;
-    if(count>afterAnnotations)pass.draw(VERTICES_PER_QUAD,count-afterAnnotations,0,this.staticCount+afterAnnotations);
+    if(count>afterAnnotations)this.drawOpaqueRange(pass,this.staticCount+afterAnnotations,count-afterAnnotations,selectionSlot);
     if (drawDynamicScene) {
       drawDynamicScene(pass);
       pass.setBindGroup(0, this.bindGroup);
@@ -743,6 +757,8 @@ export class SpriteRenderer {
       pass.draw(VERTICES_PER_QUAD, this.lowWallCount, 0, total);
     }
     pass.end();
+    this.groundSelection.draw(encoder,this.sceneTarget!,instances,selection,scale);
+    drawEffects?.(encoder,this.sceneTarget!);
     if(annotations.count){
       const annotationPass=this.sceneTarget!.beginAnnotations(encoder,owners!.subarray(annotations.start,afterAnnotations));
       annotationPass.setPipeline(this.annotationPipeline);annotationPass.setBindGroup(0,this.bindGroup);

@@ -1,0 +1,392 @@
+{
+  "status": "ACCEPT_OBSERVED_SCOPE",
+  "url": "http://127.0.0.1:5200/?stress=0",
+  "buildScripts": [
+    "http://127.0.0.1:5200/assets/index-BN0RjKEI.js"
+  ],
+  "viewport": {
+    "width": 1600,
+    "height": 1100
+  },
+  "scale": 2.4,
+  "speed": "UI 1x; actual render driver advanced continuously. Native ticks only used to prepare initial near-entry checkpoint.",
+  "meal": {
+    "save": "dining-final/dining-facing-0-setting-0-last-seated.sav",
+    "scope": "Final approximately nine native meal ticks then actual exit/dish deposit; does not claim full meal cycle.",
+    "captures": [
+      "meal-before-exit.png",
+      "meal-moving.png",
+      "meal-exited-dish.png"
+    ],
+    "verdict": "Plate/spoon at expected place, actor exits chair, dirty dish remains on correct setting; floor marker behind person/table."
+  },
+  "reviewedImages": [
+    {
+      "file": "extra-office-sit-0-before.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-0-entered.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-1-entered.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-1-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-1-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-2-entered.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-2-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-2-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-3-entered.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-3-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-sit-3-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-1-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-1-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-2-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-2-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-3-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-office-read-3-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-ottoman-sit-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-ottoman-sit-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-dining-sit-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-dining-sit-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-armchair-sit-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-armchair-sit-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-reading-sit-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-reading-sit-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-1-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-1-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-2-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-2-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-3-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-sofa-sit-3-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-recline-0-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "extra-recline-0-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "meal-before-exit.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "meal-moving.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    },
+    {
+      "file": "meal-exited-dish.png",
+      "verdict": "No new severe obstruction, out-of-seat displacement or marker painting over opaque actor/furniture visible in inspected active/transition phase."
+    }
+  ],
+  "limits": [
+    "17 actual seat entry/action/exit cycles, not all52 animations in continuous play. All52 enlarged phases +16 dining sequences were inspected separately in final-still-gate.json.",
+    "Actual live model scope: six sit model facing0, office sit/read four facings, sofa sit four facings, one recline facing0, one meal exit sample.",
+    "Captured files listed only under reviewedImages were personally inspected. State polls establish transition coverage, not visual inspection of every frame.",
+    "No final shower visual approval; another reviewer owns that. No full need cycle or end-to-end conversation review."
+  ],
+  "harnessFailure": {
+    "message": "Camera drag made no progress with approximately4px residual correction below game drag threshold.",
+    "repair": "In-memory review camera uses bounded overshoot plus feedback, no production change."
+  },
+  "rows": [
+    {
+      "name": "extra-office-sit-0",
+      "captures": [
+        "extra-office-sit-0-before.png",
+        "extra-office-sit-0-entered.png",
+        "extra-office-sit-0-moving.png",
+        "extra-office-sit-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-sit-1",
+      "captures": [
+        "extra-office-sit-1-before.png",
+        "extra-office-sit-1-entered.png",
+        "extra-office-sit-1-moving.png",
+        "extra-office-sit-1-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-sit-2",
+      "captures": [
+        "extra-office-sit-2-before.png",
+        "extra-office-sit-2-entered.png",
+        "extra-office-sit-2-moving.png",
+        "extra-office-sit-2-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-sit-3",
+      "captures": [
+        "extra-office-sit-3-before.png",
+        "extra-office-sit-3-entered.png",
+        "extra-office-sit-3-moving.png",
+        "extra-office-sit-3-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-0",
+      "captures": [
+        "extra-office-read-0-before.png",
+        "extra-office-read-0-entered.png",
+        "extra-office-read-0-moving.png",
+        "extra-office-read-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-1",
+      "captures": [
+        "extra-office-read-1-before.png",
+        "extra-office-read-1-entered.png",
+        "extra-office-read-1-moving.png",
+        "extra-office-read-1-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-2",
+      "captures": [
+        "extra-office-read-2-before.png",
+        "extra-office-read-2-entered.png",
+        "extra-office-read-2-moving.png",
+        "extra-office-read-2-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-office-read-3",
+      "captures": [
+        "extra-office-read-3-before.png",
+        "extra-office-read-3-entered.png",
+        "extra-office-read-3-moving.png",
+        "extra-office-read-3-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-ottoman-sit-0",
+      "captures": [
+        "extra-ottoman-sit-0-before.png",
+        "extra-ottoman-sit-0-entered.png",
+        "extra-ottoman-sit-0-moving.png",
+        "extra-ottoman-sit-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-dining-sit-0",
+      "captures": [
+        "extra-dining-sit-0-before.png",
+        "extra-dining-sit-0-entered.png",
+        "extra-dining-sit-0-moving.png",
+        "extra-dining-sit-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-armchair-sit-0",
+      "captures": [
+        "extra-armchair-sit-0-before.png",
+        "extra-armchair-sit-0-entered.png",
+        "extra-armchair-sit-0-moving.png",
+        "extra-armchair-sit-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-reading-sit-0",
+      "captures": [
+        "extra-reading-sit-0-before.png",
+        "extra-reading-sit-0-entered.png",
+        "extra-reading-sit-0-moving.png",
+        "extra-reading-sit-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-sit-0",
+      "captures": [
+        "extra-sofa-sit-0-before.png",
+        "extra-sofa-sit-0-entered.png",
+        "extra-sofa-sit-0-moving.png",
+        "extra-sofa-sit-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-sit-1",
+      "captures": [
+        "extra-sofa-sit-1-before.png",
+        "extra-sofa-sit-1-entered.png",
+        "extra-sofa-sit-1-moving.png",
+        "extra-sofa-sit-1-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-sit-2",
+      "captures": [
+        "extra-sofa-sit-2-before.png",
+        "extra-sofa-sit-2-entered.png",
+        "extra-sofa-sit-2-moving.png",
+        "extra-sofa-sit-2-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-sofa-sit-3",
+      "captures": [
+        "extra-sofa-sit-3-before.png",
+        "extra-sofa-sit-3-entered.png",
+        "extra-sofa-sit-3-moving.png",
+        "extra-sofa-sit-3-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    },
+    {
+      "name": "extra-recline-0",
+      "captures": [
+        "extra-recline-0-before.png",
+        "extra-recline-0-entered.png",
+        "extra-recline-0-moving.png",
+        "extra-recline-0-exit.png"
+      ],
+      "entered": true,
+      "exited": true
+    }
+  ]
+}

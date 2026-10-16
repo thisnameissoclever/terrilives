@@ -1,0 +1,512 @@
+{
+  "status": "ACCEPT_SHOWN_PHASES",
+  "game": "http://127.0.0.1:5200/?stress=0",
+  "reviewedImages": [
+    {
+      "file": "seats-large-final/extra-office-sit-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-office-sit-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-office-sit-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-office-sit-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-office-read-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-office-read-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-office-read-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-office-read-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-sit-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-sit-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-sit-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-sit-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-read-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-read-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-read-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-ottoman-read-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-sit-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-sit-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-sit-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-sit-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-read-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-read-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-read-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-dining-read-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-sit-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-sit-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-sit-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-sit-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-read-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-read-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-read-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-armchair-read-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-sit-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-sit-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-sit-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-sit-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-read-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-read-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-read-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-reading-read-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-sit-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-sit-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-sit-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-sit-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-read-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Previously affected front-facing short-wide legs remain continuous in front of seat; pelvis appears supported on near cushion portion. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-read-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-read-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Pelvis appears supported; back/arm naturally occludes rear body where appropriate, without a new severe obstruction. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-sofa-read-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Front-facing tall-slim legs remain continuous; pelvis appears supported on cushion and head/arms unobstructed. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-recline-0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Body remains inside sofa envelope with torso/head and bent legs readable; no wall intersection visible. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-recline-1.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Body remains inside sofa envelope with torso/head and bent legs readable; no wall intersection visible. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-recline-2.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Body remains inside sofa envelope with torso/head and bent legs readable; no wall intersection visible. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "seats-large-final/extra-recline-3.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Body remains inside sofa envelope with torso/head and bent legs readable; no wall intersection visible. Blue ellipse stays behind opaque actor/furniture."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-0-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-0-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-0-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-1-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-1-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-1-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-2-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-2-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-2-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-3-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-3-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-0-setting-3-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-0-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-0-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-0-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-1-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-1-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-1-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-2-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-2-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-2-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-3-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-3-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-1-setting-3-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-0-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-0-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-0-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-1-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-1-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-1-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-2-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-2-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-2-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-3-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-3-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-2-setting-3-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-0-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-0-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-0-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-1-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-1-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-1-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-2-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-2-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-2-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-3-unused.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actual stove/pan cooking pose reads clearly; actor hands and kitchen worktop align, fixtures stay inside wall."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-3-eating.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor seated toward plate at matching table setting; spoon/hand near meal, table naturally hides lower body; no marker over body/table."
+    },
+    {
+      "file": "dining-final/dining-facing-3-setting-3-dish.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Actor exited chair; used dish remains on matching setting of table; no stray floating dish or marker over actor/table."
+    }
+  ],
+  "limits": [
+    "No continuous gameplay in this gate. Browser lease remains with root.",
+    "Normal seat matrix had camera-helper interruption after 45 cases; seven resumed. Passing fixture receipts do not erase failed harness receipt.",
+    "No final shower visual approval in this seat/dining gate."
+  ],
+  "priorRejected": "independent-play/independent-review.json"
+}

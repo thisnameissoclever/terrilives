@@ -1454,6 +1454,7 @@ mod tests {
         let mut refills = Vec::new();
         let mut first_overdoing = None;
         let mut first_sick = None;
+        let mut expected_first_sick = None;
         let mut previous_score = 0.0_f32;
         let mut capped = false;
         for snack in 1..=16_u32 {
@@ -1501,6 +1502,9 @@ mod tests {
                 (now - expected).abs() < 0.0001,
                 "snack {snack}: measured duration must explain habituation {now} versus {expected}"
             );
+            if expected >= tuning.sick_threshold {
+                expected_first_sick.get_or_insert(snack);
+            }
             assert!(
                 now > before - decay * ticks as f32,
                 "snack {snack} completed"
@@ -1527,7 +1531,7 @@ mod tests {
                 usize::from(now >= tuning.sick_threshold),
                 "snack {snack}: {now}"
             );
-            if now >= tuning.sick_threshold {
+            if sick(&snapshot) > 0 {
                 first_sick.get_or_insert(snack);
             }
             if now >= tuning.habituation_max - decay * 2.0 {
@@ -1538,18 +1542,17 @@ mod tests {
         let first_overdoing = first_overdoing.expect("snacking reaches overdoing");
         let first_sick = first_sick.expect("snacking makes Tim sick");
         assert!(capped, "snacking reaches the cap within the bound");
-        // The sim is deterministic, so the counts are exact: back-to-back
-        // snacks net about 0.25 each because decay runs during each chain.
-        // The chains' lengths come from the world generator, so the exact
-        // snack that crosses the sick line moves with the draws taken
-        // before it. Conversation topics consume seeded draws, moving the
-        // sampled snack lengths; the threshold itself is
-        // checked against actual repetition after every completion above.
+        // Shared-world draws change chain durations and the decay between snacks.
+        // Predict the first illness from measured duration, rather than a fixed snack index.
         assert_eq!(
             first_overdoing, 4,
             "three snacks in a row are not overdoing; the fourth is"
         );
-        assert_eq!(first_sick, 11, "the eleventh snack in a row makes Tim sick");
+        assert_eq!(
+            Some(first_sick),
+            expected_first_sick,
+            "illness begins when accumulated repetition crosses its threshold"
+        );
         assert!(refills[0] > 0.0, "a snack must fill hunger: {refills:?}");
         assert!(
             refills.iter().all(|refill| *refill == refills[0]),

@@ -1,0 +1,200 @@
+{
+  "status": "ACCEPT_SHOWN_PHASES",
+  "reviewedImages": [
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-0-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-0-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-0-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-1-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-1-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-1-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-2-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-2-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-2-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-3-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-3-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/shared-sofa-3-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Three distinct people occupy separate cushion places. Legs remain continuous where visible; rear/back occlusion is natural. Adjacent shoulders/arms overlap slightly without hiding a face or causing severe body obstruction. Floor marker remains behind opaque bodies and sofa."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-0-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-0-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-0-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-1-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-1-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-1-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-2-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-2-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-2-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-3-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-3-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/television-3-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-0-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-0-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-0-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-1-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-1-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-1-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-2-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-2-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-2-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-3-phase0.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-3-phase8.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "activity-contexts-source-grounded/radio-3-phase18.png",
+      "verdict": "ACCEPT_RECORDED_PHASE",
+      "finding": "Selected actor sits on the chair toward the device. Body and chair outlines remain readable; legs continuous in front-facing views, naturally hidden by chair back in rear views. Floor marker stays behind opaque actor/chair. Device geometry grounded and facing consistent."
+    },
+    {
+      "file": "creator-lifecycle/lifecycle-pass-2/recovered-lock.png",
+      "verdict": "ACCEPT_SHOWN_UI",
+      "finding": "Height Locked control visible, 50 value readable, slider and row controls fit without overlap. Both enlarged and game-size walking character previews are intact. Footer and section boundaries remain clear."
+    },
+    {
+      "file": "creator-lifecycle/lifecycle-pass-2/recovered-name.png",
+      "verdict": "ACCEPT_SHOWN_UI",
+      "finding": "Draft survives graphics fits the name input and preview title. Identity form controls, title, Turn, preview, animation selector and footer remain separated and readable. No visible character tearing or missing body part."
+    }
+  ],
+  "limits": [
+    "Read-only inspection of 36 activity-context images and two creator images, no browser opened.",
+    "Context report overall FAIL remains preserved because later correspondence predicate found missing native seat metadata; this review approves first 12 valid rows only, not letters.",
+    "Static phases do not establish continuous motion or creator resource lifecycle behavior. Root owns separate actual UI/resource receipts."
+  ]
+}

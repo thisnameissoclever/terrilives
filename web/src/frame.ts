@@ -3,6 +3,8 @@ import {cleaningFrame} from './render/cleaning-animation.js';
 import {conversationBubble, conversationTint} from './render/conversation-bubbles.js';
 import type {CharacterScenePlan} from './render/character/scene-plan.js';
 import {fixtureSurfaceHeight,surfacePropDepthOffset} from './render/fixture-depth.js';
+import {fixtureRegistration} from './render/fixture-registration.js';
+import {GROUND_SELECTION_COMMAND} from './render/ground-selection.js';
 import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 import { shelfPresence } from './render/shelf-sprites.js';
 import { SHELF_PROFILES, SHARED_SEAT_CATALOG, READING_BODY_CATALOG, DROPPED_BOOK_SPRITES, SOFA_RECLINE_CATALOG } from './render/atlas.js';
@@ -16,6 +18,8 @@ import { BOOK_REACH_CATALOG } from './render/atlas.js';
  */
 
 import {
+  FLOOR_DEPTH,
+  DEPTH_LAYER_STEP,
   LAYER_FOREGROUND,
   LAYER_PROP,
   LAYER_SIM,
@@ -74,6 +78,8 @@ import {
 const SELECTION_RING_SPRITE = spriteIndex('selectionRing');
 /** Semantic overlay strength: the ring must stay legible at midnight. */
 const SELECTION_RING_EMISSIVE = 1;
+/** The indicator shares the floor-decal plane, behind every raised surface. */
+const SELECTION_RING_DEPTH = FLOOR_DEPTH - DEPTH_LAYER_STEP / 4;
 
 /**
  * Legacy sim looks, retained for compatibility tests. [ML-chars].
@@ -861,6 +867,9 @@ export function advanceSimulationFrame(
  * honest about the columns it depends on. Every view is re-read on each call.
  */
 export interface RenderSource {
+  lotRevision?():number;
+  wallEdges?():Uint32Array|undefined;
+  houseSize?():readonly [number,number];
   portals?(): PortalSource;
   readonly count: number;
   positions(): Float32Array;
@@ -1100,6 +1109,7 @@ export function buildInstanceBatch(
   const portals = source.portals?.();
   // This bridge call may allocate WASM memory; finish it before borrowing row views.
   const dishPiles=source.dishPiles?.();
+  const fixtureOffsets=fixtureRegistration(source).offsets;
   const needed = (count * 8 + 1 + (source.droppedBookCount ?? 0) + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
     + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
@@ -1155,8 +1165,8 @@ export function buildInstanceBatch(
       continue;
     }
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
-    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
-    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha)+fixtureOffsets[positionRow*2];
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha)+fixtureOffsets[positionRow*2+1];
     const bodyFacing =
       kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
         ? walkingFacing(
@@ -1291,8 +1301,8 @@ export function buildInstanceBatch(
   }
   for (let row = 0; row < count; row++) {
     if (row === replacedRow || interactions.suppressed[row]&&!dynamic?.fixtureAt(row)) continue;
-    const wx = current[row * 2];
-    const wy = current[row * 2 + 1];
+    const wx = current[row * 2]+fixtureOffsets[row*2];
+    const wy = current[row * 2 + 1]+fixtureOffsets[row*2+1];
     const layout = surfaceLayout(sprites[row]);
     if (!layout) continue;
     const dirty = dirtyDishes?.[row] ?? 0;
@@ -1333,8 +1343,8 @@ export function buildInstanceBatch(
       if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || dynamic?.replacedRows[i] || i === replacedRow) {
         continue;
       }
-      const wx = lerp(previous[i * 2], current[i * 2], alpha);
-      const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+      const wx = lerp(previous[i * 2], current[i * 2], alpha)+fixtureOffsets[i*2];
+      const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha)+fixtureOffsets[i*2+1];
       const localLight = lighting === null
         ? EMISSIVE_NONE
         : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
@@ -1376,8 +1386,8 @@ export function buildInstanceBatch(
         conversation===null?1:conversationTint(preference,1),
         conversation===null?1:conversationTint(preference,2));batch.owners[slot-1]=i+1;continue;}
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
-    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
-    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha)+fixtureOffsets[positionRow*2];
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha)+fixtureOffsets[positionRow*2+1];
     // A body drawn off its fixture's tile keeps its bubble over its own feet
     // and in front of its own depth; the lift still measures from the scene.
     const reach = interactions.reachRows[i] === 1;
@@ -1520,41 +1530,43 @@ export function buildInstanceBatch(
   // from the tick position, so it tracks a walking sim instead of stepping
   // behind it.
   //
-  // `LAYER_PROP` puts it above the floor and below the sim: a ring drawn OVER
-  // the sim would obscure the thing it is pointing at, and one at
-  // `LAYER_FLOOR`'s old depth would be invisible now that the floor shares one
-  // depth in front of nothing.
+  // Selection marks the ground. Posed ankles can be elevated by a shower tray
+  // or mattress, but neither their height nor a fixture can lift the indicator.
   const ringRow = replacedRow === null ? findSelectedRow(source, selected) : null;
   const configuredRing=ringRow!==null?dynamic?.actorAt(ringRow):undefined;
-  if(configuredRing){const [x,y,z]=configuredRing.feet;
-    writeInstance(scratch,slot++,screenX(x,y,originX,scale),screenY(x,y,originY,scale)-Math.max(0,z-.13)*Math.sqrt(1166)*scale,
-      layeredDepth(x,y,gridSize,LAYER_PROP),SELECTION_RING_SPRITE,TINT_NONE,TINT_NONE,TINT_NONE,SELECTION_RING_EMISSIVE);
+  if(configuredRing){const [x,y]=configuredRing.feet;
+    writeInstance(scratch,slot++,screenX(x,y,originX,scale),screenY(x,y,originY,scale),
+      SELECTION_RING_DEPTH,SELECTION_RING_SPRITE,TINT_NONE,TINT_NONE,TINT_NONE,SELECTION_RING_EMISSIVE);
+    scratch[(slot-1)*FLOATS_PER_INSTANCE+OFFSET_WALL_MASK]=GROUND_SELECTION_COMMAND;
   }else if (ringRow !== null) {
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
     // A body drawn off its fixture's tile is ringed under its drawn feet.
     const reach = interactions.reachRows[ringRow] === 1;
-    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha)
-      + (reach ? interactions.reachFeet[ringRow * 2] : 0);
-    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha)
-      + (reach ? interactions.reachFeet[ringRow * 2 + 1] : 0);
     const bedOwner = interactions.bedScenes[ringRow]?.owners[interactions.bedPlaces[ringRow]];
+    const groundRow = bedOwner ? ringRow : positionRow;
+    const wx = lerp(previous[groundRow * 2], current[groundRow * 2], alpha)
+      + fixtureOffsets[groundRow*2]
+      + (reach ? interactions.reachFeet[ringRow * 2] : 0);
+    const wy = lerp(previous[groundRow * 2 + 1], current[groundRow * 2 + 1], alpha)
+      + fixtureOffsets[groundRow*2+1]
+      + (reach ? interactions.reachFeet[ringRow * 2 + 1] : 0);
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
-      screenY(wx, wy, originY, scale) + (bedOwner ? bedOwner.marker[1] + TILE_HALF_HEIGHT : 0) * scale,
-      layeredDepth(wx, wy, gridSize, bedOwner ? LAYER_FOREGROUND : LAYER_PROP)
-        - (bedOwner ? COPLANAR_SPRITE_NUDGE : 0),
+      screenX(wx, wy, originX, scale),
+      screenY(wx, wy, originY, scale),
+      SELECTION_RING_DEPTH,
       SELECTION_RING_SPRITE,
       TINT_NONE,
       TINT_NONE,
       TINT_NONE,
       SELECTION_RING_EMISSIVE,
     );
+    scratch[(slot-1)*FLOATS_PER_INSTANCE+OFFSET_WALL_MASK]=GROUND_SELECTION_COMMAND;
   }
 
   slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
-    colourwayShifts, placementColourway, sky);
+    colourwayShifts, placementColourway, sky,source);
   slot = writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
   batch.count = slot;
   return batch;

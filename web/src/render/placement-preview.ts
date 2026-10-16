@@ -8,6 +8,7 @@ import { writeFootprintProjection } from './footprint-depth.js';
 import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { coveredWindowLines, type WindowDefinition, type WindowEditPreview, type WindowPlacement } from '../architecture/windows.js';
 import type { WallLine } from '../ui/wall-tool.js';
+import {fixturePlacementOffset,type FixtureRegistrationSource} from './fixture-registration.js';
 
 const lineKey = (line: WallLine): string => `${line.axis}/${line.x}/${line.y}`;
 export const windowOwnerKey = (window: WindowPlacement): string => `window/${lineKey(window)}/${window.model}`;
@@ -78,7 +79,7 @@ export function writePlacementPreview(out: Float32Array, slot: number,
   preview: PlacementPreview | null, originX: number, originY: number,
   gridSize: number, scale: number, lighting: TileLighting | null,
   colourwayShifts: Float32Array | null = null, colourway = 0,
-  sky: SkyExposure = OPEN_SKY): number {
+  sky: SkyExposure = OPEN_SKY,physicalSource?:FixtureRegistrationSource): number {
   if (!preview || placementInstanceCount(preview) === 0) return slot;
   const tint = preview.valid ? VALID : INVALID;
   for (let dy = 0; dy < preview.depth; dy += 1) {
@@ -88,8 +89,10 @@ export function writePlacementPreview(out: Float32Array, slot: number,
         layeredDepth(x, y, gridSize, LAYER_PROP + 0.25), RING, ...tint, 1);
     }
   }
-  const x = preview.x + (preview.width - 1) / 2;
-  const y = preview.y + (preview.depth - 1) / 2;
+  const centreX = preview.x + (preview.width - 1) / 2;
+  const centreY = preview.y + (preview.depth - 1) / 2;
+  const offset=physicalSource?fixturePlacementOffset(physicalSource,preview.sprite,centreX,centreY):null;
+  const x=centreX+(offset?.[0]??0),y=centreY+(offset?.[1]??0);
   const light = lighting ? sampleLight(lighting, Math.floor(x), Math.floor(y)) : 0;
   const shade = sampleShade(sky, Math.floor(x), Math.floor(y));
   for (let layer = 0; layer < 2; layer += 1) {

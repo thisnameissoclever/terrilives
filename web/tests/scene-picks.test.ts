@@ -1,14 +1,17 @@
-import {expect,it} from 'vitest';
+import {expect,it,vi} from 'vitest';
 import {ScenePickRegistry} from '../src/render/scene-picks.js';
 import {CharacterWorld,type CharacterSceneView} from '../src/render/character/world.js';
 import type {SimBridge} from '../src/bridge.js';
 import type {SceneTarget} from '../src/render/scene-target.js';
 import {resolveLeftClick,resolveRightClick,type Pick,type MenuTarget} from '../src/input.js';
 
+// These tests isolate asynchronous ownership; real GPU effect coverage is tested separately.
+vi.mock('../src/render/character/shower-steam.js',()=>({ShowerSteam:class {begin(){}destroy(){}}}));
+
 function worldWithPick(read:()=>Promise<number>){
  let revision=0;
  let target={pick:read} as unknown as SceneTarget;
- const source={appearanceHash:()=>0n,characterAppearances:()=>[],lotRevision:()=>revision,ids:()=>new Uint32Array([80,900]),
+ const source={count:2,positions:()=>new Float32Array(4),sprites:()=>new Uint32Array(2),appearanceHash:()=>0n,characterAppearances:()=>[],lotRevision:()=>revision,ids:()=>new Uint32Array([80,900]),
   kinds:()=>new Uint32Array([0,1]),objectModel:()=>null,itemKinds:()=>[]} as unknown as SimBridge;
  const world=Reflect.construct(CharacterWorld,[{},'rgba8unorm',new Map(),()=>target]) as CharacterWorld;
  world.beginFrame(source,{fixtureDepthBase:40000} as CharacterSceneView);

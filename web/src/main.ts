@@ -2168,6 +2168,7 @@ async function main(): Promise<void> {
         characterWorld.draw,
         batch.owners,
         batch.annotations,
+        characterWorld?.drawEffects,
       );
     }
 
