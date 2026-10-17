@@ -74,7 +74,7 @@ mod tests {
     fn grown() -> Sim {
         let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
         crate::chores::ensure(sim.world_mut());
-        sim.world_mut().insert_resource(Funds(123_456_78));
+        sim.world_mut().insert_resource(Funds(12_345_678));
         crate::land::buy(sim.world_mut(), crate::land::Side::Rear).expect("affordable");
         sim
     }
@@ -94,7 +94,7 @@ mod tests {
                 purchased_area: 160
             })
         );
-        let cents = 123_456_78 - 160 * 15_000;
+        let cents = 12_345_678 - 160 * 15_000;
         assert_eq!(snapshot.funds_cents, cents);
         assert_eq!(
             snapshot.legacy.legacy.legacy.legacy.legacy.world.funds,
@@ -144,7 +144,8 @@ mod tests {
     fn schema_thirteen_refuses_a_bad_frame_or_disagreeing_cents() {
         let sim = grown();
         let clean = sim.save_snapshot_v13();
-        let cases: Vec<(&str, Box<dyn Fn(&mut SaveSnapshotV13)>)> = vec![
+        type Change = Box<dyn Fn(&mut SaveSnapshotV13)>;
+        let cases: Vec<(&str, Change)> = vec![
             (
                 "house off the grid",
                 Box::new(|s| s.lot_frame.as_mut().unwrap().origin_x = 15),

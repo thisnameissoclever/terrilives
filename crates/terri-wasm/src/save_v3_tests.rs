@@ -2041,13 +2041,13 @@ fn schema_thirteen_round_trips_the_lot_frame_and_schema_twelve_still_loads() {
     source
         .sim
         .world_mut()
-        .insert_resource(terri_core::Funds(5_000_000_55));
+        .insert_resource(terri_core::Funds(500_000_055));
     assert!(source.buy_land(0));
     source.flush_commands();
     assert_eq!(source.last_land_result(), vec![0.0, 0.0, 2_400_000.0]);
     assert_eq!((source.lot_width(), source.lot_height()), (30, 16));
     assert_eq!(source.house_origin(), vec![10, 0]);
-    assert_eq!(source.funds_cents(), 5_000_000_55.0 - 2_400_000.0);
+    assert_eq!(source.funds_cents(), 500_000_055.0 - 2_400_000.0);
     assert_eq!(source.funds(), 4_976_000.0);
     let bytes = source.save_bytes();
     assert_eq!(
