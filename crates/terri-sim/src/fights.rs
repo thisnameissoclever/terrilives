@@ -19,14 +19,15 @@ pub const FIGHT_TAG: &str = "fighting";
 /// Who had a fight and the tick their Had a fight moodlet ends. Saved in
 /// schema twelve; in the world hash whenever it holds anything.
 ///
-/// `provoked` is the set of people whose front order is a fight nobody
-/// gave them, so `retract` can withdraw it when the other person leaves
-/// the lot. It is not saved: after a load such an order waits as a
-/// player's would, at most until the other person comes home.
+/// `provoked` holds, per person, the exact fight order the trigger made
+/// up for them, so `retract` can withdraw that order and no other when
+/// the other person leaves the lot. It is not saved: after a load such an
+/// order waits as a player's would, at most until the other person comes
+/// home.
 #[derive(Resource, Default, Clone, Debug, PartialEq, Eq)]
 pub struct Fights {
     pub timers: MoodletTimers,
-    provoked: std::collections::BTreeSet<Entity>,
+    provoked: std::collections::BTreeMap<Entity, Intent>,
 }
 
 impl Fights {
@@ -37,9 +38,10 @@ impl Fights {
         }
     }
 
-    /// Whether `person`'s front order is a fight the trigger started.
+    /// Whether the trigger's made-up fight order for `person` is still
+    /// being watched.
     pub fn provoked(&self, person: Entity) -> bool {
-        self.provoked.contains(&person)
+        self.provoked.contains_key(&person)
     }
 }
 
@@ -165,24 +167,25 @@ fn approachable(world: &mut World, person: Entity) -> bool {
 /// and without this the initiator would stand blocked for a whole shift.
 /// An order already under way (the initiator has a target) is the
 /// rendezvous system's to release, as it releases any approach a shift
-/// start interrupts.
-pub(crate) fn retract(world: &mut World, fight: u32) {
-    let provoked: Vec<Entity> = world
+/// start interrupts. Only the exact order the trigger pushed is watched:
+/// once the front of the queue is anything else (the order was served,
+/// popped, cancelled, or a player put their own order ahead of it) the
+/// person is forgotten, and a made-up order left behind a player's waits
+/// as a player's would.
+pub(crate) fn retract(world: &mut World) {
+    let provoked: Vec<(Entity, Intent)> = world
         .resource::<Fights>()
         .provoked
         .iter()
-        .copied()
+        .map(|(person, intent)| (*person, *intent))
         .collect();
-    for person in provoked {
-        let front = world
+    for (person, intent) in provoked {
+        let still_front = world
             .get::<IntentQueue>(person)
             .and_then(IntentQueue::front)
-            .filter(|intent| intent.interaction == fight && intent.cleanup.is_none());
-        let Some(intent) = front else {
+            .is_some_and(|front| front == intent);
+        if !still_front || world.get::<terri_core::Target>(person).is_some() {
             world.resource_mut::<Fights>().provoked.remove(&person);
-            continue;
-        };
-        if world.get::<terri_core::Target>(person).is_some() {
             continue;
         }
         let gone = world.get_entity(intent.object).is_err()
@@ -212,7 +215,7 @@ pub(crate) fn provoke(world: &mut World) {
     let Some(fight) = fight_index(pack) else {
         return;
     };
-    retract(world, fight);
+    retract(world);
     let threshold = pack.tuning.fight_affinity_threshold;
     let chance = pack.tuning.fight_chance_per_tick;
     let now = world.resource::<SimClock>().tick;
@@ -261,7 +264,10 @@ pub(crate) fn provoke(world: &mut World) {
                     entity.insert(queue);
                 }
             }
-            world.resource_mut::<Fights>().provoked.insert(person);
+            world
+                .resource_mut::<Fights>()
+                .provoked
+                .insert(person, intent);
             break;
         }
     }
@@ -542,12 +548,7 @@ mod tests {
         assert!(queued_fight(&sim, a, b));
     }
 
-    /// An order the trigger made up is withdrawn when the other person
-    /// leaves for work before it is served, and the initiator is unblocked;
-    /// a player's order to the same person is left alone.
-    #[test]
-    fn a_provoked_order_is_withdrawn_when_the_other_person_leaves() {
-        let (mut sim, a, b) = household(-1.0);
+    fn certain(sim: &mut Sim) {
         let mut tuning = sim.world().resource::<crate::Content>().0.tuning;
         tuning.fight_chance_per_tick = 1.0;
         let pack = Box::leak(Box::new(ContentPack {
@@ -555,6 +556,24 @@ mod tests {
             ..sim.world().resource::<crate::Content>().0.clone()
         }));
         sim.world_mut().insert_resource(crate::Content(pack));
+    }
+
+    fn order(object: Entity) -> Intent {
+        Intent {
+            cleanup: None,
+            chore: None,
+            object,
+            interaction: 1,
+        }
+    }
+
+    /// An order the trigger made up is withdrawn when the other person
+    /// leaves for work before it is served, and the initiator is unblocked;
+    /// a player's order to the same person is left alone.
+    #[test]
+    fn a_provoked_order_is_withdrawn_when_the_other_person_leaves() {
+        let (mut sim, a, b) = household(-1.0);
+        certain(&mut sim);
         plant_reason(&mut sim, b);
         provoke(sim.world_mut());
         assert!(queued_fight(&sim, a, b));
@@ -576,14 +595,73 @@ mod tests {
         sim.world_mut()
             .get_mut::<IntentQueue>(a)
             .unwrap()
-            .push_front(Intent {
-                cleanup: None,
-                chore: None,
-                object: b,
-                interaction: 1,
-            });
+            .push_front(order(b));
         provoke(sim.world_mut());
         assert!(queued_fight(&sim, a, b));
+    }
+
+    /// Only the exact made-up order is ever withdrawn. A player's order
+    /// queued behind it, or put in front of it, is left alone when its
+    /// partner leaves; the person is forgotten once the front changes.
+    #[test]
+    fn only_the_made_up_order_is_withdrawn_not_a_players_queued_near_it() {
+        let (mut sim, a, b) = household(-1.0);
+        certain(&mut sim);
+        let c = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(7),
+                Position { x: 3.0, y: 1.0 },
+                Needs::all_at(90.),
+                Relationships::default(),
+            ))
+            .id();
+        plant_reason(&mut sim, b);
+        provoke(sim.world_mut());
+        assert!(queued_fight(&sim, a, b));
+        // Queued behind: the made-up order is served and popped, the
+        // player's order to someone else reaches the front, that someone
+        // leaves for work, and the order stays.
+        sim.world_mut()
+            .get_mut::<IntentQueue>(a)
+            .unwrap()
+            .push(order(c));
+        sim.world_mut()
+            .get_mut::<IntentQueue>(a)
+            .unwrap()
+            .remove_first(order(b));
+        sim.world_mut().entity_mut(c).insert(terri_core::AtWork {
+            remaining_ticks: 100,
+        });
+        sim.world_mut().entity_mut(a).insert(terri_core::Blocked);
+        provoke(sim.world_mut());
+        assert!(queued_fight(&sim, a, c));
+        assert!(sim.world().get::<terri_core::Blocked>(a).is_some());
+        assert!(!sim.world().resource::<Fights>().provoked(a));
+        // In front: a player's order ahead of the made-up one ends the
+        // watch, and neither order is withdrawn when b leaves.
+        sim.world_mut()
+            .get_mut::<IntentQueue>(a)
+            .unwrap()
+            .remove_first(order(c));
+        sim.world_mut().entity_mut(c).remove::<terri_core::AtWork>();
+        sim.world_mut()
+            .entity_mut(a)
+            .remove::<terri_core::Blocked>();
+        provoke(sim.world_mut());
+        assert!(queued_fight(&sim, a, b));
+        assert!(sim.world().resource::<Fights>().provoked(a));
+        sim.world_mut()
+            .get_mut::<IntentQueue>(a)
+            .unwrap()
+            .push_front(order(c));
+        sim.world_mut().entity_mut(b).insert(terri_core::AtWork {
+            remaining_ticks: 100,
+        });
+        provoke(sim.world_mut());
+        assert!(!sim.world().resource::<Fights>().provoked(a));
+        assert_eq!(sim.world().get::<IntentQueue>(a).unwrap().len(), 2);
     }
 
     /// The roll is one seeded draw: two worlds from one seed fire on the

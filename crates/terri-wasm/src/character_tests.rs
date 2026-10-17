@@ -141,8 +141,9 @@ fn creator_queue_loads_pre_box_save_and_reproduces_its_completed_bytes() {
 
 /// A historical fixture re-expressed under today's content: the action
 /// manifest names today's social vocabulary (Fight joined Chat in issue 248)
-/// and the world carries today's content digest. A restore rewrites exactly
-/// those two things, so every other byte must still match the fixture.
+/// and the world carries today's content digest. Saving rebuilds the
+/// manifest from the pack and a restore rewrites the digest; nothing else
+/// about the fixture may change, so every other byte must still match.
 fn with_current_content(
     handle: &SimHandle,
     mut legacy: terri_core::save_v6::SaveSnapshotV6,
