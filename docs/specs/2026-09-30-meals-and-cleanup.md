@@ -122,9 +122,12 @@ for later visitors rather than an invisible chore debt.
 
 ## [MC-annoyance] Room entry is an episode
 
-Room membership comes from saved wall boundaries. Doorways separate rooms
+Room membership uses the shared confirmed enclosed-room map defined in the
+[room identity spec](2026-10-17-room-identities.md). Doorways separate rooms
 even though Sims can walk through them. Occupied furniture does not cut a room
-in two. Visible dishes, including a Sim's own old mess, produce a Dirty dishes
+in two. Outside does not create shared dish-annoyance or room-entry cleanup
+effects. Household-wide dish duties retain their existing rules.
+Visible dishes, including a Sim's own old mess, produce a Dirty dishes
 moodlet once the room load exceeds that Sim's cleanliness threshold. Six dish
 units count as full load. The [cleanliness response](2026-10-13-cleanliness.md)
 scales the ordinary penalty up to its existing maximum; more cleanliness lowers
@@ -144,6 +147,11 @@ visit. Own dishes count toward the room load but do not cause self-resentment.
 Room entry or a genuinely new visible dish identity arms one pending cleanup opportunity. A busy Sim retains it until the next idle boundary. Own old mess also qualifies, without an affinity penalty toward oneself. The idle Sim gets one cleanup roll at 35% of
 their needs-adjusted own-cleanup probability. Claims still prevent duplicate
 chores. A busy Sim's entry does not become a per-tick retry after they finish.
+
+Build edits retain the confirmed membership and visit state until Confirm.
+Confirm reconciles the continuing visit without fabricating entry, rerolling
+pending decisions, or clearing known or noticed dishes. Ordinary later movement
+still starts or ends visits under the rules above.
 
 ## [MC-sharing] One cooked meal feeds at most four
 

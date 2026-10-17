@@ -17,10 +17,11 @@ Help groups Build & place, People & actions, Camera, and Options & saves. Its Sh
 | Tool | Actions |
 | --- | --- |
 | Walls | Wall, Doorway and Window form the upper arc. Both curved arrows alternate the two supported edge orientations without editing the house. Remove and Clear sit below. |
-| Furniture | Confirm, both supported rotation directions, Sell with the actual payout, and Cancel. Placement, facing and sale restrictions remain authoritative. |
+| Furniture | Place, both supported rotation directions, Sell with the actual payout, and Cancel. Place accepts the preview into the Build draft; the footer Confirm accepts the whole batch. Placement, facing and sale restrictions remain authoritative. |
 | Buy | Buy with the actual price, both supported rotations, Choose item and Cancel. Choose item focuses the existing catalogue selector. Affordability, colour and placement checks remain intact. |
-| Room | Build room, Doorway, Corners and Cancel. Doorway requests an outline edge and toggles its doorway. Clicking elsewhere during that selection does not restart the room. Corners clears the outline without building. |
+| Rooms | Select rooms is the default mode, with a room dropdown and name field. Build room retains Build room, Doorway, Corners and Cancel. Doorway requests an outline edge and toggles its doorway. Clicking elsewhere during that selection does not restart the room. Corners clears the outline without building. |
 | Floors | Clicking only selects and highlights a tile. Covering buttons read names from content and apply to the selected tile. Remove restores the original floor; Clear removes selection. Selecting another tile never applies the previous covering. |
+| Land | Select a strip to read its size and quote. The purchase confirmation accepts it into the draft; the footer Confirm accepts the batch. Land retains its strip and dialog controls rather than using furniture placement actions. |
 
 Floor number bindings apply a covering to an existing tile. Without selection, they stage nothing and show “Select a tile first.” Commands already sent retain their results across tool changes; loading resets controllers as before.
 
