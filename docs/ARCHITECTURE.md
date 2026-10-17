@@ -1138,7 +1138,8 @@ The lot has a house and a yard ([OS-grow] in
 `docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
 size from the lot's north-west corner, and every other tile is yard: walkable
 floor to the simulation, drawn by the shell as the floor under the lot's
-`yard_look` colour shift. Neither is saved. The house's east and south walls are
+`yard_look` colour shift with the current season's color change on top
+([SEA-yard] in `docs/specs/2026-10-17-seasons.md`). Neither is saved. The house's east and south walls are
 ordinary wall edges, and the front door stands on the east one, its line a
 doorway that `portals::front_door_lines` names from the content, never from the
 presentation-only portal rows: the front door swings for a sim walking through
