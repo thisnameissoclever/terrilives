@@ -12199,3 +12199,10 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the projected snapshot retained an action manifest entry whose only reference was the removed purchase. Command columns and their derived validation metadata are one save invariant.
 3. Prevention: let the persistence layer own semantic snapshot projections. Derive dependent metadata through its canonical producer from the projected state, retaining references required by recipe origins and saved intents. Keep the live input queue untouched during preparation and keep strict reference validation.
 4. Verification: require a command-free projection of a household with a queued new-model purchase to restore strictly while the original queued snapshot stays unchanged. Exercise mixed command columns and retained recipe origins. Assert the typed preparation result before checking purchase receipts, then require correct funds, object identity and command order.
+
+## [L-queued-fixture-domain-validity] Admit synthetic command streams before testing their projection
+
+1. What happened: a snapshot-projection test failed repeatedly before reaching its target assertions. Its queued recovery named a nonexistent book copy, and its character edit used a guessed person identity.
+2. Root cause: command structure, domain validity and successful execution have different requirements. A structurally valid request can reference no current object or person; an admissible purchase can still lack funds.
+3. Prevention: obtain identities from runtime-created state and definitions from authored content. Fund a purchase explicitly when affordability is a fixture requirement. Strictly restore the original mixed command stream before testing its derived projection. Preserve separate model references for placed objects, pending purchases and completed recipe origins.
+4. Verification: admit the base, origin-bearing and queued snapshots in stages. Require the original queue to remain unchanged, the projected input queue to be empty, and the projected save to restore. Keep a malformed-projection control that fails because of its intended metadata mismatch.
