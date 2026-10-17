@@ -906,7 +906,7 @@ Activity bubbles occupy a separate annotation pass after physical and translucen
 
 Short walls and grime use separate translucent draws after opaque geometry. They test existing scene depth without claiming an entire opaque pixel. Render passes restore their pipeline, bind group, and vertex streams after dynamic draws. Wall adjacency and build-mode behavior remain defined in `docs/specs/2026-09-30-cutaway-walls.md`.
 
-The selected person's ellipse uses an explicit packed command distinct from placement tile rings. It draws smooth translucent color at scene resolution on the floor-decal plane. Posed foot height never raises it above the floor, and it cannot replace physical depth or object identity. Shower steam integrates a bounded, moving density field only in front of the opaque surface at each scene sample. Authored cabin planes bound the vapor, and scene lighting colors it. Both effects finish before activity annotations and color reduction.
+Floor markers use an explicit packed command: the selected person's ellipse and the single ellipse under an object being placed in Build mode. Each marker row carries its world semi-axes and color, and one instanced draw after the opaque pass renders every marker as smooth translucent color at scene resolution on the floor-decal plane. Posed foot height never raises the person's marker above the floor, and no marker can replace physical depth or object identity. A placement marker passes just outside the corners of the object's footprint, so it tilts with a footprint that is longer on one side ([PM-marker] in `docs/specs/2026-10-17-placement-marker.md`). The Walls tool's tile highlight remains one ring sprite per tile. Shower steam integrates a bounded, moving density field only in front of the opaque surface at each scene sample. Authored cabin planes bound the vapor, and scene lighting colors it. Both effects finish before activity annotations and color reduction.
 
 The art direction remains Muted Line: reviewed offline Blender artwork, historical procedural sprites, and configured cartoon character meshes. Registered color and depth share source samples; ordinary image interpolation uses premultiplied linear values. Existing colorway and lighting meanings are preserved. Dated evidence distinguishes source preservation, actual visual comparisons, graphics measurements, and owner acceptance.
 
@@ -934,8 +934,9 @@ step, passing doorways and stopping at walls, and is rebuilt with the lamp
 field. Each instance carries its tile's shade (one minus its exposure) in the
 spare fourth float of its colourway attribute, instance slot 15; static rows
 bake it with the camera block, and people, furniture, doors and the placement
-preview sample it per frame. Markers (the selection and footprint rings, the
-tile highlight and activity bubbles) stay unshaded. The sprite
+preview sample it per frame. Markers (the floor markers under a selected
+person and an object being placed, the tile highlight and activity bubbles)
+stay unshaded. The sprite
 uniform grows by one vec4, `sky`, whose first float is
 `interior_daylight_shade` times the sun's strength, or 0 in flat light. The
 shader multiplies the ambient by one minus that times the instance's shade
