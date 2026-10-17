@@ -657,6 +657,18 @@ describe('BuyToolControls', () => {
       element('buy-serves').textContent]).toEqual([null, CHOOSE_ITEM, '', '']);
   });
 
+  it('shows the Colour list only while an item is chosen', () => {
+    const { buy, view, element } = controls();
+    buy.enter();
+    view.render();
+    expect([element('buy-colour').hidden, element('buy-colour-label').hidden]).toEqual([true, true]);
+    cards(element)[1].fire('click');
+    expect([element('buy-colour').hidden, element('buy-colour-label').hidden]).toEqual([false, false]);
+    buy.cancel();
+    view.render();
+    expect(element('buy-colour').hidden).toBe(true);
+  });
+
   it('keeps one card in the Tab order, and Choose item focuses the chosen card or the first shown', () => {
     const { buy, source, view, doc, element } = controls();
     buy.enter();

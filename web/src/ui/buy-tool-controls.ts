@@ -100,6 +100,7 @@ export class BuyToolControls {
   private readonly showButtons: { value: number | null; button: HTMLButtonElement }[] = [];
   private readonly facts: HTMLElement;
   private readonly colour: HTMLSelectElement;
+  private readonly colourLabel: HTMLElement;
   private readonly serves: HTMLElement;
   private readonly facing: HTMLElement;
   private readonly price: HTMLElement;
@@ -159,6 +160,7 @@ export class BuyToolControls {
       this.render();
     });
     this.colour = required('buy-colour');
+    this.colourLabel = required('buy-colour-label');
     // [RC-slice-buy]: the colourways are content, so the list is built once.
     for (const [index, name] of tool.colourways.entries()) {
       const option = document.createElement('option');
@@ -288,6 +290,9 @@ export class BuyToolControls {
     this.clearFilters.disabled = held || (tool.filter === null && tool.roomFilter === null);
     this.colour.value = String(tool.colourway);
     this.colour.disabled = held || tool.colourways.length < 2;
+    // Rule 4: nothing about an item shows beneath the grid until one is chosen.
+    this.colour.hidden = tool.chosen === null;
+    this.colourLabel.hidden = tool.chosen === null;
     const model = tool.chosen?.model;
     this.facts.textContent = model ? modelFactsLabel(model, this.needNames) : '';
     this.serves.textContent = tool.chosen ? servesLabel(tool.chosen.needs, this.needNames) : '';

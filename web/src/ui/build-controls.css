@@ -101,12 +101,16 @@ body[data-building='true'] #build-camera { display: flex; }
   #builder-dock .shortcuts { margin-top: 4px; }
   #builder-dock .shortcuts > summary { min-height: 44px; }
   /* A scroll container's automatic minimum height is zero, so the strip
-     keeps the height of its cards or the dock would squeeze it shut. */
-  #builder-dock .catalogue-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; max-height: none; min-height: max-content; flex: none; }
+     keeps the height of its cards or the dock would squeeze it shut. In the
+     dock a card lays its picture beside its lines, so the whole card fits
+     the dock's short view. */
+  #builder-dock .catalogue-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; min-height: max-content; flex: none; }
   /* The Buy tool scrolls inside the dock; its rows keep their content's
      height rather than sharing the dock's, so nothing overlaps. */
   #builder-dock #buy-tool { grid-auto-rows: max-content; }
-  #builder-dock .catalogue-card { flex: 0 0 96px; }
+  #builder-dock .catalogue-card { flex: 0 0 172px; grid-template-columns: 52px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 6px; row-gap: 0; padding: 4px 6px; text-align: left; }
+  #builder-dock .catalogue-picture { grid-row: 1 / span 3; width: 52px; height: 52px; }
+  #builder-dock .catalogue-type, #builder-dock .catalogue-model, #builder-dock .catalogue-price { grid-column: 2; text-align: left; }
 }
 #build-context-layout[hidden] { display: none !important; }
 body[data-build-rows='true'] #build-context-layout { position: fixed; inset: 8px; display: grid; grid-template-rows: auto minmax(24px, 1fr) auto minmax(0, 36dvh); gap: 4px; z-index: 4; pointer-events: none; }
