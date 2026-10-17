@@ -150,20 +150,26 @@ pub fn compile(root: &Path) -> pack::ContentPack {
         // published-pack conversions too.
         ("days_per_season", toml::Value::Integer(7)),
         ("first_season", toml::Value::Integer(0)),
-        // The table is read from the same constant the conversions use,
-        // rather than a third copy of twelve numbers; each f32 widens to an
-        // f64 that narrows back to itself when the tuning is parsed.
+        // The looks are read from the same constant the conversions use,
+        // rather than a third copy of twelve numbers, and written in the
+        // authored shape: one table per season, keyed by name. Each f32
+        // widens to an f64 that narrows back to itself when the tuning is
+        // parsed.
         (
             "season_yard_looks",
-            toml::Value::Array(
-                pack::Tuning::SHIPPED_SEASON_YARD_LOOKS
+            toml::Value::Table(
+                schema::SEASON_KEYS
                     .iter()
-                    .map(|row| {
-                        toml::Value::Array(
-                            row.iter()
-                                .map(|value| toml::Value::Float(f64::from(*value)))
-                                .collect(),
-                        )
+                    .zip(pack::Tuning::SHIPPED_SEASON_YARD_LOOKS)
+                    .map(|(season, row)| {
+                        let look = schema::SEASON_LOOK_KEYS
+                            .iter()
+                            .zip(row)
+                            .map(|(key, value)| {
+                                (key.to_string(), toml::Value::Float(f64::from(value)))
+                            })
+                            .collect();
+                        (season.to_string(), toml::Value::Table(look))
                     })
                     .collect(),
             ),

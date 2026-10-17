@@ -18,7 +18,7 @@ use crate::pack::{CompiledColourway, CompiledCovering, CompiledSkill, Facing, Fa
 use crate::schema::{
     AffinityKindDef, AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile,
     InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile,
-    TraitsFile, TuningFile, VisualDef, VoiceFile, WEEKDAY_NAMES,
+    TraitsFile, TuningFile, VisualDef, VoiceFile, SEASON_KEYS, WEEKDAY_NAMES,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::layout::{EdgeAxis, WallEdge};
@@ -774,8 +774,8 @@ fn check_season_tuning(tuning: &TuningFile) -> Result<(), ContentError> {
             value: tuning.first_season,
         });
     }
-    const SEASONS: [&str; 4] = ["Spring", "Summer", "Autumn", "Winter"];
-    for (season, &[hue, strength, lightness]) in SEASONS.into_iter().zip(&tuning.season_yard_looks)
+    for (season, &[hue, strength, lightness]) in
+        SEASON_KEYS.into_iter().zip(&tuning.season_yard_looks)
     {
         if let Some(field) = shift_out_of_range(hue, strength, lightness) {
             return Err(ContentError::SeasonLookOutOfRange { season, field });
@@ -9808,18 +9808,19 @@ mod tests {
     }
 
     /// [SEA-yard]: each season's yard look is held to a lot look's ranges,
-    /// row by row, and the error names the season and the field. The edges
-    /// of each range are legal, and a value just past one is refused.
+    /// row by row, and the error names the season and the field by their
+    /// keys in `tuning.toml`. The edges of each range are legal, and a value
+    /// just past one is refused.
     #[test]
     fn rejects_a_season_yard_look_outside_a_look_range() {
         for (row, column, value, season, field) in [
-            (0, 0, 180.5, "Spring", "hue"),
-            (1, 0, -180.5, "Summer", "hue"),
-            (2, 1, -0.01, "Autumn", "strength"),
-            (3, 1, 2.01, "Winter", "strength"),
-            (3, 2, 0.26, "Winter", "lightness"),
-            (1, 2, -0.26, "Summer", "lightness"),
-            (2, 0, f32::NAN, "Autumn", "hue"),
+            (0, 0, 180.5, "spring", "hue"),
+            (1, 0, -180.5, "summer", "hue"),
+            (2, 1, -0.01, "autumn", "strength"),
+            (3, 1, 2.01, "winter", "strength"),
+            (3, 2, 0.26, "winter", "lightness"),
+            (1, 2, -0.26, "summer", "lightness"),
+            (2, 0, f32::NAN, "autumn", "hue"),
         ] {
             let compiled =
                 compile_tuned(tuning_where(|t| t.season_yard_looks[row][column] = value));

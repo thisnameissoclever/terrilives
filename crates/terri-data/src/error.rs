@@ -1086,7 +1086,8 @@ pub enum ContentError {
     FirstSeasonOutOfRange {
         value: u8,
     },
-    /// A season's yard look outside a lot look's ranges - [SEA-yard].
+    /// A season's yard look outside a lot look's ranges, named by its keys
+    /// in `season_yard_looks`, for example `summer` and `hue` - [SEA-yard].
     SeasonLookOutOfRange {
         season: &'static str,
         field: &'static str,
@@ -2376,9 +2377,9 @@ impl fmt::Display for ContentError {
             ),
             ContentError::SeasonLookOutOfRange { season, field } => write!(
                 f,
-                "season_yard_looks in tuning.toml gives {season} a {field} \
-                 outside its range: hue -180 to 180, strength 0 to 2, \
-                 lightness -0.25 to 0.25"
+                "season_yard_looks.{season}.{field} in tuning.toml is outside \
+                 its range: hue -180 to 180, strength 0 to 2, lightness -0.25 \
+                 to 0.25"
             ),
             ContentError::CircadianTooFewPoints { points } => write!(
                 f,

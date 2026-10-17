@@ -732,23 +732,29 @@ first_weekday = 0
 days_per_season = 7
 first_season = 0
 
-# The yard grass's color change in each season, in season order, as
-# [hue, strength, lightness] like the yard look in lot.toml ([SEA-yard]).
-# Each row is applied on top of the lot's yard look: its hue turn is
-# added, its strength multiplies the color strength, and its lightness
-# is added, which equals the shader applying the two shifts in turn
-# while no color is clamped. [0, 1, 0]
-# leaves the grass as authored. The house floors, the street and any
-# floor laid on the yard do not change. Each row has the same ranges as
-# a lot look: hue -180 to 180 degrees (negative turns green toward
-# yellow), strength 0 to 2, lightness -0.25 to 0.25. Kept small so the
-# grass pattern stays readable in every season.
-season_yard_looks = [
-  [0.0, 1.0, 0.0],      # Spring: the grass as authored
-  [-6.0, 0.9, 0.02],    # Summer: a little warmer, drier and lighter
-  [-45.0, 0.9, -0.05],  # Autumn: a yellow-brown cast
-  [12.0, 0.3, 0.14],    # Winter: pale and desaturated, a frosty lightness
-]
+# The yard grass's color change in each season ([SEA-yard]): one look
+# for each of spring, summer, autumn and winter, each with a hue, a
+# strength and a lightness like the yard look in lot.toml. A season's
+# look is applied on top of the lot's yard look: its hue turn is added,
+# its strength multiplies the color strength, and its lightness is
+# added, which equals the shader applying the two shifts in turn while
+# no color is clamped. hue 0, strength 1 and lightness 0 leave the grass
+# as authored. The house floors, the street and any floor laid on the
+# yard do not change. Each look has a lot look's ranges: hue -180 to 180
+# degrees (negative turns green toward yellow), strength 0 to 2,
+# lightness -0.25 to 0.25. All four seasons and all three keys are
+# required; a missing season, a misspelled or extra key, or a season
+# that is not one of the four stops the build with the season named.
+# Kept small so the grass pattern stays readable in every season.
+#
+# Spring: the grass as authored.
+season_yard_looks.spring = { hue = 0.0, strength = 1.0, lightness = 0.0 }
+# Summer: a little warmer, drier and lighter.
+season_yard_looks.summer = { hue = -6.0, strength = 0.9, lightness = 0.02 }
+# Autumn: a yellow-brown cast.
+season_yard_looks.autumn = { hue = -45.0, strength = 0.9, lightness = -0.05 }
+# Winter: pale and desaturated, with a frosty lightness.
+season_yard_looks.winter = { hue = 12.0, strength = 0.3, lightness = 0.14 }
 
 # Satisfaction lost PER NEGLECTED NEED per tick below the floor:
 # One crisis costs about 0.0144 points per game day, alongside its mood
