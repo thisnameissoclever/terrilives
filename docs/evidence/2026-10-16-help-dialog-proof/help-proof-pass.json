@@ -1,0 +1,91 @@
+{
+  "booted": true,
+  "expectRegression": false,
+  "pageErrors": [],
+  "steps": [
+    {
+      "name": "opens on a first visit",
+      "pass": true,
+      "detail": {
+        "open": true,
+        "display": "flex",
+        "height": 560,
+        "bodyScrollTop": 0,
+        "activeElementId": "help-title"
+      }
+    },
+    {
+      "name": "closing hides it",
+      "pass": true,
+      "detail": {
+        "open": false,
+        "display": "none",
+        "height": 0,
+        "bodyScrollTop": 0,
+        "activeElementId": "stage"
+      }
+    },
+    {
+      "name": "stays closed after a reload",
+      "pass": true,
+      "detail": {
+        "open": false,
+        "display": "none",
+        "height": 0,
+        "bodyScrollTop": 0,
+        "activeElementId": ""
+      }
+    },
+    {
+      "name": "reopens at the first instruction with focus on the title",
+      "pass": true,
+      "detail": {
+        "open": true,
+        "display": "flex",
+        "height": 560,
+        "bodyScrollTop": 0,
+        "activeElementId": "help-title"
+      }
+    },
+    {
+      "name": "Got it sits inside the 375x812 portrait viewport",
+      "pass": true,
+      "detail": {
+        "rect": {
+          "top": 625,
+          "left": 33,
+          "bottom": 669,
+          "right": 342
+        },
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "inside": true
+      }
+    },
+    {
+      "name": "Got it sits inside the 640x360 landscape viewport",
+      "pass": true,
+      "detail": {
+        "rect": {
+          "top": 287,
+          "left": 33,
+          "bottom": 331,
+          "right": 607
+        },
+        "viewport": {
+          "width": 640,
+          "height": 360
+        },
+        "inside": true
+      }
+    }
+  ],
+  "closedHides": true,
+  "controlCaught": false,
+  "notCovered": [
+    "env(safe-area-inset-*) padding: Playwright mobile emulation does not emulate insets, and this script does not set Emulation.setDeviceMetricsOverride over CDP."
+  ],
+  "pass": true
+}
