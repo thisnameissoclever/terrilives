@@ -118,6 +118,10 @@ it('reviews surroundings and trait influences at two decimals, never float noise
   }
   expect(readableNumber(1.1714)).toBe('1.17');
   expect(readableNumber(0.7099999785423279)).toBe('0.71');
+  // A preserved out-of-range value must stay a valid number-box value, and a
+  // typed -0 must not read as negative.
+  expect(readableNumber(1234.5)).toBe('1234.5');
+  expect(readableNumber(-0)).toBe('0');
 });
 
 it('explains the normalized height control and reviews physical height relative to average',()=>{

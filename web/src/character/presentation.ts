@@ -11,7 +11,7 @@ import { floatValue, type CharacterDraftV1, type F32Bits, type Rgb } from './sch
  * digits so a tiny setting never reads as "off".
  */
 export const readableNumber=(value:number):string=>value!==0&&Math.abs(value)<.005
-  ?Number(value.toPrecision(2)).toString():new Intl.NumberFormat('en',{maximumFractionDigits:2,useGrouping:false}).format(value);
+  ?Number(value.toPrecision(2)).toString():new Intl.NumberFormat('en',{maximumFractionDigits:2,useGrouping:false}).format(value+0);
 export function skillStanding(practice:F32Bits,thresholds:readonly F32Bits[]):{level:number;progress:number;maximum:boolean} {
   const value=floatValue(practice),steps=thresholds.map(floatValue);let level=0;
   while(level+1<steps.length&&value>=steps[level+1])level++;
