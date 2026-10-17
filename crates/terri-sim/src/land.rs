@@ -1129,8 +1129,8 @@ mod tests {
     /// A record naming a room still names that room after a purchase on a
     /// lot narrower than its house is tall, a shape content allows. On this
     /// 4 by 12 lot, whose house is the whole lot, two walls make room 1
-    /// start at (1, 0) and leave (1, 4) in room 0, so a room found by any
-    /// tile other than its id's own column and row would be the wrong one.
+    /// start at (1, 0) and leave (1, 4), the tile that reading row 1 * 4
+    /// instead of 1 / 4 would pick, in room 0.
     #[test]
     fn a_room_record_names_the_moved_room_on_a_lot_narrower_than_its_house_is_tall() {
         use terri_core::save::SavedCleanupOpportunity;

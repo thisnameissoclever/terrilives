@@ -1723,7 +1723,8 @@ against it. Tests in that file now kill every one of them that compiles
 except one, which is added to `mutants-baseline.txt`:
 
 `crates/terri-sim/src/land.rs:338:26: replace % with + in grow`. After a
-purchase, `grow` reads each room id again at its seed tile, moved with the
+purchase, `grow` reads each room id again at its seed tile (the tile whose
+cell number is the id: column id % width, row id / width), moved with the
 world, and falls back to the moved cell of that id when the tile is in no
 room. The mutation makes the seed's column the id plus the old width, which
 is always past the grid's east edge, so the lookup always falls back. For
