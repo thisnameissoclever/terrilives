@@ -68,6 +68,6 @@ describe('the sky wired into the page', () => {
   });
 
   it('rebuilds the sky with the lamp field whenever the lot changes', () => {
-    expect(MAIN_TS).toMatch(/lighting = buildLightField\(sim, lotWidth, lotHeight, lot\.walls, true, lot\.edges, lot\.windows\);\s*sky = buildSky\(\);/);
+    expect(MAIN_TS).toMatch(/lighting = buildLightField\(sim, lotWidth, lotHeight, lot\.walls, true, lightingEdges\(\), lot\.windows\);\s*sky = buildSky\(\);/);
   });
 });

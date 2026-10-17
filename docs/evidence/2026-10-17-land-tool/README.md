@@ -1,6 +1,6 @@
 # Land tool played pass, 2026-10-17
 
-A played check of the Build mode Land tool (issue 254, part two) on the production bundle of branch `twcl/254-land-ui`, served by `vite preview` on port 4173 and driven in the desktop app's built-in browser at a 1400 by 900 viewport with the game's sound off. The household's money came from a schema-thirteen save of the shipped lot with $1,000,000, written into the page's save slot; the household with $0 is a New game.
+A played check of the Build mode Land tool (issue 254, part two) on the production bundle of branch `twcl/254-land-ui`, served by `vite preview` on port 4173 and driven in the desktop app's built-in browser at a 1400 by 900 viewport with the game's sound off. The household's money came from a schema-thirteen save of the shipped lot with $1,000,000, written into the page's save slot; the household with $0 is a New game. Frames `01` to `03` come from the first page session on the bundle before the floor fix, entered at 02:02 of day one; frames `04` to `07` come from a second session on the fixed bundle, which loaded the same save at startup and played on to 21:34 before Build was entered, which is why the household there holds $1,000,120; frame `08` is a New game on the fixed bundle.
 
 | Image | Moment | What it shows |
 | --- | --- | --- |

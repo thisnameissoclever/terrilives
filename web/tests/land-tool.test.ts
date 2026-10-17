@@ -118,8 +118,7 @@ describe('the Land tool', () => {
     expect(land.reach()).toBe(10);
     const highlight = land.highlight()!;
     expect(highlight.valid).toBe(true);
-    expect(highlight.tiles).toHaveLength(3 * stripOutline(0, 20, 16, 10).length - 0
-      + (stripOutline(1, 20, 16, 10).length - stripOutline(0, 20, 16, 10).length) * 2);
+    expect(highlight.tiles).toHaveLength(stripOutline(0, 20, 16, 10).length + 2 * stripOutline(1, 20, 16, 10).length);
     expect(source.staged).toEqual([]);
   });
 

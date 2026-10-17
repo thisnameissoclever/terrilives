@@ -35,6 +35,7 @@ import { BookResults, bookRefusal } from './books/results.js';
 import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
 import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
+import { edgesWithShell } from './render/house-shell.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import {CharacterWorld,type CharacterFrameProbe} from './render/character/world.js';
@@ -1348,12 +1349,15 @@ async function main(): Promise<void> {
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
-  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
+  // The house's implicit shell is a wall to the lamps and the sky once
+  // bought land lies beyond it (land expansion, issue 254).
+  const lightingEdges = (): Uint32Array | null => edgesWithShell(lot.edges, lot.house, lot.houseOrigin, lot.width, lot.height);
+  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows);
   // [OS-daylight]: how much open sky each tile sees, rebuilt with the lamp
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
   const buildSky = (): SkyExposure =>
-    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin);
+    buildSkyExposure(lot.width, lot.height, lightingEdges(), lot.house ?? null, daylightReachPerTile, lot.windows, lot.houseOrigin);
   let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
@@ -1414,7 +1418,7 @@ async function main(): Promise<void> {
   const wallFade = new WallFade();
   function applyCamera(): void {
     if (lightingDirty) {
-      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
+      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows);
       sky = buildSky();
       lightingDirty = false;
     }
@@ -1771,6 +1775,7 @@ async function main(): Promise<void> {
     lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
     lot.floors = sim.floorTiles(); syncFloorResources();
     lot.doors = sim.interiorDoorLines(); lot.horizontalDoors = sim.interiorHorizontalDoorLines();
+    lot.frontDoors = sim.frontDoorLines();
     lightingDirty = true; cameraDirty = true; keyboardTargets.clear();
     if (buildSession.active) buildBatchStatus.textContent = 'Changes remain pending until Confirm.';
   }
@@ -1807,13 +1812,14 @@ async function main(): Promise<void> {
     toolSwitch?.render(); placementActions?.invalidate();
   }
   function restoreBuildPresentation(): void {
-    adoptLotShape();
+    const reshaped = adoptLotShape();
     menu.close(); keyboardTargets.clear(); wallFade.reset();
     bookResults.resetAfterLoad(); bookCommerce.resetAfterLoad();
     builder.resetAfterLoad(); wallTool.resetAfterLoad(lotWidth, lotHeight);
     windowTool.resetAfterLoad(lotWidth, lotHeight); roomTool.resetAfterLoad(lotWidth, lotHeight);
     buyTool.resetAfterLoad(lotWidth, lotHeight); floorTool.resetAfterLoad(lotWidth, lotHeight);
-    landTool.setLotSize(lotWidth, lotHeight); characterWorld.reset(); characterWorld.prepareFixtures(sim);
+    landTool.setLotSize(lotWidth, lotHeight);
+    if (reshaped) { characterWorld.reset(); characterWorld.prepareFixtures(sim); }
     refreshBuildArchitecture(); audio.reset('load'); clampCamera();
     toolSwitch?.render(); placementActions?.invalidate();
   }
