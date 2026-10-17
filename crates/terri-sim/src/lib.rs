@@ -3333,10 +3333,11 @@ impl Sim {
     /// `None` when it is not on one. Composed here rather than in the
     /// shell because every word of it is pack content.
     ///
-    /// A shift keeps an unfinished errand so it resumes at home, but while
-    /// the sim is on the way to work, at work or on the way home it is not
-    /// doing that errand, so this is `None` and the activity line shows the
-    /// shift instead, as the chore status already does.
+    /// A shift keeps an unfinished errand so it can resume at home, but
+    /// while the sim is on the way to work, at work or on the way home it
+    /// is not doing that errand, so this is `None`, as the chore status
+    /// already is. The activity line then shows the activity code: At work
+    /// at work, Walking on the way.
     pub fn chain_status_of(&self, index: u32) -> Option<String> {
         if let Some(status) = chores::status(&self.world, index) {
             return Some(status);
