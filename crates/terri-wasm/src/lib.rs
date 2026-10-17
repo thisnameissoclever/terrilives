@@ -8805,6 +8805,35 @@ mod boundary_tests {
             handle.chain_status_of(tim),
             "Cook breakfast - step: Cook (carrying ingredients)"
         );
+
+        // A shift keeps the errand for later, but on the way to work, at
+        // work and on the way home Tim is not doing it, so the line is
+        // blank and the activity shows the shift; home again, it returns.
+        let away =
+            |handle: &mut SimHandle, commute: Option<terri_core::Commuting>, at_work: bool| {
+                let mut person = handle.sim.world_mut().entity_mut(entity);
+                person.remove::<(terri_core::Commuting, terri_core::AtWork)>();
+                if let Some(commute) = commute {
+                    person.insert(commute);
+                }
+                if at_work {
+                    person.insert(terri_core::AtWork {
+                        remaining_ticks: 60,
+                    });
+                }
+            };
+        away(&mut handle, Some(terri_core::Commuting::Outbound), false);
+        assert_eq!(handle.chain_status_of(tim), "", "on the way to work");
+        away(&mut handle, None, true);
+        assert_eq!(handle.chain_status_of(tim), "", "at work");
+        away(&mut handle, Some(terri_core::Commuting::Inbound), false);
+        assert_eq!(handle.chain_status_of(tim), "", "on the way home");
+        away(&mut handle, None, false);
+        assert_eq!(
+            handle.chain_status_of(tim),
+            "Cook breakfast - step: Cook (carrying ingredients)",
+            "home again, the kept errand shows"
+        );
     }
 
     /// The M2e PR 3 overlay reads, against the SHIPPED lot so the pack
