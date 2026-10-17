@@ -40,6 +40,20 @@ describe('the sky with the house away from the origin', () => {
     expect(sampleSky(shelled, 25, 5)).toBeCloseTo(0.8);
   });
 
+  it('keeps a glazed shell line open to the yard behind the glass', () => {
+    const house: [number, number] = [16, 12];
+    const origin: [number, number] = [10, 0];
+    const windows = [0, 10, 5];
+    const edges = edgesWithShell(new Uint32Array(0), house, origin, 30, 16, windows)!;
+    expect(edges.length).toBe(11 * 4);
+    expect([...edges].some((_, i) => i % 4 === 0 && edges[i] === 0 && edges[i + 1] === 10 && edges[i + 2] === 5)).toBe(false);
+    const sky = buildSkyExposure(30, 16, edges, house, 0.2, windows, origin);
+    expect(sampleSky(sky, 10, 5)).toBeCloseTo(0.8);
+    // One step further in, as from any window; the unglazed shell beside it still holds.
+    expect(sampleSky(sky, 10, 4)).toBeCloseTo(0.6);
+    expect(sampleSky(sky, 9, 4)).toBe(1);
+  });
+
   it('is what the shell gives both the light field and the sky', () => {
     const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
     expect(MAIN_TS.split('buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows)')).toHaveLength(3);

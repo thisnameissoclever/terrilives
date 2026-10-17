@@ -34,8 +34,10 @@ export const OPEN_SKY: SkyExposure = { width: 0, height: 0, values: new Float32A
  * the sky reaches into from the yard on every side, still losing
  * `reachPerTile` per tile. `windows` contains expanded `[axis, x, y]` rows;
  * only rear lines on the house's west or north shell seed virtual outside
- * sky. `houseOrigin` is the house's north-west tile: the origin unless land
- * lies behind or beside the house (land expansion, issue 254).
+ * sky, and with bought land beyond the shell the real yard there floods in
+ * through the glass instead. `houseOrigin` is the house's north-west tile:
+ * the origin unless land lies behind or beside the house (land expansion,
+ * issue 254).
  */
 export function buildSkyExposure(
   width: number,

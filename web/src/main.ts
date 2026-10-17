@@ -1351,7 +1351,8 @@ async function main(): Promise<void> {
   let lightingDirty = false;
   // The house's implicit shell is a wall to the lamps and the sky once
   // bought land lies beyond it (land expansion, issue 254).
-  const lightingEdges = (): Uint32Array | null => edgesWithShell(lot.edges, lot.house, lot.houseOrigin, lot.width, lot.height);
+  const lightingEdges = (): Uint32Array | null =>
+    edgesWithShell(lot.edges, lot.house, lot.houseOrigin, lot.width, lot.height, lot.windows ?? []);
   let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lightingEdges(), lot.windows);
   // [OS-daylight]: how much open sky each tile sees, rebuilt with the lamp
   // field whenever the lot's walls change.
