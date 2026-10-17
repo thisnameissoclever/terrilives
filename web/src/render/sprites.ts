@@ -654,7 +654,7 @@ export class SpriteRenderer {
     return this.depthTexture;
   }
 
-  /** Floor marker rows take their own pass after the opaque scene, so the sprite pass leaves them out. */
+  /** Floor marker rows take their own draw later in the scene pass, so the sprite draws leave them out. */
   private drawOpaqueRange(pass:GPURenderPassEncoder,start:number,count:number,markers:number):void {
     drawAroundMarkers(pass,start,count,this.markerSlots,markers);
   }
@@ -754,12 +754,16 @@ export class SpriteRenderer {
       pass.draw(VERTICES_PER_QUAD,this.grimeCount);
       pass.setVertexBuffer(0,this.instanceBuffer);pass.setVertexBuffer(1,this.ownerBuffer);
     }
+    // Floor markers blend over the opaque scene, people and grime, and come
+    // before the short walls: those write no depth, so only drawing them
+    // afterwards lets a short wall cover the rim of a marker behind it.
+    this.groundSelection.draw(pass,this.sceneTarget!,instances,this.markerRows,markers,scale);
     if (this.lowWallCount > 0) {
       pass.setPipeline(this.lowWallPipeline);
+      pass.setBindGroup(0, this.bindGroup);
       pass.draw(VERTICES_PER_QUAD, this.lowWallCount, 0, total);
     }
     pass.end();
-    this.groundSelection.draw(encoder,this.sceneTarget!,instances,this.markerRows,markers,scale);
     drawEffects?.(encoder,this.sceneTarget!);
     if(annotations.count){
       const annotationPass=this.sceneTarget!.beginAnnotations(encoder,owners!.subarray(annotations.start,afterAnnotations));

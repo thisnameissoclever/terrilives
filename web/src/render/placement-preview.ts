@@ -40,7 +40,10 @@ const RING = spriteIndex('selectionRing');
 const VALID = [0.75, 0.9, 1] as const;
 const INVALID = [229 / 255, 140 / 255, 133 / 255] as const;
 
-/** Floor tiles ringed in the preview tints: the Walls tool's chosen line. */
+/**
+ * Floor tiles ringed in the preview tints: the tiles a Walls, Room, Floors,
+ * Land or Window tool choice covers, a line or an area.
+ */
 export interface TileHighlight {
   readonly tiles: readonly (readonly [number, number])[];
   readonly valid: boolean;
@@ -52,8 +55,9 @@ export function tileHighlightCount(highlight: TileHighlight | null): number {
 
 /**
  * Appends one ring sprite per tile, a quarter layer above the prop layer at
- * that tile. A highlight marks a line of tiles rather than one object, so it
- * keeps the per-tile ring instead of the placement preview's floor marker.
+ * that tile. A highlight marks a set of tiles, a line or an area, rather than
+ * one object, so it keeps the per-tile ring instead of the placement
+ * preview's floor marker.
  */
 export function writeTileHighlight(out: Float32Array, slot: number,
   highlight: TileHighlight | null, originX: number, originY: number,
@@ -81,7 +85,8 @@ export function placementInstanceCount(preview: PlacementPreview | null): number
  * shade on the tile it would stand on, as the placed object will
  * ([OS-daylight]). One floor marker sized to the footprint goes first
  * ([PM-marker] in docs/specs/2026-10-17-placement-marker.md); it is drawn
- * after the opaque scene, so it stays unshaded and the art hides its middle.
+ * later in the scene pass, over the opaque scene and under the short walls,
+ * so it stays unshaded and the art hides its middle.
  */
 export function writePlacementPreview(out: Float32Array, slot: number,
   preview: PlacementPreview | null, originX: number, originY: number,

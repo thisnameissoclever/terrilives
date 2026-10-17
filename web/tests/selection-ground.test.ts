@@ -7,7 +7,7 @@ import {CharacterScenePlan} from '../src/render/character/scene-plan.js';
 import {spriteIndex} from '../src/render/atlas.js';
 import {FLOATS_PER_INSTANCE} from '../src/render/instances.js';
 import {FLOOR_DEPTH,LAYER_PROP,layeredDepth,screenX,screenY} from '../src/render/iso.js';
-import {GROUND_SELECTION_COMMAND,MAX_GROUND_MARKERS,groundMarkerRows} from '../src/render/ground-selection.js';
+import {GROUND_MARKER_COMMAND,MAX_GROUND_MARKERS,groundMarkerRows} from '../src/render/ground-selection.js';
 
 let memory:WebAssembly.Memory;
 beforeAll(async()=>{memory=(await init({module_or_path:readFileSync('src/wasm/terri_wasm_bg.wasm')})).memory;});
@@ -22,7 +22,7 @@ it('keeps ring sprites without the marker command, such as the tile highlight, o
   const data=new Float32Array(FLOATS_PER_INSTANCE*3),rows=new Int32Array(MAX_GROUND_MARKERS);
   for(let row=0;row<3;row++)data[row*FLOATS_PER_INSTANCE+3]=spriteIndex('selectionRing');
   expect(groundMarkerRows(data,3,rows)).toBe(0);
-  data[FLOATS_PER_INSTANCE+8]=GROUND_SELECTION_COMMAND;
+  data[FLOATS_PER_INSTANCE+8]=GROUND_MARKER_COMMAND;
   expect(groundMarkerRows(data,3,rows)).toBe(1);
   expect(rows[0]).toBe(1);
   expect(groundMarkerRows(data,1,rows)).toBe(0);
