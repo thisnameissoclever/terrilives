@@ -12130,3 +12130,10 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the interface names sides from the street facing the house. The numeric order is not a compass order: Rear is west, Left is south, and Right is north.
 3. Prevention: read the side mapping and record the actual house origin after each purchase. Keep relative interface labels and world coordinates distinct in tests and evidence.
 4. Verification: sides 0 then 2 move the starter origin to (10,10); sides 0 then 1 move it to (10,0). Assert those measured origins before naming a fixture for north/west translation. Correct provenance text without rewriting the original captured bytes.
+
+## [L-construction-versus-daily-assignment] Distinguish an existing unassigned duty from a new target
+
+1. What happened: naming Outside ran ordinary board reconciliation, which assigned an owner to an existing unassigned duty and consumed a random draw. The name edit changed household decisions despite unchanged physical work.
+2. Root cause: daily assignment policy and construction reconciliation shared a path that treated absence of an assignment as a new duty. A rename-only shortcut would leave the same defect in other edits.
+3. Prevention: retain the baseline target set independently of its assignments. Map existing targets through the final geometry, preserve their assigned or unassigned state, and apply construction assignment policy only to genuinely new duties. Leave ordinary daily maintenance to its normal phase.
+4. Verification: rename an existing unassigned Outside duty and require identical assignment state and randomness. Split a different room and require the old unassigned duty to remain unchanged, with only the genuinely new target consuming an owner draw. Exercise both automatic-assignment settings.
