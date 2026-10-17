@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-10-17T20:49:04.686Z",
+  "before": {
+    "shift": 0,
+    "houseOrigin": [
+      0,
+      0
+    ],
+    "camera": [
+      320.37,
+      35.19
+    ],
+    "floorCount": 144,
+    "errors": []
+  },
+  "after": {
+    "shift": 10,
+    "houseOrigin": [
+      10,
+      0
+    ],
+    "camera": [
+      -159.63,
+      -279.81
+    ],
+    "floorCount": 264,
+    "errors": []
+  },
+  "comparison": {
+    "checked": 784,
+    "changed": 0,
+    "maximumChannelDifference": 0,
+    "witnesses": [],
+    "errors": [],
+    "scale": 1.5,
+    "originalOrigin": [
+      320.37,
+      35.19
+    ],
+    "limitation": "Controlled renderer fixture, no native simulation or real land command. Actual in-game land, cancellation and reload remain required."
+  },
+  "pageErrors": []
+}
