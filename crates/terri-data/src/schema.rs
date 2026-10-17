@@ -453,17 +453,26 @@ pub const SEASON_LOOK_KEYS: [&str; 3] = ["hue", "strength", "lightness"];
 /// Read by hand rather than derived so that every malformed shape is
 /// refused with the season and the key named: a season missing, a key
 /// that is not a season, a season or the whole table written as anything
-/// but a table, a look missing a key or carrying one it does not know, and
-/// a value that is not a number. A derived reader names a missing or
-/// unknown key but not the season it sits in, and a fixed-size list of rows
-/// would drop a fifth row or a fourth number without a word. A key given
-/// twice needs no check here: TOML refuses it before any value is read.
+/// but a table, a look missing a key or carrying one it does not know, a
+/// value that is not a number, and a TOML date or time in place of the
+/// table, a look or a number. A derived reader names a missing or unknown
+/// key but not the season it sits in, and a fixed-size list of rows would
+/// drop a fifth row or a fourth number without a word.
+/// A key given twice needs no check here: TOML refuses it before any value
+/// is read.
 fn read_season_yard_looks<'de, D>(deserializer: D) -> Result<[[f32; 3]; 4], D::Error>
 where
     D: serde::Deserializer<'de>,
 {
     deserializer.deserialize_map(SeasonYardLooks)
 }
+
+/// The one key of the map the `toml` crate hands a visitor for a TOML date,
+/// time or date-time; the value under it is the date as text. The crate
+/// keeps the name private (`toml_datetime`'s `FIELD`), so it is copied here
+/// to report a date as a date rather than as a season or a key with this
+/// name. The date tests in this module fail if a `toml` upgrade renames it.
+const TOML_DATE_KEY: &str = "$__toml_private_datetime";
 
 /// Visits `season_yard_looks`: one look per season, keyed by its name.
 struct SeasonYardLooks;
@@ -484,6 +493,13 @@ impl<'de> serde::de::Visitor<'de> for SeasonYardLooks {
     {
         let mut looks = [None; 4];
         while let Some(key) = map.next_key::<String>()? {
+            if key == TOML_DATE_KEY {
+                return Err(serde::de::Error::custom(
+                    "season_yard_looks is a date or time; it needs one table for each of \
+                     spring, summer, autumn and winter, each with a hue, a strength \
+                     and a lightness",
+                ));
+            }
             let Some(season) = SEASON_KEYS.iter().position(|name| *name == key) else {
                 return Err(serde::de::Error::custom(format!(
                     "season_yard_looks has a look for `{key}`, which is not a season; \
@@ -538,6 +554,12 @@ impl<'de> serde::de::Visitor<'de> for SeasonLook {
         let season = self.0;
         let mut look = [None; 3];
         while let Some(key) = map.next_key::<String>()? {
+            if key == TOML_DATE_KEY {
+                return Err(serde::de::Error::custom(format!(
+                    "season_yard_looks.{season} is a date or time; a season's look is a table \
+                     of hue, strength and lightness"
+                )));
+            }
             let Some(index) = SEASON_LOOK_KEYS.iter().position(|name| *name == key) else {
                 return Err(serde::de::Error::custom(format!(
                     "season_yard_looks.{season} has an unknown key `{key}`; a season's \
@@ -600,6 +622,24 @@ impl<'de> serde::de::Visitor<'de> for LookNumber {
 
     fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E> {
         Ok(value as f32)
+    }
+
+    // A TOML date, time or date-time reaches a number as a one-key map; any
+    // other table here is refused as the wrong type, as serde would.
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        if map.next_key::<String>()?.as_deref() == Some(TOML_DATE_KEY) {
+            return Err(serde::de::Error::custom(format!(
+                "season_yard_looks.{}.{} is a date or time, not a number",
+                self.season, self.key
+            )));
+        }
+        Err(serde::de::Error::invalid_type(
+            serde::de::Unexpected::Map,
+            &self,
+        ))
     }
 }
 
@@ -2095,23 +2135,66 @@ mod tests {
                 ),
                 "expected a number for season_yard_looks.autumn.hue",
             ),
+            (
+                season_table_with(
+                    "spring",
+                    "{ hue = { turn = 0.5 }, strength = 1.25, lightness = 0.03125 }",
+                ),
+                "invalid type: map, expected a number for season_yard_looks.spring.hue",
+            ),
         ] {
             let err = season_looks_error(&value);
             assert!(err.contains(expected), "{value}: {err}");
         }
     }
 
-    /// [SEA-yard]: the refusals name the season in the table-header layout
-    /// too, where the offending line does not show it.
+    /// [SEA-yard]: a TOML date, time or date-time where a season's table or a
+    /// look's number belongs, or in place of the whole table, is refused as a
+    /// date or time with the season and the key named. The `toml` crate hands
+    /// a visitor each of them as a map under a private key, which must not
+    /// reach the message.
     #[test]
-    fn a_season_look_under_a_table_header_is_refused_by_name() {
+    fn a_date_in_the_season_looks_is_refused_as_a_date_or_time() {
+        for (value, expected) in [
+            (
+                "1979-05-27".to_string(),
+                "season_yard_looks is a date or time; it needs one table for each of spring",
+            ),
+            (
+                season_table_with("spring", "1979-05-27T07:32:00Z"),
+                "season_yard_looks.spring is a date or time; a season's look is a table of hue",
+            ),
+            (
+                season_table_with("winter", "07:32:00"),
+                "season_yard_looks.winter is a date or time;",
+            ),
+            (
+                season_table_with(
+                    "spring",
+                    "{ hue = 1979-05-27, strength = 1.25, lightness = 0.03125 }",
+                ),
+                "season_yard_looks.spring.hue is a date or time, not a number",
+            ),
+            (
+                season_table_with(
+                    "autumn",
+                    "{ hue = -40.5, strength = 0.8125, lightness = 1979-05-27T07:32:00 }",
+                ),
+                "season_yard_looks.autumn.lightness is a date or time, not a number",
+            ),
+        ] {
+            let err = season_looks_error(&value);
+            assert!(err.contains(expected), "{value}: {err}");
+            assert!(!err.contains("toml_private"), "{value}: {err}");
+        }
+    }
+
+    /// The fixture with each season's look written under its own
+    /// `[season_yard_looks.{season}]` header, one key per line, after the
+    /// decay table. `looks` gives each season's inline table.
+    fn header_layout(looks: &[(&str, &str)]) -> String {
         let mut source = tuning_toml_without("season_yard_looks");
-        for (season, look) in SEASON_LOOKS {
-            let look = if season == "summer" {
-                "{ hue = -7.5, strenght = 0.875, lightness = 0.0625 }"
-            } else {
-                look
-            };
+        for (season, look) in looks {
             source.push_str(&format!("\n[season_yard_looks.{season}]\n"));
             for pair in look
                 .trim_matches(|c| c == '{' || c == '}' || c == ' ')
@@ -2120,7 +2203,44 @@ mod tests {
                 source.push_str(&format!("{pair}\n"));
             }
         }
-        let err = toml::from_str::<TuningFile>(&source)
+        source
+    }
+
+    /// [SEA-yard]: the table-header layout reads like the inline one, each
+    /// season under its own header, here written Winter first.
+    #[test]
+    fn season_looks_under_table_headers_parse() {
+        let mut looks = SEASON_LOOKS.to_vec();
+        looks.reverse();
+        let parsed: TuningFile =
+            toml::from_str(&header_layout(&looks)).expect("header-layout season looks parse");
+        assert_eq!(
+            parsed.season_yard_looks,
+            [
+                [0.5, 1.25, 0.03125],
+                [-7.5, 0.875, 0.0625],
+                [-40.5, 0.8125, -0.046875],
+                [11.5, 0.375, 0.125]
+            ]
+        );
+    }
+
+    /// [SEA-yard]: the refusals name the season in the table-header layout
+    /// too, where the offending line does not show it.
+    #[test]
+    fn a_season_look_under_a_table_header_is_refused_by_name() {
+        let looks: Vec<(&str, &str)> = SEASON_LOOKS
+            .iter()
+            .map(|&(season, look)| {
+                let look = if season == "summer" {
+                    "{ hue = -7.5, strenght = 0.875, lightness = 0.0625 }"
+                } else {
+                    look
+                };
+                (season, look)
+            })
+            .collect();
+        let err = toml::from_str::<TuningFile>(&header_layout(&looks))
             .expect_err("a misspelled key must not parse")
             .to_string();
         assert!(
