@@ -46,8 +46,8 @@ body[data-building='true'] #build-camera { display: flex; }
 #placement-actions { position: fixed; z-index: 3; display: block; pointer-events: none; }
 #placement-actions[hidden] { display: none !important; }
 #placement-actions > div { position: absolute; pointer-events: none; }
-#placement-actions .hud-button { pointer-events: auto; min-height: 44px; min-width: 0; padding: 6px 8px; background: var(--hud-bg); flex-direction: column; font-size: 13px; gap: 4px; }
-#placement-actions .hud-button:hover { background: #29313a; }
+#placement-actions .hud-button { pointer-events: auto; min-height: 44px; min-width: 0; padding: 6px 8px; background: var(--action-background, var(--hud-bg)); flex-direction: column; font-size: 13px; gap: 4px; }
+#placement-actions .hud-button:is(:hover, :focus-visible, :active):not(:disabled) { background: var(--action-hover-background, #29313a); }
 #placement-actions svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 #placement-actions .context-top { top: 20px; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; align-items: flex-start; }
 #placement-actions .context-top button { flex: 1 1 80px; max-width: 108px; }

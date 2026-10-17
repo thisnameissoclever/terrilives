@@ -1,3 +1,4 @@
+import { setActionIntent } from './action-intent.js';
 import type { BedAssignmentResult, BedPlace, BedPlaceStatus } from '../bridge.js';
 import { setTextIfChanged } from './set-text-if-changed.js';
 
@@ -158,9 +159,11 @@ export function createBedAssignmentSurface(doc: Document, parent: HTMLElement,
   const assign = doc.createElement('button');
   assign.type = 'button';
   assign.textContent = 'Assign';
+  setActionIntent(assign, 'affirmative');
   const clear = doc.createElement('button');
   clear.type = 'button';
   clear.textContent = 'Clear assignment';
+  setActionIntent(clear, 'destructive');
   controls.append(assign, clear);
   const status = doc.createElement('p');
   status.setAttribute('role', 'status');

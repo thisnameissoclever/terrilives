@@ -1,3 +1,4 @@
+import { setActionIntent } from './ui/action-intent.js';
 import {sceneFramebufferSize} from './render/scene-sampling.js';
 import { buildGrimeInstances } from './render/grime-decals.js';
 import {ChoresBoard} from './ui/chores-board.js';
@@ -1577,7 +1578,7 @@ async function main(): Promise<void> {
   const choresDialog=document.createElement('dialog');choresDialog.id='chores-dialog';
   const choresTitle=document.createElement('h2');choresTitle.id='chores-title';choresTitle.textContent='Chores';
   choresDialog.setAttribute('aria-labelledby','chores-title');
-  const choresClose=document.createElement('button');choresClose.type='button';choresClose.className='hud-button';choresClose.textContent='Close';
+  const choresClose=document.createElement('button');choresClose.type='button';choresClose.className='hud-button';choresClose.textContent='Close';setActionIntent(choresClose,'negative');
   const choresBoard=new ChoresBoard(sim,document,()=>choresDialog.close());
   const choresHeader=document.createElement('header');choresHeader.className='chores-header';choresHeader.append(choresTitle,choresClose);
   choresDialog.append(choresHeader,choresBoard.element());document.body.append(choresDialog);
@@ -2147,7 +2148,7 @@ async function main(): Promise<void> {
   window.addEventListener('pageshow',event=>{if(event.persisted)previousFrameMs=performance.now();});
   const graphicsStatus=document.createElement('div');graphicsStatus.id='graphics-recovery';graphicsStatus.hidden=true;graphicsStatus.setAttribute('role','status');
   graphicsStatus.style.cssText='position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);padding:20px;background:#202630;color:white;z-index:5';
-  const graphicsText=document.createElement('p'),graphicsRetry=document.createElement('button');graphicsRetry.textContent='Retry graphics';
+  const graphicsText=document.createElement('p'),graphicsRetry=document.createElement('button');graphicsRetry.textContent='Retry graphics';setActionIntent(graphicsRetry,'affirmative');
   graphicsStatus.append(graphicsText,graphicsRetry);document.body.append(graphicsStatus);
   let recoveryPending=false;
   const deviceLifetime=new DeviceLifetime();

@@ -347,6 +347,8 @@ describe('career panel surface', () => {
     expect(select.options.map(option => option.textContent)).toEqual(['Choose a path', 'Office', 'Cafe']);
     const [assign, quit] = content.querySelectorAll('.career-actions button');
     expect(quit.disabled).toBe(false);
+    expect(assign.getAttribute('data-action-intent')).toBe('affirmative');
+    expect(quit.getAttribute('data-action-intent')).toBe('destructive');
     expect(assign.disabled).toBe(true);
     select.value = '1';
     select.dispatch('change');

@@ -1,3 +1,4 @@
+import { setActionIntent } from '../action-intent.js';
 import './creator.css';
 import type { CharacterField, Section } from '../../character/fields.js';
 import { fieldControl, traitLimitDescriptionId } from './field.js';
@@ -164,6 +165,8 @@ export class CreatorView {
     for(const button of this.root.querySelectorAll<HTMLButtonElement>('[data-page]')){
       if(button.dataset.page===this.page)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
     }
+    setActionIntent(this.element<HTMLButtonElement>('[data-next]'),'affirmative');
+    setActionIntent(this.element<HTMLButtonElement>('[data-cancel]'),'negative');
     this.element('[data-next]').textContent=this.page==='review'?(editing?'Apply changes':'Move in'):'Continue';
     this.element('[data-reset]').textContent=this.page==='review'?'Reset character':'Reset section';
     const editor=this.element('.creator-editor');editor.replaceChildren();

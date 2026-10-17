@@ -5,6 +5,7 @@
  * Menu position, focus, and expansion are browser presentation state.
  */
 
+import { setActionIntent, type ActionIntent } from './action-intent.js';
 import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
 import type { PurchaseQuote, SaleQuote, QuoteResult, ReadingChoice } from '../books/commerce-codec.js';
 import { actionPage, layoutObjectActions, maximumActionSize, chooseActionPlacement, type ActionRegion } from './object-menu-layout.js';
@@ -51,6 +52,15 @@ export type MenuAction =
       readonly interaction: number;
     }
   | { readonly kind: 'cancel' };
+
+function menuActionIntent(action: MenuAction): ActionIntent {
+  switch (action.kind) {
+    case 'buy-book': return 'affirmative';
+    case 'sell-book': return 'destructive';
+    case 'cancel': return 'negative';
+    default: return 'neutral';
+  }
+}
 
 /** One row. */
 export interface MenuEntry {
@@ -460,13 +470,15 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
       }
       root.append(identity);
       const close = doc.createElement('button'); close.type = 'button'; close.className = 'radial-close';
+      setActionIntent(close, 'negative');
       close.textContent = '\u00d7'; close.setAttribute('aria-label', 'Close menu');
       close.addEventListener('click', () => options.dismiss?.()); root.append(close);
       let page = 0, capacity = 6, buttons: HTMLButtonElement[] = [];
       let revision = '', frame = 0, disposed = false;
       let measurementKey = '', measuredEntries: {width:number;height:number}[] = [], navigation = {width:44,height:44};
-      const make = (label: string, activate: (event: MouseEvent) => void, entry?: MenuEntry): HTMLButtonElement => {
+      const make = (label: string, activate: (event: MouseEvent) => void, entry?: MenuEntry, intent: ActionIntent = 'neutral'): HTMLButtonElement => {
         const button = doc.createElement('button'); button.type = 'button'; button.className = 'menu-entry';
+        setActionIntent(button, entry ? menuActionIntent(entry.action) : intent);
         button.disabled = entry?.enabled === false;
         const text = doc.createElement('span'); text.textContent = label; button.append(text);
         if (entry?.price !== undefined) {
@@ -486,8 +498,8 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
           page += delta; render(); place();
           buttons.find(button => !button.disabled)?.focus();
         };
-        if (current.back) buttons.push(make('Back', () => turn(-1)));
-        if (current.more) buttons.push(make('More actions', () => turn(1)));
+        if (current.back) buttons.push(make('Back', () => turn(-1), undefined, 'negative'));
+        if (current.more) buttons.push(make('More actions', () => turn(1), undefined, 'affirmative'));
       };
       const place = () => {
         const view = doc.defaultView;
@@ -499,7 +511,7 @@ export function createMenuSurface(doc: Document, root: HTMLElement, options: Men
         const nextMeasurement = `${maximumWidth}:${view.getComputedStyle(root).fontSize}`;
         if (measurementKey !== nextMeasurement) {
           measurementKey = nextMeasurement;
-          const probes = [...menu.entries.map(entry => make(entry.label, () => {}, entry)), make('More actions', () => {}), make('Back', () => {})];
+          const probes = [...menu.entries.map(entry => make(entry.label, () => {}, entry)), make('More actions', () => {}, undefined, 'affirmative'), make('Back', () => {}, undefined, 'negative')];
           probes.forEach(button => { button.style.visibility = 'hidden'; button.style.maxWidth = `${maximumWidth}px`; });
           measuredEntries = probes.slice(0,menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight}));
           navigation = maximumActionSize(probes.slice(menu.entries.length).map(button=>({width:button.offsetWidth,height:button.offsetHeight})));

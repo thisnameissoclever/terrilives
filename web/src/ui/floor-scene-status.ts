@@ -1,3 +1,4 @@
+import { setActionIntent } from './action-intent.js';
 /** Keeps Options and Load available while a scene's materials are unavailable. */
 export function createFloorSceneStatus(document: Document, stage: HTMLCanvasElement,
   retry: () => void): (blocked: boolean, error: string | null) => void {
@@ -12,6 +13,7 @@ export function createFloorSceneStatus(document: Document, stage: HTMLCanvasElem
   button.type = 'button';
   button.className = 'hud-button';
   button.textContent = 'Retry';
+  setActionIntent(button, 'affirmative');
   button.addEventListener('click', retry);
   panel.append(text, button);
   document.body.append(panel);

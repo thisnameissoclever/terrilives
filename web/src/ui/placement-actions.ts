@@ -1,3 +1,4 @@
+import { setActionIntent, type ActionIntent } from './action-intent.js';
 import type { PlacementPreview } from '../bridge.js';
 import { canvasToClient } from '../input.js';
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../render/iso.js';
@@ -73,6 +74,7 @@ export function ghostAnchorTop(ghost: GhostFootprint, camera: ActionsCamera, art
 export type ContextSlot = 'top' | 'left' | 'right' | 'bottom';
 export type ContextIcon = 'wall' | 'doorway' | 'window' | 'left' | 'right' | 'remove' | 'clear' | 'confirm' | 'corners';
 export interface ContextAction {
+  readonly intent: ActionIntent;
   readonly id: string;
   readonly label: string;
   readonly price?: number;
@@ -105,28 +107,28 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   const { furniture, buy, walls, room, floors } = tools;
   if (tools.books?.active) return null;
   if (!furniture.active || furniture.blocked || tools.suspended?.()) return null;
-  const action = (id: string, label: string, slot: ContextSlot, enabled: boolean,
-    invoke: () => void, icon?: ContextIcon, price?: number): ContextAction => ({ id, label, slot, enabled, invoke, icon, price });
+  const action = (intent: ActionIntent, id: string, label: string, slot: ContextSlot, enabled: boolean,
+    invoke: () => void, icon?: ContextIcon, price?: number): ContextAction => ({ intent, id, label, slot, enabled, invoke, icon, price });
   if (walls.active) {
     const windows = walls.windows;
     const line = windows?.active ? windows.line : walls.line;
     if (!line || walls.blocked) return null;
     const ready = walls.pending === null && windows?.pending == null;
     if (windows?.active) return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
-      action('fit-window', windows.owner ? 'Replace window' : 'Place Window', 'top', windows.canApply(), () => windows.apply(), 'window'),
-      ...(windows.owner ? [action('remove-window', 'Remove window', 'top', windows.canRemove(), () => windows.remove(), 'remove')] : []),
-      action('wall-controls', 'Wall controls', 'bottom', ready, () => walls.selectWalls(), 'wall'),
-      action('clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('affirmative', 'fit-window', windows.owner ? 'Replace window' : 'Place Window', 'top', windows.canApply(), () => windows.apply(), 'window'),
+      ...(windows.owner ? [action('destructive', 'remove-window', 'Remove window', 'top', windows.canRemove(), () => windows.remove(), 'remove')] : []),
+      action('negative', 'wall-controls', 'Wall controls', 'bottom', ready, () => walls.selectWalls(), 'wall'),
+      action('negative', 'clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
     return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
-      action('wall', 'Wall', 'top', walls.canApply(WALL), () => walls.apply(WALL), 'wall'),
-      action('doorway', 'Doorway', 'top', walls.canApply(DOORWAY), () => walls.apply(DOORWAY), 'doorway'),
-      action('window', windows ? 'Windows' : 'Window', 'top', windows ? ready : walls.canApply(WINDOW),
+      action('neutral', 'wall', 'Wall', 'top', walls.canApply(WALL), () => walls.apply(WALL), 'wall'),
+      action('neutral', 'doorway', 'Doorway', 'top', walls.canApply(DOORWAY), () => walls.apply(DOORWAY), 'doorway'),
+      action('neutral', 'window', windows ? 'Windows' : 'Window', 'top', windows ? ready : walls.canApply(WINDOW),
         () => windows ? walls.selectWindows() : walls.apply(WINDOW), 'window'),
-      action('left', 'Rotate counterclockwise', 'left', ready, () => walls.rotate(), 'left'),
-      action('right', 'Rotate clockwise', 'right', ready, () => walls.rotate(), 'right'),
-      action('remove', 'Remove', 'bottom', walls.canApply(OPEN), () => walls.apply(OPEN), 'remove'),
-      action('clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('neutral', 'left', 'Rotate counterclockwise', 'left', ready, () => walls.rotate(), 'left'),
+      action('neutral', 'right', 'Rotate clockwise', 'right', ready, () => walls.rotate(), 'right'),
+      action('destructive', 'remove', 'Remove', 'bottom', walls.canApply(OPEN), () => walls.apply(OPEN), 'remove'),
+      action('negative', 'clear', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
   }
   if (room.active) {
@@ -134,19 +136,19 @@ export function contextModel(tools: ContextTools): ContextModel | null {
     const ready = !room.pending;
     const second = room.second ?? room.first;
     return { tool: 'room', x: (room.first[0] + second[0]) / 2, y: (room.first[1] + second[1]) / 2, actions: [
-      action('doorway', 'Doorway', 'top', ready && room.second !== null, () => room.chooseDoorway(), 'doorway'),
-      action('build', 'Build room', 'top', room.canBuild, () => room.build(), 'confirm'),
-      action('corners', 'Corners', 'top', ready, () => room.restartCorners(), 'corners'),
-      action('cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('neutral', 'doorway', 'Doorway', 'top', ready && room.second !== null, () => room.chooseDoorway(), 'doorway'),
+      action('affirmative', 'build', 'Build room', 'top', room.canBuild, () => room.build(), 'confirm'),
+      action('neutral', 'corners', 'Corners', 'top', ready, () => room.restartCorners(), 'corners'),
+      action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
   }
   if (floors.active) {
     if (!floors.tile || floors.blocked) return null;
     return { tool: 'floors', x: floors.tile[0], y: floors.tile[1], actions: [
-      ...floors.coverings().map((name, index) => action(`floor-${index + 1}`, name, 'top',
+      ...floors.coverings().map((name, index) => action('neutral', `floor-${index + 1}`, name, 'top',
         floors.canApplyCovering(index + 1), () => floors.applyCovering(index + 1))),
-      action('remove', 'Remove', 'bottom', floors.canApplyCovering(0), () => floors.applyCovering(0), 'remove'),
-      action('clear', 'Cancel', 'bottom', floors.pending === null, tools.cancelBuild, 'clear'),
+      action('destructive', 'remove', 'Remove', 'bottom', floors.canApplyCovering(0), () => floors.applyCovering(0), 'remove'),
+      action('negative', 'clear', 'Cancel', 'bottom', floors.pending === null, tools.cancelBuild, 'clear'),
     ] };
   }
   const buying = buy.active;
@@ -157,13 +159,13 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   const rotate = (direction: -1 | 1) => buying ? buy.rotate(direction) : furniture.rotate(direction);
   return { tool: buying ? 'buy' : 'furniture', x: ghost.x + (ghost.width - 1) / 2,
     y: ghost.y + (ghost.depth - 1) / 2, ghost, actions: [
-      action('confirm', buying ? 'Buy' : 'Place', 'top',
+      action('affirmative', 'confirm', buying ? 'Buy' : 'Place', 'top',
         buying ? buy.canBuy : furniture.canConfirm, () => { if (buying) buy.buy(); else furniture.confirm(); }, 'confirm', buying ? buy.chosen?.price : undefined),
-      action('left', 'Rotate counterclockwise', 'left', canRotate, () => rotate(-1), 'left'),
-      action('right', 'Rotate clockwise', 'right', canRotate, () => rotate(1), 'right'),
-      action(buying ? 'choose' : 'sell', buying ? 'Choose item' : 'Sell',
+      action('neutral', 'left', 'Rotate counterclockwise', 'left', canRotate, () => rotate(-1), 'left'),
+      action('neutral', 'right', 'Rotate clockwise', 'right', canRotate, () => rotate(1), 'right'),
+      action(buying ? 'negative' : 'destructive', buying ? 'choose' : 'sell', buying ? 'Choose item' : 'Sell',
         'bottom', buying ? ready : furniture.canSell, () => { if (buying) tools.focusCatalogue(); else furniture.sell(); }, undefined, buying ? undefined : furniture.saleValue ?? undefined),
-      action('cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
+      action('negative', 'cancel', 'Cancel', 'bottom', ready, tools.cancelBuild, 'clear'),
     ] };
 }
 
@@ -318,6 +320,7 @@ export function createContextSurface(doc: Document, root: HTMLElement, canvas: H
       }
       for (const action of next) {
         const button = buttons.get(action.id)!;
+        setActionIntent(button, action.intent);
         button.disabled = !action.enabled;
         button.setAttribute('aria-label', action.price === undefined ? action.label : `${action.label}, $${formatFunds(action.price)}`);
         const label = button.querySelector('span')!;
