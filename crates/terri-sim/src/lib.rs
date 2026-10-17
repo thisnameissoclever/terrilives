@@ -1298,6 +1298,23 @@ impl Sim {
         Ok(())
     }
 
+    /// Schema thirteen: everything schema twelve holds, then the lot frame
+    /// and the funds in cents (land expansion, issue 254).
+    pub fn save_snapshot_v13(&self) -> terri_core::SaveSnapshotV13 {
+        save::v13::capture(self)
+    }
+
+    pub fn load_snapshot_v13(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV13,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::v13::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
     pub fn load_snapshot_v11(
         &mut self,
         snapshot: terri_core::SaveSnapshotV11,
@@ -4566,6 +4583,16 @@ impl Sim {
         save::social::hash(&self.world, &mut hasher);
         burnt_meals::hash(&self.world, &mut hasher);
         fights::hash(&self.world, &mut hasher);
+        // The lot frame enters only once it differs from what the grid's
+        // shape implies, so every older world hashes as it did.
+        if let Some(frame) = lot_frame::frame(&self.world) {
+            if frame != LotFrame::default() {
+                hasher.write_bytes(b"lot-frame-v1");
+                hasher.write_u64(u64::from(frame.origin.0));
+                hasher.write_u64(u64::from(frame.origin.1));
+                hasher.write_u64(u64::from(frame.purchased_area));
+            }
+        }
         hasher.finish()
     }
 }

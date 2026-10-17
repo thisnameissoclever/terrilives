@@ -49,6 +49,7 @@ mod table_retirement;
 pub(crate) mod v10;
 pub(crate) mod v11;
 pub(crate) mod v12;
+pub(crate) mod v13;
 #[cfg(test)]
 mod v3_tests;
 pub(crate) mod v6;
