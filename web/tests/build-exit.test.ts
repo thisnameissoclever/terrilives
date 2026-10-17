@@ -52,16 +52,25 @@ class FakeDocument {
     else if (type === 'keydown' && capture !== true) this.keydowns.push(listener as (event: FakeKey) => void);
     else throw new Error(`Unexpected document listener: ${type}`);
   }
+  /** How the latest click went: whether it reached its target's listeners, and whether it was cancelled. */
+  lastClick = { reached: false, cancelled: false };
   /**
    * A click on `target` with the browser's click count `detail`, 0 for a
    * keyboard activation: the document's capturing listeners run first, then
-   * the target's own unless one stopped it. True when the click reached it.
+   * the target's own unless one stopped it. As in a browser, the target's
+   * default action, such as a form button closing its dialog, then runs
+   * unless the click was cancelled, whether or not propagation stopped.
+   * True when the click reached the target's listeners.
    */
   click(target: FakeElement, detail = 1): boolean {
     let stopped = false;
-    const event: FakeClick = { type: 'click', target, detail, preventDefault() {}, stopPropagation() { stopped = true; } };
+    let cancelled = false;
+    const event: FakeClick = { type: 'click', target, detail,
+      preventDefault() { cancelled = true; }, stopPropagation() { stopped = true; } };
     for (const listener of this.capturingClicks) listener(event);
     if (!stopped) target.click();
+    if (!cancelled) target.defaultAction?.();
+    this.lastClick = { reached: !stopped, cancelled };
     return !stopped;
   }
   /**
@@ -86,6 +95,8 @@ class FakeElement {
   container: FakeDialog | null = null;
   /** Selectors an ancestor of this element matches, such as another 'dialog' or an 'input'. */
   readonly within = new Set<string>();
+  /** What the browser does with an uncancelled click on this element, if anything. */
+  defaultAction: (() => void) | null = null;
   private readonly listeners = new Map<string, ((event?: unknown) => void)[]>();
   constructor(protected readonly doc: FakeDocument) {}
   addEventListener(type: string, listener: (event?: unknown) => void) {
@@ -840,11 +851,15 @@ describe('a double-click that closes the dialog or leaves', () => {
 });
 
 describe('a double-tap on Exit build with changes pending', () => {
-  /** A dialog button that closes the dialog with its value, as the form's buttons do. */
+  /**
+   * A dialog button that closes the dialog with its value. In the page it sits
+   * in a form whose method is dialog, so the close is the click's default
+   * action, which only cancelling the click stops.
+   */
   const choice = (f: ReturnType<typeof fixture>, value: string) => {
     const button = new FakeElement(f.doc);
     button.container = f.dialog;
-    button.addEventListener('click', () => f.dialog.close(value));
+    button.defaultAction = () => f.dialog.close(value);
     return button;
   };
 
@@ -861,6 +876,8 @@ describe('a double-tap on Exit build with changes pending', () => {
       f.clock.time += 150;
       discard.focus();
       expect(f.doc.click(discard, 2)).toBe(false);
+      // Stopping propagation alone would leave the form's close to run.
+      expect(f.doc.lastClick).toEqual({ reached: false, cancelled: true });
       expect([f.dialog.open, f.builder.active, f.doc.activeElement]).toEqual([true, true, f.keep]);
       expect(f.session.hasChanges()).toBe(true);
       expect(f.sim.saveBytes()).toEqual(moved);
@@ -876,6 +893,7 @@ describe('a double-tap on Exit build with changes pending', () => {
       expect(f.dialog.open).toBe(true);
       f.clock.time += 150;
       expect(f.doc.click(choice(f, 'discard'), 1)).toBe(true);
+      expect(f.doc.lastClick).toEqual({ reached: true, cancelled: false });
       expect([f.dialog.open, f.builder.active]).toEqual([false, false]);
       expect(f.sim.saveBytes()).toEqual(before);
     } finally { f.handle.free(); }
