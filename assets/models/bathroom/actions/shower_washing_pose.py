@@ -1,11 +1,12 @@
-"""A continuous washing cycle for the shower pose, awaiting its own export.
+"""A continuous washing cycle for the shower pose.
 
 `shower_pose.py` is a pinned input of the shipped bath loop (the receipt in
 `export/bath-05/source-proof.json` records its hash), so it cannot change
 until the bath is exported again. This module carries the washing cycle
-that pull request 259 wrote into that file, unchanged, so the shower can be
-rendered from it when its own export runs. Nothing shipped was rendered
-from this pose yet.
+that pull request 259 wrote into that file, unchanged. The character
+creator's shower clip (`sims/character-creator/clips/clips.json`) was
+exported from this cycle through `source_adapters.py`, which imports it
+from here; the shower atlas art has not been rendered from it yet.
 """
 import math
 from pathlib import Path
