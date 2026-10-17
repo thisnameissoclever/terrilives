@@ -83,7 +83,7 @@ def books():
 
 def shower():
     sys.path.insert(0,str(MODELS/'bathroom/actions'))
-    from shower_pose import apply
+    from shower_washing_pose import apply
     source=MODELS/'bathroom/owner-review-pending/shower/candidate-01/shower-authoring.blend'
     import hashlib
     if hashlib.sha256(source.read_bytes()).hexdigest()!='c57a911a5e3964e4d23278e1a48150e2fcf3e940ad91183b9480db8a78e60865':
