@@ -195,9 +195,13 @@ function contrast(a, b) {
     }
     assert(sold, 'Actual furniture sale available in disposable game');
     await page.locator('#build-tool-buy').click();
-    const affordable = await page.locator('#buy-object option:not([disabled])').evaluateAll(options => options.find(o => o.value)?.value);
-    assert(affordable, 'An affordable object after UI sale');
-    await page.locator('#buy-object').selectOption(affordable); await settle();
+    const affordable = page.locator('#buy-object .catalogue-card[aria-disabled="false"]:not([hidden]):not(:disabled)').first();
+    await affordable.waitFor({ state: 'visible' });
+    assert.equal(await affordable.getAttribute('data-action-intent'), null, 'Catalogue selection remains neutral');
+    await affordable.click(); await settle();
+    const filterIntents = await page.locator('#buy-room-filter button, #buy-filter button, #buy-clear-filters')
+      .evaluateAll(buttons => buttons.map(button => button.getAttribute('data-action-intent')));
+    assert(filterIntents.length > 0 && filterIntents.every(intent => intent === null), 'Catalogue filters remain neutral');
     const purchase = page.locator('[data-context-action="confirm"]');
     report.checks.push({ name: 'Affordable furniture quote', controls: await page.locator('#placement-actions button').allTextContents() });
     if (await purchase.isVisible() && await purchase.isEnabled()) await states(purchase, 'affirmative', 'Furniture Buy');
