@@ -330,12 +330,11 @@ pub fn commute_and_work(
             continue;
         }
         let Some(career) = career.map(|career| &content.0.careers[career.0 as usize]) else {
-            // Unemployed, at work or walking out: nothing to count down or
-            // clock in to, so the stale marks come off.
-            commands
-                .entity(worker)
-                .remove::<AtWork>()
-                .remove::<Commuting>();
+            // Unemployed with a work marker: nothing to count down or clock
+            // in to. The game never makes this state (a dismissal lands on
+            // the return, and the commands refuse anyone away), and tests
+            // park people this way to keep them out of a scene, so the
+            // marker is left alone as it always was.
             continue;
         };
 
