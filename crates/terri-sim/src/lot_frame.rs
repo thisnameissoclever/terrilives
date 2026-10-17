@@ -229,6 +229,28 @@ mod tests {
         }));
     }
 
+    /// Two frames that differ only in where the content lot sits hash
+    /// differently, since a frame other than the default enters the world
+    /// hash; a saved default frame hashes as a world with no saved frame.
+    #[test]
+    fn a_moved_frame_changes_the_world_hash() {
+        let mut sim = crate::Sim::new_from_shipped_lot();
+        sim.world_mut().remove_resource::<LotFrame>();
+        let without = sim.world_hash();
+        let mut at = |origin| {
+            sim.world_mut().insert_resource(LotFrame {
+                origin,
+                purchased_area: 0,
+            });
+            sim.world_hash()
+        };
+        let east = at((2, 0));
+        let south = at((0, 3));
+        assert_ne!(east, south);
+        assert_ne!(east, without);
+        assert_eq!(at((0, 0)), without);
+    }
+
     /// Without a frame the content's coordinates are the grid's; with one
     /// they move with the origin, the street staying on the last column.
     #[test]
