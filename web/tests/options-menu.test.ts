@@ -170,7 +170,7 @@ describe('the Options flyout in the page', () => {
     expect(options).toBeLessThan(INDEX_HTML.indexOf('id="sim-dock"'));
   });
 
-  it.each(['lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
+  it.each(['game-version', 'lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
     'game-actions', 'save-game', 'load-game', 'death-enabled', 'new-game', 'show-help'])(
     'holds #%s in the panel',
     (id) => {
