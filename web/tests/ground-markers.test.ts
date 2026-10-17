@@ -4,8 +4,8 @@ import {
   GROUND_MARKER_COMMAND, HOUSEMATE_MARKER_RADIUS, MARKER_BLUE, MARKER_RED, MARKER_UNIFORM_FLOATS,
   MARKER_UNIFORM_HEADER_FLOATS, MARKER_UNIFORM_LAYOUT, MAX_GROUND_MARKERS, OFFSET_MARKER_SEMI_AXIS_X,
   OFFSET_MARKER_SEMI_AXIS_Y, PLACEMENT_MARKER_MARGIN, drawAroundMarkers, groundMarkerPipelineDescriptor,
-  groundMarkerRows, groundSelectionShader, markerAxes, placementMarkerSemiAxis, writeHousemateMarker,
-  writeMarkerUniform, writePlacementMarker,
+  groundMarkerRows, groundSelectionShader, MARKER_LOOK, markerAxes, placementMarkerSemiAxis, wgslFloat,
+  writeHousemateMarker, writeMarkerUniform, writePlacementMarker,
 } from '../src/render/ground-selection.js';
 import { buildInstanceBatch, type RenderSource } from '../src/frame.js';
 import { spriteIndex } from '../src/render/atlas.js';
@@ -174,41 +174,137 @@ describe('the marker command', () => {
   });
 });
 
+const look = MARKER_LOOK, float = wgslFloat;
+/** Scene samples are half a canvas pixel apart. */
+const STEP = 1 / SCENE_SAMPLE_SCALE;
+
+/** One fragment invocation's values, named as the shader names them. */
+interface Fragment {
+  block: Float64Array; unit: [number, number];
+  r: number; f: number; n: [number, number]; slope: number; dist: number; aa: number;
+  edge: number; fill: number; opacity: number; discarded: boolean; output: number[];
+}
+/** One WGSL statement and the TypeScript that does the same; `fwidth` differences a named value across the quad. */
+type Statement = readonly [wgsl: string, run: (value: Fragment, fwidth: (name: 'f' | 'dist') => number) => void];
+
+const smoothstep = (low: number, high: number, x: number) => {
+  const t = Math.min(Math.max((x - low) / (high - low), 0), 1);
+  return t * t * (3 - 2 * t);
+};
+/** The length of n.x * row0 + n.y * row1. */
+const gradient = (value: Fragment) => {
+  const block = value.block, [nx, ny] = value.n;
+  return Math.hypot(nx * block[L.row0] + ny * block[L.row1], nx * block[L.row0 + 1] + ny * block[L.row1 + 1]);
+};
+
+/** The one statement of the shader's `linear`, and the same conversion for one channel. */
+const LINEAR: readonly [string, (channel: number) => number] = [
+  'return select(pow((c+.055)/1.055,vec3f(2.4)),c/12.92,c<=vec3f(.04045));',
+  channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+];
+
 /**
- * A replica of the fragment shader `fs` in `groundSelectionShader`, sample
- * by sample. Scene samples are half a canvas pixel apart, and derivatives are
- * taken across each two by two quad of samples, as fine derivatives are.
- * `aaFrom: 'dist'` replays the earlier softening, taken from fwidth(dist),
- * so the tests can show they reject its bright center.
+ * The fragment shader `fs`, statement by statement, each beside the
+ * TypeScript the replica runs for it. A test compares the WGSL column with
+ * the shader, so an edit to the shader that this table does not share fails,
+ * and the constants come from MARKER_LOOK on both sides.
  */
-function replica(block: Float64Array, aaFrom: 'f' | 'dist' = 'f') {
-  const step = 1 / SCENE_SAMPLE_SCALE;
-  const fields = (x: number, y: number) => {
-    const [ux, uy] = unit(block, x, y);
-    const r = Math.hypot(ux, uy), f = r - 1;
-    let nx: number, ny: number;
-    if (aaFrom === 'f') [nx, ny] = r > 1e-4 ? [ux / r, uy / r] : [1, 0];
-    else [nx, ny] = [ux / Math.max(r, 1e-6), uy / Math.max(r, 1e-6)];
-    const gx = nx * block[L.row0] + ny * block[L.row1], gy = nx * block[L.row0 + 1] + ny * block[L.row1 + 1];
-    const slope = aaFrom === 'f' ? Math.max(Math.hypot(gx, gy), 1e-6) : Math.hypot(gx, gy);
-    return { f, slope, dist: f / Math.max(slope, 1e-6) };
-  };
-  const smoothstep = (e0: number, e1: number, x: number) => {
-    const t = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1);
-    return t * t * (3 - 2 * t);
-  };
-  /** Opacity at scene sample (px, py), where sample (0, 0) lies exactly on the marker's center. */
-  return (px: number, py: number): number => {
-    const qx = px - (((px % 2) + 2) % 2), qy = py - (((py % 2) + 2) % 2);
-    const at = (sx: number, sy: number) => fields(sx * step, sy * step);
-    const here = at(px, py);
-    const key = aaFrom === 'f' ? 'f' : 'dist';
-    const width = Math.abs(at(qx + 1, py)[key] - at(qx, py)[key]) + Math.abs(at(px, qy + 1)[key] - at(px, qy)[key]);
-    const aa = Math.max(aaFrom === 'f' ? width / here.slope : width, 0.42);
-    const edge = 1 - smoothstep(0.975 - aa, 0.975 + aa, Math.abs(here.dist));
-    const fill = (1 - smoothstep(-aa, aa, here.dist)) * 0.105;
-    return edge * 0.94 + (1 - edge) * fill;
-  };
+const FRAGMENT: readonly Statement[] = [
+  ['let m=u.items[i.marker];', () => {}],
+  ['let r=length(i.unit);', value => { value.r = Math.hypot(...value.unit); }],
+  ['let f=r-1.;', value => { value.f = value.r - 1; }],
+  [`let n=select(vec2f(1,0),i.unit/r,r>${float(look.centerRadius)});`, value => {
+    value.n = value.r > look.centerRadius ? [value.unit[0] / value.r, value.unit[1] / value.r] : [1, 0];
+  }],
+  [`let slope=max(length(n.x*m.row0+n.y*m.row1),${float(look.minSlope)});`, value => {
+    value.slope = Math.max(gradient(value), look.minSlope);
+  }],
+  ['let dist=f/slope;', value => { value.dist = value.f / value.slope; }],
+  [`let aa=max(fwidth(f)/slope,${float(look.minSoftening)});`, (value, fwidth) => {
+    value.aa = Math.max(fwidth('f') / value.slope, look.minSoftening);
+  }],
+  [`let edge=1.-smoothstep(${float(look.borderHalfWidth)}-aa,${float(look.borderHalfWidth)}+aa,abs(dist));`, value => {
+    value.edge = 1 - smoothstep(look.borderHalfWidth - value.aa, look.borderHalfWidth + value.aa, Math.abs(value.dist));
+  }],
+  [`let fill=(1.-smoothstep(-aa,aa,dist))*${float(look.fillOpacity)};`, value => {
+    value.fill = (1 - smoothstep(-value.aa, value.aa, value.dist)) * look.fillOpacity;
+  }],
+  [`let opacity=edge*${float(look.borderOpacity)}+(1.-edge)*fill;`, value => {
+    value.opacity = value.edge * look.borderOpacity + (1 - value.edge) * value.fill;
+  }],
+  [`if(opacity<${float(look.discardOpacity)}){discard;}`, value => { value.discarded = value.opacity < look.discardOpacity; }],
+  ['return vec4f(linear(m.color.rgb)*opacity,opacity);', value => {
+    value.output = [0, 1, 2].map(channel => LINEAR[1](value.block[L.color + channel]) * value.opacity).concat(value.opacity);
+  }],
+];
+
+/** The earlier softening, taken from fwidth(dist), which jumps at an exact center. */
+const EARLIER: Record<string, Statement> = {
+  n: ['let n=i.unit/max(r,1e-6);', value => {
+    value.n = [value.unit[0] / Math.max(value.r, 1e-6), value.unit[1] / Math.max(value.r, 1e-6)];
+  }],
+  slope: ['let slope=length(n.x*m.row0+n.y*m.row1);', value => { value.slope = gradient(value); }],
+  dist: ['let dist=f/max(slope,1e-6);', value => { value.dist = value.f / Math.max(value.slope, 1e-6); }],
+  aa: ['let aa=max(fwidth(dist),.42);', (value, fwidth) => { value.aa = Math.max(fwidth('dist'), 0.42); }],
+};
+const EARLIER_SOFTENING: readonly Statement[] = FRAGMENT.map(statement => {
+  const name = statement[0].startsWith('let ') ? statement[0].slice(4, statement[0].indexOf('=')) : '';
+  return EARLIER[name] ?? statement;
+});
+
+/**
+ * Runs `statements` for one fragment at canvas-pixel offset (x, y) from the
+ * marker center. fwidth differences a value across the two by two quad of
+ * scene samples whose first sample is (quadX, quadY), as fine derivatives do.
+ */
+function fragment(block: Float64Array, x: number, y: number, statements: readonly Statement[] = FRAGMENT,
+  quadX = x, quadY = y, limit = statements.length): Fragment {
+  const value: Fragment = { block, unit: unit(block, x, y), r: 0, f: 0, n: [0, 0], slope: 0, dist: 0, aa: 0,
+    edge: 0, fill: 0, opacity: 0, discarded: false, output: [] };
+  for (let index = 0; index < limit; index++) {
+    statements[index][1](value, name => {
+      const at = (sx: number, sy: number) => fragment(block, sx, sy, statements, sx, sy, index)[name];
+      return Math.abs(at(quadX + STEP, y) - at(quadX, y)) + Math.abs(at(x, quadY + STEP) - at(x, quadY));
+    });
+  }
+  return value;
+}
+
+/** The fragment at scene sample (px, py); sample (0, 0) lies exactly on the marker center. */
+function sample(block: Float64Array, px: number, py: number, statements: readonly Statement[] = FRAGMENT): Fragment {
+  const quad = (p: number) => (p - (((p % 2) + 2) % 2)) * STEP;
+  return fragment(block, px * STEP, py * STEP, statements, quad(px), quad(py));
+}
+
+/** The point at angle t on the marker's edge, and the unit screen direction straight out of the ellipse there. */
+function edgePoint(block: Float64Array, t: number): { point: [number, number]; normal: [number, number] } {
+  const [a, b, c, d] = [block[L.row0], block[L.row0 + 1], block[L.row1], block[L.row1 + 1]];
+  const det = a * d - b * c, cos = Math.cos(t), sin = Math.sin(t);
+  // The inverse of the screen-to-unit-circle map takes the unit circle back to the screen.
+  const point: [number, number] = [(d * cos - b * sin) / det, (-c * cos + a * sin) / det];
+  const nx = a * cos + c * sin, ny = b * cos + d * sin, length = Math.hypot(nx, ny);
+  return { point, normal: [nx / length, ny / length] };
+}
+
+/** The statements of the WGSL function that begins with `header`, comments removed and whitespace collapsed. */
+function functionStatements(source: string, header: string): string[] {
+  const start = source.indexOf(header);
+  if (start < 0) throw new Error(`The shader has no function ${header}`);
+  const statements: string[] = [];
+  let depth = 1, current = '';
+  for (let index = start + header.length; index < source.length; index++) {
+    const character = source[index];
+    if (character === '/' && source[index + 1] === '/') { index = source.indexOf('\n', index); continue; }
+    if (character === '{') depth++;
+    if (character === '}' && --depth === 0) break;
+    current += character;
+    if ((character === ';' || character === '}') && depth === 1) {
+      statements.push(current.trim().replace(/\s+/g, ' '));
+      current = '';
+    }
+  }
+  if (current.trim()) statements.push(current.trim());
+  return statements;
 }
 
 describe('the marker shader math, replayed on the CPU', () => {
@@ -217,52 +313,64 @@ describe('the marker shader math, replayed on the CPU', () => {
     ['1 by 1 placement', uniform(placementRow(1, 1), 1)],
     ['2 by 2 placement', uniform(placementRow(2, 2), 1)],
     ['1 by 3 placement', uniform(placementRow(1, 3), 1)],
+    ['zoomed 1 by 2 placement', uniform(placementRow(1, 2), 2.5)],
   ];
 
-  it('ties the replica to the shader source', () => {
-    expect(groundSelectionShader).toContain('let n=select(vec2f(1,0),i.unit/r,r>1e-4);');
-    expect(groundSelectionShader).toContain('let slope=max(length(n.x*m.row0+n.y*m.row1),1e-6);');
-    expect(groundSelectionShader).toContain('let dist=f/slope;');
-    expect(groundSelectionShader).toContain('let aa=max(fwidth(f)/slope,.42);');
-    expect(groundSelectionShader).not.toContain('fwidth(dist)');
+  it('ties every statement of the fragment shader and its color conversion to the replica', () => {
+    expect(functionStatements(groundSelectionShader, '@fragment fn fs(i:Vertex)->@location(0) vec4f {'))
+      .toEqual(FRAGMENT.map(([wgsl]) => wgsl));
+    expect(functionStatements(groundSelectionShader, 'fn linear(c:vec3f)->vec3f {')).toEqual([LINEAR[0]]);
+    expect(groundSelectionShader).toContain(`let offset=q*(m.extent+vec2f(${float(look.boxMargin)}));`);
   });
 
-  it.each(blocks)('keeps the %s marker center at the plain fill, with no bright dot', (_, block) => {
-    const opacity = replica(block);
+  it.each(blocks)('keeps the %s marker center at the plain 0.105 fill, with no bright dot', (_, block) => {
     for (let py = -4; py <= 4; py++) {
-      for (let px = -4; px <= 4; px++) expect(opacity(px, py)).toBeCloseTo(0.105, 6);
+      for (let px = -4; px <= 4; px++) expect(sample(block, px, py).opacity).toBeCloseTo(0.105, 6);
     }
   });
 
   it('rejects the earlier softening, which lit the samples around an exact center', () => {
     for (const [, block] of blocks.slice(1)) {
-      const opacity = replica(block, 'dist');
-      expect(Math.max(opacity(0, 0), opacity(1, 0), opacity(0, 1), opacity(1, 1))).toBeGreaterThan(0.3);
+      const brightest = Math.max(...[[0, 0], [1, 0], [0, 1], [1, 1]].map(([px, py]) =>
+        sample(block, px, py, EARLIER_SOFTENING).opacity));
+      expect(brightest).toBeGreaterThan(0.3);
     }
   });
 
   it.each(blocks)('gives the %s marker a 1.95 pixel border all the way round', (_, block) => {
-    const fields = (x: number, y: number) => {
-      const [ux, uy] = unit(block, x, y), r = Math.hypot(ux, uy);
-      const gx = (ux / r) * block[L.row0] + (uy / r) * block[L.row1];
-      const gy = (ux / r) * block[L.row0 + 1] + (uy / r) * block[L.row1 + 1];
-      return { dist: (r - 1) / Math.hypot(gx, gy), gx, gy };
-    };
-    const axes = new Float64Array(4);
-    // Points on the ellipse: the inverse of the uniform's map applied to the unit circle.
-    const det = block[L.row0] * block[L.row1 + 1] - block[L.row0 + 1] * block[L.row1];
-    axes[0] = block[L.row1 + 1] / det; axes[1] = -block[L.row1] / det;
-    axes[2] = -block[L.row0 + 1] / det; axes[3] = block[L.row0] / det;
     for (let k = 0; k < 16; k++) {
-      const t = k * Math.PI / 8;
-      const px = Math.cos(t) * axes[0] + Math.sin(t) * axes[2], py = Math.cos(t) * axes[1] + Math.sin(t) * axes[3];
-      const { gx, gy } = fields(px, py), length = Math.hypot(gx, gy);
+      const { point, normal } = edgePoint(block, k * Math.PI / 8);
       // Walk across the edge along its screen normal and measure where the border is at least half strength.
-      let inside = 0;
-      for (let s = -3; s <= 3; s += 0.001) {
-        if (Math.abs(fields(px + s * gx / length, py + s * gy / length).dist) <= 0.975) inside += 0.001;
+      let width = 0;
+      for (let s = -1.5; s <= 1.5; s += 0.001) {
+        if (fragment(block, point[0] + s * normal[0], point[1] + s * normal[1]).edge >= 0.5) width += 0.001;
       }
-      expect(inside).toBeCloseTo(1.95, 1);
+      expect(width).toBeCloseTo(1.95, 1);
+    }
+  });
+
+  it.each(blocks)('draws the %s marker edge at 0.94 opacity in the marker color, premultiplied', (_, block) => {
+    for (let k = 0; k < 8; k++) {
+      const { point } = edgePoint(block, k * Math.PI / 4);
+      const value = fragment(block, point[0], point[1]);
+      expect(value.discarded).toBe(false);
+      expect(value.output[3]).toBeCloseTo(0.94, 6);
+      for (let channel = 0; channel < 3; channel++) {
+        expect(value.output[channel]).toBeCloseTo(LINEAR[1](block[L.color + channel]) * 0.94, 6);
+      }
+    }
+  });
+
+  it.each(blocks)('keeps every visible fragment of the %s marker inside the box margin', (_, block) => {
+    for (let k = 0; k < 32; k++) {
+      const { point, normal } = edgePoint(block, k * Math.PI / 16);
+      let reach = 0;
+      for (let s = 0; s <= look.boxMargin + 2; s += 0.01) {
+        if (!fragment(block, point[0] + s * normal[0], point[1] + s * normal[1]).discarded) reach = s;
+      }
+      // Every point this close to the ellipse lies inside the widened screen box, so nothing visible is clipped.
+      expect(reach).toBeGreaterThan(1);
+      expect(reach).toBeLessThan(look.boxMargin);
     }
   });
 });
@@ -285,18 +393,20 @@ describe('the marker pipeline and its place in the scene pass', () => {
     const source = readFileSync(new URL('../src/render/sprites.ts', import.meta.url), 'utf8');
     const begin = source.indexOf('this.sceneTarget!.begin(encoder)');
     const grime = source.indexOf('pass.setPipeline(this.grimePipeline)', begin);
-    const markers = source.indexOf('this.groundSelection.draw(pass,', begin);
+    const markers = source.indexOf('this.groundSelection.draw(', begin);
     const shortWalls = source.indexOf('pass.setPipeline(this.lowWallPipeline)', begin);
     const restore = source.indexOf('pass.setBindGroup(0, this.bindGroup)', shortWalls);
     const shortWallDraw = source.indexOf('pass.draw(VERTICES_PER_QUAD, this.lowWallCount', begin);
     const end = source.indexOf('pass.end();', begin);
-    expect(begin).toBeGreaterThan(0);
-    expect([grime, markers, shortWalls, restore, shortWallDraw, end].every(index => index > begin)).toBe(true);
-    expect(grime).toBeLessThan(markers);
-    expect(markers).toBeLessThan(shortWalls);
+    expect(begin, 'the scene pass begins').toBeGreaterThan(0);
+    expect(grime, 'the scene pass draws grime').toBeGreaterThan(begin);
+    expect(markers, 'the floor markers are drawn after grime').toBeGreaterThan(grime);
+    expect(markers, 'the floor markers are drawn before the short walls').toBeLessThan(shortWalls);
+    expect(markers, 'the floor markers are drawn inside the scene pass').toBeLessThan(end);
     // The marker draw replaces bind group 0, so the short walls restore the sprite group first.
-    expect(restore).toBeLessThan(shortWallDraw);
-    expect(shortWallDraw).toBeLessThan(end);
+    expect(restore, 'the short walls restore the sprite bind group').toBeGreaterThan(shortWalls);
+    expect(restore, 'the sprite bind group is restored before the short-wall draw').toBeLessThan(shortWallDraw);
+    expect(shortWallDraw, 'the short walls are drawn inside the scene pass').toBeLessThan(end);
   });
 });
 

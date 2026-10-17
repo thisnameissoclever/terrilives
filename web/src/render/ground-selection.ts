@@ -195,6 +195,35 @@ export function writeMarkerUniform(out:Float32Array|Float64Array,at:number,insta
  out[at+L.depth]=instances[base+OFFSET_DEPTH];
 }
 
+/**
+ * The marker's look, shared by the shader below and by the tests' CPU replay
+ * of its fragment math. Distances are canvas pixels.
+ */
+export const MARKER_LOOK={
+ /** Half the border: the approved 1.3-pixel border made 1.5 times as thick is 1.95 pixels. */
+ borderHalfWidth:.975,
+ borderOpacity:.94,
+ fillOpacity:.105,
+ /** The least edge softening, in pixels. */
+ minSoftening:.42,
+ /** A fragment fainter than this is discarded. */
+ discardOpacity:.001,
+ /** Pixels added to every side of the ellipse's screen box, so the border and its softening fit inside. */
+ boxMargin:4,
+ /** Below this unit-circle radius the gradient's direction falls back to world x. */
+ centerRadius:1e-4,
+ /** The least gradient length the distance divides by. */
+ minSlope:1e-6,
+} as const;
+
+/** A number as a WGSL floating-point literal: 4 becomes 4.0, and 0.975 stays 0.975. */
+export function wgslFloat(value:number):string {
+ const text=String(value);
+ return /[.e]/.test(text)?text:`${text}.0`;
+}
+
+const look=MARKER_LOOK,float=wgslFloat;
+
 export const groundSelectionShader=`
 struct Marker { center:vec2f, extent:vec2f, row0:vec2f, row1:vec2f, color:vec4f, depth:f32 };
 struct Markers { canvas:vec2f, pad:vec2f, items:array<Marker,${MAX_GROUND_MARKERS}> };
@@ -203,8 +232,8 @@ struct Vertex { @builtin(position) position:vec4f, @location(0) unit:vec2f, @loc
 @vertex fn vs(@builtin(vertex_index) i:u32,@builtin(instance_index) marker:u32)->Vertex {
  let q=array<vec2f,6>(vec2f(-1,-1),vec2f(1,-1),vec2f(-1,1),vec2f(-1,1),vec2f(1,-1),vec2f(1,1))[i];
  let m=u.items[marker];
- // The ellipse's screen box, four pixels wider on every side for the border.
- let offset=q*(m.extent+vec2f(4));
+ // The ellipse's screen box, widened on every side for the border.
+ let offset=q*(m.extent+vec2f(${float(look.boxMargin)}));
  var o:Vertex; let p=m.center+offset;
  o.position=vec4f(p/u.canvas*vec2f(2,-2)+vec2f(-1,1),m.depth,1);
  // The ellipse is the unit circle in this space; the map is linear, so interpolation keeps it exact.
@@ -221,17 +250,16 @@ fn linear(c:vec3f)->vec3f {
  // distance to the edge in pixels and the border keeps one width on
  // stretched and tilted ellipses. At the exact center every direction gives
  // the same f, so any direction serves.
- let n=select(vec2f(1,0),i.unit/r,r>1e-4);
- let slope=max(length(n.x*m.row0+n.y*m.row1),1e-6);
+ let n=select(vec2f(1,0),i.unit/r,r>${float(look.centerRadius)});
+ let slope=max(length(n.x*m.row0+n.y*m.row1),${float(look.minSlope)});
  let dist=f/slope;
  // The softening comes from f, which has a bounded gradient even at the
  // center, where dist jumps between directions.
- let aa=max(fwidth(f)/slope,.42);
- // The approved 1.3-pixel border is now 1.5 times as thick: 1.95 pixels.
- let edge=1.-smoothstep(.975-aa,.975+aa,abs(dist));
- let fill=(1.-smoothstep(-aa,aa,dist))*.105;
- let opacity=edge*.94+(1.-edge)*fill;
- if(opacity<.001){discard;}
+ let aa=max(fwidth(f)/slope,${float(look.minSoftening)});
+ let edge=1.-smoothstep(${float(look.borderHalfWidth)}-aa,${float(look.borderHalfWidth)}+aa,abs(dist));
+ let fill=(1.-smoothstep(-aa,aa,dist))*${float(look.fillOpacity)};
+ let opacity=edge*${float(look.borderOpacity)}+(1.-edge)*fill;
+ if(opacity<${float(look.discardOpacity)}){discard;}
  return vec4f(linear(m.color.rgb)*opacity,opacity);
 }`;
 
