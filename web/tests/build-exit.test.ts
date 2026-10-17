@@ -64,10 +64,15 @@ class FakeDocument {
     if (!stopped) target.click();
     return !stopped;
   }
-  /** A keydown on `target` that bubbles to the document. True when a listener cancelled it. */
-  keydown(target: FakeElement, key: string, repeat = false): boolean {
+  /**
+   * A keydown on `target` that bubbles to the document. `atTarget` stands in
+   * for the target's own listener, which runs first. True when a listener
+   * cancelled it.
+   */
+  keydown(target: FakeElement, key: string, repeat = false, atTarget?: (event: FakeKey) => void): boolean {
     const event: FakeKey = { type: 'keydown', target, key, repeat, defaultPrevented: false,
       preventDefault() { this.defaultPrevented = true; } };
+    atTarget?.(event);
     for (const listener of this.keydowns) listener(event);
     return event.defaultPrevented;
   }
@@ -79,6 +84,8 @@ class FakeElement {
   isConnected = true;
   /** The dialog this element sits in, if any. */
   container: FakeDialog | null = null;
+  /** Selectors an ancestor of this element matches, such as another 'dialog' or an 'input'. */
+  readonly within = new Set<string>();
   private readonly listeners = new Map<string, ((event?: unknown) => void)[]>();
   constructor(protected readonly doc: FakeDocument) {}
   addEventListener(type: string, listener: (event?: unknown) => void) {
@@ -88,7 +95,8 @@ class FakeElement {
   click() { if (!this.disabled) this.fire('click'); }
   focus() { this.doc.activeElement = this; }
   closest(selector: string): FakeElement | null {
-    return selector === 'dialog[open]' && this.container?.open ? this.container : null;
+    if (selector === 'dialog[open]') return this.container?.open ? this.container : null;
+    return selector.split(',').some(part => this.within.has(part.trim())) ? this : null;
   }
 }
 
@@ -134,6 +142,8 @@ function fixture() {
   const view = { focus: vi.fn() };
   const beforeAsk = vi.fn();
   const clock = { time: 1_000 };
+  /** How long each confirm and discard takes, as on a slow device. */
+  const work = { ms: 0 };
   /** False while a menu or another dialog would take Escape first. */
   const page = { escapeAllowed: true };
   const buy = new BuyTool(sim, handle.lot_width(), handle.lot_height(), { changed() {} });
@@ -157,12 +167,14 @@ function fixture() {
   const exit = new BuildExit(doc as unknown as Document, {
     hasUnconfirmedChanges: () => hasUnconfirmedChanges(draft()),
     confirm: () => {
+      clock.time += work.ms;
       const confirmed = session.confirm();
       status.textContent = confirmed ? 'Changes confirmed.' : confirmRefusal(builder.hasPlacementChange);
       if (confirmed) { builder.cancel(); buy.cancel(); }
       return confirmed;
     },
     discard: () => {
+      clock.time += work.ms;
       const cancelled = session.end();
       if (!cancelled) status.textContent = ROLLBACK_FAILED;
       return cancelled;
@@ -191,7 +203,7 @@ function fixture() {
   /** Clicks Exit build, as the panel's heading button does. */
   const clickExit = () => { exitButton.focus(); exitButton.click(); };
   return { handle, sim, doc, session, builder, buy, exit, dialog, keep, exitButton, confirmButton,
-    cancelButton, stage, status, view, beforeAsk, clock, page, enterWithMove, clickExit,
+    cancelButton, stage, status, view, beforeAsk, clock, work, page, enterWithMove, clickExit,
     get gameClicks() { return gameClicks; } };
 }
 
@@ -525,13 +537,29 @@ describe('Escape in Build mode', () => {
     } finally { f.handle.free(); }
   });
 
+  it('handles one Escape from the game view once', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.builder.select(22);
+      // As main.ts's canvas listener: it hands Escape over and cancels the key.
+      const gameView = (event: FakeKey) => { f.exit.pressEscape(event.repeat); event.preventDefault(); };
+      expect(f.doc.keydown(f.stage, 'Escape', false, gameView)).toBe(true);
+      expect([f.builder.selected, f.builder.active, f.dialog.open]).toEqual([null, true, false]);
+    } finally { f.handle.free(); }
+  });
+
   it('leaves another dialog, a text field, a menu and other keys alone', () => {
     const f = fixture();
     try {
       f.enterWithMove();
       f.builder.select(22);
+      // The Land tool's dialog, say: it closes itself on Escape.
+      const inOtherDialog = new FakeElement(f.doc);
+      inOtherDialog.within.add('dialog');
+      expect(f.doc.keydown(inOtherDialog, 'Escape')).toBe(false);
       const field = new FakeElement(f.doc);
-      field.closest = (selector: string) => selector.includes('input') ? field : null;
+      field.within.add('input');
       expect(f.doc.keydown(field, 'Escape')).toBe(false);
       expect(f.doc.keydown(f.doc.body, 'Enter')).toBe(false);
       f.page.escapeAllowed = false;
@@ -724,6 +752,77 @@ describe('a double-click that closes the dialog or leaves', () => {
       expect(f.doc.click(f.stage, 1)).toBe(true);
       expect(f.doc.click(f.stage, 2)).toBe(true);
       expect(f.gameClicks).toBe(3);
+    } finally { f.handle.free(); }
+  });
+
+  it('arms nothing from a pointer click that came before the keyboard close', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.clickExit();
+      // A click on the dialog's text, then Escape over a quarter second later:
+      // the click did not close the dialog, so it arms nothing.
+      expect(f.doc.click(dialogButton(f), 1)).toBe(true);
+      f.clock.time += 600;
+      expect(f.doc.keydown(f.doc.body, 'Escape')).toBe(true);
+      expect(f.dialog.open).toBe(false);
+      f.clock.time += 50;
+      expect(f.doc.click(f.stage, 2)).toBe(true);
+      expect(f.gameClicks).toBe(1);
+    } finally { f.handle.free(); }
+  });
+
+  it('lets a fresh double-click through soon after a pointer close, whether Build mode stays or is left', () => {
+    const f = fixture();
+    try {
+      f.enterWithMove();
+      f.clickExit();
+      expect(f.doc.click(f.keep, 1)).toBe(true);
+      f.dialog.close('keep');
+      expect(f.builder.active).toBe(true);
+      // A new run, counted 1 then 2 by the browser, on Rotate clockwise say.
+      f.clock.time += 300;
+      expect(f.doc.click(f.stage, 1)).toBe(true);
+      f.clock.time += 150;
+      expect(f.doc.click(f.stage, 2)).toBe(true);
+      expect(f.doc.click(f.confirmButton, 1)).toBe(true);
+      expect(f.builder.active).toBe(false);
+      // The same after leaving, on zoom or speed.
+      f.clock.time += 400;
+      expect(f.doc.click(f.stage, 1)).toBe(true);
+      f.clock.time += 150;
+      expect(f.doc.click(f.stage, 2)).toBe(true);
+      expect(f.gameClicks).toBe(4);
+    } finally { f.handle.free(); }
+  });
+
+  it('arms from the click that caused the leave even when the work outlasts a quarter second', () => {
+    const f = fixture();
+    try {
+      f.work.ms = 400;
+      // The footer: a slow confirm, then a slow discard on the way out.
+      f.enterWithMove();
+      expect(f.doc.click(f.confirmButton, 1)).toBe(true);
+      expect(f.builder.active).toBe(false);
+      f.clock.time += 100;
+      expect(f.doc.click(f.stage, 2)).toBe(false);
+      // The dialog: the close arms first, and the slow discard must not clear it.
+      f.clock.time += 5_000;
+      f.builder.enter(); f.builder.select(22); f.builder.moveTo(9, 3);
+      f.clickExit();
+      expect(f.doc.click(dialogButton(f), 1)).toBe(true);
+      f.dialog.close('discard');
+      expect(f.builder.active).toBe(false);
+      f.clock.time += 100;
+      expect(f.doc.click(f.stage, 2)).toBe(false);
+      // Exit build with nothing pending: a slow discard of nothing.
+      f.clock.time += 5_000;
+      f.builder.enter();
+      expect(f.doc.click(f.exitButton, 1)).toBe(true);
+      expect(f.builder.active).toBe(false);
+      f.clock.time += 100;
+      expect(f.doc.click(f.stage, 2)).toBe(false);
+      expect(f.gameClicks).toBe(0);
     } finally { f.handle.free(); }
   });
 

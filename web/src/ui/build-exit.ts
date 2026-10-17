@@ -81,6 +81,8 @@ export class BuildExit {
   private readonly keep: HTMLButtonElement;
   /** True only while a chosen Confirm or Discard leaves, so `gate` lets it through. */
   private chosen = false;
+  /** The pointer click that chose it, read before the Confirm or Discard did any work. */
+  private chosenCause: PointerClick | null = null;
   /** What had focus when the dialog opened; it gets focus back if Build mode stays. */
   private opener: Element | null = null;
   /** The latest pointer click anywhere on the page. */
@@ -102,8 +104,11 @@ export class BuildExit {
     // The form's method is dialog, so each button closes it with its value;
     // the close event reads the answer.
     this.dialog.addEventListener('close', () => {
-      this.watchForTheRestOfTheClick();
-      this.answer(this.dialog.returnValue);
+      // A pointer close arms the guard whether or not Build mode is left:
+      // staying, the second click would land on the build instead.
+      const cause = this.recentPointerClick();
+      this.armAgainstTheRestOf(cause);
+      this.answer(this.dialog.returnValue, cause);
     });
     // Capturing on the document runs before the game view's own click
     // listener, as input.ts does for a menu's stray click.
@@ -146,56 +151,78 @@ export class BuildExit {
     // A keyboard activation has no click count: neither a cause nor a stray.
     if (event.detail === 0) return;
     const closing = this.closingClick;
-    if (closing && this.now() - closing.at <= STRAY_CLICK_MS && event.detail > closing.detail) {
-      const target = event.target as Element | null;
-      if (!(typeof target?.closest === 'function' && target.closest('dialog[open]'))) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
+    if (closing) {
+      // A count that does not go past the closing click's starts a new run,
+      // which is deliberate: a fresh double-click soon after must go through.
+      if (event.detail <= closing.detail || this.now() - closing.at > STRAY_CLICK_MS) {
+        this.closingClick = null;
+      } else {
+        const target = event.target as Element | null;
+        if (!(typeof target?.closest === 'function' && target.closest('dialog[open]'))) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
       }
     }
     this.lastPointerClick = { at: this.now(), detail: event.detail };
   }
 
   /**
-   * After the dialog closes or Build mode is left: when a pointer click did
-   * it, the clicks that continue its run (a double-click's second, as the
-   * browser counts them) are dropped. A later separate click starts a new run
-   * and goes through, as do keyboard closes, which arm nothing.
+   * The pointer click that is closing the dialog or leaving Build mode, or
+   * null for a keyboard close. Read on entry, before any slow work, so a
+   * slow confirm, discard or redraw cannot age it out.
    */
-  private watchForTheRestOfTheClick(): void {
+  private recentPointerClick(): PointerClick | null {
     const click = this.lastPointerClick;
-    this.closingClick = click && this.now() - click.at <= CAUSE_MS ? click : null;
+    return click && this.now() - click.at <= CAUSE_MS ? click : null;
+  }
+
+  /**
+   * After a pointer click closed the dialog or left Build mode, the clicks
+   * that continue its run (a double-click's second, as the browser counts
+   * them) are dropped. A keyboard close passes null and changes nothing, so
+   * it never clears a guard already armed.
+   */
+  private armAgainstTheRestOf(cause: PointerClick | null): void {
+    if (cause) this.closingClick = cause;
   }
 
   /** The builder's beforeExit: true lets Build mode close now. */
   gate(): boolean {
     if (this.dialog.open) return false;
+    const cause = this.chosen ? this.chosenCause : this.recentPointerClick();
     if (!this.chosen && this.hooks.hasUnconfirmedChanges()) {
       this.ask();
       return false;
     }
     const discarded = this.hooks.discard();
-    if (discarded) this.watchForTheRestOfTheClick();
+    if (discarded) this.armAgainstTheRestOf(cause);
     return discarded;
   }
 
-  /** The footer's Confirm and the dialog's Confirm changes. */
+  /** The footer's Confirm; the dialog's Confirm changes passes the click it read on closing. */
   confirmAndLeave(): boolean {
-    return this.hooks.confirm() && this.leaveAsChosen();
+    return this.confirmAndLeaveFor(this.recentPointerClick());
   }
 
-  /** The footer's Cancel and the dialog's Discard changes. */
+  /** The footer's Cancel; the dialog's Discard changes passes the click it read on closing. */
   discardAndLeave(): boolean {
-    return this.leaveAsChosen();
+    return this.leaveAsChosen(this.recentPointerClick());
   }
 
-  private leaveAsChosen(): boolean {
+  private confirmAndLeaveFor(cause: PointerClick | null): boolean {
+    return this.hooks.confirm() && this.leaveAsChosen(cause);
+  }
+
+  private leaveAsChosen(cause: PointerClick | null): boolean {
     this.chosen = true;
+    this.chosenCause = cause;
     try {
       return this.hooks.leave();
     } finally {
       this.chosen = false;
+      this.chosenCause = null;
     }
   }
 
@@ -208,11 +235,11 @@ export class BuildExit {
     this.keep.focus();
   }
 
-  private answer(value: string): void {
+  private answer(value: string, cause: PointerClick | null): void {
     const opener = this.opener;
     this.opener = null;
-    const left = value === CONFIRM ? this.confirmAndLeave()
-      : value === DISCARD ? this.discardAndLeave() : false;
+    const left = value === CONFIRM ? this.confirmAndLeaveFor(cause)
+      : value === DISCARD ? this.leaveAsChosen(cause) : false;
     // Leaving moves focus to the Build button; staying returns it.
     if (!left) this.restoreFocus(opener);
   }
