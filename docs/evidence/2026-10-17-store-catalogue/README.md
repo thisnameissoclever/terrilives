@@ -40,4 +40,6 @@ A reviewer with a fresh context, who had not seen the work, opened all twenty fr
 - At $0 the pictures' contrast against the card fell from about 7.7 to 1 to about 2.6 to 1, while the type names kept about 8.7 to 1 and the models and prices about 5.3 to 1, so the lines stay readable as rule 1 requires.
 - Each defect frame shows the defect its row names, and none of those defects appears in frames `01` to `14`.
 
+The same reviewer then opened the recaptured frame `01` from the final bundle and returned PASS: the Buy panel is identical, only the clock and the people in the house differ, and the pictures measure as before, the Chapterhouse Wingback 48 by 69 pixels beside the Aquarium's 42 by 69.
+
 Two earlier fresh reviews of this pass failed it and were acted on: the first found the footer gap, the uneven card heights and the wrapped phone filter rows, and the second found the small Wingback picture. Each is kept above as a defect frame.
