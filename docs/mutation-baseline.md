@@ -1710,3 +1710,41 @@ diff> --package terri-core --package terri-sim --package terri-data
 --package terri-wasm --test-workspace true --timeout-multiplier 4
 --minimum-test-timeout 120 --build-timeout 600`, run locally on the merged
 head of pull request 263.
+
+## 2026-10-17: land purchase, two accepted survivors
+
+The local in-diff sweep of the fights and land changes (issues 248 and 254),
+run on c27036032, planned 74 mutants in `land.rs`. Tests in that file now
+kill every one of them that compiles, except two in the room lookup of
+`grow`, which are added to `mutants-baseline.txt`:
+
+1. `crates/terri-sim/src/land.rs:338:26: replace % with + in grow` and
+   `crates/terri-sim/src/land.rs:338:52: replace / with * in grow`. After a
+   purchase, `grow` finds each room again by the tile its old id names,
+   moved with the world, and falls back to the moved cell of that id when
+   the tile is in no room. Either mutation puts the tile outside the house,
+   where there is no room (for id 0 the second names the same tile as
+   before), so the lookup always falls back. For every room id the code
+   creates, the two answers agree: a room id is the lowest cell of its
+   room, rooms exist only inside the house rectangle, and the house
+   rectangle moves whole with a purchase, so the room's lowest cell moves to
+   the moved cell of its old id. `a_move_keeps_ids_and_moves_only_tiles`
+   and `rear_and_right_strips_move_the_whole_world` check that remapped room
+   ids name the moved rooms. The two answers could differ only for an id
+   that names no room; whether such an id can reach `grow` is an untested
+   reading of the command drain, not something a test shows.
+
+The gate compares entries with the line and column removed, so these two
+lines also match `replace % with + in grow` at 336:69 and `replace / with *
+in grow` at 336:32, the same operators in the cell remap a few lines above.
+`a_move_keeps_ids_and_moves_only_tiles` kills both today, but the gate would
+not report either if a later change let it survive. The two
+`TileGrid::find_path` neighbor-offset entries above already share one
+address after the same normalization.
+
+The sweep that recorded this ran `cargo mutants --in-place --iterate
+--in-diff` locally on the fights and land diff, with `cargo test
+--workspace` judging each mutant, a 600 second build timeout and an
+automatic 848 second test timeout. Every planned `land.rs` mutant was also
+applied by hand to the `land.rs` these entries describe, with the land tests
+run against each.
