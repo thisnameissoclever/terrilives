@@ -359,6 +359,15 @@ pub struct TuningFile {
     pub fight_mood_penalty: f32,
     /// How many ticks the Had a fight moodlet lasts. From 1 to a week.
     pub fight_mood_ticks: u32,
+    /// How deep a strip of bought land is, in tiles (land expansion, issue
+    /// 254). From 1 to 100.
+    pub land_strip_depth: u32,
+    /// The price of a square of land before any was bought, in cents. At
+    /// most a thousand million.
+    pub land_price_cents: u32,
+    /// How much every square already bought adds to the price of the next,
+    /// in cents. At most a thousand million.
+    pub land_price_step_cents: u32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1283,7 +1292,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 98] = [
+    const TUNING_LINES: [(&str, &str); 101] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1328,6 +1337,9 @@ mod tests {
         ("fight_relationship_loss", "0.125"),
         ("fight_mood_penalty", "11.5"),
         ("fight_mood_ticks", "500"),
+        ("land_strip_depth", "7"),
+        ("land_price_cents", "12345"),
+        ("land_price_step_cents", "21"),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("at_work_decay_scale", "0.4"),
@@ -1464,6 +1476,9 @@ mod tests {
         assert_eq!(parsed.fight_relationship_loss, 0.125);
         assert_eq!(parsed.fight_mood_penalty, 11.5);
         assert_eq!(parsed.fight_mood_ticks, 500);
+        assert_eq!(parsed.land_strip_depth, 7);
+        assert_eq!(parsed.land_price_cents, 12345);
+        assert_eq!(parsed.land_price_step_cents, 21);
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.at_work_decay_scale, 0.4);

@@ -604,6 +604,19 @@ fight_relationship_loss = 0.1
 fight_mood_penalty = 12.0
 fight_mood_ticks = 480
 
+# LAND EXPANSION - issue 254 (docs/specs/2026-10-17-land-expansion.md). A
+# strip of bought land is land_strip_depth tiles deep along the whole of
+# one side. A square costs land_price_cents plus land_price_step_cents for
+# every square already bought: the first 10 by 20 strip costs 200 squares
+# at $150.00, and after it a square costs $180.00. Money is held in cents,
+# so 15000 is $150.00 and 15 is $0.15. The depth must be from 1 to 100;
+# the price and the step at most 1 000 000 000 cents. Appended to the
+# compiled tuning after fight_mood_ticks, so packs published before them
+# reconstruct these shipped values.
+land_strip_depth = 10
+land_price_cents = 15000
+land_price_step_cents = 15
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

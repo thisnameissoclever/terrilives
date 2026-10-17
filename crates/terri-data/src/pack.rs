@@ -1096,6 +1096,15 @@ pub struct Tuning {
     pub fight_mood_penalty: f32,
     /// How many ticks the Had a fight moodlet lasts.
     pub fight_mood_ticks: u32,
+    /// How deep a strip of bought land is, in tiles (land expansion, issue
+    /// 254). Appended after the fight knobs, per the rule above, with the
+    /// two prices after it.
+    pub land_strip_depth: u32,
+    /// The price of a square of land before any was bought, in cents.
+    pub land_price_cents: u32,
+    /// How much every square already bought adds to the next square's
+    /// price, in cents.
+    pub land_price_step_cents: u32,
 }
 
 impl Tuning {
@@ -1116,6 +1125,11 @@ impl Tuning {
     pub const SHIPPED_FIGHT_RELATIONSHIP_LOSS: f32 = 0.1;
     pub const SHIPPED_FIGHT_MOOD_PENALTY: f32 = 12.0;
     pub const SHIPPED_FIGHT_MOOD_TICKS: u32 = 480;
+    /// The shipped land knobs, reconstructed the same way for packs
+    /// published before they existed.
+    pub const SHIPPED_LAND_STRIP_DEPTH: u32 = 10;
+    pub const SHIPPED_LAND_PRICE_CENTS: u32 = 15_000;
+    pub const SHIPPED_LAND_PRICE_STEP_CENTS: u32 = 15;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1906,6 +1920,9 @@ mod tests {
             fight_relationship_loss: 0.125,
             fight_mood_penalty: 11.5,
             fight_mood_ticks: 500,
+            land_strip_depth: 7,
+            land_price_cents: 12_345,
+            land_price_step_cents: 21,
         }
     }
 
@@ -2634,9 +2651,9 @@ mod tests {
     /// the eight before the word bands and the mild trait value
     /// ([OA-hud], [OA-values]), the twelve before the need-interaction
     /// balance values, which precede the four bytes of
-    /// `hated_communal_chance`, the fourteen of the burnt-meal knobs and
-    /// the final eighteen of the fight knobs; every established field
-    /// stays put.
+    /// `hated_communal_chance`, the fourteen of the burnt-meal knobs, the
+    /// eighteen of the fight knobs and the final four of the land knobs;
+    /// every established field stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2650,11 +2667,40 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Fights (issue 248): the five fight knobs are the final eighteen
-        // bytes, four floats in declaration order and the moodlet duration
-        // as a two-byte varint (500 is 0xF4 0x03). Each changed float
-        // differs from the fixture's only in its third byte.
-        let fight = before.len() - 18;
+        // Land expansion (issue 254): the three land knobs are the final
+        // four bytes, three varints: 7, then 12345 (0xB9 0x60), then 21.
+        let land = before.len() - 4;
+        assert_eq!(before[land..], [7, 0xB9, 0x60, 21]);
+        for (offset, after) in [
+            (
+                0,
+                Tuning {
+                    land_strip_depth: 8,
+                    ..a_tuning()
+                },
+            ),
+            (
+                1,
+                Tuning {
+                    land_price_cents: 12_346,
+                    ..a_tuning()
+                },
+            ),
+            (
+                3,
+                Tuning {
+                    land_price_step_cents: 22,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![land + offset], "land {offset}");
+        }
+        // Fights (issue 248): the five fight knobs are the eighteen bytes
+        // before them, four floats in declaration order and the moodlet
+        // duration as a two-byte varint (500 is 0xF4 0x03). Each changed
+        // float differs from the fixture's only in its third byte.
+        let fight = land - 18;
         assert_eq!(
             before[fight..fight + 16],
             [-0.875f32, 0.015625, 0.125, 11.5]
@@ -2662,7 +2708,7 @@ mod tests {
                 .flat_map(f32::to_le_bytes)
                 .collect::<Vec<_>>()
         );
-        assert_eq!(before[fight + 16..], [0xF4, 0x03]);
+        assert_eq!(before[fight + 16..land], [0xF4, 0x03]);
         for (offset, after) in [
             (
                 2,

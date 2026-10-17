@@ -497,6 +497,9 @@ impl From<PublishedTuning> for Tuning {
             fight_relationship_loss: Tuning::SHIPPED_FIGHT_RELATIONSHIP_LOSS,
             fight_mood_penalty: Tuning::SHIPPED_FIGHT_MOOD_PENALTY,
             fight_mood_ticks: Tuning::SHIPPED_FIGHT_MOOD_TICKS,
+            land_strip_depth: Tuning::SHIPPED_LAND_STRIP_DEPTH,
+            land_price_cents: Tuning::SHIPPED_LAND_PRICE_CENTS,
+            land_price_step_cents: Tuning::SHIPPED_LAND_PRICE_STEP_CENTS,
         }
     }
 }
