@@ -3,72 +3,30 @@
 //! carries a Burnt dinner moodlet for a while. Cooking mastery lowers the
 //! chance, down to one meal in five hundred at the top of the ladder.
 use bevy_ecs::prelude::*;
-use terri_core::{FnvHasher, SimClock, SimId};
+use terri_core::{FnvHasher, SimClock};
 use terri_data::{CompiledChain, ContentPack, Tuning};
+
+use crate::moodlet_timers::MoodletTimers;
 
 /// The activity tag whose skill decides how often the food burns.
 pub const COOKING_TAG: &str = "cooking";
 /// The station role the food leaves when the roll happens.
 pub const HOB_ROLE: &str = "hob";
 
-/// Who burnt a meal and the tick their Burnt dinner moodlet ends, sorted
-/// by person with one entry each. Saved in schema eleven; in the world
-/// hash whenever it holds anything.
+/// Who burnt a meal and the tick their Burnt dinner moodlet ends. Saved in
+/// schema eleven; in the world hash whenever it holds anything.
 #[derive(Resource, Default, Clone, Debug, PartialEq, Eq)]
-pub struct BurntMeals(Vec<(SimId, u64)>);
+pub struct BurntMeals(pub MoodletTimers);
 
-impl BurntMeals {
-    /// Builds the list from saved rows, keeping one entry per person in
-    /// id order; a later duplicate loses.
-    pub fn from_entries(entries: Vec<(SimId, u64)>) -> Self {
-        let mut list = Self::default();
-        for (sim, until) in entries {
-            if list.0.iter().all(|(id, _)| *id != sim) {
-                list.record(sim, until);
-            }
-        }
-        list
-    }
-
-    pub fn entries(&self) -> &[(SimId, u64)] {
+impl std::ops::Deref for BurntMeals {
+    type Target = MoodletTimers;
+    fn deref(&self) -> &MoodletTimers {
         &self.0
     }
-
-    /// A new burn replaces the person's earlier one, so the moodlet
-    /// restarts rather than stacking.
-    pub fn record(&mut self, sim: SimId, until: u64) {
-        self.0.retain(|(id, _)| *id != sim);
-        let at = self.0.partition_point(|(id, _)| *id < sim);
-        self.0.insert(at, (sim, until));
-    }
-
-    /// Whether the person's moodlet is still running at `now`.
-    pub fn active(&self, sim: SimId, now: u64) -> bool {
-        self.0.iter().any(|(id, until)| *id == sim && now < *until)
-    }
-
-    /// Drops the person's row, as death drops every other per-person record.
-    pub fn forget(&mut self, sim: SimId) {
-        self.0.retain(|(id, _)| *id != sim);
-    }
-
-    /// Drops every moodlet whose tick has passed.
-    pub fn expire(&mut self, now: u64) {
-        self.0.retain(|(_, until)| now < *until);
-    }
-
-    /// An empty list hashes nothing, so a household that never burnt a
-    /// meal hashes exactly as it did before burnt meals existed.
-    pub fn hash_into(&self, hash: &mut FnvHasher) {
-        if self.0.is_empty() {
-            return;
-        }
-        hash.write_bytes(b"burnt-meals-v1");
-        hash.write_u64(self.0.len() as u64);
-        for (id, until) in &self.0 {
-            hash.write_u64(u64::from(id.0));
-            hash.write_u64(*until);
-        }
+}
+impl std::ops::DerefMut for BurntMeals {
+    fn deref_mut(&mut self) -> &mut MoodletTimers {
+        &mut self.0
     }
 }
 
@@ -110,7 +68,7 @@ pub(crate) fn expire(world: &mut World) {
 
 pub(crate) fn hash(world: &World, hash: &mut FnvHasher) {
     if let Some(burnt) = world.get_resource::<BurntMeals>() {
-        burnt.hash_into(hash);
+        burnt.hash_into(hash, b"burnt-meals-v1");
     }
 }
 
@@ -146,45 +104,6 @@ mod tests {
         assert_eq!(burn_chance(&t, -1.0), 0.5, "below the ladder is a novice");
         assert_eq!(burn_chance(&t, 2.0), 0.25, "above the top is a master");
         assert_eq!(burn_chance(&t, f32::NAN), 0.5, "not a number is a novice");
-    }
-
-    #[test]
-    fn one_entry_per_person_and_a_new_burn_restarts_the_moodlet() {
-        let mut burnt = BurntMeals::default();
-        burnt.record(SimId(3), 100);
-        burnt.record(SimId(1), 50);
-        burnt.record(SimId(3), 120);
-        assert_eq!(burnt.entries(), &[(SimId(1), 50), (SimId(3), 120)]);
-        assert!(burnt.active(SimId(3), 119));
-        assert!(!burnt.active(SimId(3), 120), "the end tick is already over");
-        assert!(!burnt.active(SimId(2), 0));
-        burnt.expire(50);
-        assert_eq!(burnt.entries(), &[(SimId(3), 120)]);
-        let rebuilt = BurntMeals::from_entries(vec![(SimId(7), 9), (SimId(2), 4), (SimId(7), 1)]);
-        assert_eq!(rebuilt.entries(), &[(SimId(2), 4), (SimId(7), 9)]);
-    }
-
-    /// The digest sees the list only when it holds something, and sees
-    /// every field of every entry.
-    #[test]
-    fn hash_observes_entries_and_ignores_an_empty_list() {
-        let digest = |burnt: &BurntMeals| {
-            let mut hash = FnvHasher::default();
-            burnt.hash_into(&mut hash);
-            hash.finish()
-        };
-        let empty = digest(&BurntMeals::default());
-        assert_eq!(empty, FnvHasher::default().finish());
-        let mut one = BurntMeals::default();
-        one.record(SimId(1), 10);
-        let base = digest(&one);
-        assert_ne!(base, empty);
-        let mut later = one.clone();
-        later.record(SimId(1), 11);
-        assert_ne!(digest(&later), base, "the end tick is hashed");
-        let mut other = BurntMeals::default();
-        other.record(SimId(2), 10);
-        assert_ne!(digest(&other), base, "the person is hashed");
     }
 
     #[test]

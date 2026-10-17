@@ -188,6 +188,14 @@ fn derive_mood_with_chores(
             });
         }
     }
+    if let (Some(id), Some(fights)) = (subject_id, world.get_resource::<crate::fights::Fights>()) {
+        if fights.active(*id, now) {
+            moodlets.push(Moodlet {
+                label: HAD_A_FIGHT.to_string(),
+                score: -pack.tuning.fight_mood_penalty,
+            });
+        }
+    }
     for death in world
         .resource::<terri_core::save::SavedMortality>()
         .deaths
@@ -254,6 +262,8 @@ fn derive_mood_with_chores(
 const FEELING_SICK: &str = "Feeling sick";
 /// The moodlet a cook carries after burning a meal - issue 243.
 pub(crate) const BURNT_DINNER: &str = "Burnt dinner";
+/// The moodlet both sides carry after a fight - issue 248.
+pub(crate) const HAD_A_FIGHT: &str = "Had a fight";
 
 /// The mood one habituation value costs, [OD-moodlets] item 1: zero at
 /// `overdoing_threshold`, the whole `overdoing_penalty` at
@@ -403,15 +413,15 @@ mod tests {
     /// because the Traits panel and the Mood panel sit in the same sheet.
     #[test]
     fn no_trait_label_repeats_a_need_moodlet() {
-        let mut taken: Vec<&str> = vec!["Needs met", FEELING_SICK, BURNT_DINNER];
+        let mut taken: Vec<&str> = vec!["Needs met", FEELING_SICK, BURNT_DINNER, HAD_A_FIGHT];
         for need in NeedId::ALL {
             let (low, critical) = need_labels(need);
             taken.extend([low, critical]);
         }
         assert_eq!(
             taken.len(),
-            17,
-            "seven needs, two labels each, the all-clear, feeling sick and burnt dinner"
+            18,
+            "seven needs, two labels each, the all-clear, feeling sick, burnt dinner and had a fight"
         );
         for trait_def in &terri_data::pack().traits {
             assert!(

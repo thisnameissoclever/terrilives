@@ -447,7 +447,7 @@ Future facial expressions and unique animations should reflect both current mood
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
 - `[H13]` Implemented: slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
-- `[H14]` Autonomous friendly conversations above a positive threshold, and fights below a negative one.
+- `[H14]` Autonomous friendly conversations above a positive threshold, and fights below a negative one. Fights shipped with issue 248: a person at or below the tuned threshold starts one on their own only over a chore the other person missed and left undone, and the player can order one from the right-click menu ([fights](specs/2026-10-16-fights.md)).
 - `[H15]` Extroversion changing how readily a person starts either.
 
 Also missing: more direct social actions than chat, group conversations, and a romance axis. Media interactions use their authored slot capacity; conversation groups remain separate work.

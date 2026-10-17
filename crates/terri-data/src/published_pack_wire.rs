@@ -492,6 +492,11 @@ impl From<PublishedTuning> for Tuning {
             burn_chance_master: Tuning::SHIPPED_BURN_CHANCE_MASTER,
             burnt_meal_mood_penalty: Tuning::SHIPPED_BURNT_MEAL_MOOD_PENALTY,
             burnt_meal_mood_ticks: Tuning::SHIPPED_BURNT_MEAL_MOOD_TICKS,
+            fight_affinity_threshold: Tuning::SHIPPED_FIGHT_AFFINITY_THRESHOLD,
+            fight_chance_per_tick: Tuning::SHIPPED_FIGHT_CHANCE_PER_TICK,
+            fight_relationship_loss: Tuning::SHIPPED_FIGHT_RELATIONSHIP_LOSS,
+            fight_mood_penalty: Tuning::SHIPPED_FIGHT_MOOD_PENALTY,
+            fight_mood_ticks: Tuning::SHIPPED_FIGHT_MOOD_TICKS,
         }
     }
 }

@@ -1,5 +1,6 @@
 //! Household dirt, timed work, preferences and weekly commitments.
 mod board;
+pub(crate) use board::work_needed;
 pub(crate) mod grime;
 mod groups;
 mod patches;

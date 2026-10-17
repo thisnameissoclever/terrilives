@@ -9,8 +9,11 @@ pub mod beds;
 pub mod books;
 pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
+pub mod fights;
+pub use fights::Fights;
 pub mod character_draft;
 pub mod chores;
+pub mod moodlet_timers;
 mod reading;
 mod recipe_actions;
 pub use recipe_actions::{
@@ -1276,6 +1279,22 @@ impl Sim {
         save::v11::capture(self)
     }
 
+    /// Schema twelve: everything schema eleven holds, then the fights.
+    pub fn save_snapshot_v12(&self) -> terri_core::SaveSnapshotV12 {
+        save::v12::capture(self)
+    }
+
+    pub fn load_snapshot_v12(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV12,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let candidate = save::v12::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
     pub fn load_snapshot_v11(
         &mut self,
         snapshot: terri_core::SaveSnapshotV11,
@@ -1467,6 +1486,7 @@ impl Sim {
         world.insert_resource(social_company::SocialCompany::default());
         world.insert_resource(social_episode::SocialEpisodes::default());
         world.insert_resource(burnt_meals::BurntMeals::default());
+        world.insert_resource(fights::Fights::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -1654,6 +1674,7 @@ impl Sim {
                     // A moodlet whose tick has passed is gone before any
                     // mood read this tick; the list is tiny.
                     burnt_meals::expire,
+                    fights::expire,
                     reading::reconcile,
                     social_episode::maintain,
                     systems::career::start_shift,
@@ -1680,6 +1701,10 @@ impl Sim {
                     domestic::tick,
                     targeted_cleanup::tick,
                     chores::tick,
+                    // After the board has settled today's duties and before
+                    // selection, so a fight it starts is an order selection
+                    // sees on the next tick, served as a player's would be.
+                    fights::provoke,
                     social_company::refresh,
                     relationship_dynamics::refresh_profiles,
                     systems::interpersonal::prepare,
@@ -4533,6 +4558,7 @@ impl Sim {
         save::v6::hash(&self.world, &mut hasher);
         save::social::hash(&self.world, &mut hasher);
         burnt_meals::hash(&self.world, &mut hasher);
+        fights::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }

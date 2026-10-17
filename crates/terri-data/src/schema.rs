@@ -345,6 +345,20 @@ pub struct TuningFile {
     pub burnt_meal_mood_penalty: f32,
     /// How many ticks the Burnt dinner moodlet lasts. From 1 to a week.
     pub burnt_meal_mood_ticks: u32,
+    /// The feeling at or below which a person may start a fight on their
+    /// own (fights, issue 248). Finite, from -1 to 1.
+    pub fight_affinity_threshold: f32,
+    /// Chance per idle tick, with a reason, that the fight starts. Finite,
+    /// from 0 to 1.
+    pub fight_chance_per_tick: f32,
+    /// How much a finished fight lowers each side's feeling for the other.
+    /// Finite, from 0 to 2.
+    pub fight_relationship_loss: f32,
+    /// How much a fight lowers mood while its moodlet lasts. Finite and
+    /// not negative.
+    pub fight_mood_penalty: f32,
+    /// How many ticks the Had a fight moodlet lasts. From 1 to a week.
+    pub fight_mood_ticks: u32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1269,7 +1283,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 93] = [
+    const TUNING_LINES: [(&str, &str); 98] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1309,6 +1323,11 @@ mod tests {
         ("burn_chance_master", "0.00390625"),
         ("burnt_meal_mood_penalty", "9.5"),
         ("burnt_meal_mood_ticks", "300"),
+        ("fight_affinity_threshold", "-0.875"),
+        ("fight_chance_per_tick", "0.015625"),
+        ("fight_relationship_loss", "0.125"),
+        ("fight_mood_penalty", "11.5"),
+        ("fight_mood_ticks", "500"),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("at_work_decay_scale", "0.4"),
@@ -1440,6 +1459,11 @@ mod tests {
         assert_eq!(parsed.burn_chance_master, 0.00390625);
         assert_eq!(parsed.burnt_meal_mood_penalty, 9.5);
         assert_eq!(parsed.burnt_meal_mood_ticks, 300);
+        assert_eq!(parsed.fight_affinity_threshold, -0.875);
+        assert_eq!(parsed.fight_chance_per_tick, 0.015625);
+        assert_eq!(parsed.fight_relationship_loss, 0.125);
+        assert_eq!(parsed.fight_mood_penalty, 11.5);
+        assert_eq!(parsed.fight_mood_ticks, 500);
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.at_work_decay_scale, 0.4);

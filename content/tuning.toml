@@ -580,6 +580,26 @@ burn_chance_master = 0.002
 burnt_meal_mood_penalty = 10.0
 burnt_meal_mood_ticks = 240
 
+# FIGHTS - issue 248. A person starts a fight on their own only with
+# someone they feel fight_affinity_threshold or worse about (-0.9 is the
+# bottom five percent of the -1 to 1 scale) and only with a reason: a chore
+# the other person was assigned, missed, and left undone. With a reason,
+# each idle tick rolls once against fight_chance_per_tick; 0.01 makes the
+# wait about a hundred ticks once the conditions hold. A finished fight
+# lowers each side's feeling for the other by fight_relationship_loss and
+# leaves a Had a fight moodlet scoring minus fight_mood_penalty for
+# fight_mood_ticks ticks (480 is eight game hours); the moodlet also holds
+# off another autonomous fight by the same person. The threshold must be
+# finite from -1 to 1, the chance finite from 0 to 1, the loss finite from
+# 0 to 2, the penalty finite and not negative, the duration from 1 to a
+# week. Appended to the compiled tuning after burnt_meal_mood_ticks, so
+# packs published before them reconstruct these shipped values.
+fight_affinity_threshold = -0.9
+fight_chance_per_tick = 0.01
+fight_relationship_loss = 0.1
+fight_mood_penalty = 12.0
+fight_mood_ticks = 480
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

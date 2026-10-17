@@ -1083,6 +1083,18 @@ pub struct Tuning {
     pub burnt_meal_mood_penalty: f32,
     /// How many ticks the Burnt dinner moodlet lasts.
     pub burnt_meal_mood_ticks: u32,
+    /// The feeling at or below which a person may start a fight on their
+    /// own (fights, issue 248). Appended after the burnt-meal knobs, per
+    /// the rule above, with the four knobs after it.
+    pub fight_affinity_threshold: f32,
+    /// Chance per idle tick, with a reason, that the fight starts.
+    pub fight_chance_per_tick: f32,
+    /// How much a finished fight lowers each side's feeling for the other.
+    pub fight_relationship_loss: f32,
+    /// How much a fight lowers mood while its moodlet lasts.
+    pub fight_mood_penalty: f32,
+    /// How many ticks the Had a fight moodlet lasts.
+    pub fight_mood_ticks: u32,
 }
 
 impl Tuning {
@@ -1096,6 +1108,13 @@ impl Tuning {
     pub const SHIPPED_BURN_CHANCE_MASTER: f32 = 0.002;
     pub const SHIPPED_BURNT_MEAL_MOOD_PENALTY: f32 = 10.0;
     pub const SHIPPED_BURNT_MEAL_MOOD_TICKS: u32 = 240;
+    /// The shipped fight knobs, reconstructed the same way for packs
+    /// published before they existed.
+    pub const SHIPPED_FIGHT_AFFINITY_THRESHOLD: f32 = -0.9;
+    pub const SHIPPED_FIGHT_CHANCE_PER_TICK: f32 = 0.01;
+    pub const SHIPPED_FIGHT_RELATIONSHIP_LOSS: f32 = 0.1;
+    pub const SHIPPED_FIGHT_MOOD_PENALTY: f32 = 12.0;
+    pub const SHIPPED_FIGHT_MOOD_TICKS: u32 = 480;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1881,6 +1900,11 @@ mod tests {
             burn_chance_master: 0.00390625,
             burnt_meal_mood_penalty: 9.5,
             burnt_meal_mood_ticks: 300,
+            fight_affinity_threshold: -0.875,
+            fight_chance_per_tick: 0.015625,
+            fight_relationship_loss: 0.125,
+            fight_mood_penalty: 11.5,
+            fight_mood_ticks: 500,
         }
     }
 
@@ -2609,8 +2633,9 @@ mod tests {
     /// the eight before the word bands and the mild trait value
     /// ([OA-hud], [OA-values]), the twelve before the need-interaction
     /// balance values, which precede the four bytes of
-    /// `hated_communal_chance` and the final fourteen of the burnt-meal
-    /// knobs; every established field stays put.
+    /// `hated_communal_chance`, the fourteen of the burnt-meal knobs and
+    /// the final eighteen of the fight knobs; every established field
+    /// stays put.
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
@@ -2624,11 +2649,63 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Burnt meals (issue 243): the four cooking knobs are the final
-        // fourteen bytes, three floats in declaration order and the moodlet
-        // duration as a two-byte varint (300 is 0xAC 0x02). Each changed
-        // float differs from the fixture's only in its third byte.
-        let burn = before.len() - 14;
+        // Fights (issue 248): the five fight knobs are the final eighteen
+        // bytes, four floats in declaration order and the moodlet duration
+        // as a two-byte varint (500 is 0xF4 0x03). Each changed float
+        // differs from the fixture's only in its third byte.
+        let fight = before.len() - 18;
+        assert_eq!(
+            before[fight..fight + 16],
+            [-0.875f32, 0.015625, 0.125, 11.5]
+                .into_iter()
+                .flat_map(f32::to_le_bytes)
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(before[fight + 16..], [0xF4, 0x03]);
+        for (offset, after) in [
+            (
+                2,
+                Tuning {
+                    fight_affinity_threshold: -0.8828125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                6,
+                Tuning {
+                    fight_chance_per_tick: 0.0234375,
+                    ..a_tuning()
+                },
+            ),
+            (
+                10,
+                Tuning {
+                    fight_relationship_loss: 0.1328125,
+                    ..a_tuning()
+                },
+            ),
+            (
+                14,
+                Tuning {
+                    fight_mood_penalty: 11.75,
+                    ..a_tuning()
+                },
+            ),
+            (
+                16,
+                Tuning {
+                    fight_mood_ticks: 501,
+                    ..a_tuning()
+                },
+            ),
+        ] {
+            assert_eq!(changed(after), vec![fight + offset], "fight {offset}");
+        }
+        // Burnt meals (issue 243): the four cooking knobs are the fourteen
+        // bytes before them, three floats in declaration order and the
+        // moodlet duration as a two-byte varint (300 is 0xAC 0x02). Each
+        // changed float differs from the fixture's only in its third byte.
+        let burn = fight - 14;
         assert_eq!(
             before[burn..burn + 12],
             [0.09375f32, 0.00390625, 9.5]
@@ -2636,7 +2713,7 @@ mod tests {
                 .flat_map(f32::to_le_bytes)
                 .collect::<Vec<_>>()
         );
-        assert_eq!(before[burn + 12..], [0xAC, 0x02]);
+        assert_eq!(before[burn + 12..fight], [0xAC, 0x02]);
         for (offset, after) in [
             (
                 2,
