@@ -157,6 +157,9 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     // its index stable. The renderer selects the model's matching orientation.
     let Some(art) = door_art(&portals) else {
         buffer.previous_openness.clone_from(&buffer.openness);
+        buffer.revision = world
+            .get_resource::<crate::placement::LotEditState>()
+            .map_or(0, |state| state.revision);
         return;
     };
     for (horizontal, (x, y)) in doors
