@@ -14,8 +14,9 @@ from mathutils import Vector
 BASE = Path(__file__).resolve().parent
 MODELS = BASE.parents[1]
 sys.path[:0] = [str(BASE), str(BASE.parent), str(MODELS/'furniture')]
-from shower_pose import (CORE_NAME, STEAM_NAMES, WATER_NAMES, apply, apply_wardrobe,
+from shower_pose import (CORE_NAME, STEAM_NAMES, WATER_NAMES, apply_wardrobe,
                          build_core, build_steam, build_water)
+from shower_washing_pose import apply
 from shower_contact import (body_source_signature, clothing_coverage, fixture_signature,
                             lower_clothing_diagnostic, measure, water_impact)
 from check_shower_scene import validate as validate_fixture
