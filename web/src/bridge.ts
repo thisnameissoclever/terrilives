@@ -2106,9 +2106,12 @@ export class SimBridge {
     if (![path, level, levels, pay, payMin, payMax, shifts, poor, good, advanceWeeks].every(isU32)) return null;
     if (level >= levels || payMin > payMax || pay < payMin || pay > payMax) return null;
     if ((warned !== 0 && warned !== 1) || ![-1, 0, 1].includes(trend)) return null;
-    if (mean < -1 || mean > 100 || last < -1 || last > 100) return null;
-    return { path, level, levels, pay, payMin, payMax, shifts, mean: mean < 0 ? null : mean,
-      last: last < 0 ? null : last, poor, good, advanceWeeks, jobSatisfaction, warned: warned === 1,
+    // -1 is the runtime's "none yet"; anything else outside 0 to 100 is not a score.
+    const score = (value: number) => value === -1 || (value >= 0 && value <= 100);
+    if (!score(mean) || !score(last) || jobSatisfaction < 0 || jobSatisfaction > 100) return null;
+    if (poorThreshold < 0 || goodThreshold > 100 || poorThreshold >= goodThreshold) return null;
+    return { path, level, levels, pay, payMin, payMax, shifts, mean: mean === -1 ? null : mean,
+      last: last === -1 ? null : last, poor, good, advanceWeeks, jobSatisfaction, warned: warned === 1,
       trend: trend as -1 | 0 | 1, poorThreshold, goodThreshold };
   }
 
@@ -2120,9 +2123,10 @@ export class SimBridge {
     const weeks: CareerWeek[] = [];
     for (let at = 0; at < values.length; at += 3) {
       const [week, performance, event] = [values[at], values[at + 1], values[at + 2]];
-      if (!isU32(week) || !Number.isFinite(performance) || !isU32(event) || event > 5) return [];
+      if (!isU32(week) || !Number.isFinite(performance) || performance < 0 || performance > 100) return [];
+      if (!isU32(event) || event > 5) return [];
       if (weeks.length > 0 && week <= weeks[weeks.length - 1].week) return [];
-      weeks.push({ week, performance: Math.min(100, Math.max(0, performance)), event });
+      weeks.push({ week, performance, event });
     }
     return weeks;
   }
@@ -2139,12 +2143,6 @@ export class SimBridge {
   /** The labels of the career paths, in path order. */
   careerPathLabels(): string[] {
     return Array.from(this.handle.career_path_labels());
-  }
-
-  /** The titles of one path's levels, in level order; empty for an unknown path. */
-  careerLevelTitles(path: number): string[] {
-    if (!isU32(path)) return [];
-    return Array.from(this.handle.career_level_titles(path));
   }
 
   assignCareer(entityIndex: number, path: number): boolean {

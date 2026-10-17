@@ -2961,7 +2961,7 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
-    /// The Career section's numbers for the person carrying `entity_index`
+    /// The Career tab's numbers for the person carrying `entity_index`
     /// (careers, issue 249): `[path, level, levels, pay, pay_min, pay_max,
     /// shifts this week, mean so far or -1, last performance or -1,
     /// consecutive poor, consecutive good, advance weeks, job satisfaction,

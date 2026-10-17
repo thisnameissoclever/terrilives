@@ -5,8 +5,10 @@ import type { CareerWeek } from '../bridge.js';
 // change: a line of each week's performance, the two thresholds as dashed
 // rules, and a marker at each event: a green upward arrow at a promotion,
 // a red downward arrow at a demotion, a green money mark at a raise, and a
-// gray diamond at a change of path. Each marker carries a title, so a
-// reader who cannot see the color still knows the event.
+// gray diamond at a change of path. Each marker carries a title that shows
+// on hover with the week and the event, since the shapes alone do not say.
+// The plot keeps a margin above and below the 0 to 100 band so a marker
+// at either extreme stays inside the drawing.
 
 export const CAREER_EVENT_NONE = 0;
 export const CAREER_EVENT_PROMOTION = 1;
@@ -20,8 +22,8 @@ const WIDTH = 300;
 const HEIGHT = 110;
 const LEFT = 26;
 const RIGHT = 8;
-const TOP = 10;
-const BOTTOM = 18;
+const TOP = 14;
+const BOTTOM = 26;
 
 export interface CareerGraphThresholds {
   readonly poor: number;

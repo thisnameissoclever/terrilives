@@ -318,7 +318,7 @@ describe('career panel surface', () => {
       rowTitle: rowTitle as unknown as HTMLElement, rowInfo: rowInfo as unknown as HTMLButtonElement,
       rowGraph: rowGraph as unknown as HTMLElement,
     }, { choose: path => actions.chosen.push(path), assign: () => { actions.assigned += 1; }, quit: () => { actions.quit += 1; } });
-    return { section, empty, content, rowTitle, rowInfo, rowGraph, render, actions };
+    return { section, empty, content, rowTitle, rowInfo, rowGraph, render, actions, document };
   }
 
   const employed = (overrides: Partial<CareerPanelState> = {}): CareerPanelState => ({
@@ -340,6 +340,9 @@ describe('career panel surface', () => {
     expect(content.querySelector('.career-warning')?.hidden).toBe(true);
     expect(content.querySelector('.career-graph:not(.career-graph-mini)')?.hidden).toBe(false);
     expect(content.querySelectorAll('.career-graph:not(.career-graph-mini) .career-mark')).toHaveLength(4);
+    // The miniature sits right after the heading, where its control is.
+    expect(content.nodes[1].getAttribute('id')).toBe('career-tab-mini-graph');
+    expect(content.querySelector('.career-info')?.getAttribute('aria-controls')).toBe('career-tab-mini-graph');
     const select = content.querySelector('select')!;
     expect(select.options.map(option => option.textContent)).toEqual(['Choose a path', 'Office', 'Cafe']);
     const [assign, quit] = content.querySelectorAll('.career-actions button');
@@ -389,8 +392,19 @@ describe('career panel surface', () => {
     expect(empty.textContent).toBe('Select a person to see their career.');
     render(employed({ pending: true, status: 'Assigning the career…', choice: 1 }));
     expect(content.querySelector('fieldset')!.disabled).toBe(true);
-    expect(content.querySelector('p[role="status"]:not(.career-warning)')?.textContent).toBe('Assigning the career…');
+    expect(content.querySelector('p[role="status"]')?.textContent).toBe('Assigning the career…');
     expect(content.querySelector('select')!.value).toBe('1');
+  });
+
+  it('takes focus back to the path list once a command settles', () => {
+    const { section, content, document, render } = build();
+    render(employed({ choice: 1 }));
+    const select = content.querySelector('select')!;
+    select.focus();
+    render(employed({ pending: true, status: 'Assigning the career…', choice: 1 }));
+    expect(document.activeElement).toBe(section);
+    render(employed({ choice: 1, status: 'Career assigned.' }));
+    expect(document.activeElement).toBe(select);
   });
 
   it('is wired into the sheet, the Overview row and the Options flyout', () => {

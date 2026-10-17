@@ -402,7 +402,7 @@ pub fn shift_score(fit: f32, mastery: f32, mood: f32) -> f32 {
     (50.0 + 20.0 * fit + 20.0 * (mastery - 0.5) + 10.0 * mood).clamp(0.0, 100.0)
 }
 
-/// The factors behind a person's score, as the Career section explains
+/// The factors behind a person's score, as the Career tab explains
 /// them: fit, trait fit, social capacity, the job's social demand, mastery
 /// and the mood term.
 pub fn factors(world: &World, pack: &ContentPack, entity: Entity) -> Option<[f32; 6]> {
@@ -1002,7 +1002,7 @@ pub(crate) fn validate_saved(world: &World, saved: &SavedCareers) -> Result<(), 
     Ok(())
 }
 
-/// The Career section's numbers for `entity`, or `None` for the
+/// The Career tab's numbers for `entity`, or `None` for the
 /// unemployed: `[path, level, levels, pay, pay_min, pay_max, shifts this
 /// week, mean so far, last performance, consecutive poor, consecutive good,
 /// advance weeks, job satisfaction, warned, trend, poor threshold, good
@@ -2142,7 +2142,10 @@ mod tests {
         let poor = report(sim.world(), entity).expect("employed");
         assert_eq!(poor[14], -1.0, "three poor weeks");
         assert_eq!(poor[13], 1.0, "warned");
-        assert_eq!(history(sim.world(), entity).len(), 18);
+        let triples = history(sim.world(), entity);
+        assert_eq!(triples.len(), 18);
+        assert_eq!(&triples[..6], &[0.0, 90.0, 0.0, 1.0, 90.0, 0.0]);
+        assert_eq!(&triples[15..], &[5.0, 10.0, 0.0]);
         let unemployed = sim.world_mut().spawn(Agent).id();
         assert!(report(sim.world(), unemployed).is_none());
         assert!(history(sim.world(), unemployed).is_empty());

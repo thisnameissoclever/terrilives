@@ -297,6 +297,7 @@ export function createCareerPanelSurface(
   info.textContent = 'i';
   info.setAttribute('aria-label', 'Show the review graph');
   info.setAttribute('aria-expanded', 'false');
+  info.setAttribute('aria-controls', 'career-tab-mini-graph');
   heading.append(title, info);
   const path = line(doc, 'career-path');
   const level = line(doc, 'career-level');
@@ -312,19 +313,17 @@ export function createCareerPanelSurface(
   const streaks = line(doc, 'career-streaks');
   const nextPromotion = line(doc, 'career-next');
   const warning = line(doc, 'career-warning');
-  warning.setAttribute('role', 'status');
   const graphHeading = doc.createElement('p');
   graphHeading.className = 'career-graph-heading';
   graphHeading.textContent = 'Reviews';
   const graph = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
   graph.setAttribute('class', 'career-graph');
-  graph.setAttribute('role', 'img');
   graph.setAttribute('aria-label', 'Reviewed weeks');
   const noReviews = line(doc, 'career-no-reviews');
   noReviews.textContent = 'No reviews yet.';
   const miniGraph = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
   miniGraph.setAttribute('class', 'career-graph career-graph-mini');
-  miniGraph.setAttribute('role', 'img');
+  miniGraph.setAttribute('id', 'career-tab-mini-graph');
   miniGraph.setAttribute('aria-label', 'Reviewed weeks');
   miniGraph.setAttribute('hidden', '');
   const fieldset = doc.createElement('fieldset');
@@ -352,20 +351,23 @@ export function createCareerPanelSurface(
   fieldset.append(legend, label, buttons);
   const status = doc.createElement('p');
   status.setAttribute('role', 'status');
-  content.append(heading, path, level, pay, schedule, week, lastReview, factorsHeading, factors, streaks,
-    nextPromotion, warning, graphHeading, graph, noReviews, miniGraph, fieldset, status);
+  // The miniature sits under the heading its control belongs to, so
+  // pressing i changes what is on screen wherever the tab is scrolled.
+  content.append(heading, miniGraph, path, level, pay, schedule, week, lastReview, factorsHeading, factors,
+    streaks, nextPromotion, warning, graphHeading, graph, noReviews, fieldset, status);
 
   const options: HTMLOptionElement[] = [];
   let drawn = '';
   let miniOpen = false;
   let rowMiniOpen = false;
+  let wasPending = false;
   const rowGraphSvg = roots.rowGraph ? doc.createElementNS('http://www.w3.org/2000/svg', 'svg') : null;
   if (rowGraphSvg && roots.rowGraph) {
     rowGraphSvg.setAttribute('class', 'career-graph career-graph-mini');
-    rowGraphSvg.setAttribute('role', 'img');
     rowGraphSvg.setAttribute('aria-label', 'Reviewed weeks');
     roots.rowGraph.append(rowGraphSvg);
     roots.rowGraph.hidden = true;
+    roots.rowInfo?.setAttribute('aria-controls', roots.rowGraph.id || 'career-row-graph');
   }
   info.addEventListener('click', () => {
     miniOpen = !miniOpen;
@@ -466,6 +468,9 @@ export function createCareerPanelSurface(
     }
     select.value = state.choice === null ? '' : String(state.choice);
     const disabled = state.agent === null || state.unavailable || state.pending;
+    // Disabling a focused native control otherwise sends keyboard users
+    // back to the page; the controls take focus back once the command
+    // settles, as the sleeping place controls do.
     if (focusedHere && disabled && doc.activeElement !== section) section.focus();
     fieldset.disabled = disabled;
     select.disabled = state.paths.length === 0;
@@ -473,5 +478,9 @@ export function createCareerPanelSurface(
     quit.disabled = job === null;
     setTextIfChanged(status, state.status);
     status.hidden = state.status === '';
+    if (wasPending && !state.pending && doc.activeElement === section && !disabled && state.paths.length > 0) {
+      select.focus();
+    }
+    wasPending = state.pending;
   };
 }

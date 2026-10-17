@@ -258,7 +258,7 @@
         font-weight: 700;
         cursor: pointer;
       }
-      .career-info[hidden] { display: none; }
+      .career-info[hidden], .career-graph[hidden], .career-heading[hidden] { display: none; }
       .career-row-graph { padding: 4px 0; }
       .career-heading { display: flex; align-items: center; gap: 4px; font-weight: 600; }
       .career-graph { width: 100%; height: auto; display: block; }
@@ -1251,7 +1251,7 @@
           <section id="mood-details" aria-label="Mood details"><ul id="moodlet-list" hidden></ul></section>
           <div id="career-row" class="summary-row" hidden>
             <span class="summary-label">Career</span>
-            <span class="summary-value"><span id="career-value" class="career-title"></span><button id="career-info" class="career-info" type="button" aria-label="Show the review graph" aria-expanded="false" hidden>i</button></span>
+            <span class="summary-value"><span id="career-value" class="career-title"></span><button id="career-info" class="career-info" type="button" aria-label="Show the review graph" aria-expanded="false" aria-controls="career-row-graph" hidden>i</button></span>
           </div>
           <div id="career-row-graph" class="career-row-graph" hidden></div>
           <div class="summary-row">
