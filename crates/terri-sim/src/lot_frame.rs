@@ -11,7 +11,7 @@
 //! keeps the older rule: the whole grid is house and the content's
 //! coordinates are the grid's.
 use bevy_ecs::prelude::*;
-use terri_core::layout::{EdgeAxis, WallLine};
+use terri_core::layout::{EdgeAxis, WallEdge, WallLine};
 use terri_core::TileGrid;
 
 use crate::Content;
@@ -65,6 +65,26 @@ impl HouseRect {
             EdgeAxis::Horizontal => {
                 line.y == self.y && (self.x..self.x + self.width).contains(&line.x)
             }
+        }
+    }
+}
+
+/// Blocks the house's implicit shell in `grid` wherever a shell line has
+/// land on its outer side: at the grid's edge nothing can cross anyway,
+/// but bought land beyond the shell could. A purchase, a lot edit and a
+/// load each rebuild a movement grid, and each calls this, so they agree
+/// on where the shell stands (rule 3).
+pub fn block_shell(grid: &mut TileGrid, house: HouseRect) {
+    for line in house.rear_lines() {
+        let [outer, inner] = WallEdge {
+            axis: line.axis,
+            x: line.x,
+            y: line.y,
+            doorway: false,
+        }
+        .cells();
+        if outer.0 >= 0 && outer.1 >= 0 {
+            grid.set_edge_blocked(outer, inner, true);
         }
     }
 }

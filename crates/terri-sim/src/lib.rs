@@ -1211,7 +1211,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV2,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every
@@ -1246,7 +1246,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV5,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let restored = save::architecture::restore_v5(snapshot, content, active_portals)?;
         self.adopt(restored);
         Ok(())
@@ -1271,7 +1271,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV10,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v10::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1292,7 +1292,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV12,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v12::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1309,7 +1309,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV13,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v13::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1320,7 +1320,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV11,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v11::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1334,7 +1334,7 @@ impl Sim {
         character: Option<terri_core::save_v10::LegacyCharacterSnapshotV9>,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let social = social.and_then(|snapshot| {
             save::v6::restore_with_social(snapshot.legacy, snapshot.social, content, portals).ok()
         });
@@ -1354,7 +1354,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV6,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1365,7 +1365,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV6,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore_historical_v7(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1377,7 +1377,7 @@ impl Sim {
         snapshot: terri_core::save_v6::FrozenSaveSnapshotV6,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::v6::restore_frozen_owned(snapshot, content, portals)?;
         self.adopt_current(candidate);
         Ok(())
@@ -1386,7 +1386,7 @@ impl Sim {
     /// Production V1-V5 migration. Native older helpers remain legacy projections.
     pub fn load_legacy_snapshot(&mut self, snapshot: LegacySnapshot) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let portals = save::Carried::for_load(&self.world);
         let candidate = save::books_migration::restore(snapshot, content, portals)?;
         self.adopt(candidate);
         Ok(())
@@ -1398,7 +1398,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV4,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every
@@ -1417,7 +1417,7 @@ impl Sim {
         snapshot: terri_core::SaveSnapshotV3,
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every
@@ -1467,7 +1467,7 @@ impl Sim {
     /// On any error `self` is untouched.
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let active_portals = save::Carried::for_load(&self.world);
         let mut restored = save::restore(snapshot, content, active_portals)?;
         save::sleeping_places::migrate_legacy(&mut restored.world)?;
         // [SK-save]: no envelope before V5 carries practice, so every

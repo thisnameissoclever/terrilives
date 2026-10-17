@@ -191,6 +191,11 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     let perimeter_edit = matches!(edit.state, WallState::Open | WallState::Wall)
         && line.physical_in_bounds(width, height)
         && !rear_shell(requested_line);
+    // With bought land beyond it a shell line lies inside the grid, but
+    // it is still the shell: only glazing and restoring glass may touch it.
+    if rear_shell(requested_line) && !rear_restore && edit.state != WallState::Window {
+        return Err(OutOfBounds);
+    }
     if !rear_restore && !line.in_bounds(width, height) && !perimeter_edit {
         return Err(OutOfBounds);
     }

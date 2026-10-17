@@ -254,6 +254,11 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
             }
         }
     }
+    // The house's shell blocks wherever bought land lies beyond it, as a
+    // purchase and a load leave the grid.
+    if let Some(house) = crate::lot_frame::house(world) {
+        crate::lot_frame::block_shell(&mut grid, house);
+    }
     Ok(grid)
 }
 
@@ -271,12 +276,12 @@ fn crosses_wall(rect: Rectangle, grid: &TileGrid) -> bool {
 /// The fixed architecture and every placed object, proven to account for the
 /// live grid exactly. Every lot edit starts here: an edit validated against a
 /// world whose grid nobody can explain would be validated against a guess.
-struct CurrentLayout {
+pub(crate) struct CurrentLayout {
     walls: TileGrid,
     rectangles: Vec<Rectangle>,
 }
 
-fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
+pub(crate) fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
     use PlacementRefusal::UnsupportedLayout;
     let content = world.get_resource::<Content>().ok_or(UnsupportedLayout)?.0;
     let live = world.resource::<TileGrid>();

@@ -24,6 +24,37 @@ use terri_data::{ContentPack, ObjectDefId};
 
 const MAX_TILES: usize = 1_048_576;
 pub(super) const MAX_ENTITIES: usize = 100_000;
+
+/// What the running game hands a restore besides the payload: the portal
+/// rows it keeps live, and the lot frame a schema-thirteen payload carries.
+/// The frame goes into the candidate world before the grid, the walls, the
+/// people and the front door are rebuilt, because every one of them reads
+/// it (land expansion, issue 254).
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct Carried {
+    pub portals: Option<ActivePortals>,
+    pub lot_frame: Option<crate::lot_frame::LotFrame>,
+}
+
+impl Carried {
+    /// For loading a payload: the running game's portals and no frame,
+    /// which is all any schema below thirteen carries.
+    pub(crate) fn for_load(world: &World) -> Self {
+        Self {
+            portals: world.get_resource::<ActivePortals>().copied(),
+            lot_frame: None,
+        }
+    }
+
+    /// For rebuilding the live world from a capture of itself: its portals
+    /// and its frame, so a grown lot comes back grown.
+    pub(crate) fn for_rebuild(world: &World) -> Self {
+        Self {
+            portals: world.get_resource::<ActivePortals>().copied(),
+            lot_frame: world.get_resource::<crate::lot_frame::LotFrame>().copied(),
+        }
+    }
+}
 const MAX_LIST_ENTRIES: usize = 100_000;
 /// The most bytes any saved name may hold; the loader refuses a save with
 /// a longer one. Public so the wasm boundary can refuse a queued command
@@ -496,7 +527,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
 pub(super) fn restore(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: Carried,
 ) -> Result<Sim, SaveError> {
     let candidate = restore_legacy(snapshot, content, active_portals)?;
     let candidate = wall_migration::upgrade(candidate, content);
@@ -513,7 +544,7 @@ pub(super) fn restore(
 pub(super) fn restore_legacy(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: Carried,
 ) -> Result<Sim, SaveError> {
     restore_with_facings(
         snapshot,
@@ -531,7 +562,7 @@ pub(super) fn restore_legacy(
 fn restore_with_facings(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: Carried,
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
     retired: &[u32],
 ) -> Result<Sim, SaveError> {
@@ -539,8 +570,11 @@ fn restore_with_facings(
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
-    if let Some(active_portals) = active_portals {
+    if let Some(active_portals) = active_portals.portals {
         sim.world.insert_resource(active_portals);
+    }
+    if let Some(frame) = active_portals.lot_frame {
+        sim.world.insert_resource(frame);
     }
     sim.world.insert_resource(SimClock {
         tick: snapshot.tick,
@@ -1266,7 +1300,7 @@ pub(crate) fn candidate_grid_loads(
     v6::validate_live_books(world).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::seating::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
     crate::reading::persistence::validate(world, grid).map_err(|_| LoadProblem::EdgeWorld)?;
-    validate_portal_returns(&snapshot, grid, content, (0, 0))
+    validate_portal_returns(&snapshot, grid, content, crate::lot_frame::origin(world))
         .map_err(|_| LoadProblem::PortalReturn)?;
     // Every edge layout, not one named version: a house with a window is
     // still an edge house, and naming the version here is what let review

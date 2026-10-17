@@ -51,11 +51,20 @@ prices rounded up, funds rounded down.
    the door's row. A world with no frame (test lots, and saves from before
    this change whose grid is not the content lot's size) keeps its old rule:
    the whole grid is house. A save whose grid is exactly the content lot's
-   size loads with origin (0, 0).
+   size loads with origin (0, 0). The house's implicit north and west shell
+   blocks movement wherever bought land lies beyond it; a purchase, a lot
+   edit and a load each rebuild the movement grid through that one shell
+   rule, and a load reads the frame before it rebuilds anything. Records
+   keyed by a person or an object (traffic counts, surface and bin tasks,
+   the grime board's legacy floor list) keep their ids; only the tiles
+   among them move.
 4. **Yard.** New land is yard: walkable, painted with the yard shift, no
-   walls. The former lot edge becomes ordinary lines. Explicit perimeter
-   solids the player built against the old edge stay as walls; the new edge
-   is the implicit perimeter, and a room against it still needs its far wall
+   walls. The former lot edge becomes ordinary lines outside the house;
+   along the house the implicit shell stays the shell: a wall, doorway or
+   opening on it is refused as it was at the grid's edge, and only glazing
+   and restoring glass touch it. Explicit perimeter solids the player built
+   against the old edge stay as walls; the new edge is the implicit
+   perimeter, and a room against it still needs its far wall
    ([BC-perimeter] in the build confirmation spec).
 5. **Price.** Money is held in cents. With `A` the number of squares bought
    so far (excluding the original lot) and `N` the strip's area, a strip
@@ -93,10 +102,10 @@ prices rounded up, funds rounded down.
    still decodes; the cents field is authoritative when present. A
    schema-twelve or older payload loads with the frame derived from its grid
    size, no purchased area, and its dollars times 100. A frame whose house
-   would leave the grid, a purchased area that is not a multiple of the strip
-   depth times a side, or cents that disagree with the dollars by a dollar or
-   more refuse the load. The frame, the purchased area and the cents enter
-   the world hash.
+   would leave the grid, a purchased area larger than the grid, cents that
+   disagree with the dollars by a dollar or more, or a missing frame on a
+   grid shaped like the content lot refuse the load. The frame, the
+   purchased area and the cents enter the world hash.
 10. **Tuning.** `land_strip_depth`, `land_price_cents` and
     `land_price_step_cents` are root knobs in `content/tuning.toml`, appended
     to the compiled tuning after `fight_mood_ticks`. The compiler refuses a
@@ -114,12 +123,15 @@ dollars. The price of furniture is unchanged; only its display rounds.
 Simulation tests grow the shipped lot on each side and check the grid, the
 frame, the house, the front door, the street exit, every entity's position,
 every path, wall, window, floor, chore cell, room id, patch and diner
-endpoint against the same world translated by hand, and that a translated
-world ticks exactly as the untranslated one for a stretch when nothing uses
-the new land; they check the left-then-rear geometry (10 by 26), the three
-pricing examples of the issue, the refusals, and that a quote changes
-nothing. Save tests round-trip schema thirteen, load schema twelve with the
-derived frame and dollars times 100, refuse a bad frame, and keep the digest
-across a round trip. Browser tests cover the tool's outlines, the quote text,
+endpoint against the same world translated by hand, that records keyed by a
+person or an object keep their ids, that the shell blocks between house and
+new land, that lot edits still find the layout they expect and refuse a
+doorway on the shell, and that the moved world ticks on without a panic;
+they check the left-then-rear geometry (10 by 26), the three pricing
+examples of the issue, the refusals, and that a quote changes nothing. Save
+tests round-trip schema thirteen with the same barriers, load schema twelve
+with the derived frame and dollars times 100, refuse a bad frame, and keep
+the digest across a round trip. A book test buys with cents against whole
+dollars. Browser tests cover the tool's outlines, the quote text,
 the two-step confirmation, the Cancel-only state, display rounding of prices
 and funds, and the build draft's Cancel restoring the old lot.

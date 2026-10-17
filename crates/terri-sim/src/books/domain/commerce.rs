@@ -161,7 +161,7 @@ impl BookLibrary {
         let affordable: Vec<_> = candidates
             .iter()
             .copied()
-            .filter(|title| i64::from(title.price) <= funds.0)
+            .filter(|title| i64::from(title.price) * Funds::CENTS_PER_DOLLAR <= funds.0)
             .collect();
         let pool = if affordable.is_empty() {
             &candidates

@@ -1,7 +1,7 @@
 //! The lot frame and the cents ride the schema-twelve envelope - issue 254.
 use super::SaveError;
-use crate::{lot_frame::LotFrame, portals::ActivePortals, Sim};
-use terri_core::{save_v13::SavedLotFrame, Funds, SaveSnapshotV13, TileGrid};
+use crate::{lot_frame::LotFrame, Sim};
+use terri_core::{save_v13::SavedLotFrame, Funds, SaveSnapshotV13};
 
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV13 {
     SaveSnapshotV13 {
@@ -22,18 +22,16 @@ pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV13 {
 pub(crate) fn restore(
     snapshot: SaveSnapshotV13,
     content: &'static terri_data::ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
-    let saved_dollars = snapshot.legacy.legacy.legacy.legacy.legacy.world.funds;
+    let (saved_dollars, width, height) = {
+        let world = &snapshot.legacy.legacy.legacy.legacy.legacy.world;
+        (world.funds, world.grid_width, world.grid_height)
+    };
     if Funds(snapshot.funds_cents).dollars() != saved_dollars {
         return Err(SaveError::InvalidValue);
     }
-    let mut candidate = super::v12::restore(snapshot.legacy, content, portals)?;
-    let (width, height) = {
-        let grid = candidate.world().resource::<TileGrid>();
-        (grid.width() as u32, grid.height() as u32)
-    };
-    match snapshot.lot_frame {
+    let lot_frame = match snapshot.lot_frame {
         Some(frame) => {
             let (house_width, house_height) = content.lot.house;
             let fits = frame
@@ -48,18 +46,27 @@ pub(crate) fn restore(
             if !fits {
                 return Err(SaveError::InvalidValue);
             }
-            candidate.world_mut().insert_resource(LotFrame {
+            Some(LotFrame {
                 origin: (frame.origin_x, frame.origin_y),
                 purchased_area: frame.purchased_area,
-            });
+            })
         }
-        None => {
-            if crate::lot_frame::frame(candidate.world()).is_some() {
-                // A saved absence on a grid shaped like the content lot
-                // contradicts the shape rule every older save relies on.
-                return Err(SaveError::InvalidValue);
-            }
-        }
+        None => None,
+    };
+    // The frame rides in with the portals: the loader needs it in the
+    // world before it rebuilds the grid, places anyone or checks the door.
+    let mut candidate = super::v12::restore(
+        snapshot.legacy,
+        content,
+        super::Carried {
+            lot_frame,
+            ..portals
+        },
+    )?;
+    if lot_frame.is_none() && crate::lot_frame::frame(candidate.world()).is_some() {
+        // A saved absence on a grid shaped like the content lot contradicts
+        // the shape rule every older save relies on.
+        return Err(SaveError::InvalidValue);
     }
     candidate
         .world_mut()
@@ -70,6 +77,7 @@ pub(crate) fn restore(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use terri_core::TileGrid;
 
     fn grown() -> Sim {
         let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
@@ -108,6 +116,16 @@ mod tests {
         );
         assert_eq!(restored.funds(), cents);
         assert_eq!(restored.world_hash(), sim.world_hash());
+        // The movement grid came back whole: the moved walls and the
+        // house's shell block exactly as before the save, and lot edits
+        // find the layout they expect.
+        let barriers = |sim: &Sim| {
+            let mut edges: Vec<_> = sim.world().resource::<TileGrid>().blocked_edges().collect();
+            edges.sort_unstable();
+            edges
+        };
+        assert_eq!(barriers(&restored), barriers(&sim));
+        assert!(crate::placement::current_layout(restored.world()).is_ok());
         assert_eq!(
             crate::lot_frame::house(restored.world()).map(|h| (h.x, h.y)),
             Some((10, 0))

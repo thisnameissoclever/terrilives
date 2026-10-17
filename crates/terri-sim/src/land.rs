@@ -6,13 +6,13 @@
 //! lengthens the grid. A west or north strip grows the grid at its origin,
 //! and every coordinate the world holds moves by the strip's depth: the
 //! grid, every position and path, the walls, windows and floors, the chore
-//! cells and room ids, the grime patches, and the frame that places the
-//! content lot. Money is in cents.
+//! cells and room ids, the grime patches, the diners' places, and the
+//! frame that places the content lot. Money is in cents.
 use bevy_ecs::prelude::*;
 use terri_core::chores::{ChoreKind, SavedChores};
 use terri_core::grime::SavedGrime;
 use terri_core::layout::{SavedFloors, SavedLayout, WallEdge, WallLine};
-use terri_core::save::SavedDomestic;
+use terri_core::save::{SavedDining, SavedDomestic};
 use terri_core::windows::WindowPlacement;
 use terri_core::{Funds, Path, Position, TileGrid};
 
@@ -199,7 +199,6 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     };
     let new_width = old_width + grow_x;
     let new_height = old_height + grow_y;
-    let old_rooms = RoomRegions::from_world(world);
 
     // The grid: every blocked tile and every barrier, moved.
     let old_grid = world.resource::<TileGrid>().clone();
@@ -222,19 +221,7 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     world.insert_resource(frame);
     world.insert_resource(grid);
     if let Some(house) = lot_frame::house(world) {
-        let mut grid = world.resource_mut::<TileGrid>();
-        for line in house.rear_lines() {
-            let [from, to] = WallEdge {
-                axis: line.axis,
-                x: line.x,
-                y: line.y,
-                doorway: false,
-            }
-            .cells();
-            if from.0 >= 0 && from.1 >= 0 {
-                grid.set_edge_blocked(from, to, true);
-            }
-        }
+        lot_frame::block_shell(&mut world.resource_mut::<TileGrid>(), house);
     }
 
     // Walls, windows and floors.
@@ -307,7 +294,6 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
     let cell = |old: u32| (old / old_width + dy) * new_width + (old % old_width + dx);
     let room = |old: u32| {
         let seed = ((old % old_width) as i32, (old / old_width) as i32);
-        let _ = &old_rooms;
         new_rooms.at(shift_tile(seed)).unwrap_or_else(|| cell(old))
     };
     if let Some(mut chores) = world.get_resource_mut::<SavedChores>() {
@@ -316,13 +302,17 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
             *c = cell(*c);
         }
         chores.floors.sort_unstable();
-        for (c, _) in &mut chores.traffic {
+        // Traffic is keyed by person; only its cell moves.
+        for (_, c) in &mut chores.traffic {
             *c = cell(*c);
         }
-        chores.traffic.sort_unstable();
         for task in &mut chores.tasks {
-            for c in &mut task.cells {
-                *c = cell(*c);
+            // Only a floor task lists tiles: a surface or bin task lists
+            // the object, a counter or table task its members.
+            if task.key.kind == ChoreKind::Floors {
+                for c in &mut task.cells {
+                    *c = cell(*c);
+                }
             }
             task.endpoint = task.endpoint.map(cell);
             task.key = remap_key(task.key, room);
@@ -346,15 +336,25 @@ pub(crate) fn grow(world: &mut World, (dx, dy): (u32, u32), (grow_x, grow_y): (u
                 *c = cell(*c);
             }
         }
-        for c in &mut grime.legacy_floors {
-            *c = cell(*c);
-        }
+        // `legacy_floors` names people, not tiles.
     }
     if let Some(mut domestic) = world.get_resource_mut::<SavedDomestic>() {
         for visit in &mut domestic.visits {
             visit.room = room(visit.room);
         }
     }
+    if let Some(mut dining) = world.get_resource_mut::<SavedDining>() {
+        let dining = &mut *dining;
+        for diner in &mut dining.diners {
+            diner.endpoint = shift_tile(diner.endpoint);
+        }
+        for opportunity in &mut dining.opportunities {
+            opportunity.room = room(opportunity.room);
+        }
+    }
+    // The social company keeps its own copy of the room map; rebuild it
+    // now rather than one tick late.
+    crate::social_company::refresh(world);
 }
 
 fn remap_key(
@@ -375,9 +375,10 @@ fn remap_key(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::placement::walls::{validate_wall_edit, WallEdit};
     use crate::Sim;
     use terri_core::chores::SavedChores;
-    use terri_core::layout::EdgeAxis;
+    use terri_core::layout::{EdgeAxis, WallState};
 
     fn rich() -> Sim {
         let mut sim = crate::test_content::without_owned_books(Sim::new_from_shipped_lot());
@@ -660,11 +661,138 @@ mod tests {
                     _ => assert_eq!(after.key.target, before.key.target),
                 }
             }
+            // Lot edits find the layout they expect, and the shell's lines,
+            // now inside the grid, still refuse a doorway.
+            assert!(crate::placement::current_layout(sim.world()).is_ok());
+            let shell = if dx > 0 {
+                WallEdit {
+                    axis: EdgeAxis::Vertical,
+                    x: dx,
+                    y: dy + 3,
+                    state: WallState::Doorway,
+                }
+            } else {
+                WallEdit {
+                    axis: EdgeAxis::Horizontal,
+                    x: dx + 3,
+                    y: dy,
+                    state: WallState::Doorway,
+                }
+            };
+            assert!(matches!(
+                validate_wall_edit(sim.world(), shell),
+                Err(crate::placement::PlacementRefusal::OutOfBounds)
+            ));
             // The world goes on: people keep walking and nothing panics.
             for _ in 0..200 {
                 sim.tick();
             }
-            let _ = EdgeAxis::Vertical;
         }
+    }
+
+    /// Records keyed by a person or an object keep their ids through a
+    /// move; only the tiles among them move: traffic cells, floor-task
+    /// cells, task endpoints, diners' places and the rooms of cleanup
+    /// opportunities.
+    #[test]
+    fn a_move_keeps_ids_and_moves_only_tiles() {
+        use terri_core::chores::{ChoreKey, ChoreTask};
+        use terri_core::save::{SavedCleanupOpportunity, SavedDiner};
+        let mut sim = rich();
+        let people: Vec<u32> = sim
+            .world_mut()
+            .query::<(Entity, &terri_core::Agent)>()
+            .iter(sim.world())
+            .map(|(e, _)| e.index_u32())
+            .collect();
+        assert!(people.len() >= 2, "the shipped lot has two people");
+        let (first, second) = (people[0], people[1]);
+        let object = sim
+            .world_mut()
+            .query::<(Entity, &terri_core::SmartObject)>()
+            .iter(sim.world())
+            .map(|(e, _)| e.index_u32())
+            .next()
+            .expect("an object");
+        let rooms = RoomRegions::from_world(sim.world());
+        let (seed, room_id) = (0..16i32)
+            .flat_map(|y| (0..20i32).map(move |x| (x, y)))
+            .find_map(|tile| rooms.at(tile).map(|room| (tile, room)))
+            .expect("a room");
+        let task = |person, key, cells, endpoint| ChoreTask {
+            person,
+            key,
+            cells,
+            cursor: 0,
+            endpoint,
+            remaining: 1,
+            directed: false,
+            suspended: false,
+            started_day: 0,
+            completed_units: 0,
+        };
+        {
+            let mut chores = sim.world_mut().resource_mut::<SavedChores>();
+            chores.traffic = vec![(first, 5 * 20 + 3)];
+            chores.tasks = vec![
+                task(
+                    first,
+                    ChoreKey {
+                        kind: ChoreKind::Floors,
+                        target: room_id,
+                    },
+                    vec![3 * 20 + 2],
+                    None,
+                ),
+                task(
+                    second,
+                    ChoreKey {
+                        kind: ChoreKind::Surfaces,
+                        target: object,
+                    },
+                    vec![object],
+                    Some(4 * 20 + 4),
+                ),
+            ];
+        }
+        sim.world_mut().insert_resource(SavedGrime {
+            rng: terri_core::SimRng::from_seed(1),
+            patches: vec![],
+            legacy_floors: vec![first],
+        });
+        sim.world_mut().insert_resource(SavedDining {
+            diners: vec![SavedDiner {
+                person: first,
+                station: object,
+                chair: None,
+                setting: None,
+                endpoint: (3, 6),
+                obstructing: vec![],
+            }],
+            opportunities: vec![SavedCleanupOpportunity {
+                person: first,
+                room: room_id,
+                known: vec![],
+                pending: false,
+            }],
+            ..Default::default()
+        });
+        grow(sim.world_mut(), (10, 0), (10, 0));
+        let chores = sim.world().resource::<SavedChores>();
+        assert_eq!(chores.traffic, vec![(first, 5 * 30 + 13)]);
+        assert_eq!(chores.tasks[0].cells, vec![3 * 30 + 12]);
+        assert_eq!(chores.tasks[1].cells, vec![object]);
+        assert_eq!(chores.tasks[1].endpoint, Some(4 * 30 + 14));
+        assert_eq!(
+            sim.world().resource::<SavedGrime>().legacy_floors,
+            vec![first]
+        );
+        let moved_room = RoomRegions::from_world(sim.world())
+            .at((seed.0 + 10, seed.1))
+            .expect("the room moved");
+        assert_eq!(chores.tasks[0].key.target, moved_room);
+        let dining = sim.world().resource::<SavedDining>();
+        assert_eq!(dining.diners[0].endpoint, (13, 6));
+        assert_eq!(dining.opportunities[0].room, moved_room);
     }
 }

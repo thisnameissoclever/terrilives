@@ -1,6 +1,6 @@
 //! Transactional appearance envelope and creator command ordering.
 use super::SaveError;
-use crate::{character_draft, portals::ActivePortals, Sim};
+use crate::{character_draft, Sim};
 use terri_core::{
     character::CharacterPronouns, save_v10::SavedCharacterAppearance, Agent, CommandQueue,
     SaveSnapshotV10, SimCommand, SimId,
@@ -50,7 +50,7 @@ fn characters(sim: &Sim) -> Vec<SavedCharacterAppearance> {
 pub(crate) fn restore(
     snapshot: SaveSnapshotV10,
     content: &'static terri_data::ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     validate_characters(&snapshot.characters, &snapshot.command_order, content)?;
     let candidate =
@@ -129,7 +129,7 @@ fn restore_characters(
 pub(crate) fn restore_legacy_character_v9(
     snapshot: terri_core::save_v10::LegacyCharacterSnapshotV9,
     content: &'static terri_data::ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     validate_characters(&snapshot.characters, &snapshot.command_order, content)?;
     let candidate = super::v6::restore(snapshot.legacy, content, portals)?;
@@ -204,7 +204,12 @@ mod tests {
         let hash = sim.world_hash();
         let art = appearance_hash(&sim);
         let rng = sim.world().resource::<terri_core::SimRng>().clone();
-        let mut restored = restore(before.clone(), terri_data::pack(), None).unwrap();
+        let mut restored = restore(
+            before.clone(),
+            terri_data::pack(),
+            crate::save::Carried::default(),
+        )
+        .unwrap();
         assert_eq!(capture(&restored), before);
         assert_eq!(restored.world_hash(), hash);
         assert_eq!(appearance_hash(&restored), art);
@@ -229,13 +234,13 @@ mod tests {
         let sim = Sim::new_from_shipped_lot();
         let mut bad = capture(&sim);
         bad.characters[0].appearance.body.height = 101;
-        assert!(restore(bad, terri_data::pack(), None).is_err());
+        assert!(restore(bad, terri_data::pack(), crate::save::Carried::default()).is_err());
         let mut bad = capture(&sim);
         bad.characters.pop();
-        assert!(restore(bad, terri_data::pack(), None).is_err());
+        assert!(restore(bad, terri_data::pack(), crate::save::Carried::default()).is_err());
         let mut bad = capture(&sim);
         bad.command_order.push(None);
-        assert!(restore(bad, terri_data::pack(), None).is_err());
+        assert!(restore(bad, terri_data::pack(), crate::save::Carried::default()).is_err());
     }
 
     #[test]

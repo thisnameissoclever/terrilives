@@ -1,6 +1,6 @@
 //! Burnt meals ride the schema-ten envelope - issue 243.
 use super::SaveError;
-use crate::{burnt_meals::BurntMeals, portals::ActivePortals, Sim};
+use crate::{burnt_meals::BurntMeals, Sim};
 use terri_core::{save_v11::SavedBurntMeal, SaveSnapshotV11, SimId};
 
 pub(crate) fn capture(sim: &Sim) -> SaveSnapshotV11 {
@@ -29,7 +29,7 @@ pub(crate) const LONGEST_MOODLET_TICKS: u64 = 10_080;
 pub(crate) fn restore(
     snapshot: SaveSnapshotV11,
     content: &'static terri_data::ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     let rows = snapshot.burnt_meals;
     if rows.len() > super::MAX_ENTITIES || rows.windows(2).any(|pair| pair[0].sim >= pair[1].sim) {

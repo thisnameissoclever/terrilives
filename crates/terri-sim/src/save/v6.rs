@@ -3,7 +3,6 @@
 use super::{action_refs, architecture, SaveError};
 use crate::{
     books::{BookLibrary, BookWorld},
-    portals::ActivePortals,
     Content, Sim,
 };
 use bevy_ecs::prelude::World;
@@ -63,7 +62,7 @@ pub(crate) fn capture_world(world: &World) -> SaveSnapshotV6 {
 pub(crate) fn restore(
     snapshot: SaveSnapshotV6,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     if snapshot.legacy.affinities.is_none() {
         return Err(SaveError::InvalidValue);
@@ -77,7 +76,7 @@ pub(crate) fn restore(
 pub(crate) fn restore_frozen_owned(
     snapshot: terri_core::save_v6::FrozenSaveSnapshotV6,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     let snapshot = snapshot.into_current();
     let candidate = if super::table_retirement::needed(&snapshot, content) {
@@ -91,7 +90,7 @@ pub(crate) fn restore_frozen_owned(
 pub(crate) fn restore_historical_v7(
     snapshot: SaveSnapshotV6,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     if snapshot.command_order.iter().flatten().any(|command| {
         !matches!(
@@ -128,7 +127,7 @@ fn validate_historical_journeys(candidate: Sim) -> Result<Sim, SaveError> {
 pub(crate) fn restore_migrated(
     snapshot: SaveSnapshotV6,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     if super::table_retirement::needed(&snapshot, content) {
         return super::table_retirement::restore(snapshot, content, portals, true);
@@ -139,7 +138,7 @@ pub(crate) fn restore_migrated(
 pub(super) fn restore_inner(
     snapshot: SaveSnapshotV6,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
     migration: bool,
 ) -> Result<Sim, SaveError> {
     restore_inner_social(snapshot, content, portals, migration, None)
@@ -149,7 +148,7 @@ pub(crate) fn restore_with_social(
     snapshot: SaveSnapshotV6,
     social: terri_core::save_v9::SavedSocialEpisodes,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     if snapshot.legacy.affinities.is_none() {
         return Err(SaveError::InvalidValue);
@@ -160,7 +159,7 @@ pub(crate) fn restore_with_social(
 fn restore_inner_social(
     mut snapshot: SaveSnapshotV6,
     content: &'static ContentPack,
-    portals: Option<ActivePortals>,
+    portals: super::Carried,
     migration: bool,
     social: Option<terri_core::save_v9::SavedSocialEpisodes>,
 ) -> Result<Sim, SaveError> {

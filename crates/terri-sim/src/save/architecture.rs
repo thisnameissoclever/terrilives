@@ -1,7 +1,6 @@
 //! Saved architecture validation after restoring the world's object directions.
 
 use super::{SaveError, Sim};
-use crate::portals::ActivePortals;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{
     layout::SavedLayout, Colourway, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4,
@@ -16,7 +15,7 @@ mod boundary_tests;
 pub(crate) fn restore(
     snapshot: SaveSnapshotV2,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     // V2 carries complete architecture: do not apply V1's optional-tail repair or
     // reinterpret a saved layout from whatever lot content now happens to be.
@@ -28,7 +27,7 @@ pub(crate) fn restore(
 pub(crate) fn restore_v3(
     snapshot: SaveSnapshotV3,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     restore_v4(
         SaveSnapshotV4 {
@@ -51,7 +50,7 @@ pub(crate) fn restore_v3(
 pub(crate) fn restore_v5(
     snapshot: SaveSnapshotV5,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     restore_v5_seats(snapshot, content, active_portals, None)
 }
@@ -59,7 +58,7 @@ pub(crate) fn restore_v5(
 pub(crate) fn restore_v5_seats(
     snapshot: SaveSnapshotV5,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: super::Carried,
     seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
     let SaveSnapshotV5 {
@@ -267,7 +266,7 @@ pub(crate) fn restore_v5_seats(
 pub(crate) fn restore_v4(
     snapshot: SaveSnapshotV4,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: super::Carried,
 ) -> Result<Sim, SaveError> {
     restore_v4_with_dining(snapshot, content, active_portals, None, None)
 }
@@ -275,7 +274,7 @@ pub(crate) fn restore_v4(
 fn restore_v4_with_dining(
     snapshot: SaveSnapshotV4,
     content: &'static ContentPack,
-    active_portals: Option<ActivePortals>,
+    active_portals: super::Carried,
     dining: Option<&terri_core::save::SavedDining>,
     seats: Option<&[terri_core::save_v6::SavedPhysicalSeat]>,
 ) -> Result<Sim, SaveError> {
@@ -601,12 +600,16 @@ fn apply_layout(
             }
         }
     }
+    // The house's shell blocks wherever bought land lies beyond it; the
+    // whole grid as the house, which is every unframed world, adds nothing.
+    crate::lot_frame::block_shell(grid, house);
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::portals::ActivePortals;
     use terri_core::layout::{EdgeAxis, WallEdge};
 
     fn edge(x: u32, doorway: bool) -> WallEdge {
@@ -960,13 +963,23 @@ mod tests {
                 edges: vec![edge(3, false)],
             };
             assert_eq!(
-                restore(snapshot.clone(), terri_data::pack(), None).err(),
+                restore(
+                    snapshot.clone(),
+                    terri_data::pack(),
+                    crate::save::Carried::default()
+                )
+                .err(),
                 Some(SaveError::InvalidGrid)
             );
             snapshot.layout = SavedLayout::EdgeWallsV1 {
                 edges: vec![edge(3, true)],
             };
-            assert!(restore(snapshot, terri_data::pack(), None).is_ok());
+            assert!(restore(
+                snapshot,
+                terri_data::pack(),
+                crate::save::Carried::default()
+            )
+            .is_ok());
         }
     }
 

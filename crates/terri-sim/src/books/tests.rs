@@ -149,6 +149,19 @@ fn purchases_charge_once_fallback_to_inventory_and_refuse_atomically() {
     assert_eq!(funds.0, 100 * Funds::CENTS_PER_DOLLAR);
 }
 
+/// Titles are priced in whole dollars and funds are held in cents, so a
+/// title is affordable only when its price in cents fits: $9.99 buys a $6
+/// title and never a $10 one, whichever title the seed would have picked.
+#[test]
+fn purchase_selection_compares_prices_in_cents() {
+    let funds = Funds(10 * Funds::CENTS_PER_DOLLAR - 1);
+    for seed in 0..24 {
+        let library = BookLibrary::new(seed);
+        let (_, price) = library.purchase_selection(funds, &world(0)).unwrap();
+        assert_eq!(price, 6, "seed {seed}");
+    }
+}
+
 #[test]
 fn reservations_leave_visible_books_until_pickup_and_hold_their_home_gap() {
     let mut library = BookLibrary::new(1);
