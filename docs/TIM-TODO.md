@@ -351,9 +351,9 @@ enough that a ban means something.
 
 ### [T17] Choose a distribution platform `[YOURS]`
 
-itch.io, self-hosted, or both. Not mutually exclusive. An installable desktop
-version would ship through whichever of these this item chooses; its shell
-options, signing warnings and open decisions are in
+itch.io, self-hosted, or both. Not mutually exclusive. Where an installable
+desktop version would be published is not decided yet; its shell options,
+signing warnings and open decisions are in
 [the desktop app research](plans/2026-10-17-desktop-app.md).
 
 ### [T18] Domain and hosting, if self-hosting `[YOURS]`
