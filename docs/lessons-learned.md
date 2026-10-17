@@ -12081,3 +12081,10 @@ Load the production atlas during test collection and prepare mocked module depen
 2. Root cause: the older translation code correctly remapped geometry-derived region seeds, but its integer representation did not distinguish those seeds from permanent identities.
 3. Prevention: branch translation on the explicit room representation. Translate anchors, membership, paths, dirt, and work cells; preserve stable room, object, person, and episode IDs. Keep the historical seed conversion in its historical path.
 4. Verification: buy land on north and west sides with a stable ID larger than the tile count. Require unchanged IDs, names, assignments, and object-key targets alongside the correctly translated geometry and tile-indexed state.
+
+## [L-fixture-command-identities] Prove a captured command changed its intended state
+
+1. What happened: a historical cleaning fixture had the same bytes as its preceding household snapshot despite an accepted command call.
+2. Root cause: the capture script passed the chore owner's stable person ID to an API expecting the person's live entity index. Queue acceptance did not prove that the drain found a person or started work.
+3. Prevention: resolve stable person IDs through the live render identity columns before calling entity-based APIs. Inspect the resulting order, task, or physical progress before naming a fixture for that state.
+4. Verification: retain the original historical bytes unchanged. Capture separate queued-order and active-work fixtures with the original producer, pin their hashes, and require distinct bytes plus a nonzero physical work measure. See `crates/terri-wasm/tests/fixtures/room-identities-v14/cleaning-work-manifest.json`.
