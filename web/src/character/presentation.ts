@@ -4,11 +4,11 @@ import { floatValue, type CharacterDraftV1, type F32Bits, type Rgb } from './sch
 
 /**
  * Two fraction digits, by design. Every creator control steps by 0.01 at the
- * finest, so the creator hides anything below that: a widened 32-bit value's
- * trailing digits, and the finer digits a spawned housemate's values can
- * carry, are detail nobody can set here. A nonzero value that would otherwise
- * round to 0 keeps two significant digits so a tiny setting never reads as
- * "off".
+ * finest, so the Review page, the influence notes and the value box tooltips
+ * show nothing finer: a widened 32-bit value's trailing digits, and the finer
+ * digits a spawned housemate's values can carry, are detail nobody can set
+ * here. A nonzero value that would otherwise round to 0 keeps two significant
+ * digits so a tiny setting never reads as "off".
  */
 export const readableNumber=(value:number):string=>value!==0&&Math.abs(value)<.005
   ?Number(value.toPrecision(2)).toString():new Intl.NumberFormat('en',{maximumFractionDigits:2}).format(value);

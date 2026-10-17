@@ -27,7 +27,7 @@ export function fieldControl(document:Document, field:CharacterField, draft:Char
     limits.textContent=`${min} to ${max}${field.unit==='hours'?' hours':field.unit??''}`;label.append(limits);
     for(const input of [range,number])input.setAttribute('aria-describedby',describedBy+' '+limits.id);
     number.disabled=!applicable;
-    const formatted=(value:FieldValue)=>{const n=Number(displayValue(field,value)),rounded=Math.round(n/step)*step;return String(Math.abs(n-rounded)<Math.max(1,Math.abs(n))*1e-6?Number(rounded.toFixed(8)):Number(n.toFixed(4)));};
+    const formatted=(value:FieldValue)=>{const n=Number(displayValue(field,value)),rounded=Math.round(n/step)*step;return String(Math.abs(n-rounded)<Math.max(1,Math.abs(n))*1e-6?Number(rounded.toFixed(8)):Number(n.toFixed(2)));};
     for(const input of [range,number]){input.min=String(min);input.max=String(max);input.step=String(step);input.value=formatted(value);}
     const shown=displayValue(field,value);number.title=typeof shown==='number'?readableNumber(shown):String(shown);
     const update=(input:HTMLInputElement)=>{

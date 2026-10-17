@@ -50,10 +50,15 @@ it('shows numeric units and the editable range without changing the stored value
   expect(draft.value).toEqual(source);
 });
 
-it('formats the number box tooltip like the review instead of showing a widened float',()=>{
-  const source=neutralDraft('Name');source.behavior.cleanliness=floatBits(.29);
-  const draft=CharacterDraft.edit(source,7,catalog,[]),row=control(draft,'behavior.cleanliness');
-  const inputs:Element[]=[];const walk=(node:Element)=>{if(node.tag==='input'&&node.type==='number')inputs.push(node);node.children.forEach(walk);};walk(row);
-  expect(inputs).toHaveLength(1);
-  expect(inputs[0].attributes.title??(inputs[0] as unknown as {title?:string}).title).toBe('29');
+it('shows the value box and its tooltip at two decimals, never a widened float',()=>{
+  // 0.29 widens to 28.999999165534973%; a spawned 0.123456 is off the 1% step.
+  for(const [stored,box,tooltip] of [[.29,'29','29'],[.123456,'12.35','12.35']] as const){
+    const source=neutralDraft('Name');source.behavior.cleanliness=floatBits(stored);
+    const draft=CharacterDraft.edit(source,7,catalog,[]),row=control(draft,'behavior.cleanliness');
+    const inputs:Element[]=[];const walk=(node:Element)=>{if(node.tag==='input'&&node.type==='number')inputs.push(node);node.children.forEach(walk);};walk(row);
+    expect(inputs).toHaveLength(1);
+    expect(inputs[0].value).toBe(box);
+    expect((inputs[0] as unknown as {title?:string}).title).toBe(tooltip);
+    expect(draft.value).toEqual(source);
+  }
 });
