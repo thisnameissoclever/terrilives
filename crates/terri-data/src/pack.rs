@@ -1229,7 +1229,7 @@ impl Tuning {
     pub const SHIPPED_FIRST_SEASON: u8 = 0;
     pub const SHIPPED_SEASON_YARD_LOOKS: [[f32; 3]; 4] = [
         [0.0, 1.0, 0.0],
-        [-6.0, 0.9, 0.02],
+        [-20.0, 0.85, 0.04],
         [-45.0, 0.9, -0.05],
         [12.0, 0.3, 0.14],
     ];

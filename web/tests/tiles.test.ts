@@ -861,7 +861,7 @@ describe('the yard through the seasons', () => {
     return out;
   };
   // The shipped rows, Spring first.
-  const SEASONS = Float32Array.from([0, 1, 0, -6, 0.9, 0.02, -45, 0.9, -0.05, 12, 0.3, 0.14]);
+  const SEASONS = Float32Array.from([0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14]);
   const lot = {
     width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array(),
     house: [1, 1] as [number, number], yardLook: [65, 2, -0.22] as [number, number, number],
@@ -874,7 +874,7 @@ describe('the yard through the seasons', () => {
     // Each row composed with [65, 2, -0.22]: hues add, strengths multiply,
     // lightness adds; the strength reaches the instance as its distance
     // from 1. Spring is the yard look itself.
-    const yards = [[65, 1, -0.22], [59, 0.8, -0.2], [20, 0.8, -0.27], [77, -0.4, -0.08]];
+    const yards = [[65, 1, -0.22], [45, 0.7, -0.18], [20, 0.8, -0.27], [77, -0.4, -0.08]];
     yards.forEach((yard, season) => {
       const built = buildStaticInstances({ ...lot, season }, ORIGIN_X, ORIGIN_Y, GRID);
       // Row by row: (0, 0) house, (1, 0) yard, (2, 0) street, then yard, yard, street.

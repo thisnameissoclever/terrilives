@@ -79,7 +79,7 @@ describe('floor materials', () => {
   // [SEA-yard] in docs/specs/2026-10-17-seasons.md: the accepted grass takes
   // only the season's change, because the yard look matches its authored one.
   it("draws the accepted grass under exactly the season's change", () => {
-    const seasons = Float32Array.from([0, 1, 0, -6, 0.9, 0.02, -45, 0.9, -0.05, 12, 0.3, 0.14]);
+    const seasons = Float32Array.from([0, 1, 0, -20, 0.85, 0.04, -45, 0.9, -0.05, 12, 0.3, 0.14]);
     const yardTile = 1; // (1, 0): house [1, 1] leaves it in the yard.
     const changeOf = (season: number) => {
       const built = buildStaticInstances({ ...lot, house: [1, 1], seasonYardLooks: seasons, season }, 0, 0, 4);
@@ -89,7 +89,7 @@ describe('floor materials', () => {
     const [spring, springHouse] = changeOf(0);
     expect(spring).toEqual([0, 0, 0]);
     expect(springHouse).toBe(0);
-    [[-6, -0.1, 0.02], [-45, -0.1, -0.05], [12, -0.7, 0.14]].forEach((expected, index) => {
+    [[-20, -0.15, 0.04], [-45, -0.1, -0.05], [12, -0.7, 0.14]].forEach((expected, index) => {
       const [change, house] = changeOf(index + 1);
       expected.forEach((value, k) => expect(change[k]).toBeCloseTo(value, 5));
       expect(house).toBe(0);
