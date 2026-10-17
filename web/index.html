@@ -28,6 +28,7 @@
         --need-fill: #6fb2d2;
         --hud-muted: #9aa3ad;
         --hud-danger: #e58c85;
+        --career-up: #7fc98a;
       }
       body {
         margin: 0;
@@ -243,6 +244,40 @@
         text-align: right;
         font-variant-numeric: tabular-nums;
       }
+      .career-title[data-trend='up'] { color: var(--career-up); }
+      .career-title[data-trend='down'] { color: var(--hud-danger); }
+      .career-info {
+        margin-left: 6px;
+        min-width: 22px;
+        min-height: 22px;
+        padding: 0;
+        border: 1px solid var(--hud-edge);
+        border-radius: 50%;
+        background: var(--hud-bg);
+        color: var(--hud-text);
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .career-info[hidden], .career-graph[hidden], .career-heading[hidden] { display: none; }
+      .career-row-graph { padding: 4px 0; }
+      .career-heading { display: flex; align-items: center; gap: 4px; font-weight: 600; }
+      .career-graph { width: 100%; height: auto; display: block; }
+      .career-graph-mini { max-width: 240px; }
+      .career-line { stroke: var(--hud-text); stroke-width: 1.5; }
+      .career-point { fill: var(--hud-text); }
+      .career-rule { stroke: var(--hud-muted); stroke-dasharray: 3 3; }
+      .career-axis-line { stroke: var(--hud-muted); }
+      .career-axis { fill: var(--hud-muted); font-size: 9px; }
+      .career-mark-up, .career-mark-raise { fill: var(--career-up); font-weight: 700; font-size: 11px; }
+      .career-mark-down { fill: var(--hud-danger); }
+      .career-mark-change { fill: var(--hud-muted); }
+      .career-warning { color: var(--hud-danger); }
+      .career-factors { margin: 0; padding-left: 18px; }
+      .career-factors-heading, .career-graph-heading { color: var(--hud-muted); margin-bottom: 2px; }
+      .career-controls { display: grid; gap: 6px; }
+      .career-controls select { width: 100%; }
+      .career-actions { display: flex; gap: 8px; }
+      #sim-career p { margin: 2px 0; }
       #lighting-mode {
         width: 100%;
       }
@@ -1106,6 +1141,8 @@
           aria-pressed="false"
         >Light: auto</button>
         <label><input id="death-enabled" type="checkbox" /> Sims can die if hunger or energy stays empty</label>
+        <label><input id="career-autonomous-change" type="checkbox" /> Allow sims to change careers autonomously</label>
+        <label><input id="career-autonomous-search" type="checkbox" /> Allow autonomous job search for unemployed sims</label>
         <section id="audio-controls" aria-label="Audio controls">
         <button
           id="audio-mute"
@@ -1207,14 +1244,16 @@
         <div id="sim-sheet-header"><nav aria-label="Sim information"><button class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-overview" aria-expanded="false">Overview</button>
 <button class="hud-button" type="button" data-open-sim-panel="queue" aria-controls="sim-queue" aria-expanded="false">Queue</button>
 <button class="hud-button" type="button" data-open-sim-panel="people" aria-controls="sim-people" aria-expanded="false">People</button>
-<button class="hud-button" type="button" data-open-sim-panel="traits" aria-controls="sim-traits" aria-expanded="false">Traits</button></nav><button id="sim-sheet-close" class="hud-button" type="button">Close</button></div>
+<button class="hud-button" type="button" data-open-sim-panel="traits" aria-controls="sim-traits" aria-expanded="false">Traits</button>
+<button class="hud-button" type="button" data-open-sim-panel="career" aria-controls="sim-career" aria-expanded="false">Career</button></nav><button id="sim-sheet-close" class="hud-button" type="button">Close</button></div>
         <div id="sim-sheet-content">
           <section id="sim-overview" data-sim-panel="overview" aria-label="Overview" hidden><div id="overview-needs"></div><div id="selected-summary">
           <section id="mood-details" aria-label="Mood details"><ul id="moodlet-list" hidden></ul></section>
           <div id="career-row" class="summary-row" hidden>
             <span class="summary-label">Career</span>
-            <span id="career-value" class="summary-value"></span>
+            <span class="summary-value"><span id="career-value" class="career-title"></span><button id="career-info" class="career-info" type="button" aria-label="Show the review graph" aria-expanded="false" aria-controls="career-row-graph" hidden>i</button></span>
           </div>
+          <div id="career-row-graph" class="career-row-graph" hidden></div>
           <div class="summary-row">
             <span class="summary-label">Doing</span>
             <span id="activity-value" class="summary-value">Nothing selected</span>
@@ -1249,6 +1288,10 @@
           <p id="traits-empty" hidden></p>
           <ul id="trait-list" hidden></ul>
         </details></section>
+          <section id="sim-career" data-sim-panel="career" aria-label="Career" tabindex="-1" hidden>
+            <p id="career-empty">Select a person to see their career.</p>
+            <div id="career-content"></div>
+          </section>
         </div>
       </section>
     </section>
