@@ -762,6 +762,38 @@ pub(crate) fn tick_meals(world: &mut World) {
 
 #[cfg(test)]
 mod tests {
+    /// Which pairs of activities count as one communal activity: the same
+    /// table, the same device used the same way, or the same shared group
+    /// on different objects that both people accept. Anything else, not.
+    #[test]
+    fn communal_pairs_need_the_same_table_or_device_and_distinct_shared_objects() {
+        use super::Communal;
+        let mut world = bevy_ecs::prelude::World::new();
+        let (one, two) = (world.spawn_empty().id(), world.spawn_empty().id());
+        let table = |station| Communal::Table { station };
+        let device = |station, interaction| Communal::Device {
+            station,
+            interaction,
+        };
+        let shared = |station, group: &str| Communal::Shared {
+            station,
+            group: group.to_string(),
+        };
+        let yes = |_: &str| true;
+        assert!(table(one).pairs_with(&table(one), yes));
+        assert!(!table(one).pairs_with(&table(two), yes));
+        assert!(device(one, 0).pairs_with(&device(one, 0), yes));
+        assert!(!device(one, 0).pairs_with(&device(two, 0), yes));
+        assert!(!device(one, 0).pairs_with(&device(one, 1), yes));
+        assert!(shared(one, "reading").pairs_with(&shared(two, "reading"), yes));
+        assert!(!shared(one, "reading").pairs_with(&shared(one, "reading"), yes));
+        assert!(!shared(one, "reading").pairs_with(&shared(two, "exercise"), yes));
+        assert!(!shared(one, "reading").pairs_with(&shared(two, "reading"), |_| false));
+        assert!(!table(one).pairs_with(&device(one, 0), yes));
+        assert!(!device(one, 0).pairs_with(&shared(two, "reading"), yes));
+        assert!(!shared(one, "reading").pairs_with(&table(one), yes));
+    }
+
     use super::*;
     #[test]
     fn critical_social_does_not_create_phantom_media_emergencies() {

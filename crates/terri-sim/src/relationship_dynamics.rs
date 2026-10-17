@@ -80,24 +80,34 @@ struct Contact {
 
 /// Whether a person who hates a housemate still gains from their shared
 /// activity this minute: a seeded roll against `hated_communal_chance`.
-/// The seed mixes the tick and both people, so the roll never consumes the
-/// shared simulation stream and two runs always agree.
+///
+/// `stream` is a digest of the saved simulation generator, so the roll
+/// differs between games and between saves without consuming a draw; the
+/// tick and both people then separate every pair and every minute. A roll
+/// is therefore a pure function of saved state, and a replay or a reload
+/// rolls the same way. At chance 1 every draw passes, because `next_f32`
+/// never reaches 1; at chance 0 none does.
 pub(crate) fn hated_communal_gain(
     tuning: &terri_data::Tuning,
+    stream: u64,
     tick: u64,
     subject: SimId,
     other: SimId,
 ) -> bool {
-    let chance = tuning.hated_communal_chance;
-    if chance >= 1.0 {
-        return true;
-    }
     let mut hash = terri_core::FnvHasher::default();
-    hash.write_u64(tuning.rng_seed);
+    hash.write_u64(stream);
     hash.write_u64(tick);
     hash.write_u64(u64::from(subject.0));
     hash.write_u64(u64::from(other.0));
-    terri_core::SimRng::from_seed(hash.finish()).next_f32() < chance
+    terri_core::SimRng::from_seed(hash.finish()).next_f32() < tuning.hated_communal_chance
+}
+
+/// The digest `hated_communal_gain` takes: the generator's exact state,
+/// read without advancing it.
+fn stream_digest(world: &World) -> u64 {
+    let mut hash = terri_core::FnvHasher::default();
+    world.resource::<terri_core::SimRng>().hash_into(&mut hash);
+    hash.finish()
 }
 
 pub(crate) fn tick(world: &mut World) {
@@ -191,6 +201,7 @@ pub(crate) fn tick(world: &mut World) {
     contacts.sort_by_key(|p| p.entity.index());
     world.resource_mut::<RelationshipContext>().0 = profiles;
     let tick = world.resource::<SimClock>().tick;
+    let stream = stream_digest(world);
     for subject in &contacts {
         for other in &contacts {
             if subject.entity == other.entity
@@ -223,12 +234,13 @@ pub(crate) fn tick(world: &mut World) {
             let before = world
                 .get::<Relationships>(subject.entity)
                 .map_or(0.0, |r| r.feeling(other.id));
-            if shared
-                && before <= -tuning.affinity_band_loves
-                && !hated_communal_gain(&tuning, tick, subject.id, other.id)
-            {
-                continue;
-            }
+            // A person who already hates the other participant (the same
+            // cutoff grief uses for a hated person) earns the communal rate
+            // only on the minutes the roll allows; the rest of the minutes
+            // are ordinary company, so hatred never blocks recovery outright.
+            let shared = shared
+                && (before > tuning.grief_hated_affinity
+                    || hated_communal_gain(&tuning, stream, tick, subject.id, other.id));
             let (cause, requested) = if shared {
                 (
                     RelationshipCause::SharedActivity,
@@ -286,6 +298,7 @@ mod tests {
     use super::*;
     use crate::{Content, Sim};
     use terri_core::{Agent, Eating, NeedId, Needs, Position, Relationships, SimId, Target};
+    use RelationshipCause;
 
     fn pair() -> (Sim, Entity, Entity) {
         let mut sim = Sim::new_with_lot(8, 8);
@@ -556,72 +569,126 @@ mod tests {
             .all(|e| e.cause == crate::relationship_effects::RelationshipCause::Proximity));
     }
 
+    /// What one watcher's minute toward the other paid: the communal rate,
+    /// ordinary proximity, or nothing.
+    fn minute_cause(
+        sim: &mut Sim,
+        subject: Entity,
+        feeling_toward_other: f32,
+        minute: u64,
+    ) -> Option<RelationshipCause> {
+        let mut feelings = Relationships::default();
+        feelings.bump(SimId(1), feeling_toward_other);
+        sim.world_mut().entity_mut(subject).insert(feelings);
+        sim.world_mut().resource_mut::<SimClock>().tick = minute;
+        crate::relationship_effects::reset(sim.world_mut());
+        tick(sim.world_mut());
+        sim.relationship_effects()
+            .iter()
+            .find(|e| e.affected == SimId(0) && e.responsible == SimId(1))
+            .map(|e| e.cause)
+    }
+
+    fn watching_with_chance(chance: f32) -> (Sim, Entity, Entity) {
+        let (mut sim, a, b) = pair();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.tuning.hated_communal_chance = chance;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        watching_together(&mut sim, a, b);
+        (sim, a, b)
+    }
+
     /// Hatred does not block a communal gain outright: the tuned chance
-    /// decides each contact minute, from a seed that mixes the tick and the
-    /// pair, so the same minute always rolls the same way.
+    /// decides each contact minute, and a minute the roll refuses still
+    /// pays ordinary proximity. The cutoff is the one grief uses for a
+    /// hated person, and only the hater's own minutes are rolled.
     #[test]
     fn a_hated_viewer_still_warms_on_the_tuned_fraction_of_minutes() {
         let shipped = terri_data::pack().tuning;
         assert_eq!(shipped.hated_communal_chance, 0.35);
-        let outcomes = |chance: f32, minutes: u64| -> Vec<bool> {
-            let (mut sim, a, b) = pair();
-            let mut pack = sim.world().resource::<Content>().0.clone();
-            pack.tuning.hated_communal_chance = chance;
-            sim.world_mut()
-                .insert_resource(Content(Box::leak(Box::new(pack))));
-            watching_together(&mut sim, a, b);
-            let hates = -sim
-                .world()
-                .resource::<Content>()
-                .0
-                .tuning
-                .affinity_band_loves;
+        let hates = shipped.grief_hated_affinity;
+        assert_eq!(hates, -0.5);
+        let causes = |chance: f32, feeling: f32, minutes: u64| -> Vec<RelationshipCause> {
+            let (mut sim, a, _) = watching_with_chance(chance);
             (0..minutes)
-                .map(|minute| {
-                    let mut feelings = Relationships::default();
-                    feelings.bump(SimId(1), hates);
-                    sim.world_mut().entity_mut(a).insert(feelings);
-                    sim.world_mut().resource_mut::<SimClock>().tick = minute;
-                    tick(sim.world_mut());
-                    feeling(&sim, a, SimId(1)) > hates
-                })
+                .map(|minute| minute_cause(&mut sim, a, feeling, minute).expect("a→b effect"))
                 .collect()
         };
-        let shipped = outcomes(0.35, 400);
-        let warmed = shipped.iter().filter(|&&w| w).count();
+        let communal = |causes: &[RelationshipCause]| {
+            causes
+                .iter()
+                .filter(|&&c| c == RelationshipCause::SharedActivity)
+                .count()
+        };
+        let at_shipped = causes(0.35, hates, 400);
+        let warmed = communal(&at_shipped);
         assert!(
             (100..=180).contains(&warmed),
-            "about 35% of 400 minutes should warm, not {warmed}"
-        );
-        assert_eq!(
-            shipped,
-            outcomes(0.35, 400),
-            "the roll is seeded, not clocked"
+            "about 35% of 400 minutes should pay the communal rate, not {warmed}"
         );
         assert!(
-            outcomes(0.0, 60).iter().all(|&w| !w),
-            "0 blocks every minute"
+            at_shipped
+                .iter()
+                .all(|&c| c == RelationshipCause::SharedActivity
+                    || c == RelationshipCause::Proximity),
+            "a refused minute still pays proximity"
         );
-        assert!(outcomes(1.0, 60).iter().all(|&w| w), "1 blocks none");
-        // Just above the Hates edge the chance no longer applies.
-        let (mut sim, a, b) = pair();
-        let mut pack = sim.world().resource::<Content>().0.clone();
-        pack.tuning.hated_communal_chance = 0.0;
-        sim.world_mut()
-            .insert_resource(Content(Box::leak(Box::new(pack))));
-        watching_together(&mut sim, a, b);
-        let dislikes = -sim
-            .world()
-            .resource::<Content>()
-            .0
-            .tuning
-            .affinity_band_loves
-            + 0.01;
-        let mut feelings = Relationships::default();
-        feelings.bump(SimId(1), dislikes);
-        sim.world_mut().entity_mut(a).insert(feelings);
-        tick(sim.world_mut());
-        assert!(feeling(&sim, a, SimId(1)) > dislikes);
+        assert!(
+            at_shipped.contains(&RelationshipCause::Proximity),
+            "some minutes are refused"
+        );
+        for feeling in [hates, -1.0] {
+            assert_eq!(
+                communal(&causes(0.0, feeling, 60)),
+                0,
+                "0 refuses every minute at {feeling}"
+            );
+            assert_eq!(
+                communal(&causes(1.0, feeling, 60)),
+                60,
+                "1 refuses none at {feeling}"
+            );
+        }
+        // Just above the cutoff the chance no longer applies.
+        assert_eq!(communal(&causes(0.0, hates + 0.01, 60)), 60);
+        // The other watcher does not hate anybody, so their minutes are
+        // never rolled.
+        let (mut sim, a, _) = watching_with_chance(0.0);
+        minute_cause(&mut sim, a, hates, 7);
+        assert!(sim
+            .relationship_effects()
+            .iter()
+            .any(|e| e.affected == SimId(1)
+                && e.responsible == SimId(0)
+                && e.cause == RelationshipCause::SharedActivity));
+    }
+
+    /// Two games with different saved generator states roll different
+    /// minutes, so the pattern is not a fixed property of the tick alone;
+    /// the same state always rolls the same way.
+    #[test]
+    fn the_hated_roll_follows_the_saved_generator_without_consuming_it() {
+        let pattern = |seed: u64| -> Vec<bool> {
+            let (mut sim, a, _) = watching_with_chance(0.35);
+            sim.world_mut()
+                .insert_resource(terri_core::SimRng::from_seed(seed));
+            let before = sim.world().resource::<terri_core::SimRng>().clone();
+            let pattern = (0..120)
+                .map(|minute| {
+                    minute_cause(&mut sim, a, -0.5, minute)
+                        == Some(RelationshipCause::SharedActivity)
+                })
+                .collect();
+            assert_eq!(
+                *sim.world().resource::<terri_core::SimRng>(),
+                before,
+                "the roll draws nothing from the shared stream"
+            );
+            pattern
+        };
+        assert_eq!(pattern(5), pattern(5));
+        assert_ne!(pattern(5), pattern(6));
     }
 
     #[test]

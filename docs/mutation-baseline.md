@@ -1658,3 +1658,22 @@ holding a `terri-sim` mutant, which then tested nothing and passed.
 Nothing about which mutants survive changed, and no baseline entry moved. What
 did change is that a shard now has to test something to pass, and that a
 `Timeout` line means the cap was hit rather than that a loop ran away.
+
+## 2026-10-16: communal affinity, one accepted comparison
+
+`crates/terri-sim/src/relationship_dynamics.rs: replace < with <= in
+hated_communal_gain` is accepted as equivalent in practice. The roll compares
+`SimRng::next_f32()`, a multiple of 2^-24 in [0, 1), with
+`hated_communal_chance`. The two operators differ only when the draw equals
+the chance exactly: at chance 0 that needs a draw of exactly 0.0, one value in
+2^24; at the shipped 0.35, which is not a multiple of 2^-24, they never differ;
+at chance 1 neither operator can fail because 1 is never drawn. The tests pin
+0 (every minute refused), 1 (none refused) and the shipped fraction over 400
+seeded minutes; a draw that lands on the chance is not a case the simulation
+can be made to depend on. The same shape is the accepted `from_seed` entry
+above.
+
+The sweep that recorded this: `cargo mutants --in-diff <branch diff>
+--package terri-data --package terri-sim --test-workspace true
+--timeout-multiplier 4 --minimum-test-timeout 120`, with the result in
+`docs/evidence/2026-10-16-communal-affinity/`.
