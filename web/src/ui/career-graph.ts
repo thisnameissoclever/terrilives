@@ -6,9 +6,10 @@ import type { CareerWeek } from '../bridge.js';
 // rules, and a marker at each event: a green upward arrow at a promotion,
 // a red downward arrow at a demotion, a green money mark at a raise, and a
 // gray diamond at a change of path. Each marker carries a title that shows
-// on hover with the week and the event, since the shapes alone do not say.
-// The plot keeps a margin above and below the 0 to 100 band so a marker
-// at either extreme stays inside the drawing.
+// on hover with the week and the event, since the shapes alone do not say;
+// the graph is one picture to assistive technology, and the text lines
+// above it carry the numbers. The plot keeps a margin above and below the
+// 0 to 100 band so a marker at either extreme stays inside the drawing.
 
 export const CAREER_EVENT_NONE = 0;
 export const CAREER_EVENT_PROMOTION = 1;

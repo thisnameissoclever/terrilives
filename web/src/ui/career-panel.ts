@@ -316,14 +316,19 @@ export function createCareerPanelSurface(
   const graphHeading = doc.createElement('p');
   graphHeading.className = 'career-graph-heading';
   graphHeading.textContent = 'Reviews';
+  // Each graph is one picture to assistive technology (`role="img"`), named
+  // Reviewed weeks; the markers' titles are hover tooltips, and the lines
+  // of text above say what the graph shows.
   const graph = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
   graph.setAttribute('class', 'career-graph');
+  graph.setAttribute('role', 'img');
   graph.setAttribute('aria-label', 'Reviewed weeks');
   const noReviews = line(doc, 'career-no-reviews');
   noReviews.textContent = 'No reviews yet.';
   const miniGraph = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
   miniGraph.setAttribute('class', 'career-graph career-graph-mini');
   miniGraph.setAttribute('id', 'career-tab-mini-graph');
+  miniGraph.setAttribute('role', 'img');
   miniGraph.setAttribute('aria-label', 'Reviewed weeks');
   miniGraph.setAttribute('hidden', '');
   const fieldset = doc.createElement('fieldset');
@@ -364,10 +369,12 @@ export function createCareerPanelSurface(
   const rowGraphSvg = roots.rowGraph ? doc.createElementNS('http://www.w3.org/2000/svg', 'svg') : null;
   if (rowGraphSvg && roots.rowGraph) {
     rowGraphSvg.setAttribute('class', 'career-graph career-graph-mini');
+    rowGraphSvg.setAttribute('role', 'img');
     rowGraphSvg.setAttribute('aria-label', 'Reviewed weeks');
     roots.rowGraph.append(rowGraphSvg);
     roots.rowGraph.hidden = true;
-    roots.rowInfo?.setAttribute('aria-controls', roots.rowGraph.id || 'career-row-graph');
+    if (!roots.rowGraph.id) roots.rowGraph.id = 'career-row-graph';
+    roots.rowInfo?.setAttribute('aria-controls', roots.rowGraph.id);
   }
   info.addEventListener('click', () => {
     miniOpen = !miniOpen;
