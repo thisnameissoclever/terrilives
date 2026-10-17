@@ -1,0 +1,35 @@
+{
+  "booted": true,
+  "expectRegression": true,
+  "pageErrors": [],
+  "steps": [
+    {
+      "name": "opens on a first visit",
+      "pass": true,
+      "detail": {
+        "open": true,
+        "display": "flex",
+        "height": 560,
+        "bodyScrollTop": 0,
+        "activeElementId": "help-title"
+      }
+    },
+    {
+      "name": "closing hides it",
+      "pass": false,
+      "detail": {
+        "open": false,
+        "display": "flex",
+        "height": 560,
+        "bodyScrollTop": 0,
+        "activeElementId": "stage"
+      }
+    }
+  ],
+  "closedHides": false,
+  "controlCaught": true,
+  "notCovered": [
+    "env(safe-area-inset-*) padding: Playwright mobile emulation does not emulate insets, and this script does not set Emulation.setDeviceMetricsOverride over CDP."
+  ],
+  "pass": true
+}

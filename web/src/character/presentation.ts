@@ -2,8 +2,16 @@ import type { CharacterCatalog } from './catalog.js';
 import { displayValue, hex, type CharacterField } from './fields.js';
 import { floatValue, type CharacterDraftV1, type F32Bits, type Rgb } from './schema.js';
 
-export const readableNumber=(value:number):string=>value!==0&&Math.abs(value)<.0001
-  ?Number(value.toPrecision(4)).toString():new Intl.NumberFormat('en',{maximumFractionDigits:4}).format(value);
+/**
+ * Two fraction digits, by design. Every creator control steps by 0.01 at the
+ * finest, so the Review page, the influence notes and the value box tooltips
+ * show nothing finer: a widened 32-bit value's trailing digits, and the finer
+ * digits a spawned housemate's values can carry, are detail nobody can set
+ * here. A nonzero value that would otherwise round to 0 keeps two significant
+ * digits so a tiny setting never reads as "off".
+ */
+export const readableNumber=(value:number):string=>value!==0&&Math.abs(value)<.005
+  ?Number(value.toPrecision(2)).toString():new Intl.NumberFormat('en',{maximumFractionDigits:2,useGrouping:false}).format(value+0);
 export function skillStanding(practice:F32Bits,thresholds:readonly F32Bits[]):{level:number;progress:number;maximum:boolean} {
   const value=floatValue(practice),steps=thresholds.map(floatValue);let level=0;
   while(level+1<steps.length&&value>=steps[level+1])level++;
