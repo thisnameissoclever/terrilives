@@ -2,6 +2,8 @@
 
 Status: [CB-slice-serves] shipped in PR 100 at merge `8370e50`.
 
+Since issue 252 the lists are a grid of cards and rows of buttons; `2026-10-17-store-catalogue.md` describes that presentation, and the filter rules here still hold.
+
 This is [B-catalogue-browsing] in `docs/FEATURES.md`, found in the played check
 [A-buy-mode]; its own played check is [A-catalogue-browsing]. The Buy tool
 (`docs/specs/2026-09-21-buy-mode.md`) lists thirty objects by name and price,
