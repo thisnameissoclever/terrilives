@@ -24,12 +24,12 @@ pub use pack::SeatUse;
 pub use pack::SleepPlaceAccess;
 pub use pack::{
     AffinityReach, CompiledActionSocket, CompiledActivity, CompiledAffinityKind, CompiledCareer,
-    CompiledChain, CompiledChainStep, CompiledHouseholdMember, CompiledInteraction, CompiledLot,
-    CompiledObject, CompiledPersonality, CompiledPlacement, CompiledPlacementSocket,
-    CompiledPortal, CompiledPortalHinge, CompiledSkill, CompiledSocketFacing, CompiledSoundAction,
-    CompiledTrait, CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
-    CompiledVisualFacing, CompiledVoiceClip, ContentPack, DomesticTuning, Footprint, ObjectDefId,
-    Tuning,
+    CompiledCareerPath, CompiledChain, CompiledChainStep, CompiledHouseholdMember,
+    CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality, CompiledPlacement,
+    CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge, CompiledSkill,
+    CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
+    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
+    ContentPack, DomesticTuning, Footprint, ObjectDefId, Tuning,
 };
 pub use pack::{Facing, FacingSprites};
 pub use pack::{MediaBehavior, RecipeBinding};

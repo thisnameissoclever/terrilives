@@ -458,9 +458,9 @@ Also missing: more direct social actions than chat, group conversations, and a r
 
 ### [S-careers] Jobs and careers, with player-directed career paths
 
-**Status: Partial.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
+**Status: Partial.** The owner raised the target for this system on 2026-09-21; `docs/specs/2026-10-17-careers.md` (issue 249) delivers the paths, the reviews and the autonomy, and the Career panel follows it.
 
-**What exists.** Tim holds the one office job, leaves through the front door and across the yard to the street, returns after the shift and receives 120 Funds. Each career names its working days; the office job runs Monday to Friday with fixed hours, need costs and a satisfaction reward, and Tim stays home on weekends. The Career row in Sim details shows the job with its working days and hours; there is no career-management panel or player-directed job choice yet.
+**What exists.** Three career paths in `content/careers.toml`, each four titled levels with their own hours, working days, pay range, need cost and reward; a `Career` component still names one level. A shift leaves through the front door and across the yard to the street, returns after the shift and pays the person's current pay. Each shift is scored from the job's fit to the person's traits and social capacity, their skill and their mood; the first tick of each week reviews every employed person on the week's scores and can promote (always with a raise), give a raise, demote or, from the third poor week in a row, dismiss, with moodlets for each event, a warning from the second poor week, and a job satisfaction that reads the fit. An unemployed person looks for work on weekday mornings and a poorly fitted one may change path at a review, each behind a setting that is on by default. `SimCommand::AssignCareer`, `QuitCareer` and `SetCareerAutonomy` direct it. Schema fourteen saves it. The Career row in Sim details shows the title with its working days and hours; the Career section with the graph, the factors, the assignment controls and the Options checkboxes is the next delivery.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 

@@ -128,6 +128,9 @@ pub(crate) fn remove_person(world: &mut World, dead: Entity) {
         if let Some(mut fights) = world.get_resource_mut::<crate::fights::Fights>() {
             fights.forget(person);
         }
+        if let Some(mut careers) = world.get_resource_mut::<crate::careers::Careers>() {
+            careers.forget(person);
+        }
     }
     crate::domestic::remove_person(world, dead);
     let own_target = world.get::<Target>(dead).copied();

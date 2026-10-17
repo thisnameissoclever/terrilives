@@ -1105,6 +1105,60 @@ pub struct Tuning {
     /// How much every square already bought adds to the next square's
     /// price, in cents.
     pub land_price_step_cents: u32,
+    // Careers (issue 249): appended after the land knobs, in the order
+    // `docs/specs/2026-10-17-careers.md` rule 17 lists.
+    /// How far a weekly review's draw can move the week's performance either way, in points.
+    pub career_review_noise: f32,
+    /// A week performing below this is poor.
+    pub career_poor_threshold: f32,
+    /// A week performing at or above this is good.
+    pub career_good_threshold: f32,
+    /// The dismissal chance per consecutive poor week beyond the second.
+    pub career_fire_base: f32,
+    /// The demotion chance at performance 0, scaled down to 0 at the poor threshold.
+    pub career_demote_base: f32,
+    /// The promotion chance at performance 100, scaled down to 0 at 50.
+    pub career_promote_base: f32,
+    /// The raise chance at performance 100, scaled down to 0 at 50.
+    pub career_raise_base: f32,
+    /// The tick of the day an unemployed person looks for work.
+    pub career_search_tick: u32,
+    /// The chance an unemployed person applies on a working day.
+    pub career_search_chance: f32,
+    /// Below this fit a person may change path on their own.
+    pub career_change_fit: f32,
+    /// How much better another path's fit must be for a change.
+    pub career_change_gap: f32,
+    /// The chance such a change happens at a review with no outcome.
+    pub career_change_chance: f32,
+    /// How many points job satisfaction moves toward its target per shift.
+    pub career_satisfaction_rate: f32,
+    /// Below this job satisfaction a person hates the job.
+    pub career_job_misery: f32,
+    /// Above this job satisfaction a person enjoys the job.
+    pub career_job_joy: f32,
+    /// Life satisfaction points a hated job costs per completed shift.
+    pub career_misery_satisfaction: f32,
+    /// How much enjoying the job raises mood.
+    pub career_mood_joy: f32,
+    /// How much hating the job lowers mood.
+    pub career_mood_misery: f32,
+    /// How much a warning at work lowers mood.
+    pub career_mood_warned: f32,
+    /// How much a promotion raises mood while its moodlet lasts.
+    pub career_mood_promoted: f32,
+    /// How much a raise raises mood while its moodlet lasts.
+    pub career_mood_raise: f32,
+    /// How much a demotion lowers mood while its moodlet lasts.
+    pub career_mood_demoted: f32,
+    /// How much a dismissal lowers mood while its moodlet lasts.
+    pub career_mood_fired: f32,
+    /// How many ticks the Promoted and Got a raise moodlets last.
+    pub career_mood_promoted_ticks: u32,
+    /// How many ticks the Demoted moodlet lasts.
+    pub career_mood_demoted_ticks: u32,
+    /// How many ticks the Fired moodlet lasts.
+    pub career_mood_fired_ticks: u32,
 }
 
 impl Tuning {
@@ -1130,6 +1184,34 @@ impl Tuning {
     pub const SHIPPED_LAND_STRIP_DEPTH: u32 = 10;
     pub const SHIPPED_LAND_PRICE_CENTS: u32 = 15_000;
     pub const SHIPPED_LAND_PRICE_STEP_CENTS: u32 = 15;
+    /// The shipped career knobs, reconstructed the same way for packs
+    /// published before they existed.
+    pub const SHIPPED_CAREER_REVIEW_NOISE: f32 = 10.0;
+    pub const SHIPPED_CAREER_POOR_THRESHOLD: f32 = 40.0;
+    pub const SHIPPED_CAREER_GOOD_THRESHOLD: f32 = 65.0;
+    pub const SHIPPED_CAREER_FIRE_BASE: f32 = 0.08;
+    pub const SHIPPED_CAREER_DEMOTE_BASE: f32 = 0.15;
+    pub const SHIPPED_CAREER_PROMOTE_BASE: f32 = 0.22;
+    pub const SHIPPED_CAREER_RAISE_BASE: f32 = 0.18;
+    pub const SHIPPED_CAREER_SEARCH_TICK: u32 = 540;
+    pub const SHIPPED_CAREER_SEARCH_CHANCE: f32 = 0.5;
+    pub const SHIPPED_CAREER_CHANGE_FIT: f32 = -0.3;
+    pub const SHIPPED_CAREER_CHANGE_GAP: f32 = 0.5;
+    pub const SHIPPED_CAREER_CHANGE_CHANCE: f32 = 0.25;
+    pub const SHIPPED_CAREER_SATISFACTION_RATE: f32 = 4.0;
+    pub const SHIPPED_CAREER_JOB_MISERY: f32 = 35.0;
+    pub const SHIPPED_CAREER_JOB_JOY: f32 = 65.0;
+    pub const SHIPPED_CAREER_MISERY_SATISFACTION: f32 = 0.5;
+    pub const SHIPPED_CAREER_MOOD_JOY: f32 = 6.0;
+    pub const SHIPPED_CAREER_MOOD_MISERY: f32 = 8.0;
+    pub const SHIPPED_CAREER_MOOD_WARNED: f32 = 6.0;
+    pub const SHIPPED_CAREER_MOOD_PROMOTED: f32 = 12.0;
+    pub const SHIPPED_CAREER_MOOD_RAISE: f32 = 8.0;
+    pub const SHIPPED_CAREER_MOOD_DEMOTED: f32 = 12.0;
+    pub const SHIPPED_CAREER_MOOD_FIRED: f32 = 16.0;
+    pub const SHIPPED_CAREER_MOOD_PROMOTED_TICKS: u32 = 1440;
+    pub const SHIPPED_CAREER_MOOD_DEMOTED_TICKS: u32 = 2880;
+    pub const SHIPPED_CAREER_MOOD_FIRED_TICKS: u32 = 5760;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -1442,6 +1524,9 @@ pub struct ContentPack {
     pub affinities: Vec<CompiledAffinityKind>,
     pub books: Vec<crate::books::BookDefinition>,
     pub reading: Option<crate::books::ReadingTuning>,
+    /// The career paths every job belongs to (issue 249). Appended at the
+    /// pack tail; a pack from before paths reconstructs one path per job.
+    pub career_paths: Vec<CompiledCareerPath>,
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -1537,6 +1622,30 @@ pub struct CompiledCareer {
     /// The weekdays the shift runs, as a mask: bit 0 is Monday and bit 6
     /// is Sunday - [CAL-careers]. Never 0, and no bit above 6 is set.
     pub working_days: u8,
+    /// Careers (issue 249): the path this job is a level of, as an index
+    /// into `ContentPack::career_paths`, and which level it is, from 0.
+    /// Appended after `working_days`, per the pack's compatibility rule;
+    /// the fields after them follow in order.
+    pub path: u32,
+    pub level: u32,
+    /// The most the job pays per shift after raises; at least `pay`.
+    pub pay_max: u32,
+    /// How many good weeks in a row a promotion out of this level needs.
+    pub advance_weeks: u32,
+    /// How far the work faces other people, 0 to 1 (the path's value).
+    pub social_demand: f32,
+    /// The skill tag the work reads, if any (the path's value).
+    pub skill_tag: Option<String>,
+    /// Trait index to fit weight, sorted by index (the path's values).
+    pub trait_fit: Vec<(u32, f32)>,
+}
+
+/// One career path: its levels in order, as indices into `careers`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledCareerPath {
+    pub id: String,
+    pub label: String,
+    pub levels: Vec<u32>,
 }
 
 impl CompiledCareer {
@@ -1923,6 +2032,32 @@ mod tests {
             land_strip_depth: 7,
             land_price_cents: 12_345,
             land_price_step_cents: 21,
+            career_review_noise: 8.5,
+            career_poor_threshold: 38.0,
+            career_good_threshold: 66.0,
+            career_fire_base: 0.0625,
+            career_demote_base: 0.125,
+            career_promote_base: 0.25,
+            career_raise_base: 0.1875,
+            career_search_tick: 11,
+            career_search_chance: 0.5,
+            career_change_fit: -0.25,
+            career_change_gap: 0.625,
+            career_change_chance: 0.3125,
+            career_satisfaction_rate: 3.5,
+            career_job_misery: 34.0,
+            career_job_joy: 67.0,
+            career_misery_satisfaction: 0.75,
+            career_mood_joy: 5.5,
+            career_mood_misery: 7.5,
+            career_mood_warned: 6.25,
+            career_mood_promoted: 11.0,
+            career_mood_raise: 7.75,
+            career_mood_demoted: 12.25,
+            career_mood_fired: 15.5,
+            career_mood_promoted_ticks: 1500,
+            career_mood_demoted_ticks: 2900,
+            career_mood_fired_ticks: 5800,
         }
     }
 
@@ -1930,6 +2065,7 @@ mod tests {
         ContentPack {
             books: Vec::new(),
             reading: None,
+            career_paths: Vec::new(),
             circadian: None,
             sleep_tag: String::new(),
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
@@ -2139,6 +2275,13 @@ mod tests {
                     energy_cost: 21.5,
                     satisfaction: 1.125,
                     working_days: 0b1100000,
+                    path: 0,
+                    level: 0,
+                    pay_max: 95,
+                    advance_weeks: 1,
+                    social_demand: 0.0,
+                    skill_tag: None,
+                    trait_fit: vec![],
                 },
                 CompiledCareer {
                     id: "clerk".to_string(),
@@ -2149,6 +2292,13 @@ mod tests {
                     energy_cost: 17.25,
                     satisfaction: 0.375,
                     working_days: 0b0011111,
+                    path: 1,
+                    level: 0,
+                    pay_max: 160,
+                    advance_weeks: 3,
+                    social_demand: 0.75,
+                    skill_tag: Some("reading".to_string()),
+                    trait_fit: vec![(0, 0.5), (2, -0.25)],
                 },
             ],
             // Two vocabulary entries each, out of alphabetical order,
@@ -2615,6 +2765,13 @@ mod tests {
             energy_cost: 4.0,
             satisfaction: 5.0,
             working_days: 0b1000101,
+            path: 0,
+            level: 0,
+            pay_max: 3,
+            advance_weeks: 1,
+            social_demand: 0.0,
+            skill_tag: None,
+            trait_fit: vec![],
         };
         let worked: Vec<u8> = (0..7).filter(|day| career.works_on(*day)).collect();
         assert_eq!(worked, vec![0, 2, 6]);
@@ -2634,6 +2791,13 @@ mod tests {
             energy_cost: 4.0,
             satisfaction: 5.0,
             working_days: 0xFF,
+            path: 0,
+            level: 0,
+            pay_max: 3,
+            advance_weeks: 1,
+            social_demand: 0.0,
+            skill_tag: None,
+            trait_fit: vec![],
         };
         assert!(!career.works_on(7));
         assert!(!career.works_on(200));
@@ -2667,10 +2831,33 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // Land expansion (issue 254): the three land knobs are the final
-        // four bytes, three varints: 7, then 12345 (0xB9 0x60), then 21.
-        let land = before.len() - 4;
-        assert_eq!(before[land..], [7, 0xB9, 0x60, 21]);
+        // Careers (issue 249): the twenty-six career knobs are the final
+        // ninety-five bytes: twenty-two floats, the search tick (one byte
+        // at 11) and three tick knobs of two bytes each.
+        let career = before.len() - 95;
+        assert_eq!(before[career..career + 4], 8.5f32.to_le_bytes());
+        assert_eq!(before[before.len() - 2..], [0xA8, 0x2D]);
+        assert_eq!(
+            changed(Tuning {
+                career_review_noise: 8.75,
+                ..a_tuning()
+            }),
+            vec![career + 2],
+            "career noise"
+        );
+        assert_eq!(
+            changed(Tuning {
+                career_mood_fired_ticks: 5801,
+                ..a_tuning()
+            }),
+            vec![before.len() - 2],
+            "career fired ticks"
+        );
+        // Land expansion (issue 254): the three land knobs are the four
+        // bytes before them, three varints: 7, then 12345 (0xB9 0x60),
+        // then 21.
+        let land = career - 4;
+        assert_eq!(before[land..career], [7, 0xB9, 0x60, 21]);
         for (offset, after) in [
             (
                 0,

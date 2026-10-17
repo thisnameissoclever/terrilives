@@ -661,6 +661,13 @@ mod tests {
                 energy_cost: 1.0,
                 satisfaction: 0.0,
                 working_days: 0b1111111,
+                path: 0,
+                level: 0,
+                pay_max: 1,
+                advance_weeks: 1,
+                social_demand: 0.0,
+                skill_tag: None,
+                trait_fit: Vec::new(),
             }],
             ..base.clone()
         }))

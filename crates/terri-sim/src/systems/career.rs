@@ -26,8 +26,8 @@
 
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, AtWork, Career, Commuting, Eating, Fumbled, Funds, NeedId, Needs, Path, Position,
-    Reserved, Satisfaction, SimClock, Socialising, Target, TileGrid,
+    Agent, AtWork, Career, Commuting, Eating, Fumbled, NeedId, Needs, Path, Position, Reserved,
+    SimClock, Socialising, Target, TileGrid,
 };
 
 use crate::Content;
@@ -121,7 +121,7 @@ pub fn start_shift(
         .collect();
     leaving.sort_by_key(|entity| entity.index());
 
-    for worker in leaving {
+    for worker in leaving.clone() {
         let Ok((_, pos, career, target, pending, reading)) = workers.get(worker) else {
             continue;
         };
@@ -162,8 +162,11 @@ pub fn start_shift(
             // The worker may itself be claimed - see the doc comment.
             .remove::<Reserved>();
 
+        // A worker leaving on this same tick keeps the commute it was
+        // just given (the careers spec, rule 19): its walk toward this
+        // worker ended with its own departure above.
         for (other, target) in approachers.iter() {
-            if other != worker && target.object == worker {
+            if other != worker && target.object == worker && !leaving.contains(&other) {
                 commands.entity(other).remove::<Target>().remove::<Path>();
             }
         }
@@ -278,19 +281,20 @@ pub fn commute_and_work(
     content: Res<Content>,
     grid: Res<TileGrid>,
     frame: Option<Res<crate::lot_frame::LotFrame>>,
-    mut funds: ResMut<Funds>,
     mut workers: Query<
         (
             Entity,
-            &Career,
+            Option<&Career>,
             &Position,
             &mut Needs,
-            &mut Satisfaction,
             Option<&mut AtWork>,
             Option<&Commuting>,
             Has<Path>,
         ),
-        With<Agent>,
+        (
+            With<Agent>,
+            Or<(With<Career>, With<Commuting>, With<AtWork>)>,
+        ),
     >,
 ) {
     // Entity order: Funds is shared state and addition commutes, but
@@ -304,21 +308,37 @@ pub fn commute_and_work(
         .map(|portal| crate::lot_frame::shift_portal(portal, origin));
 
     for worker in working {
-        let Ok((_, career, position, mut needs, mut satisfaction, at_work, commuting, has_path)) =
+        let Ok((_, career, position, mut needs, at_work, commuting, has_path)) =
             workers.get_mut(worker)
         else {
             continue;
         };
-        let career = &content.0.careers[career.0 as usize];
-
-        match commuting {
-            Some(Commuting::Inbound) if !has_path => {
-                // Home on the landing. The walk was a normal one and the
-                // shift was paid when it began, so there is nothing to do
-                // but take the marker off.
-                commands.entity(worker).remove::<Commuting>();
+        if matches!(commuting, Some(Commuting::Inbound)) {
+            // Walking home, with or without a job: a person dismissed on
+            // the return keeps the marker for the walk like anyone else.
+            if has_path {
                 continue;
             }
+            // Home on the landing. The walk was a normal one and the shift
+            // was paid when it began, so the marker comes off, and a review
+            // that fell due during the walk is applied now (the careers
+            // spec, rule 6).
+            commands.entity(worker).remove::<Commuting>();
+            commands.queue(move |world: &mut World| {
+                crate::careers::settle_due_review(world, worker);
+            });
+            continue;
+        }
+        let Some(career) = career.map(|career| &content.0.careers[career.0 as usize]) else {
+            // Unemployed with a work marker: nothing to count down or clock
+            // in to. The game never makes this state (a dismissal lands on
+            // the return, and the commands refuse anyone away), and tests
+            // park people this way to keep them out of a scene, so the
+            // marker is left alone as it always was.
+            continue;
+        };
+
+        match commuting {
             Some(Commuting::Outbound) if !has_path => {
                 // Arrived. The rabbit hole swallows the sim: render skips
                 // it, selection and the people loops exclude it, and its
@@ -364,8 +384,12 @@ pub fn commute_and_work(
                 returning.insert((Commuting::Inbound, Path { steps, cursor: 0 }));
             }
             needs.drain(NeedId::Energy, career.energy_cost);
-            funds.0 += career.pay as i64 * Funds::CENTS_PER_DOLLAR;
-            satisfaction.reward(career.satisfaction);
+            // The pay, the life score and the week's shift score live
+            // with the careers (issue 249): the person's current pay,
+            // not the level's starting pay, is what the household gets.
+            commands.queue(move |world: &mut World| {
+                crate::careers::complete_shift(world, worker);
+            });
         }
     }
 }
@@ -379,7 +403,7 @@ mod tests {
     use super::*;
     use crate::test_content;
     use crate::Sim;
-    use terri_core::{Agent, CommandQueue};
+    use terri_core::{Agent, CommandQueue, Funds, Satisfaction};
     use terri_data::{
         CompiledCareer, CompiledPortal, CompiledPortalHinge, CompiledSocketFacing, ContentPack,
     };
@@ -400,6 +424,13 @@ mod tests {
             energy_cost: 11.5,
             satisfaction: 2.25,
             working_days: 0b1111111,
+            path: 0,
+            level: 0,
+            pay_max: 130,
+            advance_weeks: 1,
+            social_demand: 0.0,
+            skill_tag: None,
+            trait_fit: Vec::new(),
         }
     }
 
@@ -802,6 +833,10 @@ mod tests {
     #[test]
     fn the_shipped_worker_leaves_on_day_one_and_stays_home_on_day_six() {
         let mut sim = Sim::new_from_shipped_lot();
+        // The test watches the one shipped worker: an unemployed
+        // housemate who found weekend work (careers, issue 249) would be
+        // paid on the Saturday this test wants silent.
+        crate::careers::set_autonomy(sim.world_mut(), false, false);
         let content = sim.world().resource::<Content>().0;
         let day_ticks = content.tuning.day_ticks as u64;
         let worker = {
@@ -1252,6 +1287,48 @@ mod tests {
 
     /// The cancellation is AIMED: only walks toward the departing
     /// worker are cut. A bystander mid-walk to the fridge keeps its
+    /// Two workers leaving on the same tick both keep their commute
+    /// (careers, rule 19): the sweep that cancels a walk toward a
+    /// departing worker skips a worker who is departing too.
+    #[test]
+    fn two_workers_leaving_together_both_keep_their_commutes() {
+        let pack = career_pack(vec![]);
+        let mut sim = test_content::sim_with(16, 12, pack);
+        let first = a_worker(&mut sim, 13.0, 2.0);
+        let second = a_worker(&mut sim, 2.0, 8.0);
+        sim.world_mut().entity_mut(second).insert((
+            Target {
+                object: first,
+                interaction: 0,
+            },
+            Path {
+                steps: vec![(3, 8), (4, 8), (5, 8)],
+                cursor: 0,
+            },
+        ));
+        sim.tick();
+        sim.tick();
+        sim.tick(); // day-tick 3: both shifts.
+        for worker in [first, second] {
+            assert!(
+                sim.world().get::<Commuting>(worker).is_some() || away(&sim, worker),
+                "both workers leave: {:?}",
+                sim.world().get::<Position>(worker)
+            );
+            assert!(sim.world().get::<Target>(worker).is_none());
+        }
+        let mut departures = 0;
+        for _ in 0..40 {
+            sim.tick();
+            departures = [first, second]
+                .iter()
+                .filter(|worker| away(&sim, **worker))
+                .count()
+                .max(departures);
+        }
+        assert_eq!(departures, 2, "both clock in");
+    }
+
     /// Target through the shift tick - the `&&`-to-`||` mutant cancels
     /// every walk in the house, and this is what catches it.
     #[test]

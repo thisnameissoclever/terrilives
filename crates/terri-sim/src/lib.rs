@@ -9,6 +9,8 @@ pub mod beds;
 pub mod books;
 pub mod burnt_meals;
 pub use burnt_meals::BurntMeals;
+pub mod careers;
+pub use careers::Careers;
 pub mod fights;
 pub use fights::Fights;
 pub mod land;
@@ -1315,6 +1317,23 @@ impl Sim {
         Ok(())
     }
 
+    /// Schema fourteen: everything schema thirteen holds, then the
+    /// careers (issue 249).
+    pub fn save_snapshot_v14(&self) -> terri_core::SaveSnapshotV14 {
+        save::v14::capture(self)
+    }
+
+    pub fn load_snapshot_v14(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV14,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let portals = save::Carried::for_load(&self.world);
+        let candidate = save::v14::restore(snapshot, content, portals)?;
+        self.adopt_current(candidate);
+        Ok(())
+    }
+
     pub fn load_snapshot_v11(
         &mut self,
         snapshot: terri_core::SaveSnapshotV11,
@@ -1507,6 +1526,7 @@ impl Sim {
         world.insert_resource(social_episode::SocialEpisodes::default());
         world.insert_resource(burnt_meals::BurntMeals::default());
         world.insert_resource(fights::Fights::default());
+        world.insert_resource(careers::Careers::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
@@ -1695,6 +1715,10 @@ impl Sim {
                     // mood read this tick; the list is tiny.
                     burnt_meals::expire,
                     fights::expire,
+                    // The weekly review and the job search, before the
+                    // shift start so a person hired or moved today leaves
+                    // for the job they now hold.
+                    careers::tick,
                     reading::reconcile,
                     social_episode::maintain,
                     systems::career::start_shift,
@@ -3464,6 +3488,93 @@ impl Sim {
             .map(|(_, career)| &pack.careers[career.0 as usize])
     }
 
+    /// The living person carrying `index`, for the career readers.
+    fn person_at(&self, index: u32) -> Option<Entity> {
+        let mut state = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Agent>>()?;
+        state
+            .iter(&self.world)
+            .find(|entity| entity.index_u32() == index)
+    }
+
+    /// The Career section's numbers for the person carrying `index`
+    /// (`careers::report`), or `None` without a job.
+    pub fn career_report(&self, index: u32) -> Option<Vec<f32>> {
+        careers::report(&self.world, self.person_at(index)?)
+    }
+
+    /// The reviewed weeks of the person carrying `index`, as `[week,
+    /// performance, event]` triples; empty without a job.
+    pub fn career_history(&self, index: u32) -> Vec<f32> {
+        self.person_at(index)
+            .map(|entity| careers::history(&self.world, entity))
+            .unwrap_or_default()
+    }
+
+    /// The factors behind the shift score of the person carrying `index`
+    /// (`careers::factors`), or `None` without a job.
+    pub fn career_factors(&self, index: u32) -> Option<[f32; 6]> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        careers::factors(&self.world, pack, self.person_at(index)?)
+    }
+
+    /// The labels of the career paths, in path order.
+    pub fn career_path_labels(&self) -> Vec<String> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .career_paths
+                    .iter()
+                    .map(|path| path.label.clone())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The titles of the levels of career path `path`, in level order;
+    /// empty for an unknown path.
+    pub fn career_level_titles(&self, path: u32) -> Vec<String> {
+        self.world
+            .get_resource::<Content>()
+            .and_then(|content| {
+                let pack = content.0;
+                pack.career_paths.get(path as usize).map(|path| {
+                    path.levels
+                        .iter()
+                        .map(|&row| pack.careers[row as usize].label.clone())
+                        .collect()
+                })
+            })
+            .unwrap_or_default()
+    }
+
+    /// How many career commands the drain has handled, applied or
+    /// refused: the shell reads it to tell a fresh result from the last.
+    pub fn career_command_count(&self) -> u64 {
+        self.world
+            .get_resource::<Careers>()
+            .map_or(0, |careers| careers.commands)
+    }
+
+    /// What the drain did with the last career command.
+    pub fn last_career_result(&self) -> Option<careers::CareerResult> {
+        self.world
+            .get_resource::<Careers>()
+            .and_then(|careers| careers.last_result)
+    }
+
+    /// `(change, search)`: the two career autonomy settings.
+    pub fn career_autonomy(&self) -> (bool, bool) {
+        self.world
+            .get_resource::<Careers>()
+            .map_or((true, true), |careers| {
+                (careers.autonomous_change, careers.autonomous_search)
+            })
+    }
+
     /// The primary type, or legacy name, of a smart object. Includes decorative
     /// objects; returns `None` for sims and stale indices.
     pub fn object_name_of(&self, index: u32) -> Option<&'static str> {
@@ -4124,6 +4235,11 @@ impl Sim {
                 let fields: Vec<u64> = match command {
                     Character(command) => vec![30, terri_core::character_hash::command(command)],
                     BuyLand { side } => vec![31, u64::from(*side)],
+                    AssignCareer { agent, path } => vec![32, u64::from(*agent), u64::from(*path)],
+                    QuitCareer { agent } => vec![33, u64::from(*agent)],
+                    SetCareerAutonomy { change, search } => {
+                        vec![34, u64::from(*change), u64::from(*search)]
+                    }
                     CleanChore { agent, key } | CleanChoreFirst { agent, key } => vec![
                         if matches!(command, CleanChoreFirst { .. }) {
                             26
@@ -4583,6 +4699,7 @@ impl Sim {
         save::social::hash(&self.world, &mut hasher);
         burnt_meals::hash(&self.world, &mut hasher);
         fights::hash(&self.world, &mut hasher);
+        careers::hash(&self.world, &mut hasher);
         // The lot frame enters only once it differs from what the grid's
         // shape implies, so every older world hashes as it did.
         if let Some(frame) = lot_frame::frame(&self.world) {

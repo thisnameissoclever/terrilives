@@ -617,6 +617,64 @@ land_strip_depth = 10
 land_price_cents = 15000
 land_price_step_cents = 15
 
+# CAREERS - issue 249 (docs/specs/2026-10-17-careers.md, rule 17). A shift
+# scores from fit, skill and mood; the week's mean plus a bounded draw is
+# reviewed against the two thresholds; the four bases scale the outcome
+# chances. Appended to the compiled tuning after the land knobs, so packs
+# published before them reconstruct these shipped values.
+# How far a weekly review's draw can move the week's performance either way, in points.
+career_review_noise = 10.0
+# A week performing below this is poor.
+career_poor_threshold = 40.0
+# A week performing at or above this is good.
+career_good_threshold = 65.0
+# The dismissal chance per consecutive poor week beyond the second.
+career_fire_base = 0.08
+# The demotion chance at performance 0, scaled down to 0 at the poor threshold.
+career_demote_base = 0.15
+# The promotion chance at performance 100, scaled down to 0 at 50.
+career_promote_base = 0.22
+# The raise chance at performance 100, scaled down to 0 at 50.
+career_raise_base = 0.18
+# The tick of the day an unemployed person looks for work.
+career_search_tick = 540
+# The chance an unemployed person applies on a working day.
+career_search_chance = 0.5
+# Below this fit a person may change path on their own.
+career_change_fit = -0.3
+# How much better another path's fit must be for a change.
+career_change_gap = 0.5
+# The chance such a change happens at a review with no outcome.
+career_change_chance = 0.25
+# How many points job satisfaction moves toward its target per shift.
+career_satisfaction_rate = 4.0
+# Below this job satisfaction a person hates the job.
+career_job_misery = 35.0
+# Above this job satisfaction a person enjoys the job.
+career_job_joy = 65.0
+# Life satisfaction points a hated job costs per completed shift.
+career_misery_satisfaction = 0.5
+# How much enjoying the job raises mood.
+career_mood_joy = 6.0
+# How much hating the job lowers mood.
+career_mood_misery = 8.0
+# How much a warning at work lowers mood.
+career_mood_warned = 6.0
+# How much a promotion raises mood while its moodlet lasts.
+career_mood_promoted = 12.0
+# How much a raise raises mood while its moodlet lasts.
+career_mood_raise = 8.0
+# How much a demotion lowers mood while its moodlet lasts.
+career_mood_demoted = 12.0
+# How much a dismissal lowers mood while its moodlet lasts.
+career_mood_fired = 16.0
+# How many ticks the Promoted and Got a raise moodlets last.
+career_mood_promoted_ticks = 1440
+# How many ticks the Demoted moodlet lasts.
+career_mood_demoted_ticks = 2880
+# How many ticks the Fired moodlet lasts.
+career_mood_fired_ticks = 5760
+
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.

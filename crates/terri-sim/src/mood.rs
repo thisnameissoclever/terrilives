@@ -196,6 +196,10 @@ fn derive_mood_with_chores(
             });
         }
     }
+    if let (Some(id), Some(careers)) = (subject_id, world.get_resource::<crate::careers::Careers>())
+    {
+        career_moodlets(&mut moodlets, careers, *id, now, &pack.tuning);
+    }
     for death in world
         .resource::<terri_core::save::SavedMortality>()
         .deaths
@@ -264,6 +268,74 @@ const FEELING_SICK: &str = "Feeling sick";
 pub(crate) const BURNT_DINNER: &str = "Burnt dinner";
 /// The moodlet both sides carry after a fight - issue 248.
 pub(crate) const HAD_A_FIGHT: &str = "Had a fight";
+
+/// The career moodlets (issue 249, rules 9 to 11): how the job sits with
+/// the person, a standing warning, and the week's events while they last.
+pub(crate) const ENJOYS_THE_JOB: &str = "Enjoys the job";
+pub(crate) const HATES_THE_JOB: &str = "Hates the job";
+pub(crate) const WARNED_AT_WORK: &str = "Warned at work";
+pub(crate) const PROMOTED: &str = "Promoted";
+pub(crate) const GOT_A_RAISE: &str = "Got a raise";
+pub(crate) const DEMOTED: &str = "Demoted";
+pub(crate) const FIRED: &str = "Fired";
+#[cfg(test)]
+pub(crate) const CAREER_LABELS: [&str; 7] = [
+    ENJOYS_THE_JOB,
+    HATES_THE_JOB,
+    WARNED_AT_WORK,
+    PROMOTED,
+    GOT_A_RAISE,
+    DEMOTED,
+    FIRED,
+];
+
+fn career_moodlets(
+    moodlets: &mut Vec<Moodlet>,
+    careers: &crate::careers::Careers,
+    id: SimId,
+    now: u64,
+    tuning: &Tuning,
+) {
+    if let Some(record) = careers.record(id) {
+        if record.job_satisfaction < tuning.career_job_misery {
+            moodlets.push(Moodlet {
+                label: HATES_THE_JOB.to_string(),
+                score: -tuning.career_mood_misery,
+            });
+        } else if record.job_satisfaction > tuning.career_job_joy {
+            moodlets.push(Moodlet {
+                label: ENJOYS_THE_JOB.to_string(),
+                score: tuning.career_mood_joy,
+            });
+        }
+        if record.warned() {
+            moodlets.push(Moodlet {
+                label: WARNED_AT_WORK.to_string(),
+                score: -tuning.career_mood_warned,
+            });
+        }
+    }
+    let events = [
+        (&careers.promoted, PROMOTED, tuning.career_mood_promoted),
+        (&careers.raised, GOT_A_RAISE, tuning.career_mood_raise),
+        (&careers.demoted, DEMOTED, -tuning.career_mood_demoted),
+        (&careers.fired, FIRED, -tuning.career_mood_fired),
+    ];
+    for (timers, label, score) in events {
+        if timers.active(id, now) {
+            moodlets.push(Moodlet {
+                label: label.to_string(),
+                score,
+            });
+        }
+    }
+}
+
+/// The overall mood score of the live person at entity index `index`,
+/// for the careers' shift score.
+pub(crate) fn overall_score(world: &World, index: u32) -> Option<f32> {
+    derive_mood(world, index).map(|mood| mood.overall_score)
+}
 
 /// The mood one habituation value costs, [OD-moodlets] item 1: zero at
 /// `overdoing_threshold`, the whole `overdoing_penalty` at
@@ -414,14 +486,16 @@ mod tests {
     #[test]
     fn no_trait_label_repeats_a_need_moodlet() {
         let mut taken: Vec<&str> = vec!["Needs met", FEELING_SICK, BURNT_DINNER, HAD_A_FIGHT];
+        taken.extend(CAREER_LABELS);
         for need in NeedId::ALL {
             let (low, critical) = need_labels(need);
             taken.extend([low, critical]);
         }
         assert_eq!(
             taken.len(),
-            18,
-            "seven needs, two labels each, the all-clear, feeling sick, burnt dinner and had a fight"
+            25,
+            "seven needs, two labels each, the all-clear, feeling sick, burnt dinner, had a fight \
+             and the seven career moodlets"
         );
         for trait_def in &terri_data::pack().traits {
             assert!(

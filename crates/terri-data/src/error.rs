@@ -969,6 +969,45 @@ pub enum ContentError {
     LandTuningOutOfRange {
         key: &'static str,
     },
+    /// Careers (issue 249): a career knob outside its range.
+    CareerTuningOutOfRange {
+        key: &'static str,
+    },
+    /// A career path with no levels.
+    CareerPathWithoutLevels {
+        id: String,
+    },
+    /// A level whose `pay_max` is below its `pay`.
+    CareerPayRangeInverted {
+        id: String,
+    },
+    /// A level whose pay or pay_max does not climb from the level below.
+    CareerPayBelowThePrevious {
+        id: String,
+    },
+    /// A path naming a trait `traits.toml` does not declare.
+    UnknownCareerTrait {
+        id: String,
+        trait_id: String,
+    },
+    /// A path naming a skill `skills.toml` does not declare.
+    UnknownCareerSkill {
+        id: String,
+        skill: String,
+    },
+    /// A trait fit weight outside -1 to 1.
+    CareerFitOutOfRange {
+        id: String,
+        trait_id: String,
+    },
+    /// A social demand outside 0 to 1.
+    CareerSocialDemandOutOfRange {
+        id: String,
+    },
+    /// An `advance_weeks` of 0 or above 52.
+    CareerAdvanceWeeksOutOfRange {
+        id: String,
+    },
     /// A household sim wearing a trait `traits.toml` does not declare.
     UnknownSimTrait {
         sim: String,
@@ -2210,6 +2249,43 @@ impl fmt::Display for ContentError {
             ),
             ContentError::DuplicateCareer { id } => {
                 write!(f, "duplicate career id '{id}'")
+            }
+            ContentError::CareerTuningOutOfRange { key } => write!(
+                f,
+                "{key} in tuning.toml is outside its range: thresholds from 0 to \
+                 100 with poor below good and misery below joy, chances and \
+                 bases from 0 to 1, the review noise from 0 to 50, the search \
+                 tick at most a week, the change fit from -1 to 1 and its gap \
+                 from 0 to 2, the satisfaction rate from 0 to 100, mood \
+                 amounts and the misery cost at least 0, and moodlet ticks \
+                 from 1 to 10080"
+            ),
+            ContentError::CareerPathWithoutLevels { id } => {
+                write!(f, "career path '{id}' has no levels")
+            }
+            ContentError::CareerPayRangeInverted { id } => {
+                write!(f, "career level '{id}' has pay_max below pay")
+            }
+            ContentError::CareerPayBelowThePrevious { id } => write!(
+                f,
+                "career level '{id}' must pay at least the level below it and \
+                 have a higher pay_max"
+            ),
+            ContentError::UnknownCareerTrait { id, trait_id } => {
+                write!(f, "career path '{id}' names unknown trait '{trait_id}'")
+            }
+            ContentError::UnknownCareerSkill { id, skill } => {
+                write!(f, "career path '{id}' names unknown skill '{skill}'")
+            }
+            ContentError::CareerFitOutOfRange { id, trait_id } => write!(
+                f,
+                "career path '{id}' gives trait '{trait_id}' a fit outside -1 to 1"
+            ),
+            ContentError::CareerSocialDemandOutOfRange { id } => {
+                write!(f, "career path '{id}' has a social demand outside 0 to 1")
+            }
+            ContentError::CareerAdvanceWeeksOutOfRange { id } => {
+                write!(f, "career level '{id}' needs advance_weeks from 1 to 52")
             }
             ContentError::EmptyCareerLabel { id } => {
                 write!(f, "career '{id}' has an empty label")

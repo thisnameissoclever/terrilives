@@ -16,7 +16,7 @@ use crate::pack::{
 };
 use crate::pack::{CompiledColourway, CompiledCovering, CompiledSkill, Facing, FacingSprites};
 use crate::schema::{
-    AffinityKindDef, AtlasFile, CareerDef, CareersFile, ChainsFile, ColourwayDef, HouseholdFile,
+    AffinityKindDef, AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile,
     InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SkillsFile, SocialFile,
     TraitsFile, TuningFile, VisualDef, VoiceFile, WEEKDAY_NAMES,
 };
@@ -687,7 +687,7 @@ pub fn compile(
     let affinities = compile_affinities(&affinity_kind_defs, &compiled, &known_tags)?;
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
-    let careers = compile_careers(careers, &tuning)?;
+    let (careers, career_paths) = compile_careers(careers, &tuning, &traits, &skills)?;
     let household = compile_household(
         household,
         &personalities,
@@ -709,6 +709,7 @@ pub fn compile(
     Ok(ContentPack {
         books: Vec::new(),
         reading,
+        career_paths,
         decay_per_tick: decay,
         objects: compiled,
         sim_sprite,
@@ -1212,76 +1213,180 @@ fn mint_kind(item_kinds: &mut Vec<String>, name: &str) -> u32 {
     }
 }
 
-/// Validates `content/careers.toml` - [E4]'s rabbit holes.
+/// Validates `content/careers.toml` - [E4]'s rabbit holes, now on paths
+/// with titled levels (`docs/specs/2026-10-17-careers.md`, rule 1).
 ///
 /// The one cross-file rule is the day clock: a shift that starts past
 /// the day never begins, and one as long as the day (or longer) sends
 /// the sim back out the moment it returns - both silent versions of
 /// "the career is the whole life", which is satire the SIMULATION
-/// should not commit by accident.
+/// should not commit by accident. A path's traits and skill resolve
+/// against the compiled traits and skills, so a job cannot expect
+/// something nobody can have. Pay climbs the levels: a level pays at
+/// least the one below it and tops out higher, so a promotion always has
+/// a raise to give.
 fn compile_careers(
     careers: CareersFile,
     tuning: &Tuning,
-) -> Result<Vec<crate::pack::CompiledCareer>, ContentError> {
+    traits: &[crate::pack::CompiledTrait],
+    skills: &[crate::pack::CompiledSkill],
+) -> Result<
+    (
+        Vec<crate::pack::CompiledCareer>,
+        Vec<crate::pack::CompiledCareerPath>,
+    ),
+    ContentError,
+> {
     let mut seen = BTreeSet::new();
-    let mut compiled = Vec::with_capacity(careers.career.len());
-    for def in &careers.career {
+    let mut compiled = Vec::new();
+    let mut paths = Vec::with_capacity(careers.career.len());
+    for (path_index, def) in careers.career.iter().enumerate() {
         if !seen.insert(def.id.clone()) {
             return Err(ContentError::DuplicateCareer { id: def.id.clone() });
         }
         if def.label.trim().is_empty() {
             return Err(ContentError::EmptyCareerLabel { id: def.id.clone() });
         }
-        if def.shift_ticks == 0 {
-            return Err(ContentError::ZeroShift { id: def.id.clone() });
-        }
-        if def.shift_start >= tuning.day_ticks {
-            return Err(ContentError::ShiftStartsPastTheDay {
-                id: def.id.clone(),
-                shift_start: def.shift_start,
-                day_ticks: tuning.day_ticks,
-            });
-        }
-        if def.shift_ticks >= tuning.day_ticks {
-            return Err(ContentError::ShiftLongerThanTheDay {
-                id: def.id.clone(),
-                shift_ticks: def.shift_ticks,
-                day_ticks: tuning.day_ticks,
-            });
-        }
         check_finite(
-            def.energy_cost,
-            &format!("energy_cost on career '{}'", def.id),
+            def.social_demand,
+            &format!("social_demand on career '{}'", def.id),
         )?;
-        if !(0.0..=terri_core::NEED_MAX).contains(&def.energy_cost) {
-            return Err(ContentError::CareerEnergyCostOutOfRange {
-                id: def.id.clone(),
-                value: def.energy_cost,
-            });
+        if !(0.0..=1.0).contains(&def.social_demand) {
+            return Err(ContentError::CareerSocialDemandOutOfRange { id: def.id.clone() });
         }
-        check_finite(
-            def.satisfaction,
-            &format!("satisfaction on career '{}'", def.id),
-        )?;
-        if def.satisfaction < 0.0 {
-            return Err(ContentError::NegativeCareerSatisfaction {
-                id: def.id.clone(),
-                value: def.satisfaction,
-            });
+        let skill_tag = match &def.skill {
+            None => None,
+            Some(tag) => {
+                if !skills.iter().any(|skill| &skill.tag == tag) {
+                    return Err(ContentError::UnknownCareerSkill {
+                        id: def.id.clone(),
+                        skill: tag.clone(),
+                    });
+                }
+                Some(tag.clone())
+            }
+        };
+        let mut trait_fit = Vec::with_capacity(def.traits.len());
+        for (trait_id, weight) in &def.traits {
+            let Some(index) = traits.iter().position(|t| &t.id == trait_id) else {
+                return Err(ContentError::UnknownCareerTrait {
+                    id: def.id.clone(),
+                    trait_id: trait_id.clone(),
+                });
+            };
+            check_finite(
+                *weight,
+                &format!("fit of trait '{trait_id}' on career '{}'", def.id),
+            )?;
+            if !(-1.0..=1.0).contains(weight) {
+                return Err(ContentError::CareerFitOutOfRange {
+                    id: def.id.clone(),
+                    trait_id: trait_id.clone(),
+                });
+            }
+            trait_fit.push((index as u32, *weight));
         }
-        let working_days = compile_working_days(def)?;
-        compiled.push(crate::pack::CompiledCareer {
+        trait_fit.sort_by_key(|(index, _)| *index);
+        if def.level.is_empty() {
+            return Err(ContentError::CareerPathWithoutLevels { id: def.id.clone() });
+        }
+        let mut levels = Vec::with_capacity(def.level.len());
+        let mut previous: Option<(u32, u32)> = None;
+        for (level_index, level) in def.level.iter().enumerate() {
+            if !seen.insert(level.id.clone()) {
+                return Err(ContentError::DuplicateCareer {
+                    id: level.id.clone(),
+                });
+            }
+            if level.title.trim().is_empty() {
+                return Err(ContentError::EmptyCareerLabel {
+                    id: level.id.clone(),
+                });
+            }
+            if level.shift_ticks == 0 {
+                return Err(ContentError::ZeroShift {
+                    id: level.id.clone(),
+                });
+            }
+            if level.shift_start >= tuning.day_ticks {
+                return Err(ContentError::ShiftStartsPastTheDay {
+                    id: level.id.clone(),
+                    shift_start: level.shift_start,
+                    day_ticks: tuning.day_ticks,
+                });
+            }
+            if level.shift_ticks >= tuning.day_ticks {
+                return Err(ContentError::ShiftLongerThanTheDay {
+                    id: level.id.clone(),
+                    shift_ticks: level.shift_ticks,
+                    day_ticks: tuning.day_ticks,
+                });
+            }
+            check_finite(
+                level.energy_cost,
+                &format!("energy_cost on career '{}'", level.id),
+            )?;
+            if !(0.0..=terri_core::NEED_MAX).contains(&level.energy_cost) {
+                return Err(ContentError::CareerEnergyCostOutOfRange {
+                    id: level.id.clone(),
+                    value: level.energy_cost,
+                });
+            }
+            check_finite(
+                level.satisfaction,
+                &format!("satisfaction on career '{}'", level.id),
+            )?;
+            if level.satisfaction < 0.0 {
+                return Err(ContentError::NegativeCareerSatisfaction {
+                    id: level.id.clone(),
+                    value: level.satisfaction,
+                });
+            }
+            if level.pay_max < level.pay {
+                return Err(ContentError::CareerPayRangeInverted {
+                    id: level.id.clone(),
+                });
+            }
+            if let Some((pay, pay_max)) = previous {
+                if level.pay < pay || level.pay_max <= pay_max {
+                    return Err(ContentError::CareerPayBelowThePrevious {
+                        id: level.id.clone(),
+                    });
+                }
+            }
+            if !(1..=52).contains(&level.advance_weeks) {
+                return Err(ContentError::CareerAdvanceWeeksOutOfRange {
+                    id: level.id.clone(),
+                });
+            }
+            let working_days = compile_working_days(&level.id, &level.working_days)?;
+            levels.push(compiled.len() as u32);
+            compiled.push(crate::pack::CompiledCareer {
+                id: level.id.clone(),
+                label: level.title.clone(),
+                shift_start: level.shift_start,
+                shift_ticks: level.shift_ticks,
+                pay: level.pay,
+                energy_cost: level.energy_cost,
+                satisfaction: level.satisfaction,
+                working_days,
+                path: path_index as u32,
+                level: level_index as u32,
+                pay_max: level.pay_max,
+                advance_weeks: level.advance_weeks,
+                social_demand: def.social_demand,
+                skill_tag: skill_tag.clone(),
+                trait_fit: trait_fit.clone(),
+            });
+            previous = Some((level.pay, level.pay_max));
+        }
+        paths.push(crate::pack::CompiledCareerPath {
             id: def.id.clone(),
             label: def.label.clone(),
-            shift_start: def.shift_start,
-            shift_ticks: def.shift_ticks,
-            pay: def.pay,
-            energy_cost: def.energy_cost,
-            satisfaction: def.satisfaction,
-            working_days,
+            levels,
         });
     }
-    Ok(compiled)
+    Ok((compiled, paths))
 }
 
 /// Compiles a career's `working_days` names into the Monday-first mask
@@ -1289,22 +1394,22 @@ fn compile_careers(
 /// [`WEEKDAY_NAMES`] exactly, so `Tue` is refused. The list must name at
 /// least one day and no day twice; a repeat is refused rather than merged
 /// because it is almost always a typo for a missing day.
-fn compile_working_days(def: &CareerDef) -> Result<u8, ContentError> {
-    if def.working_days.is_empty() {
-        return Err(ContentError::EmptyWorkingDays { id: def.id.clone() });
+fn compile_working_days(id: &str, working_days: &[String]) -> Result<u8, ContentError> {
+    if working_days.is_empty() {
+        return Err(ContentError::EmptyWorkingDays { id: id.to_string() });
     }
     let mut mask = 0u8;
-    for day in &def.working_days {
+    for day in working_days {
         let Some(weekday) = WEEKDAY_NAMES.iter().position(|name| name == day) else {
             return Err(ContentError::UnknownWorkingDay {
-                id: def.id.clone(),
+                id: id.to_string(),
                 day: day.clone(),
             });
         };
         let bit = 1u8 << weekday;
         if mask & bit != 0 {
             return Err(ContentError::RepeatedWorkingDay {
-                id: def.id.clone(),
+                id: id.to_string(),
                 day: day.clone(),
             });
         }
@@ -3078,6 +3183,124 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if let Some((key, _)) = land_rules.into_iter().find(|(_, holds)| !holds) {
         return Err(ContentError::LandTuningOutOfRange { key });
     }
+    let career_rules = [
+        (
+            "career_review_noise",
+            (0.0..=50.0).contains(&tuning.career_review_noise),
+        ),
+        (
+            "career_poor_threshold",
+            (0.0..=100.0).contains(&tuning.career_poor_threshold)
+                && tuning.career_poor_threshold < tuning.career_good_threshold,
+        ),
+        (
+            "career_good_threshold",
+            (0.0..=100.0).contains(&tuning.career_good_threshold),
+        ),
+        (
+            "career_fire_base",
+            (0.0..=1.0).contains(&tuning.career_fire_base),
+        ),
+        (
+            "career_demote_base",
+            (0.0..=1.0).contains(&tuning.career_demote_base),
+        ),
+        (
+            "career_promote_base",
+            (0.0..=1.0).contains(&tuning.career_promote_base),
+        ),
+        (
+            "career_raise_base",
+            (0.0..=1.0).contains(&tuning.career_raise_base),
+        ),
+        // Read modulo the day, so a short test day keeps the shipped tick;
+        // bounded by a week as a sanity limit.
+        ("career_search_tick", tuning.career_search_tick <= 10080),
+        (
+            "career_search_chance",
+            (0.0..=1.0).contains(&tuning.career_search_chance),
+        ),
+        (
+            "career_change_fit",
+            (-1.0..=1.0).contains(&tuning.career_change_fit),
+        ),
+        (
+            "career_change_gap",
+            (0.0..=2.0).contains(&tuning.career_change_gap),
+        ),
+        (
+            "career_change_chance",
+            (0.0..=1.0).contains(&tuning.career_change_chance),
+        ),
+        (
+            "career_satisfaction_rate",
+            (0.0..=100.0).contains(&tuning.career_satisfaction_rate),
+        ),
+        (
+            "career_job_misery",
+            (0.0..=100.0).contains(&tuning.career_job_misery)
+                && tuning.career_job_misery < tuning.career_job_joy,
+        ),
+        (
+            "career_job_joy",
+            (0.0..=100.0).contains(&tuning.career_job_joy),
+        ),
+        (
+            "career_misery_satisfaction",
+            tuning.career_misery_satisfaction >= 0.0,
+        ),
+        ("career_mood_joy", tuning.career_mood_joy >= 0.0),
+        ("career_mood_misery", tuning.career_mood_misery >= 0.0),
+        ("career_mood_warned", tuning.career_mood_warned >= 0.0),
+        ("career_mood_promoted", tuning.career_mood_promoted >= 0.0),
+        ("career_mood_raise", tuning.career_mood_raise >= 0.0),
+        ("career_mood_demoted", tuning.career_mood_demoted >= 0.0),
+        ("career_mood_fired", tuning.career_mood_fired >= 0.0),
+        (
+            "career_mood_promoted_ticks",
+            (1..=10080).contains(&tuning.career_mood_promoted_ticks),
+        ),
+        (
+            "career_mood_demoted_ticks",
+            (1..=10080).contains(&tuning.career_mood_demoted_ticks),
+        ),
+        (
+            "career_mood_fired_ticks",
+            (1..=10080).contains(&tuning.career_mood_fired_ticks),
+        ),
+    ];
+    for (key, value) in [
+        ("career_review_noise", tuning.career_review_noise),
+        ("career_poor_threshold", tuning.career_poor_threshold),
+        ("career_good_threshold", tuning.career_good_threshold),
+        ("career_fire_base", tuning.career_fire_base),
+        ("career_demote_base", tuning.career_demote_base),
+        ("career_promote_base", tuning.career_promote_base),
+        ("career_raise_base", tuning.career_raise_base),
+        ("career_search_chance", tuning.career_search_chance),
+        ("career_change_fit", tuning.career_change_fit),
+        ("career_change_gap", tuning.career_change_gap),
+        ("career_change_chance", tuning.career_change_chance),
+        ("career_satisfaction_rate", tuning.career_satisfaction_rate),
+        ("career_job_misery", tuning.career_job_misery),
+        ("career_job_joy", tuning.career_job_joy),
+        (
+            "career_misery_satisfaction",
+            tuning.career_misery_satisfaction,
+        ),
+        ("career_mood_joy", tuning.career_mood_joy),
+        ("career_mood_misery", tuning.career_mood_misery),
+        ("career_mood_warned", tuning.career_mood_warned),
+        ("career_mood_promoted", tuning.career_mood_promoted),
+        ("career_mood_raise", tuning.career_mood_raise),
+        ("career_mood_demoted", tuning.career_mood_demoted),
+        ("career_mood_fired", tuning.career_mood_fired),
+    ] {
+        check_finite(value, &format!("{key} in tuning.toml"))?;
+    }
+    if let Some((key, _)) = career_rules.into_iter().find(|(_, holds)| !holds) {
+        return Err(ContentError::CareerTuningOutOfRange { key });
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -3656,6 +3879,32 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             land_strip_depth: tuning.land_strip_depth,
             land_price_cents: tuning.land_price_cents,
             land_price_step_cents: tuning.land_price_step_cents,
+            career_review_noise: tuning.career_review_noise,
+            career_poor_threshold: tuning.career_poor_threshold,
+            career_good_threshold: tuning.career_good_threshold,
+            career_fire_base: tuning.career_fire_base,
+            career_demote_base: tuning.career_demote_base,
+            career_promote_base: tuning.career_promote_base,
+            career_raise_base: tuning.career_raise_base,
+            career_search_tick: tuning.career_search_tick,
+            career_search_chance: tuning.career_search_chance,
+            career_change_fit: tuning.career_change_fit,
+            career_change_gap: tuning.career_change_gap,
+            career_change_chance: tuning.career_change_chance,
+            career_satisfaction_rate: tuning.career_satisfaction_rate,
+            career_job_misery: tuning.career_job_misery,
+            career_job_joy: tuning.career_job_joy,
+            career_misery_satisfaction: tuning.career_misery_satisfaction,
+            career_mood_joy: tuning.career_mood_joy,
+            career_mood_misery: tuning.career_mood_misery,
+            career_mood_warned: tuning.career_mood_warned,
+            career_mood_promoted: tuning.career_mood_promoted,
+            career_mood_raise: tuning.career_mood_raise,
+            career_mood_demoted: tuning.career_mood_demoted,
+            career_mood_fired: tuning.career_mood_fired,
+            career_mood_promoted_ticks: tuning.career_mood_promoted_ticks,
+            career_mood_demoted_ticks: tuning.career_mood_demoted_ticks,
+            career_mood_fired_ticks: tuning.career_mood_fired_ticks,
             skill_level_cost: tuning.skill_level_cost,
             skill_level_growth: tuning.skill_level_growth,
             habituation_max: tuning.habituation_max,
@@ -4685,9 +4934,9 @@ mod tests {
     // name are imported here.
     use super::*;
     use crate::schema::{
-        ActionSocketDef, ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef,
-        FrontDoorVisualDef, HouseholdSimDef, InteractionDef, NeedDef, ObjectDef, PlacementDef,
-        SkillDef, TraitDef, VisualDef, VoiceClipDef, WallDef,
+        ActionSocketDef, ArchetypeDef, AtlasSpriteDef, CareerDef, CareerLevelDef, CircadianFile,
+        DispositionDef, FrontDoorVisualDef, HouseholdSimDef, InteractionDef, NeedDef, ObjectDef,
+        PlacementDef, SkillDef, TraitDef, VisualDef, VoiceClipDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -5089,6 +5338,32 @@ mod tests {
             land_strip_depth: crate::Tuning::SHIPPED_LAND_STRIP_DEPTH,
             land_price_cents: crate::Tuning::SHIPPED_LAND_PRICE_CENTS,
             land_price_step_cents: crate::Tuning::SHIPPED_LAND_PRICE_STEP_CENTS,
+            career_review_noise: crate::Tuning::SHIPPED_CAREER_REVIEW_NOISE,
+            career_poor_threshold: crate::Tuning::SHIPPED_CAREER_POOR_THRESHOLD,
+            career_good_threshold: crate::Tuning::SHIPPED_CAREER_GOOD_THRESHOLD,
+            career_fire_base: crate::Tuning::SHIPPED_CAREER_FIRE_BASE,
+            career_demote_base: crate::Tuning::SHIPPED_CAREER_DEMOTE_BASE,
+            career_promote_base: crate::Tuning::SHIPPED_CAREER_PROMOTE_BASE,
+            career_raise_base: crate::Tuning::SHIPPED_CAREER_RAISE_BASE,
+            career_search_tick: crate::Tuning::SHIPPED_CAREER_SEARCH_TICK,
+            career_search_chance: crate::Tuning::SHIPPED_CAREER_SEARCH_CHANCE,
+            career_change_fit: crate::Tuning::SHIPPED_CAREER_CHANGE_FIT,
+            career_change_gap: crate::Tuning::SHIPPED_CAREER_CHANGE_GAP,
+            career_change_chance: crate::Tuning::SHIPPED_CAREER_CHANGE_CHANCE,
+            career_satisfaction_rate: crate::Tuning::SHIPPED_CAREER_SATISFACTION_RATE,
+            career_job_misery: crate::Tuning::SHIPPED_CAREER_JOB_MISERY,
+            career_job_joy: crate::Tuning::SHIPPED_CAREER_JOB_JOY,
+            career_misery_satisfaction: crate::Tuning::SHIPPED_CAREER_MISERY_SATISFACTION,
+            career_mood_joy: crate::Tuning::SHIPPED_CAREER_MOOD_JOY,
+            career_mood_misery: crate::Tuning::SHIPPED_CAREER_MOOD_MISERY,
+            career_mood_warned: crate::Tuning::SHIPPED_CAREER_MOOD_WARNED,
+            career_mood_promoted: crate::Tuning::SHIPPED_CAREER_MOOD_PROMOTED,
+            career_mood_raise: crate::Tuning::SHIPPED_CAREER_MOOD_RAISE,
+            career_mood_demoted: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED,
+            career_mood_fired: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED,
+            career_mood_promoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_PROMOTED_TICKS,
+            career_mood_demoted_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
+            career_mood_fired_ticks: crate::Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -6671,6 +6946,58 @@ mod tests {
         assert_eq!(tuning.land_strip_depth, 10);
         assert_eq!(tuning.land_price_cents, 15_000);
         assert_eq!(tuning.land_price_step_cents, 15);
+        assert_eq!(tuning.career_review_noise, 10.0);
+        assert_eq!(tuning.career_poor_threshold, 40.0);
+        assert_eq!(tuning.career_good_threshold, 65.0);
+        assert_eq!(tuning.career_search_tick, 540);
+        assert_eq!(tuning.career_mood_fired_ticks, 5760);
+    }
+
+    /// Careers (issue 249): each knob's range, and the two orderings.
+    #[test]
+    fn rejects_career_tuning_outside_its_ranges() {
+        type Change = Box<dyn Fn(&mut TuningFile)>;
+        let cases: Vec<(&str, Change)> = vec![
+            (
+                "career_review_noise",
+                Box::new(|t| t.career_review_noise = 51.0),
+            ),
+            (
+                "career_poor_threshold",
+                Box::new(|t| t.career_poor_threshold = 70.0),
+            ),
+            (
+                "career_good_threshold",
+                Box::new(|t| t.career_good_threshold = 101.0),
+            ),
+            ("career_fire_base", Box::new(|t| t.career_fire_base = 1.5)),
+            (
+                "career_search_tick",
+                Box::new(|t| t.career_search_tick = 10081),
+            ),
+            (
+                "career_change_fit",
+                Box::new(|t| t.career_change_fit = -2.0),
+            ),
+            (
+                "career_job_misery",
+                Box::new(|t| t.career_job_misery = 70.0),
+            ),
+            (
+                "career_mood_fired",
+                Box::new(|t| t.career_mood_fired = -1.0),
+            ),
+            (
+                "career_mood_fired_ticks",
+                Box::new(|t| t.career_mood_fired_ticks = 0),
+            ),
+        ];
+        for (expected, change) in cases {
+            match compile_tuned(tuning_where(change)) {
+                Err(ContentError::CareerTuningOutOfRange { key }) => assert_eq!(key, expected),
+                other => panic!("{expected}: {other:?}"),
+            }
+        }
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -8322,16 +8649,30 @@ mod tests {
     /// wrong slot moves an assertion - [L34] again.
     fn a_career(id: &str) -> CareerDef {
         CareerDef {
+            id: format!("{id}_path"),
+            label: format!("The {id} path"),
+            social_demand: 0.0,
+            skill: None,
+            traits: Default::default(),
+            level: vec![a_level(id)],
+        }
+    }
+
+    /// One level of `a_career`, keeping the career id the tests resolve.
+    fn a_level(id: &str) -> CareerLevelDef {
+        CareerLevelDef {
             id: id.to_string(),
-            label: format!("The {id} job"),
+            title: format!("The {id} job"),
             shift_start: 5,
             shift_ticks: 7,
             pay: 130,
+            pay_max: 150,
             energy_cost: 11.5,
             satisfaction: 2.25,
             // Tuesday, Thursday and Saturday: neither the shipped Monday to
             // Friday nor a mask a reversed bit order would also produce.
             working_days: vec!["tue".to_string(), "thu".to_string(), "sat".to_string()],
+            advance_weeks: 2,
         }
     }
 
@@ -8347,12 +8688,12 @@ mod tests {
         let idle = member("Doug", "the_settled", 0.5, 0.0);
 
         let mut second = a_career("second_job");
-        second.shift_start = 2;
-        second.shift_ticks = 4;
-        second.pay = 55;
-        second.energy_cost = 8.75;
-        second.satisfaction = 0.5;
-        second.working_days = vec!["mon".to_string()];
+        second.level[0].shift_start = 2;
+        second.level[0].shift_ticks = 4;
+        second.level[0].pay = 55;
+        second.level[0].energy_cost = 8.75;
+        second.level[0].satisfaction = 0.5;
+        second.level[0].working_days = vec!["mon".to_string()];
 
         let pack = compile_people_full(
             vec![archetype("the_settled")],
@@ -8393,9 +8734,149 @@ mod tests {
             )
             .unwrap_err(),
             ContentError::DuplicateCareer {
+                id: "office_job_path".into()
+            }
+        );
+    }
+
+    /// Every path and level refusal of rule 1 in
+    /// `docs/specs/2026-10-17-careers.md`, each named after what it
+    /// refuses; the shared id set also refuses a level id used twice
+    /// across two paths.
+    #[test]
+    fn rejects_each_bad_career_path_and_level() {
+        let refused = |career: CareerDef| {
+            compile_people_full(vec![], vec![], vec![], vec![career]).unwrap_err()
+        };
+        let mut empty = a_career("office_job");
+        empty.level.clear();
+        assert_eq!(
+            refused(empty),
+            ContentError::CareerPathWithoutLevels {
+                id: "office_job_path".into()
+            }
+        );
+
+        let mut inverted = a_career("office_job");
+        inverted.level[0].pay_max = inverted.level[0].pay - 1;
+        assert_eq!(
+            refused(inverted),
+            ContentError::CareerPayRangeInverted {
                 id: "office_job".into()
             }
         );
+
+        let mut flat_top = a_career("office_job");
+        flat_top.level.push(CareerLevelDef {
+            pay: 140,
+            pay_max: 150,
+            ..a_level("office_senior")
+        });
+        assert_eq!(
+            refused(flat_top),
+            ContentError::CareerPayBelowThePrevious {
+                id: "office_senior".into()
+            },
+            "a pay_max that does not climb"
+        );
+        let mut lower_pay = a_career("office_job");
+        lower_pay.level.push(CareerLevelDef {
+            pay: 129,
+            pay_max: 200,
+            ..a_level("office_senior")
+        });
+        assert_eq!(
+            refused(lower_pay),
+            ContentError::CareerPayBelowThePrevious {
+                id: "office_senior".into()
+            },
+            "a pay below the level below"
+        );
+        let mut climbs = a_career("office_job");
+        climbs.level.push(CareerLevelDef {
+            pay: 130,
+            pay_max: 151,
+            ..a_level("office_senior")
+        });
+        let pack = compile_people_full(vec![], vec![], vec![], vec![climbs])
+            .expect("equal pay with a higher pay_max climbs");
+        assert_eq!(pack.career_paths[0].levels, vec![0, 1]);
+        assert_eq!(pack.careers[1].level, 1);
+
+        let mut unknown_trait = a_career("office_job");
+        unknown_trait.traits.insert("bogus".to_string(), 0.5);
+        assert_eq!(
+            refused(unknown_trait),
+            ContentError::UnknownCareerTrait {
+                id: "office_job_path".into(),
+                trait_id: "bogus".into()
+            }
+        );
+
+        let mut unknown_skill = a_career("office_job");
+        unknown_skill.skill = Some("juggling".to_string());
+        assert_eq!(
+            refused(unknown_skill),
+            ContentError::UnknownCareerSkill {
+                id: "office_job_path".into(),
+                skill: "juggling".into()
+            }
+        );
+
+        for demand in [-0.1, 1.1] {
+            let mut out = a_career("office_job");
+            out.social_demand = demand;
+            assert_eq!(
+                refused(out),
+                ContentError::CareerSocialDemandOutOfRange {
+                    id: "office_job_path".into()
+                },
+                "{demand}"
+            );
+        }
+
+        for weeks in [0, 53] {
+            let mut out = a_career("office_job");
+            out.level[0].advance_weeks = weeks;
+            assert_eq!(
+                refused(out),
+                ContentError::CareerAdvanceWeeksOutOfRange {
+                    id: "office_job".into()
+                },
+                "{weeks}"
+            );
+        }
+
+        let mut twice = a_career("cafe");
+        twice.level[0].id = "office_job".to_string();
+        assert_eq!(
+            compile_people_full(vec![], vec![], vec![], vec![a_career("office_job"), twice])
+                .unwrap_err(),
+            ContentError::DuplicateCareer {
+                id: "office_job".into()
+            },
+            "a level id used in two paths"
+        );
+    }
+
+    /// A fit weight outside -1 to 1 is refused against a declared trait,
+    /// and one inside it compiles to the trait's index.
+    #[test]
+    fn rejects_a_career_fit_weight_outside_its_range() {
+        let mut too_keen = a_career("office_job");
+        too_keen.traits.insert("tidy".to_string(), 1.5);
+        assert_eq!(
+            compile_people_full(vec![], vec![], vec![a_trait("tidy")], vec![too_keen]).unwrap_err(),
+            ContentError::CareerFitOutOfRange {
+                id: "office_job_path".into(),
+                trait_id: "tidy".into()
+            }
+        );
+        let mut keen = a_career("office_job");
+        keen.traits.insert("tidy".to_string(), 0.75);
+        let pack = compile_people_full(vec![], vec![], vec![a_trait("tidy")], vec![keen])
+            .expect("a fit inside the range");
+        assert_eq!(pack.careers[0].trait_fit, vec![(0, 0.75)]);
     }
 
     #[test]
@@ -8405,7 +8886,7 @@ mod tests {
         assert_eq!(
             compile_people_full(vec![], vec![], vec![], vec![blank]).unwrap_err(),
             ContentError::EmptyCareerLabel {
-                id: "office_job".into()
+                id: "office_job_path".into()
             }
         );
     }
@@ -8418,7 +8899,7 @@ mod tests {
     fn rejects_empty_repeated_and_unknown_working_days() {
         let refused = |days: &[&str]| {
             let mut career = a_career("office_job");
-            career.working_days = days.iter().map(|day| day.to_string()).collect();
+            career.level[0].working_days = days.iter().map(|day| day.to_string()).collect();
             compile_people_full(vec![], vec![], vec![], vec![career]).unwrap_err()
         };
 
@@ -8467,7 +8948,7 @@ mod tests {
     fn compiles_working_days_to_a_monday_first_mask() {
         let mask_of = |days: &[&str]| {
             let mut career = a_career("office_job");
-            career.working_days = days.iter().map(|day| day.to_string()).collect();
+            career.level[0].working_days = days.iter().map(|day| day.to_string()).collect();
             compile_people_full(vec![], vec![], vec![], vec![career])
                 .expect("a valid working-day list")
                 .careers[0]
@@ -8484,7 +8965,7 @@ mod tests {
     #[test]
     fn rejects_a_zero_tick_shift() {
         let mut lazy = a_career("office_job");
-        lazy.shift_ticks = 0;
+        lazy.level[0].shift_ticks = 0;
         assert_eq!(
             compile_people_full(vec![], vec![], vec![], vec![lazy]).unwrap_err(),
             ContentError::ZeroShift {
@@ -8503,8 +8984,8 @@ mod tests {
     fn rejects_a_shift_the_day_cannot_hold() {
         let with_times = |start: u32, ticks: u32| {
             let mut career = a_career("office_job");
-            career.shift_start = start;
-            career.shift_ticks = ticks;
+            career.level[0].shift_start = start;
+            career.level[0].shift_ticks = ticks;
             compile_people_full(vec![], vec![], vec![], vec![career])
         };
 
@@ -8539,7 +9020,7 @@ mod tests {
     fn rejects_career_numbers_off_their_scales() {
         let with_energy = |value: f32| {
             let mut career = a_career("office_job");
-            career.energy_cost = value;
+            career.level[0].energy_cost = value;
             compile_people_full(vec![], vec![], vec![], vec![career])
         };
         for bad in [-0.5, 100.5] {
@@ -8561,7 +9042,7 @@ mod tests {
 
         let with_satisfaction = |value: f32| {
             let mut career = a_career("office_job");
-            career.satisfaction = value;
+            career.level[0].satisfaction = value;
             compile_people_full(vec![], vec![], vec![], vec![career])
         };
         assert_eq!(

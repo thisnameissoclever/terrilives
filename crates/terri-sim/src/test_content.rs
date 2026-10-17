@@ -373,6 +373,7 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // so a test stating the threshold and the pack the sim reads it
         // from have ONE source rather than two that agree today.
         tuning,
+        career_paths: Vec::new(),
         // Empty rather than the shipped people, deliberately, and the
         // opposite call from the lot above. `sim_with` spawns its own
         // agents explicitly, so a fixture pack that also carried Tim,

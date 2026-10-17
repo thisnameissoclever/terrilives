@@ -394,6 +394,64 @@ pub struct PublishedTuning {
     pub affinity_from_mild_trait: f32,
 }
 
+/// A career as every pack published before paths carried it: one job with
+/// no path, level, pay range, advancement, social demand, skill or trait
+/// fit. Frozen here so the witnesses keep decoding; a path is made for it
+/// on the way in.
+#[derive(Serialize, Deserialize)]
+pub struct PublishedCompiledCareer {
+    pub id: String,
+    pub label: String,
+    pub shift_start: u32,
+    pub shift_ticks: u32,
+    pub pay: u32,
+    pub energy_cost: f32,
+    pub satisfaction: f32,
+    pub working_days: u8,
+}
+
+/// Each published job as its own single-level path at `path`.
+fn career_from_published(old: PublishedCompiledCareer, path: u32) -> CompiledCareer {
+    CompiledCareer {
+        id: old.id,
+        label: old.label,
+        shift_start: old.shift_start,
+        shift_ticks: old.shift_ticks,
+        pay: old.pay,
+        energy_cost: old.energy_cost,
+        satisfaction: old.satisfaction,
+        working_days: old.working_days,
+        path,
+        level: 0,
+        pay_max: old.pay,
+        advance_weeks: 1,
+        social_demand: 0.0,
+        skill_tag: None,
+        trait_fit: Vec::new(),
+    }
+}
+
+fn careers_from_published(
+    old: Vec<PublishedCompiledCareer>,
+) -> (Vec<CompiledCareer>, Vec<crate::pack::CompiledCareerPath>) {
+    let careers: Vec<CompiledCareer> = old
+        .into_iter()
+        .enumerate()
+        .map(|(index, career)| career_from_published(career, index as u32))
+        .collect();
+    let paths = careers
+        .iter()
+        .enumerate()
+        .map(|(index, career)| crate::pack::CompiledCareerPath {
+            // Named as the pre-books build names a frozen job's path.
+            id: format!("{}_path", career.id),
+            label: career.label.clone(),
+            levels: vec![index as u32],
+        })
+        .collect();
+    (careers, paths)
+}
+
 impl From<PublishedTuning> for Tuning {
     fn from(old: PublishedTuning) -> Self {
         Self {
@@ -500,6 +558,32 @@ impl From<PublishedTuning> for Tuning {
             land_strip_depth: Tuning::SHIPPED_LAND_STRIP_DEPTH,
             land_price_cents: Tuning::SHIPPED_LAND_PRICE_CENTS,
             land_price_step_cents: Tuning::SHIPPED_LAND_PRICE_STEP_CENTS,
+            career_review_noise: Tuning::SHIPPED_CAREER_REVIEW_NOISE,
+            career_poor_threshold: Tuning::SHIPPED_CAREER_POOR_THRESHOLD,
+            career_good_threshold: Tuning::SHIPPED_CAREER_GOOD_THRESHOLD,
+            career_fire_base: Tuning::SHIPPED_CAREER_FIRE_BASE,
+            career_demote_base: Tuning::SHIPPED_CAREER_DEMOTE_BASE,
+            career_promote_base: Tuning::SHIPPED_CAREER_PROMOTE_BASE,
+            career_raise_base: Tuning::SHIPPED_CAREER_RAISE_BASE,
+            career_search_tick: Tuning::SHIPPED_CAREER_SEARCH_TICK,
+            career_search_chance: Tuning::SHIPPED_CAREER_SEARCH_CHANCE,
+            career_change_fit: Tuning::SHIPPED_CAREER_CHANGE_FIT,
+            career_change_gap: Tuning::SHIPPED_CAREER_CHANGE_GAP,
+            career_change_chance: Tuning::SHIPPED_CAREER_CHANGE_CHANCE,
+            career_satisfaction_rate: Tuning::SHIPPED_CAREER_SATISFACTION_RATE,
+            career_job_misery: Tuning::SHIPPED_CAREER_JOB_MISERY,
+            career_job_joy: Tuning::SHIPPED_CAREER_JOB_JOY,
+            career_misery_satisfaction: Tuning::SHIPPED_CAREER_MISERY_SATISFACTION,
+            career_mood_joy: Tuning::SHIPPED_CAREER_MOOD_JOY,
+            career_mood_misery: Tuning::SHIPPED_CAREER_MOOD_MISERY,
+            career_mood_warned: Tuning::SHIPPED_CAREER_MOOD_WARNED,
+            career_mood_promoted: Tuning::SHIPPED_CAREER_MOOD_PROMOTED,
+            career_mood_raise: Tuning::SHIPPED_CAREER_MOOD_RAISE,
+            career_mood_demoted: Tuning::SHIPPED_CAREER_MOOD_DEMOTED,
+            career_mood_fired: Tuning::SHIPPED_CAREER_MOOD_FIRED,
+            career_mood_promoted_ticks: Tuning::SHIPPED_CAREER_MOOD_PROMOTED_TICKS,
+            career_mood_demoted_ticks: Tuning::SHIPPED_CAREER_MOOD_DEMOTED_TICKS,
+            career_mood_fired_ticks: Tuning::SHIPPED_CAREER_MOOD_FIRED_TICKS,
         }
     }
 }
@@ -554,7 +638,7 @@ pub struct PublishedContentPack {
     /// The careers household members index into - [E4], the [D15]
     /// Tier 2 rabbit hole. May be empty in a test pack. It was last
     /// until the chain trio below arrived.
-    pub careers: Vec<CompiledCareer>,
+    pub careers: Vec<PublishedCompiledCareer>,
     /// The station-role vocabulary, in first-appearance order across
     /// `objects.toml` - what `PublishedCompiledObject::roles` and
     /// `CompiledChainStep::role` index into ([K1]).
@@ -680,6 +764,7 @@ impl From<PublishedCompiledObject> for CompiledObject {
 
 impl From<PublishedContentPack> for ContentPack {
     fn from(old: PublishedContentPack) -> Self {
+        let (careers, career_paths) = careers_from_published(old.careers);
         Self {
             decay_per_tick: old.decay_per_tick,
             objects: old.objects.into_iter().map(Into::into).collect(),
@@ -690,7 +775,7 @@ impl From<PublishedContentPack> for ContentPack {
             household: old.household,
             social: old.social.into_iter().map(Into::into).collect(),
             traits: old.traits,
-            careers: old.careers,
+            careers,
             roles: old.roles,
             item_kinds: old.item_kinds,
             chains: old.chains,
@@ -704,6 +789,7 @@ impl From<PublishedContentPack> for ContentPack {
             affinities: old.affinities,
             books: Vec::new(),
             reading: None,
+            career_paths,
         }
     }
 }
@@ -782,7 +868,7 @@ pub struct Published2fContentPack {
     /// The careers household members index into - [E4], the [D15]
     /// Tier 2 rabbit hole. May be empty in a test pack. It was last
     /// until the chain trio below arrived.
-    pub careers: Vec<CompiledCareer>,
+    pub careers: Vec<PublishedCompiledCareer>,
     /// The station-role vocabulary, in first-appearance order across
     /// `objects.toml` - what `Published2fCompiledObject::roles` and
     /// `CompiledChainStep::role` index into ([K1]).
@@ -856,6 +942,7 @@ pub struct Published2fContentPack {
 }
 impl From<Published2fContentPack> for ContentPack {
     fn from(old: Published2fContentPack) -> Self {
+        let (careers, career_paths) = careers_from_published(old.careers);
         Self {
             decay_per_tick: old.decay_per_tick,
             objects: old.objects.into_iter().map(Into::into).collect(),
@@ -866,7 +953,7 @@ impl From<Published2fContentPack> for ContentPack {
             household: old.household,
             social: old.social.into_iter().map(Into::into).collect(),
             traits: old.traits,
-            careers: old.careers,
+            careers,
             roles: old.roles,
             item_kinds: old.item_kinds,
             chains: old.chains,
@@ -880,6 +967,7 @@ impl From<Published2fContentPack> for ContentPack {
             affinities: old.affinities,
             books: Vec::new(),
             reading: None,
+            career_paths,
         }
     }
 }
