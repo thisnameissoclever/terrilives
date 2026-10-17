@@ -12068,6 +12068,13 @@ Load the production atlas during test collection and prepare mocked module depen
 3. Prevention: make each component's normal, hover, focus, active, and disabled rules consume shared role variables. Audit inline colors and specific selectors before accepting a shared palette.
 4. Verification: inspect computed colors on actual radial navigation and cancellation controls, alongside contextual controls, creator controls, disabled states, and forced colors. Preserve a visible keyboard focus indicator and verify that ordinary actions remain neutral.
 
+## [L-forced-color-button-pixels] Inspect native button text after system color substitution
+
+1. What happened: a focused Confirm button passed computed text contrast checks in Windows forced colors, but Chrome painted a white backplate behind its white label. The action could not be read.
+2. Root cause: using Highlight and HighlightText for the button face and text did not predict the native text backplate produced by automatic forced-color adjustment.
+3. Prevention: use ButtonFace and ButtonText for native decision controls in forced colors. Retain automatic adjustment and a separate Highlight focus outline. Inspect actual pixels as well as computed styles.
+4. Verification: capture the real focused control in a fresh browser context without selected text. Require an independent reviewer to reject the defective capture before accepting the repaired capture. See the dated action-color evidence for the blind comparison and final source capture.
+
 ## [L-room-identity-coordinate-translation] Keep room identities separate from tile coordinates
 
 1. What happened: a land-expansion regression for the new room registry transformed a stable room ID as though it were a tile index.
