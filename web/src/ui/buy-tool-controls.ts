@@ -77,10 +77,13 @@ export interface CatalogueCard {
   readonly canvas: HTMLCanvasElement;
 }
 
-/** How a card names its item to assistive technology: type, model and price. */
+/**
+ * How a card names its item to assistive technology: type, model and price.
+ * The price goes in brackets because some model names hold a comma.
+ */
 export function cardName(item: CatalogueItem): string {
   const type = item.details ? `${item.name}: ${item.details.modelName}` : item.name;
-  return `${type}, ${formatFunds(item.price)}`;
+  return `${type} (${formatFunds(item.price)})`;
 }
 
 /** A room id as its row shows it: `living_room` reads "Living Room". */
@@ -110,11 +113,15 @@ export class BuyToolControls {
   private readonly identity: HTMLElement;
   private disposeIdentity: (() => void) | undefined;
   private shownDefinition: number | null = null;
+  /** The card the arrow keys last moved to, kept in the Tab order while nothing is chosen. */
+  private lastFocused: CatalogueCard | null = null;
+  /** Draws the pictures the first time the tool is shown, then is dropped. */
+  private drawPictures: (() => void) | null = null;
 
   /**
-   * `previews` receives every card once the grid is built, to draw the
-   * pictures; the page gives it `drawCataloguePreviews`, a test gives
-   * nothing.
+   * `previews` receives every card the first time the tool is shown, to
+   * draw the pictures; the page gives it `drawCataloguePreviews`, a test
+   * gives a recorder or nothing.
    */
   constructor(document: Document, private readonly tool: BuyTool,
     private readonly needNames: readonly string[],
@@ -179,7 +186,7 @@ export class BuyToolControls {
     this.keyboardHelp = required('buy-keyboard-help');
     this.touchHelp = required('buy-touch-help');
     // One card per item, in the list's order; the grid is built once and
-    // the cards are shown, pressed and greyed on each redraw.
+    // the cards are shown, pressed and grayed on each redraw.
     this.grid.replaceChildren();
     for (const item of tool.items) {
       const button = document.createElement('button');
@@ -207,13 +214,22 @@ export class BuyToolControls {
         button.append(model);
       }
       button.append(price);
-      button.addEventListener('click', () => { tool.choose(item.definition); this.render(); });
+      const card = { item, button, canvas };
+      // A grayed card stays focusable so the player can find what to save
+      // for, and a press on it does nothing; pressing the chosen card again
+      // keeps its ghost and facing.
+      button.addEventListener('click', () => {
+        if (!tool.affordable(item) || tool.chosen === item) return;
+        tool.choose(item.definition);
+        this.render();
+      });
+      button.addEventListener('focus', () => { this.lastFocused = card; });
       this.grid.append(button);
-      this.cards.push({ item, button, canvas });
+      this.cards.push(card);
     }
     this.grid.addEventListener('keydown', event => this.handleGridKey(event));
     if (previews) {
-      previews(this.cards.map(card => ({ canvas: card.canvas, ...tool.art(card.item) })));
+      this.drawPictures = () => previews(this.cards.map(card => ({ canvas: card.canvas, ...tool.art(card.item) })));
     }
     this.render();
   }
@@ -224,25 +240,34 @@ export class BuyToolControls {
     this.touchHelp.hidden = false;
   }
 
-  /** The cards a key or Choose item can reach: shown and not greyed out. */
+  /** The cards a key or Choose item can reach: every shown card, grayed or not. */
   private reachable(): CatalogueCard[] {
     return this.cards.filter(card => !card.button.hidden && !card.button.disabled);
   }
 
-  /** Choose item: the chosen card, else the first card the grid shows. */
-  focusCatalogue(): void {
+  /** The one card in the Tab order: the chosen, else the last focused, else the first shown. */
+  private tabStop(): CatalogueCard | undefined {
     const cards = this.reachable();
-    const target = cards.find(card => card.item === this.tool.chosen) ?? cards[0];
-    target?.button.focus();
+    return cards.find(card => card.item === this.tool.chosen)
+      ?? cards.find(card => card === this.lastFocused) ?? cards[0];
   }
 
-  /** The arrow keys move between the shown cards; Home and End to the ends. */
-  private handleGridKey(event: KeyboardEvent): void {
-    if (!CARD_KEYS.has(event.key)) return;
+  /** Choose item: the chosen card, grayed or not, else the first card the grid shows. */
+  focusCatalogue(): void {
     const cards = this.reachable();
+    (cards.find(card => card.item === this.tool.chosen) ?? cards[0])?.button.focus();
+  }
+
+  /**
+   * The arrow keys move between the shown cards, Home and End to the ends;
+   * the card moved to becomes the one Tab stop, so Tab leaves the grid.
+   */
+  private handleGridKey(event: KeyboardEvent): void {
+    if (!CARD_KEYS.has(event.key) || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const cards = this.reachable();
+    if (cards.length === 0) return;
     const active = this.grid.ownerDocument.activeElement;
     const at = cards.findIndex(card => card.button === active);
-    if (cards.length === 0) return;
     let next: number;
     switch (event.key) {
       case 'Home': next = 0; break;
@@ -251,6 +276,8 @@ export class BuyToolControls {
       default: next = at < 0 || at >= cards.length - 1 ? 0 : at + 1;
     }
     event.preventDefault();
+    for (const card of this.cards) card.button.tabIndex = card === cards[next] ? 0 : -1;
+    this.lastFocused = cards[next];
     cards[next].button.focus();
   }
 
@@ -269,15 +296,20 @@ export class BuyToolControls {
       }
     }
     this.identity.hidden = !tool.chosen?.details;
+    if (tool.active && this.drawPictures) {
+      // The pictures cost a few atlas pages; they are drawn when first needed.
+      const draw = this.drawPictures;
+      this.drawPictures = null;
+      draw();
+    }
     const held = tool.pending || tool.blocked;
     for (const card of this.cards) {
       card.button.hidden = !tool.shows(card.item);
-      card.button.disabled = held || !tool.affordable(card.item);
+      card.button.disabled = held;
+      card.button.setAttribute('aria-disabled', String(!tool.affordable(card.item)));
       card.button.setAttribute('aria-pressed', String(tool.chosen === card.item));
     }
-    // One card is in the Tab order: the chosen one, else the first shown.
-    const reachable = this.reachable();
-    const tabbable = reachable.find(card => card.item === tool.chosen) ?? reachable[0];
+    const tabbable = this.tabStop();
     for (const card of this.cards) card.button.tabIndex = card === tabbable ? 0 : -1;
     for (const { value, button } of this.roomButtons) {
       button.setAttribute('aria-pressed', String(tool.roomFilter === value));

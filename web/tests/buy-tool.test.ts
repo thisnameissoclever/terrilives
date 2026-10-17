@@ -537,15 +537,15 @@ describe('BuyToolControls', () => {
   const pressed = (buttons: FakeElement[]) => buttons.map(button => button.getAttribute('aria-pressed') === 'true');
 
   it('names a card by its type, model and price', () => {
-    expect(cardName(CHAIR)).toBe('Chair, 40');
-    expect(cardName({ ...CHAIR, price: 1_250, details: { modelName: 'Lounge', description: 'Seat.' } })).toBe('Chair: Lounge, 1,250');
+    expect(cardName(CHAIR)).toBe('Chair (40)');
+    expect(cardName({ ...CHAIR, price: 1_250, details: { modelName: 'Soakster 9,001', description: 'Seat.' } })).toBe('Chair: Soakster 9,001 (1,250)');
     expect(roomWord('living_room')).toBe('Living Room');
   });
 
   it('builds one card per item in list order, with its picture, lines and price', () => {
     const chair = { ...CHAIR, name: 'Armchair', details: { modelName: 'Lounge', description: 'A chair for sitting.' } };
     const { element, pictures, source } = controls([chair, BED]);
-    expect(names(element)).toEqual(['Armchair: Lounge, 40', 'Bed, 250']);
+    expect(names(element)).toEqual(['Armchair: Lounge (40)', 'Bed (250)']);
     const [first] = cards(element);
     expect(first.tagName).toBe('button');
     expect(first.children.map(child => child.className)).toEqual(['catalogue-picture', 'catalogue-type', 'catalogue-model', 'catalogue-price']);
@@ -553,8 +553,7 @@ describe('BuyToolControls', () => {
     expect([first.children[0].width, first.children[0].height, first.children[0].getAttribute('aria-hidden')]).toEqual([72, 72, 'true']);
     expect(cards(element)[1].children.map(child => child.className)).toEqual(['catalogue-picture', 'catalogue-type', 'catalogue-price']);
     // The pictures come from the ghost's query at the lot's corner, at the base facing.
-    expect(pictures).toEqual([{ sprite: chair.definition, foreground: null }, { sprite: BED.definition, foreground: null }]);
-    expect(source.previews).toContainEqual([chair.definition, 0, 0, chair.baseFacing]);
+    expect(pictures, 'nothing is drawn before the tool is shown').toEqual([]);
   });
 
   it('shows the chosen identity, retains expansion on redraw, and clears it when selection changes', () => {
@@ -580,19 +579,28 @@ describe('BuyToolControls', () => {
 
   it('presses the chosen card, greys out what the household cannot afford, and chooses on a press', () => {
     const { buy, source, view, element } = controls();
-    expect(names(element)).toEqual(['Bed, 250', 'Chair, 40', 'Desk, 180']);
+    expect(names(element)).toEqual(['Bed (250)', 'Chair (40)', 'Desk (180)']);
     source.money = 180;
     buy.enter();
     view.render();
-    expect(cards(element).map(card => card.disabled)).toEqual([true, false, false]);
+    const greyed = () => cards(element).map(card => card.getAttribute('aria-disabled') === 'true');
+    expect(greyed()).toEqual([true, false, false]);
+    // A greyed card stays in reach but a press on it chooses nothing.
+    cards(element)[0].fire('click');
+    expect(buy.chosen).toBeNull();
     cards(element)[1].fire('click');
     expect(buy.chosen).toBe(CHAIR);
     expect(pressed(cards(element))).toEqual([false, true, false]);
     expect([element('buy-price').textContent, element('buy-facing').textContent, element('buy-serves').textContent])
       .toEqual(['Price: 40', 'Facing: South-west', 'Good for: no need on its own']);
+    // Pressing the chosen card again keeps its ghost and facing.
+    buy.rotate();
+    const facing = buy.preview?.facing;
+    cards(element)[1].fire('click');
+    expect(buy.preview?.facing).toBe(facing);
     source.money = 250;
     view.render();
-    expect(cards(element).map(card => card.disabled)).toEqual([false, false, false]);
+    expect(greyed()).toEqual([false, false, false]);
   });
 
   it('offers the rooms any item belongs to and the needs any item serves, one pressed per row', () => {
@@ -657,6 +665,54 @@ describe('BuyToolControls', () => {
       element('buy-serves').textContent]).toEqual([null, CHOOSE_ITEM, '', '']);
   });
 
+  it('offers the colourways and chooses one from the Colour list', () => {
+    const { buy, view, element } = controls();
+    buy.enter();
+    view.render();
+    const colour = element('buy-colour');
+    expect(colour.children.map((option) => option.textContent)).toEqual(['As drawn', 'Colour 2', 'Colour 3']);
+    expect([colour.value, colour.disabled]).toEqual(['0', false]);
+    colour.value = '1';
+    colour.fire('change');
+    expect(buy.colourway).toBe(1);
+    cards(element)[1].fire('click');
+    buy.buy();
+    view.render();
+    expect([buy.pending, colour.disabled]).toEqual([true, true]);
+    buy.setBlocked(true);
+    view.render();
+    expect(colour.disabled).toBe(true);
+  });
+
+  it('disables the Colour list when the art as drawn is the only colourway', () => {
+    const elements = new Map<string, FakeElement>();
+    const doc = {
+      querySelector: (selector: string) => {
+        const id = selector.slice(1);
+        if (!elements.has(id)) elements.set(id, Object.assign(new FakeElement(), { ownerDocument: doc }));
+        return elements.get(id);
+      },
+      createElement: (tag: string) => Object.assign(new FakeElement(), { ownerDocument: doc, tagName: tag }),
+    } as unknown as Document;
+    const source = new FakeShop();
+    source.colourwayNames = () => ['As drawn'];
+    const buy = new BuyTool(source, 8, 6, { changed: () => {} });
+    const view = new BuyToolControls(doc, buy, NEEDS);
+    buy.enter();
+    view.render();
+    expect(elements.get('buy-colour')!.disabled).toBe(true);
+  });
+
+  it('draws the pictures once, the first time the tool is shown', () => {
+    const { buy, view, pictures } = controls();
+    expect(pictures).toEqual([]);
+    buy.enter();
+    view.render();
+    expect(pictures).toHaveLength(3);
+    view.render();
+    expect(pictures).toHaveLength(3);
+  });
+
   it('shows the Colour list only while an item is chosen', () => {
     const { buy, view, element } = controls();
     buy.enter();
@@ -675,12 +731,15 @@ describe('BuyToolControls', () => {
     expect(cards(element).map(card => card.tabIndex)).toEqual([0, -1, -1]);
     source.money = 100;
     view.render();
-    expect(cards(element).map(card => card.tabIndex), 'the first affordable card').toEqual([-1, 0, -1]);
+    expect(cards(element).map(card => card.tabIndex), 'a greyed card is still the first shown').toEqual([0, -1, -1]);
     view.focusCatalogue();
-    expect(doc.activeElement).toBe(cards(element)[1]);
+    expect(doc.activeElement).toBe(cards(element)[0]);
     source.money = 1_000;
     cards(element)[2].fire('click');
     expect(cards(element).map(card => card.tabIndex)).toEqual([-1, -1, 0]);
+    // The chosen card keeps Choose item's focus after the household can no longer afford it.
+    source.money = 10;
+    view.render();
     view.focusCatalogue();
     expect(doc.activeElement).toBe(cards(element)[2]);
   });
@@ -697,6 +756,7 @@ describe('BuyToolControls', () => {
     };
     expect(key('ArrowRight')).toBe(true);
     expect(doc.activeElement).toBe(cards(element)[0]);
+    expect(cards(element)[0].tabIndex).toBe(0);
     expect(key('ArrowRight')).toBe(true);
     expect(doc.activeElement, 'the Bed is the only card the Energy filter shows').toBe(cards(element)[0]);
     element('buy-clear-filters').fire('click');
@@ -704,11 +764,18 @@ describe('BuyToolControls', () => {
     expect(doc.activeElement).toBe(cards(element)[2]);
     key('ArrowLeft');
     expect(doc.activeElement).toBe(cards(element)[1]);
+    // The card moved to is the one Tab stop, so Tab leaves the grid from it.
+    expect(cards(element).map(card => card.tabIndex)).toEqual([-1, 0, -1]);
+    view.render();
+    expect(cards(element).map(card => card.tabIndex), 'kept across a redraw').toEqual([-1, 0, -1]);
     key('Home');
     expect(doc.activeElement).toBe(cards(element)[0]);
     key('ArrowUp');
     expect(doc.activeElement, 'wraps around').toBe(cards(element)[2]);
     expect(key('Enter')).toBe(false);
+    let prevented = false;
+    element('buy-object').fire('keydown', { key: 'ArrowLeft', altKey: true, preventDefault: () => { prevented = true; } });
+    expect(prevented, 'a browser shortcut passes through').toBe(false);
   });
 
   it('words what an item is good for from the need names', () => {
@@ -759,31 +826,37 @@ describe('the catalogue pictures', () => {
     } finally { handle.free(); }
   });
 
-  it('draws each card from the pages its layers live on, one page at a time, and reports a failed page last', async () => {
-    const drawn: string[] = [];
-    const canvas = (name: string) => ({ width: 72, height: 72,
-      getContext: () => ({ set imageSmoothingEnabled(_: boolean) {}, drawImage: (...args: unknown[]) => { drawn.push(`${name}:${args.length}`); } }) }) as unknown as HTMLCanvasElement;
-    const sprite = buy_sprite_on_two_pages();
+  it('draws the base behind the foreground whichever page each lives on, and reports a failed page last', async () => {
+    const order: string[] = [];
+    const canvas = { width: 72, height: 72, getContext: () => {
+      let mode = 'source-over';
+      return {
+        set imageSmoothingEnabled(_: boolean) {}, set imageSmoothingQuality(_: string) {},
+        set globalCompositeOperation(value: string) { mode = value; }, get globalCompositeOperation() { return mode; },
+        drawImage: (bitmap: { page: number }) => { order.push(`${bitmap.page}:${mode}`); },
+      };
+    } } as unknown as HTMLCanvasElement;
+    // Two real sprites on different pages, one standing for the base and
+    // one for its foreground, tried both ways round.
+    const indexOn = (page: number) => SPRITES.findIndex(sprite => (sprite.page ?? 0) === page);
+    const low = indexOn(2);
+    const high = indexOn(3);
+    expect(low).toBeGreaterThanOrEqual(0);
+    expect(high).toBeGreaterThanOrEqual(0);
     const loaded: number[] = [];
-    const bitmap = { close: () => { loaded.push(-1); } } as unknown as ImageBitmap;
-    await drawCataloguePreviews([{ canvas: canvas('a'), sprite: sprite.base, foreground: sprite.foreground }],
-      async page => { loaded.push(page); return bitmap; });
-    expect(drawn).toEqual(['a:9', 'a:9']);
-    // One load and one close per page the layers live on, in page order.
-    const pages = [...new Set([sprite.basePage, sprite.foregroundPage])].sort((a, b) => a - b);
-    expect(loaded).toEqual(pages.flatMap(page => [page, -1]));
+    const load = async (page: number) => { loaded.push(page); return { page, close: () => { loaded.push(-page); } } as unknown as ImageBitmap; };
+    await drawCataloguePreviews([{ canvas, sprite: low, foreground: high }], load);
+    expect(order).toEqual(['2:source-over', '3:source-over']);
+    expect(loaded).toEqual([2, -2, 3, -3]);
+    order.length = 0;
+    // The foreground's page comes first: the base is drawn behind it.
+    await drawCataloguePreviews([{ canvas, sprite: high, foreground: low }], load);
+    expect(order).toEqual(['2:source-over', '3:destination-over']);
     const failures: number[] = [];
-    await expect(drawCataloguePreviews([{ canvas: canvas('b'), sprite: sprite.base, foreground: null }],
+    await expect(drawCataloguePreviews([{ canvas, sprite: low, foreground: null }],
       async page => { failures.push(page); throw new Error('offline'); })).rejects.toThrow('offline');
-    expect(failures).toEqual([sprite.basePage]);
+    expect(failures).toEqual([2]);
   });
-
-  /** Two shipped sprites that may share a page; the test only needs real indices. */
-  function buy_sprite_on_two_pages() {
-    const base = SPRITES.findIndex(sprite => sprite.name.startsWith('offlineFridge'));
-    const foreground = SPRITES.findIndex((sprite, index) => index !== base && sprite.name.startsWith('offlineFridge'));
-    return { base, foreground, basePage: SPRITES[base].page ?? 0, foregroundPage: SPRITES[foreground].page ?? 0 };
-  }
 });
 
 describe('the Buy tool on real wasm', () => {

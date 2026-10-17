@@ -15,7 +15,6 @@ body[data-building='true'] #builder-controls { box-sizing: border-box; width: 30
 #builder-controls select { min-width: 0; max-width: 100%; min-height: 44px;
   color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
   border-radius: 4px; font: inherit; font-size: 14px; }
-#buy-room-filter { width: 100%; }
 #buy-facts { overflow-wrap: anywhere; }
 [data-context-action] { flex-direction: column; }
 .action-price { display: block; font-size: 11px; color: var(--hud-muted); font-weight: normal; }
@@ -104,7 +103,7 @@ body[data-building='true'] #build-camera { display: flex; }
      keeps the height of its cards or the dock would squeeze it shut. In the
      dock a card lays its picture beside its lines, so the whole card fits
      the dock's short view. */
-  #builder-dock .catalogue-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; min-height: max-content; flex: none; }
+  #builder-dock .catalogue-grid { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; min-height: max-content; flex: none; padding: 5px; margin: -5px; }
   /* The Buy tool scrolls inside the dock; its rows keep their content's
      height rather than sharing the dock's, so nothing overlaps. */
   #builder-dock #buy-tool { grid-auto-rows: max-content; }

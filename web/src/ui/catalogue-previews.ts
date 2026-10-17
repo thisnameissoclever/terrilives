@@ -1,4 +1,5 @@
 import { ATLAS_PAGE_FILES, SPRITES, SPRITE_ANCHORS, SPRITE_CONTENT_BOUNDS } from '../render/atlas.js';
+import { spriteHeight, spriteWidth } from '../render/sprite-size.js';
 
 // The store catalogue's pictures - rule 2 of
 // docs/specs/2026-10-17-store-catalogue.md. Each card's canvas gets the
@@ -30,11 +31,15 @@ function layer(index: number): Layer | null {
   return { index, bounds, density };
 }
 
+/** A sprite's anchor in logical pixels; the renderer's default is its bottom center. */
+function anchor(index: number): readonly [number, number] {
+  return SPRITE_ANCHORS[index] ?? [spriteWidth(index) / 2, spriteHeight(index)];
+}
+
 /** Where `other` sits relative to `base`, in logical pixels, by their anchors. */
 function offset(base: number, other: number): [number, number] {
-  const anchorBase = SPRITE_ANCHORS[base];
-  const anchorOther = SPRITE_ANCHORS[other];
-  if (!anchorBase || !anchorOther) return [0, 0];
+  const anchorBase = anchor(base);
+  const anchorOther = anchor(other);
   return [anchorBase[0] - anchorOther[0], anchorBase[1] - anchorOther[1]];
 }
 
@@ -60,7 +65,8 @@ export function previewBox(card: Pick<PreviewCard, 'sprite' | 'foreground'>): [n
 }
 
 function drawLayer(context: CanvasRenderingContext2D, bitmap: ImageBitmap, item: Layer,
-  shift: readonly [number, number], box: readonly [number, number, number, number], canvas: HTMLCanvasElement): void {
+  shift: readonly [number, number], box: readonly [number, number, number, number], canvas: HTMLCanvasElement,
+  behind: boolean): void {
   const sprite = SPRITES[item.index];
   const [x0, y0, x1, y1] = item.bounds;
   const boxWidth = box[2] - box[0];
@@ -68,11 +74,14 @@ function drawLayer(context: CanvasRenderingContext2D, bitmap: ImageBitmap, item:
   const scale = Math.min(canvas.width / boxWidth, canvas.height / boxHeight);
   const originX = (canvas.width - boxWidth * scale) / 2;
   const originY = (canvas.height - boxHeight * scale) / 2;
+  // A base whose foreground was drawn from an earlier page goes behind it.
+  context.globalCompositeOperation = behind ? 'destination-over' : 'source-over';
   context.drawImage(bitmap,
     sprite.x + x0 * item.density, sprite.y + y0 * item.density,
     (x1 - x0) * item.density, (y1 - y0) * item.density,
     originX + (x0 + shift[0] - box[0]) * scale, originY + (y0 + shift[1] - box[1]) * scale,
     (x1 - x0) * scale, (y1 - y0) * scale);
+  context.globalCompositeOperation = 'source-over';
 }
 
 /** Fetches and decodes one atlas page; the caller closes the bitmap. */
@@ -85,30 +94,32 @@ async function loadPage(page: number): Promise<ImageBitmap> {
 }
 
 /**
- * Draws every card's picture. Cards whose layers sit on two pages are
- * drawn in two passes; a page that fails to load is skipped and its cards
- * keep whatever they held, and the error is reported once the rest are
- * drawn.
+ * Draws every card's picture, smoothed as the game filters its sprites.
+ * Cards whose layers sit on two pages are drawn in two passes, the base
+ * always behind the foreground; a page that fails to load is skipped and
+ * its cards keep whatever they held, and the error is reported once the
+ * rest are drawn.
  */
 export async function drawCataloguePreviews(cards: readonly PreviewCard[],
   load: (page: number) => Promise<ImageBitmap> = loadPage): Promise<void> {
-  const passes = new Map<number, { card: PreviewCard; item: Layer; shift: [number, number]; box: [number, number, number, number] }[]>();
+  const passes = new Map<number, { card: PreviewCard; item: Layer; shift: [number, number]; box: [number, number, number, number]; foreground: boolean }[]>();
   for (const card of cards) {
     const box = previewBox(card);
     const base = layer(card.sprite);
     if (!box || !base) continue;
-    const layers: { item: Layer; shift: [number, number] }[] = [{ item: base, shift: [0, 0] }];
+    const layers: { item: Layer; shift: [number, number]; foreground: boolean }[] = [{ item: base, shift: [0, 0], foreground: false }];
     if (card.foreground !== null) {
       const front = layer(card.foreground);
-      if (front) layers.push({ item: front, shift: offset(card.sprite, card.foreground) });
+      if (front) layers.push({ item: front, shift: offset(card.sprite, card.foreground), foreground: true });
     }
-    for (const { item, shift } of layers) {
+    for (const { item, shift, foreground } of layers) {
       const page = SPRITES[item.index].page ?? 0;
       const list = passes.get(page) ?? [];
-      list.push({ card, item, shift, box });
+      list.push({ card, item, shift, box, foreground });
       passes.set(page, list);
     }
   }
+  const foregroundDrawn = new Set<PreviewCard>();
   let failure: unknown = null;
   for (const [page, draws] of [...passes.entries()].sort((a, b) => a[0] - b[0])) {
     let bitmap: ImageBitmap;
@@ -119,11 +130,14 @@ export async function drawCataloguePreviews(cards: readonly PreviewCard[],
       continue;
     }
     try {
-      for (const { card, item, shift, box } of draws) {
+      // Within one page, every base before every foreground.
+      for (const { card, item, shift, box, foreground } of [...draws].sort((a, b) => Number(a.foreground) - Number(b.foreground))) {
         const context = card.canvas.getContext('2d');
         if (!context) continue;
-        context.imageSmoothingEnabled = false;
-        drawLayer(context, bitmap, item, shift, box, card.canvas);
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        drawLayer(context, bitmap, item, shift, box, card.canvas, !foreground && foregroundDrawn.has(card));
+        if (foreground) foregroundDrawn.add(card);
       }
     } finally {
       bitmap.close();

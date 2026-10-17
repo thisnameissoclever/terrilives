@@ -813,16 +813,16 @@
         border: 1px solid var(--hud-edge); border-radius: 4px;
         font: inherit; font-size: 12px; line-height: 1.2; cursor: pointer;
       }
-      @media (any-pointer: fine) {
+      @media not (any-pointer: coarse) {
         #builder-controls .catalogue-filters .hud-button, #builder-controls #buy-clear-filters { min-height: 32px; padding: 3px 8px; font-size: 12px; }
       }
       .catalogue-filters .hud-button[aria-pressed='true'] { border-color: var(--need-fill); color: var(--need-fill); font-weight: 600; }
-      .catalogue-card:hover { background: #29313a; }
+      .catalogue-card:not([aria-disabled='true']):not(:disabled):hover { background: #29313a; }
       .catalogue-card:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
       .catalogue-card[aria-pressed='true'] { border-color: var(--need-fill); box-shadow: 0 0 0 1px var(--need-fill); }
-      .catalogue-card:disabled { opacity: 0.45; cursor: default; }
+      .catalogue-card:disabled, .catalogue-card[aria-disabled='true'] { opacity: 0.45; cursor: default; }
       .catalogue-card[hidden] { display: none; }
-      .catalogue-picture { width: 72px; height: 72px; image-rendering: pixelated; }
+      .catalogue-picture { width: 72px; height: 72px; }
       .catalogue-type { font-weight: 600; text-align: center; overflow-wrap: anywhere; }
       .catalogue-model, .catalogue-price { color: var(--hud-muted); text-align: center; overflow-wrap: anywhere; }
       /* [B-phone-build-dock]: each tool holds its choices, then a footer of
